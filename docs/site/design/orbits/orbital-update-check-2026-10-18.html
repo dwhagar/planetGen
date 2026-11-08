@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital update check against Boss's four steps (2026-10-18) - planetGen docs</title>
+<meta name="description" content="Read-only check, no code changes.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/orbital-update-check-2026-10-18.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/orbital-update-check-2026-10-18.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="orbital-update-check-against-bosss-four-steps-2026-10-18">Orbital update check against Boss's four steps (2026-10-18)</h1><p class="meta">docs/design/orbits/orbital-update-check-2026-10-18.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#summary-table">Summary table</a></li><li style="margin-left:0px"><a href="#step-1-check-which-records-need-an-update-covered-built">Step 1: check which records need an update. Covered, built.</a></li><li style="margin-left:0px"><a href="#step-2-records-without-a-next-update-field-partly-covers-the-built-code-does-something-different">Step 2: records without a next-update field. Partly covers; the built code does something different.</a></li><li style="margin-left:0px"><a href="#step-3-position-changes-first-partly-covers">Step 3: position changes first. Partly covers.</a></li><li style="margin-left:0px"><a href="#step-4-vector-change-from-gravity-partly-covers-contradicts-on-two-points-not-built">Step 4: vector change from gravity. Partly covers, contradicts on two points, not built.</a></li><li style="margin-left:0px"><a href="#final-entry-next-update-from-speed-covered-for-position-a-gap-for-vector-updates">Final entry: next update from speed. Covered for position, a gap for vector updates.</a></li><li style="margin-left:0px"><a href="#according-to-the-floor-it-is-already-approved">"According to the floor, it is already approved"</a></li><li style="margin-left:0px"><a href="#forks-for-boss-recommendation-first">Forks for Boss (recommendation first)</a></li><li style="margin-left:0px"><a href="#decided-boss-2026-10-18">Decided (Boss, 2026-10-18)</a></li><li style="margin-left:0px"><a href="#decided-visit-order-boss-2026-10-18">Decided: visit order (Boss, 2026-10-18)</a></li></ul></details>
+<p>Read-only check, no code changes. Written after Boss's message of 5:24 PM EDT on 2026-10-18 (this lane's clock). Sources: docs on main at 440db88 (<code>docs/design/orbits/orbital-updates.md</code>, <code>orbital-solvers-and-integrators.md</code>, <code>Orbital Update Full Algorithm.md</code>, <code>galactic-potential.md</code>, <code>gravity-map.md</code>, <code>mass-object-class.md</code>, <code>docs/plan/releases/version-8-3-moving-galaxy.md</code>, <code>docs/TODO.md</code>), the drafts in this folder (<code>unified-system-barycentre.md</code>, <code>unified-star-like-objects.md</code>, <code>mass-object-class-savings.md</code>) and the code in <code>src/planetgen/db/store.py</code>, <code>physics/position.py</code>, <code>physics/field_kernel.py</code>, <code>physics/sector_path.py</code>. Nothing was run; every code statement is from reading the source.</p>
+<p>Boss's message, quoted:</p>
+<blockquote>
+<p>And let's also double-check that the orbital motion updates:</p>
+<ol>
+<li>Checks for whatever records require an update.</li>
+<li>New records without a next update field will always get an update, where the next update field will be set.</li>
+<li>Calculate any required position changes first.</li>
+<li>Change the motion vector of each object to account for gravitational effects, given the point mass, calculated gradient of the sector and area surrounding the sector, using the algorithm of: the largest hill radius present in the galaxy becomes the search radius for gravitational objects. So that we can calculate the vector field and the gravitational gradient at the exact location of the object to update its motion vector</li>
+</ol>
+<p>Based on speed the system will then set an entry in the database for that object for when it next needs a position or motion update. According to the floor, it is already approved</p>
+</blockquote>
+<h2 id="summary-table">Summary table</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Verdict</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Step 1, find records that need an update</td>
+<td>Covered, and built</td>
+<td>orbital-updates.md section 3 and section 4 (&quot;A ceiling on a night's work&quot;); <code>store.py</code> selects <code>next_update_due IS NULL OR next_update_due &lt;= end</code> ordered by <code>next_update_due</code> (lines 5373, 5456, 5517, 9581), indexed column, GEN.106</td>
+</tr>
+<tr>
+<td>Step 2, new records always get an update and a next-update value</td>
+<td>Partly covers, and the built code differs</td>
+<td>orbital-updates.md section 3 (&quot;first works out a due time for rows that have none&quot;); <code>store._schedule_updates</code> (9211) and <code>_due_interval_s</code> (9237)</td>
+</tr>
+<tr>
+<td>Step 3, positions first</td>
+<td>Partly covers; the ordering Boss states is not written anywhere</td>
+<td>Full Algorithm &quot;Master Simulation Workflow&quot;; GEN.340 (kick-drift-kick); built code moves position and velocity in one analytic step</td>
+</tr>
+<tr>
+<td>Step 4, vector change from point masses plus gradient, search radius = largest Hill radius in the galaxy</td>
+<td>Partly covers, contradicts on two points, not built</td>
+<td>GEN.109 children GEN.341, GEN.342, GEN.343; GEN.198; Boss 2026-10-09 rule; card S13</td>
+</tr>
+<tr>
+<td>Final entry, next update set from speed</td>
+<td>Covered for position, silent on motion-vector updates</td>
+<td>orbital-updates.md section 3; <code>position.update_interval_s</code> (physics/position.py:93); GEN.139</td>
+</tr>
+<tr>
+<td>&quot;According to the floor, it is already approved&quot;</td>
+<td>Could not tell</td>
+<td>see the last section</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="step-1-check-which-records-need-an-update-covered-built">Step 1: check which records need an update. Covered, built.</h2>
+<p>Each moving row has <code>epoch_unix</code> and an indexed <code>next_update_due</code> (GEN.106, schema v66, listed in orbital-updates.md section 3 and the &quot;Status&quot; line). A run selects only rows with <code>next_update_due IS NULL OR next_update_due &lt;= end of the span</code>, oldest due first. A row ceiling (PERF.103, <code>tuning.ORBIT_UPDATE_ROW_CEILING</code>, 10,000,000) can defer the rest; deferred rows stay due and go first next run. Nothing is skipped silently.</p>
+<p>Two notes that touch the new standing rule (Boss, 5:20 PM EDT, GEN.565 and GEN.584):</p>
+<ul>
+<li>The check is not one function. It is repeated in <code>advance_galactic_positions</code>, <code>advance_orbital_phases</code> and <code>advance_comet_orbits</code>, and for about a dozen tables, each with its own epoch and due columns. GEN.584 (SY17) puts epoch and next-due in the core's kinematic record, so after GEN.565b and GEN.584 there is one check for every kind of motion. That agrees with Boss's rule. GEN.565a (#2274) only carries the galactic-motion fields, so the one-check outcome is not there until the later slices.</li>
+<li>The 8.3 plan page still says the whole orbital update is &quot;Proposed by the TODO thread; not yet approved by Boss&quot; (<code>docs/plan/releases/version-8-3-moving-galaxy.md</code>, Goal).</li>
+</ul>
+<h2 id="step-2-records-without-a-next-update-field-partly-covers-the-built-code-does-something-different">Step 2: records without a next-update field. Partly covers; the built code does something different.</h2>
+<p>Design text: a run &quot;first works out a due time for rows that have none (new, or an orbit edited since)&quot; (orbital-updates.md section 3). Built: <code>_schedule_updates</code> and <code>_due_interval_s</code> give such a row <code>epoch + interval</code> (epoch taken as the last run's time when the row has none), then the row is moved only if that due time is at or before the end of the span (<code>store.py:5384</code>, 5460, 5521, 5632). So today a new record is scheduled, not necessarily updated. Boss's wording is that it &quot;will always get an update&quot;. That is a difference, not a contradiction of the design's intent.</p>
+<p>One more point I could not test: a NULL epoch means &quot;at the last run&quot; (position.py docs; <code>clock.start_unix</code>). A record created after the last run has its position at its creation time, so treating its position as holding at the last run's time would advance it over time before it existed. Whether generation stamps an epoch on new rows was not checked here.</p>
+<h2 id="step-3-position-changes-first-partly-covers">Step 3: position changes first. Partly covers.</h2>
+<ul>
+<li>The Full Algorithm (Boss's imported document) does half-kick, drift, then second half-kick per object, stages every new position and commits atomically, with the sector point-mass tables read at the start (so the pull comes from the old positions of the other objects).</li>
+<li>The design replaced that with one adaptive integration per object over its whole interval (orbital-updates.md section 4 and 10.4) and GEN.340 builds a kick-drift-kick stepper on arrays. Neither is &quot;all positions first, then all vectors&quot;.</li>
+<li>The built code (<code>advance_galactic_positions</code>, <code>advance_orbital_phases</code>) moves position and velocity together in one analytic step (rotation about the galactic axis for stars, <code>kepler.universal_step</code> for planets, moons and comets) and applies no neighbour pull at all.</li>
+<li>A not-due object is not moved, so its stored position is up to one threshold old (0.01 mpc, 0.01 AU or 100,000 km). That is inside the design's own definition of &quot;has not moved noticeably&quot;, so using stored positions of not-due objects as sources is consistent with Boss's thresholds.</li>
+</ul>
+<h2 id="step-4-vector-change-from-gravity-partly-covers-contradicts-on-two-points-not-built">Step 4: vector change from gravity. Partly covers, contradicts on two points, not built.</h2>
+<p>Covered:</p>
+<ul>
+<li>&quot;Point mass of the objects found plus the galactic gradient, summed at the object's own position&quot;: GEN.342 (acceleration kernel, &quot;pairwise point masses ... plus the galactic gradient of GEN.115's module, leaving out the object itself&quot;, then the velocity update) and the potential in GEN.338 and <code>galactic-potential.md</code>. Vector fields are &quot;never stored&quot; (orbital-updates.md section 4), which matches &quot;at the exact location of the object&quot;. GEN.198 is the same evaluator for any point (pull, potential, tidal gradient) and is meant to wrap GEN.342's kernel.</li>
+<li>Per-sector point-mass tables with the largest mass per sector exist (<code>sectors.max_mass_kg</code> and <code>max_mass_id</code>, DB.55, schema v102, <code>schema.sql:1469</code>), and the sector search that matches brute force is in <code>orbital-solvers-and-integrators.md</code> section 6.4 (GEN.341).</li>
+<li>Hill-radius warnings by the gravitational criterion: GEN.344.</li>
+</ul>
+<p>Contradicts or differs:</p>
+<ol>
+<li><strong>Search radius.</strong> Boss, 2026-10-09 (relayed, TODO GEN.109): &quot;the influence radius is the maximum Hill sphere of the largest nearby object&quot;. Solver doc section 6.3: take the largest mass within a first scan of about 6 pc, grow the scan to a fixed point, and add cover lists for objects whose Hill sphere is wider than 1.5 sector edges. Boss's message of 5:24 PM EDT says the largest Hill radius present in the galaxy is the search radius. That is a single global number, which is simpler (no fixed point, no cover lists) but much larger. Scaling the table in solver doc section 6.1 (1 solar mass: 1.37 pc Jacobi radius at 8.128 kpc, growing as mass^(1/3)), a 4.3e6 solar-mass Sgr A* treated like any object would give about 220 pc (my scaling, not a run), which is of order 700,000 sectors of 4 pc per object. The same section's cost table shows the explosion already at 1e4 solar masses (2,359 sectors). The central black hole is also already in the smooth potential (GEN.285, realistic-galactic-core.md), so counting it again as a point mass would double count. GEN.370 (open, &quot;Hill spheres ... use the Milky Way's mass and Sol's distance for every galaxy&quot;) must be fixed first or the maximum is computed with the wrong enclosed mass.</li>
+<li><strong>Which objects get the vector change.</strong> Boss says &quot;each object&quot;. Card S13 (tapped 12:30 AM EDT on 2026-10-18, recommended option, <code>unified-system-barycentre.md</code> section 10.5 and 13) says trajectories inside a system are an analytic two-body orbit per frame, and the outer system's pull is a validity condition (Hill fraction, triple and Kozai screens), &quot;not a force in this model&quot;; the orbital update &quot;never integrates&quot;. The galactic pass in orbital-updates.md section 4 also applies influence only to root objects; planets and moons get Kepler steps and the perturbed pass (GEN.343) only when a perturber is inside the system (GEN.290). But Boss's own design of 2026-10-15, 11:06 PM EDT (quoted in GEN.290) is that &quot;a planet or moon is moved by the summed gravitational influence of point masses ... plus passing objects&quot;, so the all-objects reading has precedent and S13 is the newer, narrower card. The two are not reconciled in the docs.</li>
+</ol>
+<p>Silent:</p>
+<ul>
+<li>The word &quot;gradient&quot;. In Boss's earlier texts (GEN.115, 2026-10-07) it means the galaxy's smooth gravitational field, which is what changes velocity. In <code>gravity-map.md</code> it means the gradient of the pull (the tidal tensor), which does not change a velocity at first order and is drawn as a heat map. I read step 4 as the first meaning (acceleration from the point masses plus the smooth galactic pull). The tidal tensor stays a display and screening quantity.</li>
+<li>The ordering between objects: whether the pull on one object uses the other objects' old or new positions (see fork 3).</li>
+</ul>
+<h2 id="final-entry-next-update-from-speed-covered-for-position-a-gap-for-vector-updates">Final entry: next update from speed. Covered for position, a gap for vector updates.</h2>
+<p>Built and documented: after an object is moved, <code>position.update_interval_s(speed, scale)</code> (threshold divided by speed, capped at 1e9 years; <code>MAX_UPDATE_INTERVAL_S</code>, position.py:88) gives its next-due time (orbital-updates.md section 3). Gaps:</p>
+<ul>
+<li>The time is set from the speed. Step 4 changes the speed, so the next-due time has to be worked out after step 4 from the new vector. The docs do not say so, and the built code has no step 4.</li>
+<li>A speed-based interval says when a position crosses its threshold, not when the vector needs refreshing. An object at rest, or moving slowly, with a massive object approaching is not revisited until its own long interval ends. Solver doc section 5, recommended scheme item 2, makes next-due the earliest of sector exit, the time for the influence set to change (<code>R_infl / (10 v_rel)</code>), one period for a perturbed bound body, and the literal threshold time; GEN.139 (Boss, 2026-10-10 2:44 PM EDT, defaults approved) took the analytic-orbit part of that. Boss's message says &quot;based on speed&quot; only.</li>
+<li>Boss says &quot;when it next needs a position or motion update&quot; with one entry. The design has one <code>next_update_due</code> for both; if he means two separate times (position due, vector due) that is a different schema.</li>
+<li>Applied literally to the galaxy-frame speed, 0.01 mpc makes every star due every 16 days at 220 km/s (solver doc section 5). GEN.139 (c) leaves open whether the threshold uses galaxy-frame or peculiar speed.</li>
+</ul>
+<h2 id="according-to-the-floor-it-is-already-approved">&quot;According to the floor, it is already approved&quot;</h2>
+<p>I could not tell what this means, and I did not treat it as approval of anything. Possible referents I can list without choosing: the word &quot;floor&quot; appears in this project as the 10 m representability floor of the mass object class (card E2), the 1 m/s focusing floor in the collision formula, and the per-body <code>min_update_interval_years</code> floor in the code. A voice-typing slip for another word (for example &quot;flow&quot;, &quot;file&quot; or &quot;plan&quot;) is also possible. What I could verify as approved by Boss: the 2026-10-09 &quot;largest nearby object&quot; influence rule, the 2026-10-10 defaults for GEN.109 and GEN.139 (&quot;stars follow their analytic orbit and are rewritten at sector exit or when the influence set changes&quot;), the real-time step, the 2026-10-15 design of planets and moons moved by summed pull, and cards S10 to S18. What I did not find recorded as approved: the global largest Hill radius as search radius, the &quot;positions first, then vectors&quot; order, step 2's &quot;always get an update&quot;, and the speed-only next-due rule. The 8.3 plan page says the version is &quot;not yet approved by Boss&quot;.</p>
+<h2 id="forks-for-boss-recommendation-first">Forks for Boss (recommendation first)</h2>
+<ol>
+<li><strong>Search radius for step 4.</strong>
+<ul>
+<li>(a) Recommended: use Boss's rule as the broad-phase bound, one stored number, the largest Hill radius of any object in the galaxy; leave the central black hole out of that maximum because it is in the smooth potential (GEN.285); sum the nearest 64 exactly and the rest as one point mass per sector (the existing <code>max_exact_members</code> cap); fix GEN.370 first so the radius uses the galaxy's own enclosed mass.</li>
+<li>(b) Literal: every object inside the global radius contributes exactly, central black hole included. Hundreds of pc around every object; not workable at the galaxy sizes in the plan.</li>
+<li>(c) Keep the 2026-10-09 &quot;largest nearby object&quot; rule with cover lists.</li>
+</ul>
+</li>
+<li><strong>Who gets the vector change.</strong>
+<ul>
+<li>(a) Recommended: every object goes through the same core function (Boss's 5:20 PM EDT rule). A bound planet or moon works in its host's frame with the host's pull taken out (GEN.342 already says so); when nothing but the host matters it takes the analytic Kepler step; S13's tide screens stay as validity checks.</li>
+<li>(b) Stay with S13 as tapped: only root objects (stars, remnants, rogues) get the field; bound members stay analytic and use the perturbed pass only when a perturber is inside the system.</li>
+<li>(c) Integrate every system numerically every update. Closest to Boss's literal wording, most expensive.</li>
+</ul>
+</li>
+<li><strong>Order of positions and vectors.</strong>
+<ul>
+<li>(a) Recommended: two phases per run. Phase 1 advances every due object's position. Phase 2 computes each due object's pull at its new position from the sources' new positions (not-due sources at their stored positions), then changes the vector. Deterministic and independent of the order rows are visited; GEN.340's kick-drift-kick still serves as the integrator inside each phase.</li>
+<li>(b) Per object, position then vector, using whatever the other objects' stored positions are at that moment. Order-dependent.</li>
+<li>(c) Full Algorithm style: every pull read from the old positions, everything committed together.</li>
+</ul>
+</li>
+<li><strong>When an object is next due.</strong>
+<ul>
+<li>(a) Recommended: Boss's speed rule applied to the vector after step 4, capped at the time for the influence set to change (so a slow object is revisited when a massive object approaches).</li>
+<li>(b) Speed only, as Boss wrote it. Simplest; a nearly stationary object near a passing mass can miss the pass until its own interval ends.</li>
+<li>(c) The full earliest-of rule in solver doc section 5.</li>
+</ul>
+</li>
+<li><strong>New records without a next-update value.</strong>
+<ul>
+<li>(a) Recommended: always visited on the next run: next-due is set, step 4 runs once, and the position only advances over the time since the record's own epoch (generation stamps the epoch), never over time before it existed.</li>
+<li>(b) As built: scheduled, moved only if the computed due time falls inside the span.</li>
+<li>(c) Always advanced from the last run's time, as the NULL-epoch rule reads literally.</li>
+</ul>
+</li>
+</ol>
+<h2 id="decided-boss-2026-10-18">Decided (Boss, 2026-10-18)</h2>
+<p>Card taps between 5:30 and 5:33 PM EDT, as the coordinator reported them to the TODO thread (the cards are in the project chat; their tap results are not readable by the TODO thread). The last card, approval of the orbital motion update to build, was answered &quot;Approved as the cards say&quot;.</p>
+<ol>
+<li>Search radius: option (a), the largest Hill radius of any object in the galaxy, central black hole left out of the maximum, 64 exact then one point mass per sector, GEN.370 first.</li>
+<li>Who gets the vector change: option (a), every object through the one core function (amends card S13).</li>
+<li>Order: per object steps (option (b)): each object moves, then gets its vector, in turn. The visit order is tier, then mass, and each chunk reads the state at its start; that chunk-start rule is the only rule (section &quot;Decided: visit order&quot;), so the visit order must be fixed and tested. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): the chunk-start rule stands and the &quot;mix of old and new positions&quot; wording is removed. The recommended two-phase option was not chosen.</li>
+<li>Next due: option (a), speed from the new vector, capped at the time for the influence set to change.</li>
+<li>New records: option (a), always visited, position advanced only from the record's own epoch, then next-update set.</li>
+</ol>
+<p>The &quot;floor&quot; remark stays unexplained; the approval card answered the question it raised.</p>
+<h2 id="decided-visit-order-boss-2026-10-18">Decided: visit order (Boss, 2026-10-18)</h2>
+<p>Boss's words, 5:38 PM EDT: move every due object by mass first (a black hole before a planet), then hosts first; the chain is primary (the main object), secondary (planets), tertiary (moons), quinary (small moon satellites, if they exist); galactic-frame objects (a rogue planet, an interstellar comet, a single primary star) move before anything inside a system. His card tap at 5:41 PM EDT, as the coordinator reported it: &quot;Tier first, then mass&quot;. The order is a stable sort of the due objects on (tier, mass heaviest first, ties by id). Tier is the number of hops from the galactic frame, derived from the parent link and not stored: 0 top-level objects (each system's primary included), 1 planets and companion stars, 2 moons, 3 small moon satellites; a rogue planet's moon is tier 1. Rows run in ordered chunks (tier, then mass band), each seeing the state at its start. A planet heavier than a companion star stays in its tier and is ordered by mass there; a capture in the middle of a run takes effect in the next run's order. Open measurement: sort cost on millions of due rows.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

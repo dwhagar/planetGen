@@ -1,0 +1,1286 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Survival equipment fields: a combinable Body + Filter + Supply system for the habitability index (GEN.655, DB.93) - planetGen docs</title>
+<meta name="description" content="Research thread &quot;Survival equipment fields&quot;.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/survival-equipment-fields.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/survival-equipment-fields.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="survival-equipment-fields-a-combinable-body--filter--supply-system-for-the-habitability-index-gen655-db93">Survival equipment fields: a combinable Body + Filter + Supply system for the habitability index (GEN.655, DB.93)</h1><p class="meta">docs/design/habitability/survival-equipment-fields.md</p><details class="toc"><summary>On this page (37 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-short-version">1. The short version</a></li><li style="margin-left:0px"><a href="#2-bosss-decisions-737-pm-edt-2026-10-23">2. Boss's decisions (7:37 PM EDT 2026-10-23)</a></li><li style="margin-left:0px"><a href="#3-what-exists-today-and-what-it-cannot-say">3. What exists today, and what it cannot say</a></li><li style="margin-left:0px"><a href="#4-the-science-by-category">4. The science, by category</a></li><li style="margin-left:14px"><a href="#41-body-protection-what-shields-the-skin-and-the-body-from-pressure-heat-cold-and-chemistry">4.1 Body protection (what shields the skin and the body from pressure, heat, cold and chemistry)</a></li><li style="margin-left:14px"><a href="#42-air-filter-or-scrubber-what-is-taken-out-of-the-air-before-it-is-breathed">4.2 Air filter or scrubber (what is taken out of the air before it is breathed)</a></li><li style="margin-left:14px"><a href="#43-air-supply-where-the-breathing-gas-comes-from">4.3 Air supply (where the breathing gas comes from)</a></li><li style="margin-left:14px"><a href="#44-a-check-i-made-on-the-density-ceiling">4.4 A check I made on the density ceiling</a></li><li style="margin-left:14px"><a href="#45-radiation-what-a-person-cannot-wear">4.5 Radiation (what a person cannot wear)</a></li><li style="margin-left:0px"><a href="#5-the-slots-levels-thresholds-and-the-fields-that-feed-them">5. The slots: levels, thresholds and the fields that feed them</a></li><li style="margin-left:14px"><a href="#50-the-conditions-every-slot-reads-all-from-the-stored-row-unless-marked">5.0 The conditions every slot reads (all from the stored row unless marked)</a></li><li style="margin-left:14px"><a href="#51-slot-1-body-protection-eq_body-0-to-6-and-eq_body_kind">5.1 Slot 1: Body Protection (eq_body, 0 to 6, and eq_body_kind)</a></li><li style="margin-left:14px"><a href="#52-slot-2-air-filter-or-scrubber-three-parts-that-combine">5.2 Slot 2: Air Filter or Scrubber (three parts that combine)</a></li><li style="margin-left:14px"><a href="#53-slot-3-air-supply-eq_supply-0-to-4">5.3 Slot 3: Air Supply (eq_supply, 0 to 4)</a></li><li style="margin-left:14px"><a href="#54-slot-4-radiation-protection-eq_rad_suit-1-to-3-then-eq_shelter-1-or-2">5.4 Slot 4: Radiation Protection (eq_rad_suit 1 to 3, then eq_shelter 1 or 2)</a></li><li style="margin-left:14px"><a href="#55-regions-and-the-day-and-night-swing-decision-c-replaced">5.5 Regions and the day and night swing (decision C, replaced)</a></li><li style="margin-left:0px"><a href="#6-how-the-combination-is-built">6. How the combination is built</a></li><li style="margin-left:14px"><a href="#61-the-algorithm">6.1 The algorithm</a></li><li style="margin-left:14px"><a href="#62-the-name">6.2 The name</a></li><li style="margin-left:14px"><a href="#63-the-strip">6.3 The strip</a></li><li style="margin-left:14px"><a href="#64-required-or-recommended">6.4 Required or recommended</a></li><li style="margin-left:0px"><a href="#7-fields-to-store-and-how-they-are-served">7. Fields to store, and how they are served</a></li><li style="margin-left:0px"><a href="#8-relation-to-the-phi-6-domains-and-to-the-old-line">8. Relation to the PHI-6 domains and to the old line</a></li><li style="margin-left:14px"><a href="#81-domains">8.1 Domains</a></li><li style="margin-left:14px"><a href="#82-the-old-line-mapped-and-retired">8.2 The old line, mapped and retired</a></li><li style="margin-left:0px"><a href="#9-worked-examples-and-what-the-sample-shows">9. Worked examples and what the sample shows</a></li><li style="margin-left:14px"><a href="#91-named-worlds-old-line-against-new">9.1 Named worlds, old line against new</a></li><li style="margin-left:14px"><a href="#92-what-160-generated-systems-give-2261-rocky-planets-and-moons">9.2 What 160 generated systems give (2,261 rocky planets and moons)</a></li><li style="margin-left:14px"><a href="#93-species-and-tech-level-pop12">9.3 Species and tech level (POP.12)</a></li><li style="margin-left:0px"><a href="#10-what-it-touches">10. What it touches</a></li><li style="margin-left:0px"><a href="#11-proposed-items-numbers-for-todo-to-assign">11. Proposed items (numbers for TODO to assign)</a></li><li style="margin-left:0px"><a href="#12-evidence-notes">12. Evidence notes</a></li><li style="margin-left:0px"><a href="#13-files">13. Files</a></li><li style="margin-left:0px"><a href="#14-built-notes-gen655-db93">14. Built notes (GEN.655, DB.93)</a></li><li style="margin-left:0px"><a href="#15-bosss-follow-up-of-1125-pm-edt-2026-10-23-gen671-ux163">15. Boss's follow-up of 11:25 PM EDT 2026-10-23 (GEN.671, UX.163)</a></li><li style="margin-left:0px"><a href="#16-which-row-an-item-sits-under-gen702">16. Which row an item sits under (GEN.702)</a></li><li style="margin-left:0px"><a href="#17-hours-outside-in-a-day-gen768-boss-2026-10-24">17. Hours outside in a day (GEN.768, Boss 2026-10-24)</a></li></ul></details>
+<p>Research thread &quot;Survival equipment fields&quot;. Written for Boss's message of 6:56 PM EDT 2026-10-23: &quot;change the equipment system to be a +/- system where we just combine the different things a person could need and then derive a name from that. Categories of equipment are: Body Protection (like a suit, the lowest kind of suit that fits the environment) / Air Filter or Scrubber / Air Supply. Research first and give me a suggestion for the equipment fields for a world's habitability index to provide an accurate idea of survival equipment for the planet based on the possible needs.&quot;</p>
+<p><strong>Status.</strong> Built in 8.1 (GEN.655 the equipment module and its inputs, DB.93 the columns, API object and migration 0136; GEN.656 the regional temperatures, migration 0137, section 5.5). This page was the design draft of 2026-10-23, revised with Boss's answers (section 2); where the build differs from the draft, the difference is in section 14. Still to come, each its own item: the chips (UX.154), the wiring of the toxic-species rows to the stored gases (GEN.657, the limits are verified; the wiring waits for the generation lock, section 14) and the dust input's toxicity half (GEN.658 built the loading half; toxicity waits for the surface composition to be stored, GEN.441). The numbers in sections 8 and 9 come from a scratch prototype run against the repo's own physics on 17 named worlds and on 2,261 planets and moons from 160 generated systems; the module's own tests (<code>tests/test_equipment.py</code>) hold the named worlds. Values marked DESIGN are planetGen defaults meant to be tuned by a sweep; values marked RECALLED are from memory and must be checked against the source before they are leaned on; section 12 says which is which.</p>
+<h2 id="1-the-short-version">1. The short version</h2>
+<ol>
+<li><strong>Replace the one number (<code>equipment_tier</code>, 0 to 4) with items that add up</strong>, in four slots: <strong>Body Protection</strong> (the lowest suit that fits, 0 to 6, with the stress that set it, plus a powered frame for high gravity), <strong>Air Filter or Scrubber</strong> (dust, a gas filter of 3 grades, a CO<sub>2</sub> scrubber), <strong>Air Supply</strong> (0 to 4) and <strong>Radiation Protection</strong>. Radiation climbs a five-step ladder modelled on real gear: <strong>shielded garment</strong> (the apron and Demron class), <strong>storm vest</strong> (the AstroRad class flown on Artemis I), <strong>hardened suit</strong> (game technology), then <strong>shielded shelter</strong> and <strong>hardened habitat</strong> (Boss, A and F).</li>
+<li><strong>Only what is needed is listed, and each item says how badly.</strong> No &quot;none&quot; ever appears. Every item is <strong>required</strong> (past the physical limit) or <strong>recommended</strong> (the fuzzy band where a person survives but is impaired or at risk, or where only a region or the night asks for it). A world that needs nothing shows no equipment line at all (Boss, E).</li>
+<li><strong>The physics always decides the gear</strong> (Boss, B). Where the PHI-6 bands are looser than the physics (a filter in air past IDLH, the 10 MPa hyperbaric edge against the gas-density ceiling, H<sub>2</sub>S's IDLH), the equipment follows the physics and the scores stay as they are.</li>
+<li><strong>The temperature of every place sets the habitability; the best site sets the required gear; the worst places go in the text</strong> (Boss, 7:32 PM EST 11-04, which replaced decision C, habitability from the mean: GEN.1265, GEN.1266). The Temperature score reads the share of the surface and the year in which a person needs no suit (<code>physics/temperature_coverage.py</code>); the required gear is chosen for the best site at its coldest and hottest hour; the detail text names the worst place and hour elsewhere and the heavier gear it calls for, which is listed as recommended. The old rule, habitability from the average with regions in the text, is gone.</li>
+<li><strong>The name is derived, never stored</strong>, as two short lists in Boss's order (Body, Filter, Supply, Shelter): Mars reads &quot;Required: pressure suit + dust-tight seals. Recommended: hardened habitat.&quot; A short code (<code>B4p F100 S2 [R2]</code>, recommended items in brackets) is what the API and search carry (Boss, D).</li>
+<li><strong>One source of truth.</strong> The new <code>physics/equipment.py</code> returns a list of needs once; the stored levels, the describer sentences and the species fit all read it, replacing the parallel <code>habitability.equipment()</code> and <code>protection.requirements()</code>.</li>
+<li><strong>What the sample shows (160 systems, 2,261 rocky bodies).</strong> 2,009 need a pressure suit, 100 need armour or a vehicle, 14 need no body protection. Radiation, required: nothing 1,025, shielded garment 214, storm vest 84, hardened suit 118, shielded shelter 301, hardened habitat 519. Every Red-dose body in the sample is a storm-particle world (a flaring star), which is exactly where suits help; on cosmic-ray worlds like Mars no suit helps and the draft lists only the habitat.</li>
+</ol>
+<h2 id="2-bosss-decisions-737-pm-edt-2026-10-23">2. Boss's decisions (7:37 PM EDT 2026-10-23)</h2>
+<p>Boss answered in text and then cleared the cards; the text answer is the decision (&quot;my text answer stays&quot;, 7:39 PM EDT).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Question</th>
+<th>Boss's answer</th>
+<th>What it changed in this draft</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>A fourth slot for radiation?</td>
+<td>&quot;1 and 2, so radiation shelter is a higher level than just hardened suit, within the game environment such suits exist.&quot;</td>
+<td>Both: a <strong>hardened</strong> modifier on Body Protection (a radiation-hardened suit exists in the game) and the <strong>Radiation Shelter</strong> slot above it. Ladder: hardened suit, shielded shelter, hardened habitat (5.1, 5.4)</td>
+</tr>
+<tr>
+<td>B</td>
+<td>How far does a filter reach?</td>
+<td>&quot;1 and always follow the physics&quot;</td>
+<td>Gear follows OSHA and NIOSH and the physical limits everywhere they are stricter than the built table; PHI-6 bands and scores unchanged, no epoch (5.2, 5.3, 8.1)</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Day and night temperature</td>
+<td>&quot;1 &amp; Day / Night and regions (Polar, Northern, Equatorial, Southern) habitability is based on the average surface temperature with details about regions within the detail text if needed.&quot;</td>
+<td><strong>Replaced</strong> by Boss's decision of 7:32 PM EST 11-04 (<code>reports/temperature-coverage-2026-11-04.md</code>, section 9; GEN.1265, GEN.1266): the score is made from the livable share of the surface and the year, the required gear from the best site at its worst hour, the worst conditions elsewhere in the text as recommended gear (5.5). It was: swing estimate plus four regional temperatures, stored; score and required gear from the average</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Name and code format</td>
+<td>&quot;1, Yes&quot;</td>
+<td>Words joined with plus signs, plus a short code</td>
+</tr>
+<tr>
+<td>F</td>
+<td>Radiation suit levels (7:46 PM EDT)</td>
+<td>&quot;let's add to the radiation part different levels so look up levels of actual radiation suits and incorporate that before hardened suit.&quot;</td>
+<td>Two levels from real gear before the hardened suit: <strong>shielded garment</strong> and <strong>storm vest</strong>. Each level is a layer of shielding (g/cm2) run through the repo's own dose curves, so the gear needed follows the physics of each world's dose (4.5, 5.4)</td>
+</tr>
+<tr>
+<td>E</td>
+<td>One sortable number?</td>
+<td>&quot;1, We never want to list what isn't required ... it lists only things needed such as 'pressure suit recommended' or required depending on severity, we can use that for edge cases where it's a bit fuzzy.&quot;</td>
+<td>No single number; no &quot;none&quot; anywhere; every listed item carries <strong>required</strong> or <strong>recommended</strong> (6.4)</td>
+</tr>
+</tbody>
+</table></div>
+<p>How A and F now work, to confirm or correct: the <strong>required</strong> radiation gear is the lowest step of the ladder that brings the year's dose under 1 Sv (out of Red); the <strong>recommended</strong> gear is the lowest step that brings it under 0.1 Sv (Green). Where a shelter is needed, the suit for going outside is judged on a working year outside (2,000 hours). One change from my earlier reading, because the physics decides (B): a suit does almost nothing against cosmic rays, so a Yellow cosmic-ray world (Mars, the Moon) no longer lists a hardened suit. It lists the hardened habitat as recommended, and the Moon a shielded garment as well.</p>
+<p>Small choices I made and will keep unless you object: oxygen from 50 to 160 kPa is a gas-mix mask, not an environment suit (5.3); ambient CO<sub>2</sub> from 0.93 to 5 kPa is a scrubber on the intake, above that own air (5.2); an open mask and a filter cannot be combined, the sealed supply replaces them (6.1); a locked world's regions read day side, terminator and night side instead of the four latitude bands (5.5); UV, gravity and armour thresholds are DESIGN values (5.1).</p>
+<h2 id="3-what-exists-today-and-what-it-cannot-say">3. What exists today, and what it cannot say</h2>
+<p>The built line (<code>habitability.equipment</code>, stored as <code>equipment_tier</code>, section 8 and 9 of <code>docs/design/habitability-index.md</code>) is one of five names: ideal, breathing mask, mask with scrubber, environment suit, full life support with radiation hardening. It is the heaviest need of Pressure, Temperature, Air and Radiation.</p>
+<p>What a single tier cannot do, with the cases that show it:</p>
+<ul>
+<li><strong>It cannot combine.</strong> A cold world with a toxic gas and a thin sky is &quot;environment suit&quot;; so is a vacuum, a Titan and a Venus. A visitor learns nothing about whether they need a heater, a pressure shell, or only air.</li>
+<li><strong>It ignores what it has no row for.</strong> Only CO<sub>2</sub>, CO, H<sub>2</sub>S and SO<sub>2</sub> count as toxic. Ammonia, hydrogen chloride, hydrogen fluoride, chlorine, nitrogen dioxide, hydrogen cyanide and ozone are in the research notes and not in the code. Dust, UV and gravity are not read at all.</li>
+<li><strong>It misses real cold and heat.</strong> The cold edge of the suit is -50 C (an environment suit), but -35 C on Earth still reads &quot;ideal&quot; and so does a 40 C day (Green, but the day wants cooling clothing).</li>
+<li><strong>&quot;Mask with scrubber&quot; is the wrong object.</strong> A scrubber removes CO<sub>2</sub> (lithium hydroxide, soda lime, amine); a cartridge filter removes SO<sub>2</sub>, H<sub>2</sub>S, ammonia and similar by adsorption. They are different devices with different limits.</li>
+<li><strong>&quot;Environment suit&quot; spans the whole range</strong> from a liquid-cooled suit at 60 C to an armoured suit at 460 C.</li>
+<li><strong>Two implementations.</strong> <code>habitability.equipment()</code> decides the tier; <code>protection.requirements()</code> decides the gear named in the sentence. They agree today (a test checks it) but each has its own copy of the thresholds' logic.</li>
+<li><strong>The filter rule is looser than the physics.</strong> The PHI-6 Air bands let a cartridge filter work up to ten times the acute limit (<code>FILTER_FACTOR</code>, &quot;NIOSH APF 10&quot;). OSHA, NIOSH and the repo's research notes forbid air-purifying respirators in atmospheres Immediately Dangerous to Life or Health; an assigned protection factor of 10 multiplies the exposure limit, not the IDLH. For H<sub>2</sub>S the band allows 0.5 kPa (500 times the long-term limit).</li>
+</ul>
+<h2 id="4-the-science-by-category">4. The science, by category</h2>
+<p>What each piece of gear does and where it stops. Status: <strong>V</strong> checked on the web this session; <strong>N</strong> from the research notes in <code>docs/design/</code> (Boss's imported research, not re-checked); <strong>R</strong> recalled, check at build time; <strong>D</strong> a planetGen design value.</p>
+<h3 id="41-body-protection-what-shields-the-skin-and-the-body-from-pressure-heat-cold-and-chemistry">4.1 Body protection (what shields the skin and the body from pressure, heat, cold and chemistry)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stress</th>
+<th>Limit and what fails</th>
+<th>Gear</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low pressure</td>
+<td>Below 6.3 kPa (water's vapour pressure at 37 C, the Armstrong limit) body fluids boil: ebullism, circulatory arrest in 10 to 15 s</td>
+<td>Full gas-pressurised suit</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Low pressure</td>
+<td>A mask on pure oxygen holds a safe alveolar oxygen down to about 20 kPa; below that the lungs need positive pressure, and the chest tolerates only about 4 kPa of it (6.7 briefly) without counterpressure, so the whole body must be squeezed</td>
+<td>Counterpressure or gas-pressurised suit</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Suit pressure</td>
+<td>The ISS spacesuit runs at 29.6 kPa (4.3 psi) of pure oxygen; mechanical counterpressure suits aim for the same 30 kPa</td>
+<td>A suit is a 30 kPa shell</td>
+<td>V (npj Microgravity 2021; MIT BioSuit)</td>
+</tr>
+<tr>
+<td>High pressure</td>
+<td>Nitrogen narcosis from 300 to 400 kPa of N<sub>2</sub> (argon about twice as narcotic); high-pressure nervous syndrome from 1.5 to 3 MPa; breathing-gas density above 6 g/L halves work capacity, above 10 g/L the lungs cannot move gas</td>
+<td>Mixed gas up to about 5 to 7 MPa; beyond it a rigid suit that keeps 101 kPa inside</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Heat</td>
+<td>The wet-bulb limit for a resting young adult is about 31 C, not 35 C: the Penn State lab measured 30.55 plus or minus 0.98 C</td>
+<td>Cooling garments; a liquid-cooled garment above 45 C in sealed gear</td>
+<td>V [R4521]; N</td>
+</tr>
+<tr>
+<td>Heat</td>
+<td>A mask alone survives about 120 to 140 C of dry air and 50 to 55 C of steam before skin at the seal burns; above that a fully enclosed suit with its own cooling loop</td>
+<td>Heat-shielded suit with a liquid cooling garment</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Extreme heat</td>
+<td>Venus's 735 K: a suit is a short-lived thermal capacitor (refrigeration into molten-salt storage), sorties of 1 to 2 hours</td>
+<td>Armoured thermal suit</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Cold</td>
+<td>Exposed face skin freezes in 30 to 60 s below about -45 to -50 C with wind; mask seals and valves fail at -50 to -60 C; cold gas chills lung blood (breathing gas must be warmed on Titan)</td>
+<td>Insulated suit to -50 C; heated, aerogel-insulated suit below</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Corrosive gases</td>
+<td>Hydrogen fluoride, strong acids, ammonia burn and are absorbed through skin; a mask leaves the skin exposed</td>
+<td>Fully encapsulating chemical-barrier suit</td>
+<td>N</td>
+</tr>
+<tr>
+<td>UV</td>
+<td>The stored index is DNA-weighted UV against Earth's 1; Earth's skin burns in minutes at the noon peak, so a world at 30 times that burns in seconds</td>
+<td>Cover-up clothing, then an opaque suit</td>
+<td>D</td>
+</tr>
+<tr>
+<td>Gravity</td>
+<td>Not in the notes. Sustained loads above about 1.5 g strain the body; above about 3 g no person can work</td>
+<td>A powered frame; a vehicle</td>
+<td>D</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-air-filter-or-scrubber-what-is-taken-out-of-the-air-before-it-is-breathed">4.2 Air filter or scrubber (what is taken out of the air before it is breathed)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Contaminant</th>
+<th>Device</th>
+<th>Limit</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dust and aerosol</td>
+<td>Particle filter (P100); dust-tight seals and a suitport for a sealed suit</td>
+<td>Mars dust: 0.1 mg/m3 for 30 days (particles under 10 micrometres), ceiling 10 mg/m3; lunar silicate is razor sharp and wrecks seals</td>
+<td>N (NASA-STD-3001)</td>
+</tr>
+<tr>
+<td>Toxic gases (SO<sub>2</sub>, H<sub>2</sub>S, NH<sub>3</sub>, HCl, HF, Cl<sub>2</sub>, NO<sub>2</sub>, HCN, O<sub>3</sub>)</td>
+<td>Chemical cartridge on a half mask (assigned protection factor 10), a full facepiece (50) or a powered unit (up to 1,000)</td>
+<td>Useful from the exposure limit up to ten, fifty or a thousand times it, never into IDLH; needs 19.5 percent oxygen at sea level (about 19.8 kPa)</td>
+<td>N; the numbers are OSHA's and I could not re-open them (R)</td>
+</tr>
+<tr>
+<td>Carbon monoxide</td>
+<td>Hopcalite catalyst: escape devices only, about 2 hours, exothermic</td>
+<td>Not a working filter</td>
+<td>V (MSA W65 sheet)</td>
+</tr>
+<tr>
+<td>Carbon dioxide</td>
+<td>A cartridge does not take it out. A chemical scrubber does (2 LiOH + CO<sub>2</sub> gives Li<sub>2</sub>CO<sub>3</sub> + H<sub>2</sub>O; soda lime; amine beds), as the loop of a rebreather or backpack</td>
+<td>Long-term 0.93 kPa; NASA's one-hour spaceflight limit 0.4 kPa; 4 kPa is IDLH; above 5 kPa acute; above 10 kPa a narcotic. An intake scrubber is workable up to about 5 kPa, a mass of absorbent per hour that grows with the partial pressure</td>
+<td>N, D</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="43-air-supply-where-the-breathing-gas-comes-from">4.3 Air supply (where the breathing gas comes from)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Device</th>
+<th>Limit</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Too little oxygen</td>
+<td>Mask with supplemental oxygen</td>
+<td>Inspired O<sub>2</sub> below 8 kPa gives collapse in 10 to 15 s; below 16 kPa judgement fails (the notes' &quot;hypoxic alert&quot;); the built table uses 8 kPa (the more permissive)</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Too much oxygen</td>
+<td>Dilute the gas, or breathe a mix</td>
+<td>Above 50 kPa for days damages the lungs; 140 to 160 kPa causes convulsions</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Gas that no filter may meet</td>
+<td>Own gas: supplied air through a hose, a self-contained bottle (30 to 60 min), or a closed loop with its own scrubber and oxygen make-up (6 to 8 h)</td>
+<td>An air-purifying respirator is forbidden in IDLH and in an oxygen-deficient atmosphere</td>
+<td>N</td>
+</tr>
+<tr>
+<td>High pressure</td>
+<td>Heliox or trimix at ambient pressure (saturation)</td>
+<td>Narcosis at 300 to 400 kPa of N<sub>2</sub>; density ceiling about 5 to 7 MPa</td>
+<td>N; the density figure is checked in 4.4</td>
+</tr>
+<tr>
+<td>Beyond the ceiling</td>
+<td>A rigid suit or vehicle that breathes at 101 kPa</td>
+<td>Hydra X record 7.11 MPa; atmospheric diving suits at 1 atm inside</td>
+<td>N</td>
+</tr>
+<tr>
+<td>Breath temperature</td>
+<td>Warm or cool the inspired gas</td>
+<td>Below about -50 C or above about 140 C the air itself cannot be breathed</td>
+<td>N</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="44-a-check-i-made-on-the-density-ceiling">4.4 A check I made on the density ceiling</h3>
+<p>For a helium and oxygen mix holding 40 kPa of oxygen at 300 K, the breathing-gas density reaches 8.5 g/L at 5 MPa, 10.1 g/L at 6 MPa and 11.7 g/L at 7 MPa, so the notes' &quot;5 to 7 MPa&quot; is right. It depends on temperature (density goes as 1/T), and the built table's 10 MPa hyperbaric edge (the more permissive of 5 and 10) is looser than the physics. Following the physics (decision B), the gear reads the computed density: an armoured suit is recommended from 6 g/L and required from 10 g/L, whatever the table's pressure edge says. The score keeps its 10 MPa edge.</p>
+<h3 id="45-radiation-what-a-person-cannot-wear">4.5 Radiation (what a person cannot wear)</h3>
+<p>ICRP: 20 mSv per year averaged over five years (occupational), 50 mSv in any one year (the table's Blue edge and single-year limit); 100 mSv per year a visit; 1 Sv per year is the threshold of radiation sickness. NASA's career limit is 600 mSv, with 250 mSv per solar storm event (V, NASA OCHMO technical brief). Mars gets about 0.7 mSv per day from galactic cosmic rays (N). Wearable shielding cuts the blood-forming-organ dose in a storm by 20 to 30 percent and does nothing against cosmic rays; heavy metal in a suit makes it worse (secondary neutrons); real shielding is hydrogen-rich (water, polyethylene, regolith) and thick (N). Burying a base cuts the cosmic-ray and storm doses and not the dose from the ground (the stored <code>dose_ground_msv_yr</code> is the part burial cannot remove).</p>
+<p><strong>Real radiation suits, from least to most (decision F).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Real gear</th>
+<th>Shielding</th>
+<th>What it stops</th>
+<th>What it does not stop</th>
+<th>Game level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anti-contamination coverall (Tyvek class, worn with a respirator)</td>
+<td>none to speak of</td>
+<td>radioactive dust on the skin and, with the respirator, in the lungs</td>
+<td>any penetrating radiation</td>
+<td>not a radiation level: dust-tight seals and the filter (5.2) do this job</td>
+</tr>
+<tr>
+<td>Spacesuit (EMU class)</td>
+<td>thin layers: helmet shell about 0.18 g/cm2, visor shells to 0.38; the water cooling tubes cover only 40 percent of the body (V, NASA)</td>
+<td>electrons and low-energy protons</td>
+<td>storm cores, cosmic rays</td>
+<td>the baseline of every sealed suit, not a level</td>
+</tr>
+<tr>
+<td>Lead or lead-free apron, 0.25 to 0.5 mm lead equivalent; Demron full suit</td>
+<td>about 0.3 to 0.6 g/cm2</td>
+<td>90 to 97 percent of 100 kVp X-rays (V, apron studies); Demron at least 50 percent of gamma up to 130 keV (vendor claim)</td>
+<td>about 6 percent of 662 keV gamma (DERIVED, mass attenuation about 0.11 cm2/g, R); protons above about 25 MeV; heavy metal makes secondaries in particle fields</td>
+<td><strong>1 shielded garment</strong>, a 1 g/cm2 hydrogen-rich layer in the game (lead is the wrong material for particles)</td>
+</tr>
+<tr>
+<td>Partial-body gamma shield (StemRad 360 Gamma)</td>
+<td>heavy shielding over the pelvis only</td>
+<td>enough bone marrow to recover from an acute gamma dose (R, vendor)</td>
+<td>the rest of the body</td>
+<td>the idea behind level 2: shield the organs that matter most</td>
+</tr>
+<tr>
+<td>Storm vest (AstroRad, high-density polyethylene, 26 kg, flown on Artemis I)</td>
+<td>several g/cm2 over the torso</td>
+<td>an estimated 40 to 60 percent of the effective dose of a great solar storm (V, Artemis I results, extrapolated to the 1972 and 1989 events)</td>
+<td>cosmic rays</td>
+<td><strong>2 storm vest</strong></td>
+</tr>
+<tr>
+<td>Hardened suit</td>
+<td>game technology</td>
+<td></td>
+<td></td>
+<td><strong>3 hardened suit</strong></td>
+</tr>
+<tr>
+<td>Storm shelter (water, regolith, polyethylene)</td>
+<td>20 to 50 g/cm2</td>
+<td>almost all of a storm</td>
+<td>half of the cosmic-ray dose</td>
+<td><strong>shielded shelter</strong></td>
+</tr>
+<tr>
+<td>Buried habitat</td>
+<td>about 300 g/cm2 (about 2 m of regolith)</td>
+<td>cosmic rays to the Green band</td>
+<td>the ground's own dose</td>
+<td><strong>hardened habitat</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-the-slots-levels-thresholds-and-the-fields-that-feed-them">5. The slots: levels, thresholds and the fields that feed them</h2>
+<h3 id="50-the-conditions-every-slot-reads-all-from-the-stored-row-unless-marked">5.0 The conditions every slot reads (all from the stored row unless marked)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Source</th>
+<th>Stored today?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P, total pressure, kPa</td>
+<td><code>atmospheric_pressure_pa</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>T mean, C; coldest and hottest over the orbit</td>
+<td><code>surface_temperature_k</code>; <code>habitability.temperature_extremes_c</code> (from <code>flux_variation</code>)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong>Day and night swing</strong></td>
+<td>New: damped-oscillator estimate from the rotation period, air column heat capacity (c_p P / g) and its radiative time constant, regolith inertia if airless (5.5)</td>
+<td>no (decision C)</td>
+</tr>
+<tr>
+<td><strong>Regional temperatures</strong> (Polar, Northern, Equatorial, Southern)</td>
+<td>New: annual-mean insolation by latitude from the obliquity, flattened by the air's heat transport (5.5)</td>
+<td>no (decision C)</td>
+</tr>
+<tr>
+<td>Wet bulb</td>
+<td>Stull formula from T and relative humidity (the H<sub>2</sub>O partial pressure over saturation)</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Partial pressure of each gas</td>
+<td>the child tables <code>planet_gases</code> and <code>moon_gases</code> (DB.71, GEN.424): every gas of the table, the balance gas included</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Inspired oxygen</td>
+<td>O<sub>2</sub> fraction times (P minus 6.3 kPa)</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Breathing-gas density of the best mix</td>
+<td>heliox with 40 kPa O<sub>2</sub>: P M / (R T)</td>
+<td>derived (<code>atm_molar_density</code> is the mean molar mass)</td>
+</tr>
+<tr>
+<td>Dose, Sv/yr, and its parts</td>
+<td><code>surface_dose_msv_yr</code>, <code>dose_gcr</code>, <code>dose_sep</code>, <code>dose_ground</code>, <code>dose_helio_mult</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>UV</td>
+<td><code>uv_surface_index</code>, <code>ozone_loss_flag</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Gravity</td>
+<td><code>gravity_g</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Dust loading and toxicity</td>
+<td><code>tau_dust</code> (GEN.414) and <code>scale_height_km</code>, as the airborne loading <code>4 rho r tau / (3 Q H)</code> (<code>aerosols.dust_loading_mg_m3</code>, GEN.658: 2,500 kg/m3 grains, 1.5 micrometres, Q 2.5, DESIGN); the toxicity of the dust waits for the stored surface composition; a rocky body under 10 kPa still has regolith dust</td>
+<td>loading yes</td>
+</tr>
+<tr>
+<td>Corrosive surface liquid</td>
+<td><code>ocean_ph</code> (acid below 2, alkaline above 12)</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="51-slot-1-body-protection-eq_body-0-to-6-and-eq_body_kind">5.1 Slot 1: Body Protection (<code>eq_body</code>, 0 to 6, and <code>eq_body_kind</code>)</h3>
+<p>The levels nest: each one does everything the one below it does, so &quot;the lowest suit that fits&quot; is the lowest level that meets every stress. The level is the <strong>maximum</strong> over the sub-needs; the sub-need that set it is the <strong>kind</strong> (cold, heat, pressure, chemical, diving, UV, gravity), which gives the name its word. The required level reads the average surface temperature; a recommended level (5.5, 6.4) can sit above it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Lv</th>
+<th>Name</th>
+<th>What it is</th>
+<th>Triggers (any one; limits-table names in brackets)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>none</td>
+<td>ordinary clothes</td>
+<td>none of the rows below</td>
+</tr>
+<tr>
+<td>1</td>
+<td>garment</td>
+<td>weather clothing: warm, cooling or sun-cover</td>
+<td>T from -20 up to 0 C (cold_clothing, comfort_low); T from 31 to 45 C (comfort_high, heat_garment); wet bulb at or above 31 C; UV index 3 to 30 (DESIGN)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>thermal suit</td>
+<td>insulated or liquid-conditioned suit, not sealed; mask or hood to breathe</td>
+<td>T from -50 to -20 C (cold_suit); T from 45 to 140 C (heat_garment, heat_shielded); 400 to 10,000 kPa (the heated diving suit helium needs); UV index over 30</td>
+</tr>
+<tr>
+<td>3</td>
+<td>sealed suit</td>
+<td>fully encapsulated, own microclimate, ambient pressure</td>
+<td>T below -50 C (heated, aerogel); T from 140 to 400 C (heat-shielded, aluminised, liquid cooling); a corrosive or skin-absorbed gas (HF, HCl, NH<sub>3</sub>, Cl<sub>2</sub>) over its IDLH; a surface liquid below pH 2 or above 12</td>
+</tr>
+<tr>
+<td>4</td>
+<td>pressure suit</td>
+<td>counterpressure or gas-pressurised suit (a 30 kPa shell) with thermal control</td>
+<td>P below 14.3 kPa (mask_min); the form is counterpressure from 6.3 to 14.3 and full gas-pressurised below 6.3 (armstrong)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>armoured suit</td>
+<td>rigid suit that keeps 1 atm inside, thermal-capacitor class</td>
+<td>P over 10,000 kPa (pressure_hyperbaric_max); T over 400 C (Venus class, sorties of hours) (DESIGN)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>vehicle only</td>
+<td>no suit exists for it</td>
+<td>T over 500 C; gravity over 3 g; P over 100 MPa (DESIGN)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Severity bands (physics first, decision B).</strong> Required past the physical limit; recommended in the band before it:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stress</th>
+<th>Recommended</th>
+<th>Required</th>
+<th>Source of the band</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low pressure</td>
+<td>pressure suit from 20 down to 16 kPa</td>
+<td>pressure suit below 16 kPa</td>
+<td>a mask on pure oxygen is unusable below 16 to 20 kPa (notes; index design 7.2). The score keeps its 14.3 kPa Green edge</td>
+</tr>
+<tr>
+<td>Cold</td>
+<td>heated sealed suit from -40 to -50 C</td>
+<td>insulated suit from -20 C, heated sealed suit below -50 C</td>
+<td>notes give -40, the table -50</td>
+</tr>
+<tr>
+<td>Humid heat</td>
+<td>cooling clothing at a wet bulb of 30 to 31 C</td>
+<td>at 31 C or more</td>
+<td>Penn State's 30.55 plus or minus 0.98 C</td>
+</tr>
+<tr>
+<td>High pressure</td>
+<td>armoured suit at a best-mix density of 6 to 10 g/L</td>
+<td>over 10 g/L</td>
+<td>work capacity halves at 6 g/L, ventilation fails at 10</td>
+</tr>
+<tr>
+<td>Gravity</td>
+<td>powered frame from 1.25 to 1.5 g</td>
+<td>from 1.5 g (vehicle only over 3 g)</td>
+<td>DESIGN</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Radiation suit levels</strong> (shielded garment, storm vest, hardened suit) sit in their own slot (5.4); a hardened suit hardens whatever suit the world needs (&quot;hardened pressure suit&quot;).</p>
+<p>Add-on <code>eq_mobility</code>: a powered frame (recommended from 1.25 g, required from 1.5 to 3 g, DESIGN).</p>
+<p>New limits-table rows: <code>armoured_heat_c</code> 400, <code>vehicle_heat_c</code> 500, <code>frame_gravity_g</code> 1.5, <code>vehicle_gravity_g</code> 3.0, <code>uv_cover_index</code> 3, <code>uv_suit_index</code> 30, <code>corrosive_ph_low</code> 2, <code>corrosive_ph_high</code> 12, <code>vehicle_pressure_kpa</code> 100,000.</p>
+<h3 id="52-slot-2-air-filter-or-scrubber-three-parts-that-combine">5.2 Slot 2: Air Filter or Scrubber (three parts that combine)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Field</th>
+<th>Values</th>
+<th>Triggers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dust</td>
+<td><code>eq_dust</code></td>
+<td>0 or 1</td>
+<td>Airborne dust over 0.1 mg/m3 recommended and over 10 mg/m3 required (the loading from <code>tau_dust</code>, GEN.658); a rocky body under 10 kPa has regolith dust and the filter is required. Renders as &quot;dust filter&quot; with an open mask and as &quot;dust-tight seals&quot; when the supply is sealed (a sealed suit needs a seal and suitport, not a filter)</td>
+</tr>
+<tr>
+<td>Gas</td>
+<td><code>eq_gas_filter</code></td>
+<td>0 to 3</td>
+<td>The worst filterable gas, as a ratio to its long-term limit (HR = partial pressure over chronic): 0 none; 1 gas filter (HR up to 10, half mask); 2 full-face gas filter (HR up to 50); 3 powered gas filter (HR up to 1,000). Never over IDLH: that is Supply 2</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td><code>eq_co2_scrub</code></td>
+<td>0 or 1</td>
+<td>Ambient CO<sub>2</sub> above 0.93 kPa and up to 5 kPa (a bulk absorbent on the intake). Above 5 kPa the person breathes own gas</td>
+</tr>
+</tbody>
+</table></div>
+<p>Toxic table (new rows in <code>protection_limits</code>, long-term limit and IDLH, kPa partial pressure; every row read from the NIOSH Pocket Guide for GEN.657, see section 14; the draft's recalled NO<sub>2</sub> IDLH of 20 ppm is 13 ppm in the newest NIOSH document):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>Long-term</th>
+<th>IDLH</th>
+<th>Gas</th>
+<th>Long-term</th>
+<th>IDLH</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO</td>
+<td>0.005</td>
+<td>0.12</td>
+<td>HCl</td>
+<td>0.0005</td>
+<td>0.0046 (NIOSH 2025: 45 ppm)</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>0.001</td>
+<td>0.0101 (built acute 0.05)</td>
+<td>Cl<sub>2</sub></td>
+<td>0.0001</td>
+<td>0.0010</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>0.0005</td>
+<td>0.0101</td>
+<td>NO<sub>2</sub></td>
+<td>0.0001</td>
+<td>0.0020</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>0.0025</td>
+<td>0.030</td>
+<td>HCN</td>
+<td>0.0005</td>
+<td>0.0051</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>0.0003</td>
+<td>0.0030</td>
+<td>O<sub>3</sub></td>
+<td>0.00001</td>
+<td>0.0005</td>
+</tr>
+</tbody>
+</table></div>
+<p>The built table's acute values (0.05 kPa for H<sub>2</sub>S, 0.1 for CO) are looser than NIOSH's IDLH for H<sub>2</sub>S (100 ppm, 0.0101 kPa). Boss's rule of 2026-10-14 (the more permissive value wins) keeps 0.05; the table above shows both so the choice is visible.</p>
+<h3 id="53-slot-3-air-supply-eq_supply-0-to-4">5.3 Slot 3: Air Supply (<code>eq_supply</code>, 0 to 4)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Lv</th>
+<th>Name</th>
+<th>What it is</th>
+<th>Triggers (any one)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>ambient air</td>
+<td>breathe the air</td>
+<td>none below</td>
+</tr>
+<tr>
+<td>1</td>
+<td>gas-mix mask</td>
+<td>open mask that adds oxygen or dilutes it</td>
+<td>inspired O<sub>2</sub> under 8 kPa with P at or over 14.3 kPa; inspired O<sub>2</sub> over 50 kPa (to the 160 acute limit); P from 250 to 400 kPa (the Green band's mix mask)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>own gas</td>
+<td>sealed full mask or suit on its own gas: hose, bottle or closed loop with its scrubber</td>
+<td>P under 14.3 kPa (a suit's loop); O<sub>2</sub> over 160 kPa; CO<sub>2</sub> over 5 kPa; any filterable gas over IDLH, or over 1,000 times its long-term limit; breathing air colder than -50 C or hotter than 140 C; and any time level 1 and a filter are both wanted (the open mask cannot be sealed for a filter)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>mixed gas</td>
+<td>heliox or trimix at ambient pressure, density-managed</td>
+<td>P from 400 to 10,000 kPa</td>
+</tr>
+<tr>
+<td>4</td>
+<td>isolated</td>
+<td>the wearer breathes 101 kPa inside a rigid suit or vehicle</td>
+<td>P over 10,000 kPa; Body Protection 5 or 6</td>
+</tr>
+</tbody>
+</table></div>
+<p>Body Protection 4 carries a level-2 loop with it (the suit's own); 5 and 6 carry level 4. So the supply is not named again beside a pressure suit unless it is mixed gas (hyperbaric inside a suit never happens in the sample).</p>
+<h3 id="54-slot-4-radiation-protection-eq_rad_suit-1-to-3-then-eq_shelter-1-or-2">5.4 Slot 4: Radiation Protection (<code>eq_rad_suit</code> 1 to 3, then <code>eq_shelter</code> 1 or 2)</h3>
+<p>A five-step ladder (decisions A and F). Each step is a layer of shielding, in g/cm2 of hydrogen-rich material, laid on top of the world's own air column and run through the repo's own dose curves (<code>radiation.gcr_dose_msv_yr</code>, <code>radiation.sep_dose_msv_yr</code>) against the stored parts of the dose (<code>dose_gcr_msv_yr</code>, <code>dose_sep_msv_yr</code>, <code>dose_ground_msv_yr</code>). Nothing is drawn: the gear follows each world's mix of cosmic rays and storm particles.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Name</th>
+<th>Shielding (DESIGN, from the real gear in 4.5)</th>
+<th>Storm cut, airless body</th>
+<th>Cosmic-ray cut, airless body</th>
+<th>Storm cut under Mars's air</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>shielded garment</td>
+<td>1 g/cm2 over the whole body</td>
+<td>71 percent</td>
+<td>17 percent</td>
+<td>5 percent</td>
+</tr>
+<tr>
+<td>2</td>
+<td>storm vest</td>
+<td>the garment plus 5 g/cm2 over the torso (60 percent of the effective dose)</td>
+<td>81 percent</td>
+<td>31 percent</td>
+<td>17 percent</td>
+</tr>
+<tr>
+<td>3</td>
+<td>hardened suit</td>
+<td>5 g/cm2 over the body plus 5 more over the torso</td>
+<td>89 percent</td>
+<td>43 percent</td>
+<td>30 percent</td>
+</tr>
+<tr>
+<td>4</td>
+<td>shielded shelter</td>
+<td>50 g/cm2</td>
+<td>98 percent</td>
+<td>70 percent</td>
+<td>79 percent</td>
+</tr>
+<tr>
+<td>5</td>
+<td>hardened habitat</td>
+<td>300 g/cm2, or as deep as the world needs (the derived depth below)</td>
+<td>all</td>
+<td>94 percent</td>
+<td>99 percent</td>
+</tr>
+</tbody>
+</table></div>
+<p>The cuts are computed, not chosen: storm particles are soft, so on an airless body even a garment stops most of them; under an air column that has already stopped the soft part, thin layers do little. Cosmic rays need a habitat.</p>
+<p><strong>The rule.</strong></p>
+<ul>
+<li><strong>Required:</strong> the lowest step that brings the year's dose to 1 Sv or less (out of Red).</li>
+<li><strong>Recommended:</strong> the lowest step that brings it to 0.1 Sv or less (Green), when it is above the required step.</li>
+<li>When no shelter is needed, a suit step is judged on the whole year (an unshielded base gives no more cover than a suit). When a shelter or habitat is needed, it is judged on the whole year, and the gear for going outside is the lowest suit step that keeps a <strong>working year outside</strong>, 2,000 hours (DESIGN), under the same limit; when even a hardened suit cannot, the hardened suit is listed and the text gives the <strong>hours outside a year</strong> it allows (&quot;Even in a hardened suit, 1 Sv is reached after 800 hours outside a year&quot;).</li>
+<li>A step that does not lower the dose enough is never listed, so no world lists a suit that would not help (decision E).</li>
+</ul>
+<p>Stored beside the levels: <code>shelter_column_g_cm2</code>, the shielding a shelter needs to bring the dose to the limit (it tells a player how much regolith or water to pile on), and <code>outside_hours</code>, the hours outside a year the listed suit allows. Burial does not reduce the ground dose.</p>
+<h3 id="55-regions-and-the-day-and-night-swing-decision-c-replaced">5.5 Regions and the day and night swing (decision C, replaced)</h3>
+<p><strong>Since GEN.1265 and GEN.1266 (Boss, 7:32 PM EST 11-04) habitability does not read the average.</strong> The temperature of every place of the world through its year and its turns is worked out (<code>physics/seasonal_swing.temperature_series</code>) and read by <code>physics/temperature_coverage.py</code>:</p>
+<ul>
+<li><strong>The score.</strong> <em>Livable</em> is the Green band, -20 to 45 C (no suit needed), with the wet bulb rule applied to every sample. L is the share of area and time that is livable, shown as two pieces (the share of the world livable at least half the time, and how much of the time that ground is livable). The Temperature score is <code>habitability.coverage_score</code> of L and of the share B in the Blue band: linear through 0 at none, 0.4 at L of 0.1, 0.75 at 0.5 and 1 at 0.8 (a lenient Blue so Earth reads Blue), with Blue needing B of 0.3; samples that need a suit count 0.15 of a livable one so a suit-only world stays Yellow. A world livable only in its terminator belt is Yellow. The mean is not a cap: a cold-mean world with a warm region can read more habitable than before. Edges and credits are stand-ins (T9, L3, GEN.725 SS15 to SS19).</li>
+<li><strong>Gear.</strong> The required gear is chosen for the <strong>best site</strong>, the cell livable the largest share of the time (a tie goes to the most moderate), at its coldest and hottest sample. Where the coldest or hottest place and hour of the world calls for heavier gear, the heavier gear is listed as recommended and the text names where and when.</li>
+<li><strong>Hours outside.</strong> The best site's own coldest and hottest hour set the cold and heat limits; a world that turns once an orbit keeps the 24-hour shift at the terminator with the belt's real range. The sheet shows the best site's range and the worst conditions anywhere, and the longest stay indoors at the best site.</li>
+<li><strong>The bands.</strong> The mean and the swing of the seven bands are read off the same series, so the stored bands and the score agree.</li>
+<li><strong>Limits.</strong> A circular orbit (the swing of an eccentric orbit's starlight is not in the series); the sea is spread evenly; ground ice follows the cell's mean, not its season; a near-resonant slow spinner uses the unlocked transport share.</li>
+</ul>
+<p>The text below is the first build (GEN.656, GEN.1108) as it was, kept for its reasons. Four regional temperatures and a day and night swing were worked out and stored for the detail text:</p>
+<ul>
+<li><strong>Regions.</strong> Polar (latitude 60 degrees and over, 13 percent of the surface), Northern (20 to 60 N, 26 percent), Equatorial (20 S to 20 N, 34 percent), Southern (20 to 60 S, 26 percent). Each takes the annual-mean insolation of its band, which depends on the obliquity (from the stored spin axis); a thick atmosphere carries heat poleward and flattens the differences (a factor from the air column, DESIGN, fitted so Earth's poles sit about 40 K under its mean and an airless body keeps the full radiative contrast). Northern and Southern differ when the orbit is eccentric and perihelion falls near a solstice; their seasonal extremes come from the obliquity.</li>
+<li><strong>Day and night.</strong> A damped-oscillator estimate: the day length against the air's radiative time constant (column heat capacity c_p P / g over 4 sigma T^3), and the regolith's thermal inertia for an airless body. It gives each region a day high and a night low.</li>
+<li><strong>Locked worlds.</strong> A tidally locked world has no day and night; its regions read day side, terminator and night side (small choice, section 2).</li>
+<li><strong>In the text.</strong> &quot;The equator averages 12 C; polar nights fall to -70 C, where a heated sealed suit is recommended.&quot; When a region or the night crosses a limit the average does not, the heavier gear is listed as <strong>recommended</strong> with the place named.</li>
+</ul>
+<p>Stored (GEN.656; since GEN.1108, schema v196, as the seven bands of <code>physics/latitude_bands.py</code>: <code>band1_mean_k</code> to <code>band7_state</code>, 49 columns, and <code>temp_mean_swing_k</code>, in place of the four named regions and the three zones; see database-schema.md) on planets and moons (their own columns, so search and the text can read them). Derived from stored values only: no new draws.</p>
+<p><strong>As built (GEN.656, <code>physics/regional_temperature.py</code>).</strong> The annual-mean insolation of each band is integrated over a circular orbit for the stored axial tilt, turned into a temperature by the fourth-root law and scaled so the area-weighted bands average the stored mean. The air then removes the share <code>x / (x + 20)</code> of the contrast, <code>x</code> the air column (pressure over gravity) in Earth's: Earth keeps its poles about 35 K under the mean (observed 35 to 40 K), Titan loses 30 percent and Venus 80 percent of the contrast. The orbits are circular, so Northern and Southern are equal. A tidally locked world (rotation period equal to the orbital period) has no bands: its day side, terminator ring and night side take the radiative multiples 1.131, 0.5 and 0 of the mean, pulled toward the mean by <code>x / (x + 0.1)</code> (a bar of air removes 90 percent of the contrast; the night floor is 20 K). Columns <code>temp_day_side_k</code>, <code>temp_terminator_k</code> and <code>temp_night_side_k</code> hold them, so the latitude group and the locked group are never both set. The swing is <code>sqrt(2) T / sqrt(1 + (omega tau)^2)</code> with <code>tau = (c_p P / g + I sqrt(2 / omega)) / (4 sigma T^3)</code>, ground inertia <code>I</code> 300 J/(m2 K s^0.5) and <code>c_p</code> 1000 (both DESIGN stand-ins), times one minus the transport share. Checked in <code>tests/test_regional_temperature.py</code> against Earth, Mars, the Moon, Mercury and Venus. Not built yet: the seasonal extremes of the eccentric orbit, and naming the heavier gear for a night that crosses a limit the mean does not (the Temperature row names a place whose temperature needs a heavier class than the mean).</p>
+<h2 id="6-how-the-combination-is-built">6. How the combination is built</h2>
+<h3 id="61-the-algorithm">6.1 The algorithm</h3>
+<ol>
+<li>Each stress rule returns a <strong>need</strong>: <code>(slot, level or part, kind, domain, reason)</code>. The reason is the sentence the describer prints (&quot;the air pressure is 0.6 kPa&quot;). The domain is the PHI-6 domain the need comes from.</li>
+<li>Per slot, the level is the maximum of its needs. The Filter slot keeps three independent parts.</li>
+<li>Cross-slot rules, applied in this order: (a) Body 5 or 6 sets Supply 4; Body 4 sets Supply to at least 2. (b) If Supply is 1 and a gas filter or the CO<sub>2</sub> scrubber is also needed, Supply becomes 2 (an open mask cannot also be sealed for a filter). (c) If Supply is 2 or more, the gas filter and the CO<sub>2</sub> scrubber drop out (the person is not breathing the ambient air; the loop scrubs its own CO<sub>2</sub>); the dust part stays and renders as seals. (d) A shielded garment or storm vest is worn over whatever Body the world needs, even ordinary clothes; a hardened suit raises Body to at least 3 (a sealed suit). (e) Shelter is independent. (f) Each item keeps its severity; an item both required and recommended at different levels lists the required one and the heavier one as recommended.</li>
+<li>Name and code are formed from the final slots (6.2). Nothing but the levels is stored.</li>
+</ol>
+<h3 id="62-the-name">6.2 The name</h3>
+<p>Two lists, each joined with &quot; + &quot; in Boss's order (Body, Filter parts, Supply, Shelter): <strong>Required: ...</strong> and <strong>Recommended: ...</strong>. A list with nothing in it is left out, and a world with nothing in either shows no equipment line (decision E). A powered frame goes after the body word; a radiation suit step joins the body word: &quot;pressure suit + storm vest&quot;, or &quot;hardened pressure suit&quot; (or &quot;hardened suit&quot; with no other suit).</p>
+<ul>
+<li>Body words by level and kind: 1 cold &quot;cold-weather clothing&quot;, heat &quot;cooling clothing&quot;, UV &quot;sun-cover clothing&quot;; 2 cold &quot;insulated suit&quot;, heat &quot;liquid-cooled suit&quot;, diving &quot;heated diving suit&quot;, UV &quot;full-cover suit&quot;; 3 cold &quot;heated sealed suit&quot;, heat &quot;heat-shielded suit&quot;, chemical &quot;chemical-barrier suit&quot;; 4 &quot;pressure suit&quot;; 5 &quot;armoured suit&quot;; 6 &quot;vehicle only&quot;.</li>
+<li>Filter words: &quot;dust filter&quot; (or &quot;dust-tight seals&quot; when Supply is 2 or more); &quot;gas filter&quot;, &quot;full-face gas filter&quot;, &quot;powered gas filter&quot;; &quot;CO2 scrubber&quot;.</li>
+<li>Supply words: &quot;gas-mix mask&quot;, &quot;self-contained air&quot;, &quot;mixed-gas rig&quot;, &quot;isolated air&quot;. Not named when the body already carries it (pressure suit, armoured suit).</li>
+<li>Radiation words: &quot;shielded garment&quot;, &quot;storm vest&quot;, &quot;hardened suit&quot;; &quot;shielded shelter&quot;, &quot;hardened habitat&quot;.</li>
+</ul>
+<p>The code lists required items, then recommended ones in brackets: <code>B&lt;level&gt;&lt;kind&gt; F&lt;dust&gt;&lt;gas&gt;&lt;co2&gt; S&lt;level&gt; H&lt;suit step&gt; R&lt;shelter level&gt;</code>, then <code>[...]</code> with only what is recommended. <code>H1</code> shielded garment, <code>H2</code> storm vest, <code>H3</code> hardened suit; <code>R1</code> shielded shelter, <code>R2</code> hardened habitat. Kind letters c cold, h heat, p pressure, x chemical, d diving, u UV, g gravity. Mars: <code>B4p F100 S2 [R2]</code>.</p>
+<h3 id="63-the-strip">6.3 The strip</h3>
+<p>Only listed items get a chip: a solid chip for required, an outlined chip for recommended. Nothing is drawn for a slot that needs nothing.</p>
+<pre><code>Mars        Body: pressure suit (required)   Filter: dust-tight seals (required)   Radiation: hardened habitat (recommended)
+Arctic day  Body: insulated suit (required)
+Earth       (no equipment line)
+</code></pre>
+<h3 id="64-required-or-recommended">6.4 Required or recommended</h3>
+<p>An item is <strong>required</strong> when its condition passes the physical limit in 5.1 to 5.4 at the average surface temperature. It is <strong>recommended</strong> when the condition sits in a severity band before that limit (5.1), when it reaches the Green dose band (5.4), or when only a region or the night needs it (5.5). The describer says why in one short sentence each (&quot;Recommended: a pressure suit, because at 18 kPa a mask on pure oxygen is marginal.&quot;).</p>
+<h2 id="7-fields-to-store-and-how-they-are-served">7. Fields to store, and how they are served</h2>
+<p>Replace <code>planets.equipment_tier</code> and <code>moons.equipment_tier</code> (TINYINT, 0 to 4) with, on both tables (NULL for a gas giant and for an unscored body, like the rest of the score):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>eq_body</code>, <code>eq_body_kind</code></td>
+<td>TINYINT 0 to 6, 0 to 7</td>
+<td>required Body Protection level and what set it (none, cold, heat, pressure, chemical, diving, UV, gravity)</td>
+</tr>
+<tr>
+<td><code>eq_body_rec</code>, <code>eq_body_rec_kind</code></td>
+<td>TINYINT</td>
+<td>recommended Body level and kind, stored only above the required one, else NULL</td>
+</tr>
+<tr>
+<td><code>eq_rad_suit</code>, <code>eq_rad_suit_rec</code></td>
+<td>TINYINT 0 to 3</td>
+<td>required and recommended radiation suit step: 1 shielded garment, 2 storm vest, 3 hardened suit</td>
+</tr>
+<tr>
+<td><code>eq_mobility</code></td>
+<td>TINYINT 0 to 2</td>
+<td>powered frame, same encoding</td>
+</tr>
+<tr>
+<td><code>eq_dust</code></td>
+<td>TINYINT 0 to 2</td>
+<td>dust filter or seals, same encoding</td>
+</tr>
+<tr>
+<td><code>eq_gas_filter</code></td>
+<td>TINYINT 0 to 3</td>
+<td>required gas filter grade</td>
+</tr>
+<tr>
+<td><code>eq_co2_scrub</code></td>
+<td>TINYINT 0 to 2</td>
+<td>CO<sub>2</sub> scrubber on the intake, same encoding</td>
+</tr>
+<tr>
+<td><code>eq_supply</code>, <code>eq_supply_rec</code></td>
+<td>TINYINT 0 to 4</td>
+<td>required and recommended Air Supply level</td>
+</tr>
+<tr>
+<td><code>eq_shelter</code>, <code>eq_shelter_rec</code></td>
+<td>TINYINT 0 to 2</td>
+<td>required and recommended shelter: 1 shielded shelter, 2 hardened habitat</td>
+</tr>
+<tr>
+<td><code>shelter_column_g_cm2</code>, <code>outside_hours</code></td>
+<td>DOUBLE</td>
+<td>shielding a shelter needs; hours outside a year the listed suit allows (NULL when unlimited)</td>
+</tr>
+<tr>
+<td><code>band1_mean_k</code> to <code>band7_mean_k</code> and the other <code>bandN_*</code> columns, <code>temp_mean_swing_k</code></td>
+<td>DOUBLE, K, h, d and a state word</td>
+<td>the annual means, the day and night swing, the hours of day and night, the longest unbroken day and night and the state of each of seven bands of latitude (5.5, GEN.1108); replaced <code>temp_polar_k</code>, <code>temp_north_k</code>, <code>temp_equator_k</code>, <code>temp_south_k</code> and <code>temp_swing_k</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Each in its own column so the search can filter it (the rule of section 4 of the index design). New numeric columns go in <code>db/column_units.py</code> in the same PR; these are dimensionless levels, like the tier columns they replace. The name and code are computed by <code>physics/equipment.py</code> at read time (a pure function of the levels), like <code>hab_note</code>.</p>
+<p><strong>API.</strong> <code>GET /api/planets|moons/&lt;id&gt;</code> and the system document gain one object, and <code>equipment_tier</code> is removed (no backward-compatibility layer):</p>
+<pre><code class="language-json">&quot;equipment&quot;: {
+  &quot;required&quot;: [&quot;pressure suit&quot;, &quot;dust-tight seals&quot;],
+  &quot;recommended&quot;: [&quot;hardened habitat&quot;],
+  &quot;code&quot;: &quot;B4p F100 S2 [R2]&quot;,
+  &quot;items&quot;: [
+    {&quot;slot&quot;: &quot;body&quot;, &quot;item&quot;: &quot;pressure suit&quot;, &quot;severity&quot;: &quot;required&quot;, &quot;domain&quot;: &quot;Pressure&quot;, &quot;text&quot;: &quot;The air pressure is 0.6 kPa, so a pressure suit is required.&quot;},
+    {&quot;slot&quot;: &quot;filter&quot;, &quot;item&quot;: &quot;dust-tight seals&quot;, &quot;severity&quot;: &quot;required&quot;, &quot;domain&quot;: &quot;Air&quot;, &quot;text&quot;: &quot;Fine regolith dust wrecks open seals.&quot;},
+    {&quot;slot&quot;: &quot;radiation&quot;, &quot;item&quot;: &quot;hardened habitat&quot;, &quot;severity&quot;: &quot;recommended&quot;, &quot;domain&quot;: &quot;Radiation&quot;, &quot;text&quot;: &quot;The dose is 236 mSv a year, nearly all cosmic rays, which no suit stops; about 250 g/cm2 of regolith (the shower maximum of the cosmic-ray curve) brings a long stay into the Green band.&quot;}
+  ],
+  &quot;regions&quot;: {&quot;polar_c&quot;: -110, &quot;northern_c&quot;: -65, &quot;equatorial_c&quot;: -45, &quot;southern_c&quot;: -70, &quot;swing_k&quot;: 90}
+}
+</code></pre>
+<p><strong>Search and lists.</strong> The single &quot;Equipment a Human Needs&quot; facet becomes &quot;Needs&quot; ticks per item (garment, thermal suit, sealed suit, pressure suit, armoured suit, vehicle, shielded garment, storm vest, hardened suit, dust, gas filter, CO<sub>2</sub> scrubber, gas-mix mask, own air, mixed gas, shielded shelter, hardened habitat), each with &quot;required&quot; or &quot;required or recommended&quot;; there is no &quot;none&quot; option (decision E), and &quot;worlds that need no gear&quot; is the search with every tick off and &quot;needs nothing&quot; set. The list column &quot;Equipment&quot; shows the required list, with the recommended list in the tooltip; the symbol cluster beside the PHI-6 symbols (UX.101, UX.152) can carry the chips as small icons.</p>
+<h2 id="8-relation-to-the-phi-6-domains-and-to-the-old-line">8. Relation to the PHI-6 domains and to the old line</h2>
+<h3 id="81-domains">8.1 Domains</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>PHI-6 domain</th>
+<th>Slots it drives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pressure</td>
+<td>Body (pressure suit under 14.3 kPa, diving suit, armoured suit); Supply (own gas under 14.3, mixed gas over 400, isolated over 10 MPa)</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>Body (cold, heat); Supply (breathing air colder than -50 or hotter than 140 C)</td>
+</tr>
+<tr>
+<td>Air</td>
+<td>Filter (dust, gas, CO<sub>2</sub>); Supply (thin or rich oxygen, a gas past IDLH, CO<sub>2</sub> over 5 kPa)</td>
+</tr>
+<tr>
+<td>Radiation</td>
+<td>Radiation Protection (suit steps, shelter); Body for UV</td>
+</tr>
+<tr>
+<td>Water</td>
+<td>nothing worn: water is treated or made from ice, which the describer already says</td>
+</tr>
+<tr>
+<td>Suitability</td>
+<td>nothing worn: a base brings its own food and shelter</td>
+</tr>
+</tbody>
+</table></div>
+<p>The same condition gives the domain its colour and the slot its level, so I propose a <strong>consistency test</strong> instead of rebuilding the score: a domain at Blue requires nothing from its slots; Green requires at most a level-1 item (garment, gas-mix mask, one filter part); Yellow at most levels 2 and 3 and radiation gear only as recommended; Red may require anything. Declared exceptions, because the gear follows the physics and the scores stay (decision B): a gas between its IDLH and ten times the acute limit (Yellow in the score, own air in the gear); pressure from 14.3 to 20 kPa (Green in the score, pressure suit recommended or required); best-mix density over 10 g/L below 10 MPa (Yellow, armoured suit required). A later item can bring the score bands to the physics if Boss wants them to agree; this draft does not change them.</p>
+<h3 id="82-the-old-line-mapped-and-retired">8.2 The old line, mapped and retired</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Old tier</th>
+<th>What the new slots say</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 ideal</td>
+<td>nothing listed; plus the cases the old line missed (a cold day, a toxic gas it had no row for)</td>
+</tr>
+<tr>
+<td>1 breathing mask</td>
+<td>Supply 1 alone, or with a garment</td>
+</tr>
+<tr>
+<td>2 mask with scrubber</td>
+<td>a gas filter or the CO<sub>2</sub> scrubber, supply 0</td>
+</tr>
+<tr>
+<td>3 environment suit</td>
+<td>any of Body 2 and up, or Supply 2 and up</td>
+</tr>
+<tr>
+<td>4 full life support with radiation hardening</td>
+<td>a required radiation step: shielded garment, storm vest, hardened suit, shielded shelter or hardened habitat, whichever the dose needs (and whatever else the world needs)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Removed in the same PR, with no shim: <code>habitability.equipment()</code>, <code>EQUIPMENT_NAMES</code>, <code>EQUIPMENT_LABELS</code>, <code>EQUIPMENT_RULE</code> and <code>EQUIPMENT_MEANINGS</code>, the stored <code>equipment_tier</code>, the <code>equipment</code> search facet and its help link, the page chips that name a tier, and <code>tuning.SPECIES_EQUIPMENT_MIN_TECH</code> (replaced by a table of the least tech level per slot level, section 9.3).</p>
+<h2 id="9-worked-examples-and-what-the-sample-shows">9. Worked examples and what the sample shows</h2>
+<h3 id="91-named-worlds-old-line-against-new">9.1 Named worlds, old line against new</h3>
+<p>Inputs as in the index design's worked examples, or the body's textbook values. Mars and the Moon use their day and night extremes (-125 to +20 C and -173 to +120 C).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>World</th>
+<th>Old line</th>
+<th>Required</th>
+<th>Recommended</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth, 15 C</td>
+<td>ideal</td>
+<td>(nothing listed)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Earth, Arctic day at -35 C</td>
+<td>ideal</td>
+<td>insulated suit</td>
+<td></td>
+<td><code>B2c</code></td>
+</tr>
+<tr>
+<td>Everest summit (33.7 kPa, -30 C)</td>
+<td>breathing mask</td>
+<td>insulated suit + gas-mix mask</td>
+<td></td>
+<td><code>B2c S1</code></td>
+</tr>
+<tr>
+<td>Mars (0.24 Sv/yr, cosmic rays)</td>
+<td>environment suit</td>
+<td>pressure suit + dust-tight seals</td>
+<td>hardened habitat</td>
+<td><code>B4p F100 S2 [R2]</code></td>
+</tr>
+<tr>
+<td>Moon (0.5 Sv/yr, cosmic rays)</td>
+<td>environment suit</td>
+<td>pressure suit + dust-tight seals</td>
+<td>shielded garment + hardened habitat</td>
+<td><code>B4p F100 S2 [H1 R2]</code></td>
+</tr>
+<tr>
+<td>Airless moon of a flare star (5 Sv/yr, storm particles)</td>
+<td>full life support</td>
+<td>pressure suit + dust-tight seals + storm vest</td>
+<td>hardened suit + shielded shelter</td>
+<td><code>B4p F100 S2 H2 [H3 R1]</code></td>
+</tr>
+<tr>
+<td>Close planet of a flare star (100 Sv/yr, storm particles)</td>
+<td>full life support</td>
+<td>hardened pressure suit + hardened habitat (about 800 hours outside a year)</td>
+<td></td>
+<td><code>B4p F100 S2 H3 R2</code></td>
+</tr>
+<tr>
+<td>Venus surface (9.2 MPa, 735 K)</td>
+<td>environment suit</td>
+<td>armoured suit</td>
+<td></td>
+<td><code>B5h S4</code></td>
+</tr>
+<tr>
+<td>Titan (147 kPa, 94 K)</td>
+<td>environment suit</td>
+<td>heated sealed suit + self-contained air</td>
+<td></td>
+<td><code>B3c S2</code></td>
+</tr>
+<tr>
+<td>Europa surface (2,000 Sv/yr)</td>
+<td>full life support</td>
+<td>hardened pressure suit + hardened habitat (minutes to hours outside)</td>
+<td></td>
+<td><code>B4p S2 H3 R2</code></td>
+</tr>
+<tr>
+<td>Dense CO<sub>2</sub> (300 kPa, 40 C, 95 percent CO<sub>2</sub>)</td>
+<td>environment suit</td>
+<td>cooling clothing + self-contained air</td>
+<td></td>
+<td><code>B1h S2</code></td>
+</tr>
+<tr>
+<td>Hycean (2 MPa, 60 C, H<sub>2</sub> and He)</td>
+<td>environment suit</td>
+<td>liquid-cooled suit + mixed-gas rig</td>
+<td></td>
+<td><code>B2h S3</code></td>
+</tr>
+<tr>
+<td>Photochemical CO (100 kPa, 5 percent CO)</td>
+<td>environment suit</td>
+<td>self-contained air</td>
+<td></td>
+<td><code>S2</code></td>
+</tr>
+<tr>
+<td>Dune world (90 kPa, 45 C)</td>
+<td>ideal</td>
+<td>cooling clothing</td>
+<td></td>
+<td><code>B1h</code></td>
+</tr>
+<tr>
+<td>Valley with SO<sub>2</sub> and H<sub>2</sub>S at 10 times the limit</td>
+<td>mask with scrubber</td>
+<td>full-face gas filter</td>
+<td></td>
+<td><code>F020</code></td>
+</tr>
+<tr>
+<td>Cold air with 2 percent ammonia</td>
+<td>ideal</td>
+<td>chemical-barrier suit + self-contained air</td>
+<td></td>
+<td><code>B3x S2</code></td>
+</tr>
+<tr>
+<td>Air with 50 ppm HCl at 100 kPa</td>
+<td>ideal</td>
+<td>chemical-barrier suit + self-contained air</td>
+<td></td>
+<td><code>B3x S2</code></td>
+</tr>
+<tr>
+<td>2 bar air with 40 percent oxygen</td>
+<td>environment suit</td>
+<td>gas-mix mask</td>
+<td></td>
+<td><code>S1</code></td>
+</tr>
+<tr>
+<td>10 bar air, 50 percent O<sub>2</sub></td>
+<td>environment suit</td>
+<td>heated diving suit + mixed-gas rig</td>
+<td></td>
+<td><code>B2d S3</code></td>
+</tr>
+<tr>
+<td>Earth air under 200 times Earth's UV</td>
+<td>ideal</td>
+<td>full-cover suit</td>
+<td></td>
+<td><code>B2u</code></td>
+</tr>
+<tr>
+<td>Thin world at 18 kPa, 21 percent O<sub>2</sub>, 10 C</td>
+<td>breathing mask</td>
+<td>gas-mix mask</td>
+<td>pressure suit</td>
+<td><code>S1 [B4p]</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Zero slots are left out of the code as well as the name. Mars and the Moon would also carry regional notes in their text (polar nights).</p>
+<p>Where the new line differs from the old on purpose: the photochemical CO world needs air, not a suit (a pure gas hazard, no body hazard); the oxygen-rich 2 bar world needs a mix mask (the 7.3 alternative of the index design, tier 1 diluent mask); and several worlds the old line called &quot;ideal&quot; were missing a row (cold, ammonia, HCl, UV).</p>
+<h3 id="92-what-160-generated-systems-give-2261-rocky-planets-and-moons">9.2 What 160 generated systems give (2,261 rocky planets and moons)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Slot</th>
+<th>Distribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Body</td>
+<td>0: 14, garment 1: 20, thermal 2: 59, sealed 3: 59, pressure suit 4: 2,009, armoured 5: 40, vehicle only 6: 60</td>
+</tr>
+<tr>
+<td>Filter</td>
+<td>dust or seals 2,024 (every body under 10 kPa, the interim rule); gas filter and scrubber 0: a body that needs own gas drops them, and none of the 61 bodies that did not need own gas had a toxic gas or CO<sub>2</sub> in range</td>
+</tr>
+<tr>
+<td>Supply</td>
+<td>0: 27, mask 1: 34, own gas 2: 2,097, mixed gas 3: 3, isolated 4: 100</td>
+</tr>
+<tr>
+<td>Radiation, required</td>
+<td>nothing 1,025; shielded garment 214; storm vest 84; hardened suit 118; shielded shelter 301 (with a garment 100, storm vest 77, hardened suit 76, hardened suit with an hours limit 36, no suit 12); hardened habitat 519 (503 with a hardened suit and an hours limit)</td>
+</tr>
+<tr>
+<td>Radiation, recommended</td>
+<td>274 list nothing; of the rest nearly all get the hardened habitat (1,555), with a garment 406, storm vest 241, hardened suit 180</td>
+</tr>
+<tr>
+<td>Pressure 14.3 to 20 kPa</td>
+<td>37 bodies move from &quot;mask&quot; to &quot;pressure suit recommended or required&quot; under the physics</td>
+</tr>
+<tr>
+<td>Old tier</td>
+<td>ideal 21, mask 24, environment suit 980, full life support 1,236</td>
+</tr>
+</tbody>
+</table></div>
+<p>The old tier 4 (1,236 bodies) is exactly the Red dose case, and all 1,236 are storm-particle worlds (over half their dose from a flaring star): the new ladder splits them across every step from the garment (the soft storms of airless bodies) to the habitat. (The name counts below are from the first prototype run, before the severity split.) Of the 237 bodies with 10 kPa or more of air, the new line names at least 15 distinct combinations (the commonest: heat-shielded suit + self-contained air 45, vehicle only 25, pressure suit 24, liquid-cooled suit + self-contained air 14, armoured suit 14, liquid-cooled suit + gas-mix mask 13, insulated suit 12, gas-mix mask 11, full-cover suit + self-contained air 11, cold-weather clothing 9).</p>
+<p>Caveats: the sample's atmospheres contain only the ten stored gases, so the toxic list beyond CO, H<sub>2</sub>S and SO<sub>2</sub> cannot fire in it (it will matter when GEN.424 lands); the dust rule is the interim one; the regions and swing are not in the prototype yet (they only add recommended items and text, since the required gear reads the average); and the thresholds of UV and gravity are DESIGN values. A sweep of the real build, with a table of every combination, is the first thing the build item should produce.</p>
+<h3 id="93-species-and-tech-level-pop12">9.3 Species and tech level (POP.12)</h3>
+<p>A species could live somewhere with equipment when its tech level reaches the heaviest slot level the world needs. Replace the five-value tuple by a table (DESIGN, from the old tuple 0, 2, 2.5, 3, 4): Body 1 at 0, 2 at 2, 3 at 3, 4 at 3, 5 at 4, 6 never; dust 2; gas filter 1, 2, 3 at 2.5, 2.5, 3; scrubber 2.5; Supply 1 at 2, 2 at 3, 3 at 3.5, 4 at 4; shielded garment 1, storm vest 2.5, hardened suit 3.5; shielded shelter 2, hardened habitat 4. A species needs the tech for every required item; recommended items do not gate the fit. The slot thresholds read the species' limits (<code>habitability.bands</code>) as the old tier did.</p>
+<h2 id="10-what-it-touches">10. What it touches</h2>
+<p><strong>Code.</strong> <code>physics/habitability.py</code> (equipment removed), <code>physics/habitability_world.py</code> (<code>equipment_tier</code> in <code>SCORE_FIELDS</code>, <code>EQUIPMENT_*</code>), <code>physics/protection.py</code> (<code>requirements</code>, <code>kit_sentence</code>, <code>SUIT_RANK</code>, <code>OVERALL_GEAR</code>, <code>SHORT_GEAR</code> become readers of the needs list), <code>physics/protection_limits.py</code> (new rows), <code>physics/species_limits.py</code> and <code>db/species_fit.py</code> (assess), <code>db/query.py</code> (search facet and clause), <code>web/searchpage.py</code>, <code>web/lib/habitability_ref.py</code> and <code>web/class_pages.py</code> (the levels page, UX.90), <code>web/lib/systempage.py</code> (equipment chip), <code>web/templates/habitability.html</code>, <code>system.html</code>, <code>classes.html</code>, <code>cli/generate.py</code> (its mention), <code>tuning.py</code> (<code>SPECIES_EQUIPMENT_MIN_TECH</code>), <code>db/column_units.py</code>.</p>
+<p><strong>Docs.</strong> <code>habitability-index.md</code> sections 2 (Equipment), 7.3 (the five tiers, which this supersedes and implements in part), 8, 9 and 10; <code>database-schema.md</code>, <code>api.md</code>, <code>html-interface.md</code>.</p>
+<p><strong>Tests.</strong> <code>test_habitability.py</code>, <code>test_habitability_world.py</code>, <code>test_protection.py</code>, <code>test_species_limits.py</code>, <code>test_class_pages.py</code>, <code>test_web_search.py</code>, <code>test_wording_agrees_with_the_index.py</code>, <code>test_api.py</code>, <code>test_systempage.py</code>, and the epochs golden only if a draw changes (none does).</p>
+<p><strong>Items.</strong> GEN.89 (score storage), GEN.148 and GEN.207 (dose bands, gates), GEN.208 (the one limits table), GEN.216 and GEN.218 (the describer), UX.90 (levels page), UX.100, UX.101, UX.150 and UX.152 (lists, symbols, filters, score display), GEN.643 (habitable), GEN.649 and GEN.653 (life scores, food), GEN.87 (dose and UV inputs), GEN.414 (haze, dust columns), GEN.424 and DB.71 (all gases stored), POP.12, POP.13 and POP.14 (species limits and placement), MAP.143 and MAP.220 (map colours and markers, which may want the strip). The classes of GEN.645 to GEN.648 do not read equipment. The rogue-planet score (found in the model-gaps report, missing item 3) should carry the same columns when it lands.</p>
+<p><strong>Epoch and migration.</strong> The levels are a pure function of the stored row, so no generated value changes: one Alembic migration (0136) that adds the columns and drops <code>equipment_tier</code>; it does not backfill, <code>planetgen rescore-habitability</code> (<code>store.refresh_habitability</code>) fills the levels of a galaxy made before it, and a body not re-scored shows no equipment line until then. No generator epoch. The three new inputs arrive with their own lanes' epochs and are read when present.</p>
+<h2 id="11-proposed-items-numbers-for-todo-to-assign">11. Proposed items (numbers for TODO to assign)</h2>
+<ol>
+<li>Equipment items: <code>physics/equipment.py</code> (needs with severity, levels, the two lists, code), new limit rows (severity bands, the five radiation steps with their shielding and the 2,000-hour working year, toxic table), the radiation ladder computed with the dose functions of <code>physics/radiation.py</code>, the consistency test with its declared exceptions, and removal of <code>habitability.equipment</code> and the tier constants.</li>
+<li>Equipment columns: migration with exact backfill, <code>column_units</code>, API object (required, recommended, items, regions), removal of <code>equipment_tier</code>.</li>
+<li>Search &quot;Needs&quot; ticks, the levels help page (UX.90) rewritten from the same limit rows, the describer sentences from the needs list (no &quot;none&quot; anywhere).</li>
+<li>Chips for the lists and system page, solid for required and outlined for recommended (with UX.101 and UX.152).</li>
+<li>Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator, night side for locked worlds) and the day and night swing: module, columns, the regional sentences of the detail text, tests against Earth, the Moon, Mars and Mercury.</li>
+<li>Toxic-species rows in the limits table, wired to the gas rows of GEN.424; verify the RECALLED limits against NIOSH and ACGIH.</li>
+<li>Dust loading and dust toxicity input (with GEN.414 and lane K's surface composition).</li>
+<li>Per-item tech-level table for the species fit (POP.12).</li>
+</ol>
+<p>Order: 1 and 2 together (the cut-over), then 3, 4, 5 and 8; 6 and 7 follow the lanes that supply their inputs. No generator epoch: everything is derived from stored values.</p>
+<h2 id="12-evidence-notes">12. Evidence notes</h2>
+<p><strong>Checked on the web this session (V).</strong> NASA OCHMO technical brief: career limit 600 mSv, 250 mSv per solar event. The ISS spacesuit at 4.3 psi (29.6 kPa) of pure oxygen and the 30 kPa target of mechanical counterpressure suits (npj Microgravity 2021; MIT BioSuit). The wet-bulb limit of 30.55 plus or minus 0.98 C ([R4521], Penn State). NIOSH's 2025 IDLH for hydrogen chloride, 45 ppm. Hopcalite escape respirators exist and last about two hours (MSA W65 sheet). AstroRad: high-density polyethylene, 26 kg, flown on Artemis I, an estimated 40 to 60 percent effective-dose cut for great storms, no help against cosmic rays (Science News, Space.com, StemRad). Lead aprons: 0.5 mm lead equivalent passes about 5 percent at 100 kVp, 0.25 mm about 10 percent (PMC 6038217 and apron studies). Shuttle-era suit helmet and visor layers 0.01 to 0.38 g/cm2; the cooling tubes cover 40 percent of the body (NASA NTRS 20040065979 series). Demron: at least 50 percent of gamma up to 130 keV (vendor claim).</p>
+<p><strong>From Boss's research notes in <code>docs/design/</code> (N), not re-checked.</strong> The pressure, hyperbaric, thermal, mask-limit and respirator-hierarchy tables of <code>Environmental.Extremes.and.Protection.Research.md</code> and <code>Thermal.Respiratory.Protection.Research.md</code>; the gas limits of <code>Atmospheric Toxicity.md</code>; the radiation figures of <code>Naturally Occuring Ionizing Radiation.md</code> and <code>activity-magnetism-radiation-hydrosphere.md</code>.</p>
+<p><strong>Recalled (R), check at build time.</strong> The assigned protection factors (10, 50, 25 to 1,000) and the 19.5 percent oxygen rule of OSHA 29 CFR 1910.134 (the web search could not show the numbers); the long-term limits and IDLH of NH<sub>3</sub>, HF, Cl<sub>2</sub>, NO<sub>2</sub>, HCN and O<sub>3</sub>; the 100 ppm IDLH of H<sub>2</sub>S (the built table uses 500 ppm for acute); lead's mass attenuation at 662 keV (about 0.11 cm2/g); the StemRad 360 Gamma marrow figure.</p>
+<p><strong>Design values (D).</strong> The UV thresholds 3 and 30; gravity 1.5 and 3; armoured suit above 400 C and vehicle above 500 C; the interim dust rule under 10 kPa; the shielding of each radiation step (1, 1 + 5 torso, 5 + 5 torso, 50 and 300 g/cm2), the 60 percent torso share and the 2,000-hour working year; the severity band for gravity; the polar heat-transport factor; the tech-level table; the idea that an intake scrubber is workable up to 5 kPa of CO<sub>2</sub>.</p>
+<p><strong>A caveat for the build.</strong> The repo's cosmic-ray curve is log-interpolated from the Moon (0 g/cm2) to Mars (16.4), so it credits a 1 g/cm2 garment with a 17 percent cut on an airless body; measurements show thin layers barely change the cosmic-ray dose. The storm part, which decides every Red world in the sample, is not affected; the Moon's recommended garment does depend on it. The owner of <code>radiation.py</code> may want to hold the curve flat below a few g/cm2.</p>
+<p><strong>Out of scope.</strong> Wind and storms, micrometeoroids, lightning, flammable atmospheres (an oxygen-enriched suit in hydrogen or methane air), pathogens and local life, and how long gear lasts (sortie length). Each could become a further slot or a flag; none changes the three Boss named.</p>
+<h2 id="13-files">13. Files</h2>
+<p>The prototype (<code>eq_proto.py</code>, <code>sweep.py</code>) lived in the session's scratch folder and is not part of the repo. The build is <code>physics/equipment.py</code> with the limit rows of <code>physics/protection_limits.py</code>.</p>
+<h2 id="14-built-notes-gen655-db93">14. Built notes (GEN.655, DB.93)</h2>
+<ul>
+<li>
+<p><strong>The hardened suit is a word, not a body level.</strong> A hardened suit is the suit the world asks for, hardened: &quot;hardened pressure suit&quot; replaces &quot;pressure suit&quot; in the list. <code>eq_body</code> keeps the level of the suit alone; <code>eq_rad_suit</code> = 3 says it is hardened. A recommended hardened suit over a required plain one lists as the hardened name under Recommended.</p>
+</li>
+<li>
+<p><strong>Inspired oxygen has a recommended band too.</strong> Between 8 and 16 kPa of inspired oxygen a gas-mix mask is recommended (<code>inspired_o2_rec_kpa</code>); below it, required. The pressure suit is required under <code>suit_required_kpa</code> (16 kPa) and recommended under <code>suit_recommended_kpa</code> (20 kPa), both scaled for another species by its pressure limit over the human 14.3.</p>
+</li>
+<li>
+<p><strong>Radiation.</strong> A step's shielding runs through <code>radiation.gcr_dose_msv_yr</code> and <code>radiation.sep_dose_msv_yr</code> at the added column mass, as ratios of the stored dose parts (<code>dose_gcr_sv_yr</code>, <code>dose_sep_sv_yr</code>, <code>dose_ground_sv_yr</code>, filled by <code>habitability_world</code>); the ground dose is not reduced. A suit is judged over the whole year when no shelter is needed, else over the working year outside (<code>work_hours_outside_yr</code>, 2,000 h); <code>outside_hours</code> is what the dose allows. The heliosphere multiplier scales the cosmic-ray part.</p>
+</li>
+<li>
+<p><strong>Species.</strong> <code>tuning.SPECIES_EQUIPMENT_TECH</code> gives a tech level per item name; a species can live there with equipment when its tech level reaches the highest of the required items (<code>equipment.tech_needed</code>); vehicle only is 99, never within reach.</p>
+</li>
+<li>
+<p><strong>Corrosive liquid.</strong> A surface liquid below pH 2 or above 12 asks for a chemical-barrier suit; that is a body hazard, not a water score, and the PHI-6 water score is unchanged.</p>
+</li>
+<li>
+<p><strong>Migration.</strong> Each table is one <code>ALGORITHM=COPY</code> statement (<code>planets</code> and <code>moons</code> have a FULLTEXT index, which refuses an instant column drop).</p>
+</li>
+<li>
+<p><strong>Tests.</strong> <code>tests/test_equipment.py</code>, <code>tests/test_migration_survival_equipment.py</code>.</p>
+</li>
+<li>
+<p><strong>Toxic rows verified (GEN.657).</strong> Each of the ten rows of <code>protection_limits.TOXIC_GASES</code> was read from its NIOSH Pocket Guide page (cdc.gov/niosh/npg, 2026-10-29): CO REL TWA 35 ppm, ceiling 200, OSHA PEL 50, IDLH 1,200; H<sub>2</sub>S REL ceiling 10, IDLH 100; SO<sub>2</sub> REL TWA 2, ST 5, OSHA PEL 5, IDLH 100; NH<sub>3</sub> REL TWA 25, STEL 35, IDLH 300; HF REL TWA 3, ceiling 6, IDLH 30; HCl ceiling 5, IDLH 50 in the pocket guide and 45 in NIOSH 2025-110 (the newest, used); Cl<sub>2</sub> REL ceiling 0.5, OSHA ceiling 1 (the more permissive, used), IDLH 10; NO<sub>2</sub> REL ST 1, OSHA ceiling 5, IDLH 13 (NIOSH 2017-202, the pocket guide's pointer; the 1994 value was 20, which the draft recalled); HCN REL ST 4.7, IDLH 50; O<sub>3</sub> REL ceiling 0.1, IDLH 5. ACGIH values are not freely published and were not consulted. Only the NO<sub>2</sub> IDLH changed from the draft, and no world reads NO<sub>2</sub> yet. <code>tests/test_equipment.py</code> holds the published IDLH of every row and checks, for every gas and a ladder of ratios to its long-term limit, that the filter grade is 0 to 3 by the ratio (10, 50, 1,000), that past the IDLH or 1,000 times the limit the grade drops out for own air (Supply 2), and that a corrosive gas past its IDLH asks for the chemical-barrier suit.</p>
+</li>
+<li>
+<p><strong>The wiring waits for the lock.</strong> <code>habitability_world.world_from</code> builds <code>World.gases</code> from five of the stored species (<code>_GAS_NAMES</code>: O<sub>2</sub>, CO<sub>2</sub>, CO, H<sub>2</sub>S, SO<sub>2</sub>), so NH<sub>3</sub> (75 of 623 planets in a 60-system sample, up to 0.9 kPa, thirty times its IDLH), HCN and the rest never reach the filter and suit rules even though <code>planet_gases</code> stores them. Reading them changes stored <code>eq_*</code> columns and the rosetta golden, so it is a generation change (epoch, golden) and rides the generation merge lock.</p>
+</li>
+</ul>
+<h2 id="15-bosss-follow-up-of-1125-pm-edt-2026-10-23-gen671-ux163">15. Boss's follow-up of 11:25 PM EDT 2026-10-23 (GEN.671, UX.163)</h2>
+<ul>
+<li><strong>GEN.671, a hardened suit against cosmic rays.</strong> In the game a hardened suit works against cosmic rays, so section 2's &quot;a suit does almost nothing against cosmic rays&quot; no longer decides the gear. Where the dose is past the Green edge and no ordinary garment, vest or shelter below the habitat brings the year under it (a cosmic-ray world: Mars, the Moon), the <strong>hardened suit is required</strong> and the <strong>hardened habitat is recommended</strong>. Mars reads &quot;Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat.&quot; (<code>B4p F100 S2 H3 [R2]</code>); the Moon the same. The recommended shielded garment and the recommended-only habitat of the draft's table are gone. The physics ladder itself is unchanged; the rule is in <code>equipment._radiation</code>.</li>
+<li><strong>UX.163, a Required line and a Recommended line.</strong> A scored planet or moon gives a Required line and a Recommended line (<code>equipment.lines</code>) at the head of its PHI-6 rating in the details, the text and the API (<code>required_line</code>, <code>recommended_line</code>). A line with nothing in it is left off, never shown as &quot;none&quot; (Boss, 2026-10-24), so Earth has neither and the search column and <code>line</code> agree. Decision E (never list an item that is not needed) is unchanged.</li>
+<li><strong>Per-item specs in the details.</strong> The body's description carries a &quot;Survival equipment&quot; facts table: one row per item with how badly it is needed, the PHI-6 category it comes from and the tech level that makes it, then the shelter's shielding (g/cm2) and the hours outside a year the suit allows.</li>
+<li>A galaxy rescored before this change keeps the old radiation levels until <code>planetgen rescore-habitability</code> is run again.</li>
+</ul>
+<h2 id="16-which-row-an-item-sits-under-gen702">16. Which row an item sits under (GEN.702)</h2>
+<p>An item carries every PHI-6 domain it can come from (<code>Item.domains</code>, the likeliest first; <code>domain</code> is the first), because the stored levels do not record the cause: an air supply of level 1 or 2 may be for the air, the pressure or the cold; a hardened suit is for the suit's own stress and the radiation; a body level of 4 or more (a pressure suit, an armoured suit) also keeps out the pressure, the temperature and the air, and a sealed suit the air. A category's row lists the items whose domains include it and whose own colour is not Blue (<code>Item.rows</code>), the first domain when all of them are Blue. The API's items gain <code>domains</code>.</p>
+<h2 id="17-hours-outside-in-a-day-gen768-boss-2026-10-24">17. Hours outside in a day (GEN.768, Boss 2026-10-24)</h2>
+<p>The property sheet used to label the yearly <code>outside_hours</code> &quot;Hours of daylight a person can be outside&quot;, which it is not: it is the
+hours of a working year that the listed radiation suit allows before the dose limit, and <code>None</code> unless that is a limit. Boss asked
+for the hours of daylight a person can be outside in one local day, with the daylight hours of the planet beside it. The first
+part is built (<code>physics/outside_hours.py</code>) and the answer is stored (schema v187): <code>outside_hours_day</code>, the hours of one local day, and
+<code>outside_hours_limit</code>, the name of the limit that sets them. <code>habitability_world.compute</code> works both out with the rest of the score
+from the equipment levels, the stored <code>daylight_hours</code> (GEN.767) and the day and night swing, so a dose refresh or a re-score keeps them
+current. A world whose daylight (or, for a locked world, terminator belt temperature) is not stored has neither (NULL). The property
+sheet shows the day's hours in the glance and in the rotation group with what limits them in plain words (<code>outside_hours.LIMIT_WORDS</code>);
+the yearly dose-limited hours keep their own row, &quot;Hours a person can work outside per year (dose limit)&quot;.</p>
+<p><strong>The answer is the smallest of five limits and the one that binds is named</strong> (<code>outside_hours.LIMITS</code>: daylight, dose, heat,
+cold, air, uv, and vehicle for a body that needs one, which has 0 hours):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Limit</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>daylight</td>
+<td>the daylight hours of the local day (GEN.767; a locked world's terminator belt, or none)</td>
+</tr>
+<tr>
+<td>dose</td>
+<td>the yearly hours the listed suit allows (<code>outside_hours</code>) over the work days of the year (<code>work_days_per_year</code>: the local solar days, 24-hour shifts for a locked world); no limit when the yearly hours are <code>None</code></td>
+</tr>
+<tr>
+<td>heat, cold</td>
+<td>the time before the core temperature leaves 35 to 38.5 C (<code>exposure_hours</code>)</td>
+</tr>
+<tr>
+<td>air</td>
+<td>the gas of the listed Air Supply against a shift (<code>protection_limits.supply_hours</code>): a charge lasts a share of the 8-hour shift (mask 1, own gas 0.5, mixed gas 0.75, isolated air 1); ambient air has none</td>
+</tr>
+<tr>
+<td>uv</td>
+<td>the day's ultraviolet against what the worn garment is rated for: the band edge it stands for (bare 3, sun-cover clothing 30, full-cover suit 300 times Earth's, a sealed suit any), the dose linear in the index, so past the edge the hours are the daylight times edge over index</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Heat and cold</strong> are a one-node balance of the 70 kg, 1.8 m2 reference body at a light to moderate working rate (150 W): its heat
+capacity (3470 J/(kg K)) against the metabolism, the dry flow through the garment's insulation and the surface film (radiation plus
+convection that goes as the square root of the gas density), the evaporation of sweat (ISO 7933: the vapour-pressure difference
+between the wet skin and the air over the clothing's and the film's vapour resistance, at most 500 W, none in a sealed suit) and the
+garment's cooling or heating power (a cooling vest, a liquid cooling garment, a suit's thermal control, a heated suit;
+<code>protection_limits.GARMENTS</code>). The garment for the hot end is the one the ladder lists at the day's hottest temperature and for the
+cold end the one at the coldest (<code>equipment.body_at</code>), so a person wears the clothing the ladder lists for the weather they
+are in; an unsealed garment is worn open (30 percent of its insulation) in air colder than the skin. The day's temperatures are the
+world's cold and hot extremes (<code>habitability.temperature_extremes_c</code>) widened by half the day-night swing of the equator band (<code>band4_swing_k</code>).</p>
+<p><strong>What it shows.</strong> The ladder's gear is chosen to cope, so heat and cold bind only near the hot and cold ends of a garment's band (a
+liquid-cooled suit at 120 C with a 40 K swing: about 6 h; an insulated suit at -49 C: about 11 h), the air supply binds in a sealed
+suit (4 h on own gas in a vacuum or the deep cold), the dose binds on a world that needs a shelter, and the ultraviolet binds only
+past a garment's rating. Earth has the full daylight.</p>
+<p>Every number is a <code>protection_limits</code> row or table with a source tier and a tweak level in section 6.8 of
+<a href="../research/gap-filling-plan.html">gap-filling-plan.md</a> (the rows OH1 to OH10; list in
+<a href="../research/stand-in-values.html">stand-in-values.md</a>). Nothing is drawn.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

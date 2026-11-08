@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testing - planetGen docs</title>
+<meta name="description" content="The suite lives in src/tests/ and runs with plain pytest from the repository root (pytest.ini puts ., src and src/html on the path).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/testing.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/testing.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="testing">Testing</h1><p class="meta">docs/reference/testing.md</p><details class="toc"><summary>On this page (24 headings)</summary><ul><li style="margin-left:0px"><a href="#running-in-parallel">Running in parallel</a></li><li style="margin-left:0px"><a href="#generation-at-several-worker-counts">Generation at several worker counts</a></li><li style="margin-left:0px"><a href="#the-database-tests">The database tests</a></li><li style="margin-left:0px"><a href="#the-math-check">The math check</a></li><li style="margin-left:0px"><a href="#picking-a-slice-of-the-suite">Picking a slice of the suite</a></li><li style="margin-left:14px"><a href="#the-slice-picker-scriptstestpy">The slice picker, scripts/test.py</a></li><li style="margin-left:14px"><a href="#containers-the-check-before-a-run-and-the-watchdog-test376">Containers: the check before a run and the watchdog (TEST.376)</a></li><li style="margin-left:14px"><a href="#queue-workers-a-test-left-behind-test393">Queue workers a test left behind (TEST.393)</a></li><li style="margin-left:14px"><a href="#telling-when-a-run-is-done">Telling when a run is done</a></li><li style="margin-left:14px"><a href="#a-test-that-hangs">A test that hangs</a></li><li style="margin-left:14px"><a href="#the-progress-log-and-the-build-id">The progress log and the build id</a></li><li style="margin-left:14px"><a href="#resuming-a-run">Resuming a run</a></li><li style="margin-left:14px"><a href="#only-the-tests-a-change-touches-scriptstestpy-changed">Only the tests a change touches, scripts/test.py changed</a></li><li style="margin-left:14px"><a href="#time-limit-and-knowing-a-run-is-done">Time limit and knowing a run is done</a></li><li style="margin-left:0px"><a href="#the-prevalence-census-test430">The prevalence census (TEST.430)</a></li><li style="margin-left:0px"><a href="#setting-up-a-cloud-session">Setting up a cloud session</a></li><li style="margin-left:0px"><a href="#database-engines">Database engines</a></li><li style="margin-left:0px"><a href="#kinds-of-test">Kinds of test</a></li><li style="margin-left:0px"><a href="#opt-in-tests">Opt-in tests</a></li><li style="margin-left:0px"><a href="#fuzz-profiles">Fuzz profiles</a></li><li style="margin-left:0px"><a href="#when-a-fuzz-test-fails">When a fuzz test fails</a></li><li style="margin-left:0px"><a href="#when-ci-runs">When CI runs</a></li><li style="margin-left:0px"><a href="#the-deep-fuzz-workflow">The Deep fuzz workflow</a></li><li style="margin-left:0px"><a href="#ci-runners">CI runners</a></li></ul></details>
+<p>The suite lives in <code>src/tests/</code> and runs with plain <code>pytest</code> from the
+repository root (<code>pytest.ini</code> puts <code>.</code>, <code>src</code> and <code>src/html</code> on the path).</p>
+<pre><code class="language-sh">pip install -e &quot;.[test,api]&quot;
+python -m nltk.downloader words
+pytest -n auto
+</code></pre>
+<h2 id="running-in-parallel">Running in parallel</h2>
+<p><code>-n auto</code> (pytest-xdist, part of the <code>test</code> extra) runs one worker process
+per core. Plain <code>pytest</code> still runs everything serially in one process,
+which is easier to read when debugging a single failure. On a 4-core
+machine with the database tests on, the whole suite took 17 min 21 s
+serially and 5 min 57 s with <code>-n 4</code> (2026-10-01).</p>
+<p>Workers never share database state:</p>
+<ul>
+<li>each test process keeps its own uniquely named database for <code>mysql_config</code> (see &quot;The database tests&quot;);</li>
+<li>each worker process gets its own control database
+(<code>PLANETGEN_CONTROL_DATABASE</code> is set to <code>pgtest_control_&lt;worker&gt;_&lt;random&gt;</code>
+by <code>conftest.py</code>, overriding any value in your environment, and dropped
+at the end of the run), so nothing in the suite touches
+<code>planetgen_control</code> or a real control schema;</li>
+<li>generation runs in-process (<code>PLANETGEN_WORKERS=1</code>) unless you set
+<code>PLANETGEN_WORKERS</code> yourself.</li>
+</ul>
+<h2 id="generation-at-several-worker-counts">Generation at several worker counts</h2>
+<p>A real run hands its sectors and bright-star layers to worker processes.
+CI runs the tests marked <code>generation</code> (the files that run <code>planetgen</code> or
+the work queue; <code>conftest.py</code> adds the marker) again with 2 and 4 workers
+(TEST.74). To do the same locally:</p>
+<pre><code class="language-sh">PLANETGEN_WORKERS=2 python3 -m pytest -n auto -m generation
+</code></pre>
+<p><code>monkeypatch.setattr</code> only changes the test's own process, never a spawned
+worker. A test that patches something a generation run calls uses
+<code>tests/worker_patches.py</code> instead: <code>patch_everywhere(monkeypatch, module, name, &quot;tests.my_test:factory&quot;, **params)</code> patches this process and every
+worker started while the patch is in place (<code>$PLANETGEN_WORKER_HOOKS</code>).
+The factory is a module-level function that builds the replacement, and
+shared state such as a call count goes in a file (<code>worker_patches.bump</code>).
+With more than one worker, the sectors or layers already handed out when
+a fault hits can still finish, so a test checks &quot;at least&quot; where one
+worker would stop exactly.</p>
+<p><code>--dist worksteal</code> (what CI uses) lets idle workers take queued tests from
+busy ones, which helps when a few slow tests land on the same worker.</p>
+<h2 id="the-database-tests">The database tests</h2>
+<p>Tests that save and load systems, sectors or users need a MySQL
+server. They skip (not fail) without one. Point them at a server with:</p>
+<pre><code class="language-sh">export PLANETGEN_TEST_MYSQL_HOST=127.0.0.1
+export PLANETGEN_TEST_MYSQL_PORT=3306
+export PLANETGEN_TEST_MYSQL_USER=root
+export PLANETGEN_TEST_MYSQL_PASSWORD=...
+</code></pre>
+<p>Each one falls back to the matching <code>PLANETGEN_MYSQL_*</code> variable, then to
+the built-in default (<code>127.0.0.1:3306</code>, user <code>planetgen</code>).</p>
+<p>The user needs to create and drop databases. Each test process (each
+<code>pytest -n</code> worker) keeps one uniquely named database with the schema in it,
+and <code>mysql_config</code> hands it to one test at a time, so the database tests are
+safe under <code>pytest -n auto</code> (see &quot;Running in parallel&quot; above). After each
+test <code>src/tests/dbpool.py</code> puts the database back the way a new one is: the
+tables the test filled are emptied, the auto-increment counters it advanced
+go back to 1, the baseline <code>schema_migrations</code> row returns, and the
+process's cached facts about that database name (id blocks, stored counts,
+facet caches, what was put in Redis under the name) are dropped. This
+replaced creating, filling with the schema and dropping a database for every
+test, which cost 0.66 s each on an idle machine.</p>
+<ul>
+<li>A test that changes the schema leaves a database that cannot be reused;
+the pool notices (table, column, index, routine, trigger or constraint
+added, dropped or altered) and drops it, and the next test gets a new one.</li>
+<li>A test that needs a database with <strong>no schema at all</strong> (it checks what a
+first connection does, or builds an old schema and migrates it) takes the
+old fixture with <code>@pytest.mark.fresh_database</code>, or <code>pytestmark</code> for a
+whole file. So does a test that measures the bytes a fill adds, which a
+reused database has grown.</li>
+<li><code>PLANETGEN_TEST_FRESH_DB=1</code> gives every test a new database again: the
+way to tell a problem in the pool from a problem in a test.</li>
+<li><code>PLANETGEN_TEST_DEEP_CHECK=1</code> makes every reset compare each table's
+<code>SHOW CREATE TABLE</code>, the tables holding rows and the auto-increment
+counters with a new database, and fail the test that left a difference.
+Run it after changing the schema or adding a cache keyed by database.</li>
+</ul>
+<h2 id="the-math-check">The math check</h2>
+<p><code>src/planetgen/physics/mathcheck.py</code> is a fixed list of checks that the
+generator's math gives the right answers (TEST.63): known values from real
+astronomy (the Sun, Earth's and Jupiter's orbits, the habitable zone, white
+dwarf sizes, Holman &amp; Wiegert's stability limits, the Kepler and Barker
+equations), identities that hold for any input (unit round trips, the
+constants agreeing with each other, energy conservation around a Kepler
+orbit, the sector grid tiling every shell), and seeded draws from every
+sampler checked against its intended shares with a chi-square test. Each
+check names the function it calls, the expected value, the tolerance and
+where the expected value comes from. It takes well under a second.</p>
+<ul>
+<li>Before any test runs, <code>conftest.py</code> runs the whole list once; if a check
+fails, the run stops there with the failed checks listed, since every
+other failure would be noise.</li>
+<li><code>test_math_check.py</code> repeats each check as its own test (marker
+<code>mathcheck</code>), sorted to the front of the run.</li>
+<li>CI runs it as its own first job, <code>mathcheck</code>; every other job waits for it.</li>
+<li>The website runs it once when it starts and shows admins a warning on
+every page if it failed (the site keeps serving).</li>
+<li><code>update.sh</code> runs it after every update and warns when it fails;
+<code>planetgen check-math</code> runs it by hand, and the Admin page's &quot;Check the
+math&quot; button runs it on request (PERF.170). Generation does not run it.</li>
+</ul>
+<pre><code class="language-sh">python -m planetgen.physics.mathcheck -v            # the report, exit 1 on failure
+pytest -m mathcheck                               # just the math check tests
+</code></pre>
+<p>A check that fails after a deliberate change to a constant or formula
+means the check's expected value, its source or the change needs a second
+look; update the check only with a source for the new value.</p>
+<h2 id="picking-a-slice-of-the-suite">Picking a slice of the suite</h2>
+<p><code>conftest.py</code> marks every test (markers registered in <code>pytest.ini</code>):</p>
+<ul>
+<li>
+<p><code>db</code>: uses a real database (the <code>mysql_config</code> fixture, directly or
+through another fixture);</p>
+</li>
+<li>
+<p><code>slow</code>: the brute-force and seeded-sweep files (<code>test_fuzz_*</code>,
+<code>test_bughunt_*</code>);</p>
+</li>
+<li>
+<p><code>browser</code>: the headless-browser checks (<code>test_web_a11y.py</code>,
+<code>test_web_browser_layout.py</code>, <code>test_web_browser_maps.py</code>,
+<code>test_web_browser_fixture_maps.py</code>);</p>
+</li>
+<li>
+<p><code>mathcheck</code>: the math check gate (<code>test_math_check.py</code>,
+<code>test_web_math_check.py</code>), run first.</p>
+</li>
+<li>
+<p><code>heavy</code>: the files that took over 100 s each in the 2026-10-14 baseline
+(<code>HEAVY_FILES</code> in <code>src/tests/areas.py</code>);</p>
+</li>
+<li>
+<p><code>area_web</code>, <code>area_api</code>, <code>area_db</code>, <code>area_generation</code>, <code>area_physics</code>,
+<code>area_names</code>, <code>area_ops</code>: the part of planetGen a test file
+covers, by its file name (the rules are in <code>src/tests/areas.py</code>; no file is
+moved, and a name no rule matches is <code>area_other</code>).</p>
+</li>
+</ul>
+<pre><code class="language-sh">pytest -n auto -m &quot;not db and not slow&quot;   # quick loop without a database
+pytest -n auto -m db                      # just the database tests
+pytest -n auto -m area_api                # one part of the program
+</code></pre>
+<h3 id="the-slice-picker-scriptstestpy">The slice picker, <code>scripts/test.py</code></h3>
+<p><code>scripts/test.py</code> builds those pytest commands for you (TEST.139,
+<a href="../design/operations/test-suite-rebuild.html">design/operations/test-suite-rebuild.md</a>):</p>
+<pre><code class="language-sh">scripts/test.py quick           # not database, browser or heavy tests
+scripts/test.py area web db     # the tests of those areas
+scripts/test.py browser         # the headless-browser tests alone
+scripts/test.py full            # everything: the end-of-version run, not the gate of an ordinary merge
+scripts/test.py env             # only check (and repair) MySQL, Redis, the test variables and packages
+scripts/test.py full -- -x      # anything after -- goes to pytest
+</code></pre>
+<p>Every command but <code>quick</code> and <code>browser</code> runs three phases: the tests that need
+no browser and no real queue worker on every core, then the <code>real_queue</code> tests
+(they start real worker processes, so two at once kill each other's workers)
+on one worker, then the browser tests on 2 workers (<code>--browser-workers</code>).
+Software WebGL needs the CPU the other workers would have, and running both
+together is what timed the browser tests out (TEST.126). The two parallel
+phases are also capped by what the machine has free when they start (TEST.344):
+one worker per 1000 MB of available memory (<code>--worker-mb</code>; browser workers 2500
+MB, <code>--browser-worker-mb</code>) and, in the first phase, no more than the cores the
+current load leaves idle, never fewer than one; the phase line says when it
+capped, and <code>--no-worker-cap</code> turns the cap off. The first line printed is the start time and how long the same
+command took last time on this checkout (kept in <code>.test-runs.json</code>, not
+tracked by git); the last line is how long it took now.</p>
+<p><strong>Failures.</strong> The runner keeps every failing test's full report (traceback,
+worker, the machine's load average) in <code>.test-failures.jsonl</code>, and when the run
+ends it runs each failed test again alone, on one process. The verdict is
+&quot;passes alone&quot; (it failed only under load or beside other tests) or &quot;FAILS
+ALONE&quot; (a real failure). A lane quoting a flake in a TODO item should paste
+that line and the record from <code>.test-failures.jsonl</code> instead of &quot;failed once,
+passed alone&quot;. <code>--no-rerun</code> skips the second step.</p>
+<p>A pull request needs a green <code>scripts/test.py changed</code> (below), finished with
+<code>--resume</code> if the run was interrupted, and no more: the whole suite
+(<code>scripts/test.py full</code>, <code>full --check</code>) is the end-of-version bug hunt
+(TEST.261, SEC.33, GEN.301), not the gate of an ordinary merge, and not run
+again on a merge candidate after main moved (run <code>changed --resume</code>, which
+reruns only what main's change touched). The PR description says which run it used.</p>
+<h3 id="containers-the-check-before-a-run-and-the-watchdog-test376">Containers: the check before a run and the watchdog (TEST.376)</h3>
+<p>A lane machine is a container that restarts, and MySQL and Redis go down with it. A
+database test whose server is down is skipped, not failed, and a run without
+<code>PLANETGEN_TEST_MYSQL_USER</code> logs in as <code>planetgen</code> and fails with
+<code>DatabaseLoginError</code>, so a broken container used to look like a green or a red
+run. <code>scripts/test.py</code> (<code>src/tests/lane_services.py</code>) now looks first and watches
+while it runs:</p>
+<ul>
+<li><strong>Before the run</strong>, every command (<code>scripts/test.py env</code> does only this, and
+<code>--no-preflight</code> skips it): the <code>PLANETGEN_TEST_*</code> variables are loaded from
+<code>/etc/profile.d/planetgen-test.sh</code> when they are missing; MySQL and Redis are
+started when they do not answer (the commands <code>planetgen-env-up</code> runs, or
+<code>PLANETGEN_TEST_MYSQL_START</code> / <code>PLANETGEN_TEST_REDIS_START</code>); the MySQL binary
+logs are purged when under 3 GB is free; <code>argon2-cffi</code> must be installed and,
+for the browser tests, <code>playwright</code> must be the release whose Chromium the image carries (the
+check asks Playwright for its executable; 1194 is 1.56.0, 1243 is 1.63.0; do
+not run <code>playwright install</code>). In the browser phase <code>PLANETGEN_REQUIRE_BROWSER</code> is set, so a browser
+that will not start fails the tests instead of skipping them (TEST.693). What it cannot repair is printed as
+<code>PREFLIGHT FAILED: ...</code> and nothing runs (exit 2). The same check runs again
+at the start of each phase.</li>
+<li><strong>During the run</strong>, a watchdog asks MySQL and Redis every 15 seconds. A server
+that is gone is restarted at once, the phase's pytest is stopped and started
+again without the tests that already passed (the progress log, as <code>--resume</code>
+does), up to 5 times a phase, and the closing line says
+<code>(N service restart(s): ...)</code>. A server that cannot be brought back ends the run
+with exit 3, <code>FAIL</code>, and the same command with <code>--resume</code> continues it once the
+services are up. A server that still has its process (<code>mysqld_safe</code> restarts a
+crashed <code>mysqld</code> itself, crash recovery answers late) is waited for, not
+started over, and a MySQL that only holds its port must miss three answers in a
+row before it counts as dead.</li>
+</ul>
+<h3 id="queue-workers-a-test-left-behind-test393">Queue workers a test left behind (TEST.393)</h3>
+<p>A test that starts real queue workers (<code>workers.ensure_workers</code>) starts them in a session of
+their own, so they outlive it; one that was stopped part way never tells them to stop, and each
+keeps about 300 MB (fifty filled a 16 GB machine and MySQL was killed). Every test worker's
+Redis is a database of its own, 1 to 15, and a real worker is started with <code>--url</code> naming it, so
+<code>src/tests/stray_workers.py</code> can tell a test's worker from the machine's (database 0). The
+conftest ends the workers on its own xdist worker's database when its session starts and when it
+ends, and <code>scripts/test.py</code> ends every one still running when a run is over and says how many
+and how old the oldest was. A test that starts real workers should still stop them; the count in
+that line is the way to find the test that did not.</p>
+<h3 id="telling-when-a-run-is-done">Telling when a run is done</h3>
+<p><code>scripts/test.py</code> always ends with one line: <code>PASS in &lt;time&gt;: &lt;counts&gt;</code>, <code>FAIL in &lt;time&gt;: &lt;counts&gt;</code>, or <code>INTERRUPTED ...</code>
+(Ctrl-C or a SIGTERM; it stops pytest first). Output that ends with none of these was killed. A full run takes about
+35 to 50 minutes (34 min 32 s on a 4-core machine, 2026-10-15), so start it in the background with a timeout of at least
+90 minutes (7,200,000 ms; the default 30 minutes cuts it), with its output and start time written to a file, and read the last line of that file rather than
+looking for processes.</p>
+<h3 id="a-test-that-hangs">A test that hangs</h3>
+<p>Every test has a time limit of 900 s (<code>timeout</code> in <code>pytest.ini</code>, pytest-timeout, method <code>signal</code>; the slowest
+test recorded took 479 s under load). A test that runs past it is stopped and fails with &quot;Timeout (&gt;900.0s) from
+pytest-timeout&quot;, which stops one test and not the worker or the run. The runner lists such tests by name under
+&quot;TIMED OUT&quot; before its last line and counts them there. A test that needs longer says so with
+<code>@pytest.mark.timeout(seconds)</code> (the budget tier gives itself an hour for building its galaxy). A helper thread
+in a test that waits for something must still do what lets the test go on if the wait fails
+(<code>test_work_queue_admin.py</code> <code>_ResumeLater</code>), and raise the failure from the test.</p>
+<h3 id="the-progress-log-and-the-build-id">The progress log and the build id</h3>
+<p>Every <code>scripts/test.py</code> run works out the id of its build (printed on the first line: <code>build 1a2b3c4d5e6f7a8b</code>) and
+keeps <code>.test-progress/&lt;id&gt;.jsonl</code>: a header with the parts the id is made of and a manifest of the files (path and
+hash, for comparing two runs' trees), then one line for every test that finished (node id, outcome, seconds, worker)
+and, for a passed test that recorded its dependencies, a <code>deps</code> line with the files it used, written as the test
+finishes, so a killed run loses only the tests that were running. <code>--resume</code> reads it (below). The id changes when the
+git tree, an uncommitted or untracked file (git-ignored files do not count), an installed package, the Python,
+MySQL or Redis version, the command and its pytest arguments, the commit <code>changed</code> compares with, a <code>PLANETGEN_*</code>
+or <code>PYTEST_*</code> variable or the UTC date changes, and not otherwise. A new run of the same build starts its log
+again; logs older than a day are removed.</p>
+<h3 id="resuming-a-run">Resuming a run</h3>
+<p>After a run was killed, hung or stopped (its last line says <code>INTERRUPTED</code>, or there is no last line), run the same
+command again with <code>--resume</code>:</p>
+<pre><code>scripts/test.py full --resume
+</code></pre>
+<p>The tests that passed in the earlier run are skipped (<code>--skip-passed</code>, a list of node ids) and the rest run. A test
+is skipped when it passed in a run of the same build, or (TEST.208) in an earlier run, of any command, that kept the
+same environment (installed packages, Python, MySQL and Redis versions, <code>PLANETGEN_*</code> and <code>PYTEST_*</code> variables, UTC
+day) and none of the files that differ between that run's tree and this one is a file the test used. Which files a
+test used is what the dependency map records for <code>changed</code> (its own test file, every Python file it ran, every file it
+opened, and for a test that starts a subprocess all of <code>src/planetgen/</code>, <code>src/html/</code> and <code>scripts/</code>); it is written to
+the progress log as a <code>deps</code> line when the test passes, so a canceled run keeps it. The rules of <code>changed</code> decide:
+a changed test file, a changed file the test used or that imports one it used, or a change to the test setup
+(<code>conftest.py</code>, the <code>*_support.py</code> modules, fixtures, <code>pytest.ini</code>, the lock files) reruns it, the last one all of
+them. So after a gate was canceled and main was merged in, only the tests the merge touched run again. A pass that
+has no <code>deps</code> line (the run was killed between the two lines, or <code>quick</code>, <code>area</code> or <code>browser</code> ran it, which record
+no dependencies) is reused only by a resume of the same build.</p>
+<p>It prints <code>RESUMING build &lt;id&gt;: the N tests that passed earlier are skipped (K in the run started &lt;time&gt;[ of build &lt;id&gt;]; ...), the rest run now</code> first, and its last line ends <code>(RESUMED build &lt;id&gt;: N more passed earlier, K in the run started &lt;time&gt; ...)</code>, so the verdict can be read as: the tests run now passed, and N more passed before, in those
+runs. The reused passes are copied into the new build's log, so a second resume counts them too. A resumed run's
+duration is not stored as the command's usual time. A different environment (a package, Python, a server, a
+<code>PLANETGEN_*</code> variable or the day) reuses nothing: the run says <code>RESUMING build &lt;id&gt;: nothing from the earlier runs can be reused (&lt;why&gt;); every test runs</code> and runs every test. When no earlier run of the command left a log it runs
+nothing, exits with 2 and says so. Resuming is never automatic; it is how an interrupted <code>changed</code> run is finished, and a PR that was
+merged on a resumed run says which build and runs it continued. Tests that failed, errored, were running when the run
+stopped or never started run again; a test that passed earlier is not run again, so a test that only passes after
+another test ran before it is not checked again either.</p>
+<h4 id="what-a-run-clears-first-and-what-a-resumed-run-records">What a run clears first, and what a resumed run records</h4>
+<p>Before pytest starts (every command, a resumed run too) <code>scripts/test.py</code> clears what earlier runs left on the test
+Redis (<code>src/tests/redis_cleanup.py</code>). A queued job leaves its job record, result and a place in the queue's finished,
+failed or canceled registry, none of which expire, so the server gained a few hundred keys a run. The clean-up uses
+only <code>PLANETGEN_TEST_REDIS_URL</code> (never <code>PLANETGEN_REDIS_URL</code>) and removes only keys a test makes: <code>planetgen-test:*</code>,
+the API test queues <code>planetgen-api-test-*</code>, the run queues <code>planetgen-run-*</code> and queues <code>test-*</code>, with the job
+records those queues list. It does not flush the database and leaves the rate-limit keys (<code>LIMITS:*</code>, which expire on
+their own and are shared by every running test). A run queue of the application is named like a test's, so if any
+worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so, and a queue that lists a
+job made in the last 15 minutes is left whole (another run may be queueing for workers that have not yet started: its
+test would end with <code>WorkerDied: the task's job ended canceled</code>, TEST.203). It prints
+<code>removed N keys earlier test runs left on the test Redis</code> when it cleared something.</p>
+<p>A resumed run with <code>--record-deps</code> or <code>--check</code> keeps the dependency-map entries of the tests it skipped and
+replaces those of the tests that ran. Its <code>--check</code> output says it was resumed and that the check covers only the
+tests that ran now, and the record in <code>.pytest-deps-proof.json</code> carries <code>&quot;resumed&quot;: true</code>.</p>
+<h3 id="only-the-tests-a-change-touches-scriptstestpy-changed">Only the tests a change touches, <code>scripts/test.py changed</code></h3>
+<p><code>scripts/test.py full</code> also records, for every test that passed, which
+repository files it used (Python files, templates, static scripts, <code>schema.sql</code>,
+anything it opened; a test that starts a subprocess is marked as depending on
+all of <code>src/planetgen/</code>). The record is <code>.pytest-deps.json</code> (not tracked by git;
+recording needs Python 3.12 or later). Then:</p>
+<pre><code class="language-sh">scripts/test.py changed             # tests the changes since origin/main can affect
+scripts/test.py changed --base HEAD # only the uncommitted changes
+scripts/test.py full --check        # full run; lists failures `changed` would have missed
+</code></pre>
+<p>It runs every test in a changed test file, every test that used (or whose
+used file imports) a changed file, every test that starts a subprocess when
+<code>src/planetgen/</code>, <code>src/html/</code> or <code>scripts/</code> changed, and every test the record
+has not seen or saw fail. A change to <code>conftest.py</code>, <code>pytest.ini</code>, a support
+module or the test fixtures runs everything, and so does a missing record
+(which that run then writes). A green <code>changed</code> run is the merge gate (Boss, 2026-10-14, restated 2026-10-24: every
+merge tests only what changed or would change); the whole suite
+(<code>scripts/test.py full --check</code>) is the end-of-version bug hunt. A PR description says which one it used.
+<code>scripts/test.py full --check</code> is also how the selection is proved: it
+should never print a <code>MISSED:</code> line, and if it does, tell the test-suite thread.</p>
+<h3 id="time-limit-and-knowing-a-run-is-done">Time limit and knowing a run is done</h3>
+<p>Start every test run with a timeout of at least 90 minutes (Boss,
+2026-10-15), so a slow machine or a full run never hits the 30 minute
+default and dies half way. A run that finishes early is fine; the limit only
+has to be long enough. Know a run is done from its own completion: the
+notice the run sends when it exits, or its final summary line (<code>scripts/test.py</code>
+prints one). Do not poll with <code>pgrep</code>, <code>ps</code> or <code>sleep</code> loops; a process that
+looks gone may only be between phases. Resuming a stopped run from where it
+left off, when the build is the same, is being investigated (see TEST.148 in
+the TODO).</p>
+<h2 id="the-prevalence-census-test430">The prevalence census (TEST.430)</h2>
+<p>A standing seeded report of how often the generator makes what it makes. Part A, the class census
+(<code>src/tests/audit/prevalence.py</code>, <code>src/tests/test_prevalence_census.py</code>), draws planets and moons of six star types (M2V, K5V,
+G2V, F5V, A0V and a K0III giant) in three zones (hot, ecosphere, cold) and checks, per cell, the share of each planet and moon
+class, the share of each overall habitability colour (Blue, Green, Yellow, Red) and the share of bodies each life ceiling
+allows (complex life, microbial only, none) against <code>src/tests/data/prevalence_expectations.json</code>.</p>
+<ul>
+<li><strong>Ranges and their kind.</strong> Every range has a <code>min</code>, a <code>max</code>, a <code>kind</code> (<code>observed</code> rate, <code>norm</code> researched, or <code>stand-in</code> with
+its tier and tweak level per docs/design/research/stand-in-values.md) and a <code>source</code>. The class census has no observed class
+rates, so its ranges are stand-ins taken from the prevalence before the class cut-over: the reference commit, the draws per
+cell and the seeds are recorded in the file's <code>reference</code>.</li>
+<li><strong>Four flags.</strong> A share outside its range (<code>out-of-range</code>), a class missing where expected (<code>missing</code>, a range with a <code>min</code>
+above zero and a share of zero), a class present where the class table bars it (<code>barred</code>), and a Blue or Green share outside
+its range (the colour measures). A planet draw that runs past 45 s is a fifth, <code>hang</code>.</li>
+<li><strong>Known anomalies.</strong> A range the generator is known to break carries the item that will fix it (<code>anomaly</code>), and the test fails
+only on a flag with no such item. The report lists the known ones apart, and names a tag that no longer trips (stale: remove it).</li>
+<li><strong>The report.</strong> <code>class-census-latest.md</code>, written to <code>$PLANETGEN_REPORT_DIR</code> or <code>.test-reports/</code>.</li>
+<li><strong>Re-baselining.</strong> <code>python -m tests.audit.prevalence_baseline measure</code> draws the records at the code being measured, and
+<code>python -m tests.audit.prevalence_baseline build RECORDS --commit SHA --count N [--tag-current RECORDS --anomaly ITEM]</code> rewrites
+the file: the ranges are the reference's shares plus or minus four standard errors and 0.04, so they start wide and tighten as
+the classes settle. Never widen a range to hide a new fault.</li>
+<li><strong>When it runs.</strong> It is a <code>slow</code> test that reads the generation code, so <code>scripts/test.py changed</code> selects it whenever
+generation changes. About 8 minutes on 4 cores.</li>
+</ul>
+<p>Part B, the system census (TEST.431, <code>src/tests/audit/prevalence_systems.py</code>, <code>src/tests/test_prevalence_systems_census.py</code>), draws
+100 full systems of each census star type and checks what only a whole system decides: planets, belts and comets per system, moons
+per planet, the share with no planet, the share that are pairs, the share with a habitable-class world or a Blue or Green one, and the
+share where life reaches each milestone (abiogenesis to a technological civilization), against
+<code>src/tests/data/prevalence_systems_expectations.json</code>. Part E, planet occurrence (TEST.395,
+<code>src/tests/audit/prevalence_occurrence.py</code>), reads the same systems and checks giants, hot Jupiters, cold giants, 1 to 20
+Earth-mass planets inside 0.5 AU, Earth-mass planets in the ecosphere and the super-Earth to Neptune ratio per host group against
+observed rates (<code>src/tests/data/prevalence_occurrence_expectations.json</code>, kind <code>observed</code>, recalled and unverified until the papers
+are read). One live test draws the systems once for both; their reports are <code>system-census-latest.md</code> and
+<code>occurrence-census-latest.md</code>. A system that raises is the <code>error</code> flag, as one over 180 s is <code>hang</code>.</p>
+<p>Re-baselining B and E: <code>python -m tests.audit.prevalence_systems measure</code> and <code>build</code>, <code>python -m tests.audit.prevalence_occurrence</code>.</p>
+<p>Part C, the star census (TEST.432, <code>src/tests/audit/prevalence_stars.py</code>, <code>src/tests/test_prevalence_stars_census.py</code>), draws 40,000
+stars from the population model at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V,
+K5V, G2V, F5V and A0V. It checks the star type mix (M, K, G, F, A, B, O, white dwarfs, evolved stars) as shares of all stars against
+the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (and, for G2V, with three
+or more) against [R1175, R3646], and [R3108]
+(<code>src/tests/data/prevalence_stars_expectations.json</code>, kind <code>observed</code> or <code>norm</code>). The file holds the norm range, never a generator
+run: where two sources differ the widest range stands, and the sampling slack of the run (four binomial sigma at its own draw count)
+is added when it is compared. A known fault carries its item as in the other parts. The report is <code>star-census-latest.md</code>; about 15
+seconds on 4 cores. <code>python -m tests.audit.prevalence_stars</code> prints it without the test.</p>
+<p>The star mass function census (TEST.454, <code>src/tests/audit/mass_curve.py</code>, <code>src/tests/test_mass_function_curve.py</code>; item 1 of the star mass
+function chain, GEN.922) measures the same population bin by bin in mass against the published disk curves held as data in
+<code>src/tests/data/mass_function_curve.json</code> ([R0705]'s log-normal fits for single stars and for systems, [R2498]'s broken power law,
+all recalled, tier T2, until a lane reads the papers). It draws 60,000 systems at the reference solar position and counts two samples below
+0.8 solar masses, where every star born is still alive: the primaries (held to the system function) and every star of the systems' member
+trees (held to the single-star functions), and reports the generator's primaries above 0.8 solar masses by phase (main sequence, subgiant,
+giant, supergiant, white dwarf) and the white dwarfs' mean mass (a norm). A bin's range is the lowest and highest share the sample's curves
+give it, widened by the sample's relative tolerance and by four binomial sigma of the run. A bin a later item of the chain fixes carries
+that item's number. The report is <code>mass-curve-latest.md</code>; about 20 seconds on 4 cores. <code>python -m tests.audit.mass_curve</code> prints it.</p>
+<p>Part D, the phenomena census (TEST.433, <code>src/tests/audit/prevalence_phenomena.py</code>, <code>src/tests/test_prevalence_phenomena_census.py</code>),
+first cut: the galaxy-wide totals of the classes the phenomenon scatter places (stellar-mass and intermediate-mass black holes, neutron
+stars, magnetars, planetary nebulae, supernova remnants, and Wolf-Rayet stars), against <code>src/tests/data/prevalence_phenomena_expectations.json</code>. A total is the
+scatter's own expectation (<code>shell_expected_by_class</code>) summed over every shell of the Milky Way-shaped reference galaxy with no mass cut, so
+it is the same on every run and a range is the researched range itself (a catalogue count is a floor). The Wolf-Rayet total is the
+population model's share of Wolf-Rayet stars among its living stars of 8 solar masses or more (120,000 draws) times the galaxy's stars
+by population, with the range widened by four Poisson sigma of the draws. About a minute on 4 cores; <code>python -m tests.audit.prevalence_phenomena</code>
+prints the report without the test. Giant molecular clouds, planetary nebulae and supernova remnant counts per star, and the globular
+cluster count already have tests of their own (<code>test_nebula_rates.py</code>, <code>test_cluster_count_law.py</code>); the second cut adds seven measures that are not scatter totals: the rates the sectors' fill draws from, read where the fill reads them
+(<code>tuning.phenomenon_rate_per_star</code>, <code>ROGUE_PLANET_MASS_BINS</code> and <code>PHENOMENON_RATE_SCALE</code>, so a dialled rate shows): terrestrial rogue planets
+per star and per pc^3, Jupiter-mass rogue planets per star, brown dwarfs per pc^3, runaway stars per star and interstellar debris per pc^3, each
+against its researched range; and the open clusters a galaxy of the reference shape draws (<code>open_clusters.generate_open_clusters</code>, about 17,500,
+against the 1,867 Gaia clusters as a floor and the generator's cap of 100,000). These are rates, not realized sector draws. The nebula classes
+(emission and reflection nebulae around hot stars) are the remainder of TEST.433.</p>
+<p>Part F, the body sweeps (<code>src/tests/audit/sweep.py</code>): one shared set of generated bodies that the consistency sweeps read. It builds a
+planet of every class and zone pair the class table allows round an M2V, a G2V and an F5V host, with the moons each drew, and adds the
+planets and moons of 24 seeded generated systems (the history the class-by-class builds skip); the draws are seeded from the host, so a
+repeat gives the same bodies. A rule is a <code>Rule</code>: <code>check(entry)</code> lists the violations, <code>breaker(entry)</code> returns a copy of the body with
+exactly that quantity broken, and <code>prove_rules_can_fail</code> checks the sweep reports every broken copy, so a rule that cannot fail does not
+pass. The first sweep is the atmosphere and temperature (TEST.209, <code>tests/audit/sweep_atmosphere.py</code>, <code>tests/test_sweep_atmosphere.py</code>):
+11 rules (the partial pressures add up; the mean molar mass, the air density and the scale height follow from them; the temperature is the
+Stefan-Boltzmann value on the stored albedo, greenhouse quantity and the starlight at the orbit; the ozone follows the oxygen and the star;
+the aerosol depths follow their rules; every gas in the text is in the table). The second is the bulk composition (TEST.210,
+<code>tests/audit/sweep_bulk.py</code>, <code>tests/test_sweep_bulk.py</code>): 8 rules (the five shares make one; the details are shares and the envelope
+details exist exactly where there is an envelope; the density and gravity follow from the mass and radius; the radius is the structure
+model's, to a millionth for a planet and 4 percent for a moon, with bodies that have an envelope left out; the body is at least as dense
+as its materials at zero pressure; the phrase names exactly the materials the shares hold). About a minute each on 4 cores. A sweep
+that ever fails on a real fault is filed as a bug and tagged in the test with its item until it is fixed.</p>
+<p>The third is the possibility tables (TEST.214, <code>tests/audit/sweep_tables.py</code>, <code>tests/test_sweep_tables.py</code>). It walks every table of
+<code>possibility_table.REGISTRY</code> (it imports the modules that use the loader, so a table added later is covered without a change to the test)
+with 60 seeded subjects for each class a table names, plus two that satisfy each row's own conditions, and checks that: every row has a
+source and a state (no licence assertion; licences are in <code>DATA-LICENSE.md</code>); every named class reaches a row; the gated weights of every
+subject add up to 1 within 1e-12; no subject fails for a reason but an empty gate; each row's drawn fractions add up to 1 and name only
+components of the shared materials table; <code>Table.draw</code> picks each row as often as its probability says (five binomial sigma); every row is
+given a probability for every class it names; the open rows are the ones listed with a note in <code>tests/data/possibility_sweep_notes.json</code>
+(a new open row needs a note there); and every <code>Table</code> that a fresh process holds after the imports is the registered one. The same file
+lists, each with a note, the tables whose rows are independent flags and not exclusive odds (an all-zero answer is allowed there) and the
+rows that no subject reaches today. Subjects take their numbers from physical ranges and agree with one another where the generator's do
+(the escape speed follows the mass, the equilibrium temperature the insolation).</p>
+<p>The fourth is the classes from conditions (TEST.301, <code>tests/audit/sweep_classes.py</code>, <code>tests/test_sweep_classes.py</code>). On the same bodies it
+checks that every planet and moon has a class letter of the rule file and of its own kind, that <code>classify</code> is total and pure (the same
+twice and from the stored columns, and it leaves the body alone), and that the stored letter is the one the conditions give, re-derived from
+the rule rows. It also generates 12 seeded systems with <code>+habitable_world</code> and counts the requests answered <code>aim</code> or <code>fallback</code>. Two
+results are known anomalies listed in <code>tests/data/class_sweep_expectations.json</code>, so they are reported in <code>class-sweep-latest.md</code> and
+<code>habitable-request-latest.md</code> and do not fail: the stored letter is still drawn before the body is built (GEN.646), and the air solve of 4c
+leaves no free oxygen so most requests answer unmet (GEN.855). When an anomaly's tag is removed the rule fails on any miss, and a tag on a
+rule that holds everywhere is flagged stale in the report. The reclassification after an edit is left for 8.6.</p>
+<p>Part G, the life census (TEST.435, <code>src/tests/audit/prevalence_life.py</code>, <code>src/tests/test_prevalence_life_census.py</code>): 240 seeded whole
+systems, every terrestrial planet and moon with a life chemistry put on the highest rung it reached (origin, producers, complex cells,
+multicellular, animals, sentient), and the shares of life worlds checked against Boss's targets for the life class system
+(<code>docs/design/habitability/life-classes.md</code> 5.2: the majority stop below animals, 15 to 35 percent reach animals, at most 2 percent are
+sentient and fewer than one in twenty animal worlds) in <code>src/tests/data/prevalence_life_expectations.json</code>, widened by four binomial sigma of
+the run's life worlds. The shadow life class of each life world (<code>life_classes.best</code>, GEN.886) is counted in the report and not checked, as the
+design says per-class bands are measured and not forced; the class store (GEN.889) will let the census read the stored class. The report is
+<code>life-census-latest.md</code>; about a minute on 4 cores; <code>python -m tests.audit.prevalence_life [--host-systems N]</code> prints it without the test (the live test draws 300 host systems each; with only about 30 oxygenic worlds in a run the four-sigma slack makes the animal band wide, so a baseline run takes several times more). The report also lists the highest rung reached by each stored life class (epoch 120). Known anomaly: GEN.855
+(no biogenic oxygen, so no world reaches animals).</p>
+<p>Part H, the class-blind life test (TEST.452, <code>src/tests/audit/sweep_life.py</code>, <code>src/tests/test_sweep_life.py</code>; Boss 2:46 PM EDT 10-29, GEN.915):
+life depends only on the conditions, never on the class letter. Every terrestrial body of the shared sweep is given each of the 20 class
+letters with its stored conditions unchanged, and the life model (<code>life_classes.score_classes</code>, its best class) and the habitability index
+must answer the same on every letter; a failure names the body, the letter and the life class or index field that moved. The life code is
+scanned (AST) for every read of the class letter or the class tables, and each one must be listed with its reason in
+<code>src/tests/data/class_blind_life_notes.json</code> (today the class description text, the planet or orbital flavor line, and the value copy that
+the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
+fail by breaking the life model, the index and a planted module. The report is <code>class-blind-life-latest.md</code> (with the life-capable bodies of
+each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
+change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: every planet and moon of the shared sweep (M2V, G2V, F5V; the class is derived from the
+conditions since epoch 121, so it cannot be forced on a bare <code>Planet</code>) goes through the life step (<code>generation.life.apply_life_data</code>) on a copy; a
+planet the life model supports must be given life and one it does not support must not, the class drawn must be a supported one, and the same
+conditions put under every other class letter must give the same class, stage and schedule on the same stream. A failure names the letter and the
+class. The report <code>class-blind-life-draws-latest.md</code> lists, for each derived letter, the planets, the supported ones and the ones given life.</p>
+<h2 id="setting-up-a-cloud-session">Setting up a cloud session</h2>
+<p>A fresh container needs <code>pip install -e &quot;.[test,api,browser]&quot;</code>, the NLTK
+corpus (<code>python -m nltk.downloader words</code>), MySQL with a user that
+has <code>ALL ... WITH GRANT OPTION</code> (one test creates a restricted user), Redis
+(<code>redis-server --daemonize yes</code>, then <code>export PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0</code>; the tests that
+need it skip without that variable), and a Playwright whose Chromium matches the one on the machine: the image
+carries Chromium 1194 (1.56.0) or 1243 (1.63.0), so install the one for the build in /opt/pw-browsers (a different
+Playwright asks for a build the image does not have and every browser test
+skips).</p>
+<p>To have all of that ready in every new session, paste
+<a href="https://github.com/dwhagar/planetGen/blob/main/examples/cloud-environment/setup-planetgen-env.sh"><code>examples/cloud-environment/setup-planetgen-env.sh</code></a> into the
+cloud environment's Setup script field (it installs MySQL 8, Apache 2, Redis and every dependency, and leaves a
+<code>planetgen-env-up</code> command that starts the services each session); its
+<a href="https://github.com/dwhagar/planetGen/blob/main/examples/cloud-environment/README.md">README</a> says what each part does.</p>
+<h2 id="database-engines">Database engines</h2>
+<p>Tests run on MySQL 8.0.19 or later; MariaDB is not supported and a run against it fails by design. CI's <code>test</code> job
+has four legs, each with its own Redis container: the whole suite on Python 3.12 against MySQL 8.0 and MySQL 8.4,
+then the <code>generation</code> tests alone with 2 workers (MySQL 8.4, Python 3.12) and with 4 workers (MySQL 8.0,
+Python 3.13).</p>
+<h2 id="kinds-of-test">Kinds of test</h2>
+<ul>
+<li>
+<p><strong>Unit and behaviour tests</strong> (<code>test_&lt;area&gt;.py</code>): one module or page each,
+with fixed inputs and exact expectations.</p>
+</li>
+<li>
+<p><strong>Bug-hunt tests</strong> (<code>test_bughunt_*.py</code>, support in
+<code>bughunt_support.py</code>): seeded, exhaustive sweeps for the recurring bug
+categories (placement overlaps, unit conversions, NaN physics, name
+exhaustion, rendering breakage). Plain asserts are hard invariants;
+tests marked <code>tier2</code> (registered in <code>pytest.ini</code>) check softer,
+statistical properties but still run every time.</p>
+</li>
+<li>
+<p><strong>Edge-case tests</strong> (<code>test_edge_*.py</code>): the admin scripts (<code>jobRunner</code>,
+<code>resetDb</code>, <code>migrateDb</code>, <code>updateOrbits</code>) run in-process against empty,
+broken and unreachable databases, canceled jobs and malformed input.</p>
+</li>
+<li>
+<p><strong>Brute-force (fuzz) tests</strong> (<code>test_fuzz_*.py</code>): property-based tests
+written with <a href="https://hypothesis.readthedocs.io/">Hypothesis</a>. Each one
+states a rule that must hold for every input (a generated planet is
+inside its class's ranges, a sector cell contains every point it
+samples, a web route never answers 500, a CLI option never prints a
+traceback) and lets Hypothesis search for a counterexample, including
+NaN, infinity, negative zero, huge and tiny numbers, empty and hostile
+strings. They cover:</p>
+<ul>
+<li><code>test_fuzz_galaxy_grid.py</code>: the shell/band/wedge sector grid,
+neighbours, designations, density, skeleton and map tiles.</li>
+<li><code>test_fuzz_system_generation.py</code>: every star type and config option,
+binaries, remnants, moons and belts.</li>
+<li><code>test_fuzz_planet_inputs.py</code>: every way of pinning a planet's class,
+radius and mass.</li>
+<li><code>test_fuzz_sector_placement.py</code>: sector filling, spacing, explicit
+positions and save/load round trips.</li>
+<li><code>test_fuzz_names.py</code>: name generation, validation and uniqueness.</li>
+<li><code>test_fuzz_text_rendering.py</code>: the Document renderers (text, Markdown, HTML).</li>
+<li><code>test_fuzz_utils_and_config.py</code>: physics helpers, formatting, config
+loading, logging and progress files.</li>
+<li><code>test_fuzz_cli.py</code>: every <code>planetgen</code> command and option.</li>
+<li><code>test_fuzz_web_routes.py</code> and <code>test_fuzz_api_auth.py</code>: every web page
+and API endpoint, logins, CSRF and API keys.</li>
+</ul>
+</li>
+<li>
+<p><strong>Guard tests</strong> (<code>test_no_*</code>): read the source and fail when a rule is
+broken, with a named list of exceptions each carrying its reason.
+<code>test_no_own_log_formatting.py</code> (TEST.183) fails when code under
+<code>planetgen/</code> writes or logs a line built with its own timestamp or
+divider instead of the logging layer; an exception goes in its
+<code>ALLOWED</code> list with the reason it is not a log line (the form and the
+rules are in <a href="logging.html"><code>logging.md</code></a>).</p>
+</li>
+<li>
+<p><strong>Browser checks</strong> (<code>test_web_a11y.py</code>): every page in headless
+Chromium at phone and desktop widths, in light and dark, against
+axe-core and the layout rules described in
+<a href="html-interface.html#flask-pages"><code>html-interface.md</code></a> (&quot;Browser checks&quot;).
+They need <code>pip install -e &quot;.[browser]&quot;</code> and <code>python -m playwright install chromium</code> plus the MySQL test server, and skip without them. CI runs
+them in their own <code>browser-a11y</code> job.</p>
+</li>
+<li>
+<p><strong>More browser checks</strong> (<code>test_web_browser_layout.py</code>,
+<code>test_web_browser_maps.py</code>), with the same needs and database: no two
+controls overlap or run off the screen on any page at 390, 600, 820 and
+1280 px in both themes (with folded sections open too); every map
+button changes the view (the 3D maps draw with SwiftShader WebGL, and
+a canvas screenshot that doesn't change is a dead button); the System
+Map's selection and measuring; and the Galaxy Map's drill-down by
+clicks, with Back, Forward and the free camera.</p>
+</li>
+<li>
+<p><strong>Map behaviour with no database</strong> (<code>test_web_browser_fixture_maps.py</code>,
+TEST.70): the Galaxy Map and the Sector Map served by the real Flask
+views over fixture data (<code>map_site_support.py</code>: a real density shape,
+a few generated sectors near the core, one sector with stars across the
+luminosity range, a nebula, a neutron star and rogue planets), so it
+needs Playwright and Chromium but not MySQL. It pins what the shared
+map code (MAP.61) will move: picking (a click on a point of light, a
+drag that picks nothing), hover, keys, Back and Forward and the URL,
+bookmarks and their keys, and the scale line.</p>
+</li>
+<li>
+<p><strong>Page-script tests under node</strong> (<code>js/*.test.mjs</code>, run by
+<code>test_js_unit.py</code>, skipped without node): <code>js/fakedom.mjs</code> is a small
+stand-in for the browser's DOM (elements, selectors, events, fake
+timers, history, fetch), enough to run the Galaxy Map's stage view and
+buttons, the Sector Map (with a renderer that draws nothing), the
+diagram's zoom, the Generate job panel and the facility form without a
+browser. <code>test_js_unit.py</code> hands them what they compare against from
+Python (the density shape, sector designations, the panels' buttons)
+in <code>PLANETGEN_JS_FIXTURES</code>. To run one by hand, from <code>src/</code>:
+<code>PLANETGEN_JS_FIXTURES=&quot;$(python -m tests.test_js_unit)&quot; node --test tests/js/&lt;name&gt;.test.mjs</code>.</p>
+</li>
+<li>
+<p><strong>Census audits</strong> (<code>tests/audit/census.py</code>, TEST.186): the one harness for tests that fill seeded sectors in each
+region class and compare what the fills made with an expectation. A <code>RegionCase</code> names a position in a galaxy shape;
+<code>run_census</code> fills its seeded sectors (the seeds are fixed by the region name and the sector number, so every run
+fills the same ones) and counts them by stage and kind from <code>sector.stage_counts</code>; <code>compare</code> tests each expected
+count within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a
+kind found where its expectation is zero, and <code>format_report</code> prints the one report. An audit adds its expectations
+and checks and keeps no counters of its own.
+The representation audit (<code>tests/audit/representation.py</code>, TEST.160) is the first audit on it: eight region classes of
+the Milky Way's shape (the bulge, which holds the bar; an arm and the space between arms; the thick disk; the halo; a
+Magellanic-type satellite; a globular cluster; the intergalactic floor), filled with every per-star rate dialed up to
+0.3 so that a kind the place's gate forbids has a chance to appear and the disk, where it is allowed, shows it does.
+A fill holds a handful of systems, so the kinds that need a free spot of their own (a neutron star, a black hole, a
+brown dwarf, a planetary nebula's central star) are audited from above only. The whole-sphere tests of TEST.184 and
+TEST.185 (<code>test_census_nebula_wholesphere.py</code>, <code>test_census_component_wholesphere.py</code>) read the same regions.
+<code>python -m tests.audit.representation [report.txt] [--sectors N]</code> prints the report and exits 1 when a count breaks a
+rule.</p>
+</li>
+</ul>
+<p>A known bug that is not fixed yet is kept as a test marked
+<code>xfail(strict=True)</code> whose reason names the bug and a repro. When someone
+fixes it, the test starts passing, strict mode fails the run, and the
+marker has to come off: the fix can't land without its regression test.</p>
+<h2 id="opt-in-tests">Opt-in tests</h2>
+<p>These skip unless you turn them on:</p>
+<ul>
+<li><code>src/tests/test_budget_queries.py</code> is the big-galaxy query budget (TEST.133): <code>scripts/test.py budget</code>. It
+builds (once; kept between runs) a database of 2,000,000 systems on 150,000 sectors by cloning one real saved
+system, about eight minutes and 3 GB, named for its size and the schema version so a new schema builds it again.
+Each case runs one page or list query and counts the rows the server read (the session's <code>Handler_read*</code>
+counters, which do not depend on how fast the machine is); it fails when a page reads far more rows than it
+shows. It is not in the merge gate or CI: run it by hand before a performance merge. <code>PLANETGEN_BUDGET_SYSTEMS</code>
+and <code>PLANETGEN_BUDGET_SECTORS</code> make a smaller galaxy for writing a case, <code>PLANETGEN_BUDGET_REBUILD=1</code> builds
+again. A case that is known to read too much is an expected failure naming the item that will fix it; when the
+fix lands the case fails as an unexpected pass, and its mark is removed. <code>test_budget_support.py</code> runs every
+case on a 3,000-system galaxy in the ordinary run, so the tier cannot rot unseen.</li>
+<li>The <code>globaldocs</code> tests (DOC.69) compare a generated global document with its source: the architecture map's module list
+(<code>test_architecture_map.py</code>), the docs index (<code>test_docs_index.py</code>) and the plan pages (<code>test_todo_docs.py</code>). Only the TODO
+thread regenerates those files (<code>python scripts/build_global_docs.py</code>, after a batch of merges; <code>--check</code> lists the stale
+ones), so a lane's pull request never carries one and a stale one never fails a lane's gate: the tests skip unless
+<code>PLANETGEN_GLOBAL_DOCS=1</code>, which <code>scripts/test.py &lt;command&gt; --global-docs</code> sets. The release stamp runs
+<code>scripts/test.py full --check --global-docs</code>.</li>
+<li><code>test_golden_seed.py::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four</code> builds the pinned galaxy at four workers and
+compares it with the one-worker galaxy (TEST.407). The ordinary run builds the galaxy once, at one worker, and
+compares it with <code>galaxy.json</code>, which is also all that <code>python -m tests.golden_update</code> builds; the second build,
+about as long again, is the end-of-version run's: <code>scripts/test.py full</code> (and <code>full --check</code>) set
+<code>PLANETGEN_VERSION_GATE=1</code>, or set it by hand to run the comparison alone.</li>
+<li><code>test_sector_generation_perf.py</code> is a timing benchmark:
+<code>PLANETGEN_RUN_PERF_BENCHMARK=1 pytest -s src/tests/test_sector_generation_perf.py</code>.</li>
+</ul>
+<h2 id="fuzz-profiles">Fuzz profiles</h2>
+<p><code>src/tests/fuzz_support.py</code> sets how hard Hypothesis searches:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Examples per test</th>
+<th>Randomised</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ci</code> (default)</td>
+<td>60</td>
+<td>No: the same inputs every run</td>
+<td>every <code>pytest</code> run and CI</td>
+</tr>
+<tr>
+<td><code>deep</code></td>
+<td>3000</td>
+<td>Yes: new inputs each run</td>
+<td>the weekly Deep fuzz workflow</td>
+</tr>
+</tbody>
+</table></div>
+<p>Choose one with <code>PLANETGEN_FUZZ_PROFILE</code>, and override the count with
+<code>PLANETGEN_FUZZ_EXAMPLES</code>:</p>
+<pre><code class="language-sh">PLANETGEN_FUZZ_PROFILE=deep pytest src/tests/test_fuzz_*.py
+PLANETGEN_FUZZ_PROFILE=deep PLANETGEN_FUZZ_EXAMPLES=20000 pytest src/tests/test_fuzz_galaxy_grid.py
+</code></pre>
+<p>The <code>ci</code> profile is derandomised so a pull request never goes red because a
+new random input happened to be drawn. The deep run is where new inputs are
+explored.</p>
+<h2 id="when-a-fuzz-test-fails">When a fuzz test fails</h2>
+<p>Hypothesis shrinks the failing input to the smallest one it can find and
+prints it, together with a <code>@reproduce_failure(...)</code> line. To fix it:</p>
+<ol>
+<li>Copy the printed input into an <code>@example(...)</code> on the test (or a
+<code>parametrize</code> case), so it runs on every future run.</li>
+<li>Fix the code, not the test, unless the rule itself was wrong.</li>
+</ol>
+<h2 id="when-ci-runs">When CI runs</h2>
+<p><code>.github/workflows/ci.yml</code> (the math check, the four test legs described under &quot;Database engines&quot;, browser and
+accessibility, the JS tests, the installer checks, the dependency audit) never runs on a push or a pull request. It runs:</p>
+<ul>
+<li><strong>On a schedule</strong>, on main (every day at 07:00 UTC; the <code>cron</code> line in
+the file). The same scheduled run starts CI on every remote branch named
+<code>dev-*</code> (the <code>trigger-dev-branches</code> job).</li>
+<li><strong>By hand</strong>: <strong>Actions &gt; CI &gt; Run workflow</strong>, on any branch except
+<code>claude/*</code> and <code>claude-*</code>. Those branches never run the test jobs: the
+run is created and every job is skipped.</li>
+</ul>
+<p>A newer run on the same branch cancels the older one that is still going;
+canceled runs stay in the Actions history. The post-merge
+<code>stamp-version.yml</code> and the PR check <code>release-note.yml</code> still run on their
+own. Run the suite locally before merging (see above).</p>
+<h2 id="the-deep-fuzz-workflow">The Deep fuzz workflow</h2>
+<p><code>.github/workflows/deep-fuzz.yml</code> runs every fuzz file under the <code>deep</code>
+profile each Monday, and can be started by hand from the Actions tab
+(<strong>Deep fuzz</strong> &gt; <strong>Run workflow</strong>, optionally with a number of examples).
+A red deep run is a real bug report: its log carries the shrunk input.</p>
+<h2 id="ci-runners">CI runners</h2>
+<p>CI can run on your own computers. Which jobs run where, what each machine
+needs, the security settings and troubleshooting are in
+<a href="ci-runners.html"><code>ci-runners.md</code></a>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

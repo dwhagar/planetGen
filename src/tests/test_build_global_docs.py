@@ -29,7 +29,7 @@ def _load(calls, stale=()):
 
 def test_the_index_is_built_last_as_it_lists_the_other_pages():
     assert [name for _written, name in build.GENERATORS] == [
-        "build_architecture_map", "build_todo_docs", "build_docs_index"]
+        "build_architecture_map", "build_todo_docs", "build_docs_site", "build_docs_index"]
 
 
 def test_rebuilding_runs_every_generator_to_write():

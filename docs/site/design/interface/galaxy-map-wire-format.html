@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy Map wire format: what the browser downloads and what could be smaller (MAP.147) - planetGen docs</title>
+<meta name="description" content="Superseded in part by MAP.258 to MAP.262 (2026-10-24): the map is no longer cut into cube tiles.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/galaxy-map-wire-format.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/galaxy-map-wire-format.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-map-wire-format-what-the-browser-downloads-and-what-could-be-smaller-map147">Galaxy Map wire format: what the browser downloads and what could be smaller (MAP.147)</h1><p class="meta">docs/design/interface/galaxy-map-wire-format.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#0-built-map159-2026-10-14">0. Built (MAP.159, 2026-10-14)</a></li><li style="margin-left:0px"><a href="#01-region-names-on-the-wire-api35-2026-10-28">0.1 Region names on the wire (API.35, 2026-10-28)</a></li><li style="margin-left:0px"><a href="#02-nebula-regions-on-the-wire-map173-2026-10-28">0.2 Nebula regions on the wire (MAP.173, 2026-10-28)</a></li><li style="margin-left:0px"><a href="#1-answer-in-brief">1. Answer in brief</a></li><li style="margin-left:0px"><a href="#2-what-the-browser-downloads-today">2. What the browser downloads today</a></li><li style="margin-left:14px"><a href="#21-the-format">2.1 The format</a></li><li style="margin-left:14px"><a href="#22-bytes-by-zoom-one-view--the-tiles-the-js-asks-for-at-that-camera-radius">2.2 Bytes by zoom (one view = the tiles the JS asks for at that camera radius)</a></li><li style="margin-left:14px"><a href="#23-sessions-cold-browser-profile">2.3 Sessions (cold browser profile)</a></li><li style="margin-left:0px"><a href="#3-what-the-client-uses">3. What the client uses</a></li><li style="margin-left:0px"><a href="#4-the-options-measured">4. The options, measured</a></li><li style="margin-left:14px"><a href="#41-compression-on-top">4.1 Compression on top</a></li><li style="margin-left:14px"><a href="#42-cost-of-the-binary-form">4.2 Cost of the binary form</a></li><li style="margin-left:14px"><a href="#43-reuse-between-zoom-steps">4.3 Reuse between zoom steps</a></li><li style="margin-left:14px"><a href="#44-browser-cache">4.4 Browser cache</a></li><li style="margin-left:14px"><a href="#45-modelled-time-on-a-phone-class-link">4.5 Modelled time on a phone-class link</a></li><li style="margin-left:0px"><a href="#5-section-56-the-13-floats">5. Section 5.6, the 13 floats</a></li><li style="margin-left:0px"><a href="#6-related-items">6. Related items</a></li><li style="margin-left:0px"><a href="#7-what-could-not-be-measured">7. What could not be measured</a></li><li style="margin-left:0px"><a href="#8-method">8. Method</a></li></ul></details>
+<p><strong>Superseded in part by MAP.258 to MAP.262 (2026-10-24):</strong> the map is no longer cut into cube tiles. <code>/galaxy/tiles</code>, <code>viewport.distance_cut_tiles</code> and <code>galaxytilecut.js</code> are gone; the map fetches sector-block nodes (<code>/galaxy/nodes</code>, keys <code>m.shell.band.wedge</code>) chosen by projected size (<code>planetgen.galaxy.nodecut</code>, <code>static/galaxynodecut.js</code>), and a star's fade is its node's weight (<code>weightCalculator</code>). Read &quot;tile&quot; below as the cube tile the map had before; the wire format, packing and cache carry over to nodes unchanged.</p>
+<p><strong>Status (2026-10-15):</strong> built: MAP.157 (#1112), MAP.158 (#1123) and MAP.159 (#1305); section 0 records what differs from the sketch. Open: leaving parent stars out of child tiles (MAP.195).</p>
+<p>Research only, 2026-10-09 (Research Lane 3). No code, TODO.md or PR changes. Boss decides.
+Scripts and raw numbers: <code>research/map-wire-format/bench/</code>.</p>
+<h2 id="0-built-map159-2026-10-14">0. Built (MAP.159, 2026-10-14)</h2>
+<p>Step 2 is in: <code>planetgen/web/lib/tilepack.py</code> writes it, <code>html/static/tilepack.js</code> reads it, and the layout is the module docstring. Choices that differ from the V3 sketch below:</p>
+<ul>
+<li><strong>Spans per tile, not the tile cube.</strong> A tile's x, y and z are 16-bit steps between the smallest and largest value in that list (stored as two doubles per axis), so a sector that reaches past its tile's edge still fits and the step is never coarser than the cube's.</li>
+<li><strong>Ids.</strong> A bright star's id is a whole number (two u32 columns, 64 bits); a generated star's id is a printed object ID, kept as text of one length (22 bytes a star before gzip) because the page keys the zoom fade by it and a printed ID depends on the galaxy's layout; anything else is a JSON list. That is 20 bytes a star for bright stars and 34 for generated stars before gzip, against the 16.7 of V3, which did not carry the generated stars' ids.</li>
+<li><strong>Class is the first letter of the star type</strong> (one byte), <code>system_id</code> is one flag (<code>charted</code>); the page reads nothing else of them.</li>
+<li><strong>Rank is list order</strong>, so the nested lists of MAP.154 and the rank fade (MAP.153) work unchanged. Child tiles still list every star of their parent inside them; leaving those out of the wire (the 31 to 100% of section 4.3) is not done, because the page would then need the parent in hand for every child.</li>
+<li><strong>Log codes.</strong> Luminosity 16 bits over -8 to 8 dex (a step is 0.00024 dex, 0.056%), temperature 8 bits over 2 to 6 dex (a step is 3.7%, so within 1.8% of the true value), radius 8 bits over -3 to 4 dex (a step is 6.5%, within 3.2%). Code 0 means &quot;none&quot;.</li>
+<li><strong>Storage.</strong> The tile cache keeps the packed bytes (<code>t&lt;level&gt;_&lt;ix&gt;_&lt;iy&gt;_&lt;iz&gt;.bin</code>) and <code>/galaxy/tiles</code> joins them behind a JSON header (<code>application/vnd.planetgen.tiles</code>, &quot;PGTB&quot;), without unpacking; the page's IndexedDB store keeps them too and reads them when a tile is wanted. The opening tiles embedded in the page are still JSON.</li>
+<li><strong>Size</strong>: 2,000 random stars (random positions, temperatures and radii, which compress worse than real ones) come to 273 KB of trimmed JSON, 57 KB gzipped, against 40 KB packed, 24 KB gzipped: 57% fewer gzipped bytes and 85% fewer raw. Real tiles repeat more (shared ids, the same class letters), so the cut on a real galaxy will differ in both forms.</li>
+<li><strong>Not measured</strong>: the real byte counts on a large galaxy, and decode time on a phone. The unit tests hold the layout and the two readers together (tests/test_tilepack.py, tests/js/tilepack.test.mjs).</li>
+</ul>
+<h2 id="01-region-names-on-the-wire-api35-2026-10-28">0.1 Region names on the wire (API.35, 2026-10-28)</h2>
+<p>The naming, geometry and storage rules are in <code>../galaxy/named-regions.md</code>.</p>
+<p>A node of a charted region carries two more JSON fields beside <code>aggregate</code>: <code>name</code> (the region, &quot;Fardoo Beez Region&quot;) and <code>parent</code> (its 81-block family, &quot;Fardoo Reach&quot;). They are set only for a 9-block that has a row in <code>region_stats</code> (it holds at least one generated sector), by <code>db.nodes.galaxy_nodes</code> through <code>region_stats.labels</code>, from <code>names/gated_phoneme_codec.py</code> under the naming key in force (<code>names/naming_key.active_key()</code>); a block of any other size, a 9-block with no generated sector and a galaxy with no key in force have neither field. They ride in the packed node's JSON meta (<code>tilepack._META_SECTIONS</code>, <code>tilecache._KEEP_SECTIONS</code>), so the columns and the PGT1 layout do not change. A stage lists its children the same way (<code>child_m</code> 9), and a 9-block's own stage names it. The naming key is already in the cache stamp (<code>galaxy_content_state</code>), so a key change renames every node with no new rule; <code>TILE_FORMAT</code> went from 4 to 5 once so the stored nodes are rebuilt with the names. <code>tests/test_region_wire_names.py</code> pins the fields and their absence. <strong>Extent (MAP.319, 2026-10-28):</strong> the same node also carries <code>extent</code> = <code>{&quot;centre&quot;: [x, y, z], &quot;radius&quot;: r}</code> (parsecs, galaxy frame), the bounding sphere of the largest face-connected clump of the region's generated sectors, never under the framing sphere (<code>region_stats.extent_of</code>, from the stored <code>extent_*</code> columns). It does not depend on the naming key (a region exists without a name), a stage does not list it yet, and <code>TILE_FORMAT</code> went from 5 to 6 so the stored nodes get it. The Galaxy Map's <code>flyToFit</code> frames the region with it. <strong>Region lists (MAP.314, 2026-10-28):</strong> a 9-block's node also carries <code>charted</code> = <code>{&quot;sectors&quot;: n, &quot;percent&quot;: p}</code> (its generated sectors and their share of its outline, <code>region_stats.charted_of</code>), and a node of 27, 81 or 243 sectors (<code>region_stats.LABEL_LEVELS</code>) carries <code>regions</code>, a list with one entry per charted 9-block inside it (at most 27 for an 81-block, 81 for a 243-block; <code>region_stats.node_regions</code>): <code>{&quot;key&quot;: &quot;9.s.b.w&quot;, &quot;name&quot;, &quot;parent&quot;, &quot;centre&quot;: [x, y, z], &quot;radius&quot;, &quot;sectors&quot;, &quot;percent&quot;}</code>, most sectors first, so the map can name regions from a distance without loading their own nodes (a family's &quot;Reach&quot; at 81 and 243, each Region at 27). The list needs a naming key in force and at least one charted region in the block, and no other node has it. <code>TILE_FORMAT</code> went from 6 to 7 so the stored nodes get both.</p>
+<h2 id="02-nebula-regions-on-the-wire-map173-2026-10-28">0.2 Nebula regions on the wire (MAP.173, 2026-10-28)</h2>
+<p>A node of 729, 243, 81, 27 or 9 sectors carries one more JSON field when nebulae lie inside it: <code>nebula_regions</code>, the groups of those nebulae. Each group is one child block of the node that holds at least one nebula centre, read from the stored aggregates (<code>db/nebula_blocks.read</code>, MAP.172) by <code>db.nodes.node_nebula_regions</code>: <code>{key, count, volume_pc3, centre: [x, y, z], radius_pc, shares: {family: share}, class}</code>. <code>key</code> is the child's node key, so a group is nested exactly like the star lists: opening it asks for that node, whose own <code>nebula_regions</code> split it one level finer (a 3-block lists none, its nebulae are the individuals). The groups are ranked by volume, largest first, ties by key, and cut at <code>NODE_NEBULA_REGIONS</code> = 600 per node. The key is <code>nebula_regions</code> and not <code>regions</code>, which already names the charted regions (API.35). The individual nebulae stay in <code>clouds</code>. The list is kept by the tile cache and sits in the JSON meta of a packed tile like <code>points</code>. It is part of the node cache, so it is as old as the node's stamp (the same as <code>clouds</code>); the live cover is read separately. Tile format 9.</p>
+<h2 id="1-answer-in-brief">1. Answer in brief</h2>
+<p><strong>Section 5.6's 52 bytes a star is the GPU buffer, not the download.</strong> On the wire each star is a JSON object of about <strong>270 bytes</strong> (45 bytes after gzip), five times what 5.6 assumes. At the 70,000-star cap that is about 19 MB of JSON, 3.2 MB gzipped, not the 3.6 MB of 5.6 or the &quot;about 8 MB&quot; in the <code>GALAXY_VIEW_MAX_STARS</code> docstring. Quantising the GPU attributes (52 to 20 bytes) would not touch any of that; shrinking the tile format will.</p>
+<p>Recommendation, in two steps that need no new design decision to start:</p>
+<ol>
+<li><strong>Now (small, no client contract change): trim the tile JSON on the server.</strong> Drop what the client never reads and round the rest. Measured on 400 real tiles: <strong>gzip bytes fall 48%</strong> (3.52 MB to 1.83 MB), raw bytes 52%, JS keeps working unchanged. Also: stop prefetching 18 times more than the view needs, serve prebuilt bytes instead of re-parsing and re-serialising JSON on every hit, and precompress with brotli at cache-write time (another 10 to 29%).</li>
+<li><strong>With MAP.146 and the nested tile lists (zoom-star-visibility item 2), one cache-stamp bump: a packed binary tile</strong> (quantised planes, 12.9 to 16.7 bytes a star). Measured <strong>gzip bytes fall 78%</strong> against today (3.52 MB to 0.79 MB; 4.3x), raw bytes 96%. Store tiles in IndexedDB, not localStorage (section 4.4 shows localStorage is full after one view).</li>
+</ol>
+<p>Answer to the open question (&quot;build the quantised format straight from 5.6?&quot;): <strong>no</strong>. 5.6 aims at the wrong buffer. Step 1 first (days, reversible), step 2 once MAP.146's keys and the nested lists are decided, because any format change bumps the cache stamp and the three should land together.</p>
+<p>Ranking (best value first):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Option</th>
+<th>Wire change (gzip, 400 real tiles)</th>
+<th>Client change</th>
+<th>Cost</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Server trim: drop <code>placed</code>/<code>planned</code>/<code>filled</code> and unused star fields, letter-only <code>star_type</code>, rounding (V1)</td>
+<td>-48% (3.52 to 1.83 MB)</td>
+<td>none</td>
+<td>about 1 day</td>
+<td>Do now</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fix prefetch (zoom-in only, after idle, not on save-data), serve prebuilt bytes, brotli precompressed</td>
+<td>cuts the 533 KB opening-view prefetch; warm hit 22-75 ms to about 2 ms; brotli -10% (binary) to -29% (JSON)</td>
+<td>prefetch policy only</td>
+<td>about 1-2 days</td>
+<td>Do now</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Packed binary tile, quantised planes (V3/V4)</td>
+<td><strong>-76% / -78%</strong> (3.52 to 0.83 / 0.79 MB)</td>
+<td>decoder, storage, tests</td>
+<td>3-5 days</td>
+<td>Do with MAP.146 + nested lists</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Nested lists: a finer tile omits stars a coarser tile already sent (Lane 1's item 2)</td>
+<td>31-43% of bright records repeat at levels 3-6, 100% at 7-12</td>
+<td>key by rank, carry parents</td>
+<td>in Lane 1's item</td>
+<td>Fold in with 3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>IndexedDB (or per-tile immutable HTTP caching) instead of localStorage</td>
+<td>no change to first load; revisit hit rate up about 10x</td>
+<td>storage layer</td>
+<td>1-2 days</td>
+<td>With 3</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Columnar JSON (V2)</td>
+<td>-60%</td>
+<td>rebuild objects in <code>tileStars</code></td>
+<td>about 2 days</td>
+<td>Skip: gets 60% of the way to binary for most of the work</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Quantise the GPU attributes (5.6 as written)</td>
+<td>none</td>
+<td><code>setStars</code></td>
+<td>1-2 days</td>
+<td>Defer: saves GPU memory and re-upload, not download</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Request batching</td>
+<td>none: already 1-3 requests per action</td>
+<td>none</td>
+<td>none</td>
+<td>Nothing to do</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-what-the-browser-downloads-today">2. What the browser downloads today</h2>
+<p>Measured with real Chromium (software GL) against the real Flask app on a local database: 412,924 bright stars (floor 10,000 L☉, see section 7), 222,739 phenomena, 17,176 generated stars in one cluster at 7,963 pc from the core, 1,369 sectors. gzip level 6 was applied to every response in the harness, as Apache's <code>mod_deflate</code> does in <code>examples/apache/planetgen.conf.example</code>. Throttling was set with the Chrome DevTools protocol: &quot;DSL&quot; = 10 Mbit/s, 40 ms; &quot;slow 4G&quot; = 1.6 Mbit/s, 150 ms.</p>
+<h3 id="21-the-format">2.1 The format</h3>
+<p><code>GET /galaxy/tiles?tiles=level/ix/iy/iz,...</code> returns <code>{stamp, generation, tiles: {key: {placed, planned, filled, clouds, stars, generated, points, worlds}}}</code> as JSON with <code>Cache-Control: no-store</code>. The opening view's tile (level 0) is embedded in the <code>/galaxy</code> HTML. A star is <code>{id, x, y, z, luminosity_sol, temperature_k, radius_sol, star_type (&quot;B4V Blue-White Main Sequence Star&quot;), population, yerkes_class, ring_index, layer_index, ring_slot_index, system_id}</code>, plus <code>name</code> for generated stars. Floats arrive rounded to 4 decimals (<code>_round_floats</code> in <code>tilecache.py</code>), which is still 5.5 digits more than the screen can show.</p>
+<h3 id="22-bytes-by-zoom-one-view--the-tiles-the-js-asks-for-at-that-camera-radius">2.2 Bytes by zoom (one view = the tiles the JS asks for at that camera radius)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Camera orbit (pc)</th>
+<th>Tile level</th>
+<th>Tiles</th>
+<th>Stars+points</th>
+<th>Raw JSON</th>
+<th>gzip</th>
+<th>brotli-11</th>
+<th>Unused sections (placed/planned/filled)</th>
+<th>Cold server</th>
+<th>Warm server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>60,000</td>
+<td>0</td>
+<td>1</td>
+<td>400</td>
+<td>166 KB</td>
+<td>29 KB</td>
+<td>21 KB</td>
+<td>32%</td>
+<td>181 ms</td>
+<td>5 ms</td>
+</tr>
+<tr>
+<td>15,000</td>
+<td>1</td>
+<td>8</td>
+<td>3,200</td>
+<td>998 KB</td>
+<td>171 KB</td>
+<td>119 KB</td>
+<td>9%</td>
+<td>558 ms</td>
+<td>25 ms</td>
+</tr>
+<tr>
+<td>4,000</td>
+<td>3</td>
+<td>8</td>
+<td>3,219</td>
+<td>1,055 KB</td>
+<td>192 KB</td>
+<td>134 KB</td>
+<td>13%</td>
+<td>1,038 ms</td>
+<td>23 ms</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>5</td>
+<td>8</td>
+<td>2,108</td>
+<td>738 KB</td>
+<td>137 KB</td>
+<td>95 KB</td>
+<td>19%</td>
+<td>2,008 ms</td>
+<td>20 ms</td>
+</tr>
+<tr>
+<td>500</td>
+<td>6</td>
+<td>14</td>
+<td>2,652</td>
+<td>890 KB</td>
+<td>160 KB</td>
+<td>110 KB</td>
+<td>16%</td>
+<td>1,142 ms</td>
+<td>25 ms</td>
+</tr>
+<tr>
+<td>250</td>
+<td>7</td>
+<td>12</td>
+<td>1,277</td>
+<td>487 KB</td>
+<td>97 KB</td>
+<td>67 KB</td>
+<td>29%</td>
+<td>436 ms</td>
+<td>14 ms</td>
+</tr>
+<tr>
+<td>120</td>
+<td>8</td>
+<td>12</td>
+<td>1,004</td>
+<td>404 KB</td>
+<td>84 KB</td>
+<td>59 KB</td>
+<td>35%</td>
+<td>274 ms</td>
+<td>12 ms</td>
+</tr>
+<tr>
+<td>60</td>
+<td>9</td>
+<td>16</td>
+<td>4,625</td>
+<td>1,422 KB</td>
+<td>242 KB</td>
+<td>156 KB</td>
+<td>18%</td>
+<td>518 ms</td>
+<td>31 ms</td>
+</tr>
+<tr>
+<td>30</td>
+<td>10</td>
+<td>24</td>
+<td>6,157</td>
+<td>1,897 KB</td>
+<td>320 KB</td>
+<td>202 KB</td>
+<td>18%</td>
+<td>368 ms</td>
+<td>75 ms</td>
+</tr>
+<tr>
+<td>15</td>
+<td>11</td>
+<td>16</td>
+<td>7,215</td>
+<td>2,126 KB</td>
+<td>353 KB</td>
+<td>202 KB</td>
+<td>15%</td>
+<td>377 ms</td>
+<td>54 ms</td>
+</tr>
+<tr>
+<td>8</td>
+<td>12</td>
+<td>14</td>
+<td>4,369</td>
+<td>1,281 KB</td>
+<td>195 KB</td>
+<td>132 KB</td>
+<td>15%</td>
+<td>99 ms</td>
+<td>27 ms</td>
+</tr>
+<tr>
+<td>4</td>
+<td>12</td>
+<td>8</td>
+<td>3,534</td>
+<td>999 KB</td>
+<td>155 KB</td>
+<td>105 KB</td>
+<td>11%</td>
+<td>29 ms</td>
+<td>27 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>A view is 1 to 24 tiles, 0.17 to 2.1 MB raw, 29 to 353 KB gzipped. Per star (65,403 stars in 233 tiles): <strong>270 B raw, 45 B gzip, 41 B brotli-5</strong>. Server time: a cold tile is built from the database in 0.1 to 2.5 s; a warm (disk-cached) request takes 5 to 75 ms, almost all of it parsing the stored JSON and serialising it again (the cache keeps parsed dicts, not bytes).</p>
+<p>Cap check: 70,000 stars x 270 B = <strong>18.9 MB raw, 3.2 MB gzip</strong> at today's format. The worst case is reachable on paper (27 tiles x (400 bright + 850 generated) + 8 detail tiles x (400 + 4,000) is about 69,000); my local data does not reach it (section 7).</p>
+<h3 id="23-sessions-cold-browser-profile">2.3 Sessions (cold browser profile)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Tile requests</th>
+<th>Tiles</th>
+<th>Tile bytes (raw / gzip)</th>
+<th>Static (requests / gzip)</th>
+<th>First star: local / DSL / slow 4G</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open <code>/galaxy</code></td>
+<td>3</td>
+<td>28</td>
+<td>3.05 MB / 533 KB</td>
+<td>173 / 536 KB</td>
+<td>1.29 s / 3.04 s / 7.86 s</td>
+</tr>
+<tr>
+<td>Open a sector link (<code>?sector=</code>), 10,409 stars</td>
+<td>3</td>
+<td>38</td>
+<td>4.93 MB / 839 KB</td>
+<td>173 / 543 KB</td>
+<td>1.02 s / 3.02 s / 8.11 s</td>
+</tr>
+<tr>
+<td>Reload, same profile</td>
+<td>0</td>
+<td>0</td>
+<td>(localStorage hit)</td>
+<td>109 / 58 KB (dev-server revalidation)</td>
+<td>1.1 s</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>The first star does not wait on a tile.</strong> The opening tile is inside the 35 KB gzipped HTML (29 KB of it). What the first star waits for is the 173 static files (543 KB gzip, 1.8 MB decoded; JS modules and three.js). On slow 4G that is the 7.9 to 8.1 s. A smaller tile format will not move this number; bundling or preloading the modules would. Not part of MAP.147; a candidate item. (In production Apache serves <code>/static/</code> with <code>immutable</code> year-long caching per the example config, so a repeat visit makes no static requests; the 109 reloads above are the Flask dev server revalidating.)</li>
+<li><strong>The opening view downloads about 18 times more tile data than it shows.</strong> Of the 3 requests, 1 is the visible tile (embedded); the other 2 are the prefetch of one zoom step in and out (<code>PREFETCH_ZOOM = 3</code>): 28 tiles, 533 KB gzip, 3 MB raw. On a phone that is data spent before the user does anything. It starts only after the real fetch ends, so it does not slow the first view, but it does compete with the user's next action.</li>
+<li><strong>Drill-down steps</strong>: crossing a level costs 1 to 3 requests. Typical: 8 tiles 206 KB gzip (1.3 MB raw) for the new level, then 12 tiles 165 KB gzip for the prefetch. Measured duration of the 206 KB request: 338 ms local, 332 ms DSL, <strong>1,196 ms slow 4G</strong>. That matches bytes / throughput (206 KB / 200 KB/s = 1.0 s) so the model below holds.</li>
+<li><strong>Stars on screen change</strong>: 10,409 to 10,999 to 6,245 and so on, each change a full rebuild of the star geometry: 3,200 stars = 166,400 bytes (52 B x 3,200) uploaded; 10,999 stars = 572 KB. Every tile arrival re-uploads everything (<code>renderFromCache</code> builds a signature of every star key and calls <code>setStars</code> on any change). Cheap on a real GPU; can't be measured here (software GL).</li>
+<li><strong>Stage (drill-down block) responses are small</strong>: 0.25 to 7.4 KB (0.4 to 1.5 KB gzipped). Nothing to gain.</li>
+</ul>
+<h2 id="3-what-the-client-uses">3. What the client uses</h2>
+<p><code>galaxymap3d.js</code> reads only <code>tile.clouds</code>, <code>tile.stars</code>, <code>tile.generated</code>, <code>tile.points</code> and (MAP.220) <code>tile.interests</code> (<code>[{id, name, x, y, z, reasons: {reason: {n, score?, tier?}}}]</code>: the star systems with a reason for a mark, one entry each with every reason it has, most bodies first, from level <code>POINT_PHENOMENON_MIN_LEVEL</code> only, read from <code>system_interests</code>; a node of 3 shells or fewer also lists, for each planet class, the systems with a world of it (the <code>class-&lt;letter&gt;</code> reasons, MAP.220, at most <code>NODE_CLASS_SYSTEMS</code> for a class, 60 in a sector), a system only a class lists being an entry with only class reasons; JSON in the packed tile's meta like <code>points</code>; it was <code>tile.worlds</code> before tile format 7) (<code>tileStars</code>, <code>renderFromCache</code>). <strong><code>placed</code>, <code>planned</code> and <code>filled</code> are never read</strong> by any file under <code>html/static</code> (grep of the whole directory; the block view uses <code>/galaxy/stage</code> instead). They are 9 to 35% of every tile (section 2.2, &quot;Unused sections&quot;) and are written to the disk cache too. Of each star's fields the JS uses <code>x y z luminosity_sol temperature_k radius_sol star_type (first letter only, for the class filter) id system_id</code> (system_id only for <code>null</code> = &quot;uncharted&quot;); <code>ring_index</code>, <code>layer_index</code>, <code>ring_slot_index</code>, <code>population</code>, <code>yerkes_class</code> and a generated star's <code>name</code> are never read (stars cannot be picked, MAP.101). Treat this as true of main at 8.0.783; the build re-greps before removing.</p>
+<h2 id="4-the-options-measured">4. The options, measured</h2>
+<p>All numbers are on the same 400 real cached tiles (65,403 stars), each variant built from the real records. Prototype encoders live in <code>bench/protolib.py</code>; nothing was added to the repo.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>What it is</th>
+<th>Per star raw / gzip</th>
+<th>400 tiles raw / gzip / brotli-11</th>
+<th>At the 70,000 cap (gzip)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V0</td>
+<td>Today</td>
+<td>270 / 45 B</td>
+<td>20.2 MB / 3.52 MB / 2.49 MB</td>
+<td>3.2 MB</td>
+</tr>
+<tr>
+<td>V0b</td>
+<td>Today minus <code>placed</code>/<code>planned</code>/<code>filled</code></td>
+<td>n/a</td>
+<td>17.7 MB / 2.99 MB / 2.12 MB</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>V1</td>
+<td>Same dict shape; only the 9 used fields; <code>star_type</code> one letter; x/y/z to 3 decimals, luminosity 4 and radius 3 significant digits, temperature to 10 K; no <code>name</code></td>
+<td>148 / 28 B</td>
+<td>9.7 MB / 1.83 MB / 1.30 MB</td>
+<td>1.9 MB</td>
+</tr>
+<tr>
+<td>V2</td>
+<td>V1 values as columns (<code>{x:[...], y:[...]}</code>)</td>
+<td>60 / 21 B</td>
+<td>4.0 MB / 1.42 MB / 1.10 MB</td>
+<td>1.5 MB</td>
+</tr>
+<tr>
+<td>V3</td>
+<td>Binary planes: x/y/z as uint16 inside the tile's cube; log10 luminosity as uint16 (0.0002 dex); log temperature and radius as uint8; class + <code>has system</code> flag as uint8; <code>id</code> uint32; <code>system_id</code> as uint32</td>
+<td>16.7 / 12.3 B</td>
+<td>1.12 MB / 0.83 MB / 0.72 MB</td>
+<td>0.86 MB</td>
+</tr>
+<tr>
+<td>V4</td>
+<td>V3 sorted along a Morton curve, key deltas and id deltas as varints</td>
+<td>12.9 / 11.7 B</td>
+<td>0.87 MB / 0.79 MB / 0.72 MB</td>
+<td>0.82 MB</td>
+</tr>
+</tbody>
+</table></div>
+<p>Per view (gzip, the table from section 2.2 re-encoded):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Orbit (pc)</th>
+<th>Stars</th>
+<th>V0</th>
+<th>V0b</th>
+<th>V1</th>
+<th>V2</th>
+<th>V3</th>
+<th>V4</th>
+<th>V4 / V0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>60,000</td>
+<td>400</td>
+<td>29 KB</td>
+<td>20 KB</td>
+<td>12 KB</td>
+<td>10 KB</td>
+<td>5 KB</td>
+<td>5 KB</td>
+<td>16%</td>
+</tr>
+<tr>
+<td>15,000</td>
+<td>3,200</td>
+<td>170 KB</td>
+<td>154 KB</td>
+<td>93 KB</td>
+<td>72 KB</td>
+<td>39 KB</td>
+<td>35 KB</td>
+<td>21%</td>
+</tr>
+<tr>
+<td>4,000</td>
+<td>3,219</td>
+<td>191 KB</td>
+<td>155 KB</td>
+<td>95 KB</td>
+<td>73 KB</td>
+<td>40 KB</td>
+<td>38 KB</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>2,108</td>
+<td>136 KB</td>
+<td>99 KB</td>
+<td>62 KB</td>
+<td>48 KB</td>
+<td>27 KB</td>
+<td>26 KB</td>
+<td>19%</td>
+</tr>
+<tr>
+<td>500</td>
+<td>2,652</td>
+<td>159 KB</td>
+<td>122 KB</td>
+<td>76 KB</td>
+<td>59 KB</td>
+<td>34 KB</td>
+<td>33 KB</td>
+<td>21%</td>
+</tr>
+<tr>
+<td>250</td>
+<td>1,277</td>
+<td>96 KB</td>
+<td>60 KB</td>
+<td>36 KB</td>
+<td>28 KB</td>
+<td>17 KB</td>
+<td>16 KB</td>
+<td>16%</td>
+</tr>
+<tr>
+<td>120</td>
+<td>1,004</td>
+<td>84 KB</td>
+<td>47 KB</td>
+<td>28 KB</td>
+<td>22 KB</td>
+<td>14 KB</td>
+<td>12 KB</td>
+<td>15%</td>
+</tr>
+<tr>
+<td>60</td>
+<td>4,625</td>
+<td>242 KB</td>
+<td>186 KB</td>
+<td>111 KB</td>
+<td>83 KB</td>
+<td>54 KB</td>
+<td>51 KB</td>
+<td>21%</td>
+</tr>
+<tr>
+<td>30</td>
+<td>6,157</td>
+<td>320 KB</td>
+<td>251 KB</td>
+<td>151 KB</td>
+<td>114 KB</td>
+<td>74 KB</td>
+<td>69 KB</td>
+<td>22%</td>
+</tr>
+<tr>
+<td>15</td>
+<td>7,215</td>
+<td>352 KB</td>
+<td>293 KB</td>
+<td>175 KB</td>
+<td>132 KB</td>
+<td>87 KB</td>
+<td>82 KB</td>
+<td>23%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>4,369</td>
+<td>195 KB</td>
+<td>167 KB</td>
+<td>100 KB</td>
+<td>75 KB</td>
+<td>49 KB</td>
+<td>47 KB</td>
+<td>24%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>3,534</td>
+<td>155 KB</td>
+<td>135 KB</td>
+<td>81 KB</td>
+<td>61 KB</td>
+<td>40 KB</td>
+<td>38 KB</td>
+<td>24%</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="41-compression-on-top">4.1 Compression on top</h3>
+<p>Brotli-5 saves about 10% over gzip-6 on JSON (3.52 to 3.16 MB), brotli-11 29% (2.49 MB), zstd-19 22%. On the binary form the gap shrinks to 9% (0.79 to 0.72 MB) because there is little left to find. The production Apache example enables <code>mod_deflate</code> (gzip) only; <code>mod_brotli</code> is an extra module and the example does not load it. The tile cache already writes each tile once to disk, so the build can precompress at brotli-11 at write time and serve the <code>.br</code> file with zero request-time CPU. That is the cheap route to the 29%.</p>
+<h3 id="42-cost-of-the-binary-form">4.2 Cost of the binary form</h3>
+<ul>
+<li>Server: encoding 65,403 stars in Python took 0.29 s as V3 (4.5 µs a star, the same as <code>json.dumps</code> at 5.2 µs); the Morton sort in pure Python takes 22 µs a star (1.46 s), which numpy removes. Either way it runs once per tile at cache-write time next to a 0.1 to 2.5 s database build.</li>
+<li>Client: <code>JSON.parse</code> of the 17.7 MB of today's records takes 86 ms (node 22; trimmed V1 57 ms); decoding the V3 planes into the typed arrays <code>setStars</code> needs takes 12 ms. Parsing was never the browser's cost (in-page <code>Response.json</code> took 5 to 47 ms per step); the rebuild of all star geometry on each tile arrival is. Not measured on a phone CPU.</li>
+<li>Precision: uint16 inside a tile cube is edge/65,535 (1 pc at level 0, 0.25 mpc at level 12), under 1/100 of a pixel at the zoom each level is used. Luminosity and radius colour the star from <code>logShare</code> over fixed ranges (luminosity -4 to 6 dex, radius -1 to 3 dex); a uint8 step is 0.4% of the range. The 16-bit luminosity keeps the dimmest-star filter exact to 0.0002 dex.</li>
+<li>Rank order: Lane 1's smooth-fade design needs each star's rank in the tile list. V3 keeps list order (rank implicit, 16.7 B). V4 re-sorts, so it would add a 2-byte rank plane: 14.9 B, still smaller than V3.</li>
+<li>A &quot;lean&quot; record without <code>id</code>/<code>system_id</code> is 11 B (6 position + 2 luminosity + temperature + radius + flags). Nested lists remove cross-level duplicates, so the client no longer needs <code>id</code> to de-duplicate; <code>uncharted</code> becomes one flag bit. <strong>Do not put the new 80-bit object ID (10 B) on the tile wire</strong>: that would add 60% to a V3 record for nothing, since stars are not pickable.</li>
+</ul>
+<h3 id="43-reuse-between-zoom-steps">4.3 Reuse between zoom steps</h3>
+<p>Of the bright-star records in finer tiles, <strong>31 to 43% at levels 3 to 6 and 100% at levels 7 to 12</strong> were already sent in a coarser ancestor tile (measured on the cached tiles that have an ancestor cached; generated stars repeat 34 to 80%). That is the &quot;nested lists&quot; change Lane 1 proposes (zoom-star-visibility item 2), and it also helps this item: it shaves the repeated records from every fine-level step. It does not need the binary format, and it changes the stamp, so land it with the format.</p>
+<h3 id="44-browser-cache">4.4 Browser cache</h3>
+<p>The tile cache is <code>localStorage</code>, capped by Chromium at <strong>5,242,880 characters</strong> (measured: 524 x 10,000-character entries then <code>QuotaExceededError</code>). A one-view session already stores 22 tiles / 2.2 M characters (the prefetch included); a sector link fills it (<strong>40 tiles, 5.08 M characters</strong>, largest tile 265 K). When a write fails <code>storeTile</code> purges other generations, then every stored tile of the database. Visiting 7 sector links in one profile left 40, 18, 12, 44, 19, 48, 65 tiles stored (5.08 M, 1.41 M, 0.64 M, 4.07 M, 1.11 M, 4.53 M, 5.07 M characters): the cache is wiped and refilled again and again, so revisits mostly miss. Each deep link downloaded 82 to 839 KB gzip. Binary tiles in base64 in <code>localStorage</code> would fit about 10 times more tiles; IndexedDB has no practical cap and stores the buffer directly, with no synchronous <code>JSON.parse</code> on the main thread. The alternative is immutable per-tile URLs (<code>/galaxy/tiles/&lt;generation&gt;/&lt;key&gt;</code>, <code>Cache-Control: public, immutable</code>) so the browser's own disk cache and Apache serve them; that gives up the stamp history's per-tile invalidation unless the stamp enters the URL, so it belongs with PERF.38/PERF.41, not here. (<code>Cache-Control: no-store</code> today means the browser cache is never used.)</p>
+<h3 id="45-modelled-time-on-a-phone-class-link">4.5 Modelled time on a phone-class link</h3>
+<p>Throughput x bytes + RTT, validated by the measured 1,196 ms above (model: 1.03 s + RTT):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Today (gzip)</th>
+<th>V1</th>
+<th>V4</th>
+<th>Slow 4G today / V1 / V4</th>
+<th>DSL today / V4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Level change in a sector (8 tiles)</td>
+<td>206 KB</td>
+<td>about 107 KB</td>
+<td>about 43 KB</td>
+<td>1.2 s / 0.7 s / 0.35 s</td>
+<td>0.33 s / 0.08 s</td>
+</tr>
+<tr>
+<td>Opening view's prefetch (28 tiles)</td>
+<td>533 KB</td>
+<td>about 280 KB</td>
+<td>about 110 KB</td>
+<td>2.7 s / 1.4 s / 0.55 s</td>
+<td>0.4 s / 0.09 s</td>
+</tr>
+<tr>
+<td>Worst view at the 70,000 cap</td>
+<td>3.2 MB</td>
+<td>1.9 MB</td>
+<td>0.82 MB</td>
+<td>16 s / 9.5 s / 4.1 s</td>
+<td>2.6 s / 0.66 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>(V1/V4 columns use the per-view ratios of section 4; not measured end to end because the client does not read them yet.)</p>
+<h2 id="5-section-56-the-13-floats">5. Section 5.6, the 13 floats</h2>
+<p><code>setStars</code> builds 13 floats a star (position 3, colour 3, size, core, glow, bright, born, clipped, uncharted): 52 B, 3.6 MB at 70,000 stars. Quantising colour, scalars and flags to bytes (about 20 to 24 B) would cut GPU memory and the re-upload on each tile arrival by about 60%, but not the download, and nothing here measured it on a GPU. The bigger client cost is that every tile arrival rebuilds and re-uploads all stars; a client that appends the new tile's stars (and drops the old ones) would remove it and is independent of the wire. Both are optional and small next to the 270 to 13 bytes on the wire. Above about 1e6 points 5.6 recommends level of detail by tile; the tile budgets (400 bright, 150 to 850 generated, 4,000 detail) already do that, so that part is satisfied.</p>
+<h2 id="6-related-items">6. Related items</h2>
+<ul>
+<li><strong>MAP.146 (click-centred drill-down).</strong> Research Lane 2's study (<code>research/drilldown-region-sizes/report.md</code>) finds the <strong>cube tiles are already free-floating</strong> and need no key change; the block-keyed cache is the <em>stage</em> cache (small, 0.4 to 1.5 KB gzipped, nothing to gain). So MAP.146 does not force a tile-key change. The format change and the nested lists are the only things that bump the tile stamp, and they should share one bump.</li>
+<li><strong>Zoom-star-visibility (PR #878, Research Lane 1).</strong> Rank fade needs rank per star and nested lists; both fit V3 (list order = rank) and section 4.3. Item 3 (point objects from level 8 instead of 10) raises tile size at levels 8 and 9 by the points section (about 4 KB a view at level 10 today); small.</li>
+<li><strong>PERF.38 / PERF.41</strong> (single-flight tile builds, what stamps the cache): serving stored bytes and precompressed files belongs with them.</li>
+<li><strong>Object IDs.</strong> A star needs only a tile-local key on the wire; the 80-bit ID is for the details page.</li>
+<li><strong>GEN.64 position IDs as names.</strong> Phenomenon points carry the 19-hex name (<code>0D01F3FFDF704001560</code>), 22 B a point with JSON overhead; at most 4 KB a view. Leave as JSON (the binary tile keeps <code>clouds</code> and <code>points</code> as JSON).</li>
+</ul>
+<h2 id="7-what-could-not-be-measured">7. What could not be measured</h2>
+<ul>
+<li><strong>A phone, or any real GPU.</strong> Chromium here draws with software GL (SwiftShader) on a 4-core container, so frame time, first-paint, long tasks and rebuild cost are not representative; throttling is emulated (DSL 10 Mbit/40 ms, slow 4G 1.6 Mbit/150 ms) and does not model packet loss, radio wake-up or TCP slow start.</li>
+<li><strong>Production-scale data.</strong> The bright-star floor was 10,000 L☉ (412,924 rows) rather than 1,000 L☉ (26.9 M rows), and only 17,176 generated stars in one cluster exist. So 400-star bright caps saturate only at coarse levels here, no tile reaches the 4,000-star detail cap, and no view reached 70,000 stars (the most was 10,999). Per-star bytes are properties of the record, so the extrapolation to the cap holds; counts and cold-build times (database) do not.</li>
+<li><strong>Apache.</strong> gzip was applied by a level-6 WSGI wrapper standing in for <code>mod_deflate</code>; brotli sizes are from the Python library, not <code>mod_brotli</code>; HTTP/2 not tested (the example config does not enable it). Flask's dev server was the origin.</li>
+<li><strong>The binary client.</strong> The decoder was timed in node on real V3 blobs, not wired into the page; time-to-first-star and step times with it are modelled from bytes, not measured. IndexedDB speed was not measured.</li>
+<li><strong>Safari/Firefox</strong>, mobile quota rules for <code>localStorage</code>/IndexedDB, and concurrent users.</li>
+<li><strong>GPU upload and rebuild cost</strong> on a real device (only the bytes uploaded were counted: 52 B a star per rebuild).</li>
+<li><strong>MAP.146 and the nested lists</strong> are not built, so their effect on tile counts is not measured; 4.3 uses today's tiles.</li>
+</ul>
+<h2 id="8-method">8. Method</h2>
+<p><code>bench/measure_tiles.py</code> requests the real <code>/galaxy/tiles</code> route in-process for 15 camera radii (replicating <code>neededTiles</code>), recording raw/gzip/brotli/zstd, the section split and cold/warm time. <code>bench/measure_browser.py</code> drives Chromium with Playwright: CDP network log (encoded and decoded bytes, request counts), a <code>bufferData</code> hook, <code>Response.json</code> timing, long-task observer, <code>localStorage</code> size, and <code>performance</code> resource timing; scenarios <code>home</code>, <code>sector</code> (a <code>?sector=</code> deep link plus wheel zoom), <code>drill</code> (clicks down the block stages), <code>--net dsl|slow4g</code>. <code>bench/prototype.py</code>, <code>view_totals.py</code>, <code>star_only.py</code> size the encodings on the cached tiles; <code>dump_corpus.py</code> + <code>decode_bench.js</code> time encode and decode; <code>ls_quota.py</code>, <code>ls_thrash.py</code> measure the <code>localStorage</code> quota and refill; <code>overlap.py</code> counts repeats between levels. Results are the <code>*.json</code> files beside them.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

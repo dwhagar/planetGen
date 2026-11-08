@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intergalactic space plan - planetGen docs</title>
+<meta name="description" content="The plan for taking planetGen from a galaxy-shaped volume to a whole sphere of space: every cell out to 262 kpc has defined contents, one rule set tuned by a profile for each place, the halo, the satellites and the globular clusters in p...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/intergalactic-space-plan.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="plan/intergalactic-space-plan.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="intergalactic-space-plan">Intergalactic space plan</h1><p class="meta">docs/plan/intergalactic-space-plan.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#1-goal">1. Goal</a></li><li style="margin-left:0px"><a href="#2-decided-boss-2026-10-15">2. Decided (Boss, 2026-10-15)</a></li><li style="margin-left:0px"><a href="#3-the-stages-in-build-order">3. The stages, in build order</a></li><li style="margin-left:0px"><a href="#4-stage-m-multi-star-and-star-like-systems-at-scatter-time">4. Stage M: multi-star and star-like systems at scatter time</a></li><li style="margin-left:0px"><a href="#5-stage-c-the-spherical-region-database-query">5. Stage C: the spherical-region database query</a></li><li style="margin-left:0px"><a href="#6-defaults-that-stand-until-boss-says-otherwise">6. Defaults that stand until Boss says otherwise</a></li><li style="margin-left:0px"><a href="#7-items-by-stage">7. Items by stage</a></li><li style="margin-left:14px"><a href="#stage-a-the-spherical-grid-finishes-first-the-shared-migration-also-carries-the-scatter-member-tables-the-cell-key-and-the-catalogue-columns">Stage A: The spherical grid finishes first (the shared migration also carries the scatter member tables, the cell key and the catalogue columns)</a></li><li style="margin-left:14px"><a href="#stage-b1-the-halo-and-the-sector-profile">Stage B1: The halo and the sector profile</a></li><li style="margin-left:14px"><a href="#stage-b2-components-and-globular-clusters">Stage B2: Components and globular clusters</a></li><li style="margin-left:14px"><a href="#stage-b3-the-registry-and-the-fill-machinery">Stage B3: The registry and the fill machinery</a></li><li style="margin-left:14px"><a href="#stage-m-multi-star-and-star-like-systems-at-scatter-time-approved-by-boss-2026-10-15-551-and-608-pm-edt">Stage M: Multi-star and star-like systems at scatter time (approved by Boss, 2026-10-15 5:51 and 6:08 PM EDT)</a></li><li style="margin-left:14px"><a href="#stage-c-the-spherical-region-database-query-live-research-done-1659">Stage C: The spherical-region database query (live: research done, #1659)</a></li><li style="margin-left:14px"><a href="#stage-b4-the-scatters-fill-the-whole-sphere">Stage B4: The scatters fill the whole sphere</a></li><li style="margin-left:14px"><a href="#stage-b5-real-contents-young-stars-nebulae-wolf-rayet-stars">Stage B5: Real contents: young stars, nebulae, Wolf-Rayet stars</a></li><li style="margin-left:14px"><a href="#stage-b6-interface-the-profile-and-the-map-beyond-the-disk">Stage B6: Interface: the profile and the map beyond the disk</a></li><li style="margin-left:14px"><a href="#stage-b7-tests-and-docs">Stage B7: Tests and docs</a></li><li style="margin-left:14px"><a href="#stage-l-the-later-group-nothing-waits-on-it">Stage L: The later group (nothing waits on it)</a></li><li style="margin-left:0px"><a href="#8-the-later-group">8. The later group</a></li><li style="margin-left:0px"><a href="#9-tests-and-docs">9. Tests and docs</a></li><li style="margin-left:0px"><a href="#10-keeping-this-plan-true">10. Keeping this plan true</a></li><li style="margin-left:0px"><a href="#11-lane-queues-and-the-critical-path-computed-2026-10-15-610-pm-edt">11. Lane queues and the critical path (computed 2026-10-15, 6:10 PM EDT)</a></li></ul></details>
+<p>The plan for taking planetGen from a galaxy-shaped volume to a whole sphere of space: every cell out to 262 kpc has defined contents, one rule set tuned by a profile for each place, the halo, the satellites and the globular clusters in place, and a sector fill that builds every kind of object and the systems it can have. Written 2026-10-15 at Boss's request by the TODO tasks thread; <a href="../TODO.html">docs/TODO.md</a> is the master file and wins where they disagree. Designs: <a href="../design/galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> (the sphere, 15 steps) and <a href="../design/systems/phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a> (every kind of object, the fill stages, the system rules). Lane assignments live in the Core, Interface and Quality groups of <a href="../../generated/execution-plan.html">execution-plan.html</a>.</p>
+<h2 id="1-goal">1. Goal</h2>
+<p>A visitor can ask for a sector anywhere inside the reach (the Magellanic Clouds, the halo, a globular cluster, the gap between galaxies) and get the contents the real place would hold, made by the same rules as the neighbourhood, deterministic from the galaxy seed. Nothing is generated unless it is asked for or scattered; an asked sector is always generated and saved, even when empty. The first neighbourhood pull stays in the galactic region.</p>
+<h2 id="2-decided-boss-2026-10-15">2. Decided (Boss, 2026-10-15)</h2>
+<ol>
+<li>Reach 262 kpc (65,535 shells) and 96-bit object IDs; the research note's defaults stand (section 6 lists them).</li>
+<li>One consistent rule set everywhere; each uncharted sector gets tuning parameters (its profile) from its place.</li>
+<li>Early alpha (5:27 PM EDT): the database schema is not a constraint; redesign tables as the work needs, one migration or a fresh galaxy. The scatter from the origin keeps the banded, layered approach (the bands of a shell have fixed slices; Core checks this against <code>object_first.py</code> and <code>spherical.py</code> before relying on it).</li>
+<li>Order (5:27 PM EDT): the spherical sector layout finishes first, then the intergalactic scatters and sector parameters, then the spherical-region database query. If a later stage is not ready when the one before it finishes, skip it and start the next; a stage waiting on research never blocks the others (5:32 PM EDT).</li>
+<li>Scatters and backscatters carry no planets or moons (5:39 PM EDT). Nebulae need stars and phenomena, not planets. Planets and moons come only when a sector is filled with everything, at real-world probabilities.</li>
+<li>Stellar companions of stars and star-like objects (stars, former stars, protostars, neutron stars, black holes, including neutron star and black hole pairs) are generated at scatter time, because they matter for gravity (5:51 PM EDT).</li>
+<li>&quot;All types represented&quot; means audited frequency, never forced: accurate probabilities and no forced representation in a sector, except a kind that landed there in a scatter before generation (5:51 PM EDT).</li>
+<li>Every nebula gets the stars it needs as real systems; Wolf-Rayet stars and ring nebulae are built (5:23 PM EDT).</li>
+<li>Multi-star plan approved (6:08 PM EDT): plan and build every observed and theoretical type of multi-star and star-like-object system into the generator throughout, matching observed probabilities best and theoretical ones where observation is silent. The cap of stars per system is 12, not 7. Compute the best path for three build lanes and one TODO lane (6:02 PM EDT): section 11.</li>
+<li><strong>No fixed content (Boss, 2026-10-16, 4:14 PM EDT).</strong> The aim is a scientifically accurate galaxy, and its sectors, as accurately as the processing allows and as far as the astrophysics is known and can be implemented. Nothing is fixed content: no copied catalogue, preset or hand-placed object. Everything is generated from the random seeds already in use; random numbers are used where the science gives a distribution, and a value is derived or calculated wherever it can be. Real data (the Harris file, the real satellite list) is reference for building and checking the laws, never content. When a piece is missing that cannot be looked up, ask Boss to do the research and list what is needed (GEN.368 keeps that list).</li>
+</ol>
+<h2 id="3-the-stages-in-build-order">3. The stages, in build order</h2>
+<pre><code>A  spherical grid ──► B1 halo + profile ──► B2 components + clusters ──► B4 scatters over the sphere
+                          │                                                   │
+                          ├──► B3 registry + fill machinery ──► B5 real contents (young stars, nebulae, W stars)
+                          │
+                          └──► B6 Interface (profile lookup, sector page, map)      B7 tests + docs beside each step
+M  multi-star systems at scatter time (approved; the catalogue of types is filed)       C  region query (live; its key goes in the A migration)
+L  later group: nothing waits on it
+</code></pre>
+<ul>
+<li><strong>A</strong> is first and alone on the critical path: the shared migration (GEN.230 and GEN.223 together, the 96-bit layout and the point-in-space columns) then the reach (GEN.233). GEN.232 is a bug that must land before any wide scatter.</li>
+<li><strong>B1 to B7</strong> are the whole sphere. B1 is a strict chain (halo, then profile, then kind factors); after the profile exists, B2, B3 and B6 can run in parallel across lanes. B4 needs the components (GEN.237). B5 needs the registry and fill stages (GEN.251) and the pre-main-sequence state. B7 is written beside each step.</li>
+<li><strong>M</strong> is the multi-star stage (section 4), partly inside A (the member tables share the migration). <strong>C</strong> is the region query (section 5), live since its research landed (#1659); its key and columns ride in the stage A migration. <strong>L</strong> is the later group (section 8).</li>
+<li>Two Core lanes (Boss, 2026-10-15 evening; the split approved by the TODO lane at 7:00 PM EDT, section 11): Lane 11 is the only lane that adds migrations; Core and Lane 12 together own B1 to B5, M and C's key; Interface owns B6 and the readers it was given; Quality owns B7 and every TEST and DOC item.</li>
+</ul>
+<h2 id="4-stage-m-multi-star-and-star-like-systems-at-scatter-time">4. Stage M: multi-star and star-like systems at scatter time</h2>
+<p>Approved by Boss (2026-10-15, 5:51 PM EDT, widened 6:08 PM EDT to every observed and theoretical type of multi-star or star-like-object system, built throughout the generator). Design: <a href="../design/systems/multi-star-systems.html">multi-star-systems.md</a>, now with the catalogue of about sixty system types (sections 13 to 16). Twenty items are filed and approved (the defaults of the note stand: compact pairs promoted to the scatter, black hole companion 1.25%, hierarchical trees only, a row's members deleted when its sector builds it, pair rates from the middle of the evidence; the cap is now 12 stars, not 7).</p>
+<ul>
+<li><strong>Stored form</strong> (GEN.260): a scatter row becomes a system key: barycentre point, total mass, members and orbit nodes in two child tables, one column per value, no JSON. The same migration adds <code>state</code>, <code>flags</code>, <code>interaction</code>, a SMALLINT <code>slot</code>, the <code>group</code> and <code>compact</code> node kinds, and the offset, velocity and decay-age columns of young groups. It is the shared migration 0093 (GEN.223, GEN.230, GEN.260, DB.34, DB.35), so there is one migration.</li>
+<li><strong>Generator</strong> (GEN.261, GEN.266, GEN.267, GEN.268): <code>draw_member_tree</code> (GEN.129's steps a to d plus member kinds and the Peters, Kozai and wide-companion checks), the compact-binary orbit laws, the cap setting and <code>--stars N</code> directive, and <code>SYSTEM_TYPE_RATES</code>, one entry per catalogue type with a completeness test.</li>
+<li><strong>Scatter and fill</strong> (GEN.262, GEN.263, GEN.264, GEN.265): companions in the scatter passes with a rate correction so pairs are not double counted, promotion of bound compact pairs, the fill building from stored members (GEN.251's system pass shrinks to planets, moons and belts), and the nightly motion of a system with its total mass.</li>
+<li><strong>The catalogue of types</strong> (GEN.269 to GEN.275, TEST.164): GEN.269 the star model (Roche classifier, <code>interaction</code> on every pair, flags, rejuvenated age, the kinds <code>stripped-helium</code>, <code>thorne-zytkow</code> and <code>wolf-rayet</code>); GEN.270 close binaries (contact, Algol, Be, merger products); GEN.271 white-dwarf binaries (double white dwarfs, cataclysmic variables, AM CVn, symbiotic and barium stars); GEN.272 accreting compact binaries (X-ray binaries, microquasars, spider pulsars); GEN.273 young groups and trapezia; GEN.274 runaway origins and cluster-hosted compact binaries; GEN.275 brown-dwarf, planetary-mass and circumbinary types; TEST.164 the type audit.</li>
+<li><strong>Interface and Quality</strong>: UX.114 lists members on a scatter row's pages; TEST.162 is the multiplicity audit and TEST.164 the type audit; DOC.50 the docs.</li>
+<li><strong>Order</strong>: GEN.260 and GEN.265 go in with the migration (stage A); GEN.268 follows the registry (GEN.250) and GEN.261 follows it; GEN.262 and GEN.264 follow once GEN.251 and the member tables exist; GEN.269 follows GEN.261; GEN.270, GEN.271, GEN.274 and GEN.275 are built by the Interface lane (section 11) once their prerequisite lands, GEN.272 and GEN.273 by Core. B1 to B3 do not wait for the rest of M. GEN.240 (scatters over the whole sphere) takes members from GEN.262 once it exists and may start without them.</li>
+</ul>
+<h2 id="5-stage-c-the-spherical-region-database-query">5. Stage C: the spherical-region database query</h2>
+<p>Live: its research is finished and merged (#1659, <a href="../design/galaxy/spherical-region-queries.html">spherical-region-queries.md</a>; scripts and results in /mnt/project-files/research/spherical-region-queries/). Boss's sequencing rule (5:32 PM EDT) said to skip it if it was not ready before the spherical layout; it is ready, so it is built. The design: every object gets one <code>cell_key</code>, a Morton key of its current position in 0.25 pc cubes (21 bits per axis, plus or minus 262,144 pc, exactly the reach), computed by MySQL as a stored generated column, with the covering index <code>(cell_key, x, y, z)</code>. A sphere query lays the sphere over the nested grid, merges the cubes into at most 256 key runs and joins them to the table, so only those runs are read; measured at 50 pc and 10 million rows it takes 42 ms against 705 ms for a plain box. The cell key is not the object ID (the ID is the permanent birth address; the key is where the object is now).</p>
+<ul>
+<li><strong>Key and columns</strong>: GEN.276 (<code>planetgen/galaxy/cellkey.py</code>, numpy only), DB.34 (the column and index on every positioned table, in the shared 0093 migration), DB.35 (the scatter tables, which keep their address columns).</li>
+<li><strong>Readers</strong>: NAV.60 (what is nearby reads by the key, for every kind, including objects with no sector and unbuilt scatter rows, with a plan-shape test) and NAV.61 (nearest-first by a radius ladder and a dense-core guard).</li>
+<li><strong>Quality</strong>: TEST.165 (re-measure on a real generated galaxy, warm and cold), TEST.166 (the key follows an object across a cube boundary), DOC.51.</li>
+<li>The 21-bit constants and the outside-the-box guard were not tested in the research; DB.34 and GEN.276 test them.</li>
+<li>Stage C does not block A or B: GEN.276 is a small pure function that goes first, DB.34 and DB.35 ride in the migration, and the readers and tests follow on the Interface and Quality lanes.</li>
+</ul>
+<h2 id="6-defaults-that-stand-until-boss-says-otherwise">6. Defaults that stand until Boss says otherwise</h2>
+<p>Open questions of the design notes; each default is a decision unless changed.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Default</th>
+<th>Item</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Harris catalogue file for the Milky Way clusters</td>
+<td>synthetic generator first, the real catalogue when it arrives</td>
+<td>GEN.237, GEN.159</td>
+</tr>
+<tr>
+<td>Satellites</td>
+<td>real Milky Way satellites at their real places for the default shape; seeded fictional ones for other shapes later</td>
+<td>GEN.237</td>
+</tr>
+<tr>
+<td>The density floor</td>
+<td>deleted; the halo and components replace it with no setting</td>
+<td>GEN.234</td>
+</tr>
+<tr>
+<td>Halo normalisation</td>
+<td>the 1.5e9 solar mass anchor, the local density (about 2.7 times higher) kept as the stated alternative</td>
+<td>GEN.234</td>
+</tr>
+<tr>
+<td>Magellanic mix</td>
+<td>1% young and 9% intermediate</td>
+<td>GEN.235</td>
+</tr>
+<tr>
+<td>How much of an H II cluster is real</td>
+<td>the ionizing members only (5.5 solar masses and up)</td>
+<td>GEN.241</td>
+</tr>
+<tr>
+<td>Protostar counts and the 5x shortfall in giant molecular clouds</td>
+<td>rates as stated; the shortfall accepted for the first release</td>
+<td>GEN.241, GEN.258</td>
+</tr>
+<tr>
+<td>Planetary-nebula central star companion</td>
+<td>20% (recalled, unsourced)</td>
+<td>GEN.251</td>
+</tr>
+<tr>
+<td>Black hole companion fraction</td>
+<td>1.25% (the multi-star note; the earlier 20% rested on three Gaia systems)</td>
+<td>GEN.261, GEN.130</td>
+</tr>
+<tr>
+<td>Intermediate-mass black hole count (about 1e5 in the Galaxy against a handful of candidates)</td>
+<td>left alone</td>
+<td>GEN.259 (a question for Boss)</td>
+</tr>
+<tr>
+<td>Unstable wide binaries already generated</td>
+<td>count first; the repair needs Boss</td>
+<td>GEN.229 (outside this plan)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-items-by-stage">7. Items by stage</h2>
+<p>Each row is generated from the item's own entry in TODO.md on 2026-10-15; the entry wins if it has changed since.</p>
+<h3 id="stage-a-the-spherical-grid-finishes-first-the-shared-migration-also-carries-the-scatter-member-tables-the-cell-key-and-the-catalogue-columns">Stage A: The spherical grid finishes first (the shared migration also carries the scatter member tables, the cell key and the catalogue columns)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.223</td>
+<td>The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug)</td>
+<td>Core</td>
+<td>none</td>
+<td>DB.34, DB.35, GEN.233, GEN.260, GEN.265, PERF.103, TEST.166</td>
+</tr>
+<tr>
+<td>PERF.103</td>
+<td>A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night</td>
+<td>Core</td>
+<td>GEN.223</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.230</td>
+<td>Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug)</td>
+<td>Core</td>
+<td>none</td>
+<td>GEN.233</td>
+</tr>
+<tr>
+<td>GEN.260</td>
+<td>Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members</td>
+<td>Core</td>
+<td>GEN.223</td>
+<td>DOC.50, GEN.262, GEN.264, GEN.265, GEN.269, GEN.273, UX.114</td>
+</tr>
+<tr>
+<td>GEN.233</td>
+<td>Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits</td>
+<td>Core</td>
+<td>GEN.230, GEN.223</td>
+<td>DOC.48, GEN.234, GEN.235, GEN.238, GEN.257, TEST.159</td>
+</tr>
+<tr>
+<td>TEST.156</td>
+<td>Rewrite the tests that name ring, layer and slot</td>
+<td>Quality</td>
+<td>none</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.158</td>
+<td>The math check tests the spherical shell, band and wedge grid</td>
+<td>Quality</td>
+<td>none</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>DOC.47</td>
+<td>Rebuild docs/design/architecture/architecture.html from the new architecture.md</td>
+<td>Quality</td>
+<td>none</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b1-the-halo-and-the-sector-profile">Stage B1: The halo and the sector profile</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.234</td>
+<td>A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations</td>
+<td>Core</td>
+<td>GEN.233</td>
+<td>DOC.48, GEN.235, GEN.240, GEN.248</td>
+</tr>
+<tr>
+<td>GEN.235</td>
+<td>One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved</td>
+<td>Core</td>
+<td>GEN.233, GEN.234</td>
+<td>API.27, DOC.48, GEN.236, GEN.237, GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.249, GEN.251, GEN.254, TEST.159, UX.113</td>
+</tr>
+<tr>
+<td>GEN.158</td>
+<td>Add a metallicity value to stars</td>
+<td>Core</td>
+<td>none</td>
+<td>GEN.159, GEN.162, GEN.163, GEN.164, GEN.236, GEN.243</td>
+</tr>
+<tr>
+<td>GEN.236</td>
+<td>Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity</td>
+<td>Core</td>
+<td>GEN.235, GEN.158</td>
+<td>GEN.241, TEST.159</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b2-components-and-globular-clusters">Stage B2: Components and globular clusters</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.159</td>
+<td>Globular clusters: cluster table, King tables and the Milky Way catalogue</td>
+<td>Core</td>
+<td>GEN.158</td>
+<td>GEN.160, GEN.163, GEN.164, GEN.237</td>
+</tr>
+<tr>
+<td>GEN.160</td>
+<td>Cluster density in the sector gate, with a &quot;cluster&quot; population</td>
+<td>Core</td>
+<td>GEN.159</td>
+<td>GEN.161, GEN.162, GEN.237</td>
+</tr>
+<tr>
+<td>GEN.237</td>
+<td>Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters</td>
+<td>Core</td>
+<td>GEN.235, GEN.159, GEN.160</td>
+<td>DOC.48, GEN.239, GEN.240, GEN.244, GEN.248, MAP.207</td>
+</tr>
+<tr>
+<td>GEN.161</td>
+<td>Bright-first fill for cluster sectors</td>
+<td>Core</td>
+<td>GEN.160</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.162</td>
+<td>Planet cull and blue stragglers in clusters</td>
+<td>Core</td>
+<td>GEN.158, GEN.160</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.164</td>
+<td>Synthetic globular-cluster systems for generated galaxies</td>
+<td>Core</td>
+<td>GEN.9, GEN.158, GEN.159</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b3-the-registry-and-the-fill-machinery">Stage B3: The registry and the fill machinery</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.251</td>
+<td>Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one</td>
+<td>Core</td>
+<td>GEN.250, GEN.235</td>
+<td>DOC.49, GEN.130, GEN.241, GEN.252, GEN.264, TEST.160, TEST.161</td>
+</tr>
+<tr>
+<td>GEN.130</td>
+<td>Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes</td>
+<td>Core</td>
+<td>GEN.251, GEN.266</td>
+<td>DOC.49, GEN.163, GEN.247, GEN.253</td>
+</tr>
+<tr>
+<td>GEN.163</td>
+<td>Type-B pulsar planets in globular clusters (GEN.130 follow-on)</td>
+<td>Core</td>
+<td>GEN.130, GEN.158, GEN.159</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-m-multi-star-and-star-like-systems-at-scatter-time-approved-by-boss-2026-10-15-551-and-608-pm-edt">Stage M: Multi-star and star-like systems at scatter time (approved by Boss, 2026-10-15 5:51 and 6:08 PM EDT)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.265</td>
+<td>Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read</td>
+<td>Core</td>
+<td>GEN.223, GEN.260</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.262</td>
+<td>Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted</td>
+<td>Core</td>
+<td>GEN.260, GEN.261</td>
+<td>DOC.50, GEN.263, GEN.264, TEST.162</td>
+</tr>
+<tr>
+<td>GEN.266</td>
+<td>Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries</td>
+<td>Core</td>
+<td>GEN.261</td>
+<td>DOC.50, GEN.130, GEN.272</td>
+</tr>
+<tr>
+<td>GEN.263</td>
+<td>Promote every bound compact pair to the scatter, whatever its mass</td>
+<td>Core</td>
+<td>GEN.262</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.264</td>
+<td>The fill builds a system from its stored members; the system pass keeps only planets, moons and belts</td>
+<td>Core</td>
+<td>GEN.260, GEN.261, GEN.262, GEN.251</td>
+<td>DOC.50, TEST.162</td>
+</tr>
+<tr>
+<td>GEN.267</td>
+<td>A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars</td>
+<td>Core</td>
+<td>GEN.261</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.269</td>
+<td>Interaction states in the star model: a Roche classifier, <code>interaction</code> on every pair, member state and flags, rejuvenated age and the new kinds</td>
+<td>Core</td>
+<td>GEN.260, GEN.261</td>
+<td>GEN.270, GEN.271, GEN.272, TEST.164</td>
+</tr>
+<tr>
+<td>GEN.270</td>
+<td>Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars</td>
+<td>Interface</td>
+<td>GEN.269</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>GEN.271</td>
+<td>White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars</td>
+<td>Interface</td>
+<td>GEN.269</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>GEN.272</td>
+<td>Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples</td>
+<td>Core</td>
+<td>GEN.269, GEN.266</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>GEN.273</td>
+<td>Young groups and trapezia: the <code>group</code> node, offset and velocity columns, a decay age and the remnant draw</td>
+<td>Core</td>
+<td>GEN.260, GEN.261</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>GEN.274</td>
+<td>Cluster-hosted compact binaries and runaway bookkeeping: <code>runaway_origin</code> and the compact companion left by a supernova</td>
+<td>Interface</td>
+<td>GEN.268</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>GEN.275</td>
+<td>Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets</td>
+<td>Interface</td>
+<td>GEN.268</td>
+<td>TEST.164</td>
+</tr>
+<tr>
+<td>TEST.164</td>
+<td>Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay</td>
+<td>Quality</td>
+<td>GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275</td>
+<td>DOC.50</td>
+</tr>
+<tr>
+<td>UX.114</td>
+<td>Scatter-row pages list the stored members and the map shows a system mass</td>
+<td>Interface</td>
+<td>GEN.260</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.162</td>
+<td>Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors</td>
+<td>Quality</td>
+<td>GEN.262, GEN.264</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>DOC.50</td>
+<td>Docs: the schema, the multi-star note and the catalogue say where the members live</td>
+<td>Quality, after the code</td>
+<td>GEN.260, GEN.262, GEN.264, GEN.266, TEST.164</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-c-the-spherical-region-database-query-live-research-done-1659">Stage C: The spherical-region database query (live: research done, #1659)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.276</td>
+<td>planetgen/galaxy/cellkey.py: the cell key function and the sphere-to-key-runs cover, numpy only</td>
+<td>Core</td>
+<td>none</td>
+<td>DB.34, DOC.51, NAV.60, TEST.165</td>
+</tr>
+<tr>
+<td>DB.34</td>
+<td>Cell key and covering index on every table that holds a position, in the shared 0093 migration</td>
+<td>Core</td>
+<td>GEN.223, GEN.276</td>
+<td>DB.35, DOC.51, NAV.60, TEST.165, TEST.166</td>
+</tr>
+<tr>
+<td>DB.35</td>
+<td>Scatter rows keep their address columns and gain the point columns and the cell key</td>
+<td>Core</td>
+<td>GEN.223, DB.34</td>
+<td>NAV.60</td>
+</tr>
+<tr>
+<td>NAV.60</td>
+<td>What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows</td>
+<td>Interface</td>
+<td>DB.34, GEN.276, DB.35</td>
+<td>DOC.51, NAV.61</td>
+</tr>
+<tr>
+<td>NAV.61</td>
+<td>Nearest-first by a radius ladder, and a dense-core guard with an early-stop count</td>
+<td>Interface</td>
+<td>NAV.60</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.165</td>
+<td>Re-measure the region query on a real generated galaxy, warm and cold</td>
+<td>Quality</td>
+<td>DB.34, GEN.276</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.166</td>
+<td>The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit</td>
+<td>Quality</td>
+<td>DB.34, GEN.223</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>DOC.51</td>
+<td>Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder</td>
+<td>Quality</td>
+<td>DB.34, GEN.276, NAV.60</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b4-the-scatters-fill-the-whole-sphere">Stage B4: The scatters fill the whole sphere</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.240</td>
+<td>The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass</td>
+<td>Core</td>
+<td>GEN.232, GEN.234, GEN.235, GEN.237</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.238</td>
+<td>Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population</td>
+<td>Core</td>
+<td>GEN.233, GEN.232, GEN.235</td>
+<td>MAP.207</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b5-real-contents-young-stars-nebulae-wolf-rayet-stars">Stage B5: Real contents: young stars, nebulae, Wolf-Rayet stars</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.242</td>
+<td>A pre-main-sequence state for young stars, so protostars can exist as real stars</td>
+<td>Core</td>
+<td>GEN.235</td>
+<td>GEN.241, GEN.245, GEN.255, GEN.258</td>
+</tr>
+<tr>
+<td>GEN.241</td>
+<td>Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds</td>
+<td>Core</td>
+<td>GEN.235, GEN.236, GEN.242, GEN.251</td>
+<td>DOC.48, GEN.243, GEN.244, GEN.258, TEST.159</td>
+</tr>
+<tr>
+<td>GEN.243</td>
+<td>Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X</td>
+<td>Core</td>
+<td>GEN.235, GEN.158, GEN.241</td>
+<td>DOC.48, GEN.246, GEN.256, TEST.159</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b6-interface-the-profile-and-the-map-beyond-the-disk">Stage B6: Interface: the profile and the map beyond the disk</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API.27</td>
+<td>A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed</td>
+<td>Interface asks Core for the profile function</td>
+<td>GEN.235</td>
+<td>UX.113</td>
+</tr>
+<tr>
+<td>UX.113</td>
+<td>The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run</td>
+<td>Interface</td>
+<td>GEN.235, API.27</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>MAP.207</td>
+<td>The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline</td>
+<td>Interface</td>
+<td>GEN.237, GEN.238</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-b7-tests-and-docs">Stage B7: Tests and docs</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.159</td>
+<td>Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population</td>
+<td>Quality</td>
+<td>GEN.233, GEN.235, GEN.236, GEN.241, GEN.243</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.160</td>
+<td>Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked</td>
+<td>Quality</td>
+<td>GEN.250, GEN.251</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>TEST.161</td>
+<td>Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table</td>
+<td>Quality</td>
+<td>GEN.251</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>DOC.48</td>
+<td>Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes</td>
+<td>Quality, after the code</td>
+<td>GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>DOC.49</td>
+<td>Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue</td>
+<td>Quality, after the code</td>
+<td>GEN.250, GEN.251, GEN.130</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="stage-l-the-later-group-nothing-waits-on-it">Stage L: The later group (nothing waits on it)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner</th>
+<th>Needs</th>
+<th>Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.239</td>
+<td>High-velocity clouds and the Magellanic Stream as placed gas clouds (later)</td>
+<td>Core</td>
+<td>GEN.237</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.244</td>
+<td>Young open clusters and OB associations as components (later)</td>
+<td>Core, later</td>
+<td>GEN.237, GEN.241</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.245</td>
+<td>Debris disks around A and F stars (later)</td>
+<td>Core, later</td>
+<td>GEN.242</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.246</td>
+<td>Luminous blue variables and hypergiants (later)</td>
+<td>Core, later</td>
+<td>GEN.243</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.247</td>
+<td>Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later)</td>
+<td>Core, later</td>
+<td>GEN.129, GEN.130</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.248</td>
+<td>Tidal streams as placed components of the halo (later)</td>
+<td>Core, later</td>
+<td>GEN.237, GEN.234</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.249</td>
+<td>Be stars, carbon stars and Mira variables as star attributes (later)</td>
+<td>Core, later</td>
+<td>GEN.235</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.252</td>
+<td>Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert</td>
+<td>Core, later</td>
+<td>GEN.251</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.253</td>
+<td>White-dwarf pollution flag and cool white dwarf presets</td>
+<td>Core, later</td>
+<td>GEN.130</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.254</td>
+<td>Superbubble field beside the nebula field (the Local Bubble cavity)</td>
+<td>Core, later</td>
+<td>GEN.235</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.255</td>
+<td>Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes</td>
+<td>Core then Interface, later</td>
+<td>GEN.242</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.256</td>
+<td>A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars</td>
+<td>Core, later</td>
+<td>GEN.243, GEN.153</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.257</td>
+<td>A Fermi-bubble overlay on the Galaxy Map</td>
+<td>Interface, later</td>
+<td>GEN.233</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.258</td>
+<td>Protostars embedded in giant molecular clouds</td>
+<td>Core, later</td>
+<td>GEN.241, GEN.242</td>
+<td>(leaf)</td>
+</tr>
+<tr>
+<td>GEN.259</td>
+<td>Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)</td>
+<td>Core</td>
+<td>none</td>
+<td>(leaf)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-the-later-group">8. The later group</h2>
+<p>Nothing in stages A to B7 waits on these; they are planned after the train. The multi-star research may reorder GEN.252, GEN.247 and GEN.253, which share its definitions.</p>
+<ul>
+<li>Sphere: GEN.239 high-velocity clouds and the Magellanic Stream, GEN.248 tidal streams, GEN.244 young open clusters and OB associations.</li>
+<li>Stars and remnants: GEN.246 luminous blue variables and hypergiants, GEN.247 accreting white dwarf binaries, GEN.249 Be, carbon and Mira star attributes, GEN.252 brown dwarfs as stars, GEN.253 white-dwarf pollution, GEN.258 protostars embedded in giant molecular clouds.</li>
+<li>Anomalies split from GEN.114: GEN.254 superbubble field, GEN.255 jets, GEN.256 radiation hazard score, GEN.257 Fermi-bubble overlay; GEN.245 debris disks.</li>
+<li>Skipped on purpose (catalogue section 4.7): subspace anomalies (default off), wormholes and cosmic strings, dark matter nebulae, quark stars, bursts, blanets. Thorne-Zytkow objects and merger products came back with the 6:08 PM EDT catalogue as flagged theoretical types (GEN.269, GEN.270).</li>
+</ul>
+<h2 id="9-tests-and-docs">9. Tests and docs</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Tests (Quality)</th>
+<th>Docs (Quality)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>TEST.156, TEST.158 (the grid names, the math check at the reach)</td>
+<td>DOC.47</td>
+</tr>
+<tr>
+<td>B1 to B6</td>
+<td>written beside each build step</td>
+<td>none until the code lands</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>TEST.161 (stream independence, same seed same system, the probability table, no planet or moon on a scatter row)</td>
+<td>DOC.49</td>
+</tr>
+<tr>
+<td>M</td>
+<td>TEST.162 (the multiplicity audit: companion states, stability, determinism, fill reuse, motion, census anchors)</td>
+<td>DOC.50</td>
+</tr>
+<tr>
+<td>B5, B7</td>
+<td>TEST.159 (required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, pre-placed share per population)</td>
+<td>DOC.48</td>
+</tr>
+<tr>
+<td>B7</td>
+<td>TEST.160 (the representation audit: expected against observed counts per region class, the fraction with a system, required contents)</td>
+<td>DOC.49</td>
+</tr>
+</tbody>
+</table></div>
+<p>Gate for every step: a green <code>scripts/test.py changed</code>; <code>full --check</code> when a stage finishes; the PR names the run. Docs-only PRs merge themselves.</p>
+<h2 id="10-keeping-this-plan-true">10. Keeping this plan true</h2>
+<p>The TODO tasks thread owns this file. It amends it whenever an item in it is filed, retired or re-ordered, whenever Boss decides one of the section 6 questions, and when the multi-star catalogue extension or the region-query research hands over its items. Merged items are retired from TODO.md and this file with their PR.</p>
+<h2 id="11-lane-queues-and-the-critical-path-computed-2026-10-15-610-pm-edt">11. Lane queues and the critical path (computed 2026-10-15, 6:10 PM EDT)</h2>
+<p>Boss (6:02 PM EDT) approved the plan and asked for the best path for the three build lanes (Core, Interface, Quality) and the TODO lane. The full per-lane queues, with the first five items of each, are in the UPDATE 6:10 PM EDT block of <code>/mnt/project-files/reports/lane-briefs-three-threads-2026-10-15.md</code>; this is the summary.</p>
+<p><strong>Method.</strong> All 325 open items with their prerequisites (from TODO.md) form one dependency graph. Each item has a relative effort in slots (1 is about one small PR; my estimates, 2 to 5 for the big whole-sphere items). A simulation lets each lane take the first ready item in its queue; a lane never idles while it has a ready item.</p>
+<p><strong>Findings.</strong></p>
+<ul>
+<li>The dependency critical path is 8 items, 27 slots: GEN.223, GEN.233, GEN.234, GEN.235, GEN.251, GEN.241, GEN.243, TEST.159. Nothing else is longer; Interface and Quality items hang off it.</li>
+<li><strong>Core is the bottleneck, not the chain.</strong> Core's own plan queue (stages A, B and M) is 29 items and 84 slots, 3.1 times the critical path, because every plan item needs the generator or a migration. The multi-star items add 23 slots to it. The best path therefore keeps Core on the plan queue from the first minute and moves everything else off it.</li>
+<li><strong>Moved off Core</strong> (no migration, no generator knowledge): the admin, remote-generation API, accounts and species pages, NAV, VIEW and the visitor-facing bugs go to Interface; test tooling, determinism helpers, benchmarks, scripts and the research items go to Quality; the planet-class chain (GEN.27, GEN.28, GEN.33, GEN.90 to GEN.92, GEN.145, GEN.146, GEN.29) is Interface's overflow after its own queue, with Core consulted before generation code is touched. Moves are listed in the lane-briefs UPDATE block.</li>
+<li>With these moves the whole open list finishes in about 214 slots against about 289 for the current split (26% sooner, almost all of it in the tail after the plan). The plan itself completes at about slot 84 either way, because it is Core-bound.</li>
+<li><strong>Idle time.</strong> Core never idles. Interface has work to about slot 142. Quality has spare capacity (about 60 slots between slot 73 and its last blocked tests); Core may hand it determinism or tooling items on request.</li>
+</ul>
+<p><strong>Handoffs</strong> (the receiving lane keeps working its own queue until the item lands):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>From</th>
+<th>To</th>
+<th>What</th>
+<th>About slot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Core GEN.260</td>
+<td>Interface UX.114</td>
+<td>members on scatter-row pages</td>
+<td>9</td>
+</tr>
+<tr>
+<td>Core GEN.235</td>
+<td>Interface API.27, UX.113</td>
+<td>profile lookup and sector page</td>
+<td>19</td>
+</tr>
+<tr>
+<td>Core GEN.250, GEN.251</td>
+<td>Quality TEST.160, TEST.161, DOC.49</td>
+<td>registry and fill-stage tests</td>
+<td>21, 34</td>
+</tr>
+<tr>
+<td>Core GEN.262, GEN.264</td>
+<td>Quality TEST.162, DOC.50</td>
+<td>multiplicity audit and docs</td>
+<td>46, 63</td>
+</tr>
+<tr>
+<td>Core GEN.236, GEN.241, GEN.243</td>
+<td>Quality TEST.159, DOC.48</td>
+<td>whole-sphere tests and docs</td>
+<td>40 to 66</td>
+</tr>
+<tr>
+<td>Core GEN.237, GEN.238</td>
+<td>Interface MAP.207</td>
+<td>satellites and wanderers on the map</td>
+<td>56, 72</td>
+</tr>
+<tr>
+<td>Core migration (GEN.223, GEN.230, GEN.260)</td>
+<td>all lanes</td>
+<td>Interface and Quality ask Core for any schema change; nothing else waits</td>
+<td>9</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Update (6:25 PM EDT): the catalogue and the region query are in.</strong> Nine catalogue items (GEN.268 to GEN.275, TEST.164) and eight stage C items (GEN.276, DB.34, DB.35, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51) were added to the graph (344 open items). With nothing moved, Core's plan queue grows from 29 items and 84 slots to 40 items and 113 slots, and the plan completes at slot 115. So four catalogue items that need no migration (GEN.270, GEN.271, GEN.274, GEN.275) and the two readers (NAV.60, NAV.61) go to the Interface lane, which has idle time in its queue, and Quality audits them (TEST.164) so it does not check its own work. Result: Core plan queue 36 items and 103 slots (was 84), the plan completes at slot 103, Interface plan work 10 items (23 slots), Quality 14 items (25 slots). GEN.276 goes right after GEN.232, then the migration items GEN.223, GEN.230, GEN.260, DB.34 and DB.35 (one migration, 0093); GEN.268 sits between GEN.250 and GEN.261. <strong>Update (6:40 PM EDT):</strong> GEN.223 gains the halo and intergalactic movement scales, a sector-crossing guard and full counting (Boss, 6:26 PM EDT), counted as 2 more slots, and PERF.103 (a per-night cost ceiling) follows GEN.265; Core's plan queue is 37 items and 106 slots and the plan completes at slot 106. Core order now begins: GEN.232, GEN.276, GEN.223, GEN.230, GEN.260, DB.34, DB.35, GEN.233, GEN.234, GEN.235, GEN.250, GEN.268, GEN.261, GEN.265, GEN.158, GEN.251, GEN.159, GEN.236, GEN.242, GEN.262, GEN.269, GEN.160, GEN.241, GEN.237, GEN.266, GEN.264, GEN.243, GEN.130, GEN.238, GEN.240, GEN.263, GEN.272, GEN.273, GEN.161, GEN.162, GEN.163.</p>
+<p><strong>Two Core lanes (approved 7:00 PM EDT).</strong> Boss asked for a second Core lane. Core and Lane 12 negotiated the split from the computed one, and the TODO lane approved it; nothing already in progress moved. On my estimates the plan then completes at about slot 57 instead of 106, because the registry and member-tree chain (GEN.250, GEN.268, GEN.261) no longer waits behind the migration chain; the longest dependency chain, not lane length, is then the limit.</p>
+<ul>
+<li><strong>Lane 11</strong> (migration 0093 and the grid; owns every migration revision): GEN.232, then the one migration 0093 (the cell key part of GEN.276, GEN.223, GEN.230, GEN.233, GEN.260, DB.34, DB.35), GEN.234, GEN.265, PERF.103, GEN.266, GEN.236, GEN.237, GEN.264, GEN.238, GEN.263, GEN.272, GEN.161, GEN.163, then DB.30, POP.14, POP.13, DB.31, GEN.101, GEN.129.</li>
+<li><strong>Lane 12</strong> (registry, member tree, fill, nebulae): GEN.250, GEN.268, GEN.261 (pure functions first; it reads and writes the scatter member tables only after 0093 merges), GEN.158, GEN.159, GEN.262, GEN.269, GEN.160, GEN.235 (after Lane 11's GEN.234), GEN.251, GEN.242, GEN.241, GEN.243, GEN.130, GEN.240, GEN.273, GEN.162, then GEN.229, DB.29, PERF.97 to PERF.100, GEN.179 to GEN.181, GEN.231 and the rest of the Core tail; plus DB.33 and the <code>sphere_runs()</code> part of GEN.276 (GEN.276 stays one item with two parts; NAV.60 and TEST.165 wait for both).</li>
+<li><strong>Rules</strong>: Lane 12 asks Lane 11 before any item that adds a table or column and takes migration 0094 or later after 0093 merges. Handoffs: GEN.234 to GEN.235 (Lane 11 to Lane 12); GEN.223 and GEN.260 to GEN.264, GEN.265 and GEN.251 to GEN.264 (between the two); each tells the other when an item lands. A lane that wants to move an item tells the TODO lane first, and the TODO lane approves before it starts.</li>
+<li>The &quot;Core&quot; owner in the item texts and tables means whichever Core lane holds the item in these lists; the lists win.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

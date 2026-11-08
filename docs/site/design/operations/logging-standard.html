@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The logging standard (UX.121) - planetGen docs</title>
+<meta name="description" content="Informs: UX.102 (the umbrella), UX.121, UX.122, UX.123, TEST.183, DOC.19 Status: the layer is built (planetgen/util/logrecord.py, src/tests/testlogrecord.py, UX.121).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/logging-standard.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/logging-standard.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-logging-standard-ux121">The logging standard (UX.121)</h1><p class="meta">docs/design/operations/logging-standard.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-is-for">What it is for</a></li><li style="margin-left:0px"><a href="#where-the-program-writes-a-log-today">Where the program writes a log today</a></li><li style="margin-left:0px"><a href="#the-record">The record</a></li><li style="margin-left:0px"><a href="#the-three-writings">The three writings</a></li><li style="margin-left:0px"><a href="#the-shell-scripts-and-the-closing-summary">The shell scripts and the closing summary</a></li><li style="margin-left:0px"><a href="#the-named-logs-of-the-long-jobs">The named logs of the long jobs</a></li><li style="margin-left:0px"><a href="#the-error-log">The error log</a></li><li style="margin-left:0px"><a href="#stages">Stages</a></li><li style="margin-left:0px"><a href="#counting">Counting</a></li><li style="margin-left:0px"><a href="#components">Components</a></li><li style="margin-left:0px"><a href="#rules-for-a-place-that-writes-a-log">Rules for a place that writes a log</a></li><li style="margin-left:0px"><a href="#open-points-for-the-items-that-follow">Open points for the items that follow</a></li></ul></details>
+<p>Informs: UX.102 (the umbrella), UX.121, UX.122, UX.123, TEST.183, DOC.19
+Status: the layer is built (<code>planetgen/util/logrecord.py</code>, <code>src/tests/test_logrecord.py</code>, UX.121). The command line's log channel, the run record's log file, the job runner's stage marks and records file, the finish and failure marks of <code>generate</code>'s stages, and the job-step commands (<code>datasets</code>, <code>reset</code>, <code>orbits</code>) are on it (UX.122); the activity log keeps its own line by decision (below); the Generate page's log, the queue run page and <code>update.sh</code>'s own output are on it (UX.123, <code>scripts/logrecord.sh</code>); the enforcement test is TEST.183 (<code>src/tests/test_no_own_log_formatting.py</code>, built). The reader's reference is <a href="../../reference/logging.html"><code>docs/reference/logging.md</code></a> (DOC.19).</p>
+<h2 id="what-it-is-for">What it is for</h2>
+<p>A person reading a log (on the screen, in a downloaded file, in <code>update.sh</code>'s output, on an admin page) and a tool reading it (a fail2ban filter, a script, a support request) should see the same lines in the same form. Today each place makes its own: a debug line has a local time with a UTC offset and a source file, a run's log file has a UTC time and a padded level, the activity log has its own shape for the tools that match it, the job runner's output has <code>===</code> dividers, and the command line prints bare text. The wording of a stage's start, finish and failure differs between them. This note fixes one record and its writings so that a file and a screen are two views of the same thing.</p>
+<h2 id="where-the-program-writes-a-log-today">Where the program writes a log today</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>Code</th>
+<th>What it writes now</th>
+<th>Moves in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The command line and the debug log</td>
+<td><code>util/log.py</code> (<code>normal</code>, <code>debug</code>, <code>error</code>, the debug file <code>log_file</code>, the relay from queue workers)</td>
+<td>Bare text on the console (now <code>plain_line</code> of the record; <code>--record-file</code> writes the same lines as records); debug lines <code>2026-10-23T17:29:42.729-0400 DEBUG worker.py[2142] ...</code> in local time with the offset</td>
+<td>UX.122 (done: the channel and the job-step commands are on the layer; a standalone command's <code>warning</code> and <code>error</code> lines go to stderr, the rest to stdout, as its messages always did), debug stays a mode of the same layer</td>
+</tr>
+<tr>
+<td>A run's record and its log file</td>
+<td><code>queue/runrecord.py</code> (<code>log</code>, the Redis event stream, <code>write_log_file</code> to <code>&lt;run id&gt;.log</code>)</td>
+<td>Events with <code>t</code>, <code>level</code>, <code>kind</code>, <code>message</code> and fields; the log file and the admin run log are now the events as file lines (<code>runrecord.log_text</code>)</td>
+<td>UX.122 (done)</td>
+</tr>
+<tr>
+<td>A job's output file and its download</td>
+<td><code>web/job_runner.py</code> (<code>output.log</code>, <code>stagemark.section</code> dividers), <code>web/generate_page.py</code> (<code>generate_job_log</code>)</td>
+<td>The subprocess output as it printed, the runner's stage marks now records (<code>=== Stages 4 to 12 of 12: label ===</code>, <code>=== Stages 4 to 12 of 12 finished after 31 s ===</code>, or <code>failed after 31 s: exited with status 2</code>), and <code>records.log</code> beside <code>output.log</code>, offered by <code>/log?form=records</code></td>
+<td>UX.122 (done), UX.123 (done: the stage marks in <code>output.log</code> are display lines, so the page and the download show the same lines)</td>
+</tr>
+<tr>
+<td>The Generate page, the Queue page and the admin log pages</td>
+<td><code>web/generate_page.py</code>, <code>web/queue_page.py</code>, the admin templates, <code>static</code> scripts</td>
+<td>The Generate page shows the job's <code>output.log</code>: the runner's stage marks as display lines (<code>2026-10-24 14:40:00 EDT INFO     job: === Stage 4 of 12: label ===</code>), the steps' own text as printed. The run page of the queue draws each event of the run with <code>logrecord.display_line</code> of the record <code>runrecord.event_record</code> makes (the API's events carry the stage, stages, unit and seconds fields for it), the same record the run's download holds as a file line. There is no activity-log page: the activity log is a file for fail2ban and the admin audit rows are a table</td>
+<td>UX.123 (done)</td>
+</tr>
+<tr>
+<td>The activity log</td>
+<td><code>admin/activity_log.py</code> (<code>AUTH</code>, <code>AUTHZ</code>, <code>DB</code>, <code>GEN</code> events)</td>
+<td><code>2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user=&quot;admin&quot;</code>, a shape fail2ban matches</td>
+<td>UX.122 (decided: stays as it is, see below)</td>
+</tr>
+<tr>
+<td><code>update.sh</code>, <code>install.sh</code> and the scripts</td>
+<td><code>update.sh</code>, <code>scripts/*.sh</code>, <code>examples/apache/*.sh</code></td>
+<td><code>update.sh</code>'s own lines go through <code>scripts/logrecord.sh</code> (<code>log_stage</code>, <code>log_info</code>, <code>log_notice</code>, <code>log_warning</code>, <code>log_error</code>): the display line, with local time and zone, severity, the component <code>update</code> and the message, a stage as <code>=== Stage 4 of 9: label ===</code>, warnings and errors on stderr. The functions it sources from <code>scripts/deploy-common.sh</code>, <code>install.sh</code> and the helper scripts still print their own text under the stage, as a job's steps do; they move with the install script</td>
+<td>UX.123 (done for <code>update.sh</code>)</td>
+</tr>
+<tr>
+<td>Settings and admin audit</td>
+<td><code>util/settings_writer.py</code> (its <code>audit</code> callback into the activity log and the audit rows)</td>
+<td>Audit rows in the control database and activity lines</td>
+<td>UX.122 (the text)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Logs of other software (Apache, gunicorn, MySQL, Redis) are theirs; the standard does not touch them.</p>
+<h2 id="the-record">The record</h2>
+<p>A record is a time, a severity, a component, a message and fields.</p>
+<ul>
+<li><strong>Time:</strong> whole milliseconds since the epoch, written as the computer's local time with the offset of its zone everywhere (OPS.97, Boss 11-05; it was UTC in a file before): a file line carries <code>2026-10-24T14:40:00.123-0400</code>, the display labels the zone by name (<code>2026-10-24 14:40:00 EDT</code>), and the offset keeps a line read in January and one read in July unambiguous. No form writes UTC.</li>
+<li><strong>Severity:</strong> the RFC 5424 levels, in this order: <code>debug</code>, <code>info</code>, <code>notice</code>, <code>warning</code>, <code>error</code>, <code>critical</code> (syslog numbers 7 to 2). They map to Python's <code>logging</code> levels one to one (<code>NOTICE</code> is 25, named by the module). The three old console modes keep working on top: silent shows <code>error</code> and above, normal <code>info</code> and above, debug everything.</li>
+<li><strong>Component:</strong> a short lower-case name of the part of the program that wrote the record, always one of the names in the table under &quot;Components&quot; below (OPS.103; <code>a-z</code>, digits, <code>_</code>, <code>.</code>, <code>-</code>, at most 24 characters). A record with any other name is refused. In <code>logging</code> it is the logger's name after <code>planetgen.</code> when that is in the table, else the one the source file belongs to.</li>
+<li><strong>Message:</strong> one line of text for a person. The message is a sentence of the kind the program already prints; it carries no timestamp, severity or component of its own.</li>
+<li><strong>Fields:</strong> ordered <code>key=value</code> pairs for numbers and names a tool may want (a count, an elapsed time, a run id). Names are lower-case <code>a-z</code>, digits and <code>_</code>; a value is a string, an integer, a finite number or a boolean. <code>ts</code>, <code>level</code>, <code>component</code> and <code>msg</code> belong to the record and cannot be field names. A field is never a substitute for the message: the message reads whole without them.</li>
+</ul>
+<h2 id="the-three-writings">The three writings</h2>
+<p><strong>A file line</strong> is logfmt, one record per line, the fields after the four of the record:</p>
+<pre><code>ts=2026-10-24T14:40:00.123-0400 level=info component=generate msg=&quot;Stage 4 of 12: Scatter the massive stars&quot; event=stage.start stage=4 stages=12
+</code></pre>
+<p>A value is bare when it is a number, <code>true</code>, <code>false</code> or a word with no space, quote, backslash, <code>=</code> or control character; otherwise it is in double quotes with <code>\\</code>, <code>\&quot;</code>, <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\xNN</code> and <code>\uNNNN</code> (the three Unicode line separators) escaped, so one record is always one line and a crafted value cannot start a new record or fake a field. A string that would read back as a number or a boolean is quoted, so a file line reads back to exactly the record it was written from (<code>parse_file_line</code>), types included.</p>
+<p><strong>A JSON line</strong> is the same record as one JSON object per line (JSON Lines), the same names, the fields beside them. It is for machines and an export; a file is written in one form or the other (<code>--record-json</code>), the default being the logfmt line.</p>
+<p><strong>A display line</strong> is for people, on the command line and in the web log:</p>
+<pre><code>2026-10-24 14:40:00 EDT INFO     generate: Placed the sectors (count=12)
+</code></pre>
+<p>The time in local time with its zone, the severity, the component, the message, and the fields in the file line's own form. The command line's ordinary text is <code>plain_line</code>: the message alone, or <code>warning: message</code> for <code>warning</code> and above, and no time (the program's text for a person who is not hunting a bug, as today) when the output is a terminal. When a command's output is not a terminal (a pipe, a file, <code>tee</code>, an update run) every line is a display line with its time (OPS.98; <code>log.times_on_console</code>; <code>PLANETGEN_LOG_TIMES=always</code> or <code>never</code> overrides the rule), so a log read hours later says when each line was written. <code>--debug</code> and the web log use the full line. The same record drawn by the file, the JSON and the display forms carries the same time, severity, component, message and fields; the tests read each file line back and check the display of the record read back is the display of the record.</p>
+<h2 id="the-shell-scripts-and-the-closing-summary">The shell scripts and the closing summary</h2>
+<p>Every line <code>update.sh</code>, <code>install.sh</code> and the scripts they run print is a display record from <code>scripts/logrecord.sh</code> (OPS.98): <code>log_info</code>, <code>log_notice</code>, <code>log_warning</code> and <code>log_error</code>, <code>log_stage</code> for the divider, <code>log_lines</code> for a heredoc of instructions or the output of a tool. A script that is run alone takes its component from <code>LOG_COMPONENT</code> (<code>logs</code>, <code>permissions</code>, <code>cache-dir</code>, <code>swap</code>, <code>python-deps</code>); the update and the install export theirs, so the pieces they run write under it. A bare <code>echo &quot;text&quot;</code> in these scripts fails <code>test_log_shell.py</code>, except where it returns a value to a caller. A warning's first line is a headline; the lines under it start with two spaces and are the fix.</p>
+<p><code>update.sh</code> and <code>install.sh</code> end with <code>log_summary</code> (OPS.100): one line, <code>=== Update done after 20:53: code 8.0.3440 (schema v214), site reloaded and answering at 07:44:08 EST, cache warm-up (stage 2 of 2, the full warm-up) done in 17:44 ===</code>, then every warning and error the script printed, repeated with its headline only, or &quot;No warnings during this update.&quot; The reload's own lines say &quot;Site reloaded&quot;, so &quot;done&quot; appears once, last. The warnings are kept in a file (<code>log_summary_begin</code>), so one printed inside <code>$(...)</code> or a pipe is kept too.</p>
+<h2 id="the-named-logs-of-the-long-jobs">The named logs of the long jobs</h2>
+<p>A job that runs unattended appends each run to a log of its own in the log folder (<code>log_dir</code>, <code>/var/log/planetgen</code>), all of them <code>*.log</code> files covered by the folder's one rotation rule: <code>warmup.log</code> (<code>planetgen warm</code>, OPS.96), <code>tiles.log</code> (the nightly whole-map build) and <code>orbits.log</code> (the nightly orbit update) (OPS.101). They are written by Python (<code>util/joblog.py</code>, <code>logpaths.job_log_path</code>), not by a redirect: a start line that says what started the run (<code>by hand</code>, <code>systemd timer</code>), the lines the run printed in the display form, and an end line that says how it ended (<code>finished after 17:44</code>, <code>ended with exit status 75</code>, <code>ended by Ctrl+C</code>, <code>failed: ...</code>). <code>update.log</code> holds every record <code>update.sh</code> prints, appended, so a hand run can be read again; the shell keeps the records in a temporary file until the Python environment says where the folder is (<code>log_file_begin</code>, <code>log_file_to</code>). <code>smoke</code> keeps its JSON output file. A log that cannot be written is said once and never stops the job.</p>
+<h2 id="the-error-log">The error log</h2>
+<p><code>error.log</code>, in the same folder, records every error and crash of every planetGen program, whatever caused it, while each error still goes to the log it went to before (OPS.116). It holds the lines of severity <code>error</code> and <code>critical</code> in the display form, each with the fields <code>log=</code> (the log the error also went to: <code>warmup.log</code>, <code>tiles.log</code>, <code>orbits.log</code>, <code>update.log</code>, <code>apache</code> for the web app, else <code>console</code>) and <code>pid=</code>, so a line can be traced back; a traceback follows its line. It is made by <code>util/log.py</code>'s one module, not by a handler of its own in another place, from these sources:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>How it reaches the file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every logger</td>
+<td>A handler on the program's logger and on the root logger takes every record at ERROR and above, so another library's errors (Flask, RQ, urllib3) come too. <code>log.error</code>, <code>log.get(...).error</code>, <code>log.exception</code>.</td>
+</tr>
+<tr>
+<td>An uncaught exception</td>
+<td><code>sys.excepthook</code> and <code>threading.excepthook</code> write it as <code>critical</code>, with its traceback, whether or not a debug log is on; the usual traceback still reaches stderr. A Ctrl+C is not an error.</td>
+</tr>
+<tr>
+<td>A fatal signal</td>
+<td>A crash in a library (SIGSEGV, SIGFPE, SIGABRT, SIGBUS, SIGILL) leaves the interpreter's own dump of every thread's traceback, through <code>faulthandler</code>, in a file that is already there.</td>
+</tr>
+<tr>
+<td>A job's own log</td>
+<td>The closing line of a failed run (<code>JobLog</code>) is also written here.</td>
+</tr>
+<tr>
+<td>A killed or crashed worker</td>
+<td>The parent writes it: the thread that waits for a detached worker (<code>redisqueue.start_detached</code>), RQ's work-horse handler (<code>units.horse_killed</code>) and <code>workers.reap_dead_jobs</code> say which process, its exit status or signal. A stop on purpose (SIGTERM, SIGINT, SIGHUP, the refusal during an update) is not an error.</td>
+</tr>
+<tr>
+<td>A failed step or command</td>
+<td>A web job's step that ended with a non-zero status, and a one-off command (<code>api_jobs.run_command</code>) that failed, timed out or did not start, are written by the process that started it, with the last error lines the program printed.</td>
+</tr>
+<tr>
+<td>The web app</td>
+<td>An unhandled exception in a route (with its route and traceback), and any 5xx answer without one (<code>web/app.py</code>, the route in <code>route=</code>). The deliberate 503 of a closed site or a cache being rebuilt is not an error.</td>
+</tr>
+<tr>
+<td><code>update.sh</code> and <code>install.sh</code></td>
+<td>Every <code>log_error</code> of the script goes to the file as well (<code>scripts/logrecord.sh</code>, <code>log_error_file_begin</code>, <code>log_error_file_to</code>); a command that makes the script stop is named with its exit status and the step (<code>log_track_failures</code>, <code>log_exit_failure</code>); a warm-up stage that does not finish is written there though the screen only warns (<code>log_error_only</code>).</td>
+</tr>
+</tbody>
+</table></div>
+<p>The file is made by the setup scripts for the web server's user and group, mode 0660 (<code>examples/apache/log-locations.py</code>), is created on the first error otherwise, and is rotated by the folder's one rule (<code>*.log</code>; the macOS file names it; where the system does not rotate, the program does, 100 MB and 30 kept). A folder the process cannot write is skipped without a word: the error is still in the log it went to. <code>src/tests/test_error_log.py</code> holds one test for each source.</p>
+<h2 id="stages">Stages</h2>
+<p>One marker, one divider, one wording for each end of a stage. The marker is the one UX.98 built (<code>util/stagemark.py</code>): <code>Stage 4 of 12</code> for one stage and <code>Stages 4 to 12 of 12</code> for a run of them. A stage has these records, all with the field <code>event</code> and the numbers <code>stage</code> (the first), <code>stages</code> (how many there are in all), <code>count</code> (when more than one) and <code>seconds</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Severity</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stage.start</code></td>
+<td>info</td>
+<td><code>Stage 4 of 12: Scatter the massive stars</code></td>
+</tr>
+<tr>
+<td><code>stage.finish</code></td>
+<td>info</td>
+<td><code>Stage 4 of 12 finished after 31 s</code></td>
+</tr>
+<tr>
+<td><code>stage.failed</code></td>
+<td>error</td>
+<td><code>Stage 4 of 12 failed after 31 s: MySQL went away</code></td>
+</tr>
+<tr>
+<td><code>stage.skipped</code></td>
+<td>info</td>
+<td><code>Stage 4 of 12: Scatter the massive stars -- skipped: no layers</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The display draws each of them as the same divider, <code>=== message ===</code>, with nothing after it, and the command line's ordinary text does the same, so a downloaded log and the screen agree. A failure is always <code>error</code>, always carries the reason, and the run's own failure line is the same record with the run's error as the reason.</p>
+<h2 id="counting">Counting</h2>
+<p>Three words say where a script or a run is, and no other word counts (OPS.103):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Counts</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Stage N of M</code></td>
+<td>the top-level steps of a script or a run: <code>update.sh</code>, <code>install.sh</code>, a generate job</td>
+<td><code>Stage 4 of 9: Checking the generator's math</code></td>
+</tr>
+<tr>
+<td><code>Part N of M</code></td>
+<td>the runs inside one stage</td>
+<td>the warm-up's two runs after the update's reload: <code>Part 1 of 2</code></td>
+</tr>
+<tr>
+<td><code>Phase N of M</code></td>
+<td>a named group inside a run</td>
+<td>the warm-up's <code>Phase 2 of 5, built-levels</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>A family of the warm-up is named, not numbered (<code>family 2 of 2</code> is a count of families, not a stage). <code>chunk</code> is only a count of pieces of work (<code>28 of 180 chunks</code>), never a position in the run. A count is made in one place: <code>logrecord.counting_text(word, number, total)</code> and <code>logrecord.stage_record</code> in Python, <code>log_stage</code> and <code>log_count</code> in the shell scripts. The enforcement test (TEST.183, <code>src/tests/test_no_own_log_formatting.py</code>) reads every Python module and shell script and fails on a string that words a count by hand (<code>&quot;stage 1 of 2&quot;</code>, <code>f&quot;Part {n} of {m}&quot;</code>).</p>
+<h2 id="components">Components</h2>
+<p>The component of a record is one of these names and nothing else. <code>Record</code> refuses another, <code>logrecord.component_of</code> finds the one a logger or a source file belongs to (a library's logger is <code>lib</code>), and the shell scripts take theirs from the same table (<code>LOG_COMPONENTS</code> in <code>scripts/logrecord.sh</code>, generated). The same test fails on a component literal that is not here (<code>stage_record</code>, <code>JobLog</code>, <code>Record.now</code>/<code>Record.at</code>, <code>LineFormatter(component=...)</code>, <code>log.get</code>, a module's <code>COMPONENT</code>, a script's <code>LOG_COMPONENT</code>). A new component is added here, with what writes under it, in the change that adds it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>What writes under it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>update</code></td>
+<td><code>update.sh</code>, the update of an installed site</td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code>install.sh</code>, the first install</td>
+</tr>
+<tr>
+<td><code>warm</code></td>
+<td><code>planetgen warm</code>: the cache warm-up, its progress and its log</td>
+</tr>
+<tr>
+<td><code>tiles</code></td>
+<td><code>planetgen tiles</code>: the nightly whole-map build</td>
+</tr>
+<tr>
+<td><code>orbits</code></td>
+<td><code>planetgen orbits</code>: the nightly orbit update</td>
+</tr>
+<tr>
+<td><code>generate</code></td>
+<td>the generator: <code>planetgen generate</code> and its stages, the physics and the galaxy code a run calls</td>
+</tr>
+<tr>
+<td><code>queue</code></td>
+<td>the work queue: runs, units, workers and the machine's lease</td>
+</tr>
+<tr>
+<td><code>web</code></td>
+<td>the web app and the API: requests, pages, the admin pages</td>
+</tr>
+<tr>
+<td><code>job</code></td>
+<td>the Generate page's job runner, which runs a job's steps as processes</td>
+</tr>
+<tr>
+<td><code>activity</code></td>
+<td>the always-on activity log (<code>AUTH</code>, <code>AUTHZ</code>, <code>DB</code>, <code>GEN</code> events)</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>any other command line tool: <code>migrate</code>, <code>accounts</code>, <code>backup</code>, <code>config</code>, <code>query</code> and the rest</td>
+</tr>
+<tr>
+<td><code>lib</code></td>
+<td>another library's own log lines (Flask, urllib3, ...) that the debug log picks up</td>
+</tr>
+<tr>
+<td><code>logs</code></td>
+<td><code>examples/apache/setup-debug-log.sh</code>: the log files and their rotation</td>
+</tr>
+<tr>
+<td><code>permissions</code></td>
+<td><code>examples/apache/set-permissions.sh</code>: ownership and permissions</td>
+</tr>
+<tr>
+<td><code>cache-dir</code></td>
+<td><code>examples/apache/create-cache-dir.sh</code>: the cache, jobs and state folders</td>
+</tr>
+<tr>
+<td><code>swap</code></td>
+<td><code>scripts/enable-swap.sh</code>: the swap file</td>
+</tr>
+<tr>
+<td><code>python-deps</code></td>
+<td><code>scripts/install-python-deps.sh</code>: the virtual environment and its libraries</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="rules-for-a-place-that-writes-a-log">Rules for a place that writes a log</h2>
+<ol>
+<li>Make a record through <code>log.get(component)</code> (<code>planetgen/util/log.py</code>; Python's <code>logging</code> underneath, so handlers and levels keep working) or <code>Record</code>/<code>stage_record</code>; do not format a line by hand. <code>util/log.py</code> is the one module that makes and writes a line (OPS.104): <code>util/logrecord.py</code> holds the record and its lines (file, JSON, display, plain), and <code>log.LineFormatter</code> is the one formatter class, with a form for each (<code>plain</code>, <code>display</code>, <code>debug</code>, <code>file</code>, <code>json</code>). A shell script prints the display line through <code>scripts/logrecord.sh</code> (UX.123; <code>tests/test_log_shell.py</code> checks its lines against <code>logrecord.display_line</code>).</li>
+<li>Put the sentence in the message and the numbers a tool may want in fields; do not write a number only in the message when a tool would want it.</li>
+<li>Never put a secret, a password, a key or a token in a message or a field (the settings writer's <code>(changed)</code> form for secrets stays).</li>
+<li>The time is taken when the record is made, in the process that made it; a record relayed from a worker keeps its time.</li>
+<li>A new output path that formats its own lines, and a formatter class or handler made outside <code>util/log.py</code>, fails a test (TEST.183, <code>src/tests/test_no_own_log_formatting.py</code>): the test reads every module under <code>planetgen/</code> as a syntax tree and finds each print, write or logger call whose text is built with a time call or a hand-drawn divider; each such place is required to go through the layer or to be named in <code>ALLOWED</code> with its reason. A second scan (OPS.105) fails on a <code>print()</code> in any file not named in <code>PRINT_ALLOWED</code> and on any <code>print(..., file=sys.stderr)</code> outside <code>util/log.py</code>: a progress, status, warning or error line goes through <code>log.normal</code>, <code>log.warning</code> or <code>log.error</code>, and only the answer a command was asked for (a listing, a report, a count, a prompt) may print.</li>
+<li>No work after a progress block may run longer than the bar threshold (<code>tuning.PROGRESS_BAR_SECONDS</code>) without a <code>Step</code> of its own (DOC.80, PERF.189). The cases found were <code>refresh_block_lights</code> and <code>record_phenomenon_scatter*</code>, which ran after the scatter's last step and printed nothing, so a run looked hung. A checklist for new work that follows a scatter or a fill: (a) give it a <code>Step</code> with a kind in <code>steps.STEP_KINDS</code>; (b) when it works in units, advance the bar once per unit and write a log line before it starts, at each phase and about every <code>tuning.PROGRESS_LOG_SECONDS</code>; (c) read big tables a slice at a time and write what is complete as it completes, so its memory does not grow with the galaxy (PERF.187); (d) a step the smoke run (<code>python -m planetgen.cli.smoke</code>) sees has a memory budget in <code>tuning.SMOKE_STEP_BUDGET_MB</code>.</li>
+</ol>
+<h2 id="open-points-for-the-items-that-follow">Open points for the items that follow</h2>
+<ul>
+<li><strong>The activity log's shape (UX.122).</strong> Its lines are matched by fail2ban filters installed by <code>update.sh</code>, so they cannot change form silently. Decided (UX.122): its line stays as a fourth writing of the same idea (<code>log.syslog_line</code>, written by a <code>raw</code> handler of <code>util/log.py</code>, OPS.105) (the time local with its offset first, then the category and event, then <code>ip=</code> and <code>user=</code> in their present order), because the filters match that form; <code>tests/test_activity_log.py</code> holds it to the filter patterns (<code>format_line</code> against the failregex), so it cannot drift from the tools.</li>
+<li><strong>Debug lines.</strong> The debug mode keeps its richer columns (source file and line, process id) as a display variant of the same record, with the file, line and area as fields; the debug file is then a file of records like any other. The debug line reads <code>time severity origin [area] file:line function | message</code> (OPS.102): the area (<code>[draw]</code>, <code>[sql]</code>, <code>[queue]</code>, <code>[web]</code>, <code>[decision]</code>) is the column to filter on, and the logger's name, which was almost always <code>planetgen</code>, is gone; every handler that writes the line carries the filter that stamps the area, and the formatter derives it for a record that has none.</li>
+<li><strong>A job's subprocess output.</strong> The job runner appends whatever a step printed. Where a command still prints directly (the interactive prompts, the data listings of <code>query</code>, <code>config</code>, <code>backup</code>, <code>queue</code>, <code>maintenance</code> and <code>accounts</code>, whose output is the answer asked for and not a log), that text is carried as the message of a record of component <code>job</code>, one record per line, with the job runner's own dividers as stage records.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

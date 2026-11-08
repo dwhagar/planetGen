@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The plain-words style guide (DOC.83) - planetGen docs</title>
+<meta name="description" content="Informs: DOC.83, UX.252 (planet, moon and belt text), UX.253 (star, system and star-class text), DOC.84 (the life help pages), GEN.1208 (class descriptions).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/text-style.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/text-style.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-plain-words-style-guide-doc83">The plain-words style guide (DOC.83)</h1><p class="meta">docs/design/interface/text-style.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-is-for">What it is for</a></li><li style="margin-left:0px"><a href="#the-rules">The rules</a></li><li style="margin-left:14px"><a href="#checked-by-the-test">Checked by the test</a></li><li style="margin-left:14px"><a href="#kept-by-the-writer-not-machine-checkable">Kept by the writer (not machine-checkable)</a></li><li style="margin-left:14px"><a href="#links-into-references-doc87">Links into References (DOC.87)</a></li><li style="margin-left:0px"><a href="#how-the-test-uses-the-checker">How the test uses the checker</a></li><li style="margin-left:0px"><a href="#adding-a-rule">Adding a rule</a></li></ul></details>
+<p>Informs: DOC.83, UX.252 (planet, moon and belt text), UX.253 (star, system and star-class text), DOC.84 (the life help pages), GEN.1208 (class descriptions). Related: API.33 (units), DOC.15 (glossary), DOC.57 and DOC.58 (the &quot;?&quot; help links).
+Status: written. The checkable rules are <code>planetgen/util/plainwords.py</code>; <code>src/tests/test_plain_words.py</code> reads the generated text against them.</p>
+<h2 id="what-it-is-for">What it is for</h2>
+<p>A visitor reads a planet's page to learn what it is like, not to decode it. Every sentence the site writes about a planet, a moon, a belt, a star or a system is meant to be read once, at a glance, by someone who has never seen the generator. Today the sentences come from many builders (<code>describe/build.py</code>, <code>describe/sheet.py</code>, <code>web/lib/classref.py</code>, <code>web/lib/planet_layout.py</code>, the templates) and each was written on its own day, so the same fact is worded three ways and the same class is named two. This note fixes the rules once. The two rewrite items apply it; a test keeps new text from breaking it.</p>
+<h2 id="the-rules">The rules</h2>
+<h3 id="checked-by-the-test">Checked by the test</h3>
+<ol>
+<li><strong>Short sentences.</strong> At most 30 words (<code>MAX_WORDS</code>); aim at 20. A sentence over 30 words is two ideas. Cut it at the colon, the semicolon or the &quot;which&quot;.</li>
+<li><strong>One idea each.</strong> At most one semicolon (<code>MAX_SEMICOLONS</code>). A second semicolon is a second idea: give it its own sentence. A list inside a sentence (&quot;1: 10 to 100 AU; 2: ...&quot;) is a table, not a sentence.</li>
+<li><strong>Plain words.</strong> The words and phrases in <code>BANNED</code> are not used; each has the plain word beside it (<code>approximately</code> is &quot;about&quot;, <code>in order to</code> is &quot;to&quot;, <code>e.g.</code> is &quot;for example&quot;). The list also keeps out the words of the program's own workshop (<code>stand-in</code>, <code>tweak</code>, <code>epoch</code>, <code>placeholder</code>): a reader does not need to know how a number was set.</li>
+<li><strong>One name for a class.</strong> A life class is named by its whole id: &quot;Class 3a&quot;, &quot;Class 2&quot;, never &quot;Class 3&quot; for a class that has letters (the classes are <code>physics/life_classes.py</code>'s ids). When a sentence means the whole family, say &quot;the Class 3 family&quot; or name the classes: &quot;Class 3a and 3b&quot;.</li>
+<li><strong>Labels in sentence case.</strong> A table label starts with a capital and the rest is lower case except names and abbreviations: &quot;Surface temperature&quot;, &quot;Distance from the star&quot;, &quot;Urey ratio&quot;. Not &quot;Surface Temperature&quot;. Where a label needs a possessive, write it plain (&quot;Planetary limit of the primary&quot;).</li>
+<li><strong>American spelling.</strong> The site is in American English (Boss, 10:33 AM EDT 2026-10-31): &quot;color&quot;, &quot;gray&quot;, &quot;center&quot;, &quot;meter&quot;, &quot;kilometer&quot;, &quot;liter&quot;, &quot;neighbor&quot;, &quot;vapor&quot;, &quot;sulfur&quot;, &quot;analyze&quot;, &quot;organize&quot;, &quot;modeling&quot;. Not mixed. <code>BRITISH</code> and <code>ISE_STEMS</code> in <code>plainwords.py</code> list the spellings the checker flags and the American ones; text in quotation marks and the names in <code>BRITISH_NAMES</code> (an organization's own name) are left alone.</li>
+</ol>
+<h3 id="kept-by-the-writer-not-machine-checkable">Kept by the writer (not machine-checkable)</h3>
+<ol start="7">
+<li>
+<p><strong>Say the answer first.</strong> The first sentence of a paragraph says the thing; the reason or the exception follows.</p>
+</li>
+<li>
+<p><strong>Never repeat a fact on a page.</strong> A fact stated in the summary is not stated again in the description, the notes or a table caption. A table row and a sentence may both give a number only when the sentence is the only place that explains it.</p>
+</li>
+<li>
+<p><strong>One unit for one quantity, spelled as the page's unit setting says.</strong> A quantity is a typed quantity in the Document (API.33; <code>tests/test_counts_have_units.py</code> checks counts), so the unit follows the visitor's setting and no sentence hard-codes <code>AU</code> or <code>km</code>. A number in a sentence always has its noun or unit beside it.</p>
+</li>
+<li>
+<p><strong>Active, concrete verbs.</strong> &quot;The star warms the planet to 280 K&quot;, not &quot;The planet is characterised by a surface temperature of 280 K&quot;. No stacked &quot;of the ... of the ...&quot;.</p>
+</li>
+<li>
+<p><strong>No stage or age in a class description.</strong> A class description says what the class is, never how old its life is or which stage it has reached; that is the world's timeline (GEN.1208).</p>
+</li>
+<li>
+<p><strong>No jargon without a help link.</strong> A term a visitor may not know (&quot;Roche limit&quot;, &quot;hycean&quot;, &quot;suitability&quot;) is linked to its help page (DOC.57's &quot;?&quot; link, the DOC.15 glossary) the first time it appears on a page, and its explanation lives on the help page, not inline.</p>
+</li>
+<li>
+<p><strong>No process words.</strong> Text never mentions the generator, its version, a seed, a stand-in or a tier. The Debug view and the Properties sheet are where those live.</p>
+</li>
+<li>
+<p><strong>No codes.</strong> No item code (<code>GEN.866</code>) reaches the page; <code>tests/test_no_todo_codes_shown.py</code> checks this.</p>
+</li>
+<li>
+<p><strong>Oxford comma (the serial comma).</strong> Every list of three or more puts a comma before its &quot;and&quot; or &quot;or&quot;: &quot;red, green, and blue&quot;, never &quot;red, green and blue&quot; (Boss, 2:50 PM EDT 2026-10-31: always, in every text page, help page and generated sentence). Kept by the writer until DOC.86 adds the check.</p>
+</li>
+<li>
+<p><strong>No out-of-universe words outside References.</strong> The site speaks in universe: a working navigation system that simply knows things. The words in <code>OUT_OF_UNIVERSE</code> (<code>plainwords.py</code>: speculative, stand-in, tweak, fitted, tuned, educated guess, tier, generator, generated, random seed, seeded, simulated, model, version, and the forms of them; a bare &quot;seed&quot; is in universe, as in a seed vault) appear only on the References pages (<code>/references</code>, Help &gt; References), which carry the Out of universe banner (<code>id=&quot;out-of-universe-banner&quot;</code>), and on the admin pages (<code>exempt(path)</code>). Everywhere else the page says the thing in universe (&quot;Color from the spectral class&quot;) and, where a reader may want the why, adds a quiet &quot;More information&quot; link to the exact References entry with <code>reference_link(kind, id)</code> (<code>web/helpers.py</code>); it never adds a sentence to explain the link. What a real survey would say stays (&quot;estimated distance&quot;, &quot;unsurveyed&quot;, &quot;approximate&quot;), because that says nothing about how our numbers are made. &quot;Level&quot; is not on the list (&quot;sea level&quot; is in universe); the provenance sense always comes with &quot;tier&quot; or &quot;tweak&quot;. API field names (<code>speculative</code>), developer docs, the Debug view and the changelog keep their words: the rule is about the text of site pages. Checked by <code>out_of_universe(text)</code> and the page crawl in <code>tests/test_references_crawl.py</code> (DOC.87); DOC.94 locks the crawl once DOC.93 lands.</p>
+</li>
+<li>
+<p><strong>Citations are <code>[R0123]</code>, and only a source ID (DOC.98).</strong> A source is named by its citation ID in square brackets, after the words it supports: &quot;the slope is 1.3 [R0123].&quot; Several sources are one bracket in ascending order, <code>[R0123, R0456]</code>. No author, year, journal, DOI or arXiv number is written outside the registry (<code>docs/reference/references-data.json</code>), <code>docs/REFERENCES.md</code> and the References pages; a page a visitor reads has no citation at all. The form follows the numbered style of NASA documents, with the source's fixed ID as the number (design: <a href="references.html">references.md</a>, &quot;The in-line citation style&quot;). Kept by the writer until DOC.99 adds the check.</p>
+</li>
+<li>
+<p><strong>An explainer link says &quot;More information&quot; and is never repeated (UX.261).</strong> A link to a help page is worded &quot;More information&quot; (&quot;More information about trend&quot; for the hidden label of a &quot;?&quot; mark, so a screen reader still hears what it is about), not as a sentence that tells the reader what they do not know (&quot;What these words mean&quot;). A page does not carry an explainer link where it already links the same help page or the terms themselves (the class names of the life glance are links, so the glance has no further link to the life help), and one help page is linked once from a page.</p>
+</li>
+</ol>
+<h3 id="links-into-references-doc87">Links into References (DOC.87)</h3>
+<p>A page never writes a References address by hand. It calls <code>reference_link(kind, id)</code> (a template global, or <code>web.helpers.reference_link</code> in code), and <code>web/lib/reference_urls.py</code> is the only place the layout is written: <code>/references</code> (overview), <code>/references/papers#paper-&lt;anchor&gt;</code>, <code>/references/data#&lt;anchor&gt;</code>, <code>/references/method/&lt;area&gt;#&lt;value&gt;</code>, <code>/references/stand-ins/&lt;id&gt;</code> (GR1 is <code>/references/stand-ins/gr1</code>), <code>/references/fitted#&lt;id&gt;</code>, <code>/references/speculative#class-&lt;id&gt;</code>, <code>/references/gaps#&lt;area&gt;</code>, <code>/references/scorecard#&lt;area&gt;</code> and <code>/references/about</code>. The <code>anchor</code> of an id is lower case with each run of other characters one hyphen (<code>Surface Pressure</code> is <code>surface-pressure</code>). The method areas are the one list <code>AREAS</code>. A kind or an id that does not exist raises <code>ValueError</code>, so a typo fails the page and the crawl test instead of leaving a dead link. <code>tests/test_references_crawl.py</code> also fails when a template or module under <code>web/</code> or <code>describe/</code> writes a <code>/references</code> address itself, when a link into <code>/references</code> on a crawled page does not resolve, and when a <code>/references</code> page lacks the banner.</p>
+<h2 id="how-the-test-uses-the-checker">How the test uses the checker</h2>
+<p><code>tests/test_plain_words.py</code> builds the Document of ten seeded systems and reads every prose sentence and table label of it, then the class pages (<code>web/lib/classref.py</code>) and the label of every row of the property sheet (<code>describe/sheet.py</code>). Each break of rules 1 to 6 and 15 must be in <code>KNOWN</code>, which maps the rule and the start of the sentence (or the label) to the item that owns the fix. A break that is not listed fails the test, so new text keeps the guide while old text is rewritten. <code>KNOWN</code> is the list of sentences and labels the two rewrite items must fix: UX.252 for planets, moons, belts, comets and their class pages, UX.253 for stars, systems and star-class pages. Each item removes its entries as it rewrites, and is done when none carry its code.</p>
+<p>The life help pages (<code>web/lib/life_help.py</code>, DOC.84) are held to the same rules by <code>tests/test_life_help.py</code>, with no list of exceptions: they were written to the guide. The rules themselves are tested on made-up sentences (<code>test_the_checker_flags_each_rule</code>), so a rule cannot go quiet without a test failing.</p>
+<p>The page crawl (<code>tests/test_references_crawl.py</code>, rule 16, locked by DOC.94) renders the Help pages, the class pages and the sign-in, preferences, polities and species pages, reads the Document of the same ten seeded systems and every sheet label, and fails on any out-of-universe word: there is no list of exceptions. It also reads the visible text of every in-universe template, so a page that needs data to render is covered, and it fails on an in-universe page route that is neither crawled nor named with its reason (<code>NEEDS_DATA</code>). Every link into <code>/references</code> it finds must resolve, and every References page must carry the Out of universe banner. The gate for changed pages (<code>scripts/test.py changed</code>) selects it whenever a template, a page builder or <code>plainwords.py</code> changes.</p>
+<h2 id="adding-a-rule">Adding a rule</h2>
+<p>A rule goes into <code>plainwords.py</code> with a test sentence for it in the checker's test, then a pass over the corpus to see what it flags. A rule that flags current text adds those entries to <code>KNOWN</code> under the item that will fix them; it never loosens the rule to make the current text pass.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

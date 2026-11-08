@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A brown dwarf as a star: its type, temperature and radius (GEN.252, GEN.549) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-30): built (physics/browndwarf.py, tests/testbrowndwarf.py); GEN.549 replaced the power laws with a cooling track, and GEN.948 reads the track from the whole Baraffe table instead of eleven thinned rows.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/brown-dwarf-state.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/brown-dwarf-state.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="a-brown-dwarf-as-a-star-its-type-temperature-and-radius-gen252-gen549">A brown dwarf as a star: its type, temperature and radius (GEN.252, GEN.549)</h1><p class="meta">docs/design/systems/brown-dwarf-state.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#where-it-shows">Where it shows</a></li><li style="margin-left:0px"><a href="#what-it-gives">What it gives</a></li><li style="margin-left:0px"><a href="#what-it-does-not-do">What it does not do</a></li><li style="margin-left:0px"><a href="#code">Code</a></li><li style="margin-left:0px"><a href="#the-boundary-with-the-stars-gen936">The boundary with the stars (GEN.936)</a></li></ul></details>
+<p><strong>Status (2026-10-30):</strong> built (<code>physics/brown_dwarf.py</code>, <code>tests/test_brown_dwarf.py</code>); GEN.549 replaced the power laws with a cooling track, and GEN.948 reads the track from the whole Baraffe table instead of eleven thinned rows.</p>
+<p>A brown dwarf is too light to hold hydrogen fusion, so it only cools. It used to be a fixed 0.1 solar radius with no state
+(a multi-star member) or a Jupiter-sized body with a log-uniform mass (the free-floating row). Now both have the type, the
+temperature and the radius its mass and age give.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Value</th>
+<th>Source (read)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cooling track</td>
+<td>Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (<code>datasets/baraffe_isochrones.py</code>, <code>cooling_track</code>; GEN.948 replaced <code>tuning.BROWN_DWARF_TRACKS</code>, eleven thinned rows)</td>
+<td>[R0254], the BHAC15 isochrones (<code>BHAC15_iso.2mass</code>)</td>
+</tr>
+<tr>
+<td>Past a track's last age</td>
+<td>a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at <code>Teff ~ t^-0.32</code> with the last radius at the lightest mass of the table of its last age; between that mass and the next heavier mass the table holds longer, the continuation goes straight in mass from that power law to the heavier mass's own change since the same age, so the track has no jump in mass (GEN.1137: 0.0699 solar masses at 5 Gy was 1,220 K beside 1,627 K at 0.07, now 1,620 K)</td>
+<td>[R0606], eq. 2 [R0606]</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>the track's, no hotter than the temperature of the hydrogen-burning limit at the age (<code>substellar_ceiling.cap_k</code>: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak)</td>
+<td>[R0254] section 3.3 and the BHAC15 table (GEN.494)</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td>the track's, 0.09 to 0.16 solar radii old, larger when young</td>
+<td>as above</td>
+</tr>
+<tr>
+<td>Luminosity</td>
+<td><code>L = R^2 (Teff / Teff_sun)^4</code> of the two</td>
+<td>Stefan-Boltzmann</td>
+</tr>
+<tr>
+<td>Mass function</td>
+<td><code>dN/dM ~ M^-0.6</code> between 13 Jupiter masses and 0.08 solar masses (83.8 Jupiter masses, where the stars' mass function begins; GEN.936: it ended at 80 and left 0.0764 to 0.08 empty)</td>
+<td>[R2374]: alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc</td>
+</tr>
+<tr>
+<td>Type from temperature</td>
+<td>Teff of the type number (L0 = 0, T0 = 10, Y0 = 20) is <code>2237.5 - 144.96 x + 4.0301 x^2</code> to L8.75, <code>1437.9 - 18.309 x</code> to T4.75, <code>5141.3 - 368.65 x + 6.7301 x^2</code> beyond; inverted. L0 is 2,238 K, T0 1,255 K, Y0 461 K</td>
+<td>the same paper, Table 13 (rms 134, 79, 79 K)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Above L0 a brown dwarf is a late-M dwarf, named by the stellar scale (<code>stellar_evolution.spectral_letter_and_subclass</code>).
+The paper's scatter is its measurement scatter, not a spread of the objects, so it is not drawn: a temperature has one type.</p>
+<h2 id="where-it-shows">Where it shows</h2>
+<ul>
+<li><strong>A free-floating brown dwarf</strong> (the <code>brown-dwarf</code> fill kind, 0.03 per pc^3, which is 0.21 per star against the census's
+&quot;1 per 4.7&quot;) takes its mass from the census mass function, draws its age as a star does, and takes its radius and temperature from the track at that age. The age (GEN.553) is the age window of the population the sector fill gives it from its place's mix, spread by that population's star formation rate (<code>galaxy.age_law</code>); made without a place it has the whole disk's window, 0 to 10 Gy. Its page names its type
+(&quot;a free-floating T5 brown dwarf&quot;, header &quot;Rogue Brown Dwarf, Type T5&quot;). The type is read from the stored effective
+temperature, so there is no new column. It is its own system; its companion (15% of brown dwarfs are in pairs) is
+GEN.275's.</li>
+<li><strong>A brown dwarf member of a multi-star tree</strong> (<code>multistar._star_leaf</code>, any member under the hydrogen-burning limit of its place's [Fe/H], 0.074 solar masses at solar Z up to 0.092 at none (GEN.936)) has the type
+as its <code>state</code> (it was NULL) and the radius the track gives at the system's age (it was 0.1 solar radii). The members
+list on a scatter row's page shows &quot;Brown dwarf (T5)&quot;.</li>
+<li><strong>The class page</strong> <code>/classes/rogue-planet/brown-dwarf</code> lists the temperatures where L, T and Y begin.</li>
+</ul>
+<p>The desert (a brown dwarf is kept inside 5 AU in 1% of draws) and the companion rows and rates stay as they were
+(<code>multistar</code>, GEN.275).</p>
+<h2 id="what-it-gives">What it gives</h2>
+<p>Test targets from the census, none an input (<code>tests/test_brown_dwarf.py</code>): with a constant birth rate over 10 Gy, the
+mass function and the track, the shares of brown dwarfs in the 150 K bins from 600 to 1,950 K are each within a factor
+of 2 of Table 15's densities (2.80, 1.99, 1.72, 1.11, 1.95, 0.94, 0.81, 0.78, 0.50, 0.72 per 1e-3 pc^3 for the bins from
+600 to 1,950 K, the test covering 600 to 1,050 and 1,500 to 1,950 K). The hot L dwarfs are the heaviest brown dwarfs, which
+cool to a plateau near 2,000 K at the hydrogen-burning limit and stay there for the age of the disk.</p>
+<h2 id="what-it-does-not-do">What it does not do</h2>
+<ul>
+<li><strong>The table is derived, not downloaded.</strong> The track is a thinned copy of the model's values committed with the code,
+which the 2026-10-17 ruling allows (derived values may be committed; the model files stay out of the repository).
+A build-time dataset step (GEN.548) could replace it with the full grid; the functions would not change.</li>
+<li><strong>0.072 to 0.0764 solar masses.</strong> In the model these objects are stable stars at the bottom of the main sequence, yet
+they sit inside the 80 Jupiter mass brown dwarf sampling range, so they stay here as L and late-M dwarfs.</li>
+<li><strong>The 1,200 K bin</strong> (the L/T transition) comes out at 0.44 of the census's share, below the factor of 2 band the test
+covers; the model has no clouds, so the L/T transition's slow cooling is not there.</li>
+<li><strong>Low gravity</strong> lowers the type by up to 300 K (the census) and metallicity is solar.</li>
+<li><strong>The stellar mass function is not continued below 0.08 solar masses.</strong> The census's slope joined to it at 0.08 would
+give 0.71 brown dwarfs per star against the observed 0.2; the free-floating rate already carries the observed one.</li>
+<li><strong>The hydrogen-burning edge</strong> is a step: a 0.0764 solar mass brown dwarf (80 Jupiter masses, the top of the sampling range, not the burning limit) is a cooling body, a 0.08
+one a star of the main sequence relations. Decided (Boss, contradiction sweep card, 7:29 AM EDT 2026-10-21): the burning limit itself is <code>hydrogen_burning_limit_sol(z)</code> (0.074 solar masses at solar Z), one function that feeds GEN.110's fusion check and the brown dwarf split.</li>
+</ul>
+<h2 id="code">Code</h2>
+<ul>
+<li><code>physics/brown_dwarf.py</code>: mass function, track, temperature, radius, luminosity, type.</li>
+<li><code>tuning</code>: <code>BROWN_DWARF_*</code> with their sources.</li>
+<li><code>generation/phenomena/rogue.py</code>: the free-floating brown dwarf's mass, radius, <code>spectral_type</code>, page text.</li>
+<li><code>generation/multistar._star_leaf</code>; <code>web/scatter_members_view</code>; <code>web/lib/classref</code>.</li>
+<li>A change of the generator's output: epoch bumped (OPS.56).</li>
+</ul>
+<h2 id="the-boundary-with-the-stars-gen936">The boundary with the stars (GEN.936)</h2>
+<p>The stars' mass function (<code>imf</code>) begins at 0.08 solar masses and the brown dwarf one ends there: one number, <code>mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL</code>,
+so no mass between them is missing and none is counted twice. Whether an object of a mass burns hydrogen is a question of its
+place: <code>stellar_abundances.hydrogen_burning_limit_for_fe_h</code> (0.074 solar masses at solar Z, 0.092 at none, linear in Z between;
+[R0606] parametrisation). A primary drawn under it is drawn again (a system is built around a star, and the
+generator makes none around a brown dwarf), and a companion under it is a brown dwarf member of its tree. The main sequence from
+0.07 to 0.1 solar masses is the Baraffe table's (<code>main_sequence</code>), scaled to meet MIST at 0.1.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

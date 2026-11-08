@@ -1,0 +1,1789 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The burn-down register: what each hand-tuned stand-in needs before it can go (GEN.946) - planetGen docs</title>
+<meta name="description" content="Status: hand-kept, checked by src/tests/testburndownregister.py and shown as the last column of stand-in-values.md.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/burn-down-register.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/burn-down-register.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-burn-down-register-what-each-hand-tuned-stand-in-needs-before-it-can-go-gen946">The burn-down register: what each hand-tuned stand-in needs before it can go (GEN.946)</h1><p class="meta">docs/design/research/burn-down-register.md</p>
+<p>Status: hand-kept, checked by <code>src/tests/test_burn_down_register.py</code> and shown as the last column of <code>stand-in-values.md</code>. Every registry row at tweak level L3 or L4 (hand-tuned against a sweep, or fitted with no source) has a line here with one of three dispositions:</p>
+<ul>
+<li><code>no data</code>: nothing we hold or can reach (primary or secondary) measures the quantity; the row keeps its tier and tweak level, and the reason says why in plain words. A reason is not a promise: the first measurement replaces the row.</li>
+<li><code>replace</code>: a named open item replaces the number, because the data or the model it needs is that item's work. The item reads the data (Boss, 8:16 PM EDT 2026-10-29: secondary sources accepted) and lowers the row to L0 or L1.</li>
+<li><code>replaced</code>: the number now comes from data; the line stays one release so the change is findable, and the row is no longer L3 or L4.</li>
+</ul>
+<p>The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant needs its disposition in the same change as its registry row, the same completeness rule as TEST.455 for unregistered constants), when a line names a row that is not at L3 or L4 and is not <code>replaced</code>, and when a <code>replace</code> item is not open in <code>docs/TODO.md</code>. The audit of every unregistered constant is GEN.945 (Bug 2); its high-ranked findings join this register as GEN.946 splits them into per-area items.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>row</th>
+<th>disposition</th>
+<th>item</th>
+<th>reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.2:BC6</td>
+<td>no data</td>
+<td>-</td>
+<td>exomoons are not observed; the regular satellites of the four giants are the only moons with a composition and the rule against fixed Solar System content keeps them a check; tier T6 stays</td>
+</tr>
+<tr>
+<td>5.3:AT.a1, a2</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.482 read the first-hand ranges at the Moon, Mars and Earth (T1 at those three points); only a larger white-dwarf ensemble improves the zero point</td>
+</tr>
+<tr>
+<td>5.3:AT.b5</td>
+<td>no data</td>
+<td>-</td>
+<td>Boss decided a log-uniform placeholder for sub-percent water on 2026-10-17; no ensemble of exoplanet water contents exists; any measurement replaces it</td>
+</tr>
+<tr>
+<td>6.7:AM64</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants</td>
+</tr>
+<tr>
+<td>6.7:AM65</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants</td>
+</tr>
+<tr>
+<td>6.7:AM66</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants</td>
+</tr>
+<tr>
+<td>6.7:AM67</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants</td>
+</tr>
+<tr>
+<td>6.7:AM71</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants</td>
+</tr>
+<tr>
+<td>6.7:AM81</td>
+<td>no data</td>
+<td>-</td>
+<td>the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them</td>
+</tr>
+<tr>
+<td>6.10:RV2</td>
+<td>no data</td>
+<td>-</td>
+<td>the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them</td>
+</tr>
+<tr>
+<td>6.10:RV3</td>
+<td>no data</td>
+<td>-</td>
+<td>the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them</td>
+</tr>
+<tr>
+<td>6.9:SP1</td>
+<td>no data</td>
+<td>-</td>
+<td>a display choice (how fast a rendered body turns on screen), not a physical quantity; tier T9 stays</td>
+</tr>
+<tr>
+<td>6.15:RB6</td>
+<td>no data</td>
+<td>-</td>
+<td>AP-9, AE-9 and the Divine-Garrett model are not held and the Galileo and Juno dose records are figures; the shapes stay recalled stand-ins</td>
+</tr>
+<tr>
+<td>6.15:RB7</td>
+<td>no data</td>
+<td>-</td>
+<td>AP-9, AE-9 and the Divine-Garrett model are not held and the Galileo and Juno dose records are figures; the shapes stay recalled stand-ins</td>
+</tr>
+<tr>
+<td>6.18:LF5</td>
+<td>no data</td>
+<td>-</td>
+<td>the pace timelines are scaled by hand from one history; the hard-step life timeline (GEN.750, closed) supersedes them for life and the table goes when the civilization check stops reading it</td>
+</tr>
+<tr>
+<td>6.18:LF6</td>
+<td>no data</td>
+<td>-</td>
+<td>design thresholds of the life scores (GEN.649): no measured quantity exists; tier T9 stays</td>
+</tr>
+<tr>
+<td>6.18:LF7</td>
+<td>no data</td>
+<td>-</td>
+<td>design thresholds of the life scores (GEN.649): no measured quantity exists; tier T9 stays</td>
+</tr>
+<tr>
+<td>6.18:LF8</td>
+<td>no data</td>
+<td>-</td>
+<td>design thresholds of the life scores (GEN.649): no measured quantity exists; tier T9 stays</td>
+</tr>
+<tr>
+<td>6.18:LF9</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 (merged, train 2) put the strange-solvent classes on real quantities, but habitability.SOLVENT_FACTOR is still read by the solvent gate; no measured limit of a non-water biochemistry exists</td>
+</tr>
+<tr>
+<td>6.18:LF24</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes replace the solvent factors and the methane-sea gate; no measured limit of a non-water biochemistry exists</td>
+</tr>
+<tr>
+<td>6.18:LF11</td>
+<td>no data</td>
+<td>-</td>
+<td>the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays</td>
+</tr>
+<tr>
+<td>6.18:LF13</td>
+<td>no data</td>
+<td>-</td>
+<td>the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays</td>
+</tr>
+<tr>
+<td>6.18:LF14</td>
+<td>no data</td>
+<td>-</td>
+<td>the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays</td>
+</tr>
+<tr>
+<td>6.18:LF26</td>
+<td>no data</td>
+<td>-</td>
+<td>the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays</td>
+</tr>
+<tr>
+<td>6.18:LF28</td>
+<td>no data</td>
+<td>-</td>
+<td>the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays</td>
+</tr>
+<tr>
+<td>6.18:LF15</td>
+<td>no data</td>
+<td>-</td>
+<td>phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen</td>
+</tr>
+<tr>
+<td>6.18:LF16</td>
+<td>no data</td>
+<td>-</td>
+<td>phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen</td>
+</tr>
+<tr>
+<td>6.18:LF17</td>
+<td>no data</td>
+<td>-</td>
+<td>the energy source per class (pigment band times the star's spectrum) is built (GEN.878), but every class still reads the one log scale; a curve per metabolism needs measured growth yields, none in hand</td>
+</tr>
+<tr>
+<td>6.18:LF18</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares</td>
+</tr>
+<tr>
+<td>6.18:LF23</td>
+<td>no data</td>
+<td>-</td>
+<td>the animal oxygen floor by grade is a literature number ([R3084], recalled) for one grade; GEN.877 is closed and kept the band; the widths are chosen</td>
+</tr>
+<tr>
+<td>6.18:LF25</td>
+<td>no data</td>
+<td>-</td>
+<td>one score per rung of Table 2 of the Exoplanetary Habitability doc; design numbers with no data</td>
+</tr>
+<tr>
+<td>6.18:LF49</td>
+<td>no data</td>
+<td>-</td>
+<td>the hard-step means follow [R4642] in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check</td>
+</tr>
+<tr>
+<td>6.18:LF50</td>
+<td>no data</td>
+<td>-</td>
+<td>the hard-step means follow [R4642] in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check</td>
+</tr>
+<tr>
+<td>6.18:LF51</td>
+<td>no data</td>
+<td>-</td>
+<td>the hard-step means follow [R4642] in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check</td>
+</tr>
+<tr>
+<td>6.18:LF57</td>
+<td>no data</td>
+<td>-</td>
+<td>fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists</td>
+</tr>
+<tr>
+<td>6.18:LF58</td>
+<td>no data</td>
+<td>-</td>
+<td>fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists</td>
+</tr>
+<tr>
+<td>6.19:LF46</td>
+<td>no data</td>
+<td>-</td>
+<td>fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists</td>
+</tr>
+<tr>
+<td>6.19:LF31</td>
+<td>no data</td>
+<td>-</td>
+<td>the pigment light windows are published absorption bands; the gates and the temperature windows are chosen limits of the one known biosphere</td>
+</tr>
+<tr>
+<td>6.19:LF32</td>
+<td>no data</td>
+<td>-</td>
+<td>the pigment light windows are published absorption bands; the gates and the temperature windows are chosen limits of the one known biosphere</td>
+</tr>
+<tr>
+<td>6.19:LF33</td>
+<td>no data</td>
+<td>-</td>
+<td>the pigment light windows are published absorption bands; the gates and the temperature windows are chosen limits of the one known biosphere</td>
+</tr>
+<tr>
+<td>6.19:LF34</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF35</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF36</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF37</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF38</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF39</td>
+<td>replace</td>
+<td>GEN.878</td>
+<td>energy by chemistry and the stored supplies (GEN.887, closed) replace the placeholder supplies of the classes; no measured flux of these metabolisms on other worlds exists</td>
+</tr>
+<tr>
+<td>6.19:LF40</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF41</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF42</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF43</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF44</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF45</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.894 merged (train 2) and the classes read real quantities; the strange-solvent classes 5 to 9 carry placeholder supplies and windows; there is no organism of these classes to measure</td>
+</tr>
+<tr>
+<td>6.19:LF47</td>
+<td>no data</td>
+<td>-</td>
+<td>chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them</td>
+</tr>
+<tr>
+<td>6.19:LF59</td>
+<td>no data</td>
+<td>-</td>
+<td>chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them</td>
+</tr>
+<tr>
+<td>6.19:LF60</td>
+<td>no data</td>
+<td>-</td>
+<td>chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them</td>
+</tr>
+<tr>
+<td>6.19:LF61</td>
+<td>no data</td>
+<td>-</td>
+<td>the gates and the liquid window of the acid cloud are chosen limits and the acid strength line is fitted through two Venus cloud levels; no second acid world exists to calibrate against, and the [R4877] curve is not in the reachable papers</td>
+</tr>
+<tr>
+<td>6.19:LF62</td>
+<td>no data</td>
+<td>-</td>
+<td>the ammonia share of an icy body's ices is a choice between the comet value and the cosmic cap; no survey measures the ammonia of the ocean of any world but a few plume spectra, and the Mg/Si line is the textbook one</td>
+</tr>
+<tr>
+<td>6.19:LF53</td>
+<td>no data</td>
+<td>-</td>
+<td>chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them</td>
+</tr>
+<tr>
+<td>6.20:PM2</td>
+<td>no data</td>
+<td>-</td>
+<td>the observed occurrence rates [R1156, R1479, R3499] are the bands the planet count and spacing fit to (GEN.728, GEN.729, GEN.828, GEN.829, built); the steepening itself is tuned to them and no disc survey measures it</td>
+</tr>
+<tr>
+<td>6.21:BO1</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.21:BO2</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.21:BO3</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.21:BO4</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.21:BO6</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.21:BO8</td>
+<td>no data</td>
+<td>-</td>
+<td>the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays</td>
+</tr>
+<tr>
+<td>6.22:CC1</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source</td>
+</tr>
+<tr>
+<td>6.22:CC2</td>
+<td>no data</td>
+<td>-</td>
+<td>GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source</td>
+</tr>
+<tr>
+<td>6.22:CC4</td>
+<td>replace</td>
+<td>GEN.684</td>
+<td>albedo and greenhouse from the composition (the ground and cloud albedo) delete the regime ranges</td>
+</tr>
+<tr>
+<td>6.22:CC6</td>
+<td>no data</td>
+<td>-</td>
+<td>the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity</td>
+</tr>
+<tr>
+<td>6.22:CC10</td>
+<td>no data</td>
+<td>-</td>
+<td>the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity</td>
+</tr>
+<tr>
+<td>6.23:TR3</td>
+<td>no data</td>
+<td>-</td>
+<td>the form follows from physics (a suspension has no static rigidity); the floor is the lowest value that keeps the Io state's k2 under the fluid limit, and no measurement of the rigidity of a partial melt at planetary scale exists</td>
+</tr>
+<tr>
+<td>6.23:TR10</td>
+<td>no data</td>
+<td>-</td>
+<td>measured tidal Q of cold rock (Moon 38 to 41, Mars 86) lies far under the ceiling, so it constrains the ceiling only from below; the seismic Q the row cited is another frequency; no tidal Q above 100 is measured; tier T6, tweak L3 stay</td>
+</tr>
+<tr>
+<td>6.26:GS4</td>
+<td>no data</td>
+<td>-</td>
+<td>the distribution of the last impactor by planet mass is in [R0036, R2432] as figures and fits we do not hold as a table; a table of the last impact's mass ratio by planet mass replaces the isolation mass and steepness (the planet-formation train can give the isolation mass of the disc, formation.isolation_mass_kg)</td>
+</tr>
+<tr>
+<td>6.26:GS5</td>
+<td>no data</td>
+<td>-</td>
+<td>the same N-body table replaces the log-uniform range of the last giant impact</td>
+</tr>
+<tr>
+<td>6.26:GS6</td>
+<td>no data</td>
+<td>-</td>
+<td>the same N-body table (the planetesimal-built embryos) replaces the log-uniform range</td>
+</tr>
+<tr>
+<td>6.36:PA1</td>
+<td>no data</td>
+<td>-</td>
+<td>no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU [R1479], and a measured pebble-flux model replaces them</td>
+</tr>
+<tr>
+<td>6.36:PA2</td>
+<td>no data</td>
+<td>-</td>
+<td>the share of cores that find gas is tuned to the giant occurrence and its rise with [Fe/H] [R2172]; no survey measures the disc lifetime it stands for</td>
+</tr>
+<tr>
+<td>6.36:PA3</td>
+<td>no data</td>
+<td>-</td>
+<td>the starting count of the inner chain is tuned to the [R4898] multiplicities after the formation-era dynamics build (GEN.730); the starting count of a real disc is not observed</td>
+</tr>
+<tr>
+<td>6.36:PA4</td>
+<td>no data</td>
+<td>-</td>
+<td>the masses of the Kepler planets are measured for few; the scale is tuned to the 1 to 10 Earth-mass range of [R4897] and its trend with host mass and metallicity</td>
+</tr>
+<tr>
+<td>6.36:PA5</td>
+<td>no data</td>
+<td>-</td>
+<td>[R4660] measure the pair ratio, not the spread of masses a system starts with; tuned to the 65 percent outer-larger share</td>
+</tr>
+<tr>
+<td>6.36:PA6</td>
+<td>no data</td>
+<td>-</td>
+<td>the starting spacing is tuned to the Pu and Wu 2015 and [R4660] spacings after the instability build (GEN.730); the spacing before the instability is not observed</td>
+</tr>
+<tr>
+<td>6.36:PA7</td>
+<td>no data</td>
+<td>-</td>
+<td>the inner edge of the chain is measured as a fall of occurrence inside 10 days [R3196]; the median period and width are tuned to the Kepler rise with period</td>
+</tr>
+<tr>
+<td>6.36:PA9</td>
+<td>no data</td>
+<td>-</td>
+<td>the share 0.0092 now sits between two read statistics ([R4897]: 0.62 percent Kepler, 0.9 to 1.2 percent radial velocity), but the row also holds the metallicity exponent 2.2 and the period range, which no survey constrains separately; the row stays L3 until they are split</td>
+</tr>
+<tr>
+<td>6.36:PA10</td>
+<td>no data</td>
+<td>-</td>
+<td>the inward move of other giants is tuned to the 1 to 3 AU peak of [R0960, R1479]; no survey measures the migration</td>
+</tr>
+<tr>
+<td>6.36:PA11</td>
+<td>no data</td>
+<td>-</td>
+<td>[R4271] (read) give the planet counts per log mass ratio beyond the snow line down to their sensitivity edge but no floor below it; the lightest oligarch that counts stays tuned to those counts; tier T5, tweak L3 stay</td>
+</tr>
+<tr>
+<td>6.36:PA14</td>
+<td>no data</td>
+<td>-</td>
+<td>a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide</td>
+</tr>
+<tr>
+<td>6.40:RD1</td>
+<td>no data</td>
+<td>-</td>
+<td>no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it</td>
+</tr>
+<tr>
+<td>6.40:RD2</td>
+<td>no data</td>
+<td>-</td>
+<td>no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount</td>
+</tr>
+<tr>
+<td>6.40:RD3</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement of rocky exoplanet pressures by depth below the shoreline exists; GEN.483 derives the caps at these edges from the Solar System</td>
+</tr>
+<tr>
+<td>6.40:RD5</td>
+<td>no data</td>
+<td>-</td>
+<td>the 100 K is the width over which the equilibrium lines move with pressure and metallicity; a population of hot-giant chemistry regimes has not been measured</td>
+</tr>
+<tr>
+<td>6.41:TK2</td>
+<td>no data</td>
+<td>-</td>
+<td>the line between hydrated and primitive bodies is fitted to the C to P change of the belt; no model of aqueous alteration against ice content reaches it, and no belt outside the Solar System is resolved into taxa</td>
+</tr>
+<tr>
+<td>6.41:TK5</td>
+<td>no data</td>
+<td>-</td>
+<td>the accretion spread was recalled and is now read: [R2677] give core formation under about 1 Myr in the first reservoir and 1.8 to 4 Myr in the second, consistent with the 3 Myr; the value remains the one Solar System spread tuned by the melting test, no other system dates its planetesimals; tier T3, tweak L3 stay</td>
+</tr>
+<tr>
+<td>6.43:BM2</td>
+<td>no data</td>
+<td>-</td>
+<td>the words dense, sparse and typical are labels for the spread of belt masses at one age; no survey resolves the masses of belts of asteroids, and the factor of 3 is a choice of where the words change</td>
+</tr>
+<tr>
+<td>6.44:MG2</td>
+<td>no data</td>
+<td>-</td>
+<td>the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only</td>
+</tr>
+<tr>
+<td>6.47:SE4</td>
+<td>replaced</td>
+<td>-</td>
+<td>the tail now comes from the isotope record of [R4475] (0.0077 events a year at 1e10 cm-2, power law -4 beyond); no longer hand-tuned; the pairing of fluence with peak flux stays McCracken's recalled number (tier T3, tweak L1)</td>
+</tr>
+<tr>
+<td>6.14:SP22</td>
+<td>no data</td>
+<td>-</td>
+<td>the generator holds no secular frequencies or fossil shapes to give the Cassini-state share of the inclination; a Laplace-Lagrange run of the generated system with the body's gravity field replaces the log-uniform share, which is kept inside Mercury's 0.004 and the bound 1</td>
+</tr>
+<tr>
+<td>6.51:PS14</td>
+<td>no data</td>
+<td>-</td>
+<td>the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin</td>
+</tr>
+<tr>
+<td>6.60:GM3</td>
+<td>no data</td>
+<td>-</td>
+<td>a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays</td>
+</tr>
+<tr>
+<td>6.60:GM7</td>
+<td>replace</td>
+<td>GEN.1006</td>
+<td>the 3+1 network of [R4575] replaces the margin inside its training range; outside it the margin stays, flagged lower confidence</td>
+</tr>
+<tr>
+<td>6.60:GM12</td>
+<td>replace</td>
+<td>GEN.1016</td>
+<td>the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it</td>
+</tr>
+<tr>
+<td>6.60:GM13</td>
+<td>replace</td>
+<td>GEN.1006</td>
+<td>the 3+1 axis margin of 1.3 is hand-tuned on 331 N-body systems; a larger own N-body sample (GEN.1006 section 9) or a retrained network replaces it</td>
+</tr>
+<tr>
+<td>6.60:GM14</td>
+<td>replaced</td>
+<td>-</td>
+<td>GEN.1155: the 2+2 axis margin is now 1.5, tuned (L2) to the paper's 0.94 precision on 302 + 185 own REBOUND 2+2 systems; it was the 3+1 margin of 1.3 with no 2+2 sample</td>
+</tr>
+<tr>
+<td>6.148:RGD1</td>
+<td>no data</td>
+<td>-</td>
+<td>the clean-ice reflectance and the half-darkening share of an ice and dark mixture are recalled ([R0814] was not read); the share is tuned to Saturn's ring reflectances, and a measured mixture curve replaces both</td>
+</tr>
+<tr>
+<td>6.71:RR1</td>
+<td>no data</td>
+<td>-</td>
+<td>the rate of a resonance ring on a small body has no survey behind it: the three known rings are of bodies chosen for occultation campaigns, and the count of bodies searched is not published as a rate</td>
+</tr>
+<tr>
+<td>6.71:RR4</td>
+<td>no data</td>
+<td>-</td>
+<td>the mass and width range of a thin resonance ring is bracketed by the optical depth it must give; the measured optical depth and width of Quaoar's ring were not read</td>
+</tr>
+<tr>
+<td>6.69:LQ3</td>
+<td>no data</td>
+<td>-</td>
+<td>the brine and ammonia-water eutectic densities, viscosities and boiling points are recalled values; laboratory brine tables (Pitzer-model compilations) can replace them when read</td>
+</tr>
+<tr>
+<td>6.69:LQ5</td>
+<td>no data</td>
+<td>-</td>
+<td>the molten iron sulfide and Fe-S eutectic melt properties are recalled; measured Fe-S melt properties (Terasaki et al.) replace them when read</td>
+</tr>
+<tr>
+<td>5.2:BC20</td>
+<td>no data</td>
+<td>-</td>
+<td>the share of giants with a ring is now an output of the fall and passage histories (<code>ring_origin</code>); no ring census of exoplanets is held, and Cassini's ring age and mass are argued, so the history's own stand-ins RO1 to RO6 carry it</td>
+</tr>
+<tr>
+<td>5.2:BC21</td>
+<td>no data</td>
+<td>-</td>
+<td>the edges of ring systems are measured for four giants only; the outer edge against the Roche limit and the inner edge in planet radii have no second sample</td>
+</tr>
+<tr>
+<td>5.2:BC22</td>
+<td>no data</td>
+<td>-</td>
+<td>the kind limits are the middles of the gaps between four Solar System rings; a second sample of measured ring masses replaces them</td>
+</tr>
+<tr>
+<td>5.2:BC23</td>
+<td>no data</td>
+<td>-</td>
+<td>the share a ring begins with is still drawn from this range (no measured ice share of a young ring exists); what the dust has done to it since is worked out (<code>rings.darken</code>, GEN.1055 R6)</td>
+</tr>
+<tr>
+<td>6.70:RO1</td>
+<td>no data</td>
+<td>-</td>
+<td>no simulation table of the ring left by a disrupted moon by composition is in hand; [R0414, R0637] disagree on the share</td>
+</tr>
+<tr>
+<td>6.70:RO2</td>
+<td>no data</td>
+<td>-</td>
+<td>the age of Saturn's rings is contested between 1e8 years and the age of the planet, and no other ring system is dated</td>
+</tr>
+<tr>
+<td>6.70:RO3</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey measures how often a ring-making comet passes inside a giant's Roche limit</td>
+</tr>
+<tr>
+<td>6.70:RO5</td>
+<td>no data</td>
+<td>-</td>
+<td>no N-body table of the share of a torn comet that stays in orbit by speed and periapsis is in hand; [R1140] gives a range only</td>
+</tr>
+<tr>
+<td>6.70:RO13</td>
+<td>no data</td>
+<td>-</td>
+<td>no impact-ejecta experiment on ring ice at ring meteoroid speeds gives the mass yield; the ejecta mass is argued over two decades</td>
+</tr>
+<tr>
+<td>6.70:RO14</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of the inner moonlets of giants outside the four of the Solar System is in hand</td>
+</tr>
+<tr>
+<td>6.70:RO16</td>
+<td>no data</td>
+<td>-</td>
+<td>no impact-ejecta experiment on a small moon's surface gives the kept share of the dust</td>
+</tr>
+<tr>
+<td>6.74:SH3</td>
+<td>no data</td>
+<td>-</td>
+<td>the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them</td>
+</tr>
+<tr>
+<td>6.78:GT3</td>
+<td>replace</td>
+<td>GEN.1058</td>
+<td>the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor</td>
+</tr>
+<tr>
+<td>6.96:IO2</td>
+<td>no data</td>
+<td>-</td>
+<td>fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held</td>
+</tr>
+<tr>
+<td>6.96:IO4</td>
+<td>no data</td>
+<td>-</td>
+<td>no family velocity field is held beyond the recalled tens to hundreds of m/s; the first one replaces the range</td>
+</tr>
+<tr>
+<td>6.83:SX2</td>
+<td>no data</td>
+<td>-</td>
+<td>no simulation or survey gives the captured share of a swept span for a given migration; replaced by the resonant populations of a Neptune-migration run</td>
+</tr>
+<tr>
+<td>6.83:SX3</td>
+<td>no data</td>
+<td>-</td>
+<td>the ejected share of a scattering giant is not tabulated by Safronov number; replaced when the scattering simulations are read</td>
+</tr>
+<tr>
+<td>6.83:SX4</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey statistic gives a hot to cold share for an arbitrary system; the observed classical populations are the only count</td>
+</tr>
+<tr>
+<td>6.83:SX5</td>
+<td>no data</td>
+<td>-</td>
+<td>the split of the bound swept mass among scattered, centaur, detached, trojan, implanted and moon populations is not measured; replaced by a population synthesis</td>
+</tr>
+<tr>
+<td>6.95:BR20</td>
+<td>no data</td>
+<td>-</td>
+<td>the size-frequency of the main belt above 40 km ([R0484] and the catalogue counts) was not reachable: the paper is not on arXiv and no catalogue was fetched; Ivezic et al. measured only to 40 km. Any census of bodies above 100 km replaces the break and the steep slope</td>
+</tr>
+<tr>
+<td>6.100:CM14</td>
+<td>no data</td>
+<td>-</td>
+<td>the share a gas disc adds by drag is in no paper reached: [R3560] is the abstract only (NTRS), [R0956] is not reachable, and the two reviews read [R2158, R4055] give the gate and size window (CM18) and call the model weakly constrained; the first measured capture simulation of the drag channel replaces it</td>
+</tr>
+<tr>
+<td>6.98:BW2</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement of surface winds across the thin-air range (Mars, Pluto, Triton) gives the fade's shape; the first drag-law fit from surface wind data replaces it</td>
+</tr>
+<tr>
+<td>6.98:BW4</td>
+<td>no data</td>
+<td>-</td>
+<td>tuned to the Earth's mid-latitude surface wind; a boundary-layer drag law on the surface roughness replaces it when the surface roughness is stored</td>
+</tr>
+<tr>
+<td>6.98:BW5</td>
+<td>no data</td>
+<td>-</td>
+<td>the Earth's night to day wind ratio is the only value held; a stable boundary-layer model replaces it</td>
+</tr>
+<tr>
+<td>6.87:RK7</td>
+<td>no data</td>
+<td>-</td>
+<td>the stored Loss record holds no closest approach (distance, formation distance, time, scatterer orbit and mass, Safronov number, Hill radius only); the curve through three measured points stays until a deterministic closest approach is derived from the scatterer geometry</td>
+</tr>
+<tr>
+<td>6.112:MO2</td>
+<td>no data</td>
+<td>-</td>
+<td>the stored Loss record holds no closest approach; the curve through two printed points stays until a deterministic closest approach is derived from the scatterer geometry</td>
+</tr>
+<tr>
+<td>6.86:TU1</td>
+<td>no data</td>
+<td>-</td>
+<td>the level ceilings are the numbers of the Rogues dropdown that Boss sets, a display choice and not a research rate; tier stays</td>
+</tr>
+<tr>
+<td>6.86:TU2</td>
+<td>no data</td>
+<td>-</td>
+<td>uniform placement is the neutral choice; the smoothed rogue field (GEN.1115) is the only thing that could change it</td>
+</tr>
+<tr>
+<td>6.86:TU3</td>
+<td>no data</td>
+<td>-</td>
+<td>top-up rogues have no donor and no ejection record by design (apparent origin), so there is no scatterer distance to read; the drawn range stays</td>
+</tr>
+<tr>
+<td>6.108:TF1</td>
+<td>replace</td>
+<td>GEN.1103</td>
+<td>a physical source for the mass the Rogues level cannot hold (the unbound remnants of the channels of section 6.103) replaces the stand-in origin</td>
+</tr>
+<tr>
+<td>6.108:TF2</td>
+<td>replace</td>
+<td>GEN.1103</td>
+<td>the size-frequency law of the collisional fields sets the largest body and the density of the pieces</td>
+</tr>
+<tr>
+<td>6.108:TF3</td>
+<td>no data</td>
+<td>-</td>
+<td>nothing measures the spread of a field that was never observed; the dispersion of a real source (IF12) is the only thing that could replace it</td>
+</tr>
+<tr>
+<td>6.108:TF4</td>
+<td>no data</td>
+<td>-</td>
+<td>the counts and masses are chosen to keep a sector's top-up to a dozen clouds; no measurement exists to replace them</td>
+</tr>
+<tr>
+<td>6.97:BG14</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey gives the mass of the warm dust of an inner belt well enough to set the least mass a belt keeps; the value is set so the share of main-sequence systems with an inner belt lands near 9 percent, inside the 4 to 14 percent of GEN.1156, and a size law with each belt's own largest body (GEN.566) or a dust survey would replace it</td>
+</tr>
+<tr>
+<td>6.117:BHS3</td>
+<td>no data</td>
+<td>-</td>
+<td>no source gives the share of a belt (as against a planet system) that a star's sudden mass loss destabilises; the value is set so the white dwarf pollution the model gives is in the observed range, and any N-body run of a belt round a mass-losing star replaces it</td>
+</tr>
+<tr>
+<td>6.118:IP5</td>
+<td>no data</td>
+<td>-</td>
+<td>no paper gives the gas-drag share against the three-body channel ([R3560] only as an abstract, [R0956] not reached); a gas-drag capture run of the generated envelope replaces it</td>
+</tr>
+<tr>
+<td>6.118:IP8</td>
+<td>no data</td>
+<td>-</td>
+<td>no binary-exchange run gives the size of the captured body for a general disc; the design's few hundred km is the only guide</td>
+</tr>
+<tr>
+<td>6.118:IP10</td>
+<td>no data</td>
+<td>-</td>
+<td>the disruption size ratio is an energy argument from recalled strengths, not a measurement; the size-dependent strength of a cascade run of the generator's own population replaces it</td>
+</tr>
+<tr>
+<td>6.119:CP3</td>
+<td>no data</td>
+<td>-</td>
+<td>no source gives how many pieces a captured parent was made of; the Himalia group's four known members are the only guide, and a parent built from the disc's own bodies (belt design) replaces it</td>
+</tr>
+<tr>
+<td>6.121:TJ4</td>
+<td>no data</td>
+<td>-</td>
+<td>no source read gives the leading share of a swarm; the capture history of the generated giant replaces it</td>
+</tr>
+<tr>
+<td>6.121:TJ5</td>
+<td>no data</td>
+<td>-</td>
+<td>no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them</td>
+</tr>
+<tr>
+<td>6.41:TK6</td>
+<td>no data</td>
+<td>-</td>
+<td>the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to</td>
+</tr>
+<tr>
+<td>6.130:AB1</td>
+<td>replace</td>
+<td>GEN.804</td>
+<td>the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it</td>
+</tr>
+<tr>
+<td>6.43:LB1</td>
+<td>replaced</td>
+<td>-</td>
+<td>GEN.1000: each belt's largest body now comes from the size law (<code>belt_ledger.belt_state</code>: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone</td>
+</tr>
+<tr>
+<td>6.45:MF1</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it</td>
+</tr>
+<tr>
+<td>6.125:TB3</td>
+<td>no data</td>
+<td>-</td>
+<td>no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it</td>
+</tr>
+<tr>
+<td>6.125:TB4</td>
+<td>no data</td>
+<td>-</td>
+<td>no source read gives the shortest disc life for a trojan to grow; a formation map replaces it</td>
+</tr>
+<tr>
+<td>6.150:CF<sub>2</sub></td>
+<td>no data</td>
+<td>-</td>
+<td>the 0.5 g and 2 g lines of the habitable classes have no measured soft edge; the width is hand-picked until the GEN.1207 sweep shows how far the class scatter reaches</td>
+</tr>
+<tr>
+<td>6.150:CF<sub>3</sub></td>
+<td>no data</td>
+<td>-</td>
+<td>the temperature shoulder is hand-picked; a measured scatter of one class at fixed insolation would replace it</td>
+</tr>
+<tr>
+<td>6.150:CF<sub>4</sub></td>
+<td>no data</td>
+<td>-</td>
+<td>the pressure shoulder is hand-picked on a log scale; no source gives a soft edge for the survival pressure limits</td>
+</tr>
+<tr>
+<td>6.150:CF5</td>
+<td>no data</td>
+<td>-</td>
+<td>the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width</td>
+</tr>
+<tr>
+<td>6.150:CF6</td>
+<td>no data</td>
+<td>-</td>
+<td>the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies</td>
+</tr>
+<tr>
+<td>6.150:CF7</td>
+<td>no data</td>
+<td>-</td>
+<td>the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits</td>
+</tr>
+<tr>
+<td>6.155:LR1</td>
+<td>no data</td>
+<td>-</td>
+<td>the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score</td>
+</tr>
+<tr>
+<td>6.155:LR2</td>
+<td>no data</td>
+<td>-</td>
+<td>the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class</td>
+</tr>
+<tr>
+<td>6.155:LR3</td>
+<td>no data</td>
+<td>-</td>
+<td>the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class</td>
+</tr>
+<tr>
+<td>6.155:LR5</td>
+<td>no data</td>
+<td>-</td>
+<td>the milestone each kind spreads after is a hand-picked reading of the life timeline; the stored schedule of the world replaces it where there is one</td>
+</tr>
+<tr>
+<td>6.126:RN3</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1</td>
+</tr>
+<tr>
+<td>6.126:RN5</td>
+<td>no data</td>
+<td>-</td>
+<td>no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it</td>
+</tr>
+<tr>
+<td>6.129:IT9</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength</td>
+</tr>
+<tr>
+<td>6.59:CK1</td>
+<td>replace</td>
+<td>GEN.1021</td>
+<td>the N<sub>2</sub> and Ar trapping shares are tuned to the one comet measured (67P); a second comet's N<sub>2</sub> or Ar per water replaces them</td>
+</tr>
+<tr>
+<td>6.59:CK2</td>
+<td>replace</td>
+<td>GEN.1021</td>
+<td>the OCS and SO<sub>2</sub> trapping shares are tuned to the one comet measured (67P); a second comet's sulfur species replace them</td>
+</tr>
+<tr>
+<td>6.59:CK5</td>
+<td>replace</td>
+<td>GEN.1021</td>
+<td>O<sub>2</sub>, krypton and xenon per water are the 67P values with no host ratio; a second comet's values replace them</td>
+</tr>
+<tr>
+<td>6.136:CC7</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured viscosity of the lowest mantle at the core-mantle boundary; the Earth's core temperature and inner core size are the only constraint it is tuned to</td>
+</tr>
+<tr>
+<td>6.136:CC9</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement of the shell thickness at which a core dynamo dies; Mars and the Earth are the only two points</td>
+</tr>
+<tr>
+<td>6.142:DY7</td>
+<td>no data</td>
+<td>-</td>
+<td>the core model has the pure-iron liquidus only; no sulfur-bearing melting curve is held, and the first one replaces the stand-in moment of a small iron-rich body</td>
+</tr>
+<tr>
+<td>6.160:LUM2</td>
+<td>no data</td>
+<td>-</td>
+<td>the roundness a lump is drawn with when none is stored is a picture choice; the stored ratio of every system made after GEN.1159 replaces it, and nothing measures the shape of a body that was never stored</td>
+</tr>
+<tr>
+<td>6.160:LUM4</td>
+<td>no data</td>
+<td>-</td>
+<td>the bump height is tuned by eye; a stored relief or a fitted power spectrum of small-body topography (no source in hand) would replace it</td>
+</tr>
+<tr>
+<td>6.161:FM1</td>
+<td>no data</td>
+<td>-</td>
+<td>the line is the belts' (BG14): no survey measures the dust of a field; it goes where BG14 goes</td>
+</tr>
+<tr>
+<td>6.161:FM2</td>
+<td>no data</td>
+<td>-</td>
+<td>no model or measurement of the size distribution of the rubble of a planet-planet collision is in hand; the rocky main-belt law stands in until the largest-fragment reading (LS12)</td>
+</tr>
+<tr>
+<td>6.166:IHA1</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured viscosity of any rocky planet's mantle other than the Earth's is in hand; the prefactor is retuned to hold the reference viscosity, not fitted to a planet</td>
+</tr>
+<tr>
+<td>6.53:DU1</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey measures the dust of the disks this generator builds; the limit at the Sun's temperature stands where the A, F, G and K dwarfs hold a disk as often as the surveys find (GEN.1278 made it fall with the cube of the star's temperature and summed the dust of a wide belt's rings), and goes when the outer disk's mass and width come from a planetesimal-formation model or each survey's own flux limit is used</td>
+</tr>
+<tr>
+<td>6.185:BPO1</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of another star's outer disk gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it</td>
+</tr>
+<tr>
+<td>6.185:BPO2</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it</td>
+</tr>
+<tr>
+<td>6.185:BPO3</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it</td>
+</tr>
+<tr>
+<td>6.185:BPO4</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it</td>
+</tr>
+<tr>
+<td>6.183:DM1</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff</td>
+</tr>
+<tr>
+<td>6.183:DM2</td>
+<td>no data</td>
+<td>-</td>
+<td>no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C</td>
+</tr>
+<tr>
+<td>6.183:DM3</td>
+<td>no data</td>
+<td>-</td>
+<td>no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does</td>
+</tr>
+<tr>
+<td>6.183:DM5</td>
+<td>no data</td>
+<td>-</td>
+<td>the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md)</td>
+</tr>
+<tr>
+<td>6.183:DM6</td>
+<td>no data</td>
+<td>-</td>
+<td>no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep</td>
+</tr>
+<tr>
+<td>6.183:DM7</td>
+<td>no data</td>
+<td>-</td>
+<td>no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened</td>
+</tr>
+<tr>
+<td>6.183:DM8</td>
+<td>no data</td>
+<td>-</td>
+<td>no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit</td>
+</tr>
+<tr>
+<td>6.183:DM9</td>
+<td>no data</td>
+<td>-</td>
+<td>no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve</td>
+</tr>
+<tr>
+<td>6.91:SS16</td>
+<td>no data</td>
+<td>-</td>
+<td>the Blue edge and the Blue share are a lenient cut set on a sweep of generated bodies (Boss: near 0.8 livable); a survey of what people call a comfortable world would replace them</td>
+</tr>
+<tr>
+<td>6.91:SS17</td>
+<td>no data</td>
+<td>-</td>
+<td>the credit for a place that needs a suit is a design choice so a suit-everywhere world reads Yellow, not Red; Boss's decision on that reading would replace it</td>
+</tr>
+<tr>
+<td>6.170:RNG2</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured slope of a dust ring (Jupiter, Uranus, Neptune) is in hand; a dark red-brown ring was wanted and the slope is a picture choice</td>
+</tr>
+<tr>
+<td>6.170:RNG5</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured albedo of a dust ring is in hand; an educated guess between the ice ring and the dark sooty ones</td>
+</tr>
+<tr>
+<td>6.170:RNG6</td>
+<td>no data</td>
+<td>-</td>
+<td>display choices (gain, opacity floor and ceiling) of the ring picture; a rendering model that works the light of the ring would replace them</td>
+</tr>
+<tr>
+<td>6.170:RNG8</td>
+<td>no data</td>
+<td>-</td>
+<td>the drawn gap widths and the ringlet pattern are a picture; a ring structure worked out from the ring's dynamics would replace them</td>
+</tr>
+<tr>
+<td>6.170:RNG10</td>
+<td>no data</td>
+<td>-</td>
+<td>the glow of a hot body is tuned by eye (1000 K dull red, 2000 K bright orange); a rendering model of the emitted light would replace it</td>
+</tr>
+<tr>
+<td>6.170:RNG11</td>
+<td>no data</td>
+<td>-</td>
+<td>the band count is fitted to the 30 and 17 jets seen on Jupiter and Saturn; the report's jet-speed law has no usable jet speed, so no derived count is in hand</td>
+</tr>
+<tr>
+<td>6.170:RNG13</td>
+<td>no data</td>
+<td>-</td>
+<td>no source gives a jet count for Uranus or Neptune; the 5 or 7 bands are needed output</td>
+</tr>
+<tr>
+<td>6.170:RNG18</td>
+<td>no data</td>
+<td>-</td>
+<td>no source gives a storm count law by rotation or heat flux; the 1 to 4 large storms are the design's</td>
+</tr>
+<tr>
+<td>6.170:RNG19</td>
+<td>no data</td>
+<td>-</td>
+<td>band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them</td>
+</tr>
+<tr>
+<td><code>6.3a:</code>--rogues``</td>
+<td>no data</td>
+<td>-</td>
+<td>the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings</td>
+</tr>
+<tr>
+<td>6.174:SKB3</td>
+<td>no data</td>
+<td>-</td>
+<td>the ends of the faint-light table are invented to close it; the share worked from the luminosity function of the generator's own stars would replace them</td>
+</tr>
+<tr>
+<td>6.174:SKB4</td>
+<td>no data</td>
+<td>-</td>
+<td>the cell, cube map and ray sizes are a picture's needs, chosen so the band is smooth; no source gives them</td>
+</tr>
+<tr>
+<td>6.174:GLW1</td>
+<td>no data</td>
+<td>-</td>
+<td>the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it</td>
+</tr>
+<tr>
+<td>6.176:SKT1</td>
+<td>no data</td>
+<td>-</td>
+<td>the visit budget is a serving limit chosen so a dust-free sky drops nothing; a coarser block draw for the sparse luminosity bands (a new draw and an epoch, not yet filed) would remove the need for it</td>
+</tr>
+<tr>
+<td>6.176:SKT4</td>
+<td>no data</td>
+<td>-</td>
+<td>the near-ring mass edges are spaced by hand over the lightest stars the sampler draws; a spacing taken from the mass-luminosity relation would replace them</td>
+</tr>
+<tr>
+<td>6.176:SKT5</td>
+<td>no data</td>
+<td>-</td>
+<td>the ring yield is a cost set by hand (100 stars drawn for each one that shows, as the heavier rings do); a cost per visible star set by the queue would replace it</td>
+</tr>
+<tr>
+<td>6.176:SKT6</td>
+<td>no data</td>
+<td>-</td>
+<td>the local mix weighs the young, intermediate and old populations alike, as near the Sun; the populations' densities at the observer, which a caller can pass, would replace it</td>
+</tr>
+<tr>
+<td>6.180:SKD1</td>
+<td>no data</td>
+<td>-</td>
+<td>the soft knee of the glow image is chosen by eye so the band shows at the faint end and the core does not clip; a display model of the eye's response to surface brightness would replace it</td>
+</tr>
+<tr>
+<td>6.180:SKD2</td>
+<td>no data</td>
+<td>-</td>
+<td>the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it</td>
+</tr>
+<tr>
+<td>6.180:SKD4</td>
+<td>no data</td>
+<td>-</td>
+<td>the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it</td>
+</tr>
+<tr>
+<td>6.180:SKD5</td>
+<td>no data</td>
+<td>-</td>
+<td>the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it</td>
+</tr>
+<tr>
+<td>6.181:SKL1</td>
+<td>no data</td>
+<td>-</td>
+<td>the peak magnitude of the star look is chosen by eye so the faint end shows and the bright end does not clip; a display model of the eye's response fitted to the dark-adapted sky would replace it</td>
+</tr>
+<tr>
+<td>6.181:SKL2</td>
+<td>no data</td>
+<td>-</td>
+<td>the width of a drawn star and its growth per magnitude are chosen by eye so a bright star looks brighter on a monitor that cannot make it so; the eye's point-spread function would replace them</td>
+</tr>
+<tr>
+<td>6.181:SKL3</td>
+<td>no data</td>
+<td>-</td>
+<td>the colour a faint star keeps is chosen by eye; the eye's loss of colour vision at low light (the display model of SKL1) would replace it</td>
+</tr>
+<tr>
+<td>6.181:SKL4</td>
+<td>no data</td>
+<td>-</td>
+<td>the phone's limiting magnitude is set from the plan's count of about 9,000 stars in step with the 15,000 cap; the frame time a phone measures would replace it</td>
+</tr>
+<tr>
+<td>6.181:SKL5</td>
+<td>no data</td>
+<td>-</td>
+<td>the star caps are the plan's phone count and a laptop's frame time at 60 frames a second; the count the frame time of the page's own machine allows would replace them</td>
+</tr>
+<tr>
+<td>6.181:SKL6</td>
+<td>no data</td>
+<td>-</td>
+<td>the speed that takes a third light-time pass is where the residual of two passes reaches a pixel of the finest view; no measured star needs a lower one</td>
+</tr>
+<tr>
+<td>6.181:SKL7</td>
+<td>no data</td>
+<td>-</td>
+<td>the pick reach is chosen so a pixel-sized star can be hit by a mouse; a reach set by the pointer's kind (mouse, pen, touch) would replace it</td>
+</tr>
+<tr>
+<td>6.181:SKL8</td>
+<td>no data</td>
+<td>-</td>
+<td>the cap on charted names bounds the size of the route's meta; a name carried in the packed list or looked up on a pick would remove the need for it</td>
+</tr>
+<tr>
+<td>6.181:SKL9</td>
+<td>no data</td>
+<td>-</td>
+<td>the poll interval, poll count and phone width are serving limits so a poll does not hammer the route and ends; the build's own notice of completion would replace the poll</td>
+</tr>
+<tr>
+<td>6.178:PNE5</td>
+<td>no data</td>
+<td>-</td>
+<td>the hot-bottom-burning carbon to nitrogen share is set so a 5 solar mass progenitor is Type I; no source gives the surface abundances of hot-bottom-burning models by mass and metallicity</td>
+</tr>
+<tr>
+<td>6.178:PNE7</td>
+<td>no data</td>
+<td>-</td>
+<td>a safety limit that ends the carbon-rich draw loop; no draw is refused at solar metallicity</td>
+</tr>
+<tr>
+<td>6.179:NBC6</td>
+<td>no data</td>
+<td>-</td>
+<td>the grain kinds and their shares are recalled from Milky Way dust models (Draine and Li, Zubko et al.) and fitted inside the metals; no measured dust composition by nebula class is in hand</td>
+</tr>
+<tr>
+<td>6.179:NBC9</td>
+<td>no data</td>
+<td>-</td>
+<td>the dust survival shares are recalled from sputtering and reverse-shock literature; no measured dust share of an old remnant is in hand</td>
+</tr>
+<tr>
+<td>6.179:NBC10</td>
+<td>no data</td>
+<td>-</td>
+<td>the ionized, atomic and molecular shares by class are recalled from observed phase fractions; none is measured per class here</td>
+</tr>
+<tr>
+<td>6.179:NBC13</td>
+<td>no data</td>
+<td>-</td>
+<td>the wind share of a Wolf-Rayet ring is argued from the observed rings, not measured</td>
+</tr>
+<tr>
+<td>6.179:NBC22</td>
+<td>no data</td>
+<td>-</td>
+<td>the graphite share of interstellar carbon grains is not measured; the silicate-graphite-PAH and astrodust models disagree and the middle of their range is taken; any measured graphite fraction replaces it</td>
+</tr>
+<tr>
+<td>6.179:NBC23</td>
+<td>no data</td>
+<td>-</td>
+<td>no source measures the sputtering or shattering rate of silicon carbide in shocks; it is taken to survive like the silicates until one does</td>
+</tr>
+<tr>
+<td>6.190:CW2</td>
+<td>no data</td>
+<td>-</td>
+<td>no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses</td>
+</tr>
+<tr>
+<td>6.192:SEP1</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, hand-tuned against a Hill-sphere packing sweep (125, 27 and 27 sectors at 8,128, 4,000 and 1,500 pc); it goes when a nearest-neighbour distribution from catalogued stars is fitted</td>
+</tr>
+<tr>
+<td>6.189:HC2</td>
+<td>no data</td>
+<td>-</td>
+<td>L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined</td>
+</tr>
+<tr>
+<td>6.18:LF63</td>
+<td>no data</td>
+<td>-</td>
+<td>the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them</td>
+</tr>
+<tr>
+<td>6.18:LF64</td>
+<td>no data</td>
+<td>-</td>
+<td>no rated catalogue of worlds exists to fit the least Blue share</td>
+</tr>
+<tr>
+<td>6.18:LF65</td>
+<td>no data</td>
+<td>-</td>
+<td>no rated catalogue of worlds exists to fit the credit of a Yellow sample</td>
+</tr>
+<tr>
+<td>6.193:AW1</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136)</td>
+</tr>
+<tr>
+<td>6.18:LF66</td>
+<td>no data</td>
+<td>-</td>
+<td>no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors</td>
+</tr>
+<tr>
+<td>6.18:LF67</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes'</td>
+</tr>
+<tr>
+<td>6.18:LF68</td>
+<td>no data</td>
+<td>-</td>
+<td>the chance and share of an adapted life have no survey to fit; they are the draw's shape</td>
+</tr>
+<tr>
+<td>6.18:LF69</td>
+<td>no data</td>
+<td>-</td>
+<td>the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them</td>
+</tr>
+<tr>
+<td>6.18:LF70</td>
+<td>no data</td>
+<td>-</td>
+<td>five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress</td>
+</tr>
+<tr>
+<td>6.18:LF71</td>
+<td>no data</td>
+<td>-</td>
+<td>the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move</td>
+</tr>
+<tr>
+<td>6.18:LF72</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature</td>
+</tr>
+<tr>
+<td>6.198:AW6</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the class Z gravity floor 0.5 g was chosen from a sweep of 2,212 bodies (GEN.1306); it goes when the gravity edges of Z are fixed from heavy-world physics (GEN.1136)</td>
+</tr>
+<tr>
+<td>6.198:AW7</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the class Z temperature top 1500 K was chosen from the same sweep; it goes when the top is fixed from the temperature at which a thin air is lost (the retention fit)</td>
+</tr>
+<tr>
+<td>6.201:OP2</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology</td>
+</tr>
+<tr>
+<td>6.206:EC1</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it</td>
+</tr>
+<tr>
+<td>6.206:EC2</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the exponent 3 below 3.72 Earth masses was chosen so that the Earth and Venus come out bare and the 2 Earth-mass planets keep thin envelopes; no source was read for it, and a gas-capture model of a core in a disk of its own mass and temperature replaces it</td>
+</tr>
+<tr>
+<td>6.206:EC7</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime</td>
+</tr>
+<tr>
+<td>6.76:PF3</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the super-puff start share 0.05 of the 2 to 10 Earth-mass cores inside 100 days and the occurrence share 0.005 were fitted so that the gate passes the 0.84 percent of the sub-Neptunes the Kepler super-puffs make; they go when a survey of the super-puff share by core mass and period is in hand (GEN.1343)</td>
+</tr>
+<tr>
+<td>6.36:PA15</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems</td>
+</tr>
+<tr>
+<td>6.93:MT8</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey measures the energy ratios of the impacts that stripped rocky planets; the iron shares of the iron-rich planets read (Mercury, Kepler-107 c, [R3545]) lie inside the range, and a population-synthesis distribution of impact speeds and mass ratios would replace it</td>
+</tr>
+<tr>
+<td>6.222:PB6</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured weathering supply for a stagnant-lid body exists; Mars and Venus have no rivers to measure, so the erosion ratio stays a design choice</td>
+</tr>
+<tr>
+<td>6.222:PB7</td>
+<td>no data</td>
+<td>-</td>
+<td>the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land</td>
+</tr>
+<tr>
+<td>6.222:PB9</td>
+<td>no data</td>
+<td>-</td>
+<td>the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term</td>
+</tr>
+<tr>
+<td>6.222:PB10</td>
+<td>no data</td>
+<td>-</td>
+<td>the bands are a label for pages; the number drives the score, so no measurement can fix the band edges</td>
+</tr>
+<tr>
+<td>6.227:ORE1</td>
+<td>replace</td>
+<td>GEN.1383</td>
+<td>the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened</td>
+</tr>
+<tr>
+<td>6.227:ORE2</td>
+<td>replace</td>
+<td>GEN.1383</td>
+<td>the craton share and age floor come from the continental growth model of that item</td>
+</tr>
+<tr>
+<td>6.227:ORE3</td>
+<td>no data</td>
+<td>-</td>
+<td>no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts</td>
+</tr>
+<tr>
+<td>6.227:ORE5</td>
+<td>no data</td>
+<td>-</td>
+<td>the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist</td>
+</tr>
+<tr>
+<td>6.235:CH<sub>3</sub></td>
+<td>no data</td>
+<td>-</td>
+<td>the counts, sizes and windows are design choices; no carbon-rich body has a surveyed endowment</td>
+</tr>
+<tr>
+<td>6.224:HT2</td>
+<td>no data</td>
+<td>-</td>
+<td>the gate numbers are design choices; no source measures where a deposit class stops forming</td>
+</tr>
+<tr>
+<td>6.224:HT3</td>
+<td>no data</td>
+<td>-</td>
+<td>the ceilings are design choices; only the Earth's counts exist</td>
+</tr>
+<tr>
+<td>6.224:HT6</td>
+<td>no data</td>
+<td>-</td>
+<td>the windows are design choices; only the Earth's deposits by era exist</td>
+</tr>
+<tr>
+<td>6.224:HT7</td>
+<td>no data</td>
+<td>-</td>
+<td>the counts are design choices; only the Earth's deposits exist</td>
+</tr>
+<tr>
+<td>6.223:SD1</td>
+<td>no data</td>
+<td>-</td>
+<td>no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened</td>
+</tr>
+<tr>
+<td>6.223:SD2</td>
+<td>no data</td>
+<td>-</td>
+<td>the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists</td>
+</tr>
+<tr>
+<td>6.223:SD3</td>
+<td>no data</td>
+<td>-</td>
+<td>the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists</td>
+</tr>
+<tr>
+<td>6.223:SD4</td>
+<td>no data</td>
+<td>-</td>
+<td>the basin count and the drying temperature are set by the design; only the Earth's evaporite totals exist</td>
+</tr>
+<tr>
+<td>6.223:SD5</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey says how many carbonate platforms a planet with an ocean has; the Earth is the one case</td>
+</tr>
+<tr>
+<td>6.223:SD6</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey says how many chert beds a planet with complex life has; the Earth is the one case</td>
+</tr>
+<tr>
+<td>6.223:SD7</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey says how many coal fields a planet with forests has; the Earth is the one case</td>
+</tr>
+<tr>
+<td>6.223:SD8</td>
+<td>no data</td>
+<td>-</td>
+<td>no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case</td>
+</tr>
+<tr>
+<td>6.223:SD9</td>
+<td>no data</td>
+<td>-</td>
+<td>the reference window is a design choice; only the Earth's deposits by era exist</td>
+</tr>
+<tr>
+<td>6.213:DSC5</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the split of the nitrogen between N<sub>2</sub> (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N<sub>2</sub> and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand</td>
+</tr>
+<tr>
+<td>6.228:SV7</td>
+<td>replace</td>
+<td>GEN.1425</td>
+<td>L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge</td>
+</tr>
+<tr>
+<td>6.228:SV8</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, no measurement of the SO<sub>3</sub> share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out</td>
+</tr>
+<tr>
+<td>6.229:CV10</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it</td>
+</tr>
+<tr>
+<td>6.229:CG1</td>
+<td>replace</td>
+<td>GEN.1425</td>
+<td>L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it</td>
+</tr>
+<tr>
+<td>6.229:CG2</td>
+<td>no data</td>
+<td>-</td>
+<td>L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would</td>
+</tr>
+<tr>
+<td>6.236:ISO4</td>
+<td>no data</td>
+<td>-</td>
+<td>no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to</td>
+</tr>
+<tr>
+<td>6.236:ISO8</td>
+<td>no data</td>
+<td>-</td>
+<td>the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

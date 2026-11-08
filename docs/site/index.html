@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation site - planetGen docs</title>
+<meta name="description" content="Every Markdown document of the planetGen repository as a web page, with a menu and search.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="./index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"></header>
+<div class="layout">
+<nav id="nav" data-root="./" data-here="index.html"><a href="./index.html">Site index</a></nav>
+<main>
+<h1>planetGen documentation</h1>
+<p class="meta">Built by scripts/build_docs_site.py from the Markdown files in the repository. Search with the box at the top.</p>
+<h2>Start here</h2><ul class="cards">
+<li><a href="README.html">planetGen documentation</a> <small class="meta">README.html</small></li>
+<li><a href="REFERENCES.html">References</a> <small class="meta">REFERENCES.html</small></li>
+<li><a href="TODO.html">planetGen Roadmap</a> <small class="meta">TODO.html</small></li>
+</ul>
+<h2>Reference: using and configuring the program</h2><ul class="cards">
+<li><a href="reference/api-compatibility.html">API compatibility</a> <small class="meta">reference/api-compatibility.html</small></li>
+<li><a href="reference/api.html">planetGen API</a> <small class="meta">reference/api.html</small></li>
+<li><a href="reference/atmosphere-colour.html">The atmosphere colour</a> <small class="meta">reference/atmosphere-colour.html</small></li>
+<li><a href="reference/atmosphere-data-model.html">The atmosphere data model</a> <small class="meta">reference/atmosphere-data-model.html</small></li>
+<li><a href="reference/bulk-composition-data-model.html">The bulk composition data model</a> <small class="meta">reference/bulk-composition-data-model.html</small></li>
+<li><a href="reference/ci-runners.html">Running CI on your own computers (optional)</a> <small class="meta">reference/ci-runners.html</small></li>
+<li><a href="reference/cli.html">Command-line reference</a> <small class="meta">reference/cli.html</small></li>
+<li><a href="reference/config.html">Deployment Configuration</a> <small class="meta">reference/config.html</small></li>
+<li><a href="reference/database-schema.html">planetGen Database Format</a> <small class="meta">reference/database-schema.html</small></li>
+<li><a href="reference/example-systems.html">Example System Files</a> <small class="meta">reference/example-systems.html</small></li>
+<li><a href="reference/html-interface.html">planetGen Web Interface</a> <small class="meta">reference/html-interface.html</small></li>
+<li><a href="reference/logging.html">Log output</a> <small class="meta">reference/logging.html</small></li>
+<li><a href="reference/system-file-format.html">System Specification Files</a> <small class="meta">reference/system-file-format.html</small></li>
+<li><a href="reference/testing.html">Testing</a> <small class="meta">reference/testing.html</small></li>
+</ul>
+<h2>Deployment</h2><ul class="cards">
+<li><a href="deployment/README.html">Deploying planetGen</a> <small class="meta">deployment/README.html</small></li>
+<li><a href="deployment/WINDOWS.html">Windows</a> <small class="meta">deployment/WINDOWS.html</small></li>
+<li><a href="deployment/apache.html">Apache2 + mod_wsgi on Linux</a> <small class="meta">deployment/apache.html</small></li>
+<li><a href="deployment/caddy.html">Caddy + gunicorn on Linux</a> <small class="meta">deployment/caddy.html</small></li>
+<li><a href="deployment/fail2ban.html">Blocking login brute force with fail2ban</a> <small class="meta">deployment/fail2ban.html</small></li>
+<li><a href="deployment/macos.html">macOS</a> <small class="meta">deployment/macos.html</small></li>
+<li><a href="deployment/nginx.html">nginx + gunicorn on Linux</a> <small class="meta">deployment/nginx.html</small></li>
+<li><a href="deployment/paas.html">VPS and platform-as-a-service hosting</a> <small class="meta">deployment/paas.html</small></li>
+<li><a href="deployment/server-checklist.html">Server checklist: confirm the site loads</a> <small class="meta">deployment/server-checklist.html</small></li>
+</ul>
+<h2>Design notes</h2><ul class="cards">
+<li><a href="design/README.html">Design notes</a> <small class="meta">design/README.html</small></li>
+<li><a href="design/architecture/architecture.html">Architecture: how planetGen fits together</a> <small class="meta">design/architecture/architecture.html</small></li>
+<li><a href="design/architecture/command-inventory.html">Every command does one thing: the command inventory</a> <small class="meta">design/architecture/command-inventory.html</small></li>
+<li><a href="design/architecture/design-decisions.html">Major design decisions</a> <small class="meta">design/architecture/design-decisions.html</small></li>
+<li><a href="design/architecture/designation-history.html">Designation history: names and IDs may change, the past is kept (GEN.1121)</a> <small class="meta">design/architecture/designation-history.html</small></li>
+<li><a href="design/architecture/library-migration.html">Library migration and code layout</a> <small class="meta">design/architecture/library-migration.html</small></li>
+<li><a href="design/architecture/mass-object-class.html">What one master "mass object" class would save, with a 10 m floor</a> <small class="meta">design/architecture/mass-object-class.html</small></li>
+<li><a href="design/architecture/math-and-library-efficiency.html">Math and library efficiency: where the heavy math runs, what already uses optimized libraries, and what to change</a> <small class="meta">design/architecture/math-and-library-efficiency.html</small></li>
+<li><a href="design/architecture/numeric-precision-audit.html">Numeric precision audit at galactic scale (GEN.372)</a> <small class="meta">design/architecture/numeric-precision-audit.html</small></li>
+<li><a href="design/architecture/object-id-options.html">Unique IDs for every object: options, measurements, recommendation</a> <small class="meta">design/architecture/object-id-options.html</small></li>
+<li><a href="design/architecture/object-ids.html">Interstellar object IDs (GEN.64, replaced by GEN.1256)</a> <small class="meta">design/architecture/object-ids.html</small></li>
+<li><a href="design/architecture/system-description.html">System description: one model, many renderers</a> <small class="meta">design/architecture/system-description.html</small></li>
+<li><a href="design/architecture/unified-star-like-objects.html">One chain for everything that can be orbited: stars, star-like objects, planets, moons and wanderers</a> <small class="meta">design/architecture/unified-star-like-objects.html</small></li>
+<li><a href="design/architecture/unified-system-barycentre.html">One System rule: a central object, members that can be systems themselves, and the barycentre as the origin</a> <small class="meta">design/architecture/unified-system-barycentre.html</small></li>
+<li><a href="design/architecture/unified-unit-quantity.html">One unit and quantity class for everything the project measures</a> <small class="meta">design/architecture/unified-unit-quantity.html</small></li>
+<li><a href="design/architecture/units-and-number-formatting.html">Units, number formatting and the shared unit-ladder module</a> <small class="meta">design/architecture/units-and-number-formatting.html</small></li>
+<li><a href="design/composition/aerosol-tuning.html">Aerosols: the titanium cold trap, row h4 (GEN.519, partly built)</a> <small class="meta">design/composition/aerosol-tuning.html</small></li>
+<li><a href="design/composition/atmosphere-colour.html">Atmosphere colour: one consistent atmosphere, then its colour</a> <small class="meta">design/composition/atmosphere-colour.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html">01 Gas table: thermodynamics, phase data, vapour pressure curves, real-gas and mixture formulas</a> <small class="meta">design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.html">Part 02: Gas optics from the extreme UV to the near IR</a> <small class="meta">design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.html">Part 03: Infrared absorption, greenhouse efficiency and thermal structure from composition</a> <small class="meta">design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.html">Part 04: Photochemistry, ozone, lifetimes, escape, exospheres and secondary effects</a> <small class="meta">design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/05-mixing-ratios-by-class.html">Part 05: Mixing ratios by body class</a> <small class="meta">design/composition/atmosphere-composition-parts/05-mixing-ratios-by-class.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.html">Part 06: condensates, clouds, hazes, dust and minerals</a> <small class="meta">design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.html">07 Radiation: atmospheric shielding and ground sources</a> <small class="meta">design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.html">08A Verification of Boss's added research note (part A: sublimation, redox, radiative transfer, Rayleigh)</a> <small class="meta">design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.html">08 Verification of boss-added research note, part B (claims 1 to 6)</a> <small class="meta">design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/09-weighted-composition-tables.html">Part 09: weighted composition tables (draw tables for the generator)</a> <small class="meta">design/composition/atmosphere-composition-parts/09-weighted-composition-tables.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/10-verification-second-note-A.html">10 Verification of Boss's second research note (part A: cold ices, clathrates, brines, redox, lava vapour, visible CH4/NH3)</a> <small class="meta">design/composition/atmosphere-composition-parts/10-verification-second-note-A.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/10-verification-second-note-B.html">10 Verification of the second boss-added note, part B (claims 1 to 9: particles, doses, ionisation, kinetics)</a> <small class="meta">design/composition/atmosphere-composition-parts/10-verification-second-note-B.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/10-verification-second-note-C.html">10 Verification of the second owner note, part C (dust and haze, comet table, radioisotopes, stellar metallicity, giant-planet metallicity, licences)</a> <small class="meta">design/composition/atmosphere-composition-parts/10-verification-second-note-C.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/10-verification-second-note-D.html">10D Verification of Boss's second research note, part D (Rayleigh table, Parmentier and Guillot equation)</a> <small class="meta">design/composition/atmosphere-composition-parts/10-verification-second-note-D.html</small></li>
+<li><a href="design/composition/atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.html">NH3 photodissociation rate at 1 AU: why 5.6e3 s and 6.7e3 s differ, and what to use</a> <small class="meta">design/composition/atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.html</small></li>
+<li><a href="design/composition/atmosphere-composition.html">Atmosphere composition research: compounds, gases, condensates, radiation and the stats to compute with them</a> <small class="meta">design/composition/atmosphere-composition.html</small></li>
+<li><a href="design/composition/atmosphere-sources-check.html">Atmosphere colour chain: sources check (GEN.408)</a> <small class="meta">design/composition/atmosphere-sources-check.html</small></li>
+<li><a href="design/composition/atmosphere-state.html">The air's density, scale height and greenhouse warming from its mixture (GEN.423)</a> <small class="meta">design/composition/atmosphere-state.html</small></li>
+<li><a href="design/composition/atmospheric-escape-model.html">Atmospheric escape: a thermosphere model, Jeans and diffusion-limited loss, and the XUV history (GEN.738)</a> <small class="meta">design/composition/atmospheric-escape-model.html</small></li>
+<li><a href="design/composition/body-composition-parts/A-stars.html">Part A: Stars and stellar remnants (composition research, 2026-10-17)</a> <small class="meta">design/composition/body-composition-parts/A-stars.html</small></li>
+<li><a href="design/composition/body-composition-parts/B-rocky.html">Part B: rocky and iron planets, mantle mineralogy, equations of state</a> <small class="meta">design/composition/body-composition-parts/B-rocky.html</small></li>
+<li><a href="design/composition/body-composition-parts/C-volatile-and-giants.html">Part C: volatile-rich and gas bodies (ocean and ice worlds, sub-Neptunes, ice and gas giants, brown dwarfs, rogue planets)</a> <small class="meta">design/composition/body-composition-parts/C-volatile-and-giants.html</small></li>
+<li><a href="design/composition/body-composition-parts/D-small-bodies-moons.html">Part D: small bodies and moons (asteroids, comets, icy bodies, moons)</a> <small class="meta">design/composition/body-composition-parts/D-small-bodies-moons.html</small></li>
+<li><a href="design/composition/body-composition-parts/E-ground-radiogenic-shielding.html">Part E: surface ground, radiogenic heat, radiation shielding, material properties</a> <small class="meta">design/composition/body-composition-parts/E-ground-radiogenic-shielding.html</small></li>
+<li><a href="design/composition/body-composition-parts/F-boss-note-check.html">Part F: check of Boss's additional research note (2026-10-17, 1:22 AM EDT)</a> <small class="meta">design/composition/body-composition-parts/F-boss-note-check.html</small></li>
+<li><a href="design/composition/body-composition-parts/G1-comets.html">Part G1: Boss's second note, section 6 (comet volatiles and photochemical lifetimes)</a> <small class="meta">design/composition/body-composition-parts/G1-comets.html</small></li>
+<li><a href="design/composition/body-composition-parts/G2-radiogenic-thorngren.html">G2: check of Boss's second note, radiogenic ratios by body, stellar Th and U, Thorngren mass-metallicity</a> <small class="meta">design/composition/body-composition-parts/G2-radiogenic-thorngren.html</small></li>
+<li><a href="design/composition/body-composition-parts/G3-magma-ocean-lava.html">G3: magma-ocean redox, carbon solubility, outgassed split and lava-world vapour (check of Boss's second note, section 2)</a> <small class="meta">design/composition/body-composition-parts/G3-magma-ocean-lava.html</small></li>
+<li><a href="design/composition/body-composition-parts/G4-ices-brines-licences.html">G4: ices, brines and licences (check of Boss's second note, claims G4.1 to G4.7)</a> <small class="meta">design/composition/body-composition-parts/G4-ices-brines-licences.html</small></li>
+<li><a href="design/composition/body-composition-parts/H-gen465-second-pass-tables.html">Body composition part H: the GEN.465 second extraction pass and the water-share result (GEN.468)</a> <small class="meta">design/composition/body-composition-parts/H-gen465-second-pass-tables.html</small></li>
+<li><a href="design/composition/body-composition-research.html">Body composition: research findings and the composition design (draft for the 9.0 headline)</a> <small class="meta">design/composition/body-composition-research.html</small></li>
+<li><a href="design/composition/brown-dwarf-types.html">Brown dwarf type against temperature (GEN.517)</a> <small class="meta">design/composition/brown-dwarf-types.html</small></li>
+<li><a href="design/composition/bulk-composition-sources-check.html">Bulk composition chain: sources check (GEN.425)</a> <small class="meta">design/composition/bulk-composition-sources-check.html</small></li>
+<li><a href="design/composition/bulk-composition.html">Bulk composition: the fractions, the equation of state, the draws and the derived density, mass and gravity</a> <small class="meta">design/composition/bulk-composition.html</small></li>
+<li><a href="design/composition/clathrate-brine-wiring.html">Clathrate and brine limits in the generator (GEN.762)</a> <small class="meta">design/composition/clathrate-brine-wiring.html</small></li>
+<li><a href="design/composition/climate-branches.html">Climate branches: the ice-albedo feedback and the two climates of one flux (GEN.1046, with GEN.972)</a> <small class="meta">design/composition/climate-branches.html</small></li>
+<li><a href="design/composition/cloud-albedo.html">Cloud albedo on the surface-air fixed point (GEN.974)</a> <small class="meta">design/composition/cloud-albedo.html</small></li>
+<li><a href="design/composition/comet-admission.html">The comet admission model (GEN.507)</a> <small class="meta">design/composition/comet-admission.html</small></li>
+<li><a href="design/composition/comet-composition-tuning.html">The comet composition rows k1 to k5 and k7 (GEN.520)</a> <small class="meta">design/composition/comet-composition-tuning.html</small></li>
+<li><a href="design/composition/comet-species-model.html">The comet species model (GEN.1005, k7)</a> <small class="meta">design/composition/comet-species-model.html</small></li>
+<li><a href="design/composition/composition-model.html">The composition model: what every body, star and atmosphere is made of</a> <small class="meta">design/composition/composition-model.html</small></li>
+<li><a href="design/composition/composition-spine-contracts.html">Composition spine: interface contracts (lane I, 2026-10-23)</a> <small class="meta">design/composition/composition-spine-contracts.html</small></li>
+<li><a href="design/composition/design-flags.html">The design-flag registry (GEN.525)</a> <small class="meta">design/composition/design-flags.html</small></li>
+<li><a href="design/composition/disk-condensation.html">Disc condensation, species by species (GEN.1363)</a> <small class="meta">design/composition/disk-condensation.html</small></li>
+<li><a href="design/composition/dry-carbon-model.html">The dry-body carbon model (GEN.1005, part 1 of row b1)</a> <small class="meta">design/composition/dry-carbon-model.html</small></li>
+<li><a href="design/composition/envelope-escape-wiring.html">The envelope escape of a close-in planet, wired to rows e1 and e2 (GEN.822)</a> <small class="meta">design/composition/envelope-escape-wiring.html</small></li>
+<li><a href="design/composition/equilibrium-chemistry.html">The equilibrium chemistry module (GEN.518)</a> <small class="meta">design/composition/equilibrium-chemistry.html</small></li>
+<li><a href="design/composition/giant-heavy-element-law.html">The heavy-element mass of giant planets (GEN.460 input, read this session)</a> <small class="meta">design/composition/giant-heavy-element-law.html</small></li>
+<li><a href="design/composition/giant-interiors.html">Giant planet, ice giant and brown dwarf interiors: the layers, metallic hydrogen, helium rain and the core (GEN.641)</a> <small class="meta">design/composition/giant-interiors.html</small></li>
+<li><a href="design/composition/giant-planet-tuning.html">Giant planets: the retune of rows f5 and f7 (GEN.516)</a> <small class="meta">design/composition/giant-planet-tuning.html</small></li>
+<li><a href="design/composition/greenhouse-table.html">The greenhouse table: the radiative-convective model in front of the fixed point (GEN.850, GEN.851)</a> <small class="meta">design/composition/greenhouse-table.html</small></li>
+<li><a href="design/composition/host-activity-tuning.html">Host-star activity: the rotation track, row p6 (GEN.523, partly built)</a> <small class="meta">design/composition/host-activity-tuning.html</small></li>
+<li><a href="design/composition/impact-erosion-and-late-delivery.html">Impact erosion and late delivery (GEN.739)</a> <small class="meta">design/composition/impact-erosion-and-late-delivery.html</small></li>
+<li><a href="design/composition/interior-heat.html">Interior heat: radiogenic plus primordial, the Urey ratio an output (GEN.699)</a> <small class="meta">design/composition/interior-heat.html</small></li>
+<li><a href="design/composition/iron-branch-tuning.html">The iron branch of a rocky planet (GEN.512)</a> <small class="meta">design/composition/iron-branch-tuning.html</small></li>
+<li><a href="design/composition/isotope-record.html">The isotope record of a body (GEN.1377, GEN.1420)</a> <small class="meta">design/composition/isotope-record.html</small></li>
+<li><a href="design/composition/jwst-selection.html">The JWST atmosphere target-selection model (GEN.506)</a> <small class="meta">design/composition/jwst-selection.html</small></li>
+<li><a href="design/composition/kepler-recovery.html">The Kepler transit-plus-recovery model (GEN.504)</a> <small class="meta">design/composition/kepler-recovery.html</small></li>
+<li><a href="design/composition/line-opacity.html">The infrared optical depth of an air, band by band (GEN.715)</a> <small class="meta">design/composition/line-opacity.html</small></li>
+<li><a href="design/composition/magma-ocean-redox-against-mass.html">Magma-ocean redox against mass and the later mantle (GEN.482, AR3)</a> <small class="meta">design/composition/magma-ocean-redox-against-mass.html</small></li>
+<li><a href="design/composition/magma-ocean-redox-model.html">The magma-ocean redox model (GEN.1005, part 1)</a> <small class="meta">design/composition/magma-ocean-redox-model.html</small></li>
+<li><a href="design/composition/mantle-oxides.html">Mantle oxides (GEN.1362)</a> <small class="meta">design/composition/mantle-oxides.html</small></li>
+<li><a href="design/composition/mass-radius-sample.html">The mass-radius sample selection model (GEN.505)</a> <small class="meta">design/composition/mass-radius-sample.html</small></li>
+<li><a href="design/composition/mixture-draw.html">The atmosphere mixture of a body: from regimes to mole fractions (GEN.451, GEN.479, GEN.454, GEN.499)</a> <small class="meta">design/composition/mixture-draw.html</small></li>
+<li><a href="design/composition/nebula-composition.html">Nebula composition: what every nebula, remnant and cloud is made of</a> <small class="meta">design/composition/nebula-composition.html</small></li>
+<li><a href="design/composition/nightside-collapse-model.html">Nightside collapse of a locked planet's air (GEN.1044, oddity W19)</a> <small class="meta">design/composition/nightside-collapse-model.html</small></li>
+<li><a href="design/composition/ore-processes.html">Ore-forming processes for rocky planet and moon crusts (GEN.1379)</a> <small class="meta">design/composition/ore-processes.html</small></li>
+<li><a href="design/composition/planet-architecture.html">The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, TEST.395)</a> <small class="meta">design/composition/planet-architecture.html</small></li>
+<li><a href="design/composition/planet-mass-law.html">The planet mass law without a class (GEN.650)</a> <small class="meta">design/composition/planet-mass-law.html</small></li>
+<li><a href="design/composition/planetary-rings.html">Planetary rings (GEN.732)</a> <small class="meta">design/composition/planetary-rings.html</small></li>
+<li><a href="design/composition/radiation-model.html">Radiation model: transmission and greenhouse by band, shielding by column, and the ground's own dose</a> <small class="meta">design/composition/radiation-model.html</small></li>
+<li><a href="design/composition/radioisotope-tuning.html">Radioisotopes: the retune of rows o2, o4 and o6 (GEN.514)</a> <small class="meta">design/composition/radioisotope-tuning.html</small></li>
+<li><a href="design/composition/radius-valley-tuning.html">The radius valley and the envelope: the tuning of rows e1 and e2 (GEN.509)</a> <small class="meta">design/composition/radius-valley-tuning.html</small></li>
+<li><a href="design/composition/retention-tuning.html">Retention and lava worlds: the check of rows d1, i6 and j1 (GEN.511)</a> <small class="meta">design/composition/retention-tuning.html</small></li>
+<li><a href="design/composition/sky-colour-analysis.html">Sky colour in planet and moon descriptions: analysis</a> <small class="meta">design/composition/sky-colour-analysis.html</small></li>
+<li><a href="design/composition/small-bodies-composition.html">Small bodies and moons: the composition draws, compaction, moon origins and the ice fraction</a> <small class="meta">design/composition/small-bodies-composition.html</small></li>
+<li><a href="design/composition/small-body-size-laws.html">Size laws and satellite shares of small bodies (GEN.566, GEN.580)</a> <small class="meta">design/composition/small-body-size-laws.html</small></li>
+<li><a href="design/composition/stellar-composition.html">Stellar composition: the checked design of what every star and remnant is made of</a> <small class="meta">design/composition/stellar-composition.html</small></li>
+<li><a href="design/composition/surface-composition.html">Surface and crust composition (GEN.441)</a> <small class="meta">design/composition/surface-composition.html</small></li>
+<li><a href="design/composition/surface-liquid-composition.html">The composition of a surface liquid (GEN.1217 design)</a> <small class="meta">design/composition/surface-liquid-composition.html</small></li>
+<li><a href="design/composition/surface-pressure-supply-law.html">Surface pressure supply law: how much gas a rocky body has delivered to its surface (GEN.726)</a> <small class="meta">design/composition/surface-pressure-supply-law.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/brief.html">Common brief for the tunable-gaps source checks (2026-10-17)</a> <small class="meta">design/composition/tunable-gaps-sources/brief.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group1-subneptunes.html">Group 1: sub-Neptune and super-Earth envelope and water-world occurrence</a> <small class="meta">design/composition/tunable-gaps-sources/group1-subneptunes.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group2-delivery-retention.html">Group 2: volatile delivery, retention and lava worlds (tunable-gaps source check, 2026-10-17)</a> <small class="meta">design/composition/tunable-gaps-sources/group2-delivery-retention.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group3-redox-wd-radio.html">Group 3: mantle redox, ground types, radioisotopes (white-dwarf debris as the extrasolar ensemble)</a> <small class="meta">design/composition/tunable-gaps-sources/group3-redox-wd-radio.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group4-giants-bd-clouds.html">Group 4: giant planets, brown dwarfs, hot Jupiters, clouds and hazes</a> <small class="meta">design/composition/tunable-gaps-sources/group4-giants-bd-clouds.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group5-small-bodies-moons.html">Group 5: comets, small bodies, moons and surfaces (source check for tunable gaps)</a> <small class="meta">design/composition/tunable-gaps-sources/group5-small-bodies-moons.html</small></li>
+<li><a href="design/composition/tunable-gaps-sources/group6-evolved-trace-uv.html">Group 6: evolved and frost atmospheres, trace gases, white dwarf and pulsar planets, host-star UV regime</a> <small class="meta">design/composition/tunable-gaps-sources/group6-evolved-trace-uv.html</small></li>
+<li><a href="design/composition/tunable-gaps.html">Tunable gaps: can the unsourced composition values be seeded random draws that stay tunable and scientifically accurate?</a> <small class="meta">design/composition/tunable-gaps.html</small></li>
+<li><a href="design/composition/volatile-delivery-formation-distance.html">Volatile delivery against formation distance (GEN.481, AR2)</a> <small class="meta">design/composition/volatile-delivery-formation-distance.html</small></li>
+<li><a href="design/composition/volatile-inventory-against-planet-totals.html">Volatile inventory against the totals of the Earth, Venus, Mars and Titan (GEN.813)</a> <small class="meta">design/composition/volatile-inventory-against-planet-totals.html</small></li>
+<li><a href="design/composition/water-delivery-tuning.html">Water delivery: the mass law of row b4 (GEN.510), replaced by the formation-distance law (GEN.802)</a> <small class="meta">design/composition/water-delivery-tuning.html</small></li>
+<li><a href="design/composition/wd-pollution-detection.html">The white-dwarf pollution detection model (GEN.508)</a> <small class="meta">design/composition/wd-pollution-detection.html</small></li>
+<li><a href="design/composition/wd-redox-tuning.html">Redox of rocky debris: the retune of rows a3 and a4 (GEN.513)</a> <small class="meta">design/composition/wd-redox-tuning.html</small></li>
+<li><a href="design/composition/weight-research-dispositions.html">Weight research dispositions: what GEN.480 to GEN.494 and GEN.501 found for the 43 open atmosphere rows</a> <small class="meta">design/composition/weight-research-dispositions.html</small></li>
+<li><a href="design/galaxy/disk-star-formation-history.html">The thin disk's star formation history from its gas (GEN.469)</a> <small class="meta">design/galaxy/disk-star-formation-history.html</small></li>
+<li><a href="design/galaxy/fill-order-curves-and-core.html">Fill order, region selection and the galactic core</a> <small class="meta">design/galaxy/fill-order-curves-and-core.html</small></li>
+<li><a href="design/galaxy/galactic-potential.html">The galaxy's own gravity and galactic orbits</a> <small class="meta">design/galaxy/galactic-potential.html</small></li>
+<li><a href="design/galaxy/galaxy-coordinate-system.html">Galaxy coordinate system and sector grid</a> <small class="meta">design/galaxy/galaxy-coordinate-system.html</small></li>
+<li><a href="design/galaxy/galaxy-disk-density.html">Galaxy density model</a> <small class="meta">design/galaxy/galaxy-disk-density.html</small></li>
+<li><a href="design/galaxy/galaxy-laws-research.html">GEN.406 galaxy laws research: stellar halo, populations, thick disk, satellites and clusters</a> <small class="meta">design/galaxy/galaxy-laws-research.html</small></li>
+<li><a href="design/galaxy/galaxy-types.html">Galaxy types: one family per known galaxy type</a> <small class="meta">design/galaxy/galaxy-types.html</small></li>
+<li><a href="design/galaxy/gen533-bar-sources.html">GEN.533 bar and bulge sources (research)</a> <small class="meta">design/galaxy/gen533-bar-sources.html</small></li>
+<li><a href="design/galaxy/globular-clusters.html">Globular clusters in generation</a> <small class="meta">design/galaxy/globular-clusters.html</small></li>
+<li><a href="design/galaxy/intergalactic-and-halo-contents.html">Filling the whole sphere: the halo, the satellites and intergalactic space</a> <small class="meta">design/galaxy/intergalactic-and-halo-contents.html</small></li>
+<li><a href="design/galaxy/multiple-galaxies.html">Other galaxies: neighbours in the sky and a second galaxy</a> <small class="meta">design/galaxy/multiple-galaxies.html</small></li>
+<li><a href="design/galaxy/named-regions.html">Named regions (GEN.825, GEN.827, DB.107, API.35, DOC.82)</a> <small class="meta">design/galaxy/named-regions.html</small></li>
+<li><a href="design/galaxy/post-main-sequence-stars.html">Stars after the main sequence, from the MIST tracks (GEN.935)</a> <small class="meta">design/galaxy/post-main-sequence-stars.html</small></li>
+<li><a href="design/galaxy/realistic-galactic-core.html">A realistic galactic core: the nuclear cluster, the nuclear disc and a fill that can hold them</a> <small class="meta">design/galaxy/realistic-galactic-core.html</small></li>
+<li><a href="design/galaxy/spherical-block-ladder.html">Spherical sectors: the Galaxy Map's block ladder</a> <small class="meta">design/galaxy/spherical-block-ladder.html</small></li>
+<li><a href="design/galaxy/spherical-ladder-meridians.html">Spherical sectors: meridians for the block ladder</a> <small class="meta">design/galaxy/spherical-ladder-meridians.html</small></li>
+<li><a href="design/galaxy/spherical-region-queries.html">Selecting a sphere of the galaxy with a database query</a> <small class="meta">design/galaxy/spherical-region-queries.html</small></li>
+<li><a href="design/galaxy/spherical-sector-coordinates.html">Spherical sector coordinates: the plan</a> <small class="meta">design/galaxy/spherical-sector-coordinates.html</small></li>
+<li><a href="design/galaxy/spherical-shell-sectors.html">Spherical-shell sectors with a round core: what it would mean</a> <small class="meta">design/galaxy/spherical-shell-sectors.html</small></li>
+<li><a href="design/galaxy/star-types-by-galactic-radius.html">Star types against distance from the galactic core (GEN.133)</a> <small class="meta">design/galaxy/star-types-by-galactic-radius.html</small></li>
+<li><a href="design/galaxy/stellar-mass-function.html">The stellar mass function (GEN.927 to GEN.931)</a> <small class="meta">design/galaxy/stellar-mass-function.html</small></li>
+<li><a href="design/galaxy/superbubble-density.html">Superbubbles shape the stars: the bubble field as a density modulation</a> <small class="meta">design/galaxy/superbubble-density.html</small></li>
+<li><a href="design/generation/generation-benchmark-report.html">Generation benchmark report (PERF.31)</a> <small class="meta">design/generation/generation-benchmark-report.html</small></li>
+<li><a href="design/generation/generation-determinism.html">Generation determinism: drift, fingerprints, epochs and net diffs</a> <small class="meta">design/generation/generation-determinism.html</small></li>
+<li><a href="design/generation/generation-performance-study.html">Generation performance study: where the time goes in the scatter and the sector fill</a> <small class="meta">design/generation/generation-performance-study.html</small></li>
+<li><a href="design/generation/generation-performance.html">Generation performance: every step timed, and what to speed up next</a> <small class="meta">design/generation/generation-performance.html</small></li>
+<li><a href="design/generation/mass-backfill.html">Mass backfill: four rings of heavier stars around the generated sectors</a> <small class="meta">design/generation/mass-backfill.html</small></li>
+<li><a href="design/generation/placement-by-population.html">Where each star type and phenomenon belongs: what is built and what is left (GEN.103)</a> <small class="meta">design/generation/placement-by-population.html</small></li>
+<li><a href="design/generation/reproducible-galaxies.html">Reproducible galaxies</a> <small class="meta">design/generation/reproducible-galaxies.html</small></li>
+<li><a href="design/generation/sampling-backfill-and-resume.html">Sampling, backfill, void filling, resumable runs and directives</a> <small class="meta">design/generation/sampling-backfill-and-resume.html</small></li>
+<li><a href="design/generation/scatter-queue-feasibility.html">Scatter "sector queue" feasibility study</a> <small class="meta">design/generation/scatter-queue-feasibility.html</small></li>
+<li><a href="design/generation/system-interactions.html">Everything in a system affects everything else in the system</a> <small class="meta">design/generation/system-interactions.html</small></li>
+<li><a href="design/generation/void-fill-census.html">Filling the voids on the spherical grid, again (GEN.102)</a> <small class="meta">design/generation/void-fill-census.html</small></li>
+<li><a href="design/habitability/activity-magnetism-radiation-hydrosphere.html">Stellar activity, magnetic fields, surface radiation dose and hydrosphere</a> <small class="meta">design/habitability/activity-magnetism-radiation-hydrosphere.html</small></li>
+<li><a href="design/habitability/adaptation-traits.html">Adaptation traits: how life on a hard world is tougher than life on an easy one</a> <small class="meta">design/habitability/adaptation-traits.html</small></li>
+<li><a href="design/habitability/atmospheres-retention-and-classes.html">Atmosphere retention, hot- and cold-zone classes and life-stage timing</a> <small class="meta">design/habitability/atmospheres-retention-and-classes.html</small></li>
+<li><a href="design/habitability/condition-based-planet-classes.html">Condition-based planet and moon classes (GEN.645 to GEN.648)</a> <small class="meta">design/habitability/condition-based-planet-classes.html</small></li>
+<li><a href="design/habitability/day-and-night.html">Day and night time shares and the hours of daylight (GEN.767)</a> <small class="meta">design/habitability/day-and-night.html</small></li>
+<li><a href="design/habitability/habitability-index.html">Planetary habitability index</a> <small class="meta">design/habitability/habitability-index.html</small></li>
+<li><a href="design/habitability/life-class-rules.html">Life class rules</a> <small class="meta">design/habitability/life-class-rules.html</small></li>
+<li><a href="design/habitability/life-classes.html">The life class system: what each kind of life eats, drinks, breathes and makes, and how it changes its world</a> <small class="meta">design/habitability/life-classes.html</small></li>
+<li><a href="design/habitability/life-timeline-and-oxygen.html">The life timeline and the oxygen life makes (GEN.750, GEN.855)</a> <small class="meta">design/habitability/life-timeline-and-oxygen.html</small></li>
+<li><a href="design/habitability/population-and-politics.html">Population and politics: species, civilizations and territories</a> <small class="meta">design/habitability/population-and-politics.html</small></li>
+<li><a href="design/habitability/survival-equipment-fields.html">Survival equipment fields: a combinable Body + Filter + Supply system for the habitability index (GEN.655, DB.93)</a> <small class="meta">design/habitability/survival-equipment-fields.html</small></li>
+<li><a href="design/interface/3d-rendering-camera-research.html">Architecture and Ergonomics of Camera Proximity Fading in Dense Three-Dimensional Environments</a> <small class="meta">design/interface/3d-rendering-camera-research.html</small></li>
+<li><a href="design/interface/admin-control-suite.html">Admin control suite redesign: Generate, Settings and the rest (research report and proposal)</a> <small class="meta">design/interface/admin-control-suite.html</small></li>
+<li><a href="design/interface/body-rendering.html">Rendering bodies from composition (design draft, 2026-10-24)</a> <small class="meta">design/interface/body-rendering.html</small></li>
+<li><a href="design/interface/drilldown-region-sizes.html">Click-centred drill-down: step sizes and region shapes (MAP.146 study)</a> <small class="meta">design/interface/drilldown-region-sizes.html</small></li>
+<li><a href="design/interface/edit-everything.html">Edit everything: the admin changes anything and the world adjusts after a plan is approved</a> <small class="meta">design/interface/edit-everything.html</small></li>
+<li><a href="design/interface/fly-through-view-distance.html">Fly-through Galaxy Map: view distance, see-through near field, free camera (MAP.146 rebuilt)</a> <small class="meta">design/interface/fly-through-view-distance.html</small></li>
+<li><a href="design/interface/galaxy-drilldown-navigation.html">Galaxy Map drill-down navigation</a> <small class="meta">design/interface/galaxy-drilldown-navigation.html</small></li>
+<li><a href="design/interface/galaxy-map-performance.html">Galaxy Map performance (MAP.249)</a> <small class="meta">design/interface/galaxy-map-performance.html</small></li>
+<li><a href="design/interface/galaxy-map-wire-format.html">Galaxy Map wire format: what the browser downloads and what could be smaller (MAP.147)</a> <small class="meta">design/interface/galaxy-map-wire-format.html</small></li>
+<li><a href="design/interface/map-ui-and-frontend-libraries.html">Map interface and front-end libraries</a> <small class="meta">design/interface/map-ui-and-frontend-libraries.html</small></li>
+<li><a href="design/interface/nebula-map-visibility.html">Making nebulae visible on the Galaxy Map</a> <small class="meta">design/interface/nebula-map-visibility.html</small></li>
+<li><a href="design/interface/object-pages.html">Object pages (UX.168 to UX.178)</a> <small class="meta">design/interface/object-pages.html</small></li>
+<li><a href="design/interface/references.html">Help &gt; References: the out-of-universe section (DOC.87 to DOC.94)</a> <small class="meta">design/interface/references.html</small></li>
+<li><a href="design/interface/roles-and-requests.html">Roles and requests: users ask, moderators approve, admins approve moderators</a> <small class="meta">design/interface/roles-and-requests.html</small></li>
+<li><a href="design/interface/settings-seo-and-accounts.html">Settings model, configuration page, SEO and user accounts</a> <small class="meta">design/interface/settings-seo-and-accounts.html</small></li>
+<li><a href="design/interface/system-sky-wire-format.html">System sky wire format: what the System View downloads for its background (VIEW.31)</a> <small class="meta">design/interface/system-sky-wire-format.html</small></li>
+<li><a href="design/interface/text-style.html">The plain-words style guide (DOC.83)</a> <small class="meta">design/interface/text-style.html</small></li>
+<li><a href="design/interface/zoom-star-visibility.html">Smoother star and object visibility while zooming the Galaxy Map</a> <small class="meta">design/interface/zoom-star-visibility.html</small></li>
+<li><a href="design/operations/api-design-standards.html">API design standards: versions, key scopes, uploads, logging, recipes</a> <small class="meta">design/operations/api-design-standards.html</small></li>
+<li><a href="design/operations/backups-and-repair.html">Backups and repair: one archive, and the ways to use it</a> <small class="meta">design/operations/backups-and-repair.html</small></li>
+<li><a href="design/operations/cache-warm-up.html">Cache warm-up and invalidation (PERF.104)</a> <small class="meta">design/operations/cache-warm-up.html</small></li>
+<li><a href="design/operations/db-check-and-parity-repair.html">Database check, parity repair and long migrations</a> <small class="meta">design/operations/db-check-and-parity-repair.html</small></li>
+<li><a href="design/operations/logging-standard.html">The logging standard (UX.121)</a> <small class="meta">design/operations/logging-standard.html</small></li>
+<li><a href="design/operations/login-brute-force-protection.html">Login brute-force protection</a> <small class="meta">design/operations/login-brute-force-protection.html</small></li>
+<li><a href="design/operations/one-run-per-job.html">One wrapper run per Generate job (PERF.203)</a> <small class="meta">design/operations/one-run-per-job.html</small></li>
+<li><a href="design/operations/ops-scheduling-and-rotation.html">Update-script operations: Apache reload, daily maintenance, locks and backup rotation</a> <small class="meta">design/operations/ops-scheduling-and-rotation.html</small></li>
+<li><a href="design/operations/performance-eta-queue-and-caching.html">Performance, progress estimates, the job queue and caching</a> <small class="meta">design/operations/performance-eta-queue-and-caching.html</small></li>
+<li><a href="design/operations/redis-and-the-work-queue.html">Redis and the work queue: how planetGen uses it, how it should be used, and what to change</a> <small class="meta">design/operations/redis-and-the-work-queue.html</small></li>
+<li><a href="design/operations/slow-page-answers.html">Slow page requests as jobs (PERF.105)</a> <small class="meta">design/operations/slow-page-answers.html</small></li>
+<li><a href="design/operations/slow-reads-and-timeouts.html">Keeping slow database reads inside the time limit (PERF.71)</a> <small class="meta">design/operations/slow-reads-and-timeouts.html</small></li>
+<li><a href="design/operations/test-suite-rebuild.html">Rebuilding the test suite: faster, modular, and able to run only what a change touches (TEST.139)</a> <small class="meta">design/operations/test-suite-rebuild.html</small></li>
+<li><a href="design/operations/work-queue-audit.html">What the site starts, and what moves to the work queue (PERF.19)</a> <small class="meta">design/operations/work-queue-audit.html</small></li>
+<li><a href="design/orbits/collisions-and-mergers.html">Collisions and mergers: how often, what happens, and how to detect it</a> <small class="meta">design/orbits/collisions-and-mergers.html</small></li>
+<li><a href="design/orbits/course-avoidance.html">Course avoidance: keep-out radii and the path-bending algorithm</a> <small class="meta">design/orbits/course-avoidance.html</small></li>
+<li><a href="design/orbits/course-routing.html">Course routing and nearby search</a> <small class="meta">design/orbits/course-routing.html</small></li>
+<li><a href="design/orbits/gravity-map.html">Gravity map: the field of a sector as a heat map</a> <small class="meta">design/orbits/gravity-map.html</small></li>
+<li><a href="design/orbits/navigation-frames.html">Navigation reference frames</a> <small class="meta">design/orbits/navigation-frames.html</small></li>
+<li><a href="design/orbits/ocean-tides.html">Ocean tides at a world's surface (GEN.1034)</a> <small class="meta">design/orbits/ocean-tides.html</small></li>
+<li><a href="design/orbits/orbital-solvers-and-integrators.html">Orbital solvers, integrators, thresholds and the influence search</a> <small class="meta">design/orbits/orbital-solvers-and-integrators.html</small></li>
+<li><a href="design/orbits/orbital-update-check-2026-10-18.html">Orbital update check against Boss's four steps (2026-10-18)</a> <small class="meta">design/orbits/orbital-update-check-2026-10-18.html</small></li>
+<li><a href="design/orbits/orbital-updates.html">Orbital updates, positions and spin</a> <small class="meta">design/orbits/orbital-updates.html</small></li>
+<li><a href="design/orbits/sky-system-view.html">The sky behind a system: what the System View draws as its background</a> <small class="meta">design/orbits/sky-system-view.html</small></li>
+<li><a href="design/orbits/sky-view.html">The view from a planet: sky rendering and constellations</a> <small class="meta">design/orbits/sky-view.html</small></li>
+<li><a href="design/orbits/tidal-chain.html">The tide chain: rheology, spin torques and moon orbits (GEN.842, GEN.954 to GEN.960, GEN.778)</a> <small class="meta">design/orbits/tidal-chain.html</small></li>
+<li><a href="design/research/ad1-methane-sources-check-2026-10-17.html">AD1 (visible methane and ammonia absorption of giant planets): sources check</a> <small class="meta">design/research/ad1-methane-sources-check-2026-10-17.html</small></li>
+<li><a href="design/research/boss-papers-2026-10-17.html">Boss's papers: what they fill, what stays open (2026-10-17)</a> <small class="meta">design/research/boss-papers-2026-10-17.html</small></li>
+<li><a href="design/research/burn-down-register.html">The burn-down register: what each hand-tuned stand-in needs before it can go (GEN.946)</a> <small class="meta">design/research/burn-down-register.html</small></li>
+<li><a href="design/research/captured-moon-sources.html">Captured asteroid moons: what the papers and the satellite tables say (GEN.1075)</a> <small class="meta">design/research/captured-moon-sources.html</small></li>
+<li><a href="design/research/data-catalog.html">Data catalog: what data and tables the project already holds</a> <small class="meta">design/research/data-catalog.html</small></li>
+<li><a href="design/research/evidence-register.html">The evidence register: whether the thing a stand-in stands for has been seen (GEN.1428)</a> <small class="meta">design/research/evidence-register.html</small></li>
+<li><a href="design/research/gap-filling-plan.html">Gap-filling plan: how we fill what the public record does not hold</a> <small class="meta">design/research/gap-filling-plan.html</small></li>
+<li><a href="design/research/gemini-batch1-check.html">Gemini batch 1: claim-by-claim check</a> <small class="meta">design/research/gemini-batch1-check.html</small></li>
+<li><a href="design/research/imported/atmospheric-toxicity.html">Atmospheric Toxicity, Geochemical Evolution, and Marginal Habitability in Terrestrial Exoplanetary Systems</a> <small class="meta">design/research/imported/atmospheric-toxicity.html</small></li>
+<li><a href="design/research/imported/chemical-habitability.html">Chemical Habitability, Geochemical Toxicity, and Environmental Margins of Terrestrial Exoplanets</a> <small class="meta">design/research/imported/chemical-habitability.html</small></li>
+<li><a href="design/research/imported/computational-astrodynamics.html">Computational Astrodynamics and Numerical Architecture for Galactic-Scale Orbital Simulations</a> <small class="meta">design/research/imported/computational-astrodynamics.html</small></li>
+<li><a href="design/research/imported/environmental-extremes-and-protection-research.html">Environmental Extremes and Protective Ensembles: Physiological Boundaries, Respiratory Systems, and Advanced Life Support Architectures</a> <small class="meta">design/research/imported/environmental-extremes-and-protection-research.html</small></li>
+<li><a href="design/research/imported/exoplanetary-habitability.html">Exoplanetary Habitability and Human Sustainability: An Ecological and Physiological Classification Architecture</a> <small class="meta">design/research/imported/exoplanetary-habitability.html</small></li>
+<li><a href="design/research/imported/library-migration-workflow.html">Open-Source Library Migration and Refactoring Roadmap for planetGen</a> <small class="meta">design/research/imported/library-migration-workflow.html</small></li>
+<li><a href="design/research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.html">Mathematical and Algorithmic Implementation of the Planetary Habitability Index (PHI-4)</a> <small class="meta">design/research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.html</small></li>
+<li><a href="design/research/imported/naturally-occuring-ionizing-radiation.html">Naturally Occurring Ionizing Radiation in Exoplanetary Systems: Astrobiological Constraints, Environmental Shielding, and Biological Radiotolerance</a> <small class="meta">design/research/imported/naturally-occuring-ionizing-radiation.html</small></li>
+<li><a href="design/research/imported/observational-kinetics-for-rotational-vectors.html">Observational Kinematics, Mathematical Physics, and Procedural Generation of Astronomical Rotational Vectors</a> <small class="meta">design/research/imported/observational-kinetics-for-rotational-vectors.html</small></li>
+<li><a href="design/research/imported/orbital-position-and-vector-mathematical-foundations.html">Mathematical Foundations, Theoretical Mechanics, and Numerical Stability Boundaries of Computational Algorithms</a> <small class="meta">design/research/imported/orbital-position-and-vector-mathematical-foundations.html</small></li>
+<li><a href="design/research/imported/orbital-position-and-vector-update-algorithms.html">Gravitational Vector Algorithm</a> <small class="meta">design/research/imported/orbital-position-and-vector-update-algorithms.html</small></li>
+<li><a href="design/research/imported/orbital-update-collision-detection.html">Orbital update collision detection</a> <small class="meta">design/research/imported/orbital-update-collision-detection.html</small></li>
+<li><a href="design/research/imported/orbital-update-full-algorithm.html">Orbital update full algorithm</a> <small class="meta">design/research/imported/orbital-update-full-algorithm.html</small></li>
+<li><a href="design/research/imported/planetary-habitability-and-speculative-xenobiology.html">Comprehensive Analysis of Planetary Habitability, Extremophilic Adaptation, and Speculative Xenobiology</a> <small class="meta">design/research/imported/planetary-habitability-and-speculative-xenobiology.html</small></li>
+<li><a href="design/research/imported/planetary-habitability-index.html">Planetary habitability index</a> <small class="meta">design/research/imported/planetary-habitability-index.html</small></li>
+<li><a href="design/research/imported/speculative-xenobiology-examples.html">Speculative xenobiology examples</a> <small class="meta">design/research/imported/speculative-xenobiology-examples.html</small></li>
+<li><a href="design/research/imported/speculative-xenobiology-extremes.html">Speculative xenobiology extremes</a> <small class="meta">design/research/imported/speculative-xenobiology-extremes.html</small></li>
+<li><a href="design/research/imported/star-trek-anomalies-and-science.html">Comprehensive Analysis of Canonical Star Trek Spatial Anomalies, Subspace Phenomena, and Nebulae: Physics Foundations and Game Mechanics Translation</a> <small class="meta">design/research/imported/star-trek-anomalies-and-science.html</small></li>
+<li><a href="design/research/imported/star-trek-anomaly-probabilities.html">Sector Baseline and Volume Calibration</a> <small class="meta">design/research/imported/star-trek-anomaly-probabilities.html</small></li>
+<li><a href="design/research/imported/technological-assessment.html">Technological Assessment</a> <small class="meta">design/research/imported/technological-assessment.html</small></li>
+<li><a href="design/research/imported/thermal-respiratory-protection-research.html">Thermal Respiratory Protection and Environmental Survivability Limits</a> <small class="meta">design/research/imported/thermal-respiratory-protection-research.html</small></li>
+<li><a href="design/research/imported/web-ux-and-job-management-guide.html">Single-Server Migration Guide &amp; Codebase Modernization Outline</a> <small class="meta">design/research/imported/web-ux-and-job-management-guide.html</small></li>
+<li><a href="design/research/imported/web-ux-development-notes.html">Architectural Improvements &amp; Simplification via Open-Source UX Libraries</a> <small class="meta">design/research/imported/web-ux-development-notes.html</small></li>
+<li><a href="design/research/interstellar-field-sources.html">Interstellar asteroid fields: what the sources say (GEN.1098)</a> <small class="meta">design/research/interstellar-field-sources.html</small></li>
+<li><a href="design/research/oddity-rates.html">Rates of the weird-worlds oddities against papers (GEN.1037)</a> <small class="meta">design/research/oddity-rates.html</small></li>
+<li><a href="design/research/open-gaps-closest-laws-2026-10-17.html">Open gaps and the closest laws that cover each (2026-10-17)</a> <small class="meta">design/research/open-gaps-closest-laws-2026-10-17.html</small></li>
+<li><a href="design/research/papers-to-fetch.html">Papers Boss should try to download himself (publishers our environment cannot reach)</a> <small class="meta">design/research/papers-to-fetch.html</small></li>
+<li><a href="design/research/rogue-ejection-kick.html">Rogue ejection kick: what the full texts say (GEN.1113)</a> <small class="meta">design/research/rogue-ejection-kick.html</small></li>
+<li><a href="design/research/rogue-planet-review.html">Rogue planet review: what is physics, what is a stand-in (GEN.1109, R1)</a> <small class="meta">design/research/rogue-planet-review.html</small></li>
+<li><a href="design/research/stand-in-values.html">Every stand-in value, with its source tier and its tweak level (GEN.725)</a> <small class="meta">design/research/stand-in-values.html</small></li>
+<li><a href="design/research/vizier-courteau-comeron.html">VizieR search for [R0908] and Comerón thick-disc tables (GR5 and GR3 rank 2)</a> <small class="meta">design/research/vizier-courteau-comeron.html</small></li>
+<li><a href="design/research/wiring-register.html">The wiring register: what is built or downloaded and not read yet (GEN.754)</a> <small class="meta">design/research/wiring-register.html</small></li>
+<li><a href="design/systems/alpha-and-age-metallicity.html">Alpha-enhanced stars and the age-metallicity relation (GEN.744, lock-free step)</a> <small class="meta">design/systems/alpha-and-age-metallicity.html</small></li>
+<li><a href="design/systems/anomalies.html">Anomalies for the starmap</a> <small class="meta">design/systems/anomalies.html</small></li>
+<li><a href="design/systems/belt-evolution.html">Evolving asteroid belts, and a ledger of every body in a system</a> <small class="meta">design/systems/belt-evolution.html</small></li>
+<li><a href="design/systems/belt-origins.html">Where belts come from, a scatter phase, and how many Class D bodies a system needs</a> <small class="meta">design/systems/belt-origins.html</small></li>
+<li><a href="design/systems/belt-sources.html">Belt sources: the numbers the belt items need (GEN.1060)</a> <small class="meta">design/systems/belt-sources.html</small></li>
+<li><a href="design/systems/black-hole-density.html">Black hole density: metallicity-dependent (GEN.567, design for GEN.563)</a> <small class="meta">design/systems/black-hole-density.html</small></li>
+<li><a href="design/systems/black-hole-formation-sources.html">GEN.560 (black hole part): failed supernova and direct collapse shares, remnant masses</a> <small class="meta">design/systems/black-hole-formation-sources.html</small></li>
+<li><a href="design/systems/brown-dwarf-state.html">A brown dwarf as a star: its type, temperature and radius (GEN.252, GEN.549)</a> <small class="meta">design/systems/brown-dwarf-state.html</small></li>
+<li><a href="design/systems/captured-asteroid-moons.html">Captured asteroid moons (irregular satellites): physics and a generator design</a> <small class="meta">design/systems/captured-asteroid-moons.html</small></li>
+<li><a href="design/systems/carbon-stars.html">Carbon stars and S stars (GEN.1026)</a> <small class="meta">design/systems/carbon-stars.html</small></li>
+<li><a href="design/systems/chemically-peculiar.html">Ap and Am stars (GEN.1027)</a> <small class="meta">design/systems/chemically-peculiar.html</small></li>
+<li><a href="design/systems/comet-orbital-realism.html">Comets: elliptical, parabolic and interstellar</a> <small class="meta">design/systems/comet-orbital-realism.html</small></li>
+<li><a href="design/systems/compact-remnant-regions.html">Neutron stars and black holes by region and type: what is observed</a> <small class="meta">design/systems/compact-remnant-regions.html</small></li>
+<li><a href="design/systems/exotic-environments-planets-and-compact-binaries.html">Planets and orbits in extreme environments: nebulae, pulsars, black holes and compact binaries</a> <small class="meta">design/systems/exotic-environments-planets-and-compact-binaries.html</small></li>
+<li><a href="design/systems/explosion-islands.html">Explosion islands: which massive stars leave a black hole (GEN.554, slice 2)</a> <small class="meta">design/systems/explosion-islands.html</small></li>
+<li><a href="design/systems/interstellar-asteroid-fields.html">Interstellar asteroid fields: rogue-planet collisions and the other sources</a> <small class="meta">design/systems/interstellar-asteroid-fields.html</small></li>
+<li><a href="design/systems/interstellar-object-rates.html">Interstellar object rates</a> <small class="meta">design/systems/interstellar-object-rates.html</small></li>
+<li><a href="design/systems/lagrange-trojans.html">Lagrange trojans (GEN.1149 module; GEN.1150, GEN.1151 and MAP.354 wire it)</a> <small class="meta">design/systems/lagrange-trojans.html</small></li>
+<li><a href="design/systems/later-phenomena-scatter-rules.html">Which later phenomena are scattered, backfilled or fill-only</a> <small class="meta">design/systems/later-phenomena-scatter-rules.html</small></li>
+<li><a href="design/systems/multi-star-systems.html">Multi-star systems at scatter time: census, limits, probabilities and the stored tree</a> <small class="meta">design/systems/multi-star-systems.html</small></li>
+<li><a href="design/systems/multistar-and-compact-systems.html">Multi-star systems and compact-object primaries</a> <small class="meta">design/systems/multistar-and-compact-systems.html</small></li>
+<li><a href="design/systems/natal-kick.html">Natal kick: how many neutron stars a galaxy ejects (GEN.554, slice 3)</a> <small class="meta">design/systems/natal-kick.html</small></li>
+<li><a href="design/systems/nebula-and-asteroid-field-classes.html">Nebula, remnant and asteroid field classes</a> <small class="meta">design/systems/nebula-and-asteroid-field-classes.html</small></li>
+<li><a href="design/systems/nebula-density-vs-reality.html">Nebula density against the real Milky Way, and what to generate versus what to draw</a> <small class="meta">design/systems/nebula-density-vs-reality.html</small></li>
+<li><a href="design/systems/neutron-star-density.html">Neutron star density: what the black holes leave of the massive stars (GEN.554, slice 1)</a> <small class="meta">design/systems/neutron-star-density.html</small></li>
+<li><a href="design/systems/neutron-star-structure.html">Neutron star structure: a TOV integration over the 21 equation-of-state tables (GEN.968)</a> <small class="meta">design/systems/neutron-star-structure.html</small></li>
+<li><a href="design/systems/overlap-free-systems.html">Systems that cannot overlap by construction: one source of truth for every star and body (GEN.1006)</a> <small class="meta">design/systems/overlap-free-systems.html</small></li>
+<li><a href="design/systems/phenomena-catalogue-and-fill.html">Phenomena catalogue and the fill rules</a> <small class="meta">design/systems/phenomena-catalogue-and-fill.html</small></li>
+<li><a href="design/systems/phenomenon-scatter-mass-cut.html">Phenomenon scatter: a lowest-mass cut, filled below at sector time</a> <small class="meta">design/systems/phenomenon-scatter-mass-cut.html</small></li>
+<li><a href="design/systems/quadruple-stability-2p2.html">Stability of a 2+2 quadruple star system (GEN.1031)</a> <small class="meta">design/systems/quadruple-stability-2p2.html</small></li>
+<li><a href="design/systems/quadruple-stability-3p1.html">Stability of a 3+1 quadruple star system (GEN.1029)</a> <small class="meta">design/systems/quadruple-stability-3p1.html</small></li>
+<li><a href="design/systems/region-object-store.html">One galaxy-wide object store, region work units, and sectors as a navigation table (GEN.1118)</a> <small class="meta">design/systems/region-object-store.html</small></li>
+<li><a href="design/systems/remnant-age.html">A neutron star's or stellar black hole's age (GEN.553)</a> <small class="meta">design/systems/remnant-age.html</small></li>
+<li><a href="design/systems/rogue-planet-drift.html">Where ejected rogue planets drift, and where each one is stored</a> <small class="meta">design/systems/rogue-planet-drift.html</small></li>
+<li><a href="design/systems/rogue-planet-surface.html">Rogue planet surface conditions</a> <small class="meta">design/systems/rogue-planet-surface.html</small></li>
+<li><a href="design/systems/stellar-spectra-library.html">Stellar spectra library: model atmospheres plus the measured chromosphere (GEN.970)</a> <small class="meta">design/systems/stellar-spectra-library.html</small></li>
+<li><a href="design/systems/stellar-state.html">Evolutionary state and age since it stopped burning (GEN.786 and GEN.785, definitions)</a> <small class="meta">design/systems/stellar-state.html</small></li>
+<li><a href="design/systems/system-bodies-ledger.html">The system body ledger and the barycentre that includes the belts (GEN.1066)</a> <small class="meta">design/systems/system-bodies-ledger.html</small></li>
+<li><a href="design/systems/variability.html">Variable-star kinds (GEN.944, the cheap flags)</a> <small class="meta">design/systems/variability.html</small></li>
+<li><a href="design/systems/wanderer-moon-sources.html">GEN.560 (moon parts): ejection survival of moons and circumplanetary disks of isolated planetary-mass objects</a> <small class="meta">design/systems/wanderer-moon-sources.html</small></li>
+<li><a href="design/systems/weird-worlds.html">Weird worlds: physically plausible oddities for the generator</a> <small class="meta">design/systems/weird-worlds.html</small></li>
+<li><a href="design/systems/white-dwarf-state.html">A white dwarf as a star: how hot, how bright, how large, how crystallised (GEN.742)</a> <small class="meta">design/systems/white-dwarf-state.html</small></li>
+</ul>
+<h2>The plan</h2><ul class="cards">
+<li><a href="plan/execution-notes.html">Execution plan notes</a> <small class="meta">plan/execution-notes.html</small></li>
+<li><a href="plan/intergalactic-space-plan.html">Intergalactic space plan</a> <small class="meta">plan/intergalactic-space-plan.html</small></li>
+<li><a href="plan/issue-groups.html">Issue groups</a> <small class="meta">plan/issue-groups.html</small></li>
+<li><a href="plan/lane-designations.html">Lane designations</a> <small class="meta">plan/lane-designations.html</small></li>
+<li><a href="plan/lanes.html">Lanes board</a> <small class="meta">plan/lanes.html</small></li>
+<li><a href="plan/notes.html">Research notes and dependency notes</a> <small class="meta">plan/notes.html</small></li>
+<li><a href="plan/progress-ledger.html">Progress ledger: the version each finished item belonged to</a> <small class="meta">plan/progress-ledger.html</small></li>
+<li><a href="plan/release-roadmap.html">Release roadmap and version map, v8.1 to v10.0</a> <small class="meta">plan/release-roadmap.html</small></li>
+<li><a href="plan/releases/version-10-0-roles-and-permissions.html">Version 10.0: Roles and permissions</a> <small class="meta">plan/releases/version-10-0-roles-and-permissions.html</small></li>
+<li><a href="plan/releases/version-8-1-zoom-and-scatters.html">Version 8.1: Infinite zoom and the new generate scatters</a> <small class="meta">plan/releases/version-8-1-zoom-and-scatters.html</small></li>
+<li><a href="plan/releases/version-8-2-accounts-and-invitations.html">Version 8.2: User accounts, bookmarks and API keys, with the foundations for later versions</a> <small class="meta">plan/releases/version-8-2-accounts-and-invitations.html</small></li>
+<li><a href="plan/releases/version-8-3-moving-galaxy.html">Version 8.3: The moving galaxy</a> <small class="meta">plan/releases/version-8-3-moving-galaxy.html</small></li>
+<li><a href="plan/releases/version-8-4-new-worlds.html">Version 8.4: New worlds and the first settlements</a> <small class="meta">plan/releases/version-8-4-new-worlds.html</small></li>
+<li><a href="plan/releases/version-8-5-courses-around-gravity-wells.html">Version 8.5: Courses that bend around gravity wells</a> <small class="meta">plan/releases/version-8-5-courses-around-gravity-wells.html</small></li>
+<li><a href="plan/releases/version-8-6-edit-everything.html">Version 8.6: Edit everything</a> <small class="meta">plan/releases/version-8-6-edit-everything.html</small></li>
+<li><a href="plan/releases/version-8-7-console-and-help.html">Version 8.7: Full help for all pages</a> <small class="meta">plan/releases/version-8-7-console-and-help.html</small></li>
+<li><a href="plan/releases/version-8-8-deep-sky.html">Version 8.8: Deep sky objects</a> <small class="meta">plan/releases/version-8-8-deep-sky.html</small></li>
+<li><a href="plan/releases/version-8-9-generate-anywhere.html">Version 8.9: Remote build</a> <small class="meta">plan/releases/version-8-9-generate-anywhere.html</small></li>
+<li><a href="plan/releases/version-9-0-composition-and-atmosphere-colour.html">Version 9.0: Composition, atmosphere colour and the view from a planet</a> <small class="meta">plan/releases/version-9-0-composition-and-atmosphere-colour.html</small></li>
+<li><a href="plan/releases/version-9-2-politics-and-territories.html">Version 9.2: Politics and territories</a> <small class="meta">plan/releases/version-9-2-politics-and-territories.html</small></li>
+<li><a href="plan/releases/version-9-3-ships-and-stations.html">Version 9.3: Ships and stations</a> <small class="meta">plan/releases/version-9-3-ships-and-stations.html</small></li>
+<li><a href="plan/releases/version-9-4-galaxy-types.html">Version 9.4: Galaxy types</a> <small class="meta">plan/releases/version-9-4-galaxy-types.html</small></li>
+<li><a href="plan/releases/version-9-5-life-classes.html">Version 9.5: Life classes and sentient life</a> <small class="meta">plan/releases/version-9-5-life-classes.html</small></li>
+<li><a href="plan/releases/version-later-future-features.html">Version later: Future features (not scheduled)</a> <small class="meta">plan/releases/version-later-future-features.html</small></li>
+<li><a href="plan/todo-number-map.html">TODO number map: old numbers and tree IDs to category IDs</a> <small class="meta">plan/todo-number-map.html</small></li>
+</ul>
+<h2>Reference papers and datasets</h2><ul class="cards">
+<li><a href="../REFERENCES.html">References (papers, datasets, catalogs)</a> <small class="meta">../REFERENCES.html</small></li>
+</ul>
+<h2>Archive (replaced designs)</h2><ul class="cards">
+<li><a href="archive/galaxy-coordinate-system-cylinder.html">Galaxy coordinate system and sector grid (cylindrical grid)</a> <small class="meta">archive/galaxy-coordinate-system-cylinder.html</small></li>
+<li><a href="archive/galaxy-coordinate-system-shells.html">Galaxy Coordinate System — Design Proposal</a> <small class="meta">archive/galaxy-coordinate-system-shells.html</small></li>
+<li><a href="archive/galaxy-disk-density-rev2.html">Galaxy Disk/Spiral Density — Design Proposal (Revision 2: Preplanned Sector Table)</a> <small class="meta">archive/galaxy-disk-density-rev2.html</small></li>
+<li><a href="archive/habitability-atmosphere-sanity-review.html">Habitability / Atmosphere Sanity Review</a> <small class="meta">archive/habitability-atmosphere-sanity-review.html</small></li>
+</ul>
+<h2>The repository&#x27;s own files</h2><ul class="cards">
+<li><a href="repo/CHANGELOG.html">Changelog</a> <small class="meta">repo/CHANGELOG.html</small></li>
+<li><a href="repo/DATA-LICENSE.html">Data sources and their terms</a> <small class="meta">repo/DATA-LICENSE.html</small></li>
+<li><a href="repo/INSTALL.html">Installing planetGen</a> <small class="meta">repo/INSTALL.html</small></li>
+<li><a href="repo/LICENSE.html">License</a> <small class="meta">repo/LICENSE.html</small></li>
+<li><a href="repo/README.html">planetGen</a> <small class="meta">repo/README.html</small></li>
+</ul>
+<h2>Generated pages</h2><ul class="cards">
+<li><a href="../generated/architecture-map.html">Architecture map (generated page)</a> <small class="meta">../generated/architecture-map.html</small></li>
+<li><a href="../generated/execution-plan.html">Execution plan (generated page)</a> <small class="meta">../generated/execution-plan.html</small></li>
+<li><a href="../generated/release-roadmap.html">Release roadmap (generated page)</a> <small class="meta">../generated/release-roadmap.html</small></li>
+<li><a href="../generated/todo-reference.html">Todo reference (generated page)</a> <small class="meta">../generated/todo-reference.html</small></li>
+<li><a href="../generated/todo-tree.html">Todo tree (generated page)</a> <small class="meta">../generated/todo-tree.html</small></li>
+<li><a href="../generated/version-plan.html">Version plan (generated page)</a> <small class="meta">../generated/version-plan.html</small></li>
+</ul>
+<h2>Generated</h2><ul class="cards">
+<li><a href="generated/README.html">Generated pages</a> <small class="meta">generated/README.html</small></li>
+</ul>
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version later: Future features (not scheduled) - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-later-future-features.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-later-future-features.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-later-future-features-not-scheduled">Version later: Future features (not scheduled)</h1><p class="meta">docs/plan/releases/version-later-future-features.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-multiple-galaxies">Phase 1: Multiple galaxies</a></li><li style="margin-left:14px"><a href="#multiple-galaxies">Multiple galaxies</a></li><li style="margin-left:0px"><a href="#phase-2-waiting-on-other-projects">Phase 2: Waiting on other projects</a></li><li style="margin-left:14px"><a href="#optional-unit-edge-arithmetic">Optional unit edge arithmetic</a></li><li style="margin-left:14px"><a href="#paging-audit">Paging audit</a></li><li style="margin-left:14px"><a href="#upstream-follow-ups">Upstream follow-ups</a></li><li style="margin-left:0px"><a href="#phase-3-speed-ups-that-change-generated-values">Phase 3: Speed-ups that change generated values</a></li><li style="margin-left:14px"><a href="#value-changing-speed-ups">Value-changing speed-ups</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: later</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>Features that belong to no version yet, noted as possible future work: more than one galaxy in the database and the intergalactic frame (Boss, 2026-10-16: a possible future feature, not a headline).</p>
+<h2 id="phase-1-multiple-galaxies">Phase 1: Multiple galaxies</h2>
+<p>Neighbour galaxies, more than one galaxy in the database and the intergalactic frame.</p>
+<h3 id="multiple-galaxies">Multiple galaxies</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.157</td>
+<td>The <code>neighbor_galaxies</code> table drawn from the seed (the real Local Group list is a test reference only, no shipped content)</td>
+<td></td>
+<td>Research: stage 1 of GEN.9.</td>
+</tr>
+<tr>
+<td>GEN.1292</td>
+<td>The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)</td>
+<td>VIEW.46</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.282</td>
+<td>Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu</td>
+<td>UX.281</td>
+<td></td>
+</tr>
+<tr>
+<td>MAP.145</td>
+<td>A sky and Galaxy Map drawing rule for neighbour galaxies</td>
+<td>GEN.157</td>
+<td>Research.</td>
+</tr>
+<tr>
+<td>MAP.374</td>
+<td>Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection</td>
+<td></td>
+<td>Later; no lane.</td>
+</tr>
+<tr>
+<td>UX.260</td>
+<td>Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere</td>
+<td></td>
+<td>Later; no lane.</td>
+</tr>
+<tr>
+<td>NAV.57</td>
+<td>The Intergalactic Frame in navigation-frames.md and <code>navigation.py</code></td>
+<td>GEN.157</td>
+<td>Research: stage 2 of GEN.9.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-waiting-on-other-projects">Phase 2: Waiting on other projects</h2>
+<p>Small clean-ups that wait for an upstream release; none is part of a version's build.</p>
+<h3 id="optional-unit-edge-arithmetic">Optional unit edge arithmetic</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.588</td>
+<td>Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled</td>
+<td></td>
+<td>Optional; Boss chose R1 option 1, so nothing waits on it.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="paging-audit">Paging audit</h3>
+<p>The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="upstream-follow-ups">Upstream follow-ups</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.222</td>
+<td>Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it</td>
+<td></td>
+<td>Waits on a scikit-image release. Lane 15 found it.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-speed-ups-that-change-generated-values">Phase 3: Speed-ups that change generated values</h2>
+<p>Boss, 12:27 PM EDT 2026-10-23 (cards): not in 8.1; each needs a generator epoch and Boss's word before it starts.</p>
+<h3 id="value-changing-speed-ups">Value-changing speed-ups</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PERF.162</td>
+<td>Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word</td>
+<td></td>
+<td>Boss: not in 8.1 (12:27 PM EDT 2026-10-23).</td>
+</tr>
+<tr>
+<td>PERF.166</td>
+<td>The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug)</td>
+<td></td>
+<td>Boss: leave it (12:27 PM EDT 2026-10-23); build only if a measurement after PERF.165 says it is worth an epoch.</td>
+</tr>
+<tr>
+<td>NAV.71</td>
+<td>Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3)</td>
+<td>POP.33, POP.34, DB.105</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.23</td>
+<td>Email notices: a request was submitted, decided or sent back</td>
+<td>USR.17, USR.3</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.9</td>
+<td><code>seo.privacy_note</code> text, &quot;download my data&quot; and &quot;delete my account&quot; on the account page</td>
+<td>USR.7, USR.26</td>
+<td>Research suggestion; not requested.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

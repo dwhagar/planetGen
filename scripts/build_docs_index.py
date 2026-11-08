@@ -49,7 +49,7 @@ def html_pages():
     """`[(path relative to docs/, title, description)]` of every HTML page under `docs/` but the index itself."""
     found = []
     for folder, dirs, files in os.walk(DOCS):
-        dirs[:] = sorted(d for d in dirs if d != "__pycache__")
+        dirs[:] = sorted(d for d in dirs if d not in ("__pycache__", "site"))
         for name in sorted(files):
             if not name.endswith(".html"):
                 continue
@@ -114,7 +114,9 @@ def build():
         body.append(f"<h2>{html.escape(heading)}</h2>" + (f'<p class="lead">{html.escape(lead)}</p>' if lead else ""))
         body.append("<ul>" + "".join(_entry(path, title, description) for path, title, description in grouped[key]) + "</ul>")
     reference = "<ul>" + "".join(_entry(f, h, t) for f, h, t in markdown_notes("reference")) + "</ul>"
-    design = ("<ul>" + _entry("README.md", "Docs overview", "One line for every folder and key file under docs/.") +
+    design = ("<ul>" + _entry("site/index.html", "Documentation website",
+                              "Every Markdown document under docs/ as a web page with a menu, search and rendered formulas "
+                              "(built by scripts/build_docs_site.py).") + _entry("README.md", "Docs overview", "One line for every folder and key file under docs/.") +
               _entry("design/README.md", "Design notes", "The index of every design note, with its status.") +
               _entry("plan/issue-groups.md", "Goal issues",
                      "The GitHub issues that group the TODO items into goals, and the items each covers.") +

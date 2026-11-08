@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spherical-shell sectors with a round core: what it would mean - planetGen docs</title>
+<meta name="description" content="Research only, 2026-10-15.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/spherical-shell-sectors.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/spherical-shell-sectors.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="spherical-shell-sectors-with-a-round-core-what-it-would-mean">Spherical-shell sectors with a round core: what it would mean</h1><p class="meta">docs/design/galaxy/spherical-shell-sectors.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#1-answer-in-brief">1. Answer in brief</a></li><li style="margin-left:0px"><a href="#2-what-is-proposed-made-precise">2. What is proposed, made precise</a></li><li style="margin-left:0px"><a href="#3-what-changed-since-the-archived-design">3. What changed since the archived design</a></li><li style="margin-left:0px"><a href="#4-what-i-measured">4. What I measured</a></li><li style="margin-left:14px"><a href="#41-counts-and-cube-ness">4.1 Counts and cube-ness</a></li><li style="margin-left:14px"><a href="#42-why-s2-does-not-rescue-the-columns">4.2 Why S2 does not rescue the columns</a></li><li style="margin-left:14px"><a href="#43-the-core-c">4.3 The core [C]</a></li><li style="margin-left:14px"><a href="#44-neighbours-addressing-outline-c">4.4 Neighbours, addressing, outline [C]</a></li><li style="margin-left:0px"><a href="#5-what-it-would-change-in-the-project">5. What it would change in the project</a></li><li style="margin-left:0px"><a href="#6-what-it-would-give">6. What it would give</a></li><li style="margin-left:0px"><a href="#7-options">7. Options</a></li><li style="margin-left:0px"><a href="#8-what-i-could-not-measure">8. What I could not measure</a></li><li style="margin-left:0px"><a href="#9-method-and-files">9. Method and files</a></li></ul></details>
+<p>Research only, 2026-10-15. No code, TODO.md or schema changes. Boss decides.</p>
+<p><strong>Update, 2026-10-15 06:39Z:</strong> Boss decided to go ahead with spherical shells, with pole caps and wedges starting at a 4 pc gap. The plan and the final rules (which differ from S1 below in the caps and the multiples-of-6 wedge rule) are in <a href="spherical-sector-coordinates.html">spherical-sector-coordinates.md</a>. The recommendation in this note was to keep the cylinder; that is superseded by Boss's decision.</p>
+<p>Question (Boss, 2026-10-15 05:51Z): what would happen if sectors were spherical shells cut into arc segments, with the core a spherical sector 4 pc across, so that at sector level it is still basically a cube for most of the galaxy?</p>
+<p>Informs: MAP.151 (the 3-ary block ladder, MAP.151b, is the next piece), MAP.152, GEN.101, GEN.24, ADM.30.</p>
+<p>Evidence tags: [C] computed in this research and re-runnable (scripts and raw output under <code>/mnt/project-files/research/scripts/spherical-sectors/</code>, <code>results.txt</code> beside them), [S] read in the repository. Nothing here is [R] recalled; every number below is from the scripts or the code. The density is the real default model (<code>planetgen plan</code> shape, 4 pc edge, 6.31 systems per cell at density 1, the skeleton's own qualification test).</p>
+<h2 id="1-answer-in-brief">1. Answer in brief</h2>
+<p><strong>It works, it is not worth doing, and nothing in the project asks for it yet.</strong> My view, plainly: keep the cylindrical grid.</p>
+<ol>
+<li><strong>The grid is buildable and tiles exactly.</strong> Shells 4 pc thick, an odd number of latitude bands per shell (the plane stays in the middle of a band), slots per band proportional to the band's circumference. A point maps to its cell in closed form (20,000 random points, 0 misses) and the cell volumes sum to the ball's volume [C]. It does not bring back the problems of the archived design (section 3).</li>
+<li><strong>For the disk it changes almost nothing.</strong> Candidate cells: 23,917,889,703 against 23,920,622,421 on the cylinder (-0.011%), both 3,764 rings or shells [C]. Cell volume is within 0.999 to 1.001 of an edge cubed for 99.8% of cells (the cylinder's master-wedge rule gives 0.945 to 1.062). 99.99999% of cells have all three edges within 10% of each other. &quot;Basically a cube for most of the galaxy&quot; is true, and was already true.</li>
+<li><strong>The core does not get lighter.</strong> The 4 pc ball holds about 509 systems, but its neighbours are denser: the densest cell is 1,187 systems against 1,114 on the cylinder (section 4.3). The model has no central cusp, so a smaller centre cell does not remove the heavy cells next to it. The core-readability lever stays presentation, as the 2026-10-08 study concluded.</li>
+<li><strong>The cost is the cylinder's best property.</strong> Aligned columns and flat layers go away. A block or region query that today needs one range per ring needs one per (shell, band), 27 times more for a 27-wide block; face neighbours double (6 to 7 become 10 to 15); the block ladder (243/81/27/9/3/1), <code>drill.py</code>, <code>region.py</code>, <code>window.py</code> and the three map scripts are rebuilt. 46 source files (882 lines naming ring, layer or slot) and 79 of 373 test files change; the galaxy and every sector, object ID and seed-derived sector content are regenerated (section 5).</li>
+<li><strong>If the wish is a round, special centre</strong>, the cheaper way is the one already proposed in <code>fill-order-curves-and-core.md</code> section 4.2: the nucleus as a special object in ring 0 slot 0, not a different grid (section 7).</li>
+</ol>
+<p>If Boss wants it anyway, decide <strong>before</strong> MAP.151b and the rest of the Maps ladder merge: every ladder merge on the cylinder raises the price (section 7).</p>
+<h2 id="2-what-is-proposed-made-precise">2. What is proposed, made precise</h2>
+<p>Edge <code>e</code> = 4 pc. This is my reading of Boss's sentence; the two variants are mine.</p>
+<ul>
+<li><strong>Core (shell 0):</strong> a ball of radius <code>e/2</code>, diameter 4 pc, volume 0.524 e^3 (33.5 pc^3).</li>
+<li><strong>Shell <code>k</code> &gt;= 1:</strong> <code>r</code> in <code>[(k - 1/2) e, (k + 1/2) e)</code>, centreline radius <code>k e</code>. Same thickness as a ring; the core ball is half a shell, so shell <code>k</code> sits where ring <code>k - 1/2</code> does today.</li>
+<li><strong>Latitude bands:</strong> <code>n(k)</code> = the odd integer nearest <code>pi k</code>, equal steps of colatitude. Odd puts the galactic plane in the middle of a band, as layer 0 straddles it today. A band's arc at the centreline is within 0.1% of <code>e</code> at large <code>k</code>.</li>
+<li><strong>Slots (S1, the variant studied):</strong> band <code>b</code> of shell <code>k</code> has <code>N = max(1, round(2 pi k sin(colatitude of its centre)))</code> equal slots, so every cell is close to a cube at every latitude, up to the axis. Near the axis the first bands hold 3 slots, a polar cap of three pie wedges like ring 0 today.</li>
+<li><strong>S<sub>2</sub> (aligned meridians):</strong> one slot count per shell, <code>round(2 pi k)</code>, the same in every band, which keeps every slot boundary a vertical half-plane through the axis like the cylinder. Studied as the &quot;keep the columns&quot; alternative and rejected (section 4.2).</li>
+</ul>
+<p>Address: <code>(shell, band, slot)</code>, unique, closed form both ways. Local axes, positions inside a cell and the stored centre work as today; sampling inside a cell is separable (cube root for <code>r</code>, uniform in <code>cos</code> of colatitude, uniform longitude).</p>
+<h2 id="3-what-changed-since-the-archived-design">3. What changed since the archived design</h2>
+<p>The archived &quot;Track C&quot; design (<code>archive/galaxy-coordinate-system-shells.md</code>, built 5.3.6, replaced in 6.0.0) put <strong>cube</strong> sectors on spherical shells at Fibonacci-sphere points. Its problems and what happens to each:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Problem then</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cubes cannot tile a sphere, so gaps and overlaps, then a Voronoi prism per sector (<code>sector_vertices</code>) and a Fibonacci-number neighbour search</td>
+<td>Gone. Arc segments are the cells; they tile by construction and every lookup is closed form [C].</td>
+</tr>
+<tr>
+<td>Most shell slots sit far off the disk</td>
+<td>Still true of the address space, but the stored outline (one band range per shell, about 3,764 rows, like <code>galaxy_layer</code>) bounds it, and the outline holds the same 23.9 billion cells as the cylinder [C].</td>
+</tr>
+<tr>
+<td>A per-shell band skeleton (<code>galaxy_shell_band</code>)</td>
+<td>Replaced by the same bounds-before-generating rule; the table would be a shell-keyed twin of <code>galaxy_layer</code> and <code>galaxy_column</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>What the archive could not know, because it came before them: the 243/81/27/9/3/1 ladder and its nested wedge rule, <code>drill.py</code> and the stage cache, region and window frames (MAP.151a/c), the 80-bit object IDs (the first layout; 96 bits is the default since Boss, 2026-10-15) with a 40-bit birth-sector field, per-sector seeds derived from an address string, bright-star and phenomenon scatter tables keyed by ring, layer and slot, the Redis scatter queue, and the fill-order work. All of them are written against ring, layer and slot, and the archive's reasons for leaving shells (a cube cannot tile a sphere, off-disk addresses) do not apply to arc segments, so <strong>the old reasons no longer settle the question; the cost of the new things does.</strong></p>
+<h2 id="4-what-i-measured">4. What I measured</h2>
+<p>All for the default Milky Way shape, outline built with the skeleton's own test (bound density at the cell centre at least 1/6.31).</p>
+<h3 id="41-counts-and-cube-ness">4.1 Counts and cube-ness</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Cylinder (today)</th>
+<th>S1 (varying slots per band)</th>
+<th>S<sub>2</sub> (one slot count per shell)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rings or shells</td>
+<td>3,764</td>
+<td>3,764</td>
+<td>3,764</td>
+</tr>
+<tr>
+<td>Candidate cells</td>
+<td>23,920,622,421</td>
+<td>23,917,889,703</td>
+<td>26,138,221,065</td>
+</tr>
+<tr>
+<td>Volume per cell, share of cells within</td>
+<td>0.945 to 1.062 (all)</td>
+<td>0.999 to 1.001 (99.8%), extremes 0.85 to 1.15 near the axis and centre</td>
+<td>median 1.00; 6.7% of cells below 0.5, 1% below 0.08</td>
+</tr>
+<tr>
+<td>Cells with the three edges within 10%</td>
+<td>100% (arc 0.94 to 1.06, others exactly 1)</td>
+<td>99.99999%</td>
+<td>82%</td>
+</tr>
+<tr>
+<td>Cells more than 25 degrees off the plane</td>
+<td>n/a</td>
+<td>11% (4.3% above 45)</td>
+<td>18% (10% above 45)</td>
+</tr>
+</tbody>
+</table></div>
+<p>S1 is the only variant that meets &quot;a cube almost everywhere&quot;. S<sub>2</sub> pinches cells in the bulge and over the axis, where a fifth of its cells sit above 25 degrees.</p>
+<h3 id="42-why-s2-does-not-rescue-the-columns">4.2 Why S<sub>2</sub> does not rescue the columns</h3>
+<p>S<sub>2</sub> keeps vertical slot planes, but a longitude slot at latitude <code>L</code> is <code>cos L</code> as wide, so cells get narrower with height. In the default outline 7% of cells would be under half an edge cubed, and the cell count grows 9%. The cylinder is the only grid here that is a cube at every height, because a cylinder is the same at every height. That is the property being traded away.</p>
+<h3 id="43-the-core-c">4.3 The core [C]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Cylinder</th>
+<th>S1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Centre cell</td>
+<td>ring 0 layer 0 slot 0, a pie wedge, volume 1.05 e^3, about 920 systems at its centre density</td>
+<td>ball, volume 0.52 e^3, about 509 systems</td>
+</tr>
+<tr>
+<td>Densest cell</td>
+<td>1,114 systems (rings 1 and 2, any layer 0 to 3)</td>
+<td>1,187 systems (shells 3, 5 and 7, polar-cap cells of volume 1.15 e^3)</td>
+</tr>
+<tr>
+<td>Shell 1</td>
+<td>n/a</td>
+<td>12 cells of 1.13 e^3 whose outer face is 9 times the inner</td>
+</tr>
+<tr>
+<td>Cells whose outer face is within 10% of the inner</td>
+<td>rings 10 and out (40 pc)</td>
+<td>shells 21 and out (84 pc), 41,453 cells inside</td>
+</tr>
+</tbody>
+</table></div>
+<p>Density at the centre is 154 times the local density and almost flat across the core. A round centre cell makes that one cell lighter and leaves 12 neighbours at about 1.1 e^3 and the same density. Only 0.0002% of cells are inside shell 21, so Boss's &quot;most of the galaxy&quot; is safe; the core is the one place where the shape is not a cube, on both grids.</p>
+<p>The nucleus itself is not a sector-sized problem on either grid: <code>fill-order-curves-and-core.md</code> section 4.2 puts the real centre at 10^6 to 10^7 stars in a 4 pc cell, which is a statistical object, not a fill.</p>
+<h3 id="44-neighbours-addressing-outline-c">4.4 Neighbours, addressing, outline [C]</h3>
+<ul>
+<li><strong>Face neighbours:</strong> cylinder 6 to 7 (mean 6.2); S1 10 to 15 (mean 12.5 near the plane, 13.6 at 60 degrees); S<sub>2</sub> 10 to 14 (mean 12). A neighbouring shell's bands and slots are offset in two directions instead of one, so a cell touches up to four cells above and four below instead of one or two. Anything that walks neighbours (the greedy fill, the nav graph, <code>neighbor_addresses</code>) does about twice the work and the &quot;brick course&quot; offset becomes a two-way offset.</li>
+<li><strong>Closed form:</strong> shell from <code>|p|</code>, band from <code>acos(z/|p|)</code>, slot from <code>atan2</code>. No search anywhere.</li>
+<li><strong>Outline and ID bits:</strong> the outline reaches the axis up to shell 927 (about 3,700 pc above the plane); the largest band offset from the plane is 1,456 and the largest slot count is 23,650. The 40-bit birth-sector field of the 80-bit object ID (the first layout; 96 bits is the default since Boss, 2026-10-15; 12 + 12 + 16 bits, <code>object-id-options.md</code>) still fits: shell 3,764 &lt; 4,096, band offset 1,456 &lt; 2,048, slot 23,650 &lt; 65,536. The field widths survive; every value in it changes.</li>
+</ul>
+<h2 id="5-what-it-would-change-in-the-project">5. What it would change in the project</h2>
+<p><strong>Gone with the cylinder:</strong></p>
+<ul>
+<li><strong>Layers.</strong> There is no global height index. A band is a cone: band <code>j</code> of shell <code>k</code> sits at <code>z = k e sin(j pi / n)</code>, about <code>j e - j^3 e^3 / (6 r^2)</code>, so it is flat to a fraction of a parsec between neighbouring shells but drifts down across the galaxy (about 3 pc low at 1,000 pc above the plane at 8 kpc, 18 pc at 3 kpc), and no slab is flat. Everything that reads &quot;layer&quot; means a flat slab today: the slab slider, <code>galaxy_layer</code> and <code>galaxy_column</code>, ADM.30's decision &quot;cylinder height = X layers&quot;, GEN.24's &quot;layer 0 only&quot; (a plane band instead), the Zone and slab wording on the Galaxy pages.</li>
+<li><strong>Aligned columns and one arc per ring.</strong> <code>region.py</code> lists a round region as one slot arc per ring, the same for every layer; <code>window.py</code>, <code>span.py</code> and the stage queries follow. With bands, each (shell, band) has its own arc: a 27-wide block is 27 SQL range clauses today and 729 on S1 (243 wide: 243 against 59,049) [C]. The stage queries already pay this pattern (<code>drilldown-region-sizes.md</code> section 5.3 counts 243 clauses at m = 243); it would need a different key (a sortable curve key per cell) to get back to a few ranges, and <code>sectors</code>, <code>bright_stars</code>, <code>sector_stats</code>, <code>phenomenon_scatter</code>, <code>galaxy_layer</code>, <code>galaxy_column</code> and <code>galaxy_block_stats</code> are all keyed by <code>(ring, layer, slot)</code> [S].</li>
+<li><strong>The block ladder and master wedges.</strong> 3-ary blocks cut on shared lines need a latitude master rule (bands a multiple of a master count) on top of the longitude one. A crude try with odd 3^z masters gives band arcs of 0.89 to 1.11 of an edge, against 0.94 to 1.06 for wedges today [C]. Longitude masters can continue to within 4 to 7 degrees of the axis at shells 100, 1,000 and 3,000, past which blocks over the axis need a special case [C]. A 27-block is also a frustum in both angles instead of one, so blocks, tiles, stage keys, <code>drill.py</code>, <code>galaxyprisms.js</code> (1,047 lines), <code>galaxystageview.js</code> (2,561) and <code>galaxymap3d.js</code> (3,306) are rebuilt rather than adapted. This is design work, not a rename. I did not design the S1 ladder; the numbers above only say it is possible.</li>
+</ul>
+<p><strong>Rebuilt or renamed:</strong></p>
+<ul>
+<li>46 non-test source files name ring, layer or slot (882 lines); the heavy ones are <code>db/query.py</code> (124 mentions), <code>db/store.py</code> (107), <code>galaxy/geometry.py</code> (112), <code>generation/run_plan.py</code> (63), <code>generation/bright_stars.py</code> (62), <code>galaxy/skeleton.py</code> (50), <code>generation/phenomenon_scatter.py</code> (40), <code>generation/run_galaxy.py</code> (39) [S]. 79 of the 373 test files use them (707 lines), including <code>test_galaxy_gen.py</code>, <code>test_galaxy_geometry.py</code>, the fuzz and boundary tests and the map tests.</li>
+<li>That is the Database (migration, seven tables, block stats), Maps (ladder, stage view, prisms), Generation (fill order, scatter, bright stars, region fills) and UX (Galaxy and Sector pages, slab wording) lanes at once, plus the Test Suite thread.</li>
+<li>The in-flight Maps ladder (MAP.151b with its data-only migration, then MAP.152) is built for the cylinder and would be set aside, and MAP.151a/c (<code>region.py</code>, <code>window.py</code>, merged) redone. The 8.1 fly-through headline rests on that ladder.</li>
+</ul>
+<p><strong>Reset:</strong> like v32, v33 and v35, the migration deletes every galaxy-placed sector, system and phenomenon and rebuilds the outline. Because a sector's seed is the SHA-256 of the galaxy seed and its address string, <strong>the same galaxy seed fills every sector differently</strong>, and because object IDs carry the birth sector, <strong>every object ID and sector ID changes</strong>. The no-backward-compatibility rule makes this acceptable; it is the same kind of reset Boss accepted on 2026-09-24, on a codebase many times larger.</p>
+<p><strong>Unchanged:</strong> the density model and the outline test, E = 6.31 systems per cell, the cell count and so the generation and storage cost (+/-0.01%), seeds and reproducibility rules, orbits and the galactic potential (they are continuous), Hill-sphere and radius handling (<code>galactic_radius_pc</code> is stored already).</p>
+<h2 id="6-what-it-would-give">6. What it would give</h2>
+<p>Real, but small:</p>
+<ol>
+<li><strong>A centred nucleus.</strong> The quasar sits mid-cell in a ball instead of on the vertex shared by three wedges at ring 0, layer 0, slot 0, and &quot;the core out to a radius&quot; becomes whole shells (GEN.24's 50 pc is shells 0 to 12, a ball, not a one-layer disc).</li>
+<li><strong>An address that is a navigation coordinate.</strong> Shell is distance from the core; band and slot are mark and bearing in the galactic frame, the same course the NAV page and the object-ID bearing and mark use (<code>navigation-frames.md</code>). A sector designation would read as a quantised course.</li>
+<li><strong>Even cells.</strong> Expected systems per cell vary by +/-0.1% instead of +/-6% from rounding (back to about +/-11% in latitude if the ladder's master rule is added).</li>
+<li><strong>Natural for spherical things.</strong> Globular-cluster tidal spheres, a halo, a spheroidal galaxy (<code>multiple-galaxies.md</code> has <code>axis_ratio_thin</code> 1.0 for ellipticals). The cylinder holds these too, as cubes at every height, so this is tidiness, not capability.</li>
+</ol>
+<p>Not given: fewer cells, lighter cells, a cheaper fill, a faster map, a better disk. The disk is where almost all the volume is, and there the two grids are the same cells to a fraction of a percent.</p>
+<h2 id="7-options">7. Options</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Option</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td><strong>Keep the cylinder</strong> and, if a round centre is the point, make the nucleus a special object in ring 0 slot 0 (a statistical nuclear cluster with the black hole, <code>fill-order-curves-and-core.md</code> section 4.2).</td>
+<td><strong>Recommended.</strong> Zero grid change. The cluster's half-light radius is about 4 pc [R, in that note], twice the ball's radius, so neither grid makes it one cell.</td>
+</tr>
+<tr>
+<td>B</td>
+<td><strong>S1 spherical shells</strong> as a full reset.</td>
+<td>Buildable, a different galaxy afterwards, a rebuild of the Maps, Database and Generation work done and in flight. Worth it only if Boss wants spherical symmetry as a feature (nav-native addresses, halo and cluster work, spheroidal galaxies) and accepts the cost. If yes, <strong>decide before MAP.151b</strong> and the rest of the ladder merge: it is the point where the cost is smallest.</td>
+</tr>
+<tr>
+<td>C</td>
+<td>S<sub>2</sub>, one slot count per shell.</td>
+<td>No: it keeps the columns but loses the cube (section 4.2).</td>
+</tr>
+<tr>
+<td>D</td>
+<td>A ball only at the core, cylinder elsewhere.</td>
+<td>Not a grid: removing a ball from the three ring-0 wedges leaves cells that are neither wedges nor shells, and every layer above and below still needs ring 0. Only as option A's special object.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The core-readability question was asked and closed on 2026-10-08 (&quot;leave it all be&quot;, 4 pc stays). Nothing measured here is new information against it: the heaviest cells are as heavy on shells as on rings.</p>
+<h2 id="8-what-i-could-not-measure">8. What I could not measure</h2>
+<ul>
+<li><strong>Draw time and database timings.</strong> No browser or MySQL here. The 27 times more range clauses is a count of clauses, not a query time; cell prisms with curved faces were not drawn.</li>
+<li><strong>The S1 block ladder.</strong> Only the arc ranges of a latitude master rule and the longitude run-out near the axis were computed; the nested ladder, stage keys and the wire format are not designed.</li>
+<li><strong>Neighbour counts</strong> come from random samples (400 per row, 2,000 for the cylinder), not all cells.</li>
+<li><strong>Arm contrast</strong> is not in the counts; the qualification test uses the same upper bound as the skeleton, so both grids see the same outline.</li>
+<li><strong>Effort.</strong> I give the size of the surface (files and lines), not a time; the cost of the reset on a server (regeneration time) is the existing per-system rate times the sectors Boss chooses to fill and is the same on both grids.</li>
+<li><strong>Shape of the core on S1</strong> assumes the 3-slot polar caps and the rounding rule above; a different cap rule moves the shell 1 to 5 figures, not the rest.</li>
+</ul>
+<h2 id="9-method-and-files">9. Method and files</h2>
+<p><code>sphgrid.py</code> (the grid, outline and statistics) and four runners, in <code>/mnt/project-files/research/scripts/spherical-sectors/</code>: <code>01_counts_and_cubeness.py</code> (sections 4.1, 4.2), <code>02_core_cells.py</code> (4.3), <code>03_neighbours_and_tiling.py</code> (4.4, the SQL clause counts and the 20,000-point round trip), <code>04_outline_bits_masters.py</code> (outline bits and master rules); <code>results.txt</code> is their output. Run from the repository's <code>src</code> directory with <code>python3 -I</code> and numpy and scipy installed; they import <code>planetgen.galaxy.density</code>, <code>skeleton</code> and <code>geometry</code> and use the real default shape and outline test. Code surface counts are <code>grep</code> of <code>ring_index</code>, <code>layer_index</code>, <code>ring_slot_index</code>, <code>ring_sector_count</code>, <code>ring_master_count</code>, <code>sector_address_at</code>, <code>neighbor_addresses</code> and friends over <code>src</code>, 2026-10-15, main at 8.0.1248.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architectural Improvements &amp; Simplification via Open-Source UX Libraries - planetGen docs</title>
+<meta name="description" content="This proposal evaluates refactoring custom infrastructure within the planetGen codebase using production-ready open-source libraries across five distinct subsystems.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/web-ux-development-notes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/web-ux-development-notes.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../architecture/library-migration.html">library-migration</a>, <a href="../../interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries</a>, <a href="../../operations/ops-scheduling-and-rotation.html">ops-scheduling-and-rotation</a>, <a href="../../interface/settings-seo-and-accounts.html">settings-seo-and-accounts</a>, <a href="../../architecture/units-and-number-formatting.html">units-and-number-formatting</a>.</p>
+</blockquote>
+<h1 id="architectural-improvements--simplification-via-open-source-ux-libraries">Architectural Improvements &amp; Simplification via Open-Source UX Libraries</h1><p class="meta">docs/design/research/imported/web-ux-development-notes.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#1-general-controls--paginated-lists">1. General Controls &amp; Paginated Lists</a></li><li style="margin-left:14px"><a href="#proposed-architecture">Proposed Architecture</a></li><li style="margin-left:14px"><a href="#architectural-evaluation">Architectural Evaluation</a></li><li style="margin-left:0px"><a href="#2-the-3d-multi-scale-galactic-to-system-viewport">2. The 3D Multi-Scale "Galactic-to-System" Viewport</a></li><li style="margin-left:14px"><a href="#proposed-architecture-1">Proposed Architecture</a></li><li style="margin-left:14px"><a href="#architectural-evaluation-1">Architectural Evaluation</a></li><li style="margin-left:0px"><a href="#3-log-streaming--terminal-windows">3. Log Streaming &amp; Terminal Windows</a></li><li style="margin-left:14px"><a href="#proposed-architecture-2">Proposed Architecture</a></li><li style="margin-left:14px"><a href="#architectural-evaluation-2">Architectural Evaluation</a></li><li style="margin-left:0px"><a href="#4-progress-bars-and-status-feedback">4. Progress Bars and Status Feedback</a></li><li style="margin-left:14px"><a href="#proposed-architecture-3">Proposed Architecture</a></li><li style="margin-left:14px"><a href="#architectural-evaluation-3">Architectural Evaluation</a></li><li style="margin-left:0px"><a href="#5-background-task-scheduling--parallel-processing">5. Background Task Scheduling &amp; Parallel Processing</a></li><li style="margin-left:14px"><a href="#proposed-architecture-4">Proposed Architecture</a></li><li style="margin-left:14px"><a href="#architectural-evaluation-4">Architectural Evaluation</a></li><li style="margin-left:0px"><a href="#references">References</a></li></ul></details>
+<p>This proposal evaluates refactoring custom infrastructure within the <code>planetGen</code> codebase using production-ready open-source libraries across five distinct subsystems.</p>
+<h2 id="1-general-controls--paginated-lists">1. General Controls &amp; Paginated Lists</h2>
+<p>Building custom paginated lists and interactive UI controls in <code>tabledisplay.py</code> and <code>sectormap.js</code> creates unnecessary maintenance overhead.</p>
+<h3 id="proposed-architecture">Proposed Architecture</h3>
+<ul>
+<li><strong>Data Grids &amp; Virtualization:</strong> Integrate TanStack Table for headless pagination, sorting, and filtering, paired with TanStack Virtual (or <code>lit-virtualizer</code>) for viewport rendering (TanStack, 2024).</li>
+<li><strong>Control Primitives:</strong> Replace custom web controls with web-component suites like Shoelace / Web Awesome or headless primitive suites such as Radix Primitives or React Aria (Shoelace, 2024).</li>
+</ul>
+<h3 id="architectural-evaluation">Architectural Evaluation</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li><strong>Codebase:</strong> Removes hundreds of lines of fragile manual DOM manipulation from <code>sectormap.js</code> and Jinja templates.</li>
+<li><strong>Server Performance:</strong> Reduces payload sizes by serializing raw JSON arrays rather than rendering heavy HTML tables on the backend.</li>
+<li><strong>Client Performance:</strong> Virtualization limits DOM nodes to only visible viewport elements, preventing browser layout reflows and memory leaks when browsing catalogs of 1,000+ celestial bodies.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li><strong>Codebase &amp; Client:</strong> Requires introducing a JavaScript build or bundling step into an existing vanilla JavaScript pipeline, slightly increasing initial client bundle size.</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-the-3d-multi-scale-galactic-to-system-viewport">2. The 3D Multi-Scale &quot;Galactic-to-System&quot; Viewport</h2>
+<p><code>galaxymap3d.js</code> and <code>galaxyprisms.js</code> encounter hardware single-precision float32 precision limits (z-fighting and vertex jitter) when transitioning across astronomical distances.</p>
+<h3 id="proposed-architecture-1">Proposed Architecture</h3>
+<ul>
+<li><strong>3D Tiles Specification:</strong> Adopt the Open Geospatial Consortium (OGC) 3D Tiles specification using libraries such as <code>3d-tiles-renderer</code> or <code>three-mesh-bvh</code> (Open Geospatial Consortium, 2023).</li>
+<li><strong>Spatial Partitioning (Octree / BVH):</strong> Partition galaxy sectors and stellar systems into Hierarchical Bounding Volume Hierarchies (BVH) to dynamically stream Level-of-Detail (LOD) nodes based on camera proximity (Open Geospatial Consortium, 2023).</li>
+</ul>
+<h3 id="architectural-evaluation-1">Architectural Evaluation</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li><strong>Codebase:</strong> Offloads manual camera calculations and frustum culling algorithms from custom scripts into standard 3D geospatial specifications.</li>
+<li><strong>Server Performance:</strong> Enables streaming spatial bounding chunks on demand rather than serializing multi-megabyte galactic coordinates in a single database payload.</li>
+<li><strong>Client Performance:</strong> Resolves GPU floating-point precision jitter by localizing coordinate spaces per spatial node; drastically lowers GPU VRAM usage via dynamic LOD streaming.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li><strong>Codebase:</strong> High refactoring complexity to translate <code>planetGen</code> data structures into hierarchical 3D tilesets.</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-log-streaming--terminal-windows">3. Log Streaming &amp; Terminal Windows</h2>
+<p>Piping Python stdout/stderr process output directly into standard browser <code>&lt;div&gt;</code> tags in <code>generatejobs.js</code> degrades browser performance as log buffers grow.</p>
+<h3 id="proposed-architecture-2">Proposed Architecture</h3>
+<ul>
+<li><strong>Web Terminal Emulator:</strong> Replace DOM text containers with Xterm.js for fast, memory-capped log rendering with native ANSI escape code support (Xterm.js, 2024).</li>
+<li><strong>Communication Layer:</strong> Replace HTTP endpoint polling with Server-Sent Events (SSE) or WebSockets to push output streams from the backend directly to the client (Xterm.js, 2024).</li>
+</ul>
+<h3 id="architectural-evaluation-2">Architectural Evaluation</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li><strong>Codebase:</strong> Eliminates manual text-parsing, string-concatenation, and auto-scrolling logic in <code>generatejobs.js</code>.</li>
+<li><strong>Server Performance:</strong> SSE eliminates high-frequency HTTP polling requests, freeing server workers and reducing SQLite query overhead.</li>
+<li><strong>Client Performance:</strong> Xterm.js utilizes WebGL/Canvas virtual scrolling with configurable buffer limits, ensuring steady 60 FPS rendering regardless of log throughput.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li><strong>Server Performance &amp; Codebase:</strong> Requires an asynchronous server layer (such as Gevent or ASGI) to handle persistent SSE connections and proxy configuration adjustments.</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-progress-bars-and-status-feedback">4. Progress Bars and Status Feedback</h2>
+<p>Custom DOM progress updates in <code>generatefolds.js</code> and tracking routines in <code>progressRate.py</code> increase UI complexity.</p>
+<h3 id="proposed-architecture-3">Proposed Architecture</h3>
+<ul>
+<li><strong>Native Elements &amp; Accessibility:</strong> Standardize progress tracking using native HTML <code>&lt;progress&gt;</code> elements enhanced with W3C ARIA live region attributes (<code>role=&quot;progressbar&quot;</code>, <code>aria-valuenow</code>).</li>
+</ul>
+<h3 id="architectural-evaluation-3">Architectural Evaluation</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li><strong>Codebase:</strong> Zero external library dependencies; allows complete deletion of bespoke DOM-updating routines in <code>generatefolds.js</code>.</li>
+<li><strong>Server Performance:</strong> Negligible overhead; server streams small integer status updates.</li>
+<li><strong>Client Performance:</strong> Browser executes native hardware-accelerated animations and updates screen readers with zero JavaScript main-thread evaluation overhead.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li><strong>Codebase:</strong> Styling cross-browser default progress elements requires modern CSS custom properties or pseudo-element overrides.</li>
+</ul>
+</li>
+</ul>
+<h2 id="5-background-task-scheduling--parallel-processing">5. Background Task Scheduling &amp; Parallel Processing</h2>
+<p>The custom task queue in <code>workQueue.py</code> and <code>planetgen.cli.job</code> uses SQLite locking mechanisms that can lead to race conditions, worker process crashes, and incomplete state recovery.</p>
+<h3 id="proposed-architecture-4">Proposed Architecture</h3>
+<ul>
+<li><strong>Distributed Task Queues:</strong> Adopt standard Python job schedulers such as Celery, RQ (Redis Queue), or Dramatiq to manage multi-worker execution, serialization, and fault recovery (Celery Project, 2024).</li>
+<li><strong>Single-Server Alternative:</strong> Utilize Python's built-in <code>concurrent.futures.ProcessPoolExecutor</code> paired with lightweight dispatchers like APScheduler or FastAPI BackgroundTasks for broker-less setups (Celery Project, 2024).</li>
+</ul>
+<h3 id="architectural-evaluation-4">Architectural Evaluation</h3>
+<ul>
+<li><strong>Pros:</strong>
+<ul>
+<li><strong>Codebase:</strong> Fully replaces <code>workQueue.py</code> and <code>planetgen.cli.job</code>, eliminating custom process management and recovery logic.</li>
+<li><strong>Server Performance:</strong> Resolves SQLite <code>database is locked</code> errors caused by concurrent worker writes, enabling true multi-core CPU scaling for procedural generation algorithms.</li>
+<li><strong>Client Performance:</strong> Faster background task execution reduces user wait times and eliminates UI job-status timeouts.</li>
+</ul>
+</li>
+<li><strong>Cons:</strong>
+<ul>
+<li><strong>Server Performance &amp; Codebase:</strong> Distributed brokers (e.g., Redis or RabbitMQ) introduce an extra system dependency that must be deployed and monitored.</li>
+</ul>
+</li>
+</ul>
+<h2 id="references">References</h2>
+<p>[R5030]</p>
+<p>[R5031]</p>
+<p>[R5033]</p>
+<p>[R5034]</p>
+<p>[R5035]</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

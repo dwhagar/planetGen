@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stellar activity, magnetic fields, surface radiation dose and hydrosphere - planetGen docs</title>
+<meta name="description" content="The physics inputs the habitability index needs beyond atmosphere species: how active each star is, whether a planet has a magnetic field, how much ionizing radiation and UV reaches its surface, and what water and ocean it holds.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/activity-magnetism-radiation-hydrosphere.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/activity-magnetism-radiation-hydrosphere.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stellar-activity-magnetic-fields-surface-radiation-dose-and-hydrosphere">Stellar activity, magnetic fields, surface radiation dose and hydrosphere</h1><p class="meta">docs/design/habitability/activity-magnetism-radiation-hydrosphere.md</p><details class="toc"><summary>On this page (32 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-summary">1. Summary</a></li><li style="margin-left:0px"><a href="#2-stellar-activity-gen86">2. Stellar activity (GEN.86)</a></li><li style="margin-left:14px"><a href="#21-x-ray-and-xuv-evolution">2.1 X-ray and XUV evolution</a></li><li style="margin-left:14px"><a href="#22-xuv-flux-at-the-planet">2.2 XUV flux at the planet</a></li><li style="margin-left:14px"><a href="#23-effects-exposure-index-and-ozone-flag">2.3 Effects, exposure index and ozone flag</a></li><li style="margin-left:14px"><a href="#24-flares">2.4 Flares</a></li><li style="margin-left:0px"><a href="#3-planetary-magnetic-fields-gen86">3. Planetary magnetic fields (GEN.86)</a></li><li style="margin-left:14px"><a href="#31-the-scaling-law">3.1 The scaling law</a></li><li style="margin-left:14px"><a href="#32-measured-moments">3.2 Measured moments</a></li><li style="margin-left:14px"><a href="#33-tidal-locking">3.3 Tidal locking</a></li><li style="margin-left:14px"><a href="#34-magnetosphere-standoff">3.4 Magnetosphere standoff</a></li><li style="margin-left:14px"><a href="#35-generator-rules-design-defaults-r">3.5 Generator rules (design defaults [R])</a></li><li style="margin-left:14px"><a href="#36-where-the-dipole-points-gen1350">3.6 Where the dipole points (GEN.1350)</a></li><li style="margin-left:0px"><a href="#4-surface-radiation-dose-gen87">4. Surface radiation dose (GEN.87)</a></li><li style="margin-left:14px"><a href="#41-anchors">4.1 Anchors</a></li><li style="margin-left:14px"><a href="#42-the-calculator">4.2 The calculator</a></li><li style="margin-left:14px"><a href="#43-heliosphere-compression-gen75-link">4.3 Heliosphere compression (GEN.75 link)</a></li><li style="margin-left:14px"><a href="#44-calculator-results-msvyr">4.4 Calculator results (mSv/yr)</a></li><li style="margin-left:14px"><a href="#45-galactic-hazards-and-uv">4.5 Galactic hazards and UV</a></li><li style="margin-left:14px"><a href="#46-dose-limits-and-tiers">4.6 Dose limits and tiers</a></li><li style="margin-left:14px"><a href="#47-as-built-gen87">4.7 As built (GEN.87)</a></li><li style="margin-left:0px"><a href="#5-hydrosphere-and-ocean-chemistry-gen88">5. Hydrosphere and ocean chemistry (GEN.88)</a></li><li style="margin-left:14px"><a href="#51-inventory-depth-and-land">5.1 Inventory, depth and land</a></li><li style="margin-left:14px"><a href="#52-ocean-depth-before-high-pressure-ice">5.2 Ocean depth before high-pressure ice</a></li><li style="margin-left:14px"><a href="#53-reusing-the-rogue-planet-functions">5.3 Reusing the rogue-planet functions</a></li><li style="margin-left:14px"><a href="#54-ocean-chemistry-classes">5.4 Ocean chemistry classes</a></li><li style="margin-left:14px"><a href="#55-hycean-link">5.5 Hycean link</a></li><li style="margin-left:14px"><a href="#56-aquifers-gen654">5.6 Aquifers (GEN.654)</a></li><li style="margin-left:0px"><a href="#6-corrections-to-the-source-documents">6. Corrections to the source documents</a></li><li style="margin-left:0px"><a href="#7-evidence-notes">7. Evidence notes</a></li><li style="margin-left:0px"><a href="#8-sources">8. Sources</a></li></ul></details>
+<p>The physics inputs the habitability index needs beyond atmosphere species:
+how active each star is, whether a planet has a magnetic field, how much
+ionizing radiation and UV reaches its surface, and what water and ocean it
+holds. This is the research behind <code>docs/TODO.md</code> items GEN.86, GEN.87 and
+GEN.88, the spin dependency GEN.104, and the reuse of
+<a href="../systems/rogue-planet-surface.html">rogue-planet-surface.md</a>. It carries the still-valid
+formulas of Boss's uploaded documents &quot;Naturally Occuring Ionizing
+Radiation.md&quot; (Rad), &quot;Chemical Habitability.md&quot; (Chem), &quot;Planetary
+Habitability Index.md&quot; (PHI-4) and &quot;Mathematical and Algorithmic
+Implementation of the Planetary Habitability Index.md&quot; (Math), and names each
+correction to them (section 6). Atmosphere retention and class definitions are
+in <a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a>;
+the score structure and tiers are in <a href="habitability-index.html">habitability-index.md</a>.</p>
+<p>Informs: GEN.84, GEN.86, GEN.87, GEN.88, GEN.89, GEN.104, rogue-planet-surface.md
+Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation. Sections 2 and 3 built in GEN.86 (schema v72: <code>physics/activity.py</code>, <code>physics/magnetism.py</code>); the stagnant-lid factor and the induced field of a moon with an ocean are not modelled yet. Section 5 built in GEN.88 (schema v74: <code>physics/hydrosphere.py</code>, which <code>rogue_surface</code> now uses); the class water fractions, the ice-moon eccentricity draw and the 220 K vacuum-ice limit are planetGen defaults, and the stagnant-lid buffer rule is not modelled.</p>
+<p>Evidence tags: [S] seen in a search result (URL under Sources), [C] computed
+(inputs shown), [R] recalled from memory or a design default, unconfirmed.
+The research environment could only read search-result text, not the papers;
+the [R] items are listed under Evidence notes.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Boss (2026-10-03 05:38Z): &quot;Create a habitability index based on the
+pressure, temperature, composition, etc...&quot; (GEN.83).</li>
+<li>Boss (2026-10-07 17:11Z, confirmed 2026-10-09 07:48Z): PHI-4's four domains
+and colour tiers for display, with the Xenobiology doc's three scores
+(<code>PHI_bio</code>, <code>PHI_cpx</code>, <code>Phi_tech</code>) behind them
+(<a href="habitability-index.html">habitability-index.md</a>). The radiation, magnetism
+and ocean numbers below feed those scores.</li>
+</ul>
+<h2 id="1-summary">1. Summary</h2>
+<ol>
+<li><strong>Stellar activity needs four numbers per star</strong> (2.1): saturated
+<code>L_X/L_bol</code> (7.4e-4), saturation age <code>t_sat</code>, a decay exponent and a flare
+rate at 1e33 erg. The Rad doc's &quot;L_XUV/L_bol about 1e-3&quot; is the X-ray band
+only; total XUV of a saturated star is 3.3e-3 (G) to 7.3e-3 (0.1 Msun) [C].
+Habitable-zone planets of M dwarfs get 1,000 to 2,000 times Earth's present
+XUV for billions of years; an exposure index gives the tiers (2.3).</li>
+<li><strong>Magnetic fields</strong> follow core size, density and convective power, nearly
+independent of rotation while the dynamo stays dipolar. A tidally locked
+M-dwarf planet is probably multipolar (dipole about 0.15, standoff 0.53x).
+<strong>Code finding:</strong> only moons are tidally locked in
+<code>generate_orbital_motion_properties</code>; an M-dwarf-zone planet gets a random
+10 to 1,400 h spin but is locked within 15 kyr (0.1 Msun) to 3.4 Myr
+(0.3 Msun) [C]. GEN.104 must fix this before GEN.86.</li>
+<li><strong>Surface dose</strong> is dominated by column mass. Mars surface 0.64 mSv/day dose
+equivalent; Earth's cosmic dose 0.39 mSv/yr, 2.4 being the total natural
+background [S]. A fitted calculator (4.2) matches within 10 percent.</li>
+<li><strong>Hydrosphere:</strong> the rogue-planet ice-shell function reproduces Europa and
+Enceladus [C], so reuse is sound with four fixes (5.3). The main one is a
+<strong>high-pressure-ice cap</strong>: a liquid ocean cannot exceed about 70 to 110 km at
+Earth gravity, so <code>ocean_depth_km</code> up to 855 km is not liquid to the bottom.</li>
+<li>Add a UV/ozone flag and an optional galactic-hazard modifier to GEN.87 (4.5).</li>
+</ol>
+<h2 id="2-stellar-activity-gen86">2. Stellar activity (GEN.86)</h2>
+<h3 id="21-x-ray-and-xuv-evolution">2.1 X-ray and XUV evolution</h3>
+<ul>
+<li><strong>Saturation level.</strong> [R4780] (824 stars): <code>log(L_X/L_bol)</code> =
+-3.13 +/- 0.08, saturation at Rossby number 0.13, unsaturated slope -2.70
+[S for slope and Rossby number; -3.13 is [R]]. Jackson, Davis and Wheatley
+2012 (717 stars): the saturated ratio falls from about 10^-3.1 (late K) to
+10^-4.3 (early F) [S], so &quot;10^-3 for all stars&quot; holds only for K and M.</li>
+<li><strong>M dwarfs saturate longer.</strong> [R4668]: H-alpha active lifetimes rise
+from about 0.8 Gyr (M0) to about 8 Gyr (M7) [S]; an upper bound for X-ray
+saturation.</li>
+<li><strong>Spread at fixed age is real.</strong> Tu et al. 2015: a solar-mass star stays
+saturated about 10 Myr if it starts slow, 300 Myr if fast [S]; draw a
+per-star offset of 0.3 to 0.5 dex.</li>
+<li><strong>Decay.</strong> Skumanich spin-down gives <code>L_X ~ t^-1.35 to -1.5</code> [C], too shallow
+for the Sun today. Exponent 2.0 for M &gt;= 0.5 Msun gives 3.5e-7 for the Sun now
+and 2.1e-5 at 0.6 Gyr (Hyades about 1e-5 [R]); fully convective stars decline
+slowly ([R4781] [R]), so use 1.0 below 0.3 Msun.</li>
+<li><strong>XUV from X-ray.</strong> <code>log L_EUV(100 to 920 A) = 4.80 + 0.860 log L_X</code> (erg/s)
+[R: as used by [R0711]]. It gives <code>L_XUV(Sun now)</code> =
+1.5e28 erg/s, 5.3 erg/cm2/s at 1 AU against Ribas's 4.6 [R], and
+<code>L_XUV ~ t^-1.29</code>, matching the -1.2 to -1.3 band exponents of Ribas et al.
+2005 [S].</li>
+</ul>
+<p>Defaults [C: design defaults calibrated as above; the <code>t_sat</code> column is the design's first estimate: generation takes the saturation age from [R2183] by mass and rotation percentile (GEN.493, <a href="../composition/host-activity-tuning.html">host-activity-tuning.md</a> section 4) and retunes the exponents from 0.45 Msun up (1.35, 1.8, 1.45, 1.45) to keep the same present-day level]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mass (Msun)</th>
+<th>Type</th>
+<th><code>L_X/L_bol</code> saturated</th>
+<th><code>t_sat</code> (Gyr)</th>
+<th>Decay exponent</th>
+<th><code>L_XUV/L_bol</code> saturated</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0 to 1.4</td>
+<td>F, G</td>
+<td>7.4e-4 (G); falls to 5e-5 by 1.4</td>
+<td>0.10</td>
+<td>2.0</td>
+<td>3.3e-3</td>
+</tr>
+<tr>
+<td>0.8</td>
+<td>K</td>
+<td>7.4e-4</td>
+<td>0.15</td>
+<td>2.0</td>
+<td>3.6e-3</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>K/M</td>
+<td>7.4e-4</td>
+<td>0.4</td>
+<td>2.0</td>
+<td>4.1e-3</td>
+</tr>
+<tr>
+<td>0.45</td>
+<td>M</td>
+<td>7.4e-4</td>
+<td>1.0</td>
+<td>1.75</td>
+<td>5.0e-3</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>M</td>
+<td>7.4e-4</td>
+<td>2.0</td>
+<td>1.0</td>
+<td>5.6e-3</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>M</td>
+<td>7.4e-4</td>
+<td>3.0</td>
+<td>1.0</td>
+<td>6.0e-3</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>late M</td>
+<td>7.4e-4</td>
+<td>4.0</td>
+<td>1.0</td>
+<td>7.3e-3</td>
+</tr>
+</tbody>
+</table></div>
+<p>Validation: the Sun at 4.57 Gyr gives <code>L_X</code> 1.4e27 (target 1e27 to 2e27);
+Proxima (0.12 Msun) 3.8e27 against about 4e26 to 1.7e27 observed [R], so late M
+dwarfs are about 2x too active. Add a log-normal per-star offset of 0.4 dex
+after <code>t_sat</code>. This model replaces the stand-in XUV history in
+<a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a>
+3.4.</p>
+<h3 id="22-xuv-flux-at-the-planet">2.2 XUV flux at the planet</h3>
+<p><code>F_XUV = L_XUV / (4 pi d^2)</code>. With a star's main-sequence luminosity (the table below was worked from the project's earlier piecewise
+mass-luminosity law, which GEN.652 replaced with the MIST isochrones; the figures are close enough for the scaling) and a planet at S = 1 (d = sqrt(L) AU),
+in units of Earth's present 4.6 erg/cm2/s [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Star (Msun)</th>
+<th>d (AU)</th>
+<th>0.1 Gyr</th>
+<th>0.5 Gyr</th>
+<th>1 Gyr</th>
+<th>2 Gyr</th>
+<th>4.5 Gyr</th>
+<th>8 Gyr</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G 1.0</td>
+<td>1.00</td>
+<td>974</td>
+<td>56</td>
+<td>17</td>
+<td>4.9</td>
+<td>1.2</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>K 0.8</td>
+<td>0.64</td>
+<td>1,074</td>
+<td>128</td>
+<td>38</td>
+<td>11</td>
+<td>2.7</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>K/M 0.6</td>
+<td>0.36</td>
+<td>1,224</td>
+<td>825</td>
+<td>243</td>
+<td>72</td>
+<td>17</td>
+<td>6.4</td>
+</tr>
+<tr>
+<td>M 0.4</td>
+<td>0.167</td>
+<td>1,465</td>
+<td>1,465</td>
+<td>1,465</td>
+<td>765</td>
+<td>263</td>
+<td>124</td>
+</tr>
+<tr>
+<td>M 0.2</td>
+<td>0.075</td>
+<td>1,776</td>
+<td>1,776</td>
+<td>1,776</td>
+<td>1,776</td>
+<td>1,245</td>
+<td>752</td>
+</tr>
+<tr>
+<td>M 0.1</td>
+<td>0.034</td>
+<td>2,165</td>
+<td>2,165</td>
+<td>2,165</td>
+<td>2,165</td>
+<td>1,953</td>
+<td>1,182</td>
+</tr>
+</tbody>
+</table></div>
+<p>The saturated flux at S = 1 is nearly constant; M-dwarf planets differ in how
+long they stay there. Scale by S otherwise.</p>
+<h3 id="23-effects-exposure-index-and-ozone-flag">2.3 Effects, exposure index and ozone flag</h3>
+<ul>
+<li><strong>Erosion.</strong> Energy-limited loss <code>Mdot = eps pi F R^3 / (G M K)</code>. With
+eps = 0.1 and 6.26e7 J/kg to lift water, an Earth-size planet at S = 1 loses
+4.5 ocean-equivalents by 5 Gyr, yet Earth kept its oceans because the cold
+trap limits real loss [C]. Use it as a relative stress index, and as a real
+estimate only past the moist-greenhouse limit. Scale by
+<code>(R/R_E)^3 / (M/M_E)</code>.</li>
+<li><strong>Ozone.</strong> [R4000]: with protons, a large flare removes 94 percent
+of ozone over two years on an unmagnetized planet, recovering over about
+50 years; [R2014]: 90 percent loss in five years for repeated
+Proxima-type flaring [S].</li>
+<li><strong>Ozone-loss flag</strong> [R, design default]: flare irradiation index
+<code>FI = N33 / d_AU^2</code> (Earth 0.003; Proxima b 2,100). Flag when <code>FI * f_B &gt;= 300</code>,
+<code>f_B</code> = 1 (no dipole), 0.3 (magnetopause under 3 R_p), 0.1 (above), so that
+Proxima b without a field is flagged and Earth is not.</li>
+</ul>
+<p>Exposure index: cumulative XUV to age t relative to a G star at 1 AU over
+5 Gyr (= 4.5 ocean-equivalents) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Star</th>
+<th>to 0.5 Gyr</th>
+<th>1</th>
+<th>2</th>
+<th>5</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G 1.0</td>
+<td>0.9</td>
+<td>0.9</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>K 0.8</td>
+<td>1.3</td>
+<td>1.5</td>
+<td>1.6</td>
+<td>1.7</td>
+<td>1.7</td>
+</tr>
+<tr>
+<td>K/M 0.6</td>
+<td>2.8</td>
+<td>3.8</td>
+<td>4.4</td>
+<td>4.9</td>
+<td>5.1</td>
+</tr>
+<tr>
+<td>M 0.45</td>
+<td>3.3</td>
+<td>6.6</td>
+<td>10.5</td>
+<td>13.8</td>
+<td>15.4</td>
+</tr>
+<tr>
+<td>M 0.3</td>
+<td>3.7</td>
+<td>7.5</td>
+<td>15.0</td>
+<td>29.6</td>
+<td>41.8</td>
+</tr>
+<tr>
+<td>M 0.1</td>
+<td>5.0</td>
+<td>10.2</td>
+<td>20.5</td>
+<td>50.4</td>
+<td>81.1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tiers: 2 or less Earth-like, 2 to 8 elevated, 8 to 30 high, over 30 extreme.
+The shoreline research multiplies this index by S in place of bolometric S.</p>
+<h3 id="24-flares">2.4 Flares</h3>
+<ul>
+<li><strong>Sun-like stars.</strong> [R2807]: one flare above 1e34 erg per 800
+years on solar types, mostly faster rotators than the Sun [S]. [R3318]:
+slow rotators once per 2,000 to 3,000 years [S].</li>
+<li><strong>Proxima.</strong> 1e33 erg about 8 per year (MOST, extrapolated), at least 5.2
+(Evryscope), 3 (TESS) [S]; use 3 to 8.</li>
+<li><strong>Slope</strong> of the frequency distribution 1.4 to 2.4, 1.99 +/- 0.07 for
+low-activity M dwarfs, no change with age [R1007] [S]. Draw alpha
+uniformly in 1.8 to 2.2. <strong>Flaring fractions</strong> [R1726]: about
+30 percent of mid to late M, 5 percent of early M, under 1 percent of F, G, K
+[S].</li>
+</ul>
+<p>Generator table, <code>log10 N(&gt;1e33 erg)</code> per year [R/C]. The G cell (2 to 6 Gyr)
+of -2.5 gives 1e34 once per 3,000 years at alpha = 2 (Notsu, Okamoto); the
+late-M cell (2 to 6 Gyr) of 0.8 contains Proxima (0.7); the rest interpolate,
++/- 0.5 dex.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class (mass, Msun)</th>
+<th>&lt;0.1 Gyr</th>
+<th>0.1 to 0.6</th>
+<th>0.6 to 2</th>
+<th>2 to 6</th>
+<th>&gt;6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G (0.85 to 1.1)</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>-1.3</td>
+<td>-2.5</td>
+<td>-2.8</td>
+</tr>
+<tr>
+<td>K (0.6 to 0.85)</td>
+<td>1.3</td>
+<td>0.5</td>
+<td>-0.8</td>
+<td>-2.0</td>
+<td>-2.3</td>
+</tr>
+<tr>
+<td>Early M (0.35 to 0.6)</td>
+<td>2.0</td>
+<td>1.6</td>
+<td>0.8</td>
+<td>-0.3</td>
+<td>-0.7</td>
+</tr>
+<tr>
+<td>Mid M (0.15 to 0.35)</td>
+<td>2.3</td>
+<td>2.2</td>
+<td>1.8</td>
+<td>0.9</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>Late M (&lt;0.15)</td>
+<td>2.5</td>
+<td>2.5</td>
+<td>2.2</td>
+<td>0.8</td>
+<td>0.5</td>
+</tr>
+</tbody>
+</table></div>
+<p>A, F and B stars get <code>log N33</code> = -4. Flares above 1e34 erg subtract
+<code>(alpha - 1)</code> dex. Flares scale the particle dose (4.2).</p>
+<h2 id="3-planetary-magnetic-fields-gen86">3. Planetary magnetic fields (GEN.86)</h2>
+<h3 id="31-the-scaling-law">3.1 The scaling law</h3>
+<p>[R3355] fitted 145 numerical dynamos; the time-averaged
+dipole moment scales with buoyancy flux as <code>F^(1/3)</code> in the dipolar regime and
+predicts solar-system moments to about 15 percent [S via a citing paper]:</p>
+<pre><code>M_dip = 4 pi r_o^3 gamma sqrt(rho / (2 mu0)) (F D)^(1/3),   gamma about 0.2   [R: recalled form]
+</code></pre>
+<p>(<code>r_o</code> outer-core radius, <code>rho</code> core density, <code>D</code> shell thickness, <code>F</code> buoyancy
+flux in m2/s3.) Check [C]: <code>r_o</code> 3480 km, <code>rho</code> 11,000 kg/m3, <code>D</code> 2260 km,
+<code>F D</code> = 1.4e-6 gives 7.8e22 A m2 (Earth).</p>
+<p>Rotation: the [R0784] law <code>Lo = 0.92 sqrt(f_ohm) Ra_Q*^0.34</code>
+[S] with <code>Ra_Q* ~ Omega^-3</code> gives <code>B ~ Omega^-0.02</code>, so field strength does not
+depend on rotation in the dipolar regime (a derivation here). Rotation sets the
+local Rossby number <code>Ro_l</code>: dipolar below about 0.12, multipolar above, with
+<code>Ro_l ~ Omega^-1.23</code> [R]. A hard limit would fall at P about 30 hours for
+Earth, too sharp (Mercury, 59 d, is dipole-ish), so use a soft switch (3.5).</p>
+<p>GEN.966 builds this law as a pure module, <code>planetgen/physics/dynamo.py</code>: the dipole moment of a region from the power that drives it, its shell
+and the spin (<code>field</code>), the local Rossby number from the same power (<code>local_rossby</code>), a dynamo's lifetime from the history of its power
+(<code>lifetime</code>) and a giant's power from its heat (<code>giant_power_w</code>). Tested on Earth (7.8e22 A m2 from 1.15 TW), Jupiter (1.6e27 against 1.5e27),
+Ganymede (1.0e20 against 1.3e20), Saturn (six times its field: a stable helium layer), Mercury (22 times its field: a stable layer on a thin
+shell; the module takes the attenuation as an argument) and a dead Mars (no power, no field). GEN.967 stores its results in place of the
+defaults of 3.5. The stand-ins are the registry rows DY1 to DY4 (gap plan 6.30).</p>
+<h3 id="32-measured-moments">3.2 Measured moments</h3>
+<p>Dipole moments in A m2 (<code>M = 4 pi R^3 B_eq / mu0</code>, [C from recalled <code>B_eq</code>]):
+Earth 7.8e22 | Mercury 2.8e19 | Ganymede 1.3e20 | Jupiter 1.56e27 | Saturn
+4.6e25 | Uranus 3.8e24 | Neptune 2.1e24. Venus and Mars have no active dynamo;
+Io, Europa, Callisto and Titan have none of their own (Europa and Callisto have
+induced fields from their oceans, a flag for GEN.88).</p>
+<h3 id="33-tidal-locking">3.3 Tidal locking</h3>
+<p>[R1584] (the form used by <code>tidal_spin</code>, GEN.731, which gives every body its own Love number and quality factor,
+<code>interior_heat.tidal_response</code>): <code>t = (omega0 - omega_final) / rate</code>, <code>rate = 3 k2 G M*^2 R^3 / (alpha m a^6 Q)</code>, with alpha the moment-of-inertia
+factor (0.33 rock). The table below was worked with the earlier fixed Q/k2 = 3,333 for moons (Q 100, k2 0.03) and with k2 = 0.3 for a
+rocky planet (10x faster); a rigid Earth-sized planet now has k2 about 0.5.
+Earth-mass, Earth-size planet at S = 1, initial P = 24 h [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Star (Msun)</th>
+<th>a (AU)</th>
+<th><code>t_lock</code>, k2 = 0.3</th>
+<th><code>t_lock</code>, project Q/k2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>1.00</td>
+<td>1.0e11 yr</td>
+<td>1.0e12</td>
+</tr>
+<tr>
+<td>0.8</td>
+<td>0.64</td>
+<td>1.1e10</td>
+<td>1.1e11</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>0.36</td>
+<td>6.1e8</td>
+<td>6.1e9</td>
+</tr>
+<tr>
+<td>0.45</td>
+<td>0.20</td>
+<td>3.4e7</td>
+<td>3.4e8</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>0.12</td>
+<td>3.4e6</td>
+<td>3.4e7</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>0.075</td>
+<td>4.6e5</td>
+<td>4.6e6</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>0.034</td>
+<td>1.5e4</td>
+<td>1.5e5</td>
+</tr>
+</tbody>
+</table></div>
+<p>Habitable-zone planets are locked for stars below about 0.6 to 0.7 Msun at
+these inputs (nearer 0.45 Msun with a 10 h initial spin and the middle of the
+zone); use the formula, not a mass cut. The project's formula matches Gladman
+(the Observational Kinetics doc's 4/9 prefactor is 4/3 higher; immaterial).</p>
+<h3 id="34-magnetosphere-standoff">3.4 Magnetosphere standoff</h3>
+<p>Pressure balance with a dipole: <code>R_mp = [mu0 f0^2 M^2 / (8 pi^2 p_sw)]^(1/6)</code>,
+<code>f0</code> = 1.16 (other papers 1.3), <code>p_sw</code> the total wind pressure [S]. For Earth
+(M 7.768e22, p_sw 2.24 nPa) this gives 9.76 R_E [C], matching the empirical
+<code>R/R_E = 9.75 (M/M_E)^(1/3) (P/P0)^(-1/6)</code>. A tenfold wind pressure shrinks
+<code>R_mp</code> only 1.47x [S].</p>
+<p><code>p_sw = 2.24 nPa * (Mdot per area / solar) / d_AU^2</code>, with <code>Mdot/area ~ F_X^1.3</code>
+(Wood-type [R]), capped at 10x solar for G and K and 1x for M under 0.4 Msun
+(Proxima's is about 0.2 solar per area [R]). Earth-dipole planet at S = 1 [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Star (Msun)</th>
+<th><code>p_sw</code> / Earth's</th>
+<th><code>R_mp</code> (R_p)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0, young / 4.5 Gyr</td>
+<td>10x / 1x</td>
+<td>6.6 / 9.7</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>54x</td>
+<td>5.0</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>36x</td>
+<td>5.4</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>176x</td>
+<td>4.1</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>870x</td>
+<td>3.2</td>
+</tr>
+</tbody>
+</table></div>
+<p>With the multipolar factor 0.15 the radius drops by <code>0.15^(1/3)</code> = 0.53, to 1.7
+to 3.5 R_p for locked planets, matching [R4919]'s 1.5 to 4.0 (locked) and
+3 to 8 (1-day rotators) [S]. CMEs raise <code>p_sw</code> by 10 to 1,000 transiently [R].</p>
+<h3 id="35-generator-rules-design-defaults-r">3.5 Generator rules (design defaults [R])</h3>
+<p>For a rocky planet with mass M (Earth masses), age, rotation period P, core
+mass fraction c (Earth 0.325) and lid regime:</p>
+<ol>
+<li><strong>The core decides (GEN.838).</strong> The interior heat model keeps a core temperature beside the mantle's (<code>physics/core_heat.py</code>,
+<code>docs/design/composition/interior-heat.md</code> section 3.3); the dynamo runs while the heat the core loses across the core-mantle boundary,
+and the gravitational energy of its inner core's growth, exceed the heat it conducts down its own adiabat, in a liquid shell of at least a
+quarter of the core's radius. No metal, no dynamo. Mercury (0.055 Me, a core of 70 percent of its mass) keeps its observed field
+whatever the model says: its iron-sulfide core melts lower than the pure iron the model has.</li>
+<li><strong>Lid.</strong> The lid regime acts on the mantle's temperature, and so on the base of the mantle the core is measured against; the
+dynamo lifetime draw and the stagnant-lid factor of GEN.86 and GEN.177 are gone.</li>
+<li><strong>Strength (GEN.967).</strong> The moment is the dipole of the buoyancy-flux scaling of the liquid shell (<code>physics/dynamo.py</code>, section 3.1): <code>dynamo.field</code> of
+the power (the core model's, times <code>magnetism.CORE_POWER_SCALE</code> so its Earth is the scaling's Earth), the shell's radii (the core's and its inner core's), the core's
+density and the spin, times a log-normal of 0.07 dex (the law's fit). Mercury-like (M 0.05 to 0.1, c over 0.4): 3e19 * LN(0.5 dex), a stand-in.</li>
+<li><strong>Rotation switch.</strong> <code>Ro_l</code> is the local Rossby number of the liquid shell (<code>Ra*^0.41</code>, about <code>0.09 (P / 24 h)^1.23</code> at Earth's power);
+<code>f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)</code>. A locked M-dwarf planet has <code>f_dip</code> about 0.15. The stored moment is the dipole's, so it already holds <code>f_dip</code>
+(over Earth's own); nothing downstream multiplies it by a share again.</li>
+<li><strong>Giants.</strong> The field is made in the convecting layer of the stored interior (the metallic envelope of a gas giant, the ionic water of an ice giant's mantle) and driven
+by a tenth of the heat the giant radiates (<code>physics/giant_dynamo.py</code>, <code>physics/giant_heat.py</code>). A giant with no placed layer has no field.</li>
+<li><strong>Moons.</strong> A moon's core is run through the same thermal model and scaling as a planet's (its heat includes the tide); a moon with a running core has a field,
+any other none; flag an induced field if a subsurface ocean exists.</li>
+<li><strong>Output fields:</strong> <code>magnetic_moment_a_m2</code>, <code>dipole_class</code> (none, weak
+under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
+<code>magnetopause_rp</code> (the standoff in radii of the body itself, <code>R_planet</code> in the unit registry: Earth's 9.75 Earth radii scaled by the
+field and the wind, then divided by the body's own radius, GEN.843).</li>
+</ol>
+<p><strong>Lid regime, as built (GEN.177, GEN.721, GEN.838).</strong> The regime is drawn once per planet from <code>mobile_lid_chance</code>: a liquid surface ocean
+(<code>hydrosphere == &quot;surface ocean&quot;</code>) is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth masses and 0.3 above (the
+literature on super-Earth plate tectonics is split, so the chance falls rather than rises). Every other rocky planet is stagnant: Venus,
+Mars, dry worlds, ice-covered oceans and Hycean worlds. It is stored (<code>lid_regime</code>) and read by the mantle's heat flux law, so a stagnant
+lid keeps the base of the mantle hotter, which slows the core's cooling; it no longer shortens the dynamo by a factor.</p>
+<p><strong>Induced fields, as built (GEN.178).</strong> Rule 6's flag became a number:
+<code>magnetism.generate_induced_field</code> gives an ocean moon (<code>ice-covered ocean</code>,
+<code>surface ocean</code> or <code>hycean</code>, with a liquid layer) the dipole its ocean
+induces in its parent's turning field. The parent's equatorial dipole field at
+the moon's orbit, <code>mu0 M f_dip / (4 pi a^3)</code> (Jupiter at Europa: 520 nT),
+reaches the moon as 0.4 of its strength at the synodic period
+(<code>1 / |1/P_rot - 1/P_orb|</code>, 11.2 h for Europa); the ocean answers as a thin
+conducting shell with <code>|A| = x / sqrt(1 + x^2)</code>, <code>x = omega mu0 sigma h R / 2</code>
+(Europa: 0.9997, Galileo's fit about 0.97), and the moment is <code>2 pi R^3 A B / mu0</code>: 3.9e18 A m2 for Europa, 103 nT at its equator, and 6.5e17 A m2 (4.6 nT)
+for Callisto. <code>sigma</code> is 2.75 S/m for a neutral ocean ([R1785]'s
+Europa), 0.5 ice-sealed, 5 chloride brine, 3 soda and 10 acid sulfate. No draw
+is made. A moon whose parent turns with it (tidally locked) sees no change and
+gets 0.</p>
+<p><strong>Induced fields of cores and of a planet in its star's field, as built (GEN.981).</strong> Part (b) of the induction: a metal core answers a changing field as a
+homogeneous conducting sphere (<code>magnetism.sphere_response</code>: <code>F = 1 - 3/z^2 + 3 cot(z)/z</code>, <code>z = (1 - i) a / delta</code>), which is 1 for any core many skin
+depths across (Earth's core at a day's period is 20 000 of them, Europa's at the 11 h synodic period 6 000) and <code>omega mu0 sigma a^2 / 15</code> for a thin one; the
+moment is <code>2 pi a^3 |F| B / mu0</code> for the core's radius <code>a</code> (<code>core_heat.Core.radius_m</code>) with a conductivity of 1e6 S/m, solid or liquid. A moon's core feels the
+field its ocean lets through and adds to the ocean's moment. A rocky planet, which has no parent, is excited by its star's field at its orbit: 5 nT at 1 AU
+for the Sun, scaled by the square root of the wind's pressure over Earth's (<code>wind_pressure_pa</code>, so a flaring dwarf star's planets feel a stronger field),
+half of it perpendicular to the spin, turning at the planet's synodic rotation; its ocean (a surface ocean counted by the share of the surface it covers) and its
+core answer, and the moment is stored as <code>induced_moment_a_m2</code>, 5e17 A m2 for a dry Earth-mass planet at 1 AU against the dynamo's 8e22. A giant has none.
+The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.</p>
+<h3 id="36-where-the-dipole-points-gen1350">3.6 Where the dipole points (GEN.1350)</h3>
+<p>The size of a field was stored; its direction was not. <code>physics/magnetic_geometry.py</code> draws, from a stream of the body's own (nothing of the run's stream moves), the angle between the dipole's axis and the spin axis (<code>dipole_tilt_deg</code>, folded into 0 to 90 degrees) and whether the dipole is off centre (<code>dipole_offset_class</code>, <code>centred</code> or <code>offset</code>, over 0.15 radii) for a planet, moon or rogue planet with a field:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dynamo</th>
+<th>Tilt</th>
+<th>Offset</th>
+<th>Cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dipole-dominated rocky core, gas giant</td>
+<td>Rayleigh, scale 6 degrees</td>
+<td>centred</td>
+<td>Earth 11, Jupiter 9.6, Ganymede 4, Saturn under 0.1</td>
+</tr>
+<tr>
+<td>the iron-rich small body of the Mercury stand-in</td>
+<td>Rayleigh, scale 6 degrees</td>
+<td>offset</td>
+<td>Mercury under 3 degrees, 0.19 radii</td>
+</tr>
+<tr>
+<td>multipolar core (the dipole under half the field)</td>
+<td>isotropic</td>
+<td>offset</td>
+<td></td>
+</tr>
+<tr>
+<td>ice giant (thin conducting shell over a stable core) [R4196]</td>
+<td>isotropic</td>
+<td>offset</td>
+<td>Uranus 59 degrees and 0.3 radii, Neptune 47 and 0.55</td>
+</tr>
+</tbody>
+</table></div>
+<p>A neutron star stores <code>magnetic_inclination_deg</code>: isotropic at birth, then <code>tan(alpha)</code> falls as <code>exp(-t / 7 Myr)</code> [R5143]; a recycled millisecond pulsar is isotropic again. A star stores <code>surface_dipole_field_gauss</code>, the polar field of its large-scale dipole: a cool dwarf with a convective envelope (below the Kraft break, mass 0.08 to 1.3) has <code>B = 1.5 G (Ro / 1.76)^-1.40</code> with a 0.35 dex scatter, capped at 5 kG ([R4544, R5144]; <code>Ro = P_rot / tau_conv</code>, [R4780]); an Ap or Bp dwarf has the polar field <code>chemically_peculiar</code> draws for its kind; any other star has none. The stand-ins are DP1 to DP7 (registry 6.212). The Sensor view reads these columns (UX.286).</p>
+<h2 id="4-surface-radiation-dose-gen87">4. Surface radiation dose (GEN.87)</h2>
+<h3 id="41-anchors">4.1 Anchors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>Measured</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth, sea level, cosmic</td>
+<td>0.39 mSv/yr</td>
+<td>UNSCEAR 2008 [S]</td>
+</tr>
+<tr>
+<td>Earth, all natural</td>
+<td>2.4 mSv/yr (radon 1.26, cosmic 0.39, ground gamma 0.48, ingestion 0.29); about 3.0 in newer UNSCEAR</td>
+<td>UNSCEAR [S]</td>
+</tr>
+<tr>
+<td>ISS</td>
+<td>0.731 mSv/day (GCR only 0.523)</td>
+<td>Chang'E-4 LND comparison [S]</td>
+</tr>
+<tr>
+<td>Moon surface</td>
+<td>1.369 mSv/day (about 500 mSv/yr)</td>
+<td>Chang'E-4 LND [S]</td>
+</tr>
+<tr>
+<td>Mars surface</td>
+<td>0.64 +/- 0.12 mSv/day dose equivalent; 0.21 +/- 0.04 mGy/day absorbed (GCR only, column about 21 g/cm2, ICRP 60 Q(L))</td>
+<td>MSL [R1843: Tables 1 and 3], read (GEN.453)</td>
+</tr>
+<tr>
+<td>Europa surface</td>
+<td>unsourced: the figure of about 5.4 Sv/day has no primary source and is not a surface value (the dose is 1e3 to 1e4 Gy/yr at 2 to 4 cm depth in ice; radiation-model.md section 10); no surface constant is used</td>
+<td>[R]; searches found only depth profiles [S]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Mars is 230 mSv/yr (dose equivalent) = 0.077 Gy/yr (absorbed). Compare dose
+equivalent with human limits; the <code>L_rad</code> term uses absorbed dose in Gy.</p>
+<h3 id="42-the-calculator">4.2 The calculator</h3>
+<ol>
+<li><strong>GCR against column X (g/cm2) (GEN.453, replaces the Moon to 164 g/cm2 curve of the first version):</strong> <code>D = D0(X) f_B(M, X) f_sol</code>. <code>D0</code> is the no-field curve through the proton-primary air showers of [R0187] (553, 263, 17.2, 3.02 and 0.65
+mSv/yr at X of 100, 200, 500, 700 and 1036; log-log), a stand-in below 100 through the Moon (X 0, 500 mSv/yr) and Mars (X 21,
+232 mSv/yr, [R1843]) until a shower run replaces it, and above 1036 the larger of the last slope and the Crouch muon
+floor. The sea-level point is 0.34 mSv/yr (UNSCEAR 0.32) and the 10 km point 46 (aviation 47.9); the earlier curve was 1.5 to
+2.7 times low from 100 to 1036 g/cm2.</li>
+<li><strong>Magnetic effect on GCR (GEN.453):</strong> <code>f_B</code> is the ratio of the runs of [R0187] with a dipole of M Earth
+moments to those with none, at 100, 200, 500, 700 and 1036 g/cm2 (0.31, 0.37, 0.51, 0.61 and 0.52 for M = 1), log-linear in
+M between the runs and in ln X between the columns; the flat 0.6 was right only near sea level. The field enters as the
+equivalent moment <code>Rc0 / 14.34 GV</code>, with the Stormer cutoff <code>Rc0 = 14.34 GV (M_dip f_dip / 7.768e22) (R_E / R_p)^2</code> (moment
+over radius squared; the cube was wrong, and 14.9 was 4 percent high). The runs reach 10 Earth moments and 100 to 1036 g/cm2;
+outside them the nearest ratio is taken. <code>f_sol</code>, 0.5 to 1.64 of the mean (Mars), is a seeded draw. The &quot;two or three
+orders of magnitude&quot; Rad gives applies to solar particles, not GCR.</li>
+<li><strong>Solar and stellar particles (SEP):</strong> free-space annual dose = <code>20 mSv/yr * (N33 / N33_sun)^0.5 / d_AU^2</code> [R, design]; the square root keeps Proxima b
+from receiving hundreds of Sv/yr. Surface dose = free dose
+<code>* exp(-p_cut(X) / R0) * polar-cap fraction</code>. <code>p_cut</code> is the rigidity of the
+proton whose CSDA range in air equals X (NIST PSTAR, <code>physics/proton_range.py</code>; the power law <code>R = 0.0022 E^1.77</code> was 5
+times too long at 10 GeV); <code>R0</code> = 0.2 GV is calibrated on the
+1956 ground-level event [R]. Polar-cap fraction
+<code>1 - sqrt(1 - sqrt(R_eff / Rc0))</code>, <code>R_eff = max(0.5 p_cut, 0.2 GV)</code> [R]. GEN.444 replaces this with the Band spectrum.</li>
+<li><strong>Crust and radon (replaced by GEN.459, 2026-10-23):</strong> the gamma dose in air over the surface rock and the radon of its
+uranium, from the body's stored potassium, thorium and uranium (<code>physics/radiogenic.py</code>, docs/design/composition/radiation-model.md
+R15, R16 and section 6); the former <code>0.48 mSv/yr * a_rad * H(age)</code> and the flat radon term are gone.</li>
+<li><strong>Shielding by ground or water:</strong> the GCR(X) curve with <code>X = rho * depth</code>:
+1 m of regolith (1.5 g/cc) is X = 150, 10 m of water X = 1000 [R]. Muons set
+the floor.</li>
+</ol>
+<h3 id="43-heliosphere-compression-gen75-link">4.3 Heliosphere compression (GEN.75 link)</h3>
+<p>The GEN.87 text raises GCR dose in a compressed heliosphere. The effect is real
+but small: about 2 to 3x in free-space dose equivalent, and none above X of
+about 200 g/cm2, where primaries above 1 GeV dominate [R]. Recommended: <code>helio_mult = 1 + 1.5 * exp(-X / 100) * min(1, compression)</code>,
+where compression runs 0 to 1 as the heliosphere shrinks from its open-space
+radius to under 1 AU. <code>compressed_heliosphere_radius</code> in <code>generation/star.py</code>
+already returns the radius; use R / R_open.</p>
+<h3 id="44-calculator-results-msvyr">4.4 Calculator results (mSv/yr)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>GCR</th>
+<th>SEP</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth sea level (crust and radon not added)</td>
+<td>0.34</td>
+<td>0</td>
+<td>0.34 (GEN.453)</td>
+</tr>
+<tr>
+<td>Mars surface, no field</td>
+<td>232</td>
+<td>0.5</td>
+<td>232 (0.64 mSv/day, MSL)</td>
+</tr>
+<tr>
+<td>Moon surface</td>
+<td>500</td>
+<td>20</td>
+<td>520</td>
+</tr>
+<tr>
+<td>0.05 bar, Earth gravity, Earth dipole</td>
+<td>119</td>
+<td>0.04</td>
+<td>119 (Rad: 50 to 100; the earlier curve gave 88)</td>
+</tr>
+<tr>
+<td>Proxima-b-like, 1 bar, dipole x0.15</td>
+<td>0.65</td>
+<td>0.1</td>
+<td>0.74</td>
+</tr>
+<tr>
+<td>Proxima-b-like, 1 bar, no dipole</td>
+<td>0.86</td>
+<td>0.16</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>Proxima-b-like, 0.1 bar, no dipole</td>
+<td>542</td>
+<td>2,700</td>
+<td>3,200 (3.2 Sv/yr)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 1-bar rows agree with Rad that a dense atmosphere decouples the surface
+from flares (under 5 mSv/yr). The 0.1-bar row shows how fast it breaks: a thin
+atmosphere around an active M dwarf with no dipole receives Sv per year.</p>
+<h3 id="45-galactic-hazards-and-uv">4.5 Galactic hazards and UV</h3>
+<ul>
+<li><strong>Supernovae.</strong> [R1530]: a core-collapse supernova within about
+8 pc roughly doubles biologically active UV by ozone loss; the rate within
+8 pc at the Sun is about 1.5 per Gyr [S]. Rule: lethal events per Gyr within
+radius r = <code>1.5 * (r / 8 pc)^3 * (Sigma_SFR(R) / Sigma_SFR(8 kpc))</code>; near the
+Galactic centre about 250x higher [R/C]. [R1649]: the inner
+Galaxy sterilizes more planets, yet a habitable planet is still 10x likelier
+there than in the outer Galaxy [S]. [R2702]: the Galactic
+habitable zone is an annulus 7 to 9 kpc wide [S].</li>
+<li><strong>Gamma-ray bursts.</strong> [R4340]: a burst within 2 kpc (100 kJ/m2 over
+10 s) destroys 35 percent of ozone globally; a 50 percent cut triples UVB
+[S]. Quoted radii vary (1.4 to 14 kpc); [R4177]: GRBs dominate
+beyond about 2 kpc, supernovae inside [S]. Rule: ozone-loss flag at gamma
+fluence &gt;= 30 to 100 kJ/m2. <strong>Built (GEN.189):</strong> [R3026] put a
+beamed burst within about 2 kpc at one per 0.5 Gyr at the Sun [S], so
+<code>activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR</code> = 2 per Gyr; long bursts need
+low-metal massive stars ([S]), so the rate falls off
+outward with the supernova scale length (1.45 kpc) but is not raised toward
+the metal-rich centre.</li>
+<li><strong>AGN and quasars.</strong> No source found. A 1e44 erg/s X-ray source on for 1 Myr
+delivers 2.7e5 J/m2 at 3 kpc [C], so a luminous nucleus within a few kpc
+destroys unshielded ozone. <strong>Built (GEN.189) as a design estimate, not a
+measurement:</strong> the Fermi bubbles and the X-ray echoes of the Galactic Centre
+clouds (Su et al. 2010; [R3573] [S]) show Seyfert-like activity in
+the last few Myr, so <code>activity.AGN_EPISODES_PER_GYR</code> = 10 (1e44 erg/s for 1
+Myr every 100 Myr) within <code>AGN_LETHAL_RADIUS_PC</code> = 2.9 kpc, where one episode
+delivers 30 kJ/m2 (1e44 erg/s * 3.15e13 s / (4 pi r^2); 30 kJ/m2 = 3e7
+erg/cm2). Confidence is low; the episode rate is the unsettled number.</li>
+<li><strong>UV.</strong> Blackbody 200 to 300 nm flux relative to the Sun: 2.8x (F0), 0.54
+(K0), 0.043 (M0), 0.0011 (M6) [C]; real M dwarfs have chromospheric UV well
+above that, so floor it at 0.05 to 0.2 of the Sun's [R]. Surface DNA-weighted
+UV relative to Earth = <code>(UV_rel * S) * (O3 / O3_Earth)^-1.6</code>, clamped near
+1e3 at O<sub>3</sub> = 0 (exponent from &quot;a 50 percent ozone cut triples UVB&quot; [S]).</li>
+</ul>
+<h3 id="46-dose-limits-and-tiers">4.6 Dose limits and tiers</h3>
+<ul>
+<li>Humans: ICRP 20 mSv/yr averaged over five years (occupational), 50 mSv in any
+one year, 1 Sv acute sickness, LD50/30 of 4 to 5 Sv (2.5 to 4.5 Gy depending
+on care) [S for LD50; limits R].</li>
+<li>Microbes: D10 (dose for 90 percent kill) E. coli about 0.3 kGy; spores
+2.1 kGy; Deinococcus radiodurans 10.4 kGy on average [S]; tardigrade LD50 1.1
+to 6.2 kGy [S]. Rad's acute-survival figures are consistent (a different
+metric); use D10 5 to 10 kGy for Deinococcus in any biology table.</li>
+<li>Rad's and PHI-4's bands, written numerically: Blue below 50 mSv/yr, Green 50
+to 100, Yellow &quot;extreme: subsurface&quot;, Red above 10 Gy/yr. <strong>There is a gap
+between 100 mSv/yr and 10 Gy/yr</strong> (Mars surface 236 mSv/yr, the Moon 520).
+This research proposed Blue 20 mSv/yr or less (ICRP), Green up to 100
+mSv/yr, Yellow (human) 0.1 to 1 Sv/yr, Yellow (microbial) 1 to 10 Gy/yr, Red
+over 10 Gy/yr. GEN.84 first settled on Blue under 0.05 Sv/yr, Green to 0.1,
+Yellow to 10 Sv/yr; <strong>GEN.148 built this section's proposal</strong> for a person's
+tiers (<a href="habitability-index.html">habitability-index.md</a> 2): Blue to 20 mSv/yr,
+Green to 100 mSv/yr, Yellow to 1 Sv/yr, Red beyond (50 mSv/yr stays the
+single-year limit that starts <code>M_rad</code>), and <code>L_rad</code> reads absorbed dose in
+Gy/yr (3.06 Sv per Gy).</li>
+<li>The 10 Gy/yr threshold is Eigen's, about the origin of replicating molecules,
+not the survival of extremophiles, which tolerate 1,000x more acute dose.</li>
+</ul>
+<h3 id="47-as-built-gen87">4.7 As built (GEN.87)</h3>
+<p><code>planetgen/physics/radiation.py</code> runs at the end of <code>planets.generate_spin</code>
+(after the air, water and field exist) and sets <code>surface_dose_msv_yr</code> =
+<code>dose_gcr_msv_yr</code> x <code>dose_helio_mult</code> + <code>dose_sep_msv_yr</code> +
+<code>dose_ground_msv_yr</code> + <code>dose_belt_msv_yr</code> (GEN.983: a moon in its parent's trapped-particle belts, 0 for a planet), <code>uv_surface_index</code> and <code>ozone_loss_flag</code> on every
+rocky planet and moon (a gas giant has none). Choices the sections above
+leave open:</p>
+<ul>
+<li><code>X = P0 / g</code> of the stored pressure and gravity; the dipole is the
+moment times <code>f_dip</code> (<code>magnetism.body_dipole_share</code>).</li>
+<li><code>dose_helio_mult</code> is 1 at generation. A system's containment is found
+after generation, so <code>store.refresh_containment</code> (and an edit) re-derives
+it from the cloud's <code>compressed_heliosphere_radius</code>, with <code>compression</code> =
+<code>ln(R_open / R) / ln(R_open)</code> capped at 1, and rewrites the total.</li>
+<li>The crust's dose reads the body's stored potassium, thorium and uranium (GEN.459); radon needs air and some land
+(<code>land_fraction</code>), with no pressure gate.</li>
+<li>Ozone: <code>O3 / O3_Earth = sqrt(pO2 / 21.2 kPa)</code> (none under 0.02 kPa).</li>
+<li><code>ozone_loss_flag</code> is set when ozone exists and either the star's
+<code>lethal_event_rate_per_gyr</code> (1.5 x <code>exp((8 kpc - R) / 1.45 kpc)</code>, at most 250
+times that) exceeds 10 (one lethal event per 100 Myr) or particles give
+100 mSv/yr at the ozone layer (X = 10 g/cm2). The rate adds gamma-ray
+bursts and nuclear-activity episodes to the supernovae (GEN.189, section
+4.5).</li>
+</ul>
+<h2 id="5-hydrosphere-and-ocean-chemistry-gen88">5. Hydrosphere and ocean chemistry (GEN.88)</h2>
+<h3 id="51-inventory-depth-and-land">5.1 Inventory, depth and land</h3>
+<p>Earth's ocean mass is 1.4e21 kg = 2.34e-4 of the planet, mean depth over the
+sphere 2.74 km [C]. Mantle water is perhaps 1 to 10 ocean masses and unmeasured
+[R].</p>
+<p><strong>Land fraction.</strong> [R0914]: a tectonically active planet of any
+mass keeps continents if its water mass fraction is below about 0.2 percent;
+super-Earths store more water in the mantle, whose capacity is the largest
+unknown [S]. Since GEN.1147 the cover is a two-level hypsometry (Cowan and Abbot's idea):
+the surface is ocean crust (60 percent of it, at -4.5 km with a spread of 1.0 km) and continental crust (40 percent, at +0.45 km
+with 0.9 km), relief scaled as <code>g_E / g</code>; the global water layer <code>D = w M / (rho_w A)</code> fills the lowest ground to a level and
+<code>f_ocean</code> is the share of the surface under it. The four numbers are stand-ins (row HY2) tuned only so that Earth's 2.74 km layer
+covers 0.71. The mantle never holds more than its minerals can store (GEN.1365: the upper mantle, the transition zone of wadsleyite and ringwoodite and the lower mantle, rows MR1 to MR3; 4.8 Earth oceans for the Earth).
+The old law <code>min(1, sqrt(2 D / L))</code> went from no land to all ocean over a factor of 16 in the water; the new one covers 0.27 at
+0.2 km, 0.50 at 0.64 km, 0.59 at 1.3 km, 0.71 at 2.7 km and everything at 5 km. The table below is the old law.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Water fraction w</th>
+<th>Earth gravity</th>
+<th>2.2 g (5 Me, 1.5 Re)</th>
+<th>Earth gravity, buffer x4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1e-5</td>
+<td>0.15</td>
+<td>0.33</td>
+<td>0.07</td>
+</tr>
+<tr>
+<td>1e-4</td>
+<td>0.47</td>
+<td>1.00</td>
+<td>0.24</td>
+</tr>
+<tr>
+<td>2.3e-4 (Earth)</td>
+<td>0.72</td>
+<td>1.00</td>
+<td>0.36</td>
+</tr>
+<tr>
+<td>1e-3</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>0.75</td>
+</tr>
+<tr>
+<td>2e-3</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>1.00</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Frozen bodies (GEN.833).</strong> A body whose surface is ice holds its water as ice through its outer layers, so the share of it the ice
+covers (<code>hydrosphere.frozen_cover</code>, stored as <code>ocean_fraction</code> for the states <code>ice</code> and <code>ice-covered ocean</code>) is this law applied to
+all the water it holds at ice's density (917 kg/m3), not to the part a liquid ocean would have had after the mantle buffer. Its relief
+is <code>L = 10.5 km</code> at most: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus, Callisto, Iapetus), because ice
+is strength-limited, so below Earth's gravity it does not grow as 1 / g the way a rock basin's does. A 200 km moon with a fifth of its
+mass as water is all ice-covered; with a thousandth it is covered in part.</p>
+<p>Generator: <code>f_land = 1 - f_ocean</code> with a buffer log-uniform 1 to 8; a
+stagnant-lid planet takes buffer 1. <code>ROGUE_WATER_MASS_FRACTION_RANGE</code> (1e-4 to
+0.1, log-uniform) makes about 68 percent of water-rich rogues exceed Earth by 4x
+and a third exceed 1 percent.</p>
+<h3 id="52-ocean-depth-before-high-pressure-ice">5.2 Ocean depth before high-pressure ice</h3>
+<p><strong>Replaced by GEN.461 (2026-10-24).</strong> The depth of a water layer is not its mass over 1,000 kg/m3: at a tenth of an Earth mass of water
+the layer is 746 km deep at 11 GPa, not 1,047 km, and the table below (a fixed 1,050 kg/m3 and [R4585]'s linear liquidus) is
+5 to 25 percent too deep. <code>physics/water_layer.py</code> integrates the column from the surface down with the density of the 300 K isotherm
+of water (IAPWS-95 liquid, then the ice VI, VII and X reference points of the materials table), the gravity of the mass below the
+level, and the area that grows toward the centre; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
+of an Earth or 5 Earth masses (its two x = 0.2 rows were recomputed from the code by DOC.79 on 2026-10-25 and are test targets like the rest). The liquid
+stops at the liquidus of the bottom temperature, the melting curves of ice III, V and VI recomputed from the Journaux splines (part C
+2.3: 210 MPa at 251.2 K, 350 at 256.2, 620 at 272.1, 800 at 286.8, 1000 at 300.4, 1500 at 327, 2000 at 347, 2200 at 353.8); below it
+the water is <code>hp_ice_km</code>. At Earth gravity the deepest liquid at 280 K is 65 km and at 300 K 88 km (the old table said 73 and 111);
+a column is sealed from about 5e-3 of the mass. The old table, for the record:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>g (m/s2)</th>
+<th>bottom at 280 K</th>
+<th>300 K</th>
+<th>350 K</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.3 (Europa)</td>
+<td>553 km</td>
+<td>835</td>
+<td>1,541</td>
+</tr>
+<tr>
+<td>3.7</td>
+<td>194</td>
+<td>294</td>
+<td>541</td>
+</tr>
+<tr>
+<td>9.8 (Earth)</td>
+<td>73</td>
+<td>111</td>
+<td>204</td>
+</tr>
+<tr>
+<td>15</td>
+<td>48</td>
+<td>72</td>
+<td>134</td>
+</tr>
+<tr>
+<td>20</td>
+<td>36</td>
+<td>54</td>
+<td>100</td>
+</tr>
+</tbody>
+</table></div>
+<p>The pressure at the bottom of the water is stored (<code>water_base_pressure_pa</code>). An Earth-size ocean of 100 km needs a water mass
+fraction of about 1 percent. [R3300]: high-pressure ice forms at about 170 km depth on an
+Earth-mass planet, but rock heat can melt it from below and layers of nearly
+1,000 km are possible if the seafloor is hot [S]. &quot;Deep ocean with rock
+contact&quot; and &quot;ice-sealed&quot; are therefore separate outcomes; ice-sealed applies
+where bottom pressure exceeds the liquidus.</p>
+<h3 id="53-reusing-the-rogue-planet-functions">5.3 Reusing the rogue-planet functions</h3>
+<p>The conductive-lid function <code>ice_shell_thickness_km(flux, T_top, T_base)</code>
+(<code>D = (A/F) ln(T_base / T_top)</code>, A = 567 W/m) reproduces measured shells at
+plausible fluxes [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Body</th>
+<th>T_top</th>
+<th>Flux used</th>
+<th>Result</th>
+<th>Reported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Europa</td>
+<td>100 K</td>
+<td>0.02 to 0.05 W/m2</td>
+<td>11 to 28 km</td>
+<td>3 to 30+ km; Juno 29 +/- 10 km [S]</td>
+</tr>
+<tr>
+<td>Enceladus</td>
+<td>75 K</td>
+<td>0.02 to 0.05</td>
+<td>15 to 37 km</td>
+<td>20 to 25 km mean, under 5 km at the south pole [S]</td>
+</tr>
+<tr>
+<td>Ganymede</td>
+<td>110 K</td>
+<td>0.003 to 0.01</td>
+<td>52 to 172 km</td>
+<td>25 to 150 km [S]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tidal heating for generator draws: <code>E = (21/2) (k2 / Q) G M_p^2 n R^5 e^2 / a^6</code>
+(Peale) [R]. With k2/Q = 0.015 (Io's need) Io gives 9.3e13 W (observed about
+9e13) but Europa 7e12 W (estimates 1e11 to 1e12), so use k2/Q = 3e-4 for ice
+(Europa 1.4e11 W). Enceladus gives 4.5e8 W against about 1.6e10 W observed, so
+allow a resonance boost of 1 to 50x for small icy moons [C]. The radiogenic
+flux of a Europa-mass body is 0.0078 W/m2 [C].</p>
+<p>Four fixes before sharing the functions with star systems (all verified in
+<code>src/planetgen/physics/rogue_surface.py</code>):</p>
+<ol>
+<li><strong>High-pressure ice cap.</strong> <code>rogue_surface_conditions</code> returns <code>ocean_depth_km</code>
+up to 855 km (10 percent water). Cap the liquid depth by the 5.2 table and
+report the rest as <code>hp_ice_km</code>; for a deep layer the bottom is ice VI/VII and
+the &quot;ocean in contact with rock&quot; assumption (the <code>has_liquid_water</code> flag and
+the chemistry classes) is false.</li>
+<li><strong>Units.</strong> <code>ice_shell_thickness_km</code> is ice thickness, but <code>water_layer_ depth_km</code> is water-equivalent (1,000 kg/m3). The comparison <code>shell_km &gt;= depth_km</code> and the subtraction overstate the ocean by about 9 percent (ice
+917 kg/m3). Divide the shell by 1.09 when comparing.</li>
+<li><strong>Melting at the base.</strong> The base is fixed at 273.15 K. Pressure lowers it by
+0.0074 K/bar (about -10 K for a 100 km shell); salinity and ammonia lower it
+2 to 100 K [R]. <code>base_temperature_k</code> is already an argument.</li>
+<li><strong>Convection and geometry.</strong> Shells thicker than about 20 to 30 km convect
+and the conductive formula overestimates [R]; on small bodies the lid is a
+large fraction of the radius (Enceladus 20 km of 252 km). Both are within the
+formula's spread.</li>
+</ol>
+<p><code>water_boiling_k</code> caps at the critical point (647 K, 22 MPa), which is correct;
+above it compressed liquid is stable up to the VI/VII melting curve, which the
+function ignores. Move the ice-shell, boiling and water-depth functions into a
+shared module (for example <code>physics/hydrosphere.py</code>) that both <code>rogue_surface</code>
+and star-system planets import.</p>
+<h3 id="54-ocean-chemistry-classes">5.4 Ocean chemistry classes</h3>
+<p>Chem defines four classes by pH and water activity. A deterministic assignment
+from the GEN.85 state beats a free random draw:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Conditions</th>
+<th>Typical draw</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ice-sealed</td>
+<td>Bottom pressure above the liquidus (depth over the 5.2 table)</td>
+<td>pH 3.0 to 5.5, a_w &gt; 0.99</td>
+</tr>
+<tr>
+<td>Acid sulfate</td>
+<td>Oxidized mantle, SO<sub>2</sub> over about 1 percent of volcanic outgassing, low weathering (hot, stagnant lid) or no carbonate sink</td>
+<td>pH 1.0 to 4.5, a_w 0.90 to 0.98</td>
+</tr>
+<tr>
+<td>Soda</td>
+<td>Reduced to intermediate mantle, pCO2 over about 0.1 bar, mafic or ultramafic crust, small continental area</td>
+<td>pH 9.0 to 11.5, a_w 0.92 to 0.99</td>
+</tr>
+<tr>
+<td>Chloride brine</td>
+<td>Water fraction under about 2e-5, or cold and evaporating (endorheic), or cryo-brine margin T under 273 K</td>
+<td>pH 3.5 to 6.5, a_w 0.30 to 0.65</td>
+</tr>
+<tr>
+<td>Neutral</td>
+<td>Everything else (Earth-like: pH 8.1, 35 g/kg, a_w 0.98 [R])</td>
+<td>pH 6.5 to 8.5, salinity 20 to 50 g/kg</td>
+</tr>
+</tbody>
+</table></div>
+<p>The acid-sulfate range is Chem's (1.0 to 4.0 in the text, 1.0 to 4.5 in the
+table); PHI-4's Red band for hyperacidic oceans (pH 0 to 1) is the extreme tail.</p>
+<p>Carbonate-silicate buffering [R4596]: weathering rises
+about as <code>pCO2^0.3</code> and about 15 percent per degree [S]. On a stagnant lid it
+is supply-limited and can fail, though burial and decarbonation may restore a feedback with windows of roughly 1 to 5 Gyr [S]. Rule:
+a stagnant lid shortens the habitable window to 1 to 5 Gyr and pushes the ocean
+to soda or acid sulfate.</p>
+<h3 id="55-hycean-link">5.5 Hycean link</h3>
+<p>[R2804] [S]: massive oceans under H<sub>2</sub>-rich air, up to 2.6 R_E and
+10 Me; inner edge at T_eq up to about 500 K for late M, no outer limit.
+<code>rogue_surface</code>'s hydrogen-envelope branch already puts the surface on a dry
+adiabat and checks the boiling curve at envelope pressure. Add <code>hycean</code> to the
+regimes when an ocean sits under an H<sub>2</sub> envelope, below the boiling curve at that
+pressure and shallower than the 5.2 limit. Deeper ones are ice-sealed
+(<a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a>
+4.3).</p>
+<h3 id="56-aquifers-gen654">5.6 Aquifers (GEN.654)</h3>
+<p>A world with no liquid at its surface (hydrosphere <code>dry</code>, <code>ice</code> or <code>vapour</code>) can hold liquid water in the pores of its crust, where
+the heat flow puts the temperature between the freezing point and the hottest water life can use. The model is <code>physics/aquifers.py</code>,
+one column of crust, no draw:</p>
+<ul>
+<li>The geotherm is T(z) = T_surface + q z / k with the stored internal heat flux q (plus an icy moon's tide) and
+k = 2 W/m/K (<code>tuning.AQUIFER_CONDUCTIVITY_W_M_K</code>; [R0824], at second hand). The 273.15 K level lies at (273.15 - T_surface) k / q
+(about 4 km on a Mars with 30 mW/m2); on a warm surface water boils away until the hydrostatic pressure over it exceeds its vapour
+pressure.</li>
+<li>The water-bearing layer ends where the geotherm reaches 122 C (<code>tuning.AQUIFER_LIFE_MAX_K</code>, [R4295]) or where the pores close:
+porosity falls as 0.2 exp(-z/K), K = 2.82 km scaled by Mars's gravity over the body's (<code>tuning.AQUIFER_POROSITY_*</code>), and is gone under 0.01.</li>
+<li>The surface reservoir (the water that is not in the mantle, after the early runaway took its share, GEN.639), spread as a layer over
+the whole surface, fills the pores from the bottom of the layer up. A small inventory leaves a deep water table and a thin layer; a
+large one fills the liquid range to its top. A layer under 10 m is none.</li>
+</ul>
+<p>Two numbers are stored (<code>aquifer_depth_km</code>, the depth to the top of the layer, and <code>aquifer_thickness_km</code>; NULL for a world with none).
+They change the score in four places, all in <code>habitability_world.py</code>: the solvent is water (so the likelihood of microbial life is not
+cut to 0), the habitat dose is the ground's (life underground sees the rock's dose only), the energy is the chemical power of the heat
+flow (no light reaches it), and the Water rung is Yellow (<code>AQUIFER_WATER_SCORE</code> 0.6) when the top of the layer is within
+<code>tuning.AQUIFER_REACH_KM</code> (5 km, a drill's reach), Red when it is deeper (the life is out of reach, so it is no food either). The
+life draw caps such a world at abiogenesis (<code>life.stage_ceiling</code>): chemotrophs, so the Microbial score can rise and Flora, Fauna and
+Sentient stay 0. The Martian parameters are DESIGN stand-ins read at second hand (the papers could not be opened); they are labelled
+in <code>tuning.py</code> and <code>DATA-LICENSE.md</code> until a verified source replaces them.</p>
+<h2 id="6-corrections-to-the-source-documents">6. Corrections to the source documents</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source and section</th>
+<th>Statement</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td>Rad &quot;Host Star Spectral Regimes&quot; and its table</td>
+<td><code>L_XUV/L_bol</code> about 1e-3 saturated for M, K, G</td>
+<td>That is the X-ray band. Total XUV is 3.3e-3 (G) to 7.3e-3 (0.1 Msun); F stars saturate lower (down to 10^-4.3) [C]</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>Rad table</td>
+<td>M-dwarf <code>t_sat</code> 1.0 to 2.5 Gyr; G-dwarf flares over 1e34 erg 1e-4 to 1e-2 per year</td>
+<td><code>t_sat</code> fine for 0.3 to 0.5 Msun, 3 to 8 Gyr for late M; flares 1.7e-4 to 1.2e-3 per year for slow rotators, 1e-2 only for young fast ones</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>Rad &quot;Atmospheric / Magnetic Regime&quot; table; Master radiation table</td>
+<td>&quot;Earth-equivalent about 2.4 mSv/yr&quot; as surface dose; quiescent GCR 2.4 mSv/yr</td>
+<td>2.4 is the total natural background; cosmic is 0.39 mSv/yr</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>Rad &quot;Planetary Shielding Dynamics&quot;</td>
+<td>A dipole reduces dose by two or three orders of magnitude</td>
+<td>True for solar particles only. GCR: 0.6 at most (4.2)</td>
+</tr>
+<tr>
+<td>B5</td>
+<td>Rad table, &quot;Rarefied Unmagnetized (0.01 bar)&quot;</td>
+<td>More than 10 to 100 Gy per flare</td>
+<td>Needs an extreme flare. For the Sun a 0.01 bar atmosphere gives about 2 mSv/yr of SEP plus about 265 mSv/yr of GCR [C]</td>
+</tr>
+<tr>
+<td>B6</td>
+<td>Rad &quot;K-Dwarfs&quot;</td>
+<td>K-dwarf habitable-zone planets avoid tidal locking</td>
+<td>Holds for 0.75 to 0.85 Msun only; locked by 10 Gyr below about 0.7 Msun (3.3)</td>
+</tr>
+<tr>
+<td>B7</td>
+<td>Rad &quot;M-Dwarfs&quot;</td>
+<td>PMS contractions of 1.0 to 2.5 Gyr with saturated XUV</td>
+<td>Contraction and saturation are different clocks; see A10 in <a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a></td>
+</tr>
+<tr>
+<td>B8</td>
+<td>PHI-4 Radiation; Master <code>L_rad</code>; habitability-index.md (old)</td>
+<td><code>L_rad</code> threshold 10 Gy/yr disagrees with the Mars row (<code>L_rad</code> 0.65)</td>
+<td>A unit slip (mSv against Gy). Mars is 0.077 Gy/yr, 130x below 10, so <code>L_rad(Mars)</code> is about 1</td>
+</tr>
+<tr>
+<td>B9</td>
+<td>PHI-4 Radiation tiers</td>
+<td>Blue &lt; 50 mSv/yr, Green 50 to 100, Yellow &quot;subsurface&quot;, Red &gt; 10 Gy/yr</td>
+<td>Gap from 100 mSv/yr to 10 Gy/yr; filled in 4.6</td>
+</tr>
+<tr>
+<td>B10</td>
+<td>PHI-4 Radiation; Master <code>M_rad</code></td>
+<td>Blue 50 mSv/yr (occupational)</td>
+<td>ICRP: 20 mSv/yr (five-year average), 50 in any one year. Default Blue 20</td>
+</tr>
+<tr>
+<td>B11</td>
+<td>Chem &quot;Hyperacidic Sulfate Oceans&quot; and table; PHI-4 Chemistry Red; Master</td>
+<td>pH ranges differ (1.0 to 4.0; pH 0 to 1)</td>
+<td>Use 1.0 to 4.5 for the class; pH 0 to 1 is the tail. Soda: Chem 9.0 to 11.5, Master table 9.5 to 11.5; use 9.0 to 11.5</td>
+</tr>
+<tr>
+<td>B12</td>
+<td>Chem &quot;High-Pressure Ice-Sealed Oceanworlds&quot;; Master; Math 2.1</td>
+<td>Ice VI/VII seal above 1 to 1.2 GPa</td>
+<td>Depends on temperature: 0.2 GPa near 251 K, 0.63 GPa at 273 K, 2.2 GPa at 355 K; 73 to 204 km of ocean at Earth gravity (5.2)</td>
+</tr>
+<tr>
+<td>B13</td>
+<td>Chem &quot;Thermodynamic Extremes&quot;; PHI-4 Temperature Yellow</td>
+<td>Moist-greenhouse surface 50 to 90 C</td>
+<td>The moist limit is a flux threshold (<code>S_eff</code> 1.01 for the Sun); the surface temperature at that flux depends on the atmosphere [R]. Zone edges are in <a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a> 4.1. The Chem passage also has a garbled LaTeX run in the silica sentence</td>
+</tr>
+<tr>
+<td>B14</td>
+<td>Math 2.4</td>
+<td>Rigidity cutoff and Chapman-Ferraro standoff named without formulas</td>
+<td>Formulas in 3.4 and 4.2</td>
+</tr>
+<tr>
+<td>B15</td>
+<td>Math 1.1 Category A, rotation</td>
+<td>Rotation from a log-normal unless <code>t_sys &gt;= t_sync</code></td>
+<td>Agrees with 3.3; the project draws 10 to 1,400 h uniformly and locks only moons</td>
+</tr>
+<tr>
+<td>B16</td>
+<td>rogue-planet-surface.md &quot;Simplifications&quot;</td>
+<td>Ignores high-pressure ice</td>
+<td>Must be fixed once ocean depth feeds the chemistry class (5.3)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-evidence-notes">7. Evidence notes</h2>
+<p>Items tagged [S] were confirmed in a search summary only. [R] claims to verify
+when paper access is allowed:</p>
+<ol>
+<li>Saturated <code>L_X/L_bol</code> = 10^-3.13 (one search summary only).</li>
+<li>The [R3355] equation, gamma = 0.2 and the <code>F</code>
+definition; the <code>Ro_l</code> = 0.12 threshold and Earth's 0.09.</li>
+<li>The Sanz-Forcada/Chadney <code>L_EUV</code> relation (4.80, 0.860) and Ribas's
+4.6 erg/cm2/s; [R4781]'s slope for fully convective stars; [R4756]
+wind scaling and the cap values.</li>
+<li>Young solar-type flare rates (all non-anchor cells of the 2.4 table) and the
+SEP scaling (20 mSv/yr, the square-root exponent, <code>R0</code> = 0.2 GV from the
+1956 event, the 5.4 Sv/day Europa figure).</li>
+<li>GCR dose at 100 g/cm2, the 164 g/cm2 attenuation length and the heliosphere
+multiplier (2.5x).</li>
+<li>Peale's tidal formula and k2/Q values; ice-shell convective onset; Earth
+ocean pH and salinity; the dynamo lifetime rules; ICRP limits.</li>
+</ol>
+<h2 id="8-sources">8. Sources</h2>
+<p>Search results used (the full papers could not be opened):</p>
+<ul>
+<li>Activity: [R0711, R2118, R2285, R3753, R4330, R4443, R4984]</li>
+<li>Flares: [R2014, R2347, R3318, R4444, R4543, R4988],
+https://www.aanda.org/10.1051/0004-6361/202142710, [R1007]</li>
+<li>Ozone and flares: [R4000] (Segura),
+[R4365]</li>
+<li>Dynamo and magnetopause: https://www.maths.gla.ac.uk/~rs/res/B/DynamoScaling/2006OlsonChristensen.pdf
+(search result only), [R1010, R1687, R1689, R4919, R4986]</li>
+<li>Dose: https://elib.dlr.de/106090 (MSL RAD), [R4718]
+(Chang'E-4 LND),
+https://www.env.go.jp/en/chemi/rhm/basic-info/2018/pdf/basic-1st-02-05-slides.pdf
+(UNSCEAR 2008), https://unis.unvienna.org/unis/en/pressrels/2026/unisous453.html,
+https://icrpaedia.org/LD_50/30,
+https://publish.nrc.gov/reading-rm/basic-ref/glossary/lethal-dose-ld.html,
+https://intechopen.com/chapters/48814,
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5173286/</li>
+<li>Supernovae and GRBs: [R1530] (Gehrels),
+[R4997] (Thomas),
+[R1649, R4340]
+(Gowanlock), [R4177] (Spinelli)</li>
+<li>Hydrosphere: [R2381] (Kite and Ford),
+https://www.nature.com/articles/nphys3822 (Noack),
+[R0914] (Cowan and Abbot),
+[R2804] (Hycean),
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12827049/ (Juno, Europa),
+[R1610] (Enceladus), [R2358]
+(Ganymede), [R1400, R1403, R2204] and https://water.lsbu.ac.uk/water/water_phase_diagram.html
+(phase diagram)</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

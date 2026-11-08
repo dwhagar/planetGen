@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observational Kinematics, Mathematical Physics, and Procedural Generation of Astronomical Rotational Vectors - planetGen docs</title>
+<meta name="description" content="The rotational dynamics of celestial objects encompass a broad spectrum of physical regimes, ranging from non-rotating stellar interiors to extreme near-breakup rotators, tidally synchronized exoplanets, and dynamically spun-up compact r...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/observational-kinetics-for-rotational-vectors.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/observational-kinetics-for-rotational-vectors.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators</a>, <a href="../../orbits/orbital-updates.html">orbital-updates</a>, <a href="../../orbits/sky-view.html">sky-view</a>.</p>
+</blockquote>
+<h1 id="observational-kinematics-mathematical-physics-and-procedural-generation-of-astronomical-rotational-vectors">Observational Kinematics, Mathematical Physics, and Procedural Generation of Astronomical Rotational Vectors</h1><p class="meta">docs/design/research/imported/observational-kinetics-for-rotational-vectors.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#observational-kinematics-across-astronomical-populations">Observational Kinematics Across Astronomical Populations</a></li><li style="margin-left:14px"><a href="#stellar-rotational-velocities-and-evolutionary-regimes">Stellar Rotational Velocities and Evolutionary Regimes</a></li><li style="margin-left:14px"><a href="#small-solar-system-bodies-and-planetary-systems">Small Solar System Bodies and Planetary Systems</a></li><li style="margin-left:14px"><a href="#compact-remnant-dynamics-and-black-hole-spin-distributions">Compact Remnant Dynamics and Black Hole Spin Distributions</a></li><li style="margin-left:0px"><a href="#mathematical-physics-of-rotational-dynamics">Mathematical Physics of Rotational Dynamics</a></li><li style="margin-left:14px"><a href="#iau-cartographic-coordinate-systems-and-vector-transformation">IAU Cartographic Coordinate Systems and Vector Transformation</a></li><li style="margin-left:14px"><a href="#roche-equilibrium-models-and-rotational-breakup-limits">Roche Equilibrium Models and Rotational Breakup Limits</a></li><li style="margin-left:14px"><a href="#magnetized-wind-braking-and-gyrochronology">Magnetized Wind Braking and Gyrochronology</a></li><li style="margin-left:14px"><a href="#tidal-dissipation-and-synchronization-timescales">Tidal Dissipation and Synchronization Timescales</a></li><li style="margin-left:0px"><a href="#procedural-engine-logic-for-simulated-galactic-maps">Procedural Engine Logic for Simulated Galactic Maps</a></li><li style="margin-left:14px"><a href="#algorithmic-determination-of-rotational-speeds">Algorithmic Determination of Rotational Speeds</a></li><li style="margin-left:14px"><a href="#vector-orientations-and-axial-tilt-modeling">Vector Orientations and Axial Tilt Modeling</a></li><li style="margin-left:14px"><a href="#integrated-procedural-workflow-walk-through">Integrated Procedural Workflow Walk-Through</a></li><li style="margin-left:0px"><a href="#references">References</a></li></ul></details>
+<h2 id="observational-kinematics-across-astronomical-populations">Observational Kinematics Across Astronomical Populations</h2>
+<p>The rotational dynamics of celestial objects encompass a broad spectrum of physical regimes, ranging from non-rotating stellar interiors to extreme near-breakup rotators, tidally synchronized exoplanets, and dynamically spun-up compact remnants. Quantifying actual rotational velocities requires distinguishing between the true equatorial velocity (<span class="math">\(v_{\text{eq}}\)</span>), the projected stellar rotational velocity (<span class="math">\(v \sin i\)</span>), the rotational period (<span class="math">\(P_{\text{rot}}\)</span>), and the dimensionless spin parameter (<span class="math">\(a^*\)</span>). High-resolution spectroscopic surveys and wide-field photometric missions have compiled extensive empirical catalogs that constrain these quantities across stellar, planetary, and compact-object populations (Li et al., 2024; [R4623]).</p>
+<h3 id="stellar-rotational-velocities-and-evolutionary-regimes">Stellar Rotational Velocities and Evolutionary Regimes</h3>
+<p>Spectroscopic catalogues derived from large-scale astronomical surveys—such as the Gaia Data Release 3 (Gaia DR3), the Apache Point Observatory Galactic Evolution Experiment (APOGEE), and the Large Sky Area Multi-Object Fiber Spectroscopic Telescope (LAMOST)—measure stellar rotation via the line-broadening parameter <span class="math">\(v \sin i\)</span>, where <span class="math">\(i\)</span> represents the inclination of the stellar rotational axis relative to the line of sight (Li et al., 2024). Observed projected rotational velocities span several orders of magnitude, ranging from <span class="math">\(v \sin i \approx 0\text{ km/s}\)</span> (observed in stars viewed directly pole-on or in fully despun systems) to values exceeding 300 to 400 km/s in early-type stars.</p>
+<p>Massive, hot main-sequence stars (spectral types O, B, and early A) retain a significant fraction of their primordial angular momentum due to the absence of deep outer convective envelopes [R1429]. Equatorial velocities in these early-type stars typically range from 100 to 350 km/s. Extreme sub-classes, such as Be stars, exhibit projected velocities exceeding 300 km/s, rotating at 30% to over 80% of their critical breakup limit (<span class="math">\(v_{\text{crit}}\)</span>) (Roche, 1873). At these near-critical speeds, centrifugal forces cause severe equatorial oblateness and gravity darkening, triggering circumstellar decretion disk formation (Roche, 1873).</p>
+<p>In contrast, low-mass, cool main-sequence stars (late F, G, K, and M dwarfs) possess deep convective envelopes that power magnetic dynamos [R1429, R4544]. Magnetic fields anchor into escaping stellar winds, establishing an efficient magnetic torque that sheds rotational angular momentum over time [R4544]. Consequently, adult solar-type stars are slow rotators, exhibiting equatorial speeds of <span class="math">\(v_{\text{eq}} \approx 1.0\text{--}5.0\text{ km/s}\)</span> (the Sun rotates at <span class="math">\(v_{\text{eq}} \approx 2.0\text{ km/s}\)</span>, corresponding to <span class="math">\(P_{\text{rot}} \approx 25\text{--}35\text{ days}\)</span>) [R2352, R4544]. The kinematics of these stars within the Galactocentric reference frame are evaluated assuming a local circular velocity <span class="math">\(V_{\text{LSR}} \approx 229.0\text{--}232.0\text{ km/s}\)</span> at a galactocentric distance <span class="math">\(R_0 \approx 8.2\text{ kpc}\)</span>, with a peculiar solar motion <span class="math">\((U_0, V_0, W_0) = (5.0, 17.5, 6.46)\text{ km/s}\)</span> (Li et al., 2024; [R2352]).</p>
+<p>As low-mass stars evolve off the main sequence onto the Red Giant Branch (RGB), conservation of angular momentum during massive core collapse and envelope expansion causes surface rotational speeds to decline to <span class="math">\(v \sin i &lt; 2.0\text{ km/s}\)</span> (Li et al., 2024). However, high-resolution spectroscopic surveys have identified anomalous populations of rapidly rotating giant stars (Li et al., 2024). Medium-resolution spectra from LAMOST DR9 reveal that among metal-poor giant stars (<span class="math">\([\text{Fe/H}] \in [-4.0, -1.0]\)</span>), a critical rotational velocity plateau emerges between 40 and 90 km/s (Li et al., 2024). Stars in this plateau frequently exhibit strong lithium enrichment (abundances ranging from 1.02 to 1.82 dex), indicating that a critical threshold near 40 km/s triggers internal mass transport and activates chromospheric activity as interior material migrates outward (Li et al., 2024).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Stellar Class / Population</strong></th>
+<th><strong>Mass Range (M_sun)</strong></th>
+<th><strong>Typical v sin i or v_eq (km/s)</strong></th>
+<th><strong>Typical Rotation Period</strong></th>
+<th><strong>Angular Momentum Transport Mechanism</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O/B Main-Sequence</td>
+<td>3.0 - 50.0</td>
+<td>100 - 350</td>
+<td>0.5 - 3.0 days</td>
+<td>Weak magnetic braking, high primordial spin retention</td>
+</tr>
+<tr>
+<td>Be Stars</td>
+<td>3.0 - 20.0</td>
+<td>250 - 450</td>
+<td>0.2 - 1.5 days</td>
+<td>Near-critical equatorial spin-up, decretion disk drives</td>
+</tr>
+<tr>
+<td>G-Dwarf (Solar-Type)</td>
+<td>0.8 - 1.1</td>
+<td>1.0 - 5.0</td>
+<td>20 - 40 days</td>
+<td>Magnetized wind braking (Skumanich spin-down)</td>
+</tr>
+<tr>
+<td>M-Dwarf (Fully Convective)</td>
+<td>0.08 - 0.35</td>
+<td>0.1 - 15.0</td>
+<td>0.5 - 100 days</td>
+<td>Dynamo-saturated magnetic wind braking</td>
+</tr>
+<tr>
+<td>Standard RGB Giants</td>
+<td>0.8 - 2.0</td>
+<td>1.0 - 10.0</td>
+<td>100 - 1000 days</td>
+<td>Angular momentum conservation during expansion</td>
+</tr>
+<tr>
+<td>Metal-Poor RGB Giants</td>
+<td>0.6 - 1.0</td>
+<td>40 - 90</td>
+<td>10 - 50 days</td>
+<td>Internal mixing, binary engulfment, chromospheric transport</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="small-solar-system-bodies-and-planetary-systems">Small Solar System Bodies and Planetary Systems</h3>
+<p>Systematic photometric lightcurve inversions archived in the Asteroid Lightcurve Database (LCDB) show that the rotational periods of minor planets are dictated by body size and structural cohesion [R4623]. Quality codes (<span class="math">\(U\)</span>) categorize period reliability, where $U = 3$ denotes unambiguous period solutions and $U = 1$ indicates tentative estimates [R4623].</p>
+<p>For asteroids larger than <span class="math">\(D \approx 200\text{ meters}\)</span>, the rotation frequency distribution displays a sharp structural boundary known as the cohesionless spin barrier at <span class="math">\(P_{\text{rot}} \approx 2.2\text{ hours}\)</span> (corresponding to a maximum rotation frequency <span class="math">\(f \approx 11\text{ rev/day}\)</span>) [R4623]. Because bodies larger than 200 m are generally gravity-dominated &quot;rubble piles&quot; held together by self-gravity rather than tensile strength, rotational periods shorter than 2.2 hours generate centrifugal accelerations that exceed self-gravity, causing equatorial mass shedding or structural disruption [R4623]. Super-fast rotators (<span class="math">\(P_{\text{rot}} &lt; 2.2\text{ hours}\)</span>, such as Kamo'oalewa with <span class="math">\(P = 0.465\text{ h}\)</span>) exist almost exclusively among small monolithic Near-Earth Asteroids (<span class="math">\(D &lt; 200\text{ m}\)</span>), where internal material strength withstands centrifugal forces [R4623].</p>
+<p>Long-term vector evolution in small bodies is governed by the Yarkovsky-O'Keefe-Radzievskii-Paddack (YORP) effect, a thermal torque resulting from the anisotropic absorption and re-radiation of solar photon momentum [R4568, R4623]. The YORP torque alters both the spin period and the pole orientation <span class="math">\((\lambda, \beta)\)</span>, systematically driving orbital obliquities toward asymptotic values near <span class="math">\(\beta \approx \pm 90^\circ\)</span> relative to the orbital plane, creating a bi-modal distribution of rotational pole axes (Li et al., 2024; [R4568]).</p>
+<p>For close-in planets and natural satellites, rotational velocities are governed by tidal dissipation [R1584]. Differential gravitational forces exert a torque on tidal bulges, transferring spin angular momentum into orbital angular momentum until the rotational period synchronizes with the orbital period (<span class="math">\(P_{\text{rot}} = P_{\text{orb}}\)</span>) [R1584]. In compact multi-planet systems such as TOI-700, planets TOI-700 b, c, d, and e operate in tidally locked states with zero obliquity relative to their orbital planes.</p>
+<h3 id="compact-remnant-dynamics-and-black-hole-spin-distributions">Compact Remnant Dynamics and Black Hole Spin Distributions</h3>
+<p>The rotational state of a black hole is characterized by its dimensionless spin magnitude parameter:</p>
+<p><span class="math display">\[a^* = \chi = \frac{c J}{G M^2} \quad \text{where} \quad 0 \le a^* \le 1\]</span></p>
+<p>Gravitational-wave observations by the LIGO-Virgo-KAGRA (LVK) collaboration demonstrate that stellar-mass black hole spins fall into distinct statistical distributions based on their evolutionary assembly channels [R0251]:</p>
+<p>First-generation (1G) black holes formed via the direct core collapse of isolated massive stars typically possess low birth spins centered around <span class="math">\(a^* \approx 0.1\text{--}0.2\)</span>, well-modeled by a Beta distribution <span class="math">\(\text{Beta}(\alpha = 1.4, \beta = 3.6)\)</span>. High initial spins (<span class="math">\(a^* &gt; 0.8\)</span>) in isolated 1G black holes occur rarely and require tight binary systems undergoing chemically homogeneous evolution.</p>
+<p>Hierarchical merger remnants (2G+) assembled through successive binary coalescences in dense environments (such as globular clusters or AGN accretion disks) display a universal spin distribution [R0251, R2753]. Because the orbital angular momentum of a merging binary converts into the spin of the final remnant, equal-mass non-precessing mergers produce remnants with a characteristic dimensionless spin <span class="math">\(a^* \approx 0.69\text{--}0.70\)</span> [R1584]. Subsequent 2G+2G mergers maintain high spin magnitudes spanning <span class="math">\(a^* \in [0.6, 0.9]\)</span>, subject to retention conditions dictated by gravitational recoil kicks that can reach velocities up to 5000 km/s [R0251].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Black Hole Generation</strong></th>
+<th><strong>Primary Assembly Channel</strong></th>
+<th><em><em>Typical Spin Parameter (a</em>) Distribution</em>*</th>
+<th><strong>Dominant Alignment Characteristics</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1G Stellar Collapse</td>
+<td>Isolated binary evolution / Field</td>
+<td>Low spin (mean ~ 0.1 - 0.2), Beta(1.4, 3.6)</td>
+<td>Preferentially aligned with binary orbital axis</td>
+</tr>
+<tr>
+<td>1G Chemically Homogeneous</td>
+<td>Tidal synchronization in ultra-tight binaries</td>
+<td>High spin (a* ~ 0.8 - 0.95)</td>
+<td>Strongly aligned with binary orbital plane</td>
+</tr>
+<tr>
+<td>2G Dynamically Assembled</td>
+<td>Hierarchical mergers in globular clusters</td>
+<td>Moderate-to-high (a* ~ 0.65 - 0.75)</td>
+<td>Isotropically distributed tilt angles due to dynamical capture</td>
+</tr>
+<tr>
+<td>2G AGN Disk Remnants</td>
+<td>Gas-driven capture and accretion in AGN disks</td>
+<td>Very high spin (a* ~ 0.8 - 0.95)</td>
+<td>Preferentially aligned with galactic disk rotation axis</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="mathematical-physics-of-rotational-dynamics">Mathematical Physics of Rotational Dynamics</h2>
+<h3 id="iau-cartographic-coordinate-systems-and-vector-transformation">IAU Cartographic Coordinate Systems and Vector Transformation</h3>
+<p>To define the three-dimensional rotation axis and temporal orientation of an astronomical body, the International Astronomical Union (IAU) Working Group on Cartographic Coordinates parameterizes the direction of the north pole of rotation in Equatorial coordinates relative to the International Celestial Reference Frame (ICRF) via Right Ascension (<span class="math">\(\alpha_0\)</span>) and Declination (<span class="math">\(\delta_0\)</span>) [R0135]. The orientation of the prime meridian is tracked as a time-dependent angle $W(t)$ [R0135]:</p>
+<p><span class="math display">\[\alpha_0 = \alpha_{\text{ref}} + \dot{\alpha} T\]</span></p>
+<p><span class="math display">\[\delta_0 = \delta_{\text{ref}} + \dot{\delta} T\]</span></p>
+<p><span class="math display">\[W(t) = W_0 + \dot{W} d + \frac{1}{2} \ddot{W} d^2\]</span></p>
+<p>where <span class="math">\(T\)</span> represents time in Julian centuries from the J2000.0 epoch ($T = (d - 2451545.0) / 36525$), <span class="math">\(d\)</span> represents time in Julian days, <span class="math">\(W_0\)</span> is the prime meridian position at epoch, and <span class="math">\(\dot{W} = \frac{360^\circ}{P_{\text{rot}}}\)</span> represents the rotational frequency in degrees per day [R0135].</p>
+<p>The unit vector specifying the orientation of the rotation axis <span class="math">\(\hat{\mathbf{\omega}}\)</span> in Cartesian coordinates is expressed as:</p>
+<p><span class="math display">\[\hat{\mathbf{\omega}} = \begin{bmatrix} \cos\delta_0 \cos\alpha_0 \\ \cos\delta_0 \sin\alpha_0 \\ \sin\delta_0 \end{bmatrix}\]</span></p>
+<p>The transformation matrix <span class="math">\(\mathbf{R}_{\text{body}\to\text{ICRF}}\)</span> mapping coordinates from the body-fixed coordinate frame <span class="math">\([x_b, y_b, z_b]^T\)</span> to the inertial coordinate system is constructed through sequential Euler angle rotations [R0135]:</p>
+<p><span class="math display">\[\mathbf{R}(\alpha_0, \delta_0, W) = \mathbf{R}_z(90^\circ + \alpha_0) \cdot \mathbf{R}_x(90^\circ - \delta_0) \cdot \mathbf{R}_z(W)\]</span></p>
+<p>Expanding this matrix yields the complete transformation tensor:</p>
+<p><span class="math display">\[\mathbf{R} = \begin{bmatrix} -\sin\alpha_0 \sin W + \cos\alpha_0 \sin\delta_0 \cos W &amp; -\sin\alpha_0 \cos W - \cos\alpha_0 \sin\delta_0 \sin W &amp; \cos\alpha_0 \cos\delta_0 \\ \cos\alpha_0 \sin W + \sin\alpha_0 \sin\delta_0 \cos W &amp; \cos\alpha_0 \cos W - \sin\alpha_0 \sin\delta_0 \sin W &amp; \sin\alpha_0 \cos\delta_0 \\ -\cos\delta_0 \cos W &amp; \cos\delta_0 \sin W &amp; \sin\delta_0 \end{bmatrix}\]</span></p>
+<h3 id="roche-equilibrium-models-and-rotational-breakup-limits">Roche Equilibrium Models and Rotational Breakup Limits</h3>
+<p>For fluid self-gravitating bodies, rapid rotation induces equatorial expansion (Roche, 1873). Under the Roche equilibrium model—which assumes that the internal mass distribution is strongly centrally condensed—the effective gravitational-centrifugal potential <span class="math">\(\Phi_{\text{eff}}\)</span> at an equatorial surface distance <span class="math">\(r_{\text{eq}}\)</span> is formulated as (Roche, 1873):</p>
+<p><span class="math display">\[\Phi_{\text{eff}}(r_{\text{eq}}, \theta = \pi/2) = -\frac{GM}{r_{\text{eq}}} - \frac{1}{2} \omega^2 r_{\text{eq}}^2\]</span></p>
+<p>Critical rotation occurs when the outward centrifugal acceleration matches the inward gravitational acceleration at the equator (Roche, 1873):</p>
+<p><span class="math display">\[\omega_{\text{crit}}^2 r_{\text{crit}} = \frac{GM}{r_{\text{crit}}^2} \implies \omega_{\text{crit}} = \sqrt{\frac{GM}{r_{\text{crit}}^3}}\]</span></p>
+<p>Due to rotational distortion, the critical equatorial radius <span class="math">\(r_{\text{crit}}\)</span> expands to 1.5 times the polar radius <span class="math">\(R_{\text{p}}\)</span> (<span class="math">\(r_{\text{crit}} = \frac{3}{2} R_{\text{p}}\)</span>) (Roche, 1873). Substituting this geometric limit into the velocity equation determines the critical equatorial velocity <span class="math">\(v_{\text{crit}}\)</span> (Roche, 1873):</p>
+<p><span class="math display">\[v_{\text{crit}} = \omega_{\text{crit}} r_{\text{crit}} = \sqrt{\frac{GM}{\frac{3}{2} R_{\text{p}}}} = \sqrt{\frac{2}{3} \frac{GM}{R_{\text{p}}}}\]</span></p>
+<p>For solid or cohesionless self-gravitating bodies (such as asteroids), the critical rotational period <span class="math">\(P_{\text{crit}}\)</span> below which equatorial shedding occurs depends directly on the mean mass density <span class="math">\(\rho\)</span>:</p>
+<p><span class="math display">\[P_{\text{crit}} = \sqrt{\frac{3\pi}{G\rho}}\]</span></p>
+<p>For a typical asteroid density <span class="math">\(\rho = 2000\text{ kg/m}^3\)</span>, <span class="math">\(P_{\text{crit}} \approx 2.33\text{ hours}\)</span>, providing the theoretical origin of the observed 2.2-hour spin barrier [R4623].</p>
+<h3 id="magnetized-wind-braking-and-gyrochronology">Magnetized Wind Braking and Gyrochronology</h3>
+<p>Low-mass main-sequence stars shed angular momentum via magnetized stellar winds [R1429, R4114]. The torque <span class="math">\(\tau_{\text{wind}}\)</span> exerted on a star by mass loss anchored in its magnetic field lines is expressed as [R1429]:</p>
+<p><span class="math display">\[\tau_{\text{wind}} = \frac{d J}{d t} = \frac{2}{3} \dot{M}_* R_{\text{A}}^2 \omega\]</span></p>
+<p>where <span class="math">\(\dot{M}_*\)</span> represents the mass-loss rate, <span class="math">\(R_{\text{A}}\)</span> represents the Alfvén radius, and <span class="math">\(\omega\)</span> represents the stellar angular velocity [R1429]. Parameterizing <span class="math">\(R_{\text{A}}\)</span> using magnetohydrodynamic (MHD) formulations yields the spin-down equation [R1429]:</p>
+<p><span class="math display">\[\tau_{\text{wind}} = K_1^2 \left(2GM_*\right)^m B_*^{4m} \dot{M}_*^{1-2m} R_*^{5m+2} M_*^{-m} \omega \left(K_2^2 + \frac{\omega^2 R_*^3}{2GM_*}\right)^{-1}\]</span></p>
+<p>where <span class="math">\(K_1 = 1.30\)</span>, <span class="math">\(K_2 = 0.056\)</span>, and $m = 0.22$ are dimensionless wind efficiency constants derived from numerical MHD simulations [R1429]. In the unsaturated dynamo regime where magnetic field strength scales with rotation (<span class="math">\(B_* \propto \omega\)</span>), this torque simplifies to <span class="math">\(d\omega / dt \propto -\omega^3\)</span>. Integrating this differential equation over time yields the <strong>Skumanich law</strong> [R4114, R4544], where rotational speed decays inversely with the square root of stellar age <span class="math">\(t\)</span>:</p>
+<p><span class="math display">\[\omega(t) \propto t^{-1/2} \implies P_{\text{rot}}(t) \propto t^{1/2}\]</span></p>
+<p>Modern empirical gyrochronology models refine this relation by incorporating color index (such as $B-V$ or <span class="math">\(G_{\text{BP}} - G_{\text{RP}}\)</span>) to account for mass-dependent convective envelope depths [R1429, R4114]:</p>
+<p><span class="math display">\[P_{\text{rot}}(t, B-V) = A \cdot t^n \cdot (B - V - c)^b\]</span></p>
+<p>Fitting this model to open cluster populations yields parameter values <span class="math">\(n = 0.55_{-0.09}^{+0.02}\)</span>, <span class="math">\(b = 0.31_{-0.02}^{+0.05}\)</span>, <span class="math">\(c = 0.495 \pm 0.010\)</span>, and <span class="math">\(a = 0.40_{-0.05}^{+0.30}\)</span> [R1429]. Stellar spin behavior is further parameterized by the dimensionless <strong>Rossby number</strong> (<span class="math">\(Ro\)</span>) [R1429]:</p>
+<p><span class="math display">\[Ro = \frac{P_{\text{rot}}}{\tau_{\text{cz}}}\]</span></p>
+<p>where <span class="math">\(\tau_{\text{cz}}\)</span> represents the convective turnover timescale [R1429]. For <span class="math">\(Ro &lt; Ro_{\text{crit}} \approx 0.1\)</span>, stellar activity saturates and spin-down proceeds slowly; for $Ro &gt; 0.1$, stars follow unsaturated Skumanich magnetic braking [R1429].</p>
+<h3 id="tidal-dissipation-and-synchronization-timescales">Tidal Dissipation and Synchronization Timescales</h3>
+<p>Gravitational interactions in close binary systems induce tidal bulges that exchange angular momentum between spin and orbital states [R1584]. The rotational synchronization timescale (<span class="math">\(\tau_{\text{lock}}\)</span>) for a planet or satellite despinning under tidal forces is derived from equilibrium tide theory:</p>
+<p><span class="math display">\[\tau_{\text{lock}} = \frac{4}{9} \frac{\omega_0 C Q a^6}{k_2 G M_*^2 R_p^5}\]</span></p>
+<p>where <span class="math">\(\omega_0\)</span> is initial spin frequency, <span class="math">\(C\)</span> is moment of inertia, <span class="math">\(Q\)</span> is the tidal quality factor, <span class="math">\(k_2\)</span> is the Love number of degree 2, <span class="math">\(a\)</span> is the semi-major axis, <span class="math">\(M_*\)</span> is stellar mass, and <span class="math">\(R_p\)</span> is planetary radius.</p>
+<p>Because <span class="math">\(\tau_{\text{lock}}\)</span> scales with semi-major axis to the sixth power (<span class="math">\(a^6\)</span>), tidal despinning drops precipitously with distance. Bodies within a critical distance despin into synchronized states (<span class="math">\(P_{\text{rot}} = P_{\text{orb}}\)</span>) on megayear timescales, whereas outer objects retain their primordial rotations over multi-gigayear lifetimes [R1584].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Physical Mechanism</strong></th>
+<th><strong>Governing Master Equation</strong></th>
+<th><strong>Primary Sensitivity</strong></th>
+<th><strong>Astrophysical Application</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Roche Breakup Limit</td>
+<td>v_crit = sqrt((2/3) * G * M / R_p)</td>
+<td>Mass density or M^(1/2) R^(-1/2)</td>
+<td>Upper rotational speed cutoff for stars and asteroids</td>
+</tr>
+<tr>
+<td>Magnetized Wind Torque</td>
+<td>d(omega)/dt = -K * omega^3</td>
+<td>Convective turnover timescale</td>
+<td>Gyrochronology age dating for cool dwarfs</td>
+</tr>
+<tr>
+<td>Tidal Despinning</td>
+<td>tau_lock proportional to (a^6 * Q * M_p) / (k_2 * M_*^2 * R_p^3)</td>
+<td>Orbital separation (a^6)</td>
+<td>Orbital synchronization of exoplanets and moons</td>
+</tr>
+<tr>
+<td>YORP Acceleration</td>
+<td>d(omega)/dt proportional to (Phi_solar / (a^2 * rho * D^2)) * f(shape)</td>
+<td>Inversely proportional to surface area (D^-2)</td>
+<td>Spin rate evolution and pole alignment of small asteroids</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="procedural-engine-logic-for-simulated-galactic-maps">Procedural Engine Logic for Simulated Galactic Maps</h2>
+<h3 id="algorithmic-determination-of-rotational-speeds">Algorithmic Determination of Rotational Speeds</h3>
+<p>The rotational speed generator evaluates object properties using a conditional physical cascade:</p>
+<p>First, the algorithm evaluates tidal synchronization for any orbiting body by calculating <span class="math">\(\tau_{\text{lock}}\)</span>. If system age <span class="math">\(t_{\text{sys}} &gt; \tau_{\text{lock}}\)</span>, the object is tidally locked:</p>
+<p><span class="math display">\[P_{\text{rot}} = P_{\text{orb}}\]</span></p>
+<p>Its axial obliquity is set to <span class="math">\(\varepsilon = 0.0^\circ\)</span> (or locked in a spin-orbit resonance such as 3:2 if orbital eccentricity $e &gt; 0.1$).</p>
+<p>Second, for low-mass main-sequence stars (<span class="math">\(M_* \le 1.3 M_\odot\)</span>) that are not tidally locked, rotational periods are determined via empirical gyrochronology equations [R1429]:</p>
+<p><span class="math display">\[P_{\text{rot}}(t, B-V) = \left[ A \cdot t^n \cdot (B - V - c)^b \right] \cdot \exp\left(\mathcal{N}(0, \sigma_{\text{gyro}}^2)\right)\]</span></p>
+<p>where <span class="math">\(\mathcal{N}(0, \sigma_{\text{gyro}}^2)\)</span> represents a Gaussian scatter term (<span class="math">\(\sigma_{\text{gyro}} \approx 0.10\)</span>) accounting for initial angular momentum dispersion [R4114].</p>
+<p>Third, for massive hot stars (<span class="math">\(M_* &gt; 1.3 M_\odot\)</span>), equatorial velocities are sampled from a log-normal distribution:</p>
+<p><span class="math display">\[\ln(v_{\text{eq}}) \sim \mathcal{N}(\mu_{v}, \sigma_{v}^2) \quad \text{with } \mu_v = \ln(180\text{ km/s}), \; \sigma_v = 0.45\]</span></p>
+<p>The sampled velocity is checked against the Roche critical breakup limit, applying an upper bound (Roche, 1873):</p>
+<p><span class="math display">\[v_{\text{eq, max}} = 0.85 \times \sqrt{\frac{2}{3} \frac{GM_*}{R_{\text{p}}}}\]</span></p>
+<p>Fourth, for small solar system bodies, if diameter <span class="math">\(D &gt; 0.2\text{ km}\)</span>, <span class="math">\(P_{\text{rot}}\)</span> is sampled from a Maxwellian/log-normal distribution truncated at the cohesionless spin barrier <span class="math">\(P_{\text{min}} = 2.2\text{ hours}\)</span> [R4623]:</p>
+<p><span class="math display">\[P_{\text{rot}} = \max\left(2.2\text{ hours}, \; \text{LogNormal}(\mu = 2.1, \sigma = 0.65)\text{ hours}\right)\]</span></p>
+<p>Fifth, for stellar-mass black holes, 1G black holes draw spins from <span class="math">\(a^* \sim \text{Beta}(\alpha = 1.4, \beta = 3.6)\)</span>, while hierarchical merger remnants draw spins from <span class="math">\(a^* \sim \mathcal{N}(\mu = 0.69, \sigma = 0.04)\)</span>.</p>
+<h3 id="vector-orientations-and-axial-tilt-modeling">Vector Orientations and Axial Tilt Modeling</h3>
+<p>A body's rotational vector orientation <span class="math">\(\hat{\mathbf{\omega}}\)</span> is defined by its axial obliquity <span class="math">\(\varepsilon\)</span> relative to its parent frame's orbital normal vector <span class="math">\(\hat{\mathbf{L}}_{\text{orbit}}\)</span>.</p>
+<p>For stars and unperturbed planets, rotational axes align closely with the primordial angular momentum of the local galactic neighborhood:</p>
+<p><span class="math display">\[\varepsilon \sim \text{Rayleigh}(\sigma_{\varepsilon} = 15^\circ)\]</span></p>
+<p>For solid planets subject to late-stage collisions, planetary obliquities are sampled from an impact-modified tilt distribution:</p>
+<p><span class="math display">\[p(\varepsilon) \propto \frac{1}{2} \sin\varepsilon \left(1 + \gamma \cos^2\varepsilon\right)\]</span></p>
+<p>For asteroids affected by long-term thermal radiation, YORP torques force obliquities toward the ecliptic poles [R4568]:</p>
+<p><span class="math display">\[\varepsilon \sim \begin{cases} \mathcal{N}(\mu = 10^\circ, \sigma = 8^\circ) &amp; \text{with probability } 0.5 \\ \mathcal{N}(\mu = 170^\circ, \sigma = 8^\circ) &amp; \text{with probability } 0.5 \end{cases}\]</span></p>
+<p>Given an orbital normal vector <span class="math">\(\hat{\mathbf{L}} = [L_x, L_y, L_z]^T\)</span>, the final rotational vector <span class="math">\(\hat{\mathbf{\omega}}\)</span> is computed combining obliquity <span class="math">\(\varepsilon\)</span> and precession angle <span class="math">\(\phi \sim U(0, 2\pi)\)</span>:</p>
+<p><span class="math display">\[\hat{\mathbf{\omega}} = \cos(\varepsilon) \hat{\mathbf{L}} + \sin(\varepsilon) \left[ \cos(\phi) \hat{\mathbf{u}} + \sin(\phi) \hat{\mathbf{v}} \right]\]</span></p>
+<p>The unit vector components <span class="math">\(\hat{\mathbf{\omega}} = [\hat{\omega}_x, \hat{\omega}_y, \hat{\omega}_z]^T\)</span> are converted into standard IAU equatorial coordinates <span class="math">\((\alpha_0, \delta_0)\)</span> [R0135]:</p>
+<p><span class="math display">\[\delta_0 = \arcsin(\hat{\omega}_z)\]</span></p>
+<p><span class="math display">\[\alpha_0 = \text{atan2}(\hat{\omega}_y, \hat{\omega}_x)\]</span></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Object Domain</strong></th>
+<th><strong>Procedural Sampling Function</strong></th>
+<th><strong>Target Astrophysics / Observational Anchor</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cool Main-Sequence Spin</td>
+<td>P_rot = A * t^0.55 * (B - V - c)^b * exp(N(0, sigma^2))</td>
+<td>Magnetic wind braking / Gyrochronology</td>
+</tr>
+<tr>
+<td>Massive Star Spin</td>
+<td>v_eq = min(v_crit, LogNormal(180 km/s, 0.45))</td>
+<td>High initial angular momentum &amp; Roche limit</td>
+</tr>
+<tr>
+<td>Rubble-Pile Asteroid Spin</td>
+<td>P_rot = max(2.2 h, LogNormal(13 h, 0.65))</td>
+<td>Cohesionless spin barrier (D &gt; 200 m)</td>
+</tr>
+<tr>
+<td>1G Black Hole Spin</td>
+<td>a* ~ Beta(alpha = 1.4, beta = 3.6)</td>
+<td>Stellar collapse birth spin parameters</td>
+</tr>
+<tr>
+<td>2G Black Hole Spin</td>
+<td>a* ~ N(mu = 0.69, sigma = 0.04)</td>
+<td>Universal hierarchical merger dynamics</td>
+</tr>
+<tr>
+<td>Stellar Axial Obliquity</td>
+<td>epsilon ~ Rayleigh(sigma = 15 deg)</td>
+<td>Galactic disk primordial angular momentum alignment</td>
+</tr>
+<tr>
+<td>Asteroid Pole Obliquity</td>
+<td>epsilon ~ Bi-modal Gaussian(10 deg or 170 deg)</td>
+<td>YORP thermal torque asymptotic pole states</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="integrated-procedural-workflow-walk-through">Integrated Procedural Workflow Walk-Through</h3>
+<ol>
+<li><strong>Galactic Frame Setup</strong>: Define local galactic orbital plane normal:</li>
+</ol>
+<p><span class="math display">\[\hat{\mathbf{n}}_{\text{gal}} = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}\]</span></p>
+<ol start="2">
+<li>
+<p><strong>Primary Solar-Type Star Initialization</strong>:</p>
+<ul>
+<li>
+<p>Parameters: <span class="math">\(M_* = 1.0 M_\odot\)</span>, age <span class="math">\(t = 4.6\text{ Gyr}\)</span>, $B-V = 0.65$.</p>
+</li>
+<li>
+<p>Gyrochronology calculation yields <span class="math">\(P_{\text{rot}} \approx 25.4\text{ days}\)</span> [R1429], corresponding to <span class="math">\(v_{\text{eq}} \approx 2.0\text{ km/s}\)</span>.</p>
+</li>
+<li>
+<p>Sample axial tilt: <span class="math">\(\varepsilon = 7.2^\circ\)</span> drawn from <span class="math">\(\text{Rayleigh}(15^\circ)\)</span>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Close-In Terrestrial Exoplanet Initialization (<span class="math">\(a = 0.03\text{ AU}\)</span>)</strong>:</p>
+<ul>
+<li>
+<p>Parameters: <span class="math">\(M_p = 1.0 M_\oplus\)</span>, <span class="math">\(R_p = 1.0 R_\oplus\)</span>, $Q = 100$, <span class="math">\(k_2 = 0.3\)</span>.</p>
+</li>
+<li>
+<p>Synchronization timescale: <span class="math">\(\tau_{\text{lock}} \approx 1.2\text{ Myr} &lt; 4.6\text{ Gyr} \implies\)</span> <strong>Tidally Locked</strong>.</p>
+</li>
+<li>
+<p>Rotational state: <span class="math">\(P_{\text{rot}} = P_{\text{orb}} = 2.1\text{ days}\)</span>, <span class="math">\(\varepsilon = 0.0^\circ\)</span>, <span class="math">\(\hat{\mathbf{\omega}}_p = \hat{\mathbf{L}}_{\text{orbit}}\)</span>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Outer Asteroid Belt Body Initialization (<span class="math">\(D = 5\text{ km}, a = 2.5\text{ AU}\)</span>)</strong>:</p>
+<ul>
+<li>
+<p>Cohesionless spin limit applies (<span class="math">\(P_{\text{min}} = 2.2\text{ h}\)</span>) [R4623].</p>
+</li>
+<li>
+<p>Period sampled: <span class="math">\(P_{\text{rot}} = 6.4\text{ h}\)</span>. YORP tilt sampled: <span class="math">\(\varepsilon = 172^\circ\)</span> (retrograde rotator) [R4568].</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Analytical Conclusions and Implementation Guidelines</p>
+</li>
+</ol>
+<p>Celestial rotational velocities are fundamentally constrained by mechanical breakup limits or despun by magnetic and tidal torques [R4544, R4623]. High-mass stars and monolithic asteroids rotate near physical breakup thresholds (<span class="math">\(v_{\text{crit}}vcritv_{\text{crit}}vcrit​\)</span> and <span class="math">\(P_{\text{crit}} \approx 2.2\text{ h}Pcrit≈2.2 hP_{\text{crit}} \approx 2.2\text{ h}Pcrit​≈2.2 h\)</span>) (Roche, 1873; [R4623]), whereas cool dwarfs despin following Skumanich spin-down laws (<span class="math">\(P_{\text{rot}} \propto t^{0.55}Prot∝t0.55P_{\text{rot}} \propto t^{0.55}Prot​∝t0.55\)</span>) [R1429, R4114]. Rotational vectors reflect persistent directional torques: close-in exoplanets align into zero-obliquity synchronized states, while thermal YORP torques align asteroid poles perpendicular to orbital planes [R4568]. Procedural engines incorporating these physical relationships generate maps that remain grounded in empirical astrophysics.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>
+<p>[R0135]</p>
+</li>
+<li>
+<p>[R1056]</p>
+</li>
+<li>
+<p>[R4114]</p>
+</li>
+<li>
+<p>[R4568]</p>
+</li>
+<li>
+<p>[R4623]</p>
+</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

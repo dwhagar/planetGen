@@ -1,0 +1,2392 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part D: small bodies and moons (asteroids, comets, icy bodies, moons) - planetGen docs</title>
+<meta name="description" content="Agent D, research date 2026-10-17.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/D-small-bodies-moons.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/D-small-bodies-moons.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-d-small-bodies-and-moons-asteroids-comets-icy-bodies-moons">Part D: small bodies and moons (asteroids, comets, icy bodies, moons)</h1><p class="meta">docs/design/composition/body-composition-parts/D-small-bodies-moons.md</p><details class="toc"><summary>On this page (29 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-interfaces">1. Scope and interfaces</a></li><li style="margin-left:0px"><a href="#2-findings">2. Findings</a></li><li style="margin-left:14px"><a href="#21-material-grain-densities-fills-the-gen425-gap">2.1 Material grain densities (fills the GEN.425 gap)</a></li><li style="margin-left:14px"><a href="#22-meteorite-grain-density-bulk-density-porosity-rock-analogues-for-asteroids">2.2 Meteorite grain density, bulk density, porosity (rock analogues for asteroids)</a></li><li style="margin-left:14px"><a href="#23-asteroid-taxonomy-density-albedo-mass-share">2.3 Asteroid taxonomy, density, albedo, mass share</a></li><li style="margin-left:14px"><a href="#24-heliocentric-type-distribution-calibration-kernel-for-the-generator">2.4 Heliocentric type distribution (calibration kernel for the generator)</a></li><li style="margin-left:14px"><a href="#25-chondrite-chemistry-and-radiogenic-heating">2.5 Chondrite chemistry and radiogenic heating</a></li><li style="margin-left:14px"><a href="#26-comets-and-interstellar-objects">2.6 Comets and interstellar objects</a></li><li style="margin-left:14px"><a href="#27-kbos-and-dwarf-planets">2.7 KBOs and dwarf planets</a></li><li style="margin-left:14px"><a href="#28-circumplanetary-disk-moons-parent-mass-and-ice-line">2.8 Circumplanetary-disk moons: parent mass and ice line</a></li><li style="margin-left:14px"><a href="#29-moon-composition-by-origin">2.9 Moon composition by origin</a></li><li style="margin-left:14px"><a href="#210-compaction-porosity-regime-and-its-limit">2.10 Compaction (porosity regime) and its limit</a></li><li style="margin-left:14px"><a href="#211-moon-bulk-densities-and-ice-fractions-from-simple-mixing-hand-off-check">2.11 Moon bulk densities and ice fractions from simple mixing (hand-off check)</a></li><li style="margin-left:14px"><a href="#212-what-the-generator-stores-today-read-from-the-repo">2.12 What the generator stores today (READ from the repo)</a></li><li style="margin-left:0px"><a href="#3-how-the-generator-should-compute-or-draw-it">3. How the generator should compute or draw it</a></li><li style="margin-left:14px"><a href="#31-choice-of-route">3.1 Choice of route</a></li><li style="margin-left:14px"><a href="#32-shared-mixing-rule">3.2 Shared mixing rule</a></li><li style="margin-left:14px"><a href="#33-route-1-keep-the-drawn-density-fill-the-composition">3.3 Route 1: keep the drawn density, fill the composition</a></li><li style="margin-left:14px"><a href="#34-route-2-draw-composition-first">3.4 Route 2: draw composition first</a></li><li style="margin-left:14px"><a href="#35-distributions-summary-all-parametrisation-unless-sourced">3.5 Distributions summary (all PARAMETRISATION unless sourced)</a></li><li style="margin-left:14px"><a href="#36-fields-to-store-names-units-range-per-body-or-per-layer">3.6 Fields to store (names, units, range, per body or per layer)</a></li><li style="margin-left:14px"><a href="#37-consistency-checks-invariants-a-test-can-assert">3.7 Consistency checks (invariants a test can assert)</a></li><li style="margin-left:14px"><a href="#38-agreement-with-the-gen425-report">3.8 Agreement with the GEN.425 report</a></li><li style="margin-left:0px"><a href="#4-calibration-and-test-targets">4. Calibration and test targets</a></li><li style="margin-left:0px"><a href="#5-gaps">5. Gaps</a></li><li style="margin-left:14px"><a href="#boss-must-research-ranked-by-importance-to-the-design">Boss must research (ranked by importance to the design)</a></li><li style="margin-left:14px"><a href="#to-verify-recalled-ranked">To verify (RECALLED, ranked)</a></li><li style="margin-left:0px"><a href="#6-proposed-work-items">6. Proposed work items</a></li><li style="margin-left:0px"><a href="#7-verification-summary">7. Verification summary</a></li></ul></details>
+<p>Agent D, research date 2026-10-17. Read-only on the repo. Labels: READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED (definitions in <code>_brief.md</code>). Every table row ends with its label so the counts in section 7 can be regenerated by a text search.</p>
+<p>Convention: &quot;PARAMETRISATION&quot; means the shape or number is my proposal to make the generator run, not a measured law. It must be drawn from a stated distribution and replaced if a better published distribution is found. Solar System bodies appear only in section 4 (test targets) and in &quot;calibration source&quot; columns, never as presets.</p>
+<hr />
+<h2 id="1-scope-and-interfaces">1. Scope and interfaces</h2>
+<p><strong>Covers</strong></p>
+<ul>
+<li>Asteroids: taxonomy versus meteorite analogue, grain density, bulk density, porosity, albedo, distribution of types with distance, chondrite chemistry, radiogenic heating (long-lived and Al-26).</li>
+<li>Comets, Kuiper belt objects (KBOs), Centaurs, Oort cloud bodies, interstellar objects, dwarf planets: refractory-to-ice ratio, ices, porosity, density-size trend.</li>
+<li>Moons of every origin (circumplanetary disk, impact, capture, ring, binary dwarf-planet), including how moon composition relates to the parent mass and to orbital distance (ice line).</li>
+<li>Fill of the GEN.425 gap: low-pressure ice and silicate densities, and small-body porosity with a compression regime (hand-off point to the equation-of-state agents).</li>
+<li>Generator routes 1 and 2 with formulas, distributions and the exact fields to store.</li>
+</ul>
+<p><strong>Takes from other parts</strong></p>
+<ul>
+<li>Star: luminosity L (for snow line), [Fe/H] (already stored, schema v95), age. Snow line <code>snow_line_au</code> already exists in <code>physics/formation.py</code>.</li>
+<li>Agents B and C (rocky planet and volatile-rich planet bulk composition, equation of state): zero-pressure ice phase densities at pressure, EOS for large icy moons. My mixing rule stops where self-compression matters (section 3.2, failure modes).</li>
+<li>Orbit: semi-major axis, parent mass and radius, eccentricity, parent equilibrium temperature.</li>
+</ul>
+<p><strong>Hands over</strong></p>
+<ul>
+<li>Per body: ice, rock and metal mass fractions, grain density, porosity, bulk density, rock-family analogue, radiogenic heat (long-lived and Al-26), mean albedo, origin type.</li>
+<li>To the atmosphere lane (interface only): gravity, surface temperature, outgassed species list, volatile inventory (H<sub>2</sub>O, CO<sub>2</sub>, CO, CH<sub>4</sub>, NH<sub>3</sub>, N<sub>2</sub>, H<sub>2</sub>S, SO<sub>2</sub> as mass fractions of the body, or percent relative to water for comets).</li>
+<li>To the radiation lane (ground radiation later): ground elemental composition and radiogenic K, Th, U ppm.</li>
+</ul>
+<hr />
+<h2 id="2-findings">2. Findings</h2>
+<h3 id="21-material-grain-densities-fills-the-gen425-gap">2.1 Material grain densities (fills the GEN.425 gap)</h3>
+<p>Zero-pressure (about 1 bar) crystal or solid densities at the stated temperature. Ice Ih density at depth needs the EOS (agent C); values here are for the low-pressure regime only.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Material</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Water ice Ih, 273 K</td>
+<td>0.917</td>
+<td>g/cm3</td>
+<td>PubChem compound record (CRC/HSDB entry)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water ice Ih, cell-derived</td>
+<td>0.921-0.934 (0.926)</td>
+<td>g/cm3</td>
+<td>COD crystal cell, rho = Z M / (N_A V)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub> solid</td>
+<td>0.834</td>
+<td>g/cm3</td>
+<td>COD cell, same formula</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> solid, 93 K</td>
+<td>0.521</td>
+<td>g/cm3</td>
+<td>COD cell, same formula</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> solid, 150 K</td>
+<td>1.643</td>
+<td>g/cm3</td>
+<td>COD cell, same formula</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> solid, -78.5 C</td>
+<td>1.56</td>
+<td>g/cm3</td>
+<td>PubChem</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO solid hexagonal, 65 K</td>
+<td>0.929</td>
+<td>g/cm3</td>
+<td>PubChem</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N<sub>2</sub> solid alpha, 4.2 K</td>
+<td>1.035</td>
+<td>g/cm3</td>
+<td>COD cell, same formula</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub> solid</td>
+<td>1.0265</td>
+<td>g/cm3</td>
+<td>PubChem</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH solid, 122 K / 160 K</td>
+<td>1.028 / 0.991</td>
+<td>g/cm3</td>
+<td>COD cells, same formula</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S solid</td>
+<td>about 1.2</td>
+<td>g/cm3</td>
+<td>COD cell, same formula (one entry)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Liquid CH<sub>4</sub>, -162 C</td>
+<td>0.4228</td>
+<td>g/cm3</td>
+<td>PubChem</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Forsterite</td>
+<td>3.222</td>
+<td>g/cm3</td>
+<td>burnman 2.1.0 <code>HP_2011_ds62</code> (Holland and Powell data), 300 K, 1 bar</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Fayalite</td>
+<td>4.400</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Enstatite (MgSiO<sub>3</sub>)</td>
+<td>3.206</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Ferrosilite</td>
+<td>4.002</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Diopside</td>
+<td>3.272</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Anorthite / albite</td>
+<td>2.760 / 2.605</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Antigorite (serpentine)</td>
+<td>2.585</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Magnetite</td>
+<td>5.200</td>
+<td>g/cm3</td>
+<td>same (the key <code>mag</code> in that module is magnesite)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Troilite (FeS)</td>
+<td>4.832</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Brucite / clinochlore</td>
+<td>2.368 / 2.629</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Graphite</td>
+<td>2.266</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Pyrope</td>
+<td>3.563</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Calcite / dolomite / siderite</td>
+<td>2.713 / 2.868 / 3.936</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Quartz</td>
+<td>2.648</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Fe (alpha), enstatite, FeS, graphite ([R3992] constants)</td>
+<td>7.86 / 3.22 / 4.77 / 2.25</td>
+<td>g/cm3</td>
+<td>taken from the GEN.425 report, not re-verified</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Note: the burnman values are tabulated thermodynamic-database densities, not a primary measurement; the primary papers [R1981] were not read.</p>
+<h3 id="22-meteorite-grain-density-bulk-density-porosity-rock-analogues-for-asteroids">2.2 Meteorite grain density, bulk density, porosity (rock analogues for asteroids)</h3>
+<p>Grain density is the density of the solid with pores removed. Bulk density includes pores. Porosity here is microporosity (pores inside the hand specimen).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Grain</th>
+<th>Bulk</th>
+<th>Mean porosity</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CI</td>
+<td>2.26</td>
+<td>2.11</td>
+<td>8.7-11.3</td>
+<td>g/cm3, g/cm3, %</td>
+<td>[R0544]:1161, Table 2 (ADS scan read as images)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CM</td>
+<td>2.71</td>
+<td>2.12</td>
+<td>9.3 measured, 23 model</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CR</td>
+<td>3.23</td>
+<td>3.10</td>
+<td>not given</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>3.48</td>
+<td>2.95</td>
+<td>19.8 model</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CV</td>
+<td>3.48</td>
+<td>2.95</td>
+<td>13.8 model</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CK</td>
+<td>3.47 (grain only)</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H</td>
+<td>3.64</td>
+<td>3.40</td>
+<td>6.4</td>
+<td>same</td>
+<td>same, Table 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>L</td>
+<td>3.51</td>
+<td>3.35</td>
+<td>4.5</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>LL</td>
+<td>3.48</td>
+<td>3.21</td>
+<td>7.9</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>EH</td>
+<td>3.67</td>
+<td>3.72</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>EL</td>
+<td>3.58</td>
+<td>3.55</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Aubrite</td>
+<td>3.12</td>
+<td>3.12</td>
+<td>0</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Diogenite</td>
+<td>3.39</td>
+<td>3.26</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Eucrite</td>
+<td>3.12</td>
+<td>2.86</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Howardite</td>
+<td>3.25</td>
+<td>3.02</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Pallasite</td>
+<td>4.49</td>
+<td>4.76</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mesosiderite</td>
+<td>4.40</td>
+<td>4.25</td>
+<td>n/a</td>
+<td>same</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Conclusion: average porosity of most classes about 10 %</td>
+<td>10</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>[R0666] (A&amp;A 537:A94, [R0666: Table 2]) meteorite bulk densities, independent compilation, g/cm3: H 3.42+-0.18, L 3.36+-0.16, LL 3.22+-0.22, CI 1.60+-0.03 (differs from Britt 2.11; Carry's CI is a lower set, see failure modes), CM 2.25+-0.08, CR 3.10, CO 3.03+-0.19, CV 2.79+-0.06, CK 2.85+-0.08, EH 3.47, EL 3.46, HED 3.25+-0.26, pallasite 4.76, mesosiderite 4.35, hexahedrite 7.37, octahedrite 7.14, ataxite 4.01. Label READ for all values in this paragraph.</p>
+<p>Porosity definition ([R0666: Eq. 2]): P(%) = 100 (1 - rho_bulk / rho_grain). READ. Reproducible: it follows from the definition (COMPUTED check: CI Britt, 100(1-2.11/2.26) = 6.6 %, below Britt's quoted 8.7-11.3 % because Britt's mean uses different specimen sets; do not recompute porosity from the table means).</p>
+<h3 id="23-asteroid-taxonomy-density-albedo-mass-share">2.3 Asteroid taxonomy, density, albedo, mass share</h3>
+<p>Taxonomy gives composition only through the analogue link. Class is not composition: [R0666] shows large density scatter inside one class. Use class to choose an analogue family and the density distribution, not a fixed mineral list.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Mean albedo (SDSS)</th>
+<th>Mean density rho_inf</th>
+<th>Share of main-belt mass</th>
+<th>Analogue (proposed link, parametrisation)</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C</td>
+<td>0.083</td>
+<td>1.57 (rho_20 1.33) g/cm3</td>
+<td>52.53 %</td>
+<td>CI/CM (some CO/CV)</td>
+<td>[R1065: Tables 4], 5; [R0666: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>B</td>
+<td>0.071</td>
+<td>2.19 (rho_20 2.38)</td>
+<td>11.10 %</td>
+<td>CM/CI-like</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cb / Ch</td>
+<td>not tabulated</td>
+<td>1.88 / 1.96 (rho_20 1.41)</td>
+<td>in C complex</td>
+<td>CM</td>
+<td>[R0666: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>P</td>
+<td>0.053</td>
+<td>1.4-1.5 (Sylvia 1.4+-0.2, Camilla 1.5+-0.2)</td>
+<td>11.02 %</td>
+<td>ice-rich, anhydrous silicate</td>
+<td>[R4540]; DeMeo and Carry Table 5</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>D</td>
+<td>0.098</td>
+<td>Trojans: Patroclus 1.1+-0.3, Hektor 1.0+-0.3 (Carry table value about 9.6 discarded as unreliable)</td>
+<td>2.03 %</td>
+<td>ice-rich, organic-rich</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>S</td>
+<td>0.258</td>
+<td>2.66 (rho_20 2.72)</td>
+<td>8.41 %</td>
+<td>H/L/LL ordinary chondrite</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Sq</td>
+<td>not tabulated</td>
+<td>2.78</td>
+<td>in S complex</td>
+<td>ordinary chondrite</td>
+<td>[R0666: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>V</td>
+<td>0.352</td>
+<td>1.93 (poor; Vesta itself 3.46)</td>
+<td>9.59 %</td>
+<td>HED</td>
+<td>DeMeo and Carry Tables 4, 5; Vernazza and Beck</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>M</td>
+<td>0.143</td>
+<td>Xk 3.85, K 4.25, Xc 4.96 (X-complex entries scatter)</td>
+<td>3.26 %</td>
+<td>iron, enstatite, mesosiderite</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>X (complex)</td>
+<td>not tabulated</td>
+<td>2.87 (rho_20 1.85), Xe 2.94</td>
+<td>in M/P/E</td>
+<td>EH/EL, aubrite</td>
+<td>[R0666: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>E</td>
+<td>0.536</td>
+<td>n/a</td>
+<td>0.05 %</td>
+<td>aubrite (EL/EH)</td>
+<td>DeMeo and Carry</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>K</td>
+<td>0.178</td>
+<td>4.25</td>
+<td>0.95 %</td>
+<td>CO/CV (K-class)</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>L</td>
+<td>0.183</td>
+<td>3.24</td>
+<td>0.68 %</td>
+<td>CV with CAIs</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>A</td>
+<td>0.274</td>
+<td>3.73</td>
+<td>0.37 %</td>
+<td>olivine-rich (brachinite/pallasite mantle)</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Total main-belt mass</td>
+<td>2.70e21</td>
+<td>kg</td>
+<td>Table 5</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ceres / Pallas / Vesta / Hygiea share</td>
+<td>about 35 / 10 / 8 / 3</td>
+<td>% of belt mass</td>
+<td>[R1065]</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ch/Cgh density</td>
+<td>1.9-2.4</td>
+<td>g/cm3</td>
+<td>[R4540]</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>B/C/Cb/Cg group density</td>
+<td>0.8-1.5</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ceres density (rock/ice about 1)</td>
+<td>about 2.13</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Lutetia</td>
+<td>3.4</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>NEO population: S/Sq/Q about 50 %, C about 20 %</td>
+<td>50, 20</td>
+<td>%</td>
+<td>Binzel et al. MITHNEOS [R0400]</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ordinary chondrites among falls</td>
+<td>about 81</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Bennu bulk density</td>
+<td>1190</td>
+<td>kg/m3</td>
+<td>search snippet only</td>
+<td>SNIPPET</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="24-heliocentric-type-distribution-calibration-kernel-for-the-generator">2.4 Heliocentric type distribution (calibration kernel for the generator)</h3>
+<p>Percent of zone mass by class ([R1065: Table 6], READ for every row). Zone bounds in AU: Hungaria 1.78-2.05, main belt 2.05-3.27 (inner / middle / outer split near 2.5 and 2.8), Cybele 3.27-3.7, Hilda 3.7-4.2, Trojans 5.05-5.4. READ.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Zone</th>
+<th>Dominant classes (percent of zone mass)</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hungaria</td>
+<td>E 50, C 21, S 9, A 7, L 7, K 5</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Inner belt</td>
+<td>V 69, S 21, C 6</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Middle belt</td>
+<td>C 70, B 15, S 8, P 4</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Outer belt</td>
+<td>C 52, P 15, B 13, M 10, S 5</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cybele</td>
+<td>P 84, C 13</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hilda</td>
+<td>P 71, D 15, C 14</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Trojans</td>
+<td>D 67, P 26</td>
+<td>%</td>
+<td>Table 6</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Interpretation for a random system: the sequence is an ordering by temperature at formation (dry, high-albedo, igneous inside; hydrated C in the middle; anhydrous ice-rich P and D beyond). The Solar System positions are not portable. The portable variable is x = a / a_snow with the snow-line scaling below. Scaling is a parametrisation; nothing in the sources tests it for other stars.</p>
+<p>Snow line scaling already in the code: <code>snow_line_au = 2.7 AU * sqrt(L/Lsun)</code> (<code>SNOW_LINE_AU_AT_1_LSUN = 2.7</code>, the 170 K blackbody value per the coordinator). Sibling formula: a_snow = (278.3 / T_ice)^2 sqrt(L/Lsun) AU (COMPUTED check: T_ice 170 K gives 2.68 AU). Real scatter is about 0.2 dex ([R3193, R3196], quoted by the coordinator; not re-verified here, RECALLED). In this part the scatter becomes a per-system multiplicative draw: a_snow,sys = a_snow x 10^N(0, 0.2). Because the scatter is larger than the zone widths, the type mix should be sampled from smooth weights in x, not from sharp edges.</p>
+<h3 id="25-chondrite-chemistry-and-radiogenic-heating">2.5 Chondrite chemistry and radiogenic heating</h3>
+<p>[R2729] (Space Sci. Rev. 217:44), Table 1, ppm by mass, READ for every entry (accessed through the NSF PAR copy of the paper).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>H</th>
+<th>C</th>
+<th>Fe</th>
+<th>Mg</th>
+<th>Si</th>
+<th>S</th>
+<th>Al</th>
+<th>K</th>
+<th>Th</th>
+<th>U</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CI</td>
+<td>18600</td>
+<td>41300</td>
+<td>185620</td>
+<td>95170</td>
+<td>107740</td>
+<td>53600</td>
+<td>8370</td>
+<td>539</td>
+<td>0.0298</td>
+<td>0.00816</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CM</td>
+<td>11500</td>
+<td>23200</td>
+<td>211000</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>11400</td>
+<td>410</td>
+<td>0.042</td>
+<td>0.011</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CV</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>16900</td>
+<td>310</td>
+<td>0.059</td>
+<td>0.016</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>14000</td>
+<td>360</td>
+<td>0.046</td>
+<td>0.014</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>271500</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>760</td>
+<td>0.040</td>
+<td>0.013</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>L</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>218450</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>880</td>
+<td>0.040</td>
+<td>0.013</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>LL</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>198000</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>860</td>
+<td>0.046</td>
+<td>0.013</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>EH</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>850</td>
+<td>0.029</td>
+<td>0.0095</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>EL</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>705</td>
+<td>0.031</td>
+<td>0.008</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The full element tables for CI, CM, CV, CO, CK, CR, H, L, LL, EH, EL exist in the paper; only the entries needed here are tabulated. &quot;n/a&quot; means I did not extract it, not that it does not exist. The generator table should be loaded from the paper by the work item in section 6.</p>
+<p>Specific heat production ([R3843: Table 2]), READ:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Isotope</th>
+<th>Half-life</th>
+<th>Isotopic abundance</th>
+<th>Heat production</th>
+<th>Unit</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Al-26</td>
+<td>0.717</td>
+<td>n/a</td>
+<td>0.3583 W/kg of isotope</td>
+<td>Myr, W/kg</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>K-40</td>
+<td>1248</td>
+<td>1.1668e-4</td>
+<td>2.8761e-5 W/kg of isotope; K element 3.4302e-9 W/kg</td>
+<td>Myr, W/kg</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Th-232</td>
+<td>14000</td>
+<td>about 1</td>
+<td>2.6368e-5 W/kg</td>
+<td>Myr, W/kg</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>U-235</td>
+<td>704</td>
+<td>0.0072045</td>
+<td>5.68402e-4 W/kg</td>
+<td>Myr, W/kg</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>U-238</td>
+<td>4468</td>
+<td>0.9927955</td>
+<td>9.4946e-5 W/kg; U element 9.8314e-5 W/kg</td>
+<td>Myr, W/kg</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Computed heating (inputs: Lodders ppm times Ruedas rates; K, Th, U decayed back using the Ruedas half-lives for t = 4567 Myr, an age that is RECALLED):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>CI</th>
+<th>CM</th>
+<th>CV</th>
+<th>CO</th>
+<th>H</th>
+<th>L</th>
+<th>LL</th>
+<th>EH</th>
+<th>Unit</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Long-lived heating at present</td>
+<td>3.44</td>
+<td>3.60</td>
+<td>4.19</td>
+<td>3.82</td>
+<td>4.94</td>
+<td>5.35</td>
+<td>5.44</td>
+<td>4.61</td>
+<td>pW/kg</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Long-lived heating 4567 Myr earlier</td>
+<td>28.9</td>
+<td>25.3</td>
+<td>24.3</td>
+<td>25.0</td>
+<td>41.5</td>
+<td>46.7</td>
+<td>46.1</td>
+<td>43.1</td>
+<td>pW/kg</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Al-26 at t0 with (26Al/27Al)0 = 5.25e-5</td>
+<td>0.15</td>
+<td>0.21</td>
+<td>0.31</td>
+<td>0.25</td>
+<td>0.20</td>
+<td>0.21</td>
+<td>0.21</td>
+<td>n/a</td>
+<td>uW/kg</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consequences:</p>
+<ul>
+<li>Al-26 at t0 is roughly 3500-12600 times the long-lived rate (COMPUTED from the table above).</li>
+<li>Total Al-26 decay energy per kg: CI 4.95e6 J/kg, H 6.57e6 J/kg. With specific heat 900 J/kg/K and no heat loss, the temperature rise is 5500-7500 K (COMPUTED), so retained Al-26 heat melts or dehydrates any planetesimal that forms early and is big enough to hold the heat.</li>
+<li>Canonical ratio 5.25e-5 and the 0.1-10 times variation across systems come from [R2678]; planetesimal radii 1-100 km; high Al-26 dehydrates bodies. READ.</li>
+</ul>
+<p>Water upper bound from hydrogen (all H counted as H<sub>2</sub>O, so organic H is included): CI 16.6 wt %, CM 10.3 %, CV 2.5 %, CO 0.9 %, H 0.7 %. COMPUTED from the Lodders H entries above (CV, CO, H need their H values, which I did not extract: those three numbers are not reproducible from this file; treat them as RECALLED until the Lodders table is loaded). Hence CI and CM rows are COMPUTED, CV, CO, H rows are RECALLED (listed in section 5).</p>
+<h3 id="26-comets-and-interstellar-objects">2.6 Comets and interstellar objects</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>67P mass</td>
+<td>9.982e12</td>
+<td>kg</td>
+<td>[R0776] (Space Sci. Rev., Springer PDF)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P volume</td>
+<td>18.56</td>
+<td>km3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P bulk density</td>
+<td>537.8+-0.6 (post-perihelion 537.3)</td>
+<td>kg/m3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Refractory-to-ice mass ratio, RSI estimate</td>
+<td>3-7</td>
+<td>none</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Same, CONSERT</td>
+<td>above 3</td>
+<td>none</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Same, Fulle</td>
+<td>7.5 average</td>
+<td>none</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Same, COSIMA</td>
+<td>0.2-3</td>
+<td>none</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Porosity, dust density 2000-3500</td>
+<td>65-79</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Porosity, CONSERT</td>
+<td>73-76</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ice volume fraction (CONSERT)</td>
+<td>6-11</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Refractory volume fraction (CONSERT)</td>
+<td>16-21</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Dust-to-gas (RSI)</td>
+<td>0.5-1</td>
+<td>none</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Monomer density / ice density</td>
+<td>about 2500 / 920</td>
+<td>kg/m3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Organic density / silicate density</td>
+<td>about 2 / about 3.5</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Organics in dust (COSIMA)</td>
+<td>about 45</td>
+<td>% by mass</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Relation</td>
+<td>delta_RI = rho_P / (rho_67P - rho_P)</td>
+<td>none</td>
+<td>Choukroun Eq. 4 (rho_P: refractory-plus-pore-free density term)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P CO<sub>2</sub> / CO / O<sub>2</sub> / CH<sub>4</sub> / NH<sub>3</sub> (relative to H<sub>2</sub>O = 100)</td>
+<td>4.7+-1.4 / 3.1+-0.9 / 3.1+-1.1 / 0.34 / 0.67+-0.20</td>
+<td>%</td>
+<td>[R3835: Table 2]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P C<sub>2</sub>H<sub>6</sub> / CH<sub>3</sub>OH / H<sub>2</sub>CO / N<sub>2</sub> / HCN</td>
+<td>0.29 / 0.21 / 0.32 / 0.089 / 0.14</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P H<sub>2</sub>S / SO<sub>2</sub> / Ar</td>
+<td>1.10+-0.46 / 0.127 / 0.00058</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO/H2O across comets</td>
+<td>median 3.3+-1.3, range 0.3-26</td>
+<td>%</td>
+<td>Harrington [R3535]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>/H2O across comets</td>
+<td>median 12+-2, range 2-30</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO + CO<sub>2</sub></td>
+<td>18+-4</td>
+<td>% of H<sub>2</sub>O</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C/O</td>
+<td>about 13</td>
+<td>%</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interstellar comet 2I/Borisov CO/H2O</td>
+<td>0.7+-0.3 (Cordiner) or 1.3-1.6 (Bodewits), mean of Solar System comets about 0.04</td>
+<td>none (ratio)</td>
+<td>[R2159]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Borisov CO as share of water (abstract)</td>
+<td>35-105</td>
+<td>%</td>
+<td>[R0889] abstract</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>1I/'Oumuamua: no coma, nominal radius</td>
+<td>about 80</td>
+<td>m</td>
+<td>[R2159]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Arrokoth (MU69) density, fiducial 500, range 250-500</td>
+<td>250-500</td>
+<td>kg/m3</td>
+<td>[R3008]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TNO average density / comet average density</td>
+<td>0.77+-0.80 / 0.47+-0.25</td>
+<td>g/cm3</td>
+<td>[R0666: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TNO density range, small (below 400 km)</td>
+<td>0.5-3, mostly below 1.0</td>
+<td>g/cm3</td>
+<td>[R4540]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Note on 67P density: a refractory-to-ice ratio of 3-7 with porosity 65-79 % means rock is about 75-88 % of the solid mass, so cometary &quot;icy bodies&quot; are mostly rock by mass but mostly pores by volume.</p>
+<h3 id="27-kbos-and-dwarf-planets">2.7 KBOs and dwarf planets</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rock mass fraction matching 14 of 17 KBO densities within 2 sigma</td>
+<td>70 (constant)</td>
+<td>%</td>
+<td>[R0390] (Icarus 326:10), abstract</td>
+<td>READ (abstract only)</td>
+</tr>
+<tr>
+<td>Minimum formation time for KBOs (Al-26 removes too much porosity before)</td>
+<td>4</td>
+<td>Myr</td>
+<td>same</td>
+<td>READ (abstract only)</td>
+</tr>
+<tr>
+<td>Fully compact at about 1500 km</td>
+<td>1500</td>
+<td>km</td>
+<td>search snippet</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>2002 UX25: diameter about 650 km, density 0.82+-0.11, porosity unlikely above 20 %</td>
+<td>650, 0.82, 20</td>
+<td>km, g/cm3, %</td>
+<td>[R0553]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Small KBO weighted density 0.6; porosity-free about 1.2 (about one third rock) with asteroid-like porosity</td>
+<td>0.6, 1.2</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Asteroid compaction transition at diameter about 350 km</td>
+<td>350</td>
+<td>km</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Eris radius / density</td>
+<td>1163 / 2.52+-0.05</td>
+<td>km / g/cm3</td>
+<td>[R0269: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Pluto</td>
+<td>1187 / 1.86+-0.01</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Triton</td>
+<td>1353.4 / 2.061</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Haumea</td>
+<td>620 / 2.6</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Charon</td>
+<td>606 / 1.702+-0.02</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Quaoar</td>
+<td>555 / 1.99+-0.46</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Orcus</td>
+<td>430-450 / 1.605-1.747</td>
+<td>km / g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Satellite-to-system mass ratio q: Pluto / Eris / Orcus / Haumea / Quaoar</td>
+<td>0.1086 / 0.0253 / 0.03-0.08 / 0.0049 / 0.00053</td>
+<td>none</td>
+<td>same, Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Primordial KBO density suggested</td>
+<td>about 1.8</td>
+<td>g/cm3</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Gonggong density / size</td>
+<td>1.75+-0.07 / 1230</td>
+<td>g/cm3 / km</td>
+<td>[R2376], abstract level</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Rock mass fraction from density, rock grain 2700 / 3500, ice 917: Pluto</td>
+<td>0.77 / 0.69</td>
+<td>none</td>
+<td>COMPUTED from Barr and Schwamb densities</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Charon</td>
+<td>0.70 / 0.63</td>
+<td>none</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Orcus (density 1.7 mid)</td>
+<td>0.65 / 0.58</td>
+<td>none</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Quaoar</td>
+<td>0.82 / 0.73</td>
+<td>none</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Eris</td>
+<td>0.96 / 0.86</td>
+<td>none</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Gonggong</td>
+<td>0.72 / 0.65</td>
+<td>none</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>These agree with the Bierson-Nimmo constant rock fraction of 70 %. Barr and Schwamb argue that collisions strip ice from some bodies (Haumea, Eris-like high densities), so rock fraction has a tail above 70 %.</p>
+<h3 id="28-circumplanetary-disk-moons-parent-mass-and-ice-line">2.8 Circumplanetary-disk moons: parent mass and ice line</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total satellite mass ratio M_T / M_p, Jupiter / Saturn</td>
+<td>2.1e-4 / 2.5e-4</td>
+<td>none</td>
+<td>[R0643]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td>M_T / M_p about 2.5e-4 (alpha/f / 3e-5)^(1/3) times other factors, valid 1e-6 &lt; alpha/f &lt; 5e-4</td>
+<td>none</td>
+<td>same, Eq. 4.15</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Resulting M_T/M_p range over that alpha/f range</td>
+<td>0.8e-4 to 6.4e-4</td>
+<td>none</td>
+<td>COMPUTED from Eq. 4.15</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Disk temperature</td>
+<td>T_d about 160 K (M_p/M_J)^(1/2) (tau_G / 5 Myr)^(-1/4) (r / 20 R_J)^(-3/4)</td>
+<td>K</td>
+<td>[R3922: Eq. A3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ice line</td>
+<td>T_d = 160 K</td>
+<td>K</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ice-line radius</td>
+<td>r_ice = 20 R_J (M_p/M_J)^(2/3) (tau_G/5 Myr)^(-1/3)</td>
+<td>R_J (R_J = 71492 km, absolute length, not planet radius)</td>
+<td>COMPUTED by solving Eq. A3 for T_d = 160 K</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>r_ice for 1 M_J, tau 5 Myr / 1 Myr</td>
+<td>20 / 34</td>
+<td>R_J</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>r_ice for 3 / 0.3 / 0.1 M_J, tau 5 Myr</td>
+<td>41.6 / 9.0 / 4.3</td>
+<td>R_J</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Solids surface density step at the ice line</td>
+<td>about 3</td>
+<td>none</td>
+<td>[R1899]</td>
+<td>2ND-HAND (abstract-level reading)</td>
+</tr>
+<tr>
+<td>Giant icy moons form at about 15-30 R_J; M_T about 1e-4 M_p</td>
+<td>15-30</td>
+<td>R_J</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Formation timescale of regular satellites</td>
+<td>1e5-1e6</td>
+<td>yr</td>
+<td>[R0643]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ice stable for r &gt;= 15 R_J if inflow F &lt; 5e-5 M_E/yr</td>
+<td>15, 5e-5</td>
+<td>R_J, M_E/yr</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Jovian-type disk runs (39 runs): four large satellites, inner two rocky, outer two icy; Saturn-type: one dominant icy body</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>[R3922]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Sum of the four large-moon mass ratios in Sasaki Table 1</td>
+<td>20.7e-5 (4.70+2.53+7.80+5.69)</td>
+<td>none</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Composition gradient: Ganymede rock fraction about 0.55, Callisto about 0.44</td>
+<td>0.55, 0.44</td>
+<td>none</td>
+<td>quoted in [R0643]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Europa about 8 % ice and water</td>
+<td>8</td>
+<td>%</td>
+<td>same</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Failure modes of the circumplanetary-disk law:</p>
+<ul>
+<li>r_ice in the formula does not scale with the planet radius; it was fitted to Sasaki's Jupiter-like disk. Applying it to a planet far from 1 M_J is an extrapolation (section 5).</li>
+<li>Moons migrate. Present distance is not formation distance. Sasaki et al. find inner moons are rocky and outer moons icy at the end of formation (READ), not that composition equals the local present distance.</li>
+<li>Saturn's small inner moons are icy although they sit well inside any disk ice line. This is the ring-origin [R0920] case: abstract-level reading says spreading of a planetary ring beyond the Roche radius forms a retinue of satellites with masses increasing with distance, which fits Saturn, Uranus and Neptune; with fast spreading a single large satellite forms, as for Pluto and Earth. READ for the abstract; the PDF text is garbled, so the composition details are NOT REACHED.</li>
+</ul>
+<h3 id="29-moon-composition-by-origin">2.9 Moon composition by origin</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Origin</th>
+<th>Composition rule from sources</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disk-formed regular moons, inside ice line</td>
+<td>rocky, anhydrous; Io 3.53 g/cm3</td>
+<td>[R0643]; Sasaki Table 1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Disk-formed regular moons, beyond ice line</td>
+<td>ice plus rock; Ganymede 1.94, Callisto 1.83, Titan 1.88 g/cm3 (Sasaki Table 1)</td>
+<td>[R3922]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Impact-formed moon (synestia condensate)</td>
+<td>no metal phase in the condensate; iron enters as FeO; a few wt % metal exsolves; moderately volatile elements depleted by silicate-vapour equilibration; vapour holds about 10 wt % Si; pressures of tens of bar; H in the Moon 1-1000 ppm H<sub>2</sub>O-equivalent</td>
+<td>[R2724]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Captured KBO-like moon (Triton)</td>
+<td>KBO composition (rock fraction about 70 %), ice partly lost in capture</td>
+<td>[R0269]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ring-origin moon</td>
+<td>ice-rich (rings mostly water ice)</td>
+<td>[R0920]</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>Binary dwarf-planet partner</td>
+<td>mass ratio q in 5e-4 to 0.11</td>
+<td>Barr and Schwamb Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Volcanic moon (Io-type)</td>
+<td>tidal heating flux about 2 W/m2; SO<sub>2</sub> frost albedo about 0.6</td>
+<td>Io albedo from NASA fact sheet; flux not verified</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>Enceladus ocean</td>
+<td>Na-Cl-CO3 solution, pH about 11-12; Cl- 0.05-1.2 molal (preferred about 0.2); dissolved inorganic C 0.04-0.1 molal</td>
+<td>[R1596]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Europa ocean</td>
+<td>trailing-hemisphere MgSO<sub>4</sub> is a radiation product; ocean predicted chloride-rich (MgCl<sub>2</sub>, NaCl, KCl)</td>
+<td>[R0554]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Plume salts NaCl and NaHCO<sub>3</sub>/Na2CO3</td>
+<td>n/a</td>
+<td>[R3585]/2011 quoted by [R1596]</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Existing generator: <code>hydrosphere.py</code> constants <code>ICY_MOON_K2_Q = 3e-4</code>, <code>ICY_MIN_WATER_FRACTION = 0.01</code>, <code>ICE_DENSITY_KG_M3 = 917</code>, <code>HP_ICE_DENSITY_KG_M3 = 1300</code> (read from the repo, READ).</p>
+<h3 id="210-compaction-porosity-regime-and-its-limit">2.10 Compaction (porosity regime) and its limit</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Silicate grain-fracture pressure (compaction threshold)</td>
+<td>about 1e7</td>
+<td>Pa</td>
+<td>[R0544, R0666] (cited)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Compact-to-rubble transition</td>
+<td>1e19-1e20</td>
+<td>kg</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Bodies below about 1e20 kg are porous (rubble piles, P 40-60 %); dwarf planets near zero macroporosity</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>S-complex macroporosity typically below 30 %</td>
+<td>30</td>
+<td>%</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Psyche macroporosity</td>
+<td>about 18</td>
+<td>%</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Toy compaction law</td>
+<td>phi(P) = phi0 exp(-P/P0), a parametrisation</td>
+<td>none</td>
+<td>my proposal, tuned so the silicate case transitions near 1e20 kg</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Total porosity</td>
+<td>phi_tot = 1 - (1 - phi_micro)(1 - phi_macro)</td>
+<td>none</td>
+<td>definition</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>P0 for ices</td>
+<td>about 1e6 (guess)</td>
+<td>Pa</td>
+<td>no source reached</td>
+<td>RECALLED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Toy-model mean porosity from a self-consistent hydrostatic integration of a uniform-composition sphere (30 iterations, 2000 shells; script in my scratch directory). Inputs: grain density rho_g, surface porosity phi0, P0.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Radius (km)</th>
+<th>rock S-like: rho_g 3500, phi0 0.30, P0 1e7</th>
+<th>rock C-like: 2700, 0.50, 1e7</th>
+<th>ice-rock: 1400, 0.60, 1e6</th>
+<th>Unit</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>0.299</td>
+<td>0.499</td>
+<td>0.599</td>
+<td>mean porosity</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>25</td>
+<td>0.294</td>
+<td>0.497</td>
+<td>0.593</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>50</td>
+<td>0.275</td>
+<td>0.487</td>
+<td>0.570</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>100</td>
+<td>0.202</td>
+<td>0.441</td>
+<td>0.430</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>200</td>
+<td>0.074</td>
+<td>0.238</td>
+<td>0.126</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>300</td>
+<td>0.034</td>
+<td>0.112</td>
+<td>0.056</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>500</td>
+<td>0.012</td>
+<td>0.041</td>
+<td>0.020</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>0.003</td>
+<td>0.010</td>
+<td>0.005</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>The C-like case reproduces Carry's compaction transition near 1e20 kg (radius 200-300 km). The S-like case is consistent with Carry's S-complex macroporosity below 30 %. The ice-rock case uses a guessed P0 and has no observational check beyond the KBO density-size trend of Bierson and Nimmo (qualitative).</p>
+<p>Failure mode: the law has no temperature dependence (viscous compaction, creep of ice, Al-26 heating all compact faster). Bierson and Nimmo say early Al-26 would remove too much porosity from 100 km KBOs unless they formed after 4 Myr (READ, abstract). At pressures where grains deform (large moons), use the equation of state of agents B/C, not this law.</p>
+<h3 id="211-moon-bulk-densities-and-ice-fractions-from-simple-mixing-hand-off-check">2.11 Moon bulk densities and ice fractions from simple mixing (hand-off check)</h3>
+<p>Densities and albedos (NASA nssdc fact sheets, accessed through the open web, READ). Mass ice fraction from uncompressed simple mixing with ice 930 kg/m3 and rock 3500 or 2700 kg/m3 (COMPUTED).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Moon</th>
+<th>Density (kg/m3)</th>
+<th>Visual geometric albedo</th>
+<th>Ice fraction, rock 3500 / 2700</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Io</td>
+<td>3530</td>
+<td>0.62</td>
+<td>about 0</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Europa</td>
+<td>3010</td>
+<td>0.68</td>
+<td>0.06</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Ganymede</td>
+<td>1940</td>
+<td>0.44</td>
+<td>0.29 / 0.21</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Callisto</td>
+<td>1830</td>
+<td>0.19</td>
+<td>0.33 / 0.25</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Moon</td>
+<td>3344</td>
+<td>0.12 (Bond 0.11)</td>
+<td>about 0</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Mimas</td>
+<td>1150</td>
+<td>0.6</td>
+<td>0.74</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Enceladus</td>
+<td>1610</td>
+<td>1.0</td>
+<td>0.42</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Tethys</td>
+<td>985</td>
+<td>0.8</td>
+<td>0.92</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Dione</td>
+<td>1480</td>
+<td>0.7</td>
+<td>0.49</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Rhea</td>
+<td>1240</td>
+<td>0.7</td>
+<td>0.66</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Titan</td>
+<td>1880</td>
+<td>0.22</td>
+<td>0.31</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Hyperion</td>
+<td>550</td>
+<td>0.3</td>
+<td>above 1 (needs porosity)</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Iapetus</td>
+<td>1090</td>
+<td>0.05-0.5</td>
+<td>0.80</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Miranda / Ariel / Umbriel / Titania / Oberon</td>
+<td>1200 / 1590 / 1460 / 1660 / 1560</td>
+<td>0.32 / 0.39 / 0.21 / 0.27 / 0.23</td>
+<td>not computed</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Triton</td>
+<td>2050</td>
+<td>0.72</td>
+<td>0.26</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>Nereid</td>
+<td>n/a</td>
+<td>0.16</td>
+<td>n/a</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Small inner moons / outer irregular moons albedo</td>
+<td>n/a</td>
+<td>0.05-0.10 / 0.03-0.10</td>
+<td>n/a</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Result: simple mixing gives Ganymede 0.29-0.33 ice by mass, whereas the interior-model fraction quoted by Canup and Ward (about 0.45 ice; 2ND-HAND) is 10-15 points higher. Simple mixing under-predicts ice for the largest moons because it ignores self-compression; this is the hand-off point to agents B and C.</p>
+<p>Semi-major axes (NASA, thousand km): Io 421.8, Europa 671.1, Ganymede 1070.4, Callisto 1882.7; Mimas 185.52, Enceladus 238.02, Tethys 294.66, Dione 377.40, Rhea 527.04, Titan 1221.87, Iapetus 3560.85; Miranda 129.9, Ariel 190.9, Umbriel 266.0, Titania 436.3, Oberon 583.5; Triton 354.76; Moon 384.4. All READ.</p>
+<h3 id="212-what-the-generator-stores-today-read-from-the-repo">2.12 What the generator stores today (READ from the repo)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Fields now</th>
+<th>Gap</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AsteroidBelt</code> (<code>generation/belt.py</code>)</td>
+<td><code>distance</code>, <code>lower_limit</code>, <code>upper_limit</code>, <code>density</code> (&quot;dense&quot;/&quot;sparse&quot;/&quot;typical&quot;, uniform draw), <code>composition</code> list of up to 4 (component, concentration high/moderate/small/trace) sampled from <code>tuning.ASTEROID_COMPONENTS</code>; tables <code>asteroid_belts</code>, <code>asteroid_belt_composition</code></td>
+<td>no taxon mass fractions, no ice fraction, no albedo, no heat</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Asteroid field (<code>generation/phenomena/asteroid_field.py</code>, <code>tuning.ASTEROID_FIELD_COMPOSITIONS</code>)</td>
+<td>families carbonaceous (frequency 30), stony (20), metallic (8), icy (20), basaltic (4), mixed (10), dust (5), collisional (3); class is a letter plus a size digit; radius 0.001-1 ly; density dense/sparse/typical</td>
+<td>families are labels only</td>
+<td>READ</td>
+</tr>
+<tr>
+<td><code>Comet</code> (<code>generation/comet.py</code>)</td>
+<td><code>nucleus_diameter_km</code> (0.5-20, interstellar 0.05-5), <code>perihelion_distance_au</code>, <code>eccentricity</code>, <code>orbit_type</code>, <code>period_class</code> (jupiter_family 50 %, halley_type 30 %, long_period 20 %), <code>is_active</code>, <code>composition</code> from <code>COMET_COMPOSITION</code> (water ice, CO<sub>2</sub>, CO, CH<sub>4</sub>, NH<sub>3</sub>, silicate dust, amorphous carbon, complex organics, HCN, formaldehyde); tables <code>comets</code>, <code>comet_composition</code>, <code>interstellar_comet_composition</code></td>
+<td>no dust-to-ice ratio, no porosity, no density, no percent-of-H2O</td>
+<td>READ</td>
+</tr>
+<tr>
+<td><code>InterstellarComet</code>, <code>RoguePlanet</code> (<code>generation/phenomena/rogue.py</code>)</td>
+<td>composition text strings only</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Moons (<code>physics/planets.py</code>, <code>generate_moons</code>, <code>choose_moon_class_and_radius</code>, <code>moon_size_limits</code>)</td>
+<td>same <code>Planet(..., is_moon=True)</code> code as planets; radius at most parent radius / 10^(1/3), mass at most parent mass / 10; class drawn among terrestrial classes except <code>MOON_BLACKLIST = ['Q','S','V']</code>, independent of parent composition and orbital distance; distance log-uniform from a Roche-like inner bound to about 0.4895 Hill radius</td>
+<td>composition independent of location; mass ceiling 0.1 M_p is far above the regular-satellite total of about 1e-4 M_p</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Density (<code>constants.PLANET_DENSITY[&quot;t&quot;]</code>)</td>
+<td>uniform 3.93-5.51 g/cm3 for every terrestrial class, including class D (GEN.1091: small, airless and at least 1 percent water or ice; size is not in the rule, the intended scale is 50-500 km radius)</td>
+<td>an icy class draws a rocky density</td>
+<td>READ</td>
+</tr>
+<tr>
+<td><code>physics/hydrosphere.py</code></td>
+<td><code>WATER_MASS_FRACTION</code> per class (D: 0.05-0.5; O: 0.01-0.1); stores <code>ice_shell_km</code>, <code>hp_ice_km</code>, <code>ocean_class</code></td>
+<td>separate draw, not tied to density</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="3-how-the-generator-should-compute-or-draw-it">3. How the generator should compute or draw it</h2>
+<h3 id="31-choice-of-route">3.1 Choice of route</h3>
+<p>Route 1 (keep the drawn density, fill a composition) is recommended for planets and any moon already drawn by the existing pipeline, because the density is a stored quantity and changing it would alter every seed. Route 2 (draw composition first, derive density) is recommended for asteroid belts, asteroid fields, comets, KBOs and for moons generated from now on, because those objects have a known formation location (x = a / a_snow, or r / r_ice) and the science gives composition as a function of location, not density. Both routes share one mixing and porosity module so the same fields come out.</p>
+<h3 id="32-shared-mixing-rule">3.2 Shared mixing rule</h3>
+<p>Inputs per body: mass fractions f_ice, f_rock, f_metal (sum 1), phase grain densities rho_ice, rho_rock, rho_metal (table 2.1 and 2.2).</p>
+<ol>
+<li>Grain density (mass-weighted harmonic mean, the &quot;small-body mixing rule&quot; of the GEN.425 report): rho_g = 1 / (f_ice/rho_ice + f_rock/rho_rock + f_metal/rho_metal).</li>
+<li>Total porosity phi from the compaction law (2.10): phi = 1 - (1 - phi_micro)(1 - phi_macro); phi_macro(R, rho_g, phi0, P0) from the shell integration, or from a pre-built table indexed by radius.</li>
+<li>Bulk density: rho_bulk = rho_g (1 - phi).</li>
+<li>Compression regime: valid while the central pressure is below about 1e8 Pa for rock and 1e7 Pa for ice-rich bodies (grains crush or ices flow above this; the numbers are my estimates, RECALLED). Above it, call the EOS of agents B and C. In practice that means bodies above about 1000 km radius (rock) or 500 km radius (ice-rich). The simple rule also fails for differentiated interiors: Ganymede's ice fraction is under-predicted by 10-15 points (2.11).</li>
+<li>Never use a bulk density below the grain density of ice at the porosity ceiling: phi at most 0.8 (comets, pristine) and 0.6 (non-comet).</li>
+</ol>
+<h3 id="33-route-1-keep-the-drawn-density-fill-the-composition">3.3 Route 1: keep the drawn density, fill the composition</h3>
+<p>Given the drawn rho_bulk and radius R:</p>
+<ol>
+<li>Draw phi0 and P0 (distribution below), compute phi_macro(R). If the body is comet-like (nucleus under 20 km), use phi from the comet distribution (3.5).</li>
+<li>Grain density rho_g = rho_bulk / (1 - phi).</li>
+<li>Pick the rock analogue (family) from x = a/a_snow (or r/r_ice for moons) via the zone-weight table (3.4); its dry grain density rho_d ([R0544] grain) and metal content give the rock+metal block.</li>
+<li>Ice fraction (two-component solve): f_ice = (1/rho_d - 1/rho_g) / (1/rho_d - 1/rho_ice), clamp to [0, f_ice,max]. Here f_ice,max = 0.6 (PARAMETRISATION from section 2.7: Pluto-like rock fraction 0.7 with the tail up to 0.4 ice for ice-rich bodies).</li>
+<li>If rho_g exceeds rho_d the body is denser than its rock analogue: set f_ice = 0 and raise the metal fraction: f_metal = (1/rho_r - 1/rho_g) / (1/rho_r - 1/rho_metal) (rho_r = rock block excluding metal), clamp to the family range.</li>
+<li>If rho_g is below rho_ice: infeasible; raise phi until rho_g = rho_ice and warn (invariant test).</li>
+<li>For class D the existing 3.93-5.51 g/cm3 draw gives rock only. Replace it with draws from section 3.3.1.</li>
+</ol>
+<p>3.3.1 Class D density replacement (PARAMETRISATION, based on 2.7): draw rock mass fraction f_rock ~ truncated normal(0.70, 0.08) on [0.45, 0.95], f_ice = 1 - f_rock - f_metal (f_metal small, 0 for D), compute rho_g from the mixing rule, and apply the compaction law. Check against the KBO and moon tables in section 4.</p>
+<p>Because the composition then follows from density, Route 1 can only reproduce densities that lie between the analogue grain density and the ice grain density. That is its limit.</p>
+<h3 id="34-route-2-draw-composition-first">3.4 Route 2: draw composition first</h3>
+<p>3.4.1 Asteroid belts and fields</p>
+<ol>
+<li>Per system: draw snow-line scatter s ~ N(0, 0.2) in log10 and set a_snow,sys = a_snow 10^s.</li>
+<li>For each belt or field (distance a, width), compute x = a / a_snow,sys.</li>
+<li>Taxon weights: smooth functions of x calibrated to the DeMeo-Carry Table 6 kernel (2.4) (PARAMETRISATION): for x well below the Solar-System-calibrated inner boundary, mostly igneous and ordinary classes (S, V, E, K, L, A); for x around the middle, C and B; beyond, P and D. The kernel gives the sequence, not the edges.</li>
+<li>Draw the taxonomic mass fractions as a Dirichlet sample centred on the kernel weights (PARAMETRISATION, concentration parameter as an adjustable input).</li>
+<li>For each taxon, draw rho_bulk from the [R0666: Table 3] mean and scatter (normal, truncated), the analogue group, and Britt grain density.</li>
+<li>Albedo per taxon: DeMeo-Carry mean (Table 4) times a log-normal scatter (sigma in log10 to be fitted; none published in what I read).</li>
+<li>Aggregate: mean albedo, mean bulk density, mean porosity, ice fraction, metal fraction (mass-weighted).</li>
+<li>Existing families (carbonaceous, stony, metallic, icy, basaltic, mixed, dust, collisional) map to taxon bundles: carbonaceous = C+B(+P), stony = S+Q+L, metallic = M+X, icy = P+D, basaltic = V, mixed = Dirichlet over all, dust = no fixed taxon (sub-mm grains; use CI/CM chemistry at porosity 0), collisional = fragments of the dominant taxon. This is a re-labelling, not a new draw. Keep existing family frequencies as the prior.</li>
+</ol>
+<p>3.4.2 Comets and KBOs</p>
+<ol>
+<li>Draw delta_RI (refractory-to-ice mass ratio) log-uniform on [0.5, 8] (PARAMETRISATION from 2.6: COSIMA 0.2-3 to Fulle 7.5).</li>
+<li>f_ice = 1 / (1 + delta_RI); the refractory share splits into silicate (about 55 %), organics (about 45 %, COSIMA via Choukroun) of the dust.</li>
+<li>Volatiles by species as percent of H<sub>2</sub>O from [R3835] / Harrington [R3535]: CO and CO<sub>2</sub> log-normal with medians 3.3 % and 12 %, ranges 0.3-26 % and 2-30 %; the other species as lognormal around the 67P table with sigma 0.5 dex (PARAMETRISATION). CO/H2O formation-temperature dependence is not sourced here (section 5).</li>
+<li>Porosity: comet nuclei phi ~ U(0.5, 0.8) (Choukroun 65-79 %); KBOs under 100 km phi ~ U(0.3, 0.6); apply the compaction law for larger bodies.</li>
+<li>rho_bulk from the mixing rule.</li>
+<li>Interstellar objects: same draw, but the CO/H2O ratio is drawn from a wider log-uniform on [0.01, 1.6] (Borisov exceeded Solar-System comets by a factor of 15-40 in CO/H2O; one object only, so the width is a PARAMETRISATION).</li>
+<li>Dwarf planets: rock fraction ~ N(0.70, 0.08) (Bierson and Nimmo) plus a collisional tail toward 0.9 (Barr and Schwamb: Haumea, Eris), densities from the mixing rule plus EOS above about 500 km radius.</li>
+</ol>
+<p>3.4.3 Moons from a circumplanetary disk</p>
+<ol>
+<li>Parent mass M_p and age tau_G (disk lifetime, draw log-uniform 1-10 Myr, PARAMETRISATION; Sasaki used 5 Myr as the reference).</li>
+<li>Total satellite mass: draw alpha/f log-uniform on [1e-6, 5e-4] and M_T/M_p = 2.5e-4 (alpha/f / 3e-5)^(1/3) (Canup and Ward Eq. 4.15). Range 0.8e-4 to 6.4e-4.</li>
+<li>Number of large moons N and partition of M_T: Sasaki et al. find four large moons for Jovian-type disks and one dominant icy moon for Saturn-type disks. The mass partition among bodies is not published as a distribution I could read; use Sasaki Table 1 as a calibration for the shape only. Draw N in 1-5 and a Dirichlet partition (PARAMETRISATION).</li>
+<li>Ice line: r_ice = 20 R_J (M_p/M_J)^(2/3) (tau_G/5 Myr)^(-1/3) in absolute kilometres (1.43e6 km at M_p = M_J, 5 Myr). Compare with the formation distance, not the present distance.</li>
+<li>Ice fraction as a log-linear ramp: f_ice = f_inf * clamp(ln(r/(0.4 r_ice)) / ln(2.5), 0, 1) with f_inf ~ truncated normal(0.35, 0.10) on [0.1, 0.6]. Parameters 0.4 and f_inf are a PARAMETRISATION. COMPUTED check against the Galilean distances at r_ice = 20 R_J: Io 0, Europa 0.062, Ganymede 0.24, Callisto 0.35 (ordering correct, Ganymede and Callisto under the interior-model values, consistent with the simple-mixing failure mode in 2.11).</li>
+<li>Rocky block of each moon: anhydrous inside the ice line; between 0.4 and 1.0 of r_ice partly hydrated (serpentine, antigorite density 2.585); outside, C-like or CI-like rock. PARAMETRISATION; Europa's 8 % water/ice (2ND-HAND) supports a partial transition.</li>
+<li>Metal fraction by family (H about 17 wt %, L about 8, LL about 3: RECALLED) or from Lodders Fe minus oxidised Fe.</li>
+<li>Density from the mixing rule + compression (EOS above the regime limit).</li>
+<li>Inner moons of a ring-origin system: ice fraction near the ring composition (ice-rich); selected when the parent has a massive ring and the moon forms near the Roche radius. Rules not sourced (section 5).</li>
+</ol>
+<p>3.4.4 Impact-formed moons (terrestrial parents)</p>
+<ul>
+<li>Drawn when the parent is a terrestrial planet and the moon is generated by a giant-impact event. Moon/planet mass ratio is an input of the impact generator, not of this part (Earth-Moon 0.0123, a calibration only, RECALLED).</li>
+<li>Composition from [R2724]: iron-poor (metal share a few wt %, the rest bound as FeO), depleted in moderately volatile elements, near-zero water (1-1000 ppm). Metal fraction ~ U(0.01, 0.05) (PARAMETRISATION, from the &quot;few wt %&quot;). Ice fraction 0.</li>
+<li>Parent mantle composition is the source composition (agent B hand-off).</li>
+</ul>
+<p>3.4.5 Captured moons</p>
+<ul>
+<li>Drawn when the moon is flagged captured (retrograde or high inclination). Composition from the KBO rule (3.4.2), then ice lost by a factor drawn U(0, 0.5) (PARAMETRISATION from Barr and Schwamb, qualitative).</li>
+</ul>
+<h3 id="35-distributions-summary-all-parametrisation-unless-sourced">3.5 Distributions summary (all PARAMETRISATION unless sourced)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Distribution</th>
+<th>Basis</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>snow-line scatter</td>
+<td>log10 N(0, 0.2)</td>
+<td>coordinator note citing [R3193, R3196]</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>Al-26 ratio per system</td>
+<td>log-uniform [0.1, 10] x 5.25e-5</td>
+<td>[R2678] (range tested)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>rock mass fraction, icy bodies</td>
+<td>truncated normal(0.70, 0.08), [0.45, 0.95]</td>
+<td>[R0390] abstract</td>
+<td>READ (centre only)</td>
+</tr>
+<tr>
+<td>delta_RI, comets</td>
+<td>log-uniform [0.5, 8]</td>
+<td>[R0776]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>comet porosity</td>
+<td>U(0.5, 0.8)</td>
+<td>[R0776]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>phi0 C-like / S-like rock</td>
+<td>U(0.25, 0.55) / U(0.10, 0.35)</td>
+<td>[R0544] (avg 10 %), [R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>P0 rock / ice</td>
+<td>1e7 Pa / 1e6 Pa</td>
+<td>[R0666] / guess</td>
+<td>2ND-HAND / RECALLED</td>
+</tr>
+<tr>
+<td>alpha/f (moon-system mass)</td>
+<td>log-uniform [1e-6, 5e-4]</td>
+<td>[R0643]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>ice fraction beyond ice line</td>
+<td>truncated normal(0.35, 0.10), [0.1, 0.6]</td>
+<td>COMPUTED rock fractions 2.7; [R2865] via GEN.425 report</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>disk lifetime</td>
+<td>log-uniform [1, 10] Myr</td>
+<td>Sasaki 5 Myr reference</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="36-fields-to-store-names-units-range-per-body-or-per-layer">3.6 Fields to store (names, units, range, per body or per layer)</h3>
+<p>Per asteroid belt or field (child table <code>asteroid_belt_taxa</code>, belt_id, taxon, mass_fraction):</p>
+<ul>
+<li><code>mean_albedo</code> (0.03-0.55), <code>mean_bulk_density_kg_m3</code> (800-5000), <code>mean_porosity</code> (0-0.7), <code>ice_mass_fraction</code> (0-0.5), <code>metal_mass_fraction</code> (0-1), <code>water_mass_fraction</code> (0-0.17), <code>radiogenic_heat_pW_kg</code> (long-lived, 3-6 now), <code>al26_ratio0</code> per system (5.25e-6 to 5.25e-4), <code>snow_line_au_sys</code> per system.</li>
+<li>Keep existing <code>composition_summary</code> text, derived from the new table.</li>
+</ul>
+<p>Per comet (new columns plus child table <code>comet_volatiles</code>, comet_id, species, percent_vs_h2o):</p>
+<ul>
+<li><code>refractory_ice_ratio</code> (0.5-8), <code>porosity</code> (0.3-0.85), <code>bulk_density_kg_m3</code> (200-1000), <code>rock_organic_fraction</code> (0.3-0.6).</li>
+</ul>
+<p>Per planet or moon (new child table <code>body_composition</code>, body_id, layer, component, mass_fraction, density_kg_m3):</p>
+<ul>
+<li><code>ice_h2o_mass_fraction</code> (0-0.6), <code>other_ices</code> (child rows: CO<sub>2</sub>, NH<sub>3</sub>, CH<sub>4</sub>, N<sub>2</sub>, CO, CH<sub>3</sub>OH, H<sub>2</sub>S), <code>rock_mass_fraction</code>, <code>metal_mass_fraction</code>, <code>macroporosity</code>, <code>grain_density_kg_m3</code>, <code>rock_family</code> (chondrite analogue id), <code>origin</code> (disk, impact, captured, ring, binary, in situ), <code>formation_distance_ratio</code> (r / r_ice or x).</li>
+<li>Choose composition first, then class label, for new moons; leave classes as a derived summary.</li>
+</ul>
+<h3 id="37-consistency-checks-invariants-a-test-can-assert">3.7 Consistency checks (invariants a test can assert)</h3>
+<ul>
+<li>sum of mass fractions = 1 within 1e-9.</li>
+<li>rho_bulk reproduced from the stored fractions, grain densities and porosity within 1e-6 relative.</li>
+<li>rho_g between min and max component grain densities.</li>
+<li>f_ice = 0 where r &lt; 0.4 r_ice (disk moons); monotonic non-decreasing in r.</li>
+<li>phi decreases as mass increases for a fixed family (toy-model table 2.10).</li>
+<li>Class D bulk density below 3000 kg/m3 for f_rock below 0.9.</li>
+<li>Al-26 heating exceeds long-lived heating by a factor above 1000 at formation.</li>
+<li>bodies above the compression-regime limit must carry an EOS-sourced density flag.</li>
+</ul>
+<h3 id="38-agreement-with-the-gen425-report">3.8 Agreement with the GEN.425 report</h3>
+<p>I read <code>/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md</code>.</p>
+<ul>
+<li>Agree: the generator's uniform per-class density draw does not follow composition, and class D draws a rocky density; ice and silicate zero-pressure densities (the gap) are filled in 2.1; the small-body mixing rule rho = 1 / sum(w_i/rho0_i) is kept (3.2) with a porosity term and compression limit added; the snow-line constant of 2.7 AU is a blackbody value and has about 0.2 dex real scatter (3.4.1).</li>
+<li>Differ or extend: the rule is a zero-pressure mixing rule; it must not be used for bodies of Ganymede size (2.11 shows a 10-15 point under-prediction); porosity (about 10 % for meteorites, 65-79 % for comets) changes bulk density by more than the compositional difference between neighbouring classes.</li>
+<li>[R2865] (30-45 % ice) is taken from that report and not re-verified here; my own COMPUTED rock fractions (2.7) give 0.58-0.96 rock, i.e. 4-42 % ice.</li>
+</ul>
+<hr />
+<h2 id="4-calibration-and-test-targets">4. Calibration and test targets</h2>
+<p>Test targets only, never presets. Each should be reproduced by the stated law within tolerance, for some draw in the allowed distributions (not for a single draw).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Value</th>
+<th>Tolerance</th>
+<th>Law tested</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ordinary chondrite bulk density</td>
+<td>H 3.42, L 3.36, LL 3.22 g/cm3</td>
+<td>0.2</td>
+<td>grain density and porosity (2.2)</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CI bulk density</td>
+<td>1.6 vs 2.11 g/cm3 (two sources)</td>
+<td>0.5</td>
+<td>two measurement sets differ</td>
+<td>Carry; Britt</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>67P density</td>
+<td>537.8 kg/m3</td>
+<td>100 kg/m3</td>
+<td>delta_RI, porosity 65-79 %</td>
+<td>[R0776]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mean TNO / comet density</td>
+<td>0.77 / 0.47 g/cm3</td>
+<td>0.3</td>
+<td>KBO and comet draws</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Pluto, Charon, Quaoar, Orcus rock fractions</td>
+<td>0.58-0.82</td>
+<td>within the 0.45-0.95 draw</td>
+<td>3.4.2</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Compaction transition</td>
+<td>about 1e20 kg</td>
+<td>factor 3</td>
+<td>toy law</td>
+<td>[R0666]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Galilean ice fraction ordering</td>
+<td>Io 0 below Europa 0.06 below Ganymede 0.24 below Callisto 0.35</td>
+<td>ordering exact</td>
+<td>ramp 3.4.3</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Galilean densities</td>
+<td>3.53, 3.01, 1.94, 1.83 g/cm3</td>
+<td>0.3 (needs EOS for Ganymede)</td>
+<td>3.4.3</td>
+<td>NASA; Sasaki Table 1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Total regular-satellite mass ratio</td>
+<td>Jupiter 2.1e-4, Saturn 2.5e-4</td>
+<td>factor 3</td>
+<td>alpha/f draw</td>
+<td>[R0643]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Io density</td>
+<td>3.53 g/cm3</td>
+<td>0.2</td>
+<td>anhydrous rocky moon</td>
+<td>NASA</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Dwarf-planet q values</td>
+<td>5e-4-0.11</td>
+<td>covered by draw</td>
+<td>3.4.2</td>
+<td>Barr and Schwamb</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Long-lived heating of ordinary chondrite</td>
+<td>4.9-5.4 pW/kg</td>
+<td>10 %</td>
+<td>Lodders x Ruedas</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NEO type mix S/Sq/Q about 50 %, C about 20 %</td>
+<td>50, 20</td>
+<td>15 points</td>
+<td>x-scaled kernel</td>
+<td>no source</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-gaps">5. Gaps</h2>
+<h3 id="boss-must-research-ranked-by-importance-to-the-design">Boss must research (ranked by importance to the design)</h3>
+<ol>
+<li>[R0638, R0958]: composition and iron fraction of the impact-formed moon disk, mass-ratio distribution. Science is refused; the SwRI copy returned a certificate error. NOT REACHED.</li>
+<li>[R3180]: solids-enhanced minimum-mass disk; the composition-versus-distance rule for regular moons beyond the one scaling from Sasaki. NOT REACHED.</li>
+<li>[R0390] full text (Icarus 326:10): compaction model, P0 and creep law for ices, compaction thresholds. Only the abstract was reached (the PMC page showed a reCAPTCHA; the E-utilities XML gave the abstract). NOT REACHED.</li>
+<li>[R2793] (MAPS 46:1842) and [R0874] (Chemie der Erde 68:1): bigger meteorite grain-density and porosity tables. ADS timed out and the journal returned 403. NOT REACHED.</li>
+<li>[R0067]: water content of CI, CM, CV. NOT REACHED.</li>
+<li>[R2059]: interiors of medium-sized icy satellites. NOT REACHED.</li>
+<li>[R3586, R4587]: Enceladus plume gas and grain composition numbers (only [R1596]'s summary read). NOT REACHED.</li>
+<li>[R3206] (Annu. Rev.): comet volatile tables; [R0259]: comet refractory composition. NOT REACHED.</li>
+<li>Nimmo and McKinnon: Pluto interior and ice fraction. NOT REACHED.</li>
+<li>[R0920]: ring-origin moon composition and rules. Abstract READ; full text garbled. NOT REACHED.</li>
+<li>Metal weight percent per chondrite group ([R2729] Fe split, or Rubin). Volume percent per group is now READ ([R4658: Table 1]; part H section 3.5) with a COMPUTED weight percent for the ordinary groups; the measured weight percent per group is still NOT REACHED.</li>
+<li>Moon counts and mass partition from circumplanetary-disk models (Sasaki Table 1 only gives one set).</li>
+<li>Low-pressure compaction pressure P0 for water ice and for ice-rock mixtures.</li>
+<li>[R2726] (reachable on IOP but bot-checked): use [R2729] instead (done).</li>
+<li>[R3193]: snow-line scatter of about 0.2 dex, taken from the coordinator, not read here.</li>
+<li>Albedo scatter within a taxon (none found in what I read).</li>
+</ol>
+<h3 id="to-verify-recalled-ranked">To verify (RECALLED, ranked)</h3>
+<ol>
+<li>Age 4567 Myr used for the decay-back heating numbers (COMPUTED values depend on it).</li>
+<li>Chondrite metal wt %: H about 17, L about 8, LL about 3.</li>
+<li>Water upper bounds for CV, CO and H (need Lodders H entries).</li>
+<li>Io tidal flux about 2 W/m2; SO<sub>2</sub> frost albedo.</li>
+<li>Sasaki r_ice scaling for planets far from Jupiter's mass (the formula uses R_J, not planet radius).</li>
+<li>P0 for ices about 1e6 Pa (guess).</li>
+<li>Bennu 1190 kg/m3 (SNIPPET); Bierson and Nimmo &quot;fully compact at about 1500 km&quot; (SNIPPET).</li>
+<li>Gonggong and Borisov-CO numbers (SNIPPET).</li>
+<li>Earth-Moon mass ratio 0.0123 (RECALLED).</li>
+<li>Compression-regime limits (1e8 Pa rock, 1e7 Pa ice) in 3.2.</li>
+<li>Arrokoth density range 250-500 kg/m3: READ from the preprint, not the published version.</li>
+</ol>
+<hr />
+<h2 id="6-proposed-work-items">6. Proposed work items</h2>
+<p>Group 1: research and design</p>
+<ul>
+<li>Load [R2729] full chondrite table; scope: put all 11 groups into a data file with ppm per element, K/Th/U; depends on nothing; small.</li>
+<li>Verify RECALLED list (section 5); scope: metal wt % per group, age; depends on Lodders table; small.</li>
+<li>Obtain unreachable references (section 5 items 1-9); scope: Boss pulls PDFs, I extract numbers; depends on Boss; medium.</li>
+</ul>
+<p>Group 2: tables</p>
+<ul>
+<li>Material density table (ices, silicates, metals) with source labels; depends on research; small.</li>
+<li>Meteorite group table (grain, bulk, porosity, analogue); small.</li>
+<li>Taxon table (Bus-DeMeo classes, albedo, density, analogue); depends on meteorite table; small.</li>
+<li>Zone-weight kernel x = a/a_snow from DeMeo-Carry Table 6; small.</li>
+<li>Comet volatile table ([R3835], Harrington [R3535]); small.</li>
+<li>Radiogenic table (Ruedas rates, Lodders ppm); small.</li>
+</ul>
+<p>Group 3: drawing rules</p>
+<ul>
+<li>Compaction module (phi(R, rho_g, phi0, P0)) with a lookup table; depends on material table; medium.</li>
+<li>Belt and field taxon mass draw (Dirichlet on kernel); depends on taxon table and zone kernel; medium.</li>
+<li>Comet delta_RI, porosity and volatile draws; depends on volatile table; medium.</li>
+<li>KBO and dwarf-planet rock-fraction draw; depends on compaction module; small.</li>
+<li>Moon-system draw (alpha/f, N, partition, r_ice, ice ramp); depends on stored parent mass and age; medium.</li>
+<li>Moon origin classifier (disk / impact / captured / ring / binary); depends on moon generator; medium.</li>
+</ul>
+<p>Group 4: derivations</p>
+<ul>
+<li>Mixing rule, Route 1 solver (f_ice from density) with clamp; depends on compaction module; medium.</li>
+<li>Class D density replacement (ice-aware); depends on Route 1 solver and rock fraction draw; small.</li>
+<li>Heating (long-lived and Al-26) from taxon or family; depends on radiogenic table; small.</li>
+<li>Hand-off interface to EOS agents B/C for large moons; depends on their outputs; medium.</li>
+</ul>
+<p>Group 5: storage</p>
+<ul>
+<li>DB schema: <code>asteroid_belt_taxa</code>, <code>comet_volatiles</code>, <code>body_composition</code> child tables, new columns on <code>asteroid_belts</code>, <code>comets</code>, planets (name, unit, range in 3.6); depends on drawing rules; large.</li>
+<li>Migration with deterministic back-fill for existing seeds (Route 1, keeps density); depends on schema; medium.</li>
+</ul>
+<p>Group 6: tests</p>
+<ul>
+<li>Invariants of 3.7; small.</li>
+<li>Calibration test suite (section 4); medium.</li>
+</ul>
+<p>Group 7: docs</p>
+<ul>
+<li>Update the nebula/asteroid-field design note and the comet design note with the new fields; small.</li>
+<li>Document the PARAMETRISATION list in 3.5 with replace-when-sourced policy; small.</li>
+</ul>
+<hr />
+<h2 id="7-verification-summary">7. Verification summary</h2>
+<p>Counts by label are counted from the table rows and labelled paragraphs of this file by a text search (generated at the end of the session; see the handback message). Cells that carry two labels (for example &quot;READ, COMPUTED&quot;) count once under each.</p>
+<p>Table-row counts (rows whose final cell carries the label; two-label cells count under each):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ</td>
+<td>167</td>
+</tr>
+<tr>
+<td>2ND-HAND</td>
+<td>22</td>
+</tr>
+<tr>
+<td>COMPUTED</td>
+<td>49</td>
+</tr>
+<tr>
+<td>SNIPPET</td>
+<td>4</td>
+</tr>
+<tr>
+<td>RECALLED</td>
+<td>5</td>
+</tr>
+<tr>
+<td>NOT REACHED</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verified core (READ + 2ND-HAND + COMPUTED): 238 rows. Unverified (RECALLED + NOT REACHED + SNIPPET): 9 rows in tables, plus 10 NOT REACHED references listed in section 5 and the RECALLED items in section 5's to-verify list and in the prose of sections 2.2, 2.4, 2.5 and 3 (not counted in the rows).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

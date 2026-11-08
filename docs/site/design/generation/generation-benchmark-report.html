@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generation benchmark report (PERF.31) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-29): a measurement report (PERF.31, #1179), a dated snapshot of one build box on the old queue.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/generation-benchmark-report.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/generation-benchmark-report.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="generation-benchmark-report-perf31">Generation benchmark report (PERF.31)</h1><p class="meta">docs/design/generation/generation-benchmark-report.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#where-a-1-worker-run-goes-138-s">Where a 1-worker run goes (138 s)</a></li><li style="margin-left:0px"><a href="#findings-largest-first">Findings, largest first</a></li><li style="margin-left:0px"><a href="#not-measured">Not measured</a></li><li style="margin-left:0px"><a href="#save-the-sector-paths-after-perf80">Save the sector paths, after PERF.80</a></li><li style="margin-left:0px"><a href="#after-perf79-scatter-layers-in-chunks">After PERF.79 (scatter layers in chunks)</a></li><li style="margin-left:0px"><a href="#writing-the-phenomenon-rows-perf73">Writing the phenomenon rows (PERF.73)</a></li><li style="margin-left:0px"><a href="#perf87-and-perf90-placement-as-arrays">PERF.87 and PERF.90: placement as arrays</a></li><li style="margin-left:0px"><a href="#perf89-population-densities-as-arrays">PERF.89: population densities as arrays</a></li><li style="margin-left:0px"><a href="#db24-the-nebula-field-table">DB.24: the nebula field table</a></li><li style="margin-left:0px"><a href="#perf92-per-object-timing">PERF.92: per-object timing</a></li><li style="margin-left:0px"><a href="#perf88-the-sector-path-integrator-on-numba">PERF.88: the sector-path integrator on numba</a></li></ul></details>
+<p><strong>Status (2026-10-29):</strong> a measurement report (PERF.31, #1179), a dated snapshot of one build box on the old queue. Where it says a scatter is one job whose chunks are tasks, that was replaced by PERF.86 (built): each scatter kind is its own stage of a run and its units are RQ jobs on the bulk queue. The timings were not re-measured.</p>
+<p>Measured with <code>planetgen benchmark --workers 1,2 --profile</code> on the lane's
+build box (4 cores, 16 GB, MariaDB 10.11 on the same box, Redis local).
+Galaxy: seed <code>...BEEF</code>, plan to ring 12 (a small galaxy: 2,041 layers), then
+<code>galaxy --ring 12 --limit 2</code>. Two runs of the 1-worker case agreed within 5%.</p>
+<p>Re-run with <code>python -m planetgen.cli.generate benchmark --workers 1,2 --profile --output report.json</code>
+(about 15 min). It makes and drops its own scratch databases.</p>
+<h2 id="where-a-1-worker-run-goes-138-s">Where a 1-worker run goes (138 s)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Seconds</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plan: scatter the phenomena</td>
+<td>23.7</td>
+<td>17%</td>
+</tr>
+<tr>
+<td>Plan: scatter the massive stars</td>
+<td>10.6</td>
+<td>8%</td>
+</tr>
+<tr>
+<td>Plan: scatter the bright stars</td>
+<td>8.2</td>
+<td>6%</td>
+</tr>
+<tr>
+<td>Fill: generate the 2 sectors</td>
+<td>48.4</td>
+<td>35%</td>
+</tr>
+<tr>
+<td>Fill: save the sector paths (settle)</td>
+<td>33.4</td>
+<td>24%</td>
+</tr>
+<tr>
+<td>Fill: link neighbours</td>
+<td>4.5</td>
+<td>3%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The database ran at about 980 statements per second (311 inserts/s, 180 updates/s, 179 commits/s).</p>
+<h2 id="findings-largest-first">Findings, largest first</h2>
+<ol>
+<li><strong>Two workers make the plan scatter 12 times slower</strong> (plan 47 s -&gt; 594 s;
+bright-star scatter 8 s -&gt; 282 s, massive stars 11 s -&gt; 206 s, phenomena 24 s -&gt; 101 s).
+The server answered 542,000 statements against 135,000, so the extra
+cost is queue and database round trips per layer (2,041 small layers),
+not computation. The fill itself does speed up with two workers
+(generate 48 s -&gt; 30 s). Cause not yet isolated; the poll constants in
+<code>queue/work.py</code> and a task per layer are the places to look.</li>
+<li><strong>Save the sector paths costs 33 s for 2 sectors</strong> (24% of the run and
+flat with workers). In the profile <code>settle_after_run</code> is 80 s of 227 s
+and <code>integrate_path</code> (17,284 calls) is 54 s.</li>
+<li><strong>Generating a sector</strong>: <code>nearest_neighbors</code> makes 1.8 million
+<code>distance_to</code> calls for 1,916 systems (41 s of 227 s in the profile); a
+spatial grid would cut this by a large factor.</li>
+<li><strong>Inserting a sector</strong> is 40 s of the profile (<code>insert_sector</code>), 17% of it.</li>
+<li>The scatter stages scale with layers, not objects: bright-star scatter
+visits 2,041 layers and places 0 objects (8 s).</li>
+</ol>
+<p>The profiler slows the run 2.5 times, so read its seconds as shares of the
+run, not as wall time.</p>
+<h2 id="not-measured">Not measured</h2>
+<p>Default-scale galaxy; MySQL 8.4; more than 2 workers. The profile is of
+the fill only, not the plan.</p>
+<h2 id="save-the-sector-paths-after-perf80">Save the sector paths, after PERF.80</h2>
+<p>Measured by re-saving the paths of the benchmark galaxy's two sectors
+(<code>sector_paths.settle_sectors</code>, 17,284 bodies: 1,916 star systems and the
+rogue planets and comets; the two sectors and their neighbours) on the
+kept scratch database, 4 cores, MariaDB 10.11, an otherwise idle machine:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Seconds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Before (main)</td>
+<td>44.7</td>
+</tr>
+<tr>
+<td>After, 1 worker</td>
+<td>20.0</td>
+</tr>
+<tr>
+<td>After, 2 workers</td>
+<td>13.3</td>
+</tr>
+<tr>
+<td>After, 4 workers</td>
+<td>10.8</td>
+</tr>
+</tbody>
+</table></div>
+<p>The saved paths are the same to the last bit: a hash over every path and knot
+of the 17,284 bodies is identical before and after, at every worker count.</p>
+<p>What changed:</p>
+<ul>
+<li><strong>The cell test.</strong> <code>integrate_path</code> asked <code>geometry.sector_address_at</code> (a
+ring, a layer and a slot, each worked out afresh, <code>ring_sector_count</code> three
+times over) at every step and 40 more times to bisect where the path leaves
+the cell: 43% of its time. <code>geometry.sector_cell_test</code> repeats the same
+arithmetic with the cell's numbers worked out once and stops at the first of
+ring, layer and slot that is not the cell's; a test holds it equal to
+<code>sector_address_at == address</code> on thousands of points including the cell's
+faces. <code>ring_sector_count</code> and <code>ring_master_count</code> are cached.</li>
+<li><strong>Smaller costs.</strong> The bisection builds only the position of the Hermite
+curve it tests; the integrator unpacks its masses to <code>(x, y, z, mu)</code> once
+per path instead of computing <code>G * mass</code> at every step for every mass.</li>
+<li><strong>One statement batch per sector.</strong> A body's path took a lookup, a delete, an
+insert and a knot insert; a sector's paths are now saved with one lookup per
+500 bodies, one insert of the path rows and one of the knots.</li>
+<li><strong>Worker processes.</strong> <code>galaxy</code> passes its worker count to <code>settle_sectors</code>, which hands
+a crowded sector's bodies (250 per task) to that many spawned processes;
+loading, saving and the commit stay in the calling process, and the paths
+and their order do not depend on the count. What remains at 4 workers
+(about 10 s) is that serial part: the sector and neighbour query and the
+inserts.</li>
+</ul>
+<h2 id="after-perf79-scatter-layers-in-chunks">After PERF.79 (scatter layers in chunks)</h2>
+<p>The plan's three scatter passes now send their layers to the workers in at most 8 chunks per worker instead of one task per layer (<code>WorkQueue.submit_each</code>). Same benchmark (ring 12, seed ...BEEF, 2 sectors), machine otherwise idle:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>workers</th>
+<th>plan</th>
+<th>phenomena</th>
+<th>massive</th>
+<th>bright</th>
+<th>objects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>38.5 s</td>
+<td>18.4 s</td>
+<td>8.8 s</td>
+<td>6.7 s</td>
+<td>52,517</td>
+</tr>
+<tr>
+<td>2</td>
+<td>24.2 s</td>
+<td>8.2 s</td>
+<td>6.0 s</td>
+<td>5.4 s</td>
+<td>52,517</td>
+</tr>
+</tbody>
+</table></div>
+<p>Before the change two workers took 593.9 s for the plan (about 12 times slower than one). The object counts match between one and two workers, so the rows are the same. At the time of this change the scatter was one job on the RQ queue and the chunks were tasks of that job (<code>WorkQueue.submit_each</code>). That model is gone (PERF.86, built by PERF.95 to PERF.100 and PERF.106, PERF.118, PERF.121, PERF.122): each scatter kind is its own command and its own stage of a run, cut into units of shells of equal expected work (about 512, never more than 4,000, the same at any worker count), and each unit is an RQ job on the bulk queue carrying JSON; the timings above are of the old queue and have not been re-measured (see <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a>, &quot;As built&quot;).</p>
+<h2 id="writing-the-phenomenon-rows-perf73">Writing the phenomenon rows (PERF.73)</h2>
+<p>At the default scale the phenomena pass writes about 68 million rows, so the write is most of its time. Measured on 1,000,000 synthetic rows of the real shape (40 layers of 25,000, same machine, MariaDB 10.11, default buffer pool, one connection, commit per statement batch):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>way of writing</th>
+<th>rows per second</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>driver <code>executemany</code>, 10,000 per statement (before)</td>
+<td>37,000</td>
+<td></td>
+</tr>
+<tr>
+<td>same, 1,000 or 50,000 per statement, or one commit per layer</td>
+<td>37,000 to 40,000</td>
+<td>batch and commit size do not matter</td>
+</tr>
+<tr>
+<td>same, <code>unique_checks</code>/<code>foreign_key_checks</code> off</td>
+<td>37,000</td>
+<td>the table has neither</td>
+</tr>
+<tr>
+<td>multi-row <code>INSERT</code> text built in the store instead of the driver's per-value escaping</td>
+<td>49,000</td>
+<td>the driver's escaping alone is about 9 s of the 27 s</td>
+</tr>
+<tr>
+<td>built text and the two secondary indexes dropped, then built once at the end</td>
+<td>60,000 (79,000 for the write, 4 s to build the indexes)</td>
+<td><strong>what the scatter does now</strong></td>
+</tr>
+<tr>
+<td><code>LOAD DATA LOCAL INFILE</code>, indexes dropped</td>
+<td>89,000</td>
+<td>needs <code>local_infile</code> on the server and the client; not used</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the scatter now writes 1.6 times faster than before on this table, and the 68 million rows go from about 31 minutes of database time to about 19 plus the index build. The rows are the same (a test stores numpy numbers, <code>NULL</code>s and quoted names both ways). A scatter that dies half way leaves the indexes off but also no recorded seed, so no sector fill uses the table until the next scatter clears and rebuilds it. <code>LOAD DATA</code> stays an option if the host's server allows it.</p>
+<h2 id="perf87-and-perf90-placement-as-arrays">PERF.87 and PERF.90: placement as arrays</h2>
+<p><code>SpaceSector._random_position</code> tests a candidate against all massive neighbours
+with one NumPy comparison; points within 1e-9 of a boundary fall back to
+<code>math.dist</code>, so accept and reject decisions match the old loop. Two tests prove
+it (a fill compared with the old loop, and a borderline check). Benchmark,
+2 sectors at ring 12, 1 worker, idle machine: the sector fill went from
+68.0 s to 64.0 s (the plan stages are untouched and moved by noise, 40 to 45 s).
+<code>_ring_centerline_edges</code> joins <code>ring_master_count</code> and <code>ring_sector_count</code> in
+the cache.</p>
+<h2 id="perf89-population-densities-as-arrays">PERF.89: population densities as arrays</h2>
+<p><code>density.population_densities_array</code> gives the four population densities for
+every angle bin of a ring in one call; <code>bright_stars._ring_bins</code> and
+<code>layer_expected_stars</code> use it. NumPy's <code>exp</code>, <code>log</code>, <code>cos</code> and <code>arctan2</code> are not
+bit-for-bit the maths library's: about 12% of values differ in the last digit,
+so the tests hold the array form to 1e-12 relative of the one-point form rather
+than to the last digit (Math Research asked for the last digit; flagged). A
+bin weight moving by 1e-16 can change a star's placement only if a random draw
+lands within 1e-16 of a bin edge. Benchmark bright-star stage, 2 sectors at
+ring 12: 8.5 s to 7.5 s (the other plan stages moved by up to 5 s between runs,
+so this is within noise at benchmark scale; the default-scale galaxy has far
+more bins).</p>
+<h2 id="db24-the-nebula-field-table">DB.24: the nebula field table</h2>
+<p><code>planetgen plan</code> writes <code>nebula_field</code> inside the phenomena stage (one task per
+first-index slab of 50 pc field cells, through the work queue). Benchmark
+(2 sectors, ring 12): the phenomena stage stays at 18.8 s on one worker and
+12.3 s on two, as before the table, so the build is small at that scale. The
+table has no object IDs for clouds no sector has stored: working an ID out costs
+a nebula shape (<code>interior_centroid</code> over the fit grid, about 112 ms), which for
+every drawn cloud would be about 30 hours of CPU at the default scale. A save
+sets <code>uid</code> and <code>is_stored</code> on the row of each cloud it stores.</p>
+<h2 id="perf92-per-object-timing">PERF.92: per-object timing</h2>
+<p>Each generated object is timed through the class's constructor
+(<code>object_timing.track</code>), so no generator has timing code of its own. Measured on
+this machine: 3.3 microseconds per object with a unit active and nothing when
+none is. A 25-system sector with planets builds about 740 objects in about 0.3
+s, so the records cost about 0.8% of generation time (inside the 1% the item
+asks for; a whole-sector A/B run was lost in the noise, at plus or minus 15%,
+so the per-object cost is the figure to trust). Draw counts and memory per
+object are not recorded: counting draws would add a call to the random wrapper's
+hot path, which costs more than the timing itself. The plain <code>sector</code> command
+(unplaced sectors) is not timed; every <code>galaxy</code> path is.</p>
+<h2 id="perf88-the-sector-path-integrator-on-numba">PERF.88: the sector-path integrator on numba</h2>
+<p><code>physics/field_kernel.py</code> holds the integrator (mass selection, kick-drift-kick steps, exit bisection and the spline
+simplification) as one numba-compiled call, and <code>sector_path.integrate_path</code> calls it. Measured on this machine
+(<code>planetgen-env</code>, an idle box): 3,000 random bodies of one sector (edge 4 pc, 300 masses within 6 pc of its centre, speeds
+of about 30 km/s) against the Python integrator it replaced, each with the body's own mass excluded:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Per path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python loop (before)</td>
+<td>838 us</td>
+</tr>
+<tr>
+<td><code>field_kernel.integrate</code> (after)</td>
+<td>40 us (21 times faster)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The first call in a process loads the compiled code from numba's cache (about 0.3 s; the first ever compile is about
+6 s). On 300 random cells of the grid (core, caps and interior bands, one to five masses) the knots were bit-identical
+to the Python integrator's, so saved paths do not change. The end-to-end &quot;save the sector paths&quot; figure of the benchmark
+fill was not re-run here; the research note measured 34.2 s to 13.4 s for the same change, the rest being database
+writes.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

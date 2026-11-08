@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Body composition part H: the GEN.465 second extraction pass and the water-share result (GEN.468) - planetGen docs</title>
+<meta name="description" content="Read-only research by Core 4 (about 7:03 AM EDT 2026-10-23, lane clock), merged here by the TODO thread.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/H-gen465-second-pass-tables.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/H-gen465-second-pass-tables.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="body-composition-part-h-the-gen465-second-extraction-pass-and-the-water-share-result-gen468">Body composition part H: the GEN.465 second extraction pass and the water-share result (GEN.468)</h1><p class="meta">docs/design/composition/body-composition-parts/H-gen465-second-pass-tables.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-source-status">1. Source status</a></li><li style="margin-left:0px"><a href="#2-gen468-the-water-share-beyond-the-snow-line">2. GEN.468: the water share beyond the snow line</a></li><li style="margin-left:0px"><a href="#3-extracted-tables">3. Extracted tables</a></li><li style="margin-left:14px"><a href="#31-zenodo-10527170-water-fraction-of-the-planets-by-final-semi-major-axis-read-computed">3.1 Zenodo 10527170: water fraction of the planets, by final semi-major axis (READ, COMPUTED)</a></li><li style="margin-left:14px"><a href="#32-r0535-vizier-japjs22532-1615-fgk-stars-xh-against-the-sun-read-computed">3.2 [R0535] (VizieR J/ApJS/225/32): 1,615 FGK stars, [X/H] against the Sun (READ, COMPUTED)</a></li><li style="margin-left:14px"><a href="#33-unscear-2008-annex-b-read">3.3 UNSCEAR 2008 Annex B (READ)</a></li><li style="margin-left:14px"><a href="#34-r2726-read">3.4 [R2726] (READ)</a></li><li style="margin-left:14px"><a href="#35-metal-per-chondrite-group-r4658-table-1-read-volume-percent">3.5 Metal per chondrite group ([R4658: Table 1], READ, volume percent)</a></li><li style="margin-left:0px"><a href="#4-what-stays-bosss">4. What stays Boss's</a></li></ul></details>
+<p>Read-only research by Core 4 (about 7:03 AM EDT 2026-10-23, lane clock), merged here by the TODO thread. The lane's findings file and the extracted files are in <code>/mnt/project-files/design-drafts/gen465-second-pass/</code> (<code>README-gen465-gen468-findings.md</code> first). Only derived values are kept in the repo (the raw per-star file of 1,615 stars and the 37 KB text extract of [R2726] stay in the draft folder; they are source data, not repo content).</p>
+<p>Labels: READ = number taken from the source text or data file; COMPUTED = arithmetic on READ numbers; 2ND-HAND = quoted by a source that was read, not the original; NOT REACHED = the host refused or served only a preview; RECALLED = from memory, to be verified.</p>
+<h2 id="1-source-status">1. Source status</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UNSCEAR 2008 Annex B (radon, soil Ra-226)</td>
+<td>READ (full PDF)</td>
+</tr>
+<tr>
+<td>VizieR J/ApJS/225/32 ([R0535], 1,615 stars, 15 elements)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Zenodo 10527170 ([R4529], Bern model, 31,868 planets, nominal run)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2726] (the rank 1 paper of the Boss list)</td>
+<td>READ in full (28 pages, through the ADS link gateway; the IOP page is flaky and sometimes returns a captcha)</td>
+</tr>
+<tr>
+<td>[R2729] (the 11-group chondrite table, K, Th, U)</td>
+<td>NOT REACHED: Springer serves the abstract and a preview. A person has to fetch [R2729]</td>
+</tr>
+<tr>
+<td>[R4658: Table 1] (metal volume percent per group)</td>
+<td>READ; replaces the RECALLED metal list for the volume percent</td>
+</tr>
+<tr>
+<td>Science, Royal Society, ScienceDirect, AGU, Oxford Academic, Springer</td>
+<td>still refuse; [R0067, R0638, R1445, R3417] and the rest of the part files' lists stay NOT REACHED</td>
+</tr>
+<tr>
+<td>[R2144]</td>
+<td>opens as a 15-page scan with no text layer; needs reading by eye or OCR</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-gen468-the-water-share-beyond-the-snow-line">2. GEN.468: the water share beyond the snow line</h2>
+<p>[R2726: Table 11] (condensate distribution, mass percent of the total nebular mass, equilibrium condensation, noble gases excluded, solar-system composition), READ:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Condensate</th>
+<th>% of total mass</th>
+<th>share of all condensate (COMPUTED)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Silicates and oxides</td>
+<td>0.303</td>
+<td>0.204</td>
+</tr>
+<tr>
+<td>Metal + FeS</td>
+<td>0.186</td>
+<td>0.125</td>
+</tr>
+<tr>
+<td>Total rock</td>
+<td>0.489</td>
+<td>0.329</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O ice</td>
+<td>0.571</td>
+<td>0.384</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> ice</td>
+<td>0.330</td>
+<td>0.222</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub> ice</td>
+<td>0.097</td>
+<td>0.065</td>
+</tr>
+<tr>
+<td>Total ices</td>
+<td>0.998</td>
+<td>0.671</td>
+</tr>
+<tr>
+<td>Total condensate</td>
+<td>1.487</td>
+<td>1.000</td>
+</tr>
+</tbody>
+</table></div>
+<p>Printed: H<sub>2</sub>O ice/rock 1.17; oxygen in rock 22.75 percent before water ice condenses at 182 K (10^-4 bar). The photospheric column gives the same ratios. The [R0100] column gives water/rock 2.09, and the text says the revision brought it to about unity.</p>
+<p>Water as a share of the solids, by which ices have condensed (COMPUTED from the table; temperatures READ from Lodders Tables 7, 8 and 10):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Solids counted</th>
+<th>Water share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Just outside the water line (182 K to 131 K)</td>
+<td>rock + water</td>
+<td>0.539</td>
+</tr>
+<tr>
+<td>Past the NH<sub>3</sub> hydrate line (131 K)</td>
+<td>rock + water + NH<sub>3</sub></td>
+<td>0.494</td>
+</tr>
+<tr>
+<td>Past the CH<sub>4</sub> line (41 K equilibrium; CH<sub>4</sub> clathrate at 78 K takes about 9 percent of the carbon)</td>
+<td>everything</td>
+<td>0.384</td>
+</tr>
+</tbody>
+</table></div>
+<p>The Bern model ([R1268, R1269], NGPPS I, [R1268], sections 3.3.3 and 4, READ) uses the [R2865, R4335] condensation model, &quot;H2O makes up about 60 % of all ices in mass&quot;, and maps all ice species to water ice for the planet structure. In the Zenodo run the water mass fraction of planets with a steam envelope tops out at 0.51 to 0.53; that cap is the model's total ice share of solids, labelled water. With a 60 percent water share of the ices it is about 0.30 of the solids in water proper (COMPUTED), inside the Marboeuf-derived 0.14 to 0.39.</p>
+<p>Reading (the numbers are READ, the reading is the lane's):</p>
+<ol>
+<li>Different denominators. &quot;About 0.5&quot; is the water share of rock plus water (or of rock plus all ices lumped as water). The Marboeuf-derived 0.14 to 0.39 is the water share of all solids. Same chemistry, two bookkeeping choices. Lodders gives 0.54, 0.49 and 0.38 for the three rows above.</li>
+<li>Different total ice to rock. Lodders (equilibrium, 2003 abundances) has total ice/rock 0.998 / 0.489 = 2.04 with water about 57 percent of the ices; Marboeuf's comet-calibrated value is 1 +/- 0.5 with water about 60 percent of the ices (2ND-HAND via NGPPS I). So water/rock is 1.17 against 0.6 (0.3 to 0.9). A factor of about two is real and no source read settles it: it is equilibrium nebular chemistry with all carbon as CH<sub>4</sub> against a composition read off comets (CO and CO<sub>2</sub> kept in the gas or lost).</li>
+</ol>
+<p>Result for GEN.468: keep the default as the Marboeuf-derived sequence (Boss, 1:21 AM EDT 2026-10-17, &quot;keep the switch&quot;) and name the denominator in the switch: &quot;water over all solids&quot; 0.14 to 0.39 (default), &quot;water over rock plus water&quot; about 0.5 (0.49 to 0.54 from [R2726]). The physics-supported range for the water share of all solids beyond the line is 0.38 (equilibrium, all ices) down to 0.14 (comet-calibrated); the upper ends agree at 0.38 to 0.39. Open: whether planetesimals follow nebular equilibrium (ice/rock about 2.0) or comets (about 1.0). The snow-line temperature 182 K at 10^-4 bar is READ; Boss's decision keeps the 170 K centre with 0.2 dex scatter.</p>
+<h2 id="3-extracted-tables">3. Extracted tables</h2>
+<h3 id="31-zenodo-10527170-water-fraction-of-the-planets-by-final-semi-major-axis-read-computed">3.1 Zenodo 10527170: water fraction of the planets, by final semi-major axis (READ, COMPUTED)</h3>
+<p>Nominal run, 5 Gyr, <code>nominal/ref_evo5e9.dat</code>, 31,868 rows. Water fraction W = Menv x Zhomo / total mass (water is carried in the envelope; the authors' <code>fice</code> column is 0 in this run). No formation distance is in the file, so W is tabulated against the final a; planets that migrated from outside the snow line sit inside it. Planets of 1 to 30 Earth masses:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>a (AU)</th>
+<th>planets</th>
+<th>with water envelope</th>
+<th>share</th>
+<th>W p05</th>
+<th>W p25</th>
+<th>W p50</th>
+<th>W p75</th>
+<th>W p95</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.05 to 0.2</td>
+<td>1036</td>
+<td>227</td>
+<td>0.219</td>
+<td>0.039</td>
+<td>0.196</td>
+<td>0.336</td>
+<td>0.426</td>
+<td>0.483</td>
+</tr>
+<tr>
+<td>0.2 to 0.5</td>
+<td>789</td>
+<td>157</td>
+<td>0.199</td>
+<td>0.014</td>
+<td>0.086</td>
+<td>0.211</td>
+<td>0.431</td>
+<td>0.499</td>
+</tr>
+<tr>
+<td>0.5 to 1</td>
+<td>834</td>
+<td>331</td>
+<td>0.397</td>
+<td>0.008</td>
+<td>0.174</td>
+<td>0.298</td>
+<td>0.478</td>
+<td>0.503</td>
+</tr>
+<tr>
+<td>1 to 2</td>
+<td>952</td>
+<td>413</td>
+<td>0.434</td>
+<td>0.188</td>
+<td>0.298</td>
+<td>0.401</td>
+<td>0.479</td>
+<td>0.503</td>
+</tr>
+<tr>
+<td>2 to 5</td>
+<td>1159</td>
+<td>403</td>
+<td>0.348</td>
+<td>0.285</td>
+<td>0.395</td>
+<td>0.461</td>
+<td>0.491</td>
+<td>0.504</td>
+</tr>
+<tr>
+<td>5 to 10</td>
+<td>898</td>
+<td>454</td>
+<td>0.506</td>
+<td>0.366</td>
+<td>0.494</td>
+<td>0.504</td>
+<td>0.506</td>
+<td>0.511</td>
+</tr>
+<tr>
+<td>10 to 30</td>
+<td>618</td>
+<td>416</td>
+<td>0.673</td>
+<td>0.475</td>
+<td>0.505</td>
+<td>0.509</td>
+<td>0.514</td>
+<td>0.529</td>
+</tr>
+<tr>
+<td>30 to 100</td>
+<td>36</td>
+<td>12</td>
+<td>0.333</td>
+<td>0.509</td>
+<td>0.523</td>
+<td>0.544</td>
+<td>0.548</td>
+<td>0.564</td>
+</tr>
+</tbody>
+</table></div>
+<p>By total mass (Earth masses), same population:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M (Earth)</th>
+<th>n</th>
+<th>W p05</th>
+<th>W p25</th>
+<th>W p50</th>
+<th>W p75</th>
+<th>W p95</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 to 3</td>
+<td>1457</td>
+<td>0.065</td>
+<td>0.443</td>
+<td>0.504</td>
+<td>0.508</td>
+<td>0.521</td>
+</tr>
+<tr>
+<td>3 to 6</td>
+<td>727</td>
+<td>0.069</td>
+<td>0.286</td>
+<td>0.441</td>
+<td>0.499</td>
+<td>0.509</td>
+</tr>
+<tr>
+<td>6 to 10</td>
+<td>407</td>
+<td>0.083</td>
+<td>0.275</td>
+<td>0.390</td>
+<td>0.468</td>
+<td>0.504</td>
+</tr>
+<tr>
+<td>10 to 20</td>
+<td>247</td>
+<td>0.078</td>
+<td>0.219</td>
+<td>0.346</td>
+<td>0.441</td>
+<td>0.498</td>
+</tr>
+<tr>
+<td>20 to 30</td>
+<td>43</td>
+<td>0.125</td>
+<td>0.182</td>
+<td>0.266</td>
+<td>0.390</td>
+<td>0.488</td>
+</tr>
+</tbody>
+</table></div>
+<p>Maximum over all rows 0.568; 7.2 percent of rows have no envelope; the median total mass of a row is 0.12 Earth masses (embryos are included). The cap of about 0.5 is a model input, not a result. This answers part C's request for planet-by-planet ice fractions for the migration population.</p>
+<h3 id="32-r0535-vizier-japjs22532-1615-fgk-stars-xh-against-the-sun-read-computed">3.2 [R0535] (VizieR J/ApJS/225/32): 1,615 FGK stars, [X/H] against the Sun (READ, COMPUTED)</h3>
+<p>Statistics after dropping |[X/H]| &gt;= 1 (one catalogue sentinel, [Na/H] = -21.41, and some outliers):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Element</th>
+<th>n kept</th>
+<th>mean</th>
+<th>std</th>
+<th>median</th>
+<th>robust sigma</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C</td>
+<td>1592</td>
+<td>-0.025</td>
+<td>0.180</td>
+<td>-0.02</td>
+<td>0.178</td>
+</tr>
+<tr>
+<td>N</td>
+<td>1590</td>
+<td>0.050</td>
+<td>0.257</td>
+<td>0.07</td>
+<td>0.267</td>
+</tr>
+<tr>
+<td>O</td>
+<td>1592</td>
+<td>0.079</td>
+<td>0.167</td>
+<td>0.08</td>
+<td>0.178</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>1611</td>
+<td>0.010</td>
+<td>0.238</td>
+<td>-0.01</td>
+<td>0.222</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>1614</td>
+<td>0.004</td>
+<td>0.160</td>
+<td>0.00</td>
+<td>0.163</td>
+</tr>
+<tr>
+<td>Al</td>
+<td>1587</td>
+<td>0.011</td>
+<td>0.202</td>
+<td>0.01</td>
+<td>0.208</td>
+</tr>
+<tr>
+<td>Si</td>
+<td>1613</td>
+<td>0.004</td>
+<td>0.181</td>
+<td>0.01</td>
+<td>0.193</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>1613</td>
+<td>0.053</td>
+<td>0.183</td>
+<td>0.07</td>
+<td>0.178</td>
+</tr>
+<tr>
+<td>Ti</td>
+<td>1615</td>
+<td>0.052</td>
+<td>0.158</td>
+<td>0.06</td>
+<td>0.148</td>
+</tr>
+<tr>
+<td>V</td>
+<td>1592</td>
+<td>0.008</td>
+<td>0.173</td>
+<td>0.02</td>
+<td>0.178</td>
+</tr>
+<tr>
+<td>Cr</td>
+<td>1613</td>
+<td>0.027</td>
+<td>0.198</td>
+<td>0.05</td>
+<td>0.193</td>
+</tr>
+<tr>
+<td>Mn</td>
+<td>1610</td>
+<td>-0.016</td>
+<td>0.274</td>
+<td>0.00</td>
+<td>0.282</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>1614</td>
+<td>0.038</td>
+<td>0.198</td>
+<td>0.06</td>
+<td>0.193</td>
+</tr>
+<tr>
+<td>Ni</td>
+<td>1614</td>
+<td>0.016</td>
+<td>0.211</td>
+<td>0.01</td>
+<td>0.215</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>1609</td>
+<td>0.064</td>
+<td>0.221</td>
+<td>0.09</td>
+<td>0.193</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Joint [Mg/H], [Si/H], [Fe/H], n = 1613: correlations Mg-Si 0.936, Mg-Fe 0.924, Si-Fe 0.873; covariance (Mg, Si, Fe): 0.0257, 0.0271, 0.0293 / 0.0326, 0.0312 / 0.0390.</li>
+<li>Regression on [Fe/H]: [Mg/H] = 0.750 [Fe/H] - 0.024 (scatter 0.061 dex); [Si/H] = 0.799 [Fe/H] - 0.027 (scatter 0.088 dex).</li>
+<li>[Mg/Fe] mean -0.034, sigma 0.079; [Si/Fe] mean -0.034, sigma 0.097.</li>
+<li>Number ratios against the [R0169] solar values (Mg 7.60, Si 7.51, Fe 7.50; RECALLED reference): Mg/Si 5, 50, 95 percent = 1.00, 1.20, 1.62; Fe/Si 0.79, 1.02, 1.59.</li>
+<li>Ca and Al: [Ca/H] mean 0.052, sigma 0.188; [Al/H] mean 0.009, sigma 0.215; [Ca/Fe] mean 0.015, sigma 0.071; [Al/Fe] mean -0.032, sigma 0.137. This closes part B item 1 for the stellar side; the planet-minus-star scatter is still open.</li>
+<li>C/O number ratio (Asplund C 8.43, O 8.69): median 0.457, 5 and 95 percent 0.26 and 0.59.</li>
+</ul>
+<h3 id="33-unscear-2008-annex-b-read">3.3 UNSCEAR 2008 Annex B (READ)</h3>
+<ul>
+<li>World soil averages (paragraph 76): 238U 33, 226Ra 32, 232Th 45, 40K 412 Bq/kg (the previous 40K value was 420); reported maxima 1000 (U), 360 (Th), 3200 (40K) Bq/kg. This replaces the RECALLED 33, 45, 420 of part E.</li>
+<li>Outdoor absorbed dose rate in air, worldwide 58 nGy/h (distribution mean 50 to 59).</li>
+<li>Indoor radon (paragraph 97): country averages 9 to 184 Bq/m3; log-normal with geometric mean 45 Bq/m3 (previous 40), geometric standard deviation 2.1; per caput dose 1.15 mSv/yr (radon) and 0.1 mSv/yr (thoron).</li>
+<li>Table 12 totals: external terrestrial 0.48 mSv/yr (outdoors 0.07, indoors 0.41; range 0.3 to 1.0); inhalation 1.26 (range 0.2 to 10); ingestion 0.29; cosmic 0.39; total 2.4 (range 1 to 13). This confirms the repo's <code>GROUND_MSV_YR</code> source of 0.48 mSv/yr (part E verify item 4).</li>
+<li>Not found: a radon emanation fraction from Ra-226 in soil, or soil Ra-226 ranges per country (those are in the annex tables of the 2000 report, not this one).</li>
+</ul>
+<h3 id="34-r2726-read">3.4 [R2726] (READ)</h3>
+<ul>
+<li>50 percent condensation temperatures at 10^-4 bar, solar-system composition: K 1006 K (feldspar), Na 958 K, Mg 1336 K, Si 1310 K, Th 1659 K (hibonite), U 1610 K (hibonite), S 704 K (FeS, troilite), Fe 1357 K (alloy), H<sub>2</sub>O ice 182 K, NH<sub>3</sub> hydrate 131 K (50 percent at 123 K), CH<sub>4</sub> hydrate 78 K (50 percent at 40 K). Photospheric composition: K 1001, Th 1647, U 1604, Fe 1351, H<sub>2</sub>O 181. This turns part E's RECALLED K condensation of 1006 K into READ.</li>
+<li>CI chondrite group mean (Table 3, ppm by mass): K 530 +/- 24, Th 0.0309, U 0.0084 (the printed uncertainties for Th and U are garbled in the text layer; check the page); Fe 182,150 +/- 1,910; O 458,200 +/- 5,750.</li>
+<li>Oxygen: about 23 percent of the O is bound to rock before water ice (26 percent after magnetite at 371 K).</li>
+</ul>
+<h3 id="35-metal-per-chondrite-group-r4658-table-1-read-volume-percent">3.5 Metal per chondrite group ([R4658: Table 1], READ, volume percent)</h3>
+<p>CI 0, CM 0.1, CO 1 to 5, CV 0 to 5, CK 0 to 5, CR 5 to 8, CH 20, CB 60 to 80, H 8, L 4, LL 2, EH 10, EL 10, R 0.1, K 7. COMPUTED weight percent for the ordinary groups, with metal 7.9 g/cm3 and the rest 3.3 g/cm3 (assumed grain densities, so approximate): H 17, L 9, LL 5, EH and EL 21. Part D's RECALLED values (H about 17, L about 8, LL about 3) hold for H and are within 2 points for L and LL. Not reached: the weight percent measured per group ([R2729], Rubin).</p>
+<h2 id="4-what-stays-bosss">4. What stays Boss's</h2>
+<ol>
+<li>The [R2729] PDF (Springer, preview only): the 11-group chondrite table with K, Th and U per group.</li>
+<li>Whether planetesimal ice/rock follows nebular equilibrium (about 2.0) or comets (about 1.0): the default of the water-share switch (GEN.468; no source read settles it).</li>
+<li>The hosts that still refuse (Science, Royal Society, ScienceDirect, AGU, Oxford Academic).</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

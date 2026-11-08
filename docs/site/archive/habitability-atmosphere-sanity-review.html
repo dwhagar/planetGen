@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitability / Atmosphere Sanity Review - planetGen docs</title>
+<meta name="description" content="Date: 2026-09-06 Scope: Manual, domain-informed sanity review of planetPhysics.calculatesurfacegravity and planetPhysics.calculateatmosphericconditions output, specifically to answer the question docs/TODO.md raises: now that the atmosph...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/archive/habitability-atmosphere-sanity-review.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="archive/habitability-atmosphere-sanity-review.html"><a href="../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Historical: superseded by the climate and atmosphere fixes in versions
+5.3.4 to 5.9.1.</strong> This review (2026-09-06) measured the code as it was
+then, and every finding it raised has since been acted on: gravity no
+longer cancels out of surface pressure (<code>_atmosphere_retention_factor</code>,
+5.3.5); the greenhouse factor is now composition times a per-class
+potency multiplier, capped at 500 (5.3.7); every tuned class has its own
+<code>albedo_range</code>, <code>atm_density_range</code>, <code>atm_molar_density_range</code> and
+<code>greenhouse_multiplier_range</code>, which ended Class N's hard-coded special
+case and made the ecosphere classes differ (5.3.7); Class P is cold again
+(5.3.5, tuned further in 5.9.1 to about 219 K and 0.1 atm); the gas-giant
+core and envelope densities are combined by a mass-weighted harmonic mean
+with a real envelope bulk density (5.3.4, 5.3.9); and Class M's gravity
+clamp was deleted (5.3.7). The M and P pressure and temperature clamps
+stay commented out in <code>planetPhysics.calculate_atmospheric_conditions</code>,
+with <code>src/tests/test_climate_tuning.py</code> and <code>climate_tuning_cli.py</code>
+checking the results instead. The gas-giant molar-mass range quoted below
+(0.00226-0.00416 kg/mol) is now 0.00207-0.00266. The numbers in this
+file describe the old code and should not be read as current. The one
+change it made (the <code>ATMOSPHERE_DENSITY[&quot;t&quot;]</code> comment) still stands, and
+that comment in <code>physical_constants.py</code> links here, so the link needs
+updating when this file moves.</p>
+</blockquote>
+<hr />
+<h1 id="habitability--atmosphere-sanity-review">Habitability / Atmosphere Sanity Review</h1><p class="meta">docs/archive/habitability-atmosphere-sanity-review.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#class-definitions-confirmed-program_constantsplanet_classes">Class definitions confirmed (program_constants.PLANET_CLASSES)</a></li><li style="margin-left:0px"><a href="#headline-finding-the-removed-class-p-clamp-was-carrying-all-of-ps-cold-world-identity-and-its-gone">Headline finding: the removed Class P clamp was carrying all of P's "cold world" identity, and it's gone</a></li><li style="margin-left:0px"><a href="#class-m-pressure-never-actually-reaches-earth-like-values">Class M: pressure never actually reaches Earth-like values</a></li><li style="margin-left:0px"><a href="#likely-root-cause-behind-both-ms-and-ps-issues-the-greenhouse-factor-formula-looks-physically-inverted">Likely root cause behind both M's and P's issues: the greenhouse-factor formula looks physically inverted</a></li><li style="margin-left:0px"><a href="#other-terrestrialatmosphere-bearing-classes-type-t-atmosphere--none">Other terrestrial/atmosphere-bearing classes (type "t", atmosphere ≠ None)</a></li><li style="margin-left:0px"><a href="#gas-giants-type-g-i-j-s-t-u">Gas giants (type "g": I, J, S, T, U)</a></li><li style="margin-left:14px"><a href="#1-gas-giant-density-blending-planetphysicspy-l308-311-produces-implausibly-fluffy-planets">1. Gas-giant density blending (planetPhysics.py L308-311) produces implausibly "fluffy" planets</a></li><li style="margin-left:14px"><a href="#2-atmospheric-pressure-is-mathematically-independent-of-surface-gravity--for-every-class-not-just-gas-giants">2. Atmospheric pressure is mathematically independent of surface gravity — for every class, not just gas giants</a></li><li style="margin-left:0px"><a href="#fix-applied">Fix applied</a></li><li style="margin-left:0px"><a href="#summary-of-recommendations">Summary of recommendations</a></li></ul></details>
+<p><strong>Date:</strong> 2026-09-06
+<strong>Scope:</strong> Manual, domain-informed sanity review of <code>planetPhysics.calculate_surface_gravity</code>
+and <code>planetPhysics.calculate_atmospheric_conditions</code> output, specifically to answer the
+question docs/TODO.md raises: now that the atmospheric-pressure formula has been fixed
+(barometric-formula rewrite, <code>planetPhysics.py</code> ~L391-405), are the disabled Class M/P
+forced clamps (gravity ~L342-347, pressure/temperature ~L407-419) actually safe to leave
+removed?</p>
+<p><strong>Method:</strong> Built <code>Planet</code> objects directly (bypassing <code>StarSystem</code>'s orbit-placement
+loop, the same lightweight pattern <code>tests/test_planets.py</code> uses) against one fixed G2V
+host star (mass ≈0.89 M☉, luminosity ≈0.67 L☉, habitable zone ≈0.78–1.13 AU — a
+plausible, if not dead-center-solar, Sun-analog). For each of the 23 <code>PLANET_CLASSES</code>
+entries with at least one valid zone, generated 300 planets (moons disabled) and recorded
+<code>gravity</code>, <code>surface_temperature</code>, <code>atmospheric_pressure</code>, <code>density</code>, <code>atm_density</code>,
+<code>atm_molar_density</code>, <code>scale_height</code>, <code>mass</code>, <code>radius</code>. Terrestrial ecosphere-only classes
+used a fixed distance at the habitable-zone midpoint for the main batch (isolates
+non-distance sources of variance); a second, supplementary run for Class M and P instead
+drew a random distance uniformly across the whole zone width per sample, to approximate
+what real system generation would actually produce. Class R was skipped — it declares
+<code>h/e/c</code> all <code>False</code> in <code>PLANET_CLASSES</code>, so it has no valid zone under normal generation
+(it can only be force-assigned via <code>zone_override</code>, out of scope here).</p>
+<p>Scripts used are not part of the repo (scratch analysis only); the underlying formulas
+referenced below are in <code>planetgen/physics/planets.py</code> and
+<code>planetgen/physics/constants.py</code>.</p>
+<h2 id="class-definitions-confirmed-program_constantsplanet_classes">Class definitions confirmed (program_constants.PLANET_CLASSES)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Radius range (km)</th>
+<th>Type</th>
+<th>Valid zone(s)</th>
+<th>Atmosphere</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M</td>
+<td>5000–10000</td>
+<td>t</td>
+<td>e only</td>
+<td>&quot;a mix of oxygen, nitrogen, and argon&quot;</td>
+</tr>
+<tr>
+<td>P</td>
+<td>5000–10000</td>
+<td>t</td>
+<td>e only</td>
+<td>&quot;a mix of oxygen, nitrogen, and argon (thinning with age)&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<p>M and P have <strong>identical radius ranges, identical density ranges</strong> (both terrestrial,
+<code>PLANET_DENSITY[&quot;t&quot;]</code> = 3.93–5.51 g/cm³), and <strong>identical atmosphere-parameter ranges</strong>
+(<code>ATMOSPHERE_DENSITY[&quot;t&quot;]</code> = 0.02–1.2 kg/m³, <code>ATMOSPHERIC_MOLAR_DENSITY[&quot;t&quot;]</code> =
+0.02897–0.04347 kg/mol) — nothing about their generation differs except their text
+description and life-chemical list. Every other terrestrial atmosphere-bearing class
+draws from the same two <code>&quot;t&quot;</code> ranges too (Class N is the sole special case, hard-coded to
+<code>atm_density = 65</code>, <code>atm_molar_density = max</code>).</p>
+<h2 id="headline-finding-the-removed-class-p-clamp-was-carrying-all-of-ps-cold-world-identity-and-its-gone">Headline finding: the removed Class P clamp was carrying all of P's &quot;cold world&quot; identity, and it's gone</h2>
+<p>Both the fixed-distance and randomized-distance runs show <strong>Class P is not colder than
+Class M</strong>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th>M mean temp (K)</th>
+<th>P mean temp (K)</th>
+<th>M stdev</th>
+<th>P stdev</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed distance (zone midpoint)</td>
+<td>276.35</td>
+<td>279.12 (P <em>warmer</em>)</td>
+<td>20.64</td>
+<td>20.23</td>
+</tr>
+<tr>
+<td>Randomized distance (full HZ)</td>
+<td>281.77</td>
+<td>276.75 (P colder, but by &lt;1 stdev)</td>
+<td>24.87</td>
+<td>25.10</td>
+</tr>
+</tbody>
+</table></div>
+<p>The sign of the M-vs-P difference <strong>flips between the two runs</strong>, and in both cases the
+gap (2.8 K and 5.0 K respectively) is small relative to the ~20-25 K standard deviation —
+i.e. statistically indistinguishable from noise, not a systematic &quot;P runs colder&quot; effect.
+This is expected once you trace the formula: P has no distance bias, no albedo bias, no
+atmosphere-parameter bias relative to M or any other terrestrial ecosphere class. The
+<em>only</em> thing that ever made P reliably cold was the disabled clamp
+(<code>elif planet.planet_class == &quot;P&quot; and planet.surface_temperature &gt;= 283: ...</code>, ~L416-422).
+With it gone, <strong>&quot;a cold, glaciated world&quot; is currently indistinguishable from &quot;a
+terrestrial Earth-like world&quot; in every generated physical quantity.</strong> This is squarely
+the class-differentiation failure mode the task asked me to check for.</p>
+<p><strong>Verdict: not safe to leave removed for Class P.</strong> Recommend restoring some form of
+cold-bias for P — either the original clamp, or (better long-term) giving P its own
+higher-albedo range or an outer-HZ-biased distance preference so the <em>unclamped</em> physics
+naturally trends cold instead of being force-overridden after the fact.</p>
+<h2 id="class-m-pressure-never-actually-reaches-earth-like-values">Class M: pressure never actually reaches Earth-like values</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Fixed-distance run</th>
+<th>Randomized-distance run</th>
+<th>Real Earth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gravity</code> (g)</td>
+<td>min 0.59, max 1.54, mean 1.00, sd 0.23</td>
+<td>min 0.57, max 1.54, mean 1.02, sd 0.22</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td><code>surface_temperature</code> (K)</td>
+<td>min 233.4, max 318.8, mean 276.4, sd 20.6</td>
+<td>min 218.5, max 341.3, mean 281.8, sd 24.9</td>
+<td>~288</td>
+</tr>
+<tr>
+<td><code>atmospheric_pressure</code> (Pa)</td>
+<td>min 1358, max 80947, mean 33681, sd 19398</td>
+<td>min 1572, max 90507, mean 32404, sd 20101</td>
+<td>101325</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Gravity</strong> clusters right on 1.00g on average, which is good — but the <em>spread</em>
+(0.57-1.54g) is a direct, mechanical consequence of the class's own <code>radius_range</code>
+(5000-10000 km) crossed with <code>PLANET_DENSITY[&quot;t&quot;]</code> (3.93-5.51 g/cm³): gravity is
+proportional to <code>density × radius</code>, and the class's own declared ranges alone produce
+a ~2.7x spread between the smallest/least-dense and largest/densest instance. This is a
+property of the class's declared radius/density envelope, not of the atmospheric-pressure
+fix under review — restoring the gravity clamp is a separate judgment call about whether
+&quot;Earth-like&quot; should mean &quot;tightly Earth-mass&quot; or &quot;plausible super-Earth/sub-Earth
+terrestrial&quot;, independent of the pressure/temperature question.</li>
+<li><strong>Pressure</strong> is the real problem: across 600 total samples (both runs combined),
+<strong>zero</strong> reached even 0.9 atm (91,193 Pa), let alone Earth's actual 101,325 Pa. The
+mean sits at roughly <strong>1/3 atm</strong>. This directly contradicts the TODO's premise that
+&quot;the corrected atmospheric-pressure formula ... lands close to realistic ranges on its
+own&quot; — for Class M specifically, it does not; it systematically undershoots.
+<ul>
+<li>Root cause: <code>atmospheric_pressure = atm_density * R * T / atm_molar_density</code> (the
+<code>scale_height</code>/gravity terms cancel algebraically, see below), and reproducing
+Earth's real 101,325 Pa needs <code>atm_density</code> near/above the sampled range's <em>ceiling</em>
+(1.2 kg/m³, itself only just above Earth's real 1.225 kg/m³) <strong>simultaneously</strong> with
+<code>atm_molar_density</code> near the range's <em>floor</em> (0.029 kg/mol, Earth's real air molar
+mass) — i.e. Earth sits in a corner of the two independently-uniformly-sampled
+parameters' joint space, not their center. Most draws land well short of that corner,
+hence the ~1/3-atm mean.</li>
+</ul>
+</li>
+<li><strong>Temperature</strong>: mean 276-282K is a plausible few degrees below Earth's 288K, but the
+spread is wide enough that a non-trivial share of &quot;Earth-like&quot; worlds come out well
+below freezing (36% of the randomized-distance M sample was below 0°C, with one draw as
+low as 218K / -55°C). A single named &quot;Earth-like&quot; class regularly generating worlds
+colder than Antarctica's average is a sanity failure regardless of the clamp-removal
+question.</li>
+</ul>
+<p><strong>Verdict: not safe to leave removed for Class M either</strong>, specifically for pressure (never
+reaches realistic Earth values) and, more marginally, temperature (long cold tail). Gravity
+alone looks fine on its own (mean ≈1g) but inherits a wide spread from the class's radius/
+density definition that's an independent question from the pressure formula fix.</p>
+<h2 id="likely-root-cause-behind-both-ms-and-ps-issues-the-greenhouse-factor-formula-looks-physically-inverted">Likely root cause behind both M's and P's issues: the greenhouse-factor formula looks physically inverted</h2>
+<pre><code class="language-python">greenhouse_factor = abs((planet.atm_molar_density - physical_constants.CO2_BASE_MOLAR_DENSITY)
+                         / physical_constants.CO2_BASE_MOLAR_DENSITY
+                         * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
+</code></pre>
+<p>This computes &quot;how far is this atmosphere's average molar mass from pure CO<sub>2</sub>'s own molar
+mass&quot; and uses <em>that distance</em> as the greenhouse boost — meaning an atmosphere whose molar
+density happens to sit <strong>near CO<sub>2</sub>'s own value gets ~zero greenhouse boost</strong>, while one that's
+<strong>far from CO<sub>2</sub> (in either direction)</strong> gets a large boost. That's backwards from reality
+(CO<sub>2</sub>-heavy atmospheres are strong greenhouse absorbers; drifting away from CO<sub>2</sub> isn't what
+produces warming). Two concrete symptoms observed in the data:</p>
+<ul>
+<li><strong>Class N</strong> (&quot;a hot world with a dense, reducing atmosphere&quot;) is hard-coded to
+<code>atm_density = 65</code> (correctly Venus-like) and <code>atm_molar_density = max</code> — which happens to
+sit almost exactly at <code>CO2_BASE_MOLAR_DENSITY</code> (0.04345 vs 0.04347). Its greenhouse_factor
+is therefore ≈0, and its measured surface temperature (mean 240K, range 231.7-249.9K) comes
+out <strong>colder than Class M</strong> despite N carrying a ~30-atm CO<sub>2</sub>-dominated atmosphere (mean
+pressure 2.98 MPa) that in reality would produce an extreme, Venus-like greenhouse effect. A
+class explicitly designed to be &quot;hot&quot; with a &quot;dense&quot; atmosphere is the coldest terrestrial
+class sampled.</li>
+<li><strong>Gas giants (I, J, S, T, U)</strong> draw <code>atm_molar_density</code> from <code>ATMOSPHERIC_MOLAR_DENSITY[&quot;g&quot;]</code>
+(0.00226-0.00416 kg/mol), which is always <em>very</em> far from CO<sub>2</sub>'s molar mass, so their
+greenhouse_factor sits pinned near its ceiling (<code>CO2_MAX_GREENHOUSE_FACTOR = 5</code>) regardless
+of the actual draw. H<sub>2</sub>/He atmospheres are not meaningfully greenhouse-active in reality, so
+applying a near-maximum CO<sub>2</sub>-style greenhouse boost to every gas giant is another instance of
+the same inversion.</li>
+<li>Because <code>atm_molar_density</code> is drawn independently at random for every class (it is <em>not</em>
+derived from the class's own described atmosphere composition text at all, except for the
+N special case), this formula effectively injects large, physically ungrounded temperature
+noise into every terrestrial and gas-giant class alike — which is very likely the dominant
+reason the disabled M/P clamps existed in the first place, and why removing them produces
+wide, undifferentiated temperature distributions across nearly every class.</li>
+</ul>
+<p>This is a substantive greenhouse-model design question (what should stand in for &quot;how much
+CO<sub>2</sub>/greenhouse gas is actually present,&quot; since the codebase doesn't currently track that as
+its own quantity) rather than a one-line fix, so <strong>I did not change it</strong> — flagging for the
+user's judgment rather than a clamp-restoration decision.</p>
+<h2 id="other-terrestrialatmosphere-bearing-classes-type-t-atmosphere--none">Other terrestrial/atmosphere-bearing classes (type &quot;t&quot;, atmosphere ≠ None)</h2>
+<p>Sampled A, B, E, F, G, H, K, L, N, O, Q, V, W, Y (X, C, D have <code>atmosphere: None</code> and were
+sampled only for gravity/temperature/mass/radius, not atmospheric fields).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Zone</th>
+<th>Gravity mean (sd)</th>
+<th>Temp mean K (sd)</th>
+<th>Pressure mean Pa (sd)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>h</td>
+<td>0.38 (0.17)</td>
+<td>433.8 (30.7)</td>
+<td>51,350 (31,541)</td>
+</tr>
+<tr>
+<td>B</td>
+<td>h</td>
+<td>0.38 (0.18)</td>
+<td>434.9 (31.7)</td>
+<td>55,974 (32,349)</td>
+</tr>
+<tr>
+<td>E</td>
+<td>e</td>
+<td>1.00 (0.21)</td>
+<td>278.2 (20.7)</td>
+<td>34,418 (19,907)</td>
+</tr>
+<tr>
+<td>F</td>
+<td>e</td>
+<td>1.02 (0.21)</td>
+<td>278.7 (20.2)</td>
+<td>34,203 (19,809)</td>
+</tr>
+<tr>
+<td>G</td>
+<td>e</td>
+<td>1.01 (0.22)</td>
+<td>278.2 (20.7)</td>
+<td>34,418 (19,971)</td>
+</tr>
+<tr>
+<td>H</td>
+<td>e</td>
+<td>1.00 (0.21)</td>
+<td>278.7 (19.6)</td>
+<td>34,359 (19,672)</td>
+</tr>
+<tr>
+<td>K</td>
+<td>e</td>
+<td>0.68 (0.20)</td>
+<td>278.0 (20.1)</td>
+<td>33,933 (19,355)</td>
+</tr>
+<tr>
+<td>L</td>
+<td>e</td>
+<td>0.84 (0.13)</td>
+<td>278.9 (19.7)</td>
+<td>34,588 (19,774)</td>
+</tr>
+<tr>
+<td>M</td>
+<td>e</td>
+<td>1.00 (0.23)</td>
+<td>276.4 (20.6)</td>
+<td>33,681 (19,398)</td>
+</tr>
+<tr>
+<td>N</td>
+<td>e</td>
+<td>1.02 (0.22)</td>
+<td>240.1 (5.3)</td>
+<td>2,983,190 (66,105)</td>
+</tr>
+<tr>
+<td>O</td>
+<td>e</td>
+<td>1.02 (0.22)</td>
+<td>280.1 (19.9)</td>
+<td>33,360 (19,466)</td>
+</tr>
+<tr>
+<td>P</td>
+<td>e</td>
+<td>1.01 (0.21)</td>
+<td>279.1 (20.2)</td>
+<td>34,879 (20,058)</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>e</td>
+<td>0.66 (0.23)</td>
+<td>278.7 (19.4)</td>
+<td>34,155 (19,969)</td>
+</tr>
+<tr>
+<td>V</td>
+<td>e</td>
+<td>1.67 (0.25)</td>
+<td>279.1 (19.3)</td>
+<td>33,775 (19,743)</td>
+</tr>
+<tr>
+<td>W</td>
+<td>e</td>
+<td>0.73 (0.38)</td>
+<td>276.3 (20.5)</td>
+<td>34,351 (19,445)</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>h</td>
+<td>0.84 (0.13)</td>
+<td>435.5 (30.4)</td>
+<td>52,121 (30,888)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Finding: nearly every ecosphere-zone terrestrial class (E, F, G, H, K, L, M, O, P, Q, V, W)
+produces a statistically indistinguishable atmospheric-pressure and surface-temperature
+distribution.</strong> Compare, e.g., K (&quot;an adaptable world with a <em>thin</em> atmosphere&quot;) to M
+(&quot;Earth-like&quot;): K's pressure (mean 33,933 Pa) is not meaningfully thinner than M's (mean
+33,681 Pa) — if anything they're identical within noise. Q (&quot;variable atmosphere, thin to
+dense&quot;) and V (&quot;Super-Earth&quot;, the only class with a visibly distinct gravity mean, ≈1.67g
+from its larger radius range 10000-15000km) both land on the same pressure/temperature
+distribution as everyone else. This is because <code>atm_density</code>/<code>atm_molar_density</code> are drawn
+from the same <code>&quot;t&quot;</code>-keyed range for every terrestrial class regardless of the individual
+class's flavor text — the class descriptions (&quot;thin&quot;, &quot;dense&quot;, &quot;variable&quot;, &quot;toxic&quot;) are
+currently cosmetic and not reflected in the actual generated physics for anything but the
+one N special case. This is a pre-existing characteristic of the generation model (not
+something the pressure-formula fix changed), but it's directly relevant to &quot;do classes
+differentiate from each other when they should,&quot; so it's included here.</p>
+<p>A, B, and Y (hot-zone-only classes) show a visibly different, hotter distribution — but
+that's purely because they're placed at a much closer/hotter distance (zone 'h'), not
+because of any atmosphere-parameter difference from the ecosphere classes.</p>
+<h2 id="gas-giants-type-g-i-j-s-t-u">Gas giants (type &quot;g&quot;: I, J, S, T, U)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Radius range (km)</th>
+<th>Real analog</th>
+<th>Gravity mean (range)</th>
+<th>Density mean g/cm³ (range)</th>
+<th>Pressure mean Pa (range)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>15,000–50,000</td>
+<td>Neptune/Uranus</td>
+<td>0.33 (0.017–1.20)</td>
+<td>0.36 (0.026–0.91)</td>
+<td>428,199 (228,039–754,212)</td>
+</tr>
+<tr>
+<td>J</td>
+<td>25,000–250,000</td>
+<td>Jupiter-and-beyond</td>
+<td>1.42 (0.06–5.99)</td>
+<td>0.36 (0.035–0.93)</td>
+<td>433,488 (222,441–736,523)</td>
+</tr>
+<tr>
+<td>S</td>
+<td>250,000–50,000,000</td>
+<td>&quot;supergiant&quot; (no real analog)</td>
+<td>262.5 (1.97–1267.6)</td>
+<td>0.37 (0.026–0.95)</td>
+<td>428,982 (215,351–765,181)</td>
+</tr>
+<tr>
+<td>T</td>
+<td>250,000–25,000,000</td>
+<td>&quot;gas dwarf&quot; (no real analog)</td>
+<td>134.9 (1.35–553.6)</td>
+<td>0.37 (0.027–0.97)</td>
+<td>417,907 (232,454–717,192)</td>
+</tr>
+<tr>
+<td>U</td>
+<td>25,000,000–60,000,000</td>
+<td>&quot;ultragiant&quot; (no real analog)</td>
+<td>413.0 (25.5–1355.4)</td>
+<td>0.34 (0.027–0.96)</td>
+<td>418,861 (218,257–743,364)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Real-world reference: Jupiter surface (1-bar level) gravity ≈2.53g, bulk density ≈1.33
+g/cm³, reference pressure by definition ≈1 atm (101,325 Pa); Saturn gravity ≈1.06g, bulk
+density ≈0.69 g/cm³; Neptune gravity ≈1.14g, bulk density ≈1.64 g/cm³.</p>
+<p>Two clear findings here, one of them a demonstrable, mechanical bug in how gas-giant
+density is blended, and one a mathematically provable formula property:</p>
+<h3 id="1-gas-giant-density-blending-planetphysicspy-l308-311-produces-implausibly-fluffy-planets">1. Gas-giant density blending (planetPhysics.py L308-311) produces implausibly &quot;fluffy&quot; planets</h3>
+<pre><code class="language-python">if planet.body_type == 'g':
+    core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
+    planet.density = planet.density * core_to_atmosphere_ratio + (1 - core_to_atmosphere_ratio) * (planet.atm_density / 1000)
+</code></pre>
+<p><code>GAS_GIANT_CORE_ATMOSPHERE_RATIO</code> (0.03-0.6) is documented as &quot;the average ratio of a gas
+giant's core mass to its <strong>total mass</strong>&quot; — a <em>mass</em> fraction. This code uses it directly as
+a weight in a simple arithmetic blend of two <em>densities</em> (bulk-rock-like core density ~0.69-
+1.64 g/cm³, and atmosphere density rescaled to ~0.0007-0.0013 g/cm³). Blending densities by
+mass-fraction like this is not physically meaningful (density is intensive; combining two
+components' densities correctly requires their volume fractions, roughly a harmonic-mean-like
+combination, not a mass-fraction-weighted arithmetic mean of densities). Because the
+atmosphere's density contribution is ~1000x smaller than the core's, and the core's mass
+fraction is frequently the low end of its range (down to 3%), the blend frequently produces
+overall planet densities as low as <strong>0.026-0.035 g/cm³</strong> (min values seen across all five gas
+giant classes) — meaningfully fluffier than any known giant planet or even known &quot;puffy&quot;
+hot-Jupiter exoplanets, and it's this artificially low density that in turn produces the
+very low gravity values seen for I/J (as low as 0.017g and 0.064g respectively) despite
+still having Neptune-to-Jupiter-scale radii. This looks like a genuine modeling bug, but
+fixing it correctly requires deciding what <code>GAS_GIANT_CORE_ATMOSPHERE_RATIO</code> should really
+mean (mass fraction vs. volume fraction) and re-deriving the blend accordingly — a design
+decision, not a one-line change, so left for the user's judgment rather than fixed here.</p>
+<h3 id="2-atmospheric-pressure-is-mathematically-independent-of-surface-gravity--for-every-class-not-just-gas-giants">2. Atmospheric pressure is mathematically independent of surface gravity — for every class, not just gas giants</h3>
+<p>Tracing the formula:</p>
+<pre><code>scale_height_m        = R * T / (atm_molar_density * g_ms2)
+atmospheric_pressure   = atm_density * g_ms2 * scale_height_m
+                        = atm_density * g_ms2 * [R * T / (atm_molar_density * g_ms2)]
+                        = atm_density * R * T / atm_molar_density        # g_ms2 cancels exactly
+</code></pre>
+<p>Verified numerically (holding <code>atm_density</code>, <code>atm_molar_density</code>, <code>T</code> fixed and varying
+gravity from 0.2g to 50g): the resulting pressure is <strong>bit-identical</strong> at every gravity
+value. A supplementary correlation check across 300 randomly-generated Class M and P
+planets each gives <code>corr(gravity, pressure) ≈ 0.02</code> and <code>-0.14</code> respectively — statistical
+noise, not a relationship. This explains why classes I, J, S, T, and U — spanning a
+~1,200,000km radius range and a &gt;1000x gravity range (0.06g to 1355g) between them — all
+produce essentially the <strong>same</strong> atmospheric-pressure distribution (all cluster around
+400,000-430,000 Pa / ~4 atm, regardless of class). Real atmospheric retention is strongly
+gravity-dependent (it's a large part of why Mars, at 0.38g, has ~0.6% of Earth's pressure
+despite comparable early volatile inventories); this model's <code>atm_density</code> (the free,
+independently-drawn parameter that stands in for &quot;how much atmosphere was retained&quot;) has
+no coupling to gravity/escape velocity at all, so this decoupling is real and applies to
+every class, terrestrial and gas giant alike — it isn't a Class-M/P-specific issue, and the
+module's own docstring (&quot;estimates the atmospheric pressure based on the atmospheric mass
+and planet's gravity&quot;) no longer matches what the code actually does once <code>scale_height</code> is
+substituted in. This is a modeling-completeness question (should <code>atm_density</code> be derived
+from a gravity/escape-velocity-aware retention model rather than sampled independently) —
+worth the user's attention, but re-deriving <code>atm_density</code> from first principles is a design
+decision, so it's flagged here rather than changed.</p>
+<h2 id="fix-applied">Fix applied</h2>
+<p><code>planetgen/physics/constants.py</code>'s <code>ATMOSPHERE_DENSITY[&quot;t&quot;]</code> comment previously read
+&quot;Terrestrial: Range from Mars to Venus&quot; for the range <code>(0.02, 1.2)</code> kg/m³. Real Venus surface
+air density is ~65 kg/m³ — roughly 50x this range's own ceiling — while real Earth sea-level
+air density (~1.225 kg/m³) matches the range's ceiling almost exactly. The comment was
+unambiguously wrong (not a judgment call) and made the terrestrial atmosphere-density range
+look far more permissive than it actually is, which is directly relevant to why Class M's
+pressure undershoots real Earth values (see above) — so it was corrected in place; no
+behavior changed, this is a comment-only fix.</p>
+<h2 id="summary-of-recommendations">Summary of recommendations</h2>
+<ol>
+<li><strong>Do not leave the Class P clamp removed as-is.</strong> Without it, P is statistically
+indistinguishable from M (and from every other ecosphere terrestrial class) in
+temperature — its entire &quot;cold, glaciated&quot; identity currently depends on that disabled
+clamp. Either restore it, or give P its own parameters (higher albedo range, an
+outer-HZ-biased placement, or a class-specific greenhouse penalty) so the physics
+produces cold worlds without a post-hoc override.</li>
+<li><strong>Do not leave the Class M pressure clamp removed as-is.</strong> Across 600 samples spanning
+two different distance-sampling strategies, zero reached even 0.9 atm; the mean sits at
+~1/3 atm. The &quot;fixed formula lands close to realistic ranges on its own&quot; premise does
+not hold for M's pressure. Either restore the pressure clamp, or narrow/re-center
+<code>ATMOSPHERE_DENSITY[&quot;t&quot;]</code>/<code>ATMOSPHERIC_MOLAR_DENSITY[&quot;t&quot;]</code> specifically for M so its
+own distribution centers nearer Earth's actual values.</li>
+<li><strong>Class M's gravity clamp is a separable, lower-priority question.</strong> Its mean already
+centers on 1.00g; the wide spread (0.57-1.54g) comes from the class's own declared
+radius/density envelope, not from anything the pressure-formula fix touched. Whether
+that spread is &quot;too wide for Earth-like&quot; is a judgment call about the class's radius/
+density range design, independent of the atmosphere-formula question.</li>
+<li><strong>Investigate the greenhouse_factor formula</strong> (<code>planetPhysics.py</code> ~L402) — it currently
+rewards atmospheres for being <em>far</em> from CO<sub>2</sub>'s own molar density rather than for
+<em>containing</em> more CO<sub>2</sub>/greenhouse gas, which produces backwards results for at least
+Class N (a &quot;dense,&quot; CO<sub>2</sub>-heavy world coming out colder than &quot;Earth-like&quot; M) and
+arguably for every gas giant (near-max greenhouse boost applied uniformly to
+non-greenhouse-active H<sub>2</sub>/He atmospheres). This is very likely the dominant source of
+the wide, undifferentiated temperature spread seen across nearly all classes, and is
+probably the real reason the M/P clamps existed in the first place.</li>
+<li><strong>Most ecosphere terrestrial classes (E, F, G, H, K, L, M, N-partially, O, P, Q, V, W)
+are statistically indistinguishable from each other in pressure and temperature</strong> since
+they all draw from the same <code>&quot;t&quot;</code>-keyed atmosphere-parameter ranges. Whether that's
+acceptable (they're meant to differ mainly in flavor text/life chemistry, not raw
+physics) or should be tightened per-class is a design call for the user; flagged here
+as a &quot;classes don't differentiate&quot; observation per the task brief.</li>
+<li><strong>Gas-giant density blending (I/J/S/T/U) produces implausibly low densities</strong> (as low
+as 0.026 g/cm³) from mixing a mass-fraction ratio into a simple arithmetic density
+blend; this is very likely a genuine bug, but the correct fix depends on clarifying
+what <code>GAS_GIANT_CORE_ATMOSPHERE_RATIO</code> is meant to represent, so it's left to the user.</li>
+<li><strong>Atmospheric pressure is mathematically decoupled from gravity for every class</strong> (the
+gravity term cancels exactly in the current formula) — real atmospheric retention is
+strongly gravity-dependent, and this is worth a deliberate design decision about
+whether/how to reintroduce that coupling (e.g. deriving <code>atm_density</code> from an
+escape-velocity-aware retention model) rather than sampling it independently.</li>
+</ol>
+<p>No <code>planetPhysics.py</code> clamp logic was touched, per the task's constraints — all six
+substantive findings above are flagged for the user's decision. Only the one
+unambiguous, behavior-preserving documentation fix (item under &quot;Fix applied&quot;) was made.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

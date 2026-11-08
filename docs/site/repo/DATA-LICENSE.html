@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data sources and their terms - planetGen docs</title>
+<meta name="description" content="The program&#x27;s own code and text are released under CC0 (LICENSE.md).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/DATA-LICENSE.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="repo/DATA-LICENSE.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="data-sources-and-their-terms">Data sources and their terms</h1><p class="meta">DATA-LICENSE.md</p><details class="toc"><summary>On this page (32 headings)</summary><ul><li style="margin-left:0px"><a href="#the-materials-table-srcplanetgenphysicsdatamaterialsjson-gen427">The materials table (src/planetgen/physics/data/materials.json, GEN.427)</a></li><li style="margin-left:0px"><a href="#the-gas-table-srcplanetgenphysicsdatagasesjson-gen410">The gas table (src/planetgen/physics/data/gases.json, GEN.410)</a></li><li style="margin-left:0px"><a href="#the-proton-range-file-srcplanetgenphysicsdataproton_rangejson-gen453">The proton range file (src/planetgen/physics/data/proton_range.json, GEN.453)</a></li><li style="margin-left:0px"><a href="#the-element-and-isotope-files-elementsjson-isotopesjson-decay_seriesjson-gen438">The element and isotope files (elements.json, isotopes.json, decay_series.json, GEN.438)</a></li><li style="margin-left:0px"><a href="#datasets-fetched-at-setup-srcplanetgendatasets">Datasets fetched at setup (src/planetgen/datasets/)</a></li><li style="margin-left:0px"><a href="#the-chappuis-cross-sections-srcplanetgenphysicsdataozone_chappuisjson-gen418">The Chappuis cross sections (src/planetgen/physics/data/ozone_chappuis.json, GEN.418)</a></li><li style="margin-left:0px"><a href="#the-comet-volatile-population-srcplanetgenphysicsdatacomet_populationjson-gen495">The comet volatile population (src/planetgen/physics/data/comet_population.json, GEN.495)</a></li><li style="margin-left:0px"><a href="#the-polluted-white-dwarfs-srcplanetgenphysicsdatawd_pollution_samplejson-gen508">The polluted white dwarfs (src/planetgen/physics/data/wd_pollution_sample.json, GEN.508)</a></li><li style="margin-left:0px"><a href="#the-precisely-measured-planets-srcplanetgenphysicsdatamass_radius_samplejson-gen505">The precisely measured planets (src/planetgen/physics/data/mass_radius_sample.json, GEN.505)</a></li><li style="margin-left:0px"><a href="#the-planets-with-a-jwst-spectrum-srcplanetgenphysicsdatajwst_selectionjson-gen506">The planets with a JWST spectrum (src/planetgen/physics/data/jwst_selection.json, GEN.506)</a></li><li style="margin-left:0px"><a href="#the-kepler-recovery-curve-srcplanetgenphysicsdatakepler_recoveryjson-gen504">The Kepler recovery curve (src/planetgen/physics/data/kepler_recovery.json, GEN.504)</a></li><li style="margin-left:0px"><a href="#the-thorium-of-thick-disc-stars-srcplanetgenphysicsdatatuning_targetsjson-targets-o2-mean-and-o2-sd-gen514">The thorium of thick-disc stars (src/planetgen/physics/data/tuning_targets.json targets o2-mean and o2-sd, GEN.514)</a></li><li style="margin-left:0px"><a href="#the-comets-with-a-measured-composition-srcplanetgenphysicsdatacomet_admissionjson-gen507">The comets with a measured composition (src/planetgen/physics/data/comet_admission.json, GEN.507)</a></li><li style="margin-left:0px"><a href="#the-compaction-table-srcplanetgenphysicsdatacompaction_tablejson-gen442">The compaction table (src/planetgen/physics/data/compaction_table.json, GEN.442)</a></li><li style="margin-left:0px"><a href="#the-habitable-zone-fits-srcplanetgenphysicsorbitspy-gen146">The habitable-zone fits (src/planetgen/physics/orbits.py, GEN.146)</a></li><li style="margin-left:0px"><a href="#the-aquifer-model-srcplanetgenphysicsaquiferspy-gen654">The aquifer model (src/planetgen/physics/aquifers.py, GEN.654)</a></li><li style="margin-left:0px"><a href="#the-water-layer-of-the-structure-solver-srcplanetgenphysicsbulk_structurepy-gen429">The water layer of the structure solver (src/planetgen/physics/bulk_structure.py, GEN.429)</a></li><li style="margin-left:0px"><a href="#clathrate-hydrates-and-eutectic-brines-srcplanetgenphysicsdataclathrate_brinejson-gen471">Clathrate hydrates and eutectic brines (src/planetgen/physics/data/clathrate_brine.json, GEN.471)</a></li><li style="margin-left:0px"><a href="#papers-datasets-and-code-read-for-the-second-hand-citation-pass-10-24-reportssecondhand-citations-2026-10-24md">Papers, datasets and code read for the second-hand citation pass (10-24, reports/secondhand-citations-2026-10-24.md)</a></li><li style="margin-left:14px"><a href="#uploaded-by-boss">Uploaded by Boss</a></li><li style="margin-left:14px"><a href="#open-papers-read-through-arxiv-with-the-licence-shown-on-the-abstract-page">Open papers read through arXiv, with the licence shown on the abstract page</a></li><li style="margin-left:14px"><a href="#datasets-tables-and-code">Datasets, tables and code</a></li><li style="margin-left:14px"><a href="#not-read-at-all">Not read at all</a></li><li style="margin-left:0px"><a href="#water-against-formation-distance-docsdesigncompositionvolatile-delivery-formation-distancemd-gen481">Water against formation distance (docs/design/composition/volatile-delivery-formation-distance.md, GEN.481)</a></li><li style="margin-left:0px"><a href="#magma-ocean-redox-against-mass-docsdesigncompositionmagma-ocean-redox-against-massmd-gen482">Magma-ocean redox against mass (docs/design/composition/magma-ocean-redox-against-mass.md, GEN.482)</a></li><li style="margin-left:0px"><a href="#impact-erosion-and-late-delivery-docsdesigncompositionimpact-erosion-and-late-deliverymd-srcplanetgenphysicsimpact_historypy-gen739">Impact erosion and late delivery (docs/design/composition/impact-erosion-and-late-delivery.md, src/planetgen/physics/impact_history.py, GEN.739)</a></li><li style="margin-left:0px"><a href="#volatile-inventory-against-the-totals-of-the-earth-venus-mars-and-titan-docsdesigncompositionvolatile-inventory-against-planet-totalsmd-srcplanetgenphysicsmixture_rockypy-gen813">Volatile inventory against the totals of the Earth, Venus, Mars and Titan (docs/design/composition/volatile-inventory-against-planet-totals.md, src/planetgen/physics/mixture_rocky.py, GEN.813)</a></li><li style="margin-left:0px"><a href="#atmospheric-escape-a-thermosphere-model-docsdesigncompositionatmospheric-escape-modelmd-srcplanetgenphysicsthermospherepy-gen738">Atmospheric escape: a thermosphere model (docs/design/composition/atmospheric-escape-model.md, src/planetgen/physics/thermosphere.py, GEN.738)</a></li><li style="margin-left:0px"><a href="#planetary-material-strength-roundness-and-the-other-sources-added-2026-10-31-gen1158-gen1184-gen1186-and-the-trojan-stellar-to-halo-tide-and-habitability-work">Planetary material strength, roundness and the other sources added 2026-10-31 (GEN.1158, GEN.1184, GEN.1186, and the Trojan, stellar-to-halo, tide and habitability work)</a></li><li style="margin-left:14px"><a href="#journal-papers-and-books-publisher-copyright-values-only">Journal papers and books (publisher copyright; values only)</a></li><li style="margin-left:14px"><a href="#documents-reports-and-notes-read-for-the-strength-work">Documents, reports and notes read for the strength work</a></li><li style="margin-left:14px"><a href="#open-papers-read-through-arxiv-with-the-licence-shown-on-the-abstract-page-1">Open papers read through arXiv, with the licence shown on the abstract page</a></li></ul></details>
+<p>The program's own code and text are released under CC0 (LICENSE.md). This file records where the data files in the repository came
+from and what is known of their terms. The data tables carry no licence column (Boss, 2026-10-22: &quot;Remove a license column and
+move license information to its own file in root&quot;; the file is this one, DATA-LICENSE.md). Boss manages licensing.</p>
+<p>Rule (Boss, 2026-10-17, 2:35 PM EDT): every paper and dataset acquired is usable. The raw papers and downloaded datasets are
+never in the repository and are never redistributed or sold; the values read from them and derived from them are published, and
+the program stays free forever. Where no licence statement was found, the entry says so.</p>
+<h2 id="the-materials-table-srcplanetgenphysicsdatamaterialsjson-gen427">The materials table (<code>src/planetgen/physics/data/materials.json</code>, GEN.427)</h2>
+<p>The keys are the source keys of the file.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source key</th>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>research-e</code></td>
+<td>Part E of the body composition research (this repository, <code>docs/design/composition/body-composition-parts/</code>)</td>
+<td>The project's own text; its values are read from the sources below</td>
+</tr>
+<tr>
+<td><code>nist-webbook</code></td>
+<td>NIST Chemistry WebBook phase-change and critical data</td>
+<td>NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was sought</td>
+</tr>
+<tr>
+<td><code>crc-chemicals</code></td>
+<td>CRC Handbook tables as carried in the <code>chemicals</code> 1.5.2 package</td>
+<td>Copyright of the handbook's publisher; the package's own licence is open source; read second-hand</td>
+</tr>
+<tr>
+<td><code>pdg-nuclear</code></td>
+<td>Particle Data Group atomic and nuclear properties</td>
+<td>PDG data are free to use with citation</td>
+</tr>
+<tr>
+<td><code>slb2011-burnman</code></td>
+<td>Mineral parameters of Stixrude and Lithgow-Bertelloni (2011), as shipped in <code>burnman</code></td>
+<td><code>burnman</code> is open source (GPL); read second-hand, only values are kept</td>
+</tr>
+<tr>
+<td><code>slb2024-burnman</code></td>
+<td>Stixrude and Lithgow-Bertelloni (2024), as parameters read in <code>burnman</code> 2.1.0</td>
+<td>As above</td>
+</tr>
+<tr>
+<td><code>e-table-2.6</code></td>
+<td>Band reflectance computed in part E from spectral library values</td>
+<td>Computed values; the libraries (USGS splib07a and others) are public or open data</td>
+</tr>
+<tr>
+<td><code>computed-e</code></td>
+<td>Values computed in part E from its other columns</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>handbook-mineralogy</code></td>
+<td>Handbook of Mineralogy, Mineral Data Publishing and the Mineralogical Society of America (the editions of 2001 to 2005)</td>
+<td>&quot;All rights reserved&quot; is printed on each page; only the density values read from the pages are kept, with the citation</td>
+</tr>
+<tr>
+<td><code>webmineral</code></td>
+<td>Webmineral Mineralogy Database (David Barthelmy)</td>
+<td>No licence statement found; only the listed density values are kept</td>
+</tr>
+<tr>
+<td><code>crc-density-wiki</code></td>
+<td>Wikipedia, &quot;Densities of the elements (data page)&quot;</td>
+<td>CC BY-SA 4.0 for the page text; the values are CRC and WebElements figures; only the values are kept</td>
+</tr>
+<tr>
+<td><code>pubchem</code></td>
+<td>PubChem compound pages, section Density</td>
+<td>PubChem data are open; each annotation quotes its own source (CRC, USCG, NTP, EPA, HSDB)</td>
+</tr>
+<tr>
+<td><code>seager2007</code></td>
+<td>Seager, Kuchner, Hier-Majumder and Militzer 2007, ApJ 669, 1279 (arXiv:0707.2895)</td>
+<td>Published paper; Tables 1 to 3 were read and their values are kept with the citation</td>
+</tr>
+<tr>
+<td><code>hakim2018</code></td>
+<td>Hakim et al. 2018, Icarus 313, 61, as read in part B</td>
+<td>Published paper; values only</td>
+</tr>
+<tr>
+<td><code>part-b-fit</code></td>
+<td>Part B's own fit (this repository)</td>
+<td>The project's own work</td>
+</tr>
+<tr>
+<td><code>exoplex</code></td>
+<td>ExoPlex 1.0.1a1 source distribution</td>
+<td>Open source; read second-hand</td>
+</tr>
+<tr>
+<td><code>lsbu-ice-phases</code></td>
+<td>Chaplin, Water Structure and Science, the ice phases table (water.lsbu.ac.uk)</td>
+<td>No licence statement found; only the listed crystallographic densities are kept, with the citation</td>
+</tr>
+<tr>
+<td><code>titan-haze-density</code></td>
+<td>Titan haze density compilation of the UCSC titan materials group</td>
+<td>No licence statement found for the page; published laboratory values kept as values with the citation</td>
+</tr>
+<tr>
+<td><code>sshade-solid</code></td>
+<td>SSHADE solid-phase pages (Solid Spectroscopy Hosting Architecture of Databases and Expertise)</td>
+<td>No licence statement was checked; only the listed density values are kept</td>
+</tr>
+<tr>
+<td><code>wikipedia-infobox</code></td>
+<td>Wikipedia compound and element infoboxes</td>
+<td>CC BY-SA 4.0 for the page text; only the density values are kept</td>
+</tr>
+<tr>
+<td><code>wikipedia-solid-oxygen</code></td>
+<td>Wikipedia, &quot;Solid oxygen&quot;</td>
+<td>CC BY-SA 4.0 for the page text; only the molar volume was read, and the density is computed here</td>
+</tr>
+<tr>
+<td><code>hp2011-burnman</code></td>
+<td>Holland and Powell (2011) data set as shipped in <code>burnman</code></td>
+<td>As for <code>burnman</code></td>
+</tr>
+<tr>
+<td><code>journaux2020</code></td>
+<td>Journaux et al. 2020 Gibbs splines as distributed in SeaFreeze 1.1.3, evaluated in part C</td>
+<td>SeaFreeze is GPL-3; only the spline data were used and the evaluator is the project's own; values only</td>
+</tr>
+<tr>
+<td><code>blum-bischoff</code></td>
+<td>Blum and Bischoff, arXiv:2207.12731, as read in part C</td>
+<td>Preprint; values only</td>
+</tr>
+<tr>
+<td><code>cod-part-d</code></td>
+<td>Densities computed in part D (section 2.1) from the Crystallography Open Database cell of the same formula</td>
+<td>COD entries are public domain (CC0); only the computed densities are kept</td>
+</tr>
+<tr>
+<td><code>ideal-gas</code></td>
+<td>The ideal gas law</td>
+<td>None (exact law)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-gas-table-srcplanetgenphysicsdatagasesjson-gen410">The gas table (<code>src/planetgen/physics/data/gases.json</code>, GEN.410)</h2>
+<p>Every row was recorded as <code>open</code> (no licence found). NIST Standard Reference Data are copyrighted (permission is noted in body
+composition part G4); PubChem and USGS data are public domain. The sources are listed in the file's <code>sources</code>.</p>
+<h2 id="the-proton-range-file-srcplanetgenphysicsdataproton_rangejson-gen453">The proton range file (<code>src/planetgen/physics/data/proton_range.json</code>, GEN.453)</h2>
+<p>The CSDA range and total stopping power of protons at 26 energies from 1 MeV to 10 GeV in 17 materials, as printed by NIST
+PSTAR (NIST Standard Reference Database 124, ICRU Report 49), thinned from PSTAR's 133 energies by
+<code>scripts/build_proton_range.py</code>. NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was
+sought. The raw pages are never in the repository.</p>
+<h2 id="the-element-and-isotope-files-elementsjson-isotopesjson-decay_seriesjson-gen438">The element and isotope files (<code>elements.json</code>, <code>isotopes.json</code>, <code>decay_series.json</code>, GEN.438)</h2>
+<ul>
+<li><code>elements.json</code>: the tables are CIAAW's (c) 2007-2024; no licence statement was found.</li>
+<li><code>isotopes.json</code>: NUBASE2020 and AME2020 are the AMDC's, NIST's listing carries no licence statement, and the two papers (Lugaro et
+al. 2018, Dye 2012) are published.</li>
+<li><code>decay_series.json</code>: computed from the NUBASE2020 file.</li>
+</ul>
+<h2 id="datasets-fetched-at-setup-srcplanetgendatasets">Datasets fetched at setup (<code>src/planetgen/datasets/</code>)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Terms recorded</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isochrones</code> (MIST v1.2)</td>
+<td>Open; cite Choi et al. 2016 and Dotter 2016</td>
+</tr>
+<tr>
+<td><code>neutron_star_matter</code></td>
+<td>CC BY 4.0</td>
+</tr>
+<tr>
+<td><code>white_dwarf_models</code></td>
+<td>Open; cite Bedard et al. 2020</td>
+</tr>
+<tr>
+<td><code>white_dwarf_mass_radius.json</code></td>
+<td>Computed here from physical constants; no third-party data</td>
+</tr>
+<tr>
+<td><code>ozone_uv</code> (AD9, GEN.443; MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24, Zenodo record 6951)</td>
+<td>CC BY 4.0; cite Keller-Rudek et al. 2013 (Earth Syst. Sci. Data 5, 365); the cross sections read are those of Daumont et al. 1992, Malicet et al. 1995 and Brion et al. 1998; the archive is downloaded at setup and removed after the four tables are kept</td>
+</tr>
+<tr>
+<td><code>ir_ktables</code> (AD10, GEN.715; ExoMolOP R1000 correlated-k tables of H<sub>2</sub>O (POKAZATEL), CO<sub>2</sub> (UCL-4000), CH<sub>4</sub> (YT34to10) from exomol.com)</td>
+<td>Terms not yet recorded by Boss; cite Chubb et al. 2021 (A&amp;A 646, A21), Polyansky et al. 2018, Yurchenko et al. 2020 and Yurchenko et al. 2014; the three files are downloaded at setup and removed after the 129-band reduction is kept</td>
+</tr>
+<tr>
+<td><code>ir_cia</code> (AD11, GEN.715; HITRAN collision-induced absorption files for 11 gas pairs from hitran.org)</td>
+<td>Terms not yet recorded by Boss; cite Karman et al. 2019 (Icarus 328, 160); the files are downloaded at setup and removed after the band means are kept</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-chappuis-cross-sections-srcplanetgenphysicsdataozone_chappuisjson-gen418">The Chappuis cross sections (<code>src/planetgen/physics/data/ozone_chappuis.json</code>, GEN.418)</h2>
+<p>The ozone cross section of the Chappuis band, 380 to 780 nm, as 5 nm cell means of the 295 K, 1 nm table of the Brion, Daumont, Malicet and Jenouvrier group (Daumont et al. 1992, Malicet et al. 1995, Brion et al. 1998) in the MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24 (Zenodo record 6951, CC BY 4.0; cite Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365). Built by <code>scripts/build_ozone_chappuis.py</code> from the <code>ozone_uv</code> download; only these 81 derived values are in the repository.</p>
+<h2 id="the-comet-volatile-population-srcplanetgenphysicsdatacomet_populationjson-gen495">The comet volatile population (<code>src/planetgen/physics/data/comet_population.json</code>, GEN.495)</h2>
+<p>The keys are the source keys of the file. Only values computed or read from the papers are kept; the database is not in the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source key</th>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rob24</code></td>
+<td>Robinson, Malamud, Opitom, Perets and Blum 2024 (arXiv:2403.15644) and its database (Edinburgh DataShare, doi 10.7488/ds/7723)</td>
+<td>The database was downloaded for the research; per-species statistics were computed and only those are kept; no licence statement was read</td>
+</tr>
+<tr>
+<td><code>hp22</code></td>
+<td>Harrington Pinto et al. 2022 (arXiv:2209.09985)</td>
+<td>Published paper; values only</td>
+</tr>
+<tr>
+<td><code>coch15</code></td>
+<td>Cochran et al. 2015, Space Science Reviews 197, 9 (arXiv:1507.00761)</td>
+<td>Published paper; values only</td>
+</tr>
+<tr>
+<td><code>cor25</code></td>
+<td>Cordiner et al. 2025 (arXiv:2508.18209)</td>
+<td>Preprint; two measured ratios only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-polluted-white-dwarfs-srcplanetgenphysicsdatawd_pollution_samplejson-gen508">The polluted white dwarfs (<code>src/planetgen/physics/data/wd_pollution_sample.json</code>, GEN.508)</h2>
+<p>The keys are the source keys of the file. Values read from the tables of the papers (the median oxygen fugacity with its bounds, the type and the effective temperature of each star); the papers' text is not in the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source key</th>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>doyle20</code></td>
+<td>Doyle, Klein, Schlichting and Young 2020, ApJ (arXiv:2008.05992), Table 1</td>
+<td>Published paper; values only</td>
+</tr>
+<tr>
+<td><code>doyle23</code></td>
+<td>Doyle, Klein, Dufour et al. 2023 (arXiv:2303.00063), Tables 2 and 4</td>
+<td>Published paper; values only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-precisely-measured-planets-srcplanetgenphysicsdatamass_radius_samplejson-gen505">The precisely measured planets (<code>src/planetgen/physics/data/mass_radius_sample.json</code>, GEN.505)</h2>
+<p>Fitted numbers only (two regression lines and their scatter per sub-sample, and counts); the archive's rows are not kept.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NASA Exoplanet Archive, table <code>pscomppars</code> (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23</td>
+<td>Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here</td>
+</tr>
+<tr>
+<td>Luque and Palle 2022, Science 377, 1211</td>
+<td>Published paper; the two cuts (mass better than 25 percent, radius better than 8 percent) only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-planets-with-a-jwst-spectrum-srcplanetgenphysicsdatajwst_selectionjson-gen506">The planets with a JWST spectrum (<code>src/planetgen/physics/data/jwst_selection.json</code>, GEN.506)</h2>
+<p>Fitted numbers only (logistic coefficients, the host magnitude model and per-class counts); the archive's rows are not kept.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NASA Exoplanet Archive, tables <code>pscomppars</code> and <code>spectra</code> (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23</td>
+<td>Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here</td>
+</tr>
+<tr>
+<td>Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671)</td>
+<td>Published paper; the two formulas and the scale factors of its Table 1 only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-kepler-recovery-curve-srcplanetgenphysicsdatakepler_recoveryjson-gen504">The Kepler recovery curve (<code>src/planetgen/physics/data/kepler_recovery.json</code>, GEN.504)</h2>
+<p>Fitted numbers only (the recovery curve, the effective-depth law, the noise lines, the quantiles of the Kepler magnitude and a table of observed against predicted recovery); the injection and stellar rows are not kept.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NASA Exoplanet Archive, Kepler DR25 flux-level transit injections, group INJ1 (https://exoplanetarchive.ipac.caltech.edu/docs/KeplerSimulated.html), retrieved 2026-10-23</td>
+<td>Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here</td>
+</tr>
+<tr>
+<td>NASA Exoplanet Archive, table <code>keplerstellar</code> (delivery q1_q17_dr25_stellar), retrieved 2026-10-23</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Burke and Catanzarite 2017, Kepler Science Document KSCI-19083</td>
+<td>Published document; the form of the recovery curve only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-thorium-of-thick-disc-stars-srcplanetgenphysicsdatatuning_targetsjson-targets-o2-mean-and-o2-sd-gen514">The thorium of thick-disc stars (<code>src/planetgen/physics/data/tuning_targets.json</code> targets o2-mean and o2-sd, GEN.514)</h2>
+<p>Two summary statistics only (the mean and the standard deviation of [Th/Mg] of 32 stars); the catalogue's rows are not kept.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hypatia Catalog (Hinkel et al. 2014, AJ 148, 54, arXiv:1405.6719), open web API, queried 2026-10</td>
+<td>The site states no open licence; the two statistics are computed from it and no rows are kept</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-comets-with-a-measured-composition-srcplanetgenphysicsdatacomet_admissionjson-gen507">The comets with a measured composition (<code>src/planetgen/physics/data/comet_admission.json</code>, GEN.507)</h2>
+<p>Fitted numbers only (counts of known and measured comets by group and perihelion bin, and two regression lines and their scatter); the database's rows are not kept.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Robinson, Malamud, Opitom, Perets and Blum 2024, A&amp;A (arXiv:2403.15644), database doi 10.7488/ds/7723</td>
+<td>CC BY 4.0; attribution given here</td>
+</tr>
+<tr>
+<td>JPL Small-Body Database query API (https://ssd-api.jpl.nasa.gov/sbdb_query.api), retrieved 2026-10-23</td>
+<td>Public data of NASA/JPL; orbit class and perihelion distance only</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-compaction-table-srcplanetgenphysicsdatacompaction_tablejson-gen442">The compaction table (<code>src/planetgen/physics/data/compaction_table.json</code>, GEN.442)</h2>
+<p>Computed here by <code>scripts/build_compaction_table.py</code> from the porosity laws and grain densities of Bierson and Nimmo 2019 (Icarus 326, 10, Table 1 and Eqs. 1 and 2; published paper, values only) and third-order Birch-Murnaghan constants that are the design note's stand-ins. No third-party data file is in the repository.</p>
+<h2 id="the-habitable-zone-fits-srcplanetgenphysicsorbitspy-gen146">The habitable-zone fits (<code>src/planetgen/physics/orbits.py</code>, GEN.146)</h2>
+<p>Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
+maximum greenhouse rows). Published paper; values only. The paper's raw text is not in the repository.</p>
+<p>Ten more coefficients of the same table (GEN.639): the runaway greenhouse sets for 0.1 and 5 Earth masses (<code>KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS</code>). Published paper; values only.</p>
+<h2 id="the-aquifer-model-srcplanetgenphysicsaquiferspy-gen654">The aquifer model (<code>src/planetgen/physics/aquifers.py</code>, GEN.654)</h2>
+<p>Values only, read at second hand (the papers' full text could not be opened) and labelled DESIGN stand-ins in <code>tuning.py</code> until a verified source replaces them: the crust's porosity law phi = phi0 exp(-z/K) with K = 2.82 km on Mars and phi0 = 0.2, and the crust's thermal conductivity of about 2 W/m/K, from Clifford 1993, JGR 98, 10973 (a published paper); the upper temperature limit of life, 122 C, from Takai et al. 2008, PNAS 105, 10949. The drill's reach (5 km) and the minimum layer (10 m) are planetGen's own.</p>
+<h2 id="the-water-layer-of-the-structure-solver-srcplanetgenphysicsbulk_structurepy-gen429">The water layer of the structure solver (<code>src/planetgen/physics/bulk_structure.py</code>, GEN.429)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What was kept</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NIST Chemistry WebBook fluid properties for water (IAPWS-95), isotherm at 300 K from 0.1 to 950 MPa, read 2026-10-23</td>
+<td>Twenty density values</td>
+<td>NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was sought; values only</td>
+</tr>
+<tr>
+<td>Ice VI, VII and X reference points</td>
+<td>Read from the materials table (<code>journaux2020</code>, <code>seager2007</code>)</td>
+<td>As the materials table</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="clathrate-hydrates-and-eutectic-brines-srcplanetgenphysicsdataclathrate_brinejson-gen471">Clathrate hydrates and eutectic brines (<code>src/planetgen/physics/data/clathrate_brine.json</code>, GEN.471)</h2>
+<p>The keys are the source keys of the file. Published values only; no third-party data file is in the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source key</th>
+<th>Source</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>marboeuf-2014</code></td>
+<td>Marboeuf et al. 2014, Table 5 (which draws on Hersant 2004)</td>
+<td>Published paper; the six fit constants only</td>
+</tr>
+<tr>
+<td><code>semenov-2023</code></td>
+<td>Semenov, Stoporev et al. 2023, Int. J. Mol. Sci. 24, 9321</td>
+<td>Open access (MDPI); two quadruple points only</td>
+</tr>
+<tr>
+<td><code>chevrier-2009</code></td>
+<td>Chevrier, Hanley and Altheide 2009, GRL 36, L10202</td>
+<td>Published abstract; two eutectic points only</td>
+</tr>
+<tr>
+<td><code>pestova-2005</code></td>
+<td>Pestova et al. 2005, Marion et al. 2010, as quoted by arXiv:1811.00862 and arXiv:2012.00100</td>
+<td>Second-hand; one eutectic point</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="papers-datasets-and-code-read-for-the-second-hand-citation-pass-10-24-reportssecondhand-citations-2026-10-24md">Papers, datasets and code read for the second-hand citation pass (10-24, <code>reports/secondhand-citations-2026-10-24.md</code>)</h2>
+<p>No code or data from these sources is in the repository. The pass produced a report; any value a lane later copies into a data
+file takes its terms from the row here, and the lane adds its own section above. Raw papers and downloaded files stay out of the
+repository. The &quot;Basis&quot; column says how the terms were learned: <strong>file</strong> (printed in the PDF Boss uploaded), <strong>arXiv</strong> (the licence
+shown on the paper's arXiv abstract page), <strong>repo</strong> (the LICENSE file of the code repository, read 10-24), or <strong>publisher</strong> (the
+publisher's usual terms; no statement was seen, so treat as unconfirmed).</p>
+<h3 id="uploaded-by-boss">Uploaded by Boss</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Curtis et al. 2020, ApJ 904, 140</td>
+<td>CC BY 4.0</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Anenburg 2026, &quot;Oxygen Fugacity Buffers and an Interactive Calculator&quot;, G-cubed 10.1029/2026GC013032</td>
+<td>Open access, Creative Commons Attribution (version not printed)</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Summa, Monaco, Lazzeretti and Zanasi 2021, J. Phys. Chem. Lett. 12, 8855</td>
+<td>(c) 2021 The Authors; ACS open licence, type not printed</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Sossi et al. 2020, Science Advances 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere)</td>
+<td>AAAS exclusive licensee; Creative Commons Attribution NonCommercial 4.0 (CC BY-NC); only values are read</td>
+<td>file</td>
+</tr>
+<tr>
+<td>JPCA perspective on atmospheric photochemistry (2024)</td>
+<td>CC BY 4.0</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Wolff et al. 2009, JGR 114, E00D04</td>
+<td>(c) AGU 2009; the Wiley page states open-access articles fall under their Creative Commons licence, type not printed</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Lodders 2003, ApJ 591, 1220</td>
+<td>(c) American Astronomical Society, all rights reserved; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Palme and O'Neill 2003, Treatise on Geochemistry 2.01</td>
+<td>(c) Elsevier; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Pahlevan, Schaefer and Hirschmann 2019, magma ocean outgassing and hydrogen isotopes (EPSL)</td>
+<td>(c) Elsevier; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Rudnick and Gao 2003, Treatise on Geochemistry 3.01</td>
+<td>(c) 2003 Elsevier Ltd; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Hirschmann 2021, Geochim. Cosmochim. Acta 313, 74</td>
+<td>(c) Elsevier; values only (the IW buffer is already used by the repository)</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Bierson and Nimmo 2019, Icarus (density of Kuiper Belt objects)</td>
+<td>(c) 2019 Elsevier, accepted manuscript</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Gaillard and Scaillet 2014, EPSL 403, 307</td>
+<td>HAL open archive copy; Elsevier holds the copyright</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Li, Cheng and Yang 2019, Geo-fO2, G-cubed 10.1029/2019GC008273</td>
+<td>(c) 2019 AGU; type of any open licence not printed</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Stixrude and Lithgow-Bertelloni 2011, Geophys. J. Int. 184, 1180</td>
+<td>(c) Oxford University Press and the Royal Astronomical Society; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Zeleznik 1991, J. Phys. Chem. Ref. Data 20, 1157</td>
+<td>(c) 1991 US Secretary of Commerce, assigned to the American Institute of Physics and ACS; reprint read from the NIST reference data pages; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Tabazadeh et al. 1997, GRL 24, 1931</td>
+<td>(c) American Geophysical Union; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Myhre et al. 1998, GRL 25, 2715</td>
+<td>(c) American Geophysical Union; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Bucholtz 1995, Appl. Opt. 34, 2765</td>
+<td>(c) Optica (formerly OSA); values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Bates 1984, Planet. Space Sci. 32, 785</td>
+<td>(c) Elsevier; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>King 1923, Proc. R. Soc. A 104, 333</td>
+<td>Royal Society archive copy; a 1923 paper, no licence statement; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Sneep and Ubachs 2005, JQSRT 92, 293</td>
+<td>(c) Elsevier; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Irwin et al. 2018, detection of H<sub>2</sub>S above the clouds of Uranus</td>
+<td>Author manuscript; Nature Astronomy terms apply</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Hassler et al. 2014, Science 343, 1244797 (Mars RAD)</td>
+<td>(c) AAAS; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Mumma and Charnley 2011, Annu. Rev. Astron. Astrophys. 49, 471</td>
+<td>(c) 2011 Annual Reviews</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Paranicas et al. 2009, Europa (Univ. of Arizona Press), 529</td>
+<td>(c) University of Arizona Press; no statement in the chapter text; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Gronoff et al. 2011, A&amp;A 529, A143</td>
+<td>(c) ESO; no Creative Commons statement printed in the file</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Poyatos et al. 2026 and Postolec et al. 2026, A&amp;A manuscripts</td>
+<td>(c) ESO 2026; author manuscripts, no Creative Commons statement printed</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Gunther et al. 2020, TESS flares, AJ</td>
+<td>DTU Orbit copy; copyright and moral rights remain with the authors or other copyright owners</td>
+<td>file</td>
+</tr>
+<tr>
+<td>McBride, Zehe and Gordon 2002, NASA Glenn coefficients (NASA/TP-2002-211556)</td>
+<td>US Government work, no copyright asserted</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>ICRP Publication 103 free extract and preface</td>
+<td>(c) ICRP; the full report was not read</td>
+<td>file</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="open-papers-read-through-arxiv-with-the-licence-shown-on-the-abstract-page">Open papers read through arXiv, with the licence shown on the abstract page</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Licence</th>
+<th>arXiv papers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CC BY 4.0</td>
+<td>Hammond et al. 2025 (2409.04386); He et al. 2022, Titan haze optical constants (2112.08521); Bower et al. 2022 (2110.08029); Drozdovskaya et al. 2023 (2307.11486); Beth et al., ROSINA ion zoo (2008.08430); Mergny et al. 2025 (2505.09490); Blum and Bischoff (2207.12731)</td>
+</tr>
+<tr>
+<td>CC BY-NC-SA 4.0</td>
+<td>Seignovert et al. 2017 (1704.00842); Maurice et al. 2023 (2301.07505)</td>
+</tr>
+<tr>
+<td>CC0 1.0</td>
+<td>Chabrier 2021, H/He equation of state II (2107.04434)</td>
+</tr>
+<tr>
+<td>Public domain dedication</td>
+<td>Davenport 2014 (1410.7779)</td>
+</tr>
+<tr>
+<td>arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution)</td>
+<td>Vainio et al. 2017 (1707.00485); Koldobskiy et al. 2021 (2101.10234); Asvestari et al. 2017 (1612.02446); Wang, Lineweaver and Ireland 2018 (1708.08718); Lisse et al. 2021 (2009.02277); Mazevet et al. 2019 (1810.05658); Haldemann et al. 2020, AQUA (2009.10098); Gao et al. 2014 (1312.3750); the Mauna Kea extinction paper (1210.2619); Irwin et al. 2019 (1812.05383); Bailey et al. 2011 (1102.2554); Corlies et al. 2021 (2012.02247); Zahnle et al. 2020 (2001.00095); Ranjan and Sasselov 2017 (1610.06223); Heays, Bosman and van Dishoeck 2017 (1701.04459); Biver et al. 2012 (1201.4318); Chabrier, Mazevet and Soubiran 2019 (1902.01852); Schlichting, Sari and Yalinewich 2015 (1406.6435); Foley 2015 (1509.00427); Charnoz et al. 2009 (0912.3017); the stagnant-lid carbon cycle paper (1712.03614); the Yoshizaki and McDonough paper (arXiv number 1909.07560)</td>
+</tr>
+<tr>
+<td>arXiv assumed-licence (pre-2003 paper)</td>
+<td>Crida, Morbidelli and Masset 2006 (astro-ph/0511082)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Only formulas, numbers and tables of facts were read from these papers, each with its citation in the report.</p>
+<h3 id="datasets-tables-and-code">Datasets, tables and code</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PetroBuffer (P. Liggins; Frost 1991 and Campbell 2009 buffer constants as coded)</td>
+<td>MIT</td>
+<td>repo</td>
+</tr>
+<tr>
+<td>GEOS-Chem (JPL 19-5 and 15-10 rate lines)</td>
+<td>MIT</td>
+<td>repo</td>
+</tr>
+<tr>
+<td>PICASO (King factors from Bogaard 1978)</td>
+<td>GNU GPL v3</td>
+<td>repo</td>
+</tr>
+<tr>
+<td>BurnMan (Stixrude and Lithgow-Bertelloni parameters)</td>
+<td>GNU GPL (v2 or later per its package metadata)</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>VolFe (one benchmark value only)</td>
+<td>Not confirmed; only a number quoted on its documentation page was used</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>Chabrier DirEOS2019 and DirEOS2021 tables (<code>perso.ens-lyon.fr/gilles.chabrier/DirEOS/</code>)</td>
+<td>No licence in the README; the 2021 paper is CC0</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Leiden photodissociation and photoionisation database (home.strw.leidenuniv.nl/~ewine/photo/)</td>
+<td>Free download; cite Heays et al. 2017</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>IPCC Third Assessment Report, WG1 Chapter 6 (Myhre expressions, Table 6.2)</td>
+<td>(c) IPCC; reproduction with attribution allowed</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Wikipedia &quot;Equivalent dose&quot; and &quot;Effective dose&quot;</td>
+<td>CC BY-SA 4.0 for the text; values are ICRP's</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Canadian Nuclear Safety Commission radiation protection regulations schedule</td>
+<td>Crown copyright, reproduction allowed with attribution</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Putirka and Xu 2021, Nature Communications, supplement and peer review file</td>
+<td>CC BY 4.0 (Nature Communications open access)</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Vainio 2017 event table typed into <code>sep-band-parameters-vainio2017.csv</code> (report folder only)</td>
+<td>Facts from the paper; stays out of the repository</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="not-read-at-all">Not read at all</h3>
+<p>Fray and Schmitt 2009, ICRP 103 (full report), Karkoschka 1994, Karkoschka and Tomasko 2009/2010, Tomasko et al. 2008, Ayers,
+Gillett and Gras 1980, Frost 1991, Hirschmann 2012, Palme and O'Neill 2014, JPL Publication 19-5, Bogaard et al. 1978, Huebner et
+al. 1992, Huebner and Mukherjee 2015, Cooper et al. 2001, Patterson et al. 2012, Nordheim et al. 2018, Gronoff et al. 2009,
+Dartnell. Where a lane uses a number carried by another work, the report cites that work and its tier. Their terms are the
+publishers' and are not recorded here because nothing was taken from the originals.</p>
+<h2 id="water-against-formation-distance-docsdesigncompositionvolatile-delivery-formation-distancemd-gen481">Water against formation distance (<code>docs/design/composition/volatile-delivery-formation-distance.md</code>, GEN.481)</h2>
+<p>Derived counts and logistic fits from the Bern NGPPS NG76 population: Burn et al. 2024 (Nature Astronomy 8, 463), data and code of Zenodo record 10527170 (no licence field), and the starting distances of the same planets from the public DACE population ng76. Emsenhuber et al. 2021 (A&amp;A 656, A69; arXiv:2007.05561) was read for the disc model. The raw files are never in the repository and are downloaded only by the reproduction script kept in the project files.</p>
+<h2 id="magma-ocean-redox-against-mass-docsdesigncompositionmagma-ocean-redox-against-massmd-gen482">Magma-ocean redox against mass (<code>docs/design/composition/magma-ocean-redox-against-mass.md</code>, GEN.482)</h2>
+<p>Numbers and short quotations of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hirschmann 2022, Geochim. Cosmochim. Acta 328, 221 (public copy on the NSF Public Access Repository)</td>
+<td>(c) Elsevier, all rights reserved; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Schaefer and Fegley 2017, Astrophys. J. 843, 120 (public copy on the NSF Public Access Repository)</td>
+<td>(c) American Astronomical Society, all rights reserved; values and the Table 2 fits only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Gaillard et al. 2022, Earth Planet. Sci. Lett. 577, 117255 (HAL archive copy insu-03383209)</td>
+<td>Elsevier paper deposited in an open archive; no licence printed on the copy; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>Deng, Du, Karki, Ghosh and Lee 2020, Nature Communications 11, 2007 (PMC7181735)</td>
+<td>CC BY 4.0</td>
+<td>publisher</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="impact-erosion-and-late-delivery-docsdesigncompositionimpact-erosion-and-late-deliverymd-srcplanetgenphysicsimpact_historypy-gen739">Impact erosion and late delivery (<code>docs/design/composition/impact-erosion-and-late-delivery.md</code>, <code>src/planetgen/physics/impact_history.py</code>, GEN.739)</h2>
+<p>Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). The impact-erosion formulas are used as printed in Sakuraba et al.</p>
+<h2 id="volatile-inventory-against-the-totals-of-the-earth-venus-mars-and-titan-docsdesigncompositionvolatile-inventory-against-planet-totalsmd-srcplanetgenphysicsmixture_rockypy-gen813">Volatile inventory against the totals of the Earth, Venus, Mars and Titan (<code>docs/design/composition/volatile-inventory-against-planet-totals.md</code>, <code>src/planetgen/physics/mixture_rocky.py</code>, GEN.813)</h2>
+<p>Numbers and ratios of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bergin et al. 2015 (arXiv:1507.04756)</td>
+<td>arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution)</td>
+<td>abstract page</td>
+</tr>
+<tr>
+<td>Erkaev et al. 2020 (arXiv:2010.12342)</td>
+<td>arXiv non-exclusive licence (same)</td>
+<td>abstract page</td>
+</tr>
+<tr>
+<td>arXiv:2302.04241, ancient Martian atmosphere</td>
+<td>CC BY 4.0</td>
+<td>abstract page</td>
+</tr>
+<tr>
+<td>NASA planetary fact sheets for Venus and Mars (nssdc.gsfc.nasa.gov)</td>
+<td>US government work, public domain</td>
+<td>publisher</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="atmospheric-escape-a-thermosphere-model-docsdesigncompositionatmospheric-escape-modelmd-srcplanetgenphysicsthermospherepy-gen738">Atmospheric escape: a thermosphere model (<code>docs/design/composition/atmospheric-escape-model.md</code>, <code>src/planetgen/physics/thermosphere.py</code>, GEN.738)</h2>
+<p>Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).</p>
+<p>The envelope-escape wiring (<code>docs/design/composition/envelope-escape-wiring.md</code>, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; the disc lifetime in it is a registered stand-in (GEN.725), with no source copied.</p>
+<h2 id="planetary-material-strength-roundness-and-the-other-sources-added-2026-10-31-gen1158-gen1184-gen1186-and-the-trojan-stellar-to-halo-tide-and-habitability-work">Planetary material strength, roundness and the other sources added 2026-10-31 (GEN.1158, GEN.1184, GEN.1186, and the Trojan, stellar-to-halo, tide and habitability work)</h2>
+<p>Added by the references update of 2026-10-31. Formulas, constants and tables of fact were read; nothing else was taken. Raw papers stay out of the repository
+and are never redistributed. The strength table is <code>src/planetgen/physics/data/roundness_strengths.json</code>; its numbers are the project's own stand-ins
+(registry rows RN1 to RN9, IT1 to IT7) fitted to or checked against the works below. The reports are
+<code>reports/planetary-material-strength-2026-10-31.md</code> and <code>reports/papers-vs-standins-2026-10-31.md</code> in the project files.</p>
+<p><strong>Terms that restrict reuse, flagged.</strong> (1) Maurice et al. 2023 (2301.07505, CC BY-NC-SA 4.0, already listed above) is the only NonCommercial arXiv licence; only
+values were read, so the licence does not reach the program or its tables. (2) MIT OpenCourseWare 12.524, lecture 4 (rock friction): the OCW default licence is
+CC BY-NC-SA 4.0 (the lecture page was not checked); only the Byerlee friction law as a fact was used, and no text was copied. (3) Every arXiv paper below
+under the non-exclusive licence may be read and cited but not redistributed, and every journal paper is the publisher's: values only, never the text, tables
+or figures as printed. None of these stops the program, which carries values with citations.</p>
+<h3 id="journal-papers-and-books-publisher-copyright-values-only">Journal papers and books (publisher copyright; values only)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Used for</th>
+<th>Terms known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Durham, Kirby and Stern 1997, J. Geophys. Res. 102, 16293 (doi:10.1029/97je00916)</td>
+<td>Creep laws of ices Ih, II, III, V and VI (Table 2), the ice-with-grains mixing law (eq. 3)</td>
+<td>(c) American Geophysical Union; read from a copy Boss uploaded; values only</td>
+</tr>
+<tr>
+<td>Durham, Prieto-Ballesteros, Goldsby and Kargel 2010, Space Sci. Rev. 153, 273 (doi:10.1007/s11214-009-9619-1)</td>
+<td>Ordering of ice phase strengths, grain-size softening</td>
+<td>(c) Springer; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Durham, Kirby, Stern and Zhang 2003, J. Geophys. Res. 108 (doi:10.1029/2002jb001872)</td>
+<td>Methane clathrate hydrate strength</td>
+<td>(c) American Geophysical Union; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Korenaga and Karato 2008, J. Geophys. Res. 113, B02403 (doi:10.1029/2007jb005100)</td>
+<td>Olivine creep activation energies and constants (Table 3)</td>
+<td>(c) American Geophysical Union; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Hirth and Kohlstedt 2003, Geophys. Monogr. 138 (doi:10.1029/138gm06)</td>
+<td>Dry and wet olivine dislocation creep constants, as printed in Korenaga and Karato</td>
+<td>(c) American Geophysical Union; read second-hand through Korenaga and Karato 2008</td>
+</tr>
+<tr>
+<td>Chu and Korenaga 2012, Earth Planet. Sci. Lett. 333-334, 52 (doi:10.1016/j.epsl.2012.04.019)</td>
+<td>Lithospheric olivine stress and grain growth</td>
+<td>(c) Elsevier; values only</td>
+</tr>
+<tr>
+<td>Silber et al. 2022, Phys. Earth Planet. Inter. 331, 106840 (doi:10.1016/j.pepi.2022.106840)</td>
+<td>Pressure term of wet olivine diffusion creep</td>
+<td>(c) Elsevier; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Schulson and Renshaw 2022, Annu. Rev. Earth Planet. Sci. 50, 323 (doi:10.1146/annurev-earth-032320-085507)</td>
+<td>Ice friction and compressive strength against temperature</td>
+<td>(c) Annual Reviews; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Basri and Brown 2006, Annu. Rev. Earth Planet. Sci. 34, 193 (doi:10.1146/annurev.earth.34.031405.125058)</td>
+<td>Critical diameter for roundness</td>
+<td>(c) Annual Reviews; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Pohl and Britt 2020, Meteorit. Planet. Sci. 55, 962 (doi:10.1111/maps.13449)</td>
+<td>Meteorite yield strengths and porosity</td>
+<td>(c) Wiley and the Meteoritical Society; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Slyuta 2017, Solar System Research 51, 64 (doi:10.1134/s0038094617010051)</td>
+<td>Stony meteorite compressive and tensile strength</td>
+<td>(c) Pleiades Publishing and Springer; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Rozitis, MacLennan and Emery 2014, Nature 512, 174 (doi:10.1038/nature13632)</td>
+<td>Cohesion of the rubble pile 1950 DA</td>
+<td>(c) Springer Nature; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Thomas 1989, Icarus 77, 248 (doi:10.1016/0019-1035(89)90089-4)</td>
+<td>Shapes of small satellites against size</td>
+<td>(c) Elsevier; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Jones and Chew 1983, Ann. Glaciol. 4, 129 (doi:10.3189/s0260305500005358)</td>
+<td>Ice compressive strength against sample and grain size</td>
+<td>International Glaciological Society; uploaded copy; values only</td>
+</tr>
+<tr>
+<td>Behroozi et al. 2019, MNRAS 488, 3143 (doi:10.1093/mnras/stz1182)</td>
+<td>Stellar-to-halo mass relation (UniverseMachine)</td>
+<td>(c) Oxford University Press; arXiv copy 1806.07893 is the licence-checked copy; values only</td>
+</tr>
+<tr>
+<td>Leauthaud et al. 2012, Astrophys. J. 744, 159 and 746, 95 (doi:10.1088/0004-637x/746/1/95)</td>
+<td>Stellar-to-halo mass relation, COSMOS</td>
+<td>(c) American Astronomical Society; arXiv copy 1104.0928 is the licence-checked copy; values only</td>
+</tr>
+<tr>
+<td>Lattimer and Prakash 2001, Astrophys. J. 550, 426 (doi:10.1086/319702)</td>
+<td>Neutron star structure and equation of state</td>
+<td>(c) American Astronomical Society; arXiv copy astro-ph/0002232 is the licence-checked copy; values only</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not opened, used only as another paper quotes them (the quoting paper is cited with its tier): Kohlstedt, Evans and Mackwell 1995, Arakawa and Maeno 1997,
+Housen and Holsapple 1999, Durham et al. 1983, 1987, 1992, Beeman, Durham and Kirby 1988, Yamashita and Kato 1997,
+Wallis et al. 2020 (the report carried the numbers from the uploaded copy; no DOI was settled for it), Grott et al. 2019 (same).</p>
+<h3 id="documents-reports-and-notes-read-for-the-strength-work">Documents, reports and notes read for the strength work</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Terms</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NIST Technical Note 2229, Weeks, Derimow and Benzing (316L tensile strength at 77 K and 4 K)</td>
+<td>US government work, public domain in the United States</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>USGS Open-File Report 81-277, Atkinson (fracture and friction of crustal rock)</td>
+<td>US government work, public domain</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Durham and Kirby, NASA NTRS N92-10735 (flow and fracture of ice with ammonia)</td>
+<td>US government work, public domain</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>NASA TM-4130 (1988), Planetary Geology and Geophysics abstracts</td>
+<td>US government work, public domain</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Hoek, Practical Rock Engineering ch. 11 and the GSI block-volume paper (Rocscience)</td>
+<td>Free download from the publisher; (c) Hoek; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Frontiers in Earth Science 2023, granite strength from 20 to 130 C</td>
+<td>Frontiers open access, normally CC BY; licence line not checked on the copy; values only</td>
+<td>publisher</td>
+</tr>
+<tr>
+<td>Jutzi 2010, fragmentation of porous targets</td>
+<td>(c) Elsevier; values only</td>
+<td>file</td>
+</tr>
+<tr>
+<td>MIT OpenCourseWare 12.524, lecture 4 (rock friction)</td>
+<td>CC BY-NC-SA 4.0 by the OCW default, not checked on the page; NonCommercial, flagged above; only the friction law as a fact</td>
+<td>publisher</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="open-papers-read-through-arxiv-with-the-licence-shown-on-the-abstract-page-1">Open papers read through arXiv, with the licence shown on the abstract page</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Licence</th>
+<th>arXiv papers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CC BY 4.0</td>
+<td>Guimond 2026 (2512.09785); Walterová 2023 (2301.02476); Xu 2022 (2206.06114); Luque 2025 (2505.13407); Höning 2023 (2211.09473); Kiman 2021 (2104.01232); Strauss 2024 (2410.01147); Taylor 2026 (2510.16164); Sun 2020 (2009.01842); Jagadeesh 2018 (1801.07101); Murtagh 2025 (2512.03892)</td>
+</tr>
+<tr>
+<td>arXiv assumed-licence (pre-2003 paper)</td>
+<td>Fleming 2000 (astro-ph/0007296); Malhotra 1994 (astro-ph/9404028); Lattimer 2001 (astro-ph/0002232); Laughlin 2002 (astro-ph/0204091); Benz and Asphaug 1999 (astro-ph/9907117)</td>
+</tr>
+<tr>
+<td>arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution)</td>
+<td>Leinhardt 2009 (0811.0175); Polishook 2016 (1512.07088); Umurhan 2017 (1606.05734); Avdellidou 2020 (2111.15279); Christou 2021 (2010.10947); Madhusudhan 2008 (0807.4570); Efroimsky 2007 (0709.1995); the 2016 (1903.05571); Tasker 2017 (1708.01363); Casagrande 2011 (1103.4651); Leleu 2017 (1702.08775); Lillo-Box 2018 (1807.00773); Zhou 2019 (1812.01244); Leleu 2019 (1901.07250); Girelli 2020 (2001.02230); Maurice 2024 (2301.07505); Zhang 2026 (2603.27215); Cresswell 2008 (0811.4611); Caldú-Primo 2013 (1309.6324); Fu 2009 (1001.2890); Sharma 2011 (1101.3561); Leinhardt 2011 (1106.6084); Usoskin 2012 (1207.5932); Hippke 2015 (1508.00427); Giammichele 2012 (1202.5581); Hirabayashi 2014 (1411.5926); Jeffreson 2022 (2206.14818); Schwarz 2015 (1608.00784); Tremblay 2016 (1606.05292); Lingam 2019 (1810.02007); Sánchez 2014 (1306.1622); Lichtenberg 2021 (2101.08571); Walsh 2018 (1810.01815); Mogotsi 2016 (1511.06006); Davenport 2016 (1607.03494); Jewitt 2018 (1712.04855); Borovička 2020 (2006.07080); Kurlander 2025 (2506.02487); Suzuki 2016 (1612.03939); Zuluaga 2012 (1204.0275); Agrawal 2018 (1804.11176); Probsthain 2018 (1807.08593); Lineweaver and Norman 2010 (1004.1091); Leauthaud et al. 2012 (1104.0928); Behroozi et al. 2019 (1806.07893)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The strength set among these is Lineweaver and Norman 2010 (1004.1091), Sanchez and Scheeres 2014 (1306.1622), Walsh 2018 (1810.01815), Polishook et al. 2016
+(1512.07088), Hirabayashi and Scheeres (1411.5926), Leinhardt and Stewart 2009 (0811.0175), Borovicka et al. 2020 (2006.07080), Avdellidou et al. 2020
+(2111.15279), Umurhan et al. 2017 (1606.05734), Strauss et al. 2024 (DEEP VII, 2410.01147, CC BY 4.0) and Benz and Asphaug 1999 (astro-ph/9907117).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

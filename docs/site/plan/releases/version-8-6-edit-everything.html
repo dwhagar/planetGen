@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 8.6: Edit everything - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-8-6-edit-everything.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-8-6-edit-everything.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-86-edit-everything">Version 8.6: Edit everything</h1><p class="meta">docs/plan/releases/version-8-6-edit-everything.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-plan-model-aspects-and-regions">Phase 1: Plan model, aspects and regions</a></li><li style="margin-left:14px"><a href="#admin-shell-and-audit">Admin shell and audit</a></li><li style="margin-left:14px"><a href="#existing-admin-editors">Existing admin editors</a></li><li style="margin-left:14px"><a href="#change-plans">Change plans</a></li><li style="margin-left:14px"><a href="#aspects">Aspects</a></li><li style="margin-left:14px"><a href="#regions">Regions</a></li><li style="margin-left:0px"><a href="#phase-2-interfaces-approval-locks-regen-screens-density-overrides">Phase 2: Interfaces: approval, locks, regen screens, density overrides</a></li><li style="margin-left:14px"><a href="#approval-and-history">Approval and history</a></li><li style="margin-left:14px"><a href="#locks-and-regen-screens">Locks and regen screens</a></li><li style="margin-left:14px"><a href="#density-overrides">Density overrides</a></li><li style="margin-left:14px"><a href="#admin-shell">Admin shell</a></li><li style="margin-left:14px"><a href="#help-framework">Help framework</a></li><li style="margin-left:14px"><a href="#admin-pages-in-the-shell">Admin pages in the shell</a></li><li style="margin-left:14px"><a href="#console-look-admin-pages">Console look: admin pages</a></li><li style="margin-left:0px"><a href="#phase-3-editors-that-make-plans">Phase 3: Editors that make plans</a></li><li style="margin-left:14px"><a href="#move-and-orbit">Move and orbit</a></li><li style="margin-left:14px"><a href="#density-plans">Density plans</a></li><li style="margin-left:14px"><a href="#the-rearranger">The rearranger</a></li><li style="margin-left:0px"><a href="#phase-4-regeneration-and-editing-any-field">Phase 4: Regeneration and editing any field</a></li><li style="margin-left:14px"><a href="#regenerate-objects">Regenerate objects</a></li><li style="margin-left:14px"><a href="#regenerate-regions">Regenerate regions</a></li><li style="margin-left:14px"><a href="#edit-any-field">Edit any field</a></li><li style="margin-left:14px"><a href="#civilization-editors">Civilization editors</a></li><li style="margin-left:14px"><a href="#resource-editors">Resource editors</a></li><li style="margin-left:0px"><a href="#phase-5-close-out-proof-help-and-the-headline">Phase 5: Close-out: proof, help and the headline</a></li><li style="margin-left:14px"><a href="#proof-and-help">Proof and help</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 8.6</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>The admin has complete control: move stars, change orbits, change densities, regenerate any star to any specification, and the world adjusts after the admin approves the generation plan (ADM.57). In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves before anything is written; the design is <a href="../../design/interface/edit-everything.html">edit-everything.md</a>.</p>
+<h2 id="phase-1-plan-model-aspects-and-regions">Phase 1: Plan model, aspects and regions</h2>
+<p>The foundations every editor stands on: the change plan and its store, the unit finalizer, apply and undo, the aspect catalogue, the keep-or-regenerate resolution and the recipe schema, regions, and the admin editors that already exist. The threads are independent of each other, so they can be built side by side. The unit finalizer and the recipe schema are shared with version 8.9 (generate anywhere), so they are built once here.</p>
+<h3 id="admin-shell-and-audit">Admin shell and audit</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="existing-admin-editors">Existing admin editors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.120</td>
+<td>Bright-star backfill from the Galaxy Map's block, slab and wedge menus</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="change-plans">Change plans</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="aspects">Aspects</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="regions">Regions</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h2 id="phase-2-interfaces-approval-locks-regen-screens-density-overrides">Phase 2: Interfaces: approval, locks, regen screens, density overrides</h2>
+<p>The screens and marks the editors use: the approval screen, the plan history, locks, the keep-or-regenerate matrix and specification form, and density overrides for any region.</p>
+<h3 id="approval-and-history">Approval and history</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.66</td>
+<td>Plan approval screen: every operation with its before and after, approve, reject one, or cancel</td>
+<td>ADM.60</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.52</td>
+<td>A star system editor: plan a system as a 2D diagram or from the command line</td>
+<td>ADM.66, ADM.82, API.28</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.67</td>
+<td>Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked</td>
+<td>ADM.52, ADM.66</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.68</td>
+<td>Plan history: every plan with who asked, approved, applied and undid it, and an undo button</td>
+<td>ADM.66, ADM.60</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="locks-and-regen-screens">Locks and regen screens</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.65</td>
+<td>Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan</td>
+<td>ADM.62</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.69</td>
+<td>Keep-or-regenerate matrix: the one screen component every regen screen uses</td>
+<td>ADM.64, ADM.65</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.70</td>
+<td>Specification form: &quot;regenerate to this specification&quot; built from the aspect catalogue and the system generator options</td>
+<td>ADM.62, ADM.69, API.28</td>
+<td>Reuses the system file of the system command</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="density-overrides">Density overrides</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.94</td>
+<td>Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them</td>
+<td>GEN.302</td>
+<td>Split from MAP.119.</td>
+</tr>
+<tr>
+<td>MAP.218</td>
+<td>Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo</td>
+<td>ADM.94, GEN.302, MAP.212</td>
+<td>Split from MAP.119.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="admin-shell">Admin shell</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.169</td>
+<td>Admin page browser tests: every admin page and task works end to end after the streamline</td>
+<td>TEST.168</td>
+<td>Quality; queued admin chain</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="help-framework">Help framework</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="admin-pages-in-the-shell">Admin pages in the shell</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POP.13</td>
+<td>A species editor: create and edit species and their environment limits</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="console-look-admin-pages">Console look: admin pages</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.270</td>
+<td>Console look on the admin shell and admin pages, by tokens only</td>
+<td>UX.268</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-editors-that-make-plans">Phase 3: Editors that make plans</h2>
+<p>Each editor produces a plan: move a system, edit an orbit, adjust the world to a density change, and the rearranger that fixes a system around a change.</p>
+<h3 id="move-and-orbit">Move and orbit</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.32</td>
+<td>Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere</td>
+<td>ADM.65, ADM.66, ADM.82</td>
+<td>Merges two asks (one system added by the computer; placement chosen by admin).</td>
+</tr>
+<tr>
+<td>ADM.71</td>
+<td>Move a star system or phenomenon within its sector or to another sector, as a plan</td>
+<td>ADM.32, ADM.65</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.36</td>
+<td>Change an object's trajectory vector</td>
+<td>GEN.109, ADM.65, ADM.66</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.72</td>
+<td>Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan</td>
+<td>ADM.36, ADM.52, ADM.65</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="density-plans">Density plans</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.74</td>
+<td>Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density</td>
+<td>ADM.65, MAP.218</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="the-rearranger">The rearranger</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.75</td>
+<td>Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again</td>
+<td>ADM.64, ADM.65</td>
+<td>Boss's own example: change an A to an M planet</td>
+</tr>
+<tr>
+<td>ADM.76</td>
+<td>Rearrange a system around a change to a star: class, mass, luminosity or companions</td>
+<td>ADM.75</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-4-regeneration-and-editing-any-field">Phase 4: Regeneration and editing any field</h2>
+<p>Regeneration to a specification for every kind of object and region, with the keep set, and the generic field editor.</p>
+<h3 id="regenerate-objects">Regenerate objects</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.77</td>
+<td>Regenerate a planet, moon or belt to a specification, with a keep set, rearranging the system if it must</td>
+<td>ADM.70, ADM.69, ADM.75, ADM.66</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="regenerate-regions">Regenerate regions</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.80</td>
+<td>Regenerate a sector or a region keeping chosen aspects: locked objects, positions, names</td>
+<td>ADM.69, MAP.212, ADM.74, ADM.66, ADM.65</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="edit-any-field">Edit any field</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.81</td>
+<td>Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue</td>
+<td>ADM.62, ADM.66, ADM.69</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="civilization-editors">Civilization editors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.130</td>
+<td>Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks</td>
+<td>POP.22, ADM.62, DB.104, POP.26</td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+<tr>
+<td>ADM.131</td>
+<td>Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans</td>
+<td>ADM.130, ADM.66, ADM.69</td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="resource-editors">Resource editors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.133</td>
+<td>Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them</td>
+<td>DB.106, GEN.799</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-5-close-out-proof-help-and-the-headline">Phase 5: Close-out: proof, help and the headline</h2>
+<p>End-to-end and property tests, the admin help, and the items that close ADM.35 and ADM.57.</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="proof-and-help">Proof and help</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.175</td>
+<td>Edit everything end to end: the headline scenarios with approval and undo</td>
+<td>ADM.77, ADM.71, ADM.72, ADM.74, ADM.80, TEST.168</td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.176</td>
+<td>Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row</td>
+<td>ADM.76, ADM.60, ADM.77</td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.177</td>
+<td>Edited sectors survive repair, regeneration and the golden seed</td>
+<td>ADM.61, ADM.80</td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.443</td>
+<td>Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not</td>
+<td>ADM.80</td>
+<td>Remainder of TEST.301</td>
+</tr>
+<tr>
+<td>DOC.54</td>
+<td>Admin help: how to edit, regenerate, lock, approve and undo</td>
+<td>TEST.175, ADM.68</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.57</td>
+<td>Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan</td>
+<td>ADM.32, ADM.36, ADM.52, MAP.218, MAP.120, POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54</td>
+<td>The headline; done when its items are</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

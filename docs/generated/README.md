@@ -12,3 +12,5 @@ Every page in this folder is built by a script. Do not edit them by hand: change
 | [version-plan.html](version-plan.html) | `scripts/build_todo_docs.py` | [../TODO.md](../TODO.md) and the files in [../plan/releases/](../plan/releases/) |
 
 `docs/index.html` (one level up, because GitHub Pages serves it from there) is built by `scripts/build_docs_index.py`. `python scripts/build_global_docs.py` rebuilds all of them; `--check` fails when one is out of date.
+
+`docs/site/` (the documentation website: every Markdown document as a web page, with a menu, search and rendered formulas) is built by `scripts/build_docs_site.py`, which `scripts/build_global_docs.py` also runs. To serve it, set GitHub Pages to deploy from the `main` branch and the `/docs` folder; the entry points are `docs/index.html` and `docs/site/index.html`.

@@ -8,6 +8,7 @@ Where everything under `docs/` lives. Pages written by hand and pages built by s
 |---|---|
 | [../README.md](../README.md) | The project overview and quick start |
 | [../INSTALL.md](../INSTALL.md) | Installing and updating planetGen |
+| [site/index.html](site/index.html) | The documentation website: every Markdown file as a web page with a menu, search and rendered formulas (the GitHub Pages site; built by `scripts/build_docs_site.py`) |
 | [index.html](index.html) | The generated index of every HTML page (the GitHub Pages entry point; built by `scripts/build_docs_index.py`) |
 | [TODO.md](TODO.md) | Every open work item, in full. Edited only by the TODO thread |
 

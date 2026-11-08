@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stellar composition: the checked design of what every star and remnant is made of - planetGen docs</title>
+<meta name="description" content="Status (2026-10-17): design for GEN.435; Boss approved section 14 as recommended (9:40 to 9:45 PM EDT).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/stellar-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/stellar-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stellar-composition-the-checked-design-of-what-every-star-and-remnant-is-made-of">Stellar composition: the checked design of what every star and remnant is made of</h1><p class="meta">docs/design/composition/stellar-composition.md</p><details class="toc"><summary>On this page (17 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-exists-in-the-code-read-on-2026-10-17">1. What exists in the code (read on 2026-10-17)</a></li><li style="margin-left:0px"><a href="#2-decisions">2. Decisions</a></li><li style="margin-left:0px"><a href="#3-the-composition-of-a-star-from-the-stored-values">3. The composition of a star from the stored values</a></li><li style="margin-left:0px"><a href="#4-what-is-derived-on-demand-and-what-is-stored">4. What is derived on demand and what is stored</a></li><li style="margin-left:0px"><a href="#5-the-open-questions-of-the-item-answered">5. The open questions of the item, answered</a></li><li style="margin-left:0px"><a href="#6-how-the-abundances-change-the-star-and-whether-the-tables-of-gen407-change">6. How the abundances change the star, and whether the tables of GEN.407 change</a></li><li style="margin-left:0px"><a href="#7-brown-dwarfs-and-remnants">7. Brown dwarfs and remnants</a></li><li style="margin-left:0px"><a href="#8-how-a-stars-iron-magnesium-and-silicon-set-the-rocky-planets-core-fraction-gen428">8. How a star's iron, magnesium and silicon set the rocky planets' core fraction (GEN.428)</a></li><li style="margin-left:0px"><a href="#9-clusters-and-multi-star-systems-gen269">9. Clusters and multi-star systems (GEN.269)</a></li><li style="margin-left:0px"><a href="#10-worked-examples">10. Worked examples</a></li><li style="margin-left:0px"><a href="#11-test-targets-the-suns-composition-is-a-target-never-a-preset">11. Test targets (the Sun's composition is a target, never a preset)</a></li><li style="margin-left:0px"><a href="#12-contradictions-and-gaps-found-between-sources">12. Contradictions and gaps found between sources</a></li><li style="margin-left:0px"><a href="#13-source-conflicts-and-the-rule-that-decided-each">13. Source conflicts and the rule that decided each</a></li><li style="margin-left:0px"><a href="#14-approved-by-boss">14. Approved by Boss</a></li><li style="margin-left:14px"><a href="#141-the-three-downloads-gen548-as-built">14.1 The three downloads (GEN.548, as built)</a></li><li style="margin-left:14px"><a href="#142-the-stars-page-ux254-as-built">14.2 The star's page (UX.254, as built)</a></li><li style="margin-left:0px"><a href="#appendix-the-code-behind-the-numbers">Appendix: the code behind the numbers</a></li></ul></details>
+<p><strong>Status (2026-10-17):</strong> design for GEN.435; Boss approved section 14 as recommended (9:40 to 9:45 PM EDT). Built: GEN.467 (2026-10-17), GEN.439 and GEN.440 (see composition-model.md) and GEN.590 (Boss's &quot;Require the data&quot;, 2026-10-18, 12:55 PM EDT); see the &quot;Built&quot; and &quot;As built&quot; paragraphs below. It settles how the composition of every kind of star, brown dwarf and remnant follows from the values the generator already stores, so that GEN.439 (the relations), GEN.440 (the derived function), GEN.464 (the solids law), GEN.428 (the planets' core fraction), GEN.463 and GEN.467 (the two replaced figures) and TEST.211 (the sweep) can be built from it. Master plan: <a href="composition-model.html">composition-model.md</a>. Research: <a href="body-composition-research.html">body-composition-research.md</a> and <a href="body-composition-parts/A-stars.html">part A</a>; the other sources are named where used.</p>
+<p><strong>Checked against Boss's papers</strong> (<code>docs/design/research/boss-papers-2026-10-17.md</code> on origin/main, sections 2.8, 2.11, 3 and 4). Where a paper contradicts a value in our files the paper wins and both values are stated. Changes: the age gate of D10 (3.0 to 8.0 Gy, [R1863]), the age-metallicity answer Q3, the test targets, section 12 and the new section 13. <strong>Source rule</strong> (Boss, 12:39 PM EDT on 2026-10-17): when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, &quot;most permission take wins&quot;. <strong>Assumption for Boss to confirm:</strong> the third rule is read as most permissive, meaning the widest value or range is kept (or both options kept and the spread carried). Each place that resolves a disagreement says &quot;Rule applied&quot;, and section 13 lists them all.</p>
+<p><strong>Verification states</strong> (Boss's standing rule, 3:02 AM EDT on 2026-10-17: verified and partly verified values are usable unless a verified source contradicts them): <strong>verified</strong> (a source was read, or the number was recomputed here from read inputs); <strong>partly verified</strong> (ships as sourced, with the limit named); <strong>open</strong> (no source; the range used meanwhile is stated); <strong>stand-in</strong> (a flagged temporary shape with a replacement item). Every number below is cited to a repo file and section, or was computed in this session with the code of the appendix.</p>
+<h2 id="1-what-exists-in-the-code-read-on-2026-10-17">1. What exists in the code (read on 2026-10-17)</h2>
+<ul>
+<li><strong>Stored per star.</strong> <code>metallicity_fe_h</code> on <code>stars</code> and <code>bright_stars</code> (migration 0095) and on <code>galaxy_components</code> (clusters and satellites, which also carry a <code>seed</code>), <code>age_gy</code>, <code>lifespan_gy</code>, <code>mass_kg</code>, <code>yerkes_class</code>, temperature, luminosity, radius and <code>uid</code> (80 bits in the first layout, 96 bits by default since Boss, 2026-10-15; nullable). <code>bright_stars</code> also holds <code>population</code>, <code>seed</code>, <code>initial_mass_sol</code> and <code>phase_end_age_gy</code>. <strong>The <code>stars</code> table has no population and no initial-mass column</strong>; the population is a column only for the bright stars and otherwise lives in the sector's <code>POPULATION</code> setting at generation. Neutron stars and black holes have their own tables (mass, radius or horizon, spin) and no [Fe/H].</li>
+<li><strong>How [Fe/H] is drawn</strong> (<code>physics/metallicity.py</code>, <code>tuning.py</code> 756-768): normal about a population mean, then clamped to (-3.5, +0.6). Means and sigmas: young 0.00 and 0.10, intermediate 0.00 and 0.15, old -0.20 and 0.25, bulge -0.05 and 0.40, nuclear cluster +0.20 and 0.40, nuclear disc +0.20 and 0.30, halo -1.6 inside 25 kpc and -2.2 outside with 0.5. The disc gradient is 0.06 dex/kpc ([R1856] gives 0.053, part A 2.6; GEN.405 owns it). The stream is <code>metallicity:{mass}:{age}:{distance}</code> or <code>metallicity:bright:{seed}</code>, separate from every other draw. A binary's secondary copies its primary's value (<code>generation/binary.py</code> 136); cluster and satellite stars take their component's peak with sigma 0.15 and 0.30 (<code>COMPONENT_FE_H_SIGMA</code>).</li>
+<li><strong>What reads it:</strong> planet occurrence, the disc's solids (the star's metal mass fraction over the Sun-like reference's, Z/Z0, GEN.464; it was 10^[Fe/H], which is 1.7 to 3 times too low for a metal-poor high-alpha star), giant factor 10^(2 [Fe/H]), the close-binary odds and the horizontal-branch colour shares. There is no X, Y or Z, no element ratio, no alpha enhancement and no age-metallicity link. Age and [Fe/H] are drawn independently.</li>
+<li><strong>Remnant figures:</strong> main-sequence lifetime 10 Gy times M^-2.5; white dwarfs use the Kalirai IFMR (0.109 M + 0.394, clamped 0.5 to 1.35 Msun) and a radius of 5800 km times M^(-1/3); neutron stars draw mass uniformly in 1.1 to 2.2 Msun and radius uniformly in 10 to 13 km; black holes 5 to 20 Msun with spin 0 to 0.998.</li>
+</ul>
+<h2 id="2-decisions">2. Decisions</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>State</th>
+<th>Who and when (EDT)</th>
+<th>Range or default used meanwhile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>Reference scale is [R0168] proto-solar log eps (X, Y, Z 0.7121, 0.2725, 0.0154); the spread among [R0168, R2728, R2733] is the uncertainty on ratios</td>
+<td>Decided</td>
+<td>Boss, 2026-10-17, 1:24 AM</td>
+<td>Spread on the Sun: Fe/Si 1.69 to 1.94, Mg/Si 0.89 to 1.07, C/O 0.34 to 0.44 by mass (part A 2.3)</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Neutron-star radius and main-sequence lifetime are derived, not set (GEN.463, GEN.467)</td>
+<td>Decided</td>
+<td>Boss, 1:22 AM, &quot;Replace both&quot;</td>
+<td>This note gives the inputs (X, Z) and the radius band, section 7</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Bodies draw composition first and keep the inverse for editing; stars keep the stored [Fe/H] and get a composition filled in (Boss, 2026-10-16 11:58 PM: either route works)</td>
+<td>Decided for bodies (1:21 AM); Default taken for stars</td>
+<td>Boss; this draft</td>
+<td>Route 2 for stars would move every stored [Fe/H] and force a rescatter</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>Composition categories are gated possibility tables, weights add to 100 percent, Dirichlet where only a range is known, Solar System shapes only as stand-ins, one shared component vocabulary, weights are odds</td>
+<td>Decided</td>
+<td>Boss, 1:40, 1:43, 1:44, 1:47 and 1:51 AM</td>
+<td>Loader GEN.472; the star rows of section 3 are rows of it</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>The verification column carries verified, partly verified, open or stand-in</td>
+<td>Decided</td>
+<td>Boss, 3:02 AM</td>
+<td>Section 12 lists each row's state</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>[R0535] and Hypatia are downloaded at build time and no derived table is stored; tests run offline on fixtures</td>
+<td>Decided</td>
+<td>Boss, between 11:19 and 11:23 AM</td>
+<td>The fits of part A stay in <code>tuning.py</code> as constants with provenance; the download only feeds the distribution test</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>No new column for the 75 million stars unless a value cannot be derived</td>
+<td>Default taken (item text; Core 4 tapped at 12:13 AM)</td>
+<td>GEN.435, GEN.440</td>
+<td>Section 4: no value fails this test</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>White-dwarf debris redox uses the core-formation scale (GEN.498)</td>
+<td>Default taken (stands unless Boss overrules)</td>
+<td>Relayed 3:36 AM</td>
+<td>Not used here beyond the polluted flag</td>
+</tr>
+<tr>
+<td>D9</td>
+<td>The branch and the four [X/Fe] offsets are <strong>derived from a seeded stream keyed on stored values</strong>, not stored (answers A-S1)</td>
+<td>Default taken in this draft</td>
+<td>Boss to rule</td>
+<td>Section 5, Q1</td>
+</tr>
+<tr>
+<td>D10</td>
+<td>No stored population is needed: stars younger than <code>THICK_START_GY</code> = 8.0 Gy are thin-disc; older stars use the logistic in [Fe/H]; a bright star's column is used when present</td>
+<td>Default taken; the 8.0 is partly verified ([R1863], read in Boss's papers; age scale uncertain by 1 to 1.5 Gy)</td>
+<td>Boss to rule</td>
+<td>Range 6.5 to 9.5 Gy. The first draft used 3.0 Gy, the project's intermediate/old boundary (<code>tuning.py</code> 718); the paper contradicts it, both values stated. Rule applied: verified. Consequences in Q3</td>
+</tr>
+<tr>
+<td>D11</td>
+<td>Oxygen from the [R3294] NLTE fit; neon follows oxygen; the switch to magnesium stays</td>
+<td>Default taken; Open on the physics</td>
+<td>Boss to rule</td>
+<td>Z/Z0 spread between the two options 8 percent at most, section 5 Q2. Rule applied: most permissive (both kept, spread carried)</td>
+</tr>
+<tr>
+<td>D12</td>
+<td>Ages and metallicities stay independent; only the age gate of D10 links them</td>
+<td>Default taken; stand-in (Haywood's old thick sequence implies a real link)</td>
+<td>Boss to rule</td>
+<td>Section 5 Q3</td>
+</tr>
+<tr>
+<td>D13</td>
+<td>Remnants: keep Kalirai IFMR, replace the white-dwarf radius law by the integrated Chandrasekhar table, neutron-star mass from the observed mixture and radius from the band, black holes carry no composition</td>
+<td>Default taken</td>
+<td>Boss to rule</td>
+<td>Section 7</td>
+</tr>
+<tr>
+<td>D14</td>
+<td>The function returns the birth composition; a photospheric correction is not applied</td>
+<td>Default taken; Open</td>
+<td>Boss to rule</td>
+<td>Solar value 0.064 dex (metals) and 0.070 dex (He) over 4.57 Gy (part A 2.1); no age law read</td>
+</tr>
+<tr>
+<td>D15</td>
+<td>No table of GEN.407 changes in this design; the tip by metallicity is GEN.502 and reads the derived Z</td>
+<td>Default taken</td>
+<td>Boss to rule</td>
+<td>Section 6</td>
+</tr>
+<tr>
+<td>D16</td>
+<td>Members of a multi-star system, and the stars of a cluster, share the group's [Fe/H], branch and offsets</td>
+<td>Default taken</td>
+<td>Boss to rule</td>
+<td>Section 9; within-group scatter 0 (open, none sourced)</td>
+</tr>
+<tr>
+<td>D17</td>
+<td>The disk solids law reads Z/Z0 (GEN.464)</td>
+<td>Default taken (a filed finding, not a Boss ruling)</td>
+<td>TODO thread, from the lane draft of about 1:10 AM</td>
+<td>Z/Z0 values of section 3</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-composition-of-a-star-from-the-stored-values">3. The composition of a star from the stored values</h2>
+<p>Inputs, all stored or fixed constants: [Fe/H] (call it F), age, kind, mass, the optional population, and a key. Model constants are in the appendix and trace to part A 2.2, 2.4 and 2.7.</p>
+<ol>
+<li><strong>Key.</strong> <code>abundance:{uid}</code> (the star's <code>uid</code>; where it is null, <code>abundance:{mass}:{age}:{distance}</code>, the quantities that already seed the [Fe/H] stream; a bright star uses <code>abundance:bright:{seed}</code>). A stream of its own, so no earlier draw moves. Draws in fixed order: u (branch), four normals (C, O, Mg, Si), u (CEMP), u (CEMP carbon). All are always consumed.</li>
+<li><strong>Branch.</strong> thin if age &lt; <code>THICK_START_GY</code> (8.0 Gy, D10); otherwise high-alpha if u &lt; P(F) = 1/(1+exp((F+0.350)/0.132)) ([R0349] fit, part A 2.6), else thin. Because u is fixed per star, the branch flips at most once as F falls, so an edited [Fe/H] never flickers. P(F) is 0.50 at -0.35, 0.757 at -0.5, 0.968 at -0.8 and 0.9999 at -1.6, so the halo is high-alpha without any population label. The fit comes from part A; [R0349] is not among Boss's uploads, so it could not be checked against the paper (partly verified).</li>
+<li><strong>Means</strong> [X/Fe] for C, O, Mg, Si, Ca from the hinge fits of part A 2.7 (N14 NLTE for C and O), with F clamped to each branch's sampled range (thin -0.9 to +0.5, high-alpha -1.6 to +0.1).</li>
+<li><strong>Residuals:</strong> the four normals through the Cholesky factor of the BF16 correlation matrix (C-O 0.56, C-Mg 0.69, C-Si 0.71, O-Mg 0.36, O-Si 0.37, Mg-Si 0.77), times the branch sigma (thin 0.044, 0.052, 0.066, 0.042; high 0.050, 0.065, 0.073, 0.073 for C, O, Mg, Si).</li>
+<li><strong>Others:</strong> S, Ar follow Ca, Ne follows O, everything else [X/Fe] = 0 (N not fitted). <strong>GEN.1360 added nine elements</strong> to the scale (log eps from A21 Table 2; Li is the CI-chondrite 3.25 and takes no diffusion offset): Ti, V, Cr and Mn have straight-line means by branch fitted to the 1,615 dwarfs of BF16 with the repository's own branch (<code>scripts/fit_stellar_xfe_iron_peak.py</code>; Ti is +0.14 dex higher on the high-alpha branch at [Fe/H] -0.7, as the alpha elements are) and a residual correlated with C, O, Mg, Si and Ca (the nine-by-nine table, whose first five rows are those of step 4); P and Zn have the trend of the printed bins of [R0349, R2785] for both branches over the bins' [Fe/H] range; Co, Cu and Li are solar-scaled with a scatter (the papers opened print no value); P, Zn, Co, Cu and Li residuals are independent. The 14 normals are drawn in the order of <code>StarDraws.normals</code>, the nine new ones last of all. Cl and F stay as <code>mixture_rocky</code> has them. Registry rows XE1 to XE7 (gap-filling-plan 6.215).</li>
+<li><strong>CEMP:</strong> for F &lt; -2, with probability 0.25, [C/Fe] is replaced by 0.7 + 1.3 u (Frebel and Norris: 20 to 30 percent, [C/Fe] &gt; 0.7). Part A's rise to probability 1 below -4 is unreachable because the stored [Fe/H] stops at -3.5.</li>
+<li><strong>X, Y, Z and elements.</strong> r = Z/X = (sum over metals of PROTO_i 10^(F + [X_i/Fe]) + remainder 10^F) / X0; X = (1 - Y_P)/(1 + (1+g) r); Z = r X; Y = 1 - X - Z; each element w_i = X (PROTO_i/X0) 10^(F + [X_i/Fe]). Y_P = 0.24672 ([R3544], READ). <strong>g = 1.674</strong>, derived as (1 - Y_P - X0)/Z0 - 1, not the rounded 1.68 of part A 2.4: with 1.68 the Sun reproduces X to 1e-4 only (0.71201 against 0.7121), with the derived g exactly. The observed dY/dZ is 2.1 +- 0.9 (READ), so 1.674 is 0.5 sigma low and inside it. The 14 listed elements cover 99.7 percent of Z0; the remaining 4.9e-5 scales with Fe (partly verified, flagged).</li>
+<li><strong>Ratios:</strong> log eps_i = A21 + F + [X_i/Fe]; Fe/Si, Mg/Si, C/O, O/Si as number and mass ratios (mass factors 1.9884, 0.8654, 0.7507 and 0.5697).</li>
+<li><strong>Phase shifts</strong> (additive on the birth values, applied by class): subgiant IV none; red giant III and II first dredge-up (section 10, example F); supergiants IB to 0 open (the grid stops at 2.5 Msun); Wolf-Rayet and carbon stars from the flags of GEN.243 and GEN.249; Pop III only if a kind is added (X = 0.75328, Y = 0.24672, Z = 0, no draw).</li>
+<li><strong>Radioactive birth abundances</strong> for GEN.459: Eu from the Eu fit, Th = Eu x 0.405 x 10^[Th/Eu] with [Th/Eu] = 0.014 +- 0.045 ([R0479], READ), U/Th birth 0.572; K not fitted. Limit: Th itself is measured near solar [Fe/H] only (slope -0.338 +- 0.049 inside +-0.1 dex, master 15.1), so Th elsewhere is inferred through Eu (partly verified). Cross-check on U/Th with [R3416] (first edition, read in Boss's papers: Th 83.4 ppb, U 21.8 ppb): decayed back 4.568 Gy (appendix <code>birth_u_th</code>) the mass ratio is 0.554; the Sun's atomic 0.572 is 0.587 by mass, so the two sit 6 percent apart. Our files' &quot;[R3417]&quot; values (Th 0.0849, U 0.0229 ppm; 1.8 and 5.0 percent above) cannot be confirmed and give 0.572, so the label here is &quot;2003 edition&quot; and the 6 percent is carried as the uncertainty on U/Th. Rule applied: verified for the label; most permissive for the spread.</li>
+</ol>
+<p><strong>Z/Z0 against 10^[Fe/H]</strong> (recomputed here; matches part A 2.5 to three digits in Z/Z0): thin +0.2 gives 0.862 (neon on O) or 0.884 (neon on Mg); thin 0.0 gives 0.981 or 0.988; high-alpha 0.0 gives 1.298 or 1.274; thin -0.5 gives 1.380 or 1.386; high-alpha -0.5 gives 2.043 or 1.962; high-alpha -1.0 gives 2.982 or 2.760; -2.0 gives 3.027 or 2.798; -3.0 gives 3.031 or 2.802. GEN.464's test reads this table.</p>
+<h2 id="4-what-is-derived-on-demand-and-what-is-stored">4. What is derived on demand and what is stored</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Stored or derived</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[Fe/H], age, lifespan, mass, class, temperature, luminosity, radius, <code>uid</code></td>
+<td>stored (unchanged)</td>
+<td>The only inputs; no new column</td>
+</tr>
+<tr>
+<td>Population</td>
+<td>stored on <code>bright_stars</code> only; otherwise replaced by the age gate (D10)</td>
+<td>Not needed on the 75 million</td>
+</tr>
+<tr>
+<td>Branch, [Mg/Fe], [Si/Fe], [O/Fe], [C/Fe], CEMP flag</td>
+<td>derived from the key and stored values</td>
+<td>Reproducible at any worker count; the same key gives the same draw</td>
+</tr>
+<tr>
+<td>X, Y, Z, element mass fractions, Fe/Si, Mg/Si, C/O, O/Si, Z/Z0</td>
+<td>derived</td>
+<td>A cache is allowed; a test asserts cache equals recomputation</td>
+</tr>
+<tr>
+<td>Surface shifts after dredge-up, carbon-star C/O, Wolf-Rayet fractions</td>
+<td>derived from class, mass, Z and flags</td>
+<td>Flags belong to GEN.249 and GEN.243</td>
+</tr>
+<tr>
+<td>Central H fraction, fuel factor</td>
+<td>derived</td>
+<td>Section 6</td>
+</tr>
+<tr>
+<td>Th, U, K birth abundances</td>
+<td>derived</td>
+<td>Decay to the planet's age is GEN.459's</td>
+</tr>
+<tr>
+<td>White-dwarf core type and radius, neutron-star layers, black-hole horizon and spin quantities, brown-dwarf radius</td>
+<td>derived from stored mass (and age for the brown dwarf)</td>
+<td>Section 7</td>
+</tr>
+<tr>
+<td>An admin's wish to set one star's [Mg/Fe] by hand</td>
+<td>the only case that cannot be derived</td>
+<td>Not offered; if Boss wants it, a sparse override record, never a column on 75 million rows (open)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-the-open-questions-of-the-item-answered">5. The open questions of the item, answered</h2>
+<p><strong>Q1. Are the branch and the four offsets stored or derived from the seed?</strong> Derive. Part A 3.3 and part B list five new columns; GEN.440 and the item rule them out, and nothing needs them stored: every value is a function of the stored [Fe/H], age and key. The branch draw u is fixed per star so edits are stable; changing a star's [Fe/H], age or mass in the admin (edit-everything.md) re-derives the composition with no stored state to repair. Cost: one 4 by 4 Cholesky factor (a constant) and seven draws per call.</p>
+<p><strong>Q2. Neon and oxygen.</strong> Take oxygen from the [R3294] NLTE triplet fit (plateau +0.606 on the high-alpha branch; the [R0349] own-O plateau is +0.582, the two differ by up to 0.1 dex elsewhere, part A 2.7 note b) and let neon follow oxygen, with a <code>NE_FOLLOWS</code> switch to magnesium. Neon is not measured in photospheres (set values range 7.93 to 8.15, part A 2.1), so it is the least certain entry of Z. The two options differ in Z/Z0 by at most 8 percent (2.982 against 2.760 at -1.0); the generic single-[alpha/Fe] model gives about 2.0, so both stand 1.4 to 1.5 times above it. The physical reason for neon with oxygen is recalled, not read: open. Part A 3.2 step 4 says neon follows magnesium while the filing of GEN.464 says the lane preferred oxygen; this draft follows GEN.464 and keeps both numbers as the filing requires.</p>
+<p><strong>Q3. Age-metallicity link (A-D3).</strong> [Fe/H] stays unlinked to age (D12). The age gate carries the one link, and Boss's papers move it. [R1863] (read): the thick disc formed from about 13 to about 8 Gy ago, with the age scale uncertain by 1 to 1.5 Gy; the inner thin disc starts about 8 Gy ago and the outer thin disc 9 to 10 Gy ago; thick/thin mass ratio at least 0.2, possibly up to about 1. The first draft gated at 3.0 Gy, the project's intermediate/old boundary, which would make 3 to 8 Gy stars thick-disc. The paper contradicts that, so the paper wins and the gate is 8.0 Gy (range 6.5 to 9.5). Rule applied: verified.</p>
+<p>The cost, computed here (appendix P(F), 3e5 draws, ages uniform): for the project's old disc (3 to 10 Gy, [Fe/H] N(-0.20, 0.25)) the high-alpha share is 0.329 with the gate at 3.0, 0.165 at 6.5, 0.095 at 8.0 and 0.023 at 9.5. For the solar-neighbourhood mix N(-0.10, 0.22) with ages uniform 0 to 10 Gy it is 0.216 with no gate, 0.151 at 3.0 and 0.043 at 8.0. P(F) is Bensby's fraction over all ages, so applying it only above 8 Gy under-produces thick-disc stars: 0.095 of old-disc stars, against a thick disc of at least 0.167 of disc mass (ratio 0.2; a number share is not a mass share, and the whole-disc ratio belongs to the density lane, GEN.134). A stand-in correction multiplies P by (10 - 3)/(10 - gate) = 3.5 and caps it at 1; it gives 0.189 for the old disc, but it jumps at 10 Gy and gives 0.23 at [Fe/H] = 0, so it is not adopted. The honest fix needs the age-resolved thick fraction from [R0349] (not among Boss's uploads, so every Bensby-based value here is part A's, unchecked against the paper) or [R3532] (not uploaded; [R3531] covers one galaxy, FCC 170, with about 3 Gy age resolution and no thick/thin ratio, so it cannot test the gate). Open. At [Fe/H] = -0.5, where the branches differ most, Z/Z0 is 1.380 thin against 2.043 high-alpha (section 3), so a thin-branch star of 3 to 8 Gy there has 32 percent less Z than a thick-disc star would.</p>
+<p>Also open, for GEN.134: the project's old window ends at 10 Gy and the halo starts at 10 Gy (<code>tuning.py</code> 718), while Haywood has the thick disc forming back to 13 Gy and Aumer and Binney fit a disc age of 12.6 Gyr (tau_max, Table 6 fit), so the old disc window stops 2.6 to 3 Gy short of the disc's start. Not changed here.</p>
+<p>Independence of [Fe/H] and age otherwise loses little. [R0349] gives -0.027 dex/Gy with scatter 0.265 dex (second-hand through part A, partly verified), which for ages uniform over 0 to 10 Gy is an explained sd of 0.078 dex and a correlation of 0.28. A young star (sigma 0.10) is below -0.5 with probability 3e-7 and an intermediate one (sigma 0.15) 4e-4. Linking would move every stored [Fe/H]. Bensby's kinematically thick fraction of 0.08 at 0 to 2 Gy (shape only) is not reproduced; Haywood's age floor says it is a kinematic misclassification, so a young alpha-rich star is not produced on purpose.</p>
+<p><strong>Q4. Remnant limits.</strong> Section 7.</p>
+<h2 id="6-how-the-abundances-change-the-star-and-whether-the-tables-of-gen407-change">6. How the abundances change the star, and whether the tables of GEN.407 change</h2>
+<p>GEN.407 is built (PR #1985, epoch 4); GEN.502 holds what it left. What composition does, with what the repo research can support:</p>
+<ul>
+<li><strong>Lifetime.</strong> Fuel is the hydrogen fraction X. Against the proto-solar 0.7121: example A 1.014, B 1.036, C 1.053, Pop III 1.058 (section 10). Burning rate depends on luminosity, which depends on opacity and mean molecular weight; no read source in the repo gives dL/dZ or dT/dZ. GEN.467 should take (mass, X, Z); the project's 10 Gy M^-2.5 is replaced there. <strong>Built (GEN.467, 2026-10-17):</strong> <code>physics/ms_lifetime.py</code> is the fit of [R2055] (MNRAS 315, 543, eqs. 4 to 7 and the Appendix coefficients, read from the paper), a function of mass and [Fe/H] (<code>Z = 0.0154 x 10^[Fe/H]</code>, the proto-solar Z above); a solar mass lasts 10.2 Gy, 20 solar masses 9.0 Myr (5.6 before), 150 solar masses 3.2 Myr (0.04 before). Every caller passes the default [Fe/H] of 0 until the composition is drawn first (9.0). For a check, the Sun's central hydrogen from three models is 0.708 at zero age, 0.340 at 4.57 Gy, 0.145 at 6.5 and 0.008 at 8 (READ); the fit X_c = X0 (1 - (t/8)^1.15) returns 0.336, 0.150 and 0 (error under 0.01).</li>
+<li><strong>Opacity.</strong> Z sets the Rosseland opacity. The only opacity law in the repo research is the hydrogen-burning edge M_edge = 0.0865 (kappa/1e-2)^(-1/9) Msun ([R0606], READ): a 10 percent opacity change moves the edge 1 percent. Nothing else in the generator reads it.</li>
+<li><strong>Luminosity, radius, temperature, colour on the main sequence.</strong> Boss's cluster text says metal-poor stars are hotter and brighter at the same mass (globular-clusters.md 34, an unchecked note) and puts the 12 Gy turn-off at 0.85 Msun against 0.93 in the code; no tracks were read (MIST and BaSTI were unreachable, stellar tables check). Open; the tables stay Z-independent as a stand-in. Colour is a blackbody of the stored temperature (GEN.416); composition does not change it in this design.</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>GEN.407 value (<code>tuning.py</code>)</th>
+<th>Change?</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GIANT_BRANCH_TIP_LUMINOSITY_SOL</code> 2500</td>
+<td>Yes, by GEN.502, from Z</td>
+<td>[R4024: Table 2] (READ): log L 3.2335, 3.326, 3.386 at Z 1e-4, 1e-3, 4e-3 (midpoints of the printed ranges). Interpolated in log Z and held outside: example C gives 2183 Lsun, D 1712, B 2432; above Z 4e-3 the table ends, so solar-Z stars stay at 2432 (flagged)</td>
+</tr>
+<tr>
+<td><code>GIANT_BRANCH_TIME_SLOPE</code> 0.78</td>
+<td>No</td>
+<td>Core-mass law is GEN.502's, not composition</td>
+</tr>
+<tr>
+<td><code>HORIZONTAL_BRANCH_COLOURS</code> rows, keyed on [Fe/H]</td>
+<td>No</td>
+<td>Calibrated on 57 clusters in [Fe/H] (Zinn and West scale); a high-alpha star has Z/Z0 up to 3 at the same [Fe/H], but no source tells whether colour follows Z or [Fe/H] for field stars. Open; the scale of the stored [Fe/H] against Zinn and West is unstated in the code</td>
+</tr>
+<tr>
+<td>HB age shift 0.1 dex/Gy, HB luminosity 35 to 50</td>
+<td>No</td>
+<td>Placeholder and Z-independent in the sources read</td>
+</tr>
+<tr>
+<td>Main-sequence L(M), R(M), <code>SUN_EFFECTIVE_TEMPERATURE_K</code></td>
+<td>No</td>
+<td>No read source</td>
+</tr>
+<tr>
+<td>WD IFMR, cooling law</td>
+<td>No</td>
+<td>IFMR metallicity dependence not read ([R0961] PARSEC and MIST differ by 0.03 to 0.07 Msun)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-brown-dwarfs-and-remnants">7. Brown dwarfs and remnants</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Composition derived from the stored values</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brown dwarf</td>
+<td>Natal gas X, Y, Z as a star; fully convective. Deuterium limit M_D = 13.55 - 0.9 log10(Z/0.0189) - 0.2 (Y-0.25)/0.01 MJ (linear fit of [R4170: Table 1]; their solar Z is 0.0189, not 0.0154; spread 11.0 to 16.3 MJ); lithium burned above 0.06 Msun (63 MJ); hydrogen burning above 0.07 to 0.074 Msun at solar Z, 0.092 at Z = 0 [R0606]; radius and Teff from the BHAC15 grid (solar Z only), Li depletion from the same grid</td>
+<td>D, Li, H limits verified at solar Z; Z dependence of H limit open (log-linear is a parametrisation); radius at other Z open</td>
+</tr>
+<tr>
+<td>White dwarf</td>
+<td>Mass stored. Core He below about 0.45 (recalled, open), C/O above, O/Ne above 1.05 Msun ([R0085], READ). Atmosphere DA with p 0.80 (Xu 2024, READ), else DB, DC, DQ, DZ; 25 to 50 percent of cool ones (under 10,000 K, the floor of the hot white dwarfs) polluted: <code>detail[&quot;polluted&quot;]</code>, drawn from the star's own stream at the middle share 0.375 and never stored (GEN.253). Layer masses and the C:O split: open. Radius from the integrated table of the appendix (Sirius B 1.018 Msun gives 0.00803 Rsun against 0.00803 +- 0.00011 measured)</td>
+<td>IFMR, DA share, pollution verified; core C:O and layers open</td>
+</tr>
+<tr>
+<td>Neutron star</td>
+<td>Mass stored; draw from the observed mixture (slow 1.49 +- 0.19, recycled 1.54 +- 0.23, floor 1.17, heaviest 2.35 +- 0.17; M_TOV 2.01 to 2.16). Radius band 11.6 to 13.1 km, nearly mass independent ([R3075], hull of the 1-sigma intervals; J0740 alone is 13.7 +2.6/-1.5, so the band is not a cap); the function is GEN.463's. Layers by density: 56Fe to 62Ni (8.02e6 to 2.71e8 g/cm3) through 118Kr (4.27e11), neutron drip near 4e11, inner crust Zr and Sn clusters, uniform n, p, e core ([R0722], READ). Crust thickness 1 km and 0.01 Msun are recalled, open</td>
+<td>Mass, band, crust sequence verified; radial structure needs an EOS: open</td>
+</tr>
+<tr>
+<td>Black hole</td>
+<td>No composition (no-hair theorem, READ). Mass, spin, charge 0 stored or fixed; r_s, Hawking T, horizon, ISCO and efficiency by formula (recomputed: 10 Msun gives r_s 29.53 km, T 6.17e-9 K, and at spin 0.9 ISCO 2.321 and efficiency 0.156)</td>
+<td>Verified; spin cap 0.998 recalled</td>
+</tr>
+<tr>
+<td>Protostar, pre-main sequence</td>
+<td>Natal gas of the cloud, deuterium not burned until the limit above</td>
+<td>Partly verified</td>
+</tr>
+<tr>
+<td>Stripped-helium, Thorne-Zytkow, Wolf-Rayet</td>
+<td>Wolf-Rayet: WN X_N 1 percent and H-free early, late WN X_H 15 +- 10 percent, WC carbon 20 to 55 percent by mass ([R0948], READ); WO, which the paper names without fractions, carbon 30 to 55 and oxygen 10 to 40 percent by mass, a stand-in (registry row BC24, GEN.831). Stripped-helium and Thorne-Zytkow: no source read</td>
+<td>WR partly verified; others open</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Findings on the existing figures</strong> (computed here): the code's white-dwarf radius 5800 km times M^(-1/3) is 22 percent below the integrated radius at 0.6 Msun (6877 against 8842 km at 0.6 Msun), equal within 1.5 percent at 1.0 Msun and 31 and 64 percent above it at 1.2 and 1.3 Msun; <code>mathcheck.py</code> tests the 0.6 Msun radius against Earth's 6371 km within 15 percent, which hides this. The uniform neutron-star mass draw of 1.1 to 2.2 Msun puts as much weight at 2.0 as at 1.4, while the observed mixture peaks near 1.3 to 1.5.</p>
+<h2 id="8-how-a-stars-iron-magnesium-and-silicon-set-the-rocky-planets-core-fraction-gen428">8. How a star's iron, magnesium and silicon set the rocky planets' core fraction (GEN.428)</h2>
+<p>The planet draw reads the host's number ratios from section 3. With mu the standard atomic weights (Fe 55.845, Mg 24.305, Si 28.0855, Ca 40.078, Al 26.9815, O 15.999), the core mass fraction with all iron in the core is, from [R4467: Eq. 8] as read in part B 2.4:</p>
+<p>CMF = (Fe/Mg) mu_Fe / [(Fe/Mg) mu_Fe + mu_bar], mu_bar = (mu_Mg + mu_O) + (Ca/Mg)(mu_Ca + mu_O) + (Al/Mg)(mu_Al + 1.5 mu_O) + (Si/Mg)(mu_Si + 2 mu_O).</p>
+<p>Check: Fe/Mg 0.71, Si/Mg 0.79, Ca/Mg 0.07, Al/Mg 0.09 give 0.2917 (part B table: 0.292). Ca and Al come from [Ca/Fe] (section 3) and the Bensby [Al/Fe] fit (thin 0.032 - 0.029 min(F - 0.06, 0); high 0.225 - 0.298 max(F + 0.48, 0)). Results:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>CMF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R0168, R0169, R2733] reference ratios</td>
+<td>0.307, 0.302, 0.315 (set spread 0.013)</td>
+</tr>
+<tr>
+<td>[R2726] (GEN.428 text)</td>
+<td>0.320</td>
+</tr>
+<tr>
+<td>Draw, solar-neighbourhood mix N(-0.10, 0.22), 6e4 stars: median and 2.5 to 97.5 percent</td>
+<td>0.284 [0.199, 0.337]</td>
+</tr>
+<tr>
+<td>Thin disc only N(0, 0.2)</td>
+<td>0.293 [0.242, 0.341]</td>
+</tr>
+<tr>
+<td>Halo N(-1.6, 0.5)</td>
+<td>0.184 [0.144, 0.237]</td>
+</tr>
+<tr>
+<td>Observed BF16 Fe/Si 1.17, 1.81, 2.39 at Mg/Si 0.93</td>
+<td>0.228, 0.314, 0.376</td>
+</tr>
+<tr>
+<td>Thiabaud box corners (Fe/Si 1.34 and Mg/Si 1.85; 2.81 and 0.66)</td>
+<td>0.189, 0.450</td>
+</tr>
+</tbody>
+</table></div>
+<p>Metal-poor high-alpha stars give smaller cores (Fe/Si falls to about 1.0 while Mg/Si rises to 1.2). GEN.428 quotes a stellar range of 0.2 to 0.47; that is the Thiabaud compilation envelope. The drawn distributions reach 0.34 at 97.5 percent in the solar neighbourhood, so the upper part of 0.2 to 0.47 is a plausibility box, not a drawn range (master 7). Mantle FeO and core light elements move the planet's CMF by about 0.04 per 0.1 (part B 2.3) and belong to GEN.428, not to the star.</p>
+<p>For comparison only: [R3416] (first edition, read in Boss's papers, Table 3) give a primitive mantle of MgO 36.77, Al<sub>2</sub>O<sub>3</sub> 4.49, SiO<sub>2</sub> 45.40, CaO 3.65, FeOt 8.10 percent, total 98.41 (not 100; the rest is minor oxides 1.34 and trace), so Mg/Si is 1.045 by mass (recomputed here: 22.17 over 21.22). The Sun's by-mass Mg/Si in this note is 0.949, and a planet's mantle after core formation is not its star's bulk ratio, so this is not a contradiction and no target is taken from it. The label in our files, &quot;[R3417]&quot; (Th 0.0849, U 0.0229 ppm), cannot be confirmed from the papers and is not used here.</p>
+<h2 id="9-clusters-and-multi-star-systems-gen269">9. Clusters and multi-star systems (GEN.269)</h2>
+<ul>
+<li><strong>Multi-star systems.</strong> All members form from one cloud: they share the group's [Fe/H] (already true for a binary, <code>binary.py</code> 136; for the member tree this is the storage half of GEN.269, Core 2's finding of 2026-10-16, 4:58 AM EDT), and the branch and four offsets come from the key of the group's primary (<code>abundance:{primary uid}</code>), not the member's. Birth X, Y, Z and ratios are identical across members. Each member then takes its own phase shift (a giant sibling differs from a dwarf one) and its own remnant layers; the pollution and carbon-star flags are per member. A merger product keeps the real system age for the age gate. Mass-transfer pollution of an accretor is open. Within-group scatter: 0, open; no source was read ([R1943]'s 0.11 dex is between catalogues, not between siblings).</li>
+<li><strong>Clusters.</strong> The cluster record holds its [Fe/H] (peaks -1.55 and -0.55, <code>CLUSTER_FE_H_GROUPS</code>); its stars draw [Fe/H] about it with sigma 0.15 (recalled in the code, open). Branch and residuals are keyed on the cluster seed (<code>abundance:cluster:{seed}</code>), so the residuals are shared and only the F-dependent means move with each star. A cluster of 10 to 13 Gy ages passes the age gate and the logistic: at -1.55 it is high-alpha with probability 0.9999, at -0.55 with 0.82. Satellite galaxies follow the same rule as a stand-in; their real alpha pattern is not in the research (open).</li>
+</ul>
+<h2 id="10-worked-examples">10. Worked examples</h2>
+<p>Inputs are illustrative, not presets and not copied from the Solar System. Keys carry a suffix chosen as the first that keeps all four normals inside +-1.6 for readability. Code in the appendix; X, Y, Z sum to 1 in every case.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind and inputs</th>
+<th>Steps</th>
+<th>Outputs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A, main sequence, thin.</strong> F -0.20, age 2.0 Gy, key <code>example-A1</code></td>
+<td>age 2.0 &lt; 8.0: thin. Normals -0.15, 1.30, 0.005, 0.42, 0.0; residuals C -0.014, O 0.110, Mg -0.004, Si 0.026, Ca 0.012; [X/Fe] C -0.012, O 0.194, Mg 0.003, Si 0.017, Ca 0.072, Ne 0.194 (refitted to [R0535], GEN.988 to GEN.991; the first fit gave C -0.004, O 0.115, Mg 0.076, Si 0.043, Ca 0.06)</td>
+<td>X 0.7190, Y 0.2682, Z 0.01282 (Z/(Z0 10^F) 1.319). Mass fractions: O 6.38e-3, C 1.76e-3, Ne 1.89e-3, Fe 8.4e-4, Mg 4.5e-4, Si 4.9e-4, N 4.9e-4. Fe/Si 1.703, Mg/Si 0.917, C/O 0.276 (mass). CMF and fuel factor not recomputed</td>
+</tr>
+<tr>
+<td><strong>B, old, high-alpha.</strong> F -0.80, age 9.0 Gy, key <code>example-B2</code></td>
+<td>age 9.0 &gt;= 8.0 passes the gate; P(F) 0.968, u 0.533: high. O +0.503, Mg +0.312, Si +0.175, C +0.131</td>
+<td>X 0.7375, Y 0.2566, Z 0.00591 (Z/(Z0 10^F) 2.42). Fe/Si 1.186, Mg/Si 1.303, C/O 0.188. CMF 0.205. Tip 2432 Lsun</td>
+</tr>
+<tr>
+<td><strong>C, halo.</strong> F -1.60, age 12 Gy, key <code>example-C1</code></td>
+<td>P 0.9999, high. O +0.681, Mg +0.424, Si +0.240, C +0.216</td>
+<td>X 0.7497, Y 0.2490, Z 0.00135 (3.49). Fe/Si 1.019, Mg/Si 1.448, C/O 0.152. CMF 0.175. Tip 2183</td>
+</tr>
+<tr>
+<td><strong>D, carbon-enhanced metal-poor.</strong> F -3.0, age 12.5, key <code>example-D8</code></td>
+<td>F &lt; -2: CEMP draw 0.069 &lt; 0.25, [C/Fe] = 0.7 + 1.3 x 0.396 = 1.215 (a key suffix that gives a CEMP star; most keys do not)</td>
+<td>X 0.7530, Y 0.2469, Z 9e-5. C/O 1.80 mass (2.40 number), Fe/Si 0.99. A rocky planet here could be carbon-rich</td>
+</tr>
+<tr>
+<td><strong>E, Pop III</strong> (only if a kind is added)</td>
+<td>Z = 0 exact, no draw</td>
+<td>X 0.75328, Y 0.24672, Z 0</td>
+</tr>
+<tr>
+<td><strong>F, red giant.</strong> Mass 1.5 Msun, F -0.10, age 4.1 Gy, key <code>example-E4</code> (code lifetimes: giant between 3.99 and 4.35 Gy)</td>
+<td>Branch thin (age 4.1 &lt; 8.0; the logistic alone gives P 0.131 against u 0.393, thin either way). Birth X 0.7197, Y 0.2678, Z 0.01257, C/Z 0.177, N/Z 0.050. Dredge-up ([R0467], READ): weight in log Z between Z 0.001 and 0.02 is 0.845; dY = +0.0165; C factor 0.7257; N factor 2.02 (Z 0.02 only; low-Z N not extracted)</td>
+<td>Surface X 0.7032, Y 0.2842, Z 0.01257; C/Z 0.129, N/Z 0.100; C/N number 4.17 to 1.50; C/O 0.409 (number). Tip 2432 Lsun</td>
+</tr>
+<tr>
+<td><strong>G, AGB.</strong> Mass 2.0 Msun, Z 0.0125</td>
+<td>Carbon-star minimum mass 1.4 at Z 0.01 and 1.5 at Z 0.02 ([R2244], 2ND-HAND), linear in Z gives 1.425</td>
+<td>2.0 &gt; 1.425: C/O above 1 is possible once thermal pulses have run. The flag is GEN.249's; the C/O value is open (yield tables not extracted)</td>
+</tr>
+<tr>
+<td><strong>H, Wolf-Rayet WC.</strong> key <code>example-W1</code></td>
+<td>C = 0.20 + 0.35 u, u 0.767 (the refined 20 to 55 percent)</td>
+<td>X_H 0, C 0.469, the rest He and O, split open</td>
+</tr>
+<tr>
+<td><strong>H<sub>2</sub>, Wolf-Rayet WO.</strong> Subtype from the spectral text (&quot;WO2&quot;), a drawn position u of 0.5</td>
+<td>C = 0.30 + 0.25 u, O = 0.10 + 0.30 u, both at one u (BC24 stand-in); a WN star is early (X_H 0) up to subclass 5 and late (X_H 0.05 to 0.25) from 6</td>
+<td>At u 0.5: C 0.425, O 0.25, He 0.325; the three always add to 1</td>
+</tr>
+<tr>
+<td><strong>I, brown dwarf.</strong> 0.050 Msun (52.4 MJ), age 1 Gy, gas of A</td>
+<td>M_D = 13.55 + 0.189 - 0.326 = 13.41 MJ; 52.4 &gt; 13.4 so deuterium burned; below 62.9 MJ so lithium kept; below 0.07 Msun so no hydrogen burning</td>
+<td>R 0.0960 Rsun (66,787 km), Teff 1383 K (BHAC15, solar Z), Li depletion 0 to -0.03 dex</td>
+</tr>
+<tr>
+<td><strong>J, white dwarf.</strong> Mass 0.61 Msun (progenitor 1.98 Msun by the inverse IFMR), key <code>example-WD1</code></td>
+<td>Core C/O (0.45 to 1.05). Atmosphere u 0.391 &lt; 0.80: DA</td>
+<td>R 8752 km (0.01258 Rsun) against 6839 km from the code's law</td>
+</tr>
+<tr>
+<td><strong>K, neutron star.</strong> 1.36 Msun, R 12.45 km ([R3075] R(1.4))</td>
+<td>Mean density 3M/(4 pi R^3)</td>
+<td>3.35e14 g/cm3 = 1.22 times saturation (2.7 to 2.8e14); compactness 2GM/Rc^2 0.323; g 1.16e14 cm/s2. The layer sequence of section 7 applies from the surface inward; thicknesses need an EOS (open)</td>
+</tr>
+<tr>
+<td><strong>L, black hole.</strong> 12 Msun, spin 0.7</td>
+<td>Formulas of the appendix</td>
+<td>r_s 35.44 km, T_H 5.14e-9 K, r_+ 30.37 km, ISCO 3.393 GM/c^2 = 60.12 km, efficiency 0.1036</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="11-test-targets-the-suns-composition-is-a-target-never-a-preset">11. Test targets (the Sun's composition is a target, never a preset)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Expected</th>
+<th>Tolerance</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scale reproduces itself: F = 0, all [X/Fe] = 0 gives (X, Y, Z) = (0.7121, 0.2725, 0.0154)</td>
+<td>exact</td>
+<td>1e-6 with g derived from the reference; 1e-4 with 1.68</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Thin branch means only at F = 0 (the Sun's role as a target)</td>
+<td>X 0.7128, Y 0.2720, Z 0.01512</td>
+<td>Z within 3 percent of 0.0154</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Z/Z0 against 10^F at F 0, -0.5, -1, -2 for thin and high-alpha</td>
+<td>table of section 3</td>
+<td>0.01</td>
+<td>verified (GEN.464)</td>
+</tr>
+<tr>
+<td>X + Y + Z = 1; Y &gt;= Y_P; Z monotone in F on a branch for fixed residuals; branch flips at most once</td>
+<td>invariants</td>
+<td>1e-9</td>
+<td>verified (checked in the session)</td>
+</tr>
+<tr>
+<td>6e3 draws, mix N(-0.10, 0.22): Fe/Si 1.82, Mg/Si 0.98, C/O 0.38, high share 0.224 (age gate off, as part A 2.8 drew it; part A had Fe/Si 1.62, Mg/Si 1.02 and C/O 0.40 before the refit to Brewer and Fischer, GEN.988 to GEN.991)</td>
+<td>the Brewer and Fischer medians below</td>
+<td>as stated</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Age gate: no star younger than <code>THICK_START_GY</code> is high-alpha; old disc (ages uniform 3 to 10 Gy, [Fe/H] N(-0.20, 0.25), 3e5 draws) high-alpha share 0.095 at 8.0 Gy (0.329 at 3.0)</td>
+<td>invariant; 0.095</td>
+<td>exact; 0.01</td>
+<td>stand-in (the share depends on the open age-resolved fraction, Q3)</td>
+</tr>
+<tr>
+<td>Against BF16 medians (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385)</td>
+<td>within 0.2, 0.1, 0.05</td>
+<td>as stated</td>
+<td>verified (the draw sat 0.19 below on Fe/Si before the thin Mg and Si refit, GEN.989; the table's C/O median over all its stars is 0.368)</td>
+</tr>
+<tr>
+<td>Mg-Si residual correlation 0.68 (0.77 of the 844-dwarf table), thin Mg/Si ratio residual 0.054 dex</td>
+<td>within 0.03 and 20 percent</td>
+<td></td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Sun's central hydrogen at 4.57 Gy, 1 Msun</td>
+<td>0.340</td>
+<td>0.03</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>First dredge-up, 1 Msun, Z 0.02: Y +0.0225, C/Z x0.88, N/Z x1.45</td>
+<td></td>
+<td>10 percent</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>White-dwarf radius at 1.018 Msun</td>
+<td>0.00803 Rsun</td>
+<td>5 percent</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>DA peak mass</td>
+<td>0.59 Msun</td>
+<td>0.05</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Heaviest neutron star reachable by the draw tail</td>
+<td>2.35 +- 0.17</td>
+<td></td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Black hole r_s at 10 Msun</td>
+<td>29.53 km</td>
+<td>1e-3</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Brown dwarf radius, 0.07 Msun at 1 Gy</td>
+<td>0.0944 Rsun</td>
+<td>5 percent</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>Same star, same composition at one and four workers; no table row lacks a state; the loader counts each state</td>
+<td></td>
+<td></td>
+<td>TEST.211, TEST.214</td>
+</tr>
+<tr>
+<td>Solar values live in test files only; no generator table reads them</td>
+<td></td>
+<td></td>
+<td>TEST.215</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="12-contradictions-and-gaps-found-between-sources">12. Contradictions and gaps found between sources</h2>
+<ol>
+<li><strong>Storage.</strong> Part A 3.3 and part B ask for five new columns; GEN.440 and GEN.435 forbid them. Resolved by D9; the verified rule of the item wins.</li>
+<li><strong>Population.</strong> Part A treats the population as stored for every star; the code stores it on <code>bright_stars</code> only. Resolved by D10.</li>
+<li><strong>Neon.</strong> Part A 3.2 step 4 (magnesium) against the GEN.464 filing (oxygen). Resolved by a switch, D11.</li>
+<li><strong>Rounded g.</strong> Part A 2.4 prints 1.68 while its invariant 2 asks 1e-6; the exact value is 1.674.</li>
+<li><strong>Second abundance fit.</strong> gap-filling-plan 4.7 ([R0535], 1592 stars, linear, no quality cut, sd 0.111, 0.127, 0.060, 0.087) differs from part A 2.7 (hinge fits, cuts, sd 0.04 to 0.07). At F = -0.5 the mixture mean [Mg/Fe] is 0.251 against 0.100, and at +0.3 the thin value 0.006 against -0.098 (the hinge holds a plateau). Differences up to 0.1 dex sit inside the 0.11 dex catalogue-to-catalogue spread [R1943], so both ship with that limit; the part A fit is used because it separates the branches. The C/O median 0.47 (tunable-gaps f7, number) against 0.51 here (0.385 mass) is consistent with a different solar reference, not verified.</li>
+<li><strong>CMF range.</strong> GEN.428's 0.2 to 0.47 is the Thiabaud envelope; the drawn range is narrower (section 8).</li>
+<li><strong>White-dwarf radius and neutron-star mass law</strong> in the code (section 7).</li>
+<li><strong>Brown dwarf limits.</strong> Spiegel's 13.0 +- 0.8 MJ (abstract) and 13.55 MJ (Table 1, solar Z, Y 0.25) are two values of one source; the formula takes the Table 1 centre. Its solar Z is 0.0189 and must not be replaced by 0.0154.</li>
+<li><strong>CEMP above probability 1 below -4</strong> is unreachable under the clamp at -3.5.</li>
+<li><strong>Radiogenic Th.</strong> Part A step 7 derives Th from Eu over the whole range; master 15.1 supports Th/Fe trends only within +-0.1 dex of solar. Shipped with that limit.</li>
+<li><strong>Lifetime.</strong> The Sun reaches zero central hydrogen at 8 Gy in models, the code gives 10 Gy; decided (D2).</li>
+<li><strong>Age gate.</strong> The first draft's 3.0 Gy (the project's intermediate/old boundary) against [R1863] (thick disc 13 to 8 Gy ago, uncertain by 1 to 1.5 Gy). The paper wins, both values stated: D10, Q3.</li>
+<li><strong>Palme and O'Neill.</strong> Our files' &quot;2014&quot; Th 0.0849 and U 0.0229 ppm against the 2003 edition read in Boss's papers (Th 83.4 ppb, U 21.8 ppb, primitive-mantle oxide total 98.41). The paper wins; label &quot;2003 edition&quot;. This note takes nothing from either except the U/Th cross-check of step 10.</li>
+<li><strong>Age-velocity relation.</strong> [R0202] (Eq. 16, Table 6: beta_U 0.307, beta_V 0.430, beta_W 0.445, 3D best fit beta 0.349, tau1 0.149, v10 55.179 km/s; disc age 12.6 Gyr): sigma_W/sigma_U runs 0.41 at 1 Gyr to 0.57 at 10 Gyr, which I recomputed from the table (0.414 and 0.569), not the constant 0.54 of the plan. This note does not use the relation, so nothing changes here; the thick-disc classification by velocity (Bensby's) is not generated.</li>
+<li><strong>Not uploaded.</strong> [R0349, R3532] are not among Boss's uploads and [R3531] covers one galaxy; every Bensby-based value (the branch logistic, the Mg, Si, Ca, Al hinge fits) stays part A's and partly verified.</li>
+</ol>
+<p>Not found anywhere in the research (open, for Boss's list): mass and metallicity dependence of main-sequence luminosity and temperature (isochrone grids), the white-dwarf C:O split and layer masses, the neutron-star EOS and crust depth, age dependence of photospheric diffusion, within-group abundance scatter, the age-resolved thick-disc fraction, the alpha pattern of satellites and the bulge, and yields for carbon stars and supergiants.</p>
+<h2 id="13-source-conflicts-and-the-rule-that-decided-each">13. Source conflicts and the rule that decided each</h2>
+<p>Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources are in doubt, the newest wins; if both are in question, most permissive wins. The third means the widest value or range, or both options kept with the spread carried: Boss confirmed this at 1:12 PM EDT (Decided), as composition-model.md section 4a item 12 records it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Conflict</th>
+<th>Rule applied</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Age gate 3.0 Gy (project) against [R1863] (thick disc 13 to 8 Gy ago)</td>
+<td>Verified</td>
+<td>8.0 Gy, range 6.5 to 9.5 (D10, Q3)</td>
+</tr>
+<tr>
+<td>Palme and O'Neill &quot;2014&quot; Th 0.0849, U 0.0229 ppm against the 2003 edition</td>
+<td>Verified</td>
+<td>Label &quot;2003 edition&quot;; 6 percent U/Th spread carried (step 10)</td>
+</tr>
+<tr>
+<td>[R0535] linear fits against part A's hinge fits (up to 0.1 dex on [Mg/Fe])</td>
+<td>Most permissive</td>
+<td>Both ship with the 0.1 dex spread as the stated uncertainty; the hinge fit stays the default because only it separates the branches. A literal widest-scatter reading would use Brewer's sd of 0.06 to 0.13 instead of 0.04 to 0.07: not done, Boss to say. Newest would favour [R0535] (against 2014)</td>
+</tr>
+<tr>
+<td>Neon follows O (GEN.464 filing) or Mg (part A 3.2 step 4)</td>
+<td>Most permissive</td>
+<td>Switch kept, both Z/Z0 columns carried (8 percent at most); default O (D11)</td>
+</tr>
+<tr>
+<td>g = 1.68 (part A) against 1.674 (recomputed from X0, Z0, Y_P)</td>
+<td>Verified</td>
+<td>1.674; Casagrande's 2.1 +- 0.9 is wider and contains it</td>
+</tr>
+<tr>
+<td>WD radius law in the code against the integrated table (Sirius B)</td>
+<td>Verified</td>
+<td>Integrated table (D13)</td>
+</tr>
+<tr>
+<td>NS radius 10 to 13 km uniform in the code against [R3075] hull 11.6 to 13.1 km</td>
+<td>Verified</td>
+<td>The band; J0740 alone (13.7 +2.6/-1.5) is wider and not a cap</td>
+</tr>
+<tr>
+<td>Lifetime 10 Gy (code) against the Sun's 8 Gy hydrogen exhaustion (models)</td>
+<td>Verified</td>
+<td>Derived, not set (D2, decided)</td>
+</tr>
+<tr>
+<td>Brown-dwarf deuterium limit 13.0 +- 0.8 MJ (Spiegel abstract) against 13.55 MJ (Table 1)</td>
+<td>Verified</td>
+<td>Table 1</td>
+</tr>
+<tr>
+<td>CEMP probability 1 below -4 (part A) against the clamp at -3.5 (code)</td>
+<td>Verified</td>
+<td>0.25 over the reachable range</td>
+</tr>
+<tr>
+<td>GEN.428 CMF 0.2 to 0.47 against the drawn 0.20 to 0.34</td>
+<td>Most permissive</td>
+<td>Envelope kept as the bound, draw reported separately</td>
+</tr>
+<tr>
+<td>Th from Eu across the range (part A) against Th measured only within +-0.1 dex of solar (master 15.1)</td>
+<td>Most permissive</td>
+<td>Shipped with the limit (partly verified)</td>
+</tr>
+<tr>
+<td>C/O median 0.47 (tunable-gaps f7) against 0.51 here</td>
+<td>Most permissive</td>
+<td>Both kept; the solar reference differs (unverified)</td>
+</tr>
+<tr>
+<td>Part A 3.3 and B's new columns against the item text of GEN.435 and GEN.440</td>
+<td>None: an instruction from the item, not a source value</td>
+<td>No columns (D9)</td>
+</tr>
+<tr>
+<td>Solar reference scale: [R0168] against [R2733] and 2019</td>
+<td>None: Boss's ruling, 1:24 AM EDT</td>
+<td>[R0168], spread as uncertainty (D1)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="14-approved-by-boss">14. Approved by Boss</h2>
+<p><strong>Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the project chat): every row below is approved as recommended, with the research row approved as a build-time download (GEN.548).</strong> The table keeps the recommendation each card carried.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule on</th>
+<th>Recommendation (approved)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D9</td>
+<td>Derive the branch and four offsets from a seeded key, store nothing</td>
+<td>Approve: no value fails the derivation test, and no migration is needed</td>
+</tr>
+<tr>
+<td>D10</td>
+<td>Age gate at 8.0 Gy (range 6.5 to 9.5, [R1863]) instead of a stored population</td>
+<td>Approve 8.0 with the logistic unscaled; the thick-disc share is then low (0.095 of old-disc stars) until [R0349] or [R3532] gives an age-resolved fraction; do not adopt the 3.5 times stand-in</td>
+</tr>
+<tr>
+<td>D11</td>
+<td>Oxygen from the NLTE fit, neon follows oxygen, magnesium as a switch</td>
+<td>Approve the default; neon's physics is open</td>
+</tr>
+<tr>
+<td>D12</td>
+<td>Keep [Fe/H] independent of age</td>
+<td>Approve; a link moves every stored value for a 0.28 correlation</td>
+</tr>
+<tr>
+<td>D13</td>
+<td>Replace the white-dwarf radius law; observed neutron-star mass mixture; no black-hole composition</td>
+<td>Approve; the white-dwarf change is a generator epoch change joined to the one rescatter</td>
+</tr>
+<tr>
+<td>D14</td>
+<td>Return birth composition, no photospheric correction</td>
+<td>Approve until an age law is read</td>
+</tr>
+<tr>
+<td>D15</td>
+<td>No GEN.407 table changes here; tip by Z through GEN.502</td>
+<td>Approve</td>
+</tr>
+<tr>
+<td>D16</td>
+<td>Shared [Fe/H], branch and offsets in groups and clusters, zero within-group scatter</td>
+<td>Approve as a flagged default</td>
+</tr>
+<tr>
+<td>Rule</td>
+<td>Third source rule: the widest value or range, or both kept (Boss confirmed at 1:12 PM EDT that 'most permission take wins' means the widest range of the two sources: Decided)</td>
+<td>Nothing to confirm; section 13 shows where it was used</td>
+</tr>
+<tr>
+<td>Brewer scatter</td>
+<td>Use [R0535]'s wider sd (0.06 to 0.13) in place of part A's (0.04 to 0.07)?</td>
+<td>No: keep part A, carry the 0.1 dex mean difference as uncertainty</td>
+</tr>
+<tr>
+<td>Research</td>
+<td>Isochrone grids for L, T and lifetime against Z; white-dwarf layers; neutron-star EOS</td>
+<td>Boss approved a build-time download as in D6 (GEN.548)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="141-the-three-downloads-gen548-as-built">14.1 The three downloads (GEN.548, as built)</h3>
+<p>Boss's rule (12:47 AM EDT, 2026-10-18): static files are downloaded at setup, never at run time. <code>update.sh</code> and <code>install.sh</code> run <code>python3 -m planetgen.cli.datasets fetch</code> (gap-filling-plan.md 6.5); the readers only look in the cache folder and say so when they are on the stand-in. Every citation below was opened on 2026-10-18 (Crossref, arXiv, Zenodo records); the files are not in the repository.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fill</th>
+<th>Data</th>
+<th>Source (verified)</th>
+<th>Setup download</th>
+<th>Readers (<code>planetgen.datasets</code>)</th>
+<th>What the fill replaced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SC1</td>
+<td>Main-sequence luminosity, temperature and radius against mass, age and [Fe/H]; main-sequence lifetime</td>
+<td>MIST v1.2 basic isochrones, v/vcrit 0.4, solar-scaled, 15 values of [Fe/H] from -4.00 to +0.50, 107 ages ([R0773, R1150]; mist.science)</td>
+<td>one 221.5 MB archive, checked by sha256, reduced to the 5 MB <code>main_sequence.npz</code> of main-sequence rows, then deleted</td>
+<td><code>isochrones.main_sequence_point</code>, <code>main_sequence_lifetime_gy</code>, <code>abundances</code>, <code>metallicities</code></td>
+<td>the [R0254] track at solar metallicity and the fitted relations of section 6</td>
+</tr>
+<tr>
+<td>SC2</td>
+<td>White-dwarf radius against mass and temperature, and the hydrogen, helium, carbon and oxygen mass fractions</td>
+<td>[R0308]: 23 masses 0.20 to 1.30, thick and thin hydrogen layer, homogeneous equimassic C/O core; Warwick page of A. Bédard</td>
+<td><code>sequences.tar</code>, 2.5 MB</td>
+<td><code>white_dwarf_models.radius_solar</code>, <code>layer_mass_fractions</code>, <code>sequence</code>, <code>masses_sol</code></td>
+<td>the radius law of D13 and a fixed layer split</td>
+</tr>
+<tr>
+<td>SC3</td>
+<td>21 unified neutron-star equations of state; the ground-state outer-crust nuclei for 20 nuclear mass models</td>
+<td>[R2834] (Zenodo [R2834]); [R4028] (Zenodo [R4028]); both CC BY 4.0</td>
+<td>21 EOS tables (10 KB each) and <code>compositions.zip</code>, 1.8 MB</td>
+<td><code>neutron_star_matter.equations_of_state</code>, <code>crust_models</code>, <code>outer_crust</code>, <code>crust_nucleus</code></td>
+<td>the nickel-to-krypton crust table and the radius floor of D13</td>
+</tr>
+</tbody>
+</table></div>
+<p>What the data does not close: the white-dwarf sequences are carbon-oxygen models with a 1:1 core split by assumption (a helium-core or oxygen-neon white dwarf, and a measured C:O split, remain open); the isochrone grid is solar-scaled (no [alpha/Fe] enhancement, which the thick-disc branch of D9 needs) and its rotation is a model choice; the equations of state are model families, so the maximum mass and radius they give are spreads of models, not measurements. <strong>As built (GEN.590), Boss's answer 'Require the data' (12:55 PM EDT on 2026-10-18).</strong> <code>stellar_composition.star_makeup</code> reads the three readers and has no fallback: a main-sequence star gets <code>detail[&quot;main_sequence&quot;]</code> (log luminosity, log Teff and log radius from the MIST track at its mass, age and [Fe/H], <code>None</code> when the track does not reach it) and <code>main_sequence_lifetime_gy</code>; a white dwarf needs its <code>teff_k</code> and gets the sequences' radius and, for a carbon-oxygen core, the hydrogen, helium, carbon and oxygen layers (a DA star takes the thick-layer case, any other the thin one: a choice of this build); a neutron star gets the outer crust of the mass model <code>u_crust_model</code> picks among the 20 (a draw appended after the earlier ones, so none moves), ending at the drip density that model gives. Without the files these kinds raise <code>DataMissing</code>, and bulk generation refuses to start (a &quot;Check the data&quot; step before the reset in the Generate page's jobs, <code>run_galaxy.require_datasets</code> in the CLI and the neighbourhood button). The Chandrasekhar radius table of GEN.439 and the Chamel and Haensel crust list are gone. Kept as stand-ins, because the data cannot replace them: the brown-dwarf radius and hydrogen limit (the MIST grid starts at 0.1 solar masses) and the inner crust and core of a neutron star, which need an equation of state integrated (nothing does yet; the radius is the measured band of <code>physics/neutron_star.py</code>). The helium-core and oxygen-neon white dwarfs get a radius from the carbon-oxygen sequences and no layers; both are listed in <code>open_items</code>.</p>
+<h3 id="142-the-stars-page-ux254-as-built">14.2 The star's page (UX.254, as built)</h3>
+<p>The star's sheet (<code>describe/sheet.py</code>, the page and <code>GET /api/objects/&lt;ref&gt;/sheet</code>) shows its chemistry in the Composition group, worked out when the sheet is made from the stored class, state, mass, [Fe/H] and age by <code>star_makeup</code>: the <strong>disc population</strong> (thin disc, or thick disc or halo, alpha-rich), <strong>[alpha/Fe]</strong> (<code>stellar_abundances.alpha_enhancement</code>, the mean [X/Fe] of O, Mg, Si and Ca, in dex), the <strong>metal mass fraction</strong> Z the star formed with, and, for a red giant, the <strong>helium added by the first dredge-up</strong>. No column and no stored value: the same star reads the same on every request. The draws are keyed as the planets' host ratios are (<code>bulk_draw.star_key</code>: the stored mass in kg and the distance of its sector from the galactic centre, light-years, which <code>sectors.galactic_radius_pc</code> gives; the galaxy's default for a star in no placed sector), so the page and the planets agree. A star with no [Fe/H], a black hole or neutron star, or a kind whose downloaded data are missing shows none of the rows. A remnant whose mass changed after its planets were drawn is keyed on the mass it has now, and the planets on the mass they saw (an open item; the main-sequence and giant stars, which keep their mass, agree).</p>
+<h2 id="appendix-the-code-behind-the-numbers">Appendix: the code behind the numbers</h2>
+<pre><code class="language-python">import math, random
+EPS = dict(C=8.46, O=8.69, Mg=7.55, Si=7.51, Fe=7.46, Ca=6.30, Al=6.43)        # A21 log eps, part A 2.2
+AW  = dict(Fe=55.845, Mg=24.305, Si=28.0855, C=12.011, O=15.999, Ca=40.078, Al=26.9815)
+PROTO = dict(C=2.8356e-3, N=7.7519e-4, O=6.4144e-3, Ne=1.8966e-3, Na=3.1232e-5, Mg=7.0592e-4, Al=5.9447e-5,
+             Si=7.4394e-4, S=3.4596e-4, Ar=7.8448e-5, K=3.7603e-6, Ca=6.5459e-5, Fe=1.3184e-3, Ni=7.6147e-5)
+X0, Z0, Y_P = 0.7121, 0.0154, 0.24672
+THICK_START_GY = 8.0                                                           # [R1863], range 6.5 to 9.5 (D10)
+G = (1 - Y_P - X0) / Z0 - 1                                                    # 1.674026
+REST = Z0 - sum(PROTO.values())                                                # 4.95e-5, scaled with Fe
+SD = dict(thin=dict(C=.044, O=.052, Mg=.066, Si=.042), high=dict(C=.050, O=.065, Mg=.073, Si=.073))
+CORR = [[1,.56,.69,.71],[.56,1,.36,.37],[.69,.36,1,.77],[.71,.37,.77,1]]      # C, O, Mg, Si (BF16)
+
+def xfe(el, F, br):                                                            # part A 2.7
+    F = min(max(F, -.9), .5) if br == &quot;thin&quot; else min(max(F, -1.6), .1)
+    t = br == &quot;thin&quot;
+    return {&quot;Mg&quot;: (.006 - .343*min(F-.03, 0)) if t else (.357 - .373*max(F+.73, 0)),
+            &quot;Si&quot;: (.017 - .166*min(F+.07, 0)) if t else (.253 - .199*max(F+.99, 0)),
+            &quot;Ca&quot;: (-.041 - .163*min(F-.42, 0)) if t else (.282 - .251*max(F+.99, 0)),
+            &quot;O&quot;:  (-.011 - .373*F) if t else (.606 - .495*max(F+.91, 0)),
+            &quot;C&quot;:  (-.030 - .163*F) if t else (.191 - .521*max(F+.10, 0))}[el]
+
+def chol(a):
+    n = len(a); L = [[0.0]*n for _ in range(n)]
+    for i in range(n):
+        for j in range(i+1):
+            s = sum(L[i][k]*L[j][k] for k in range(j))
+            L[i][j] = math.sqrt(a[i][i]-s) if i == j else (a[i][j]-s)/L[j][j]
+    return L
+
+def derive(F, age, key, ne=&quot;O&quot;):
+    rng = random.Random(key); u = rng.random(); z = [rng.gauss(0, 1) for _ in range(4)]
+    u_cemp, u_c = rng.random(), rng.random()
+    P = 0.0 if age &lt; THICK_START_GY else 1/(1+math.exp((F+0.350)/0.132))
+    br = &quot;high&quot; if u &lt; P else &quot;thin&quot;
+    L = chol(CORR); cz = [sum(L[i][k]*z[k] for k in range(4)) for i in range(4)]
+    d = {e: xfe(e, F, br) + cz[i]*SD[br][e] for i, e in enumerate((&quot;C&quot;, &quot;O&quot;, &quot;Mg&quot;, &quot;Si&quot;))}
+    if F &lt; -2 and u_cemp &lt; (0.25 if F &gt; -4 else 1.0): d[&quot;C&quot;] = 0.7 + 1.3*u_c    # CEMP
+    d[&quot;Ca&quot;] = xfe(&quot;Ca&quot;, F, br); d[&quot;S&quot;] = d[&quot;Ar&quot;] = d[&quot;Ca&quot;]
+    d[&quot;Ne&quot;] = d[&quot;O&quot;] if ne == &quot;O&quot; else d[&quot;Mg&quot;]
+    for e in (&quot;N&quot;, &quot;Na&quot;, &quot;Al&quot;, &quot;K&quot;, &quot;Fe&quot;, &quot;Ni&quot;): d[e] = 0.0
+    r = (sum(PROTO[e]*10**(F+d[e]) for e in PROTO) + REST*10**F) / X0          # Z/X
+    X = (1-Y_P)/(1+(1+G)*r); Z = r*X
+    return dict(branch=br, d=d, X=X, Y=1-X-Z, Z=Z)
+
+def ratio(d, a, b):                                                             # mass ratio; F cancels, d[Fe] = 0
+    return 10**(EPS[a]-EPS[b]+d[a]-d[b]) * AW[a]/AW[b]
+
+def cmf(F, d, al):                                                              # al = [Al/Fe]; section 8
+    n = lambda a, x: 10**(EPS[a]+F+x)
+    mg = n(&quot;Mg&quot;, d[&quot;Mg&quot;]); fe, si, ca, alu = n(&quot;Fe&quot;, 0)/mg, n(&quot;Si&quot;, d[&quot;Si&quot;])/mg, n(&quot;Ca&quot;, d[&quot;Ca&quot;])/mg, n(&quot;Al&quot;, al)/mg
+    mubar = (AW[&quot;Mg&quot;]+AW[&quot;O&quot;]) + ca*(AW[&quot;Ca&quot;]+AW[&quot;O&quot;]) + alu*(AW[&quot;Al&quot;]+1.5*AW[&quot;O&quot;]) + si*(AW[&quot;Si&quot;]+2*AW[&quot;O&quot;])
+    return fe*AW[&quot;Fe&quot;] / (fe*AW[&quot;Fe&quot;] + mubar)
+
+# Remnants ([R4361]; Msun 1.98841e30 kg, Rsun 695.7e6 m as in `constants.py`)
+G_, c_, hbar, h, me, mu = 6.6743e-11, 299792458.0, 1.054571817e-34, 2*math.pi*1.054571817e-34, 9.1093837015e-31, 1.66053906660e-27
+def white_dwarf(xc):                      # zero-temperature Chandrasekhar star, mu_e = 2; integrate dx/dr and dm/dr to x = 1e-4
+    from scipy.integrate import solve_ivp
+    A = math.pi*me**4*c_**5/(3*h**3); B = 8*math.pi*mu*2*(me*c_)**3/(3*h**3)
+    f = lambda r, y: [-G_*y[1]*B*y[0]**3/r**2 / (8*A*y[0]**4/math.sqrt(1+y[0]**2)), 4*math.pi*r*r*B*y[0]**3]
+    ev = lambda r, y: y[0]-1e-4; ev.terminal = True
+    s = solve_ivp(f, [1, 5e7], [xc, 4/3*math.pi*B*xc**3], events=ev, rtol=1e-10, atol=[1e-12, 1e10], method=&quot;LSODA&quot;)
+    return s.y[1][-1]/1.98841e30, s.t[-1]/695.7e6             # Msun, Rsun; a grid of 80 xc in 0.3..12 is interpolated
+def black_hole(m, a):                     # m in Msun; returns r_s km, T_H K, r_+ km, ISCO in GM/c^2, efficiency
+    M = m*1.98841e30; rg = G_*M/c_**2
+    z1 = 1+(1-a*a)**(1/3)*((1+a)**(1/3)+(1-a)**(1/3)); z2 = math.sqrt(3*a*a+z1*z1)
+    isco = 3+z2-math.sqrt((3-z1)*(3+z1+2*z2))
+    return 2*rg/1e3, hbar*c_**3/(8*math.pi*G_*M*1.380649e-23), rg*(1+math.sqrt(1-a*a))/1e3, isco, 1-math.sqrt(1-2/(3*isco))
+
+def birth_u_th(th_ppm, u_ppm, t=4.568):                                         # mass ratio U/Th t Gy back; 235U atom fraction 0.7204 percent
+    l = lambda h: math.log(2)/h
+    a8, a5, m8, m5 = 0.992742, 0.007204, 238.0508, 235.0439
+    fu = (a8*math.exp(l(4.468)*t)*m8 + a5*math.exp(l(0.7038)*t)*m5) / (a8*m8 + a5*m5)
+    return u_ppm*fu / (th_ppm*math.exp(l(14.05)*t))                             # 2003 edition 0.0834, 0.0218: 0.554; &quot;2014&quot; labels: 0.572
+</code></pre>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stars after the main sequence, from the MIST tracks (GEN.935) - planetGen docs</title>
+<meta name="description" content="Status: built (Star 1, 2026-10-29 and 30), part of the star mass function epoch (GEN.932); the present mass is GEN.940.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/post-main-sequence-stars.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/post-main-sequence-stars.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stars-after-the-main-sequence-from-the-mist-tracks-gen935">Stars after the main sequence, from the MIST tracks (GEN.935)</h1><p class="meta">docs/design/galaxy/post-main-sequence-stars.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#what-was-wrong">What was wrong</a></li><li style="margin-left:0px"><a href="#what-it-is-now">What it is now</a></li><li style="margin-left:0px"><a href="#what-it-removed">What it removed</a></li><li style="margin-left:0px"><a href="#checks-all-from-the-audits-section-6-read-in-the-tests">Checks (all from the audit's section 6, read in the tests)</a></li><li style="margin-left:0px"><a href="#the-present-mass-gen940">The present mass (GEN.940)</a></li><li style="margin-left:0px"><a href="#wolf-rayet-stars-gen939">Wolf-Rayet stars (GEN.939)</a></li><li style="margin-left:0px"><a href="#a-forced-star-type-is-a-star-of-the-model-gen941">A forced star type is a star of the model (GEN.941)</a></li><li style="margin-left:0px"><a href="#spectral-subclasses-and-the-subdwarf-class-gen943">Spectral subclasses and the subdwarf class (GEN.943)</a></li><li style="margin-left:0px"><a href="#pre-main-sequence-arrival-from-mist-gen947">Pre-main-sequence arrival from MIST (GEN.947)</a></li><li style="margin-left:0px"><a href="#known-limits">Known limits</a></li></ul></details>
+<p>Status: built (Star 1, 2026-10-29 and 30), part of the star mass function epoch (GEN.932); the present mass is GEN.940. Read with the star class audit (<code>reports/star-class-audit-2026-10-29.md</code>, findings H1 to H3 and section 6) which found the faults this change removes.</p>
+<h2 id="what-was-wrong">What was wrong</h2>
+<p>The model drew a post-main-sequence star's luminosity and temperature from hand-set ranges that had no link to its mass or to each other:</p>
+<ul>
+<li>A supergiant's luminosity was its end-of-main-sequence value times a uniform 1 to 1.5, a third of them red (3,500 to 4,500 K) and the rest blue (9,000 to 35,000 K), whatever the mass. Thirty percent were smaller than the star's own radius leaving the main sequence, a third of those brighter than 300,000 Lsun were red (100 and 150 solar mass &quot;red hypergiants&quot; of 3,000 to 4,500 Rsun against 1,500 Rsun for the largest real ones), and no star was yellow.</li>
+<li>A giant or asymptotic giant had a uniform 3,500 to 5,000 K at any luminosity, so a 1 solar mass tip was at most 54 Rsun where the models give 65 to 123.</li>
+<li>A star from 2.2 solar masses up had no core helium burning, so a 3 solar mass giant was 970 Lsun where the models give 113 to 144, and a fixed tenth of the main-sequence life as a subgiant where the Hurley, Pols and Tout formulae give under 1 percent.</li>
+</ul>
+<h2 id="what-it-is-now">What it is now</h2>
+<p><strong>Data (setup, <code>datasets/isochrones.py</code>, <code>datasets/evolved_tracks.py</code>).</strong> The MIST v1.2 isochrone archive that setup already downloads (v/vcrit 0.4, solar-scaled, 15 values of [Fe/H], [R0773]) lists, for each of 107 ages, the stars of every initial mass as rows of equivalent evolutionary points (EEPs): the same integer means the same stage in every star's life (454 the end of the main sequence, 605 the tip of the red giant branch, 707 the end of core helium burning, 808 the start of the thermal pulses and the end of a massive star's track, 1409 the end of the asymptotic giant branch, 1710 a white dwarf). At one EEP the initial mass falls as the age rises, so the age a given mass reaches that EEP is found by interpolating across the isochrone ages in log mass. Doing that for 130 log-spaced masses from 0.8 to 300 solar masses and every sixth EEP (and the landmarks) gives each mass its own track. This resolves the Hertzsprung gap and the blue loops, which the isochrones cannot show as ages because they are 0.05 dex apart: the rows are the EEPs, not the ages. The derived file <code>post_main_sequence.npz</code> (5 MB) holds, per mass and EEP, the time since the main sequence ended as a share of its lifetime, the present mass, log L, log Teff, log R, the surface hydrogen and carbon fractions and MIST's phase number. The main-sequence file gains the present mass (used by GEN.940).</p>
+<p><strong>Windows (<code>physics/post_main_sequence.py</code>).</strong> The generator's own phase times say when a star is in a phase; MIST says what it looks like there.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Initial mass</th>
+<th>Windows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>under <code>HELIUM_FLASH_MASS_SOL</code> (2.2)</td>
+<td>subgiant and giant (the Hurley, Pols and Tout base of the giant branch and helium ignition of <code>giant_branch</code>, GEN.502), horizontal branch (<code>HORIZONTAL_BRANCH_DURATION_GY</code>, with the colour and luminosity of <code>stellar_evolution</code>), asymptotic giant (<code>AGB_MS_FRACTION</code> of the main-sequence life)</td>
+</tr>
+<tr>
+<td>2.2 to 8</td>
+<td>subgiant and giant (the same formulae), core-helium-burning giant and asymptotic giant, each as long, as a share of the main-sequence lifetime, as MIST's track</td>
+</tr>
+<tr>
+<td>8 and up</td>
+<td>one supergiant window, MIST's whole track from the end of the main sequence to the end of core helium burning</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each window is mapped linearly in time onto its own stretch of EEPs, so a star halfway through is where MIST's track is halfway through the same stretch. The state is a function of the age, not a draw, except on the horizontal branch of a light star (the track holds one mass, not the spread of a branch).</p>
+<p><strong>Classes.</strong> Subgiant is IV, the giant, core-helium-burning and asymptotic windows are III (II from <code>BRIGHT_GIANT_MIN_MASS_SOL</code>), a supergiant is IB, IAB, IA or 0 by luminosity as before. A giant or supergiant born with at most 13 solar masses, at least 500 Lsun and between 5,000 and 7,000 K is a classical Cepheid (the type text says so); the yellow stars of 20 to 45 solar masses are supergiants and hypergiants, not Cepheids.</p>
+<p><strong>Bright-star tables (<code>generation/star_population.py</code>).</strong> <code>_bright_windows</code> is the list of ages in which the track is at least as bright as the threshold, found from the track (<code>Timeline.bright_pieces</code>); the horizontal branch and a Wolf-Rayet star keep a window with the chance their drawn luminosity clears it. The cell bound takes the earliest start and latest end over five masses across the cell at the threshold less <code>BRIGHT_TABLE_MAIN_SEQUENCE_SLACK</code>.</p>
+<h2 id="what-it-removed">What it removed</h2>
+<p><code>GIANT_TEMPERATURE_RANGE_K</code>, <code>GIANT_BRANCH_TIP_LUMINOSITY_SOL</code>, <code>GIANT_BRANCH_TIME_SLOPE</code>, <code>BRIGHT_GIANT_LUMINOSITY_RANGE_SOL</code>, <code>AGB_LUMINOSITY_RANGE_SOL</code>, <code>SUBGIANT_MAX_BRIGHTENING</code>, <code>SUBGIANT_END_TEMPERATURE_K</code>, <code>SUPERGIANT_LUMINOSITY_GROWTH_RANGE</code>, <code>RED_SUPERGIANT_*</code>, <code>BLUE_SUPERGIANT_*</code>, <code>SUBGIANT_PHASE_END_MS_FRACTION</code> and <code>GIANT_PHASE_END_MS_FRACTION</code>, and the functions that drew from them (<code>giant_luminosity_law</code>, <code>sample_giant_luminosity_sol</code>, <code>giant_bright_chance</code>, <code>agb_bright_chance</code>, <code>subgiant_end_luminosity_sol</code>, <code>subgiant_end_fraction</code>, <code>giant_end_fraction</code> of <code>stellar_evolution</code>). No shim.</p>
+<h2 id="checks-all-from-the-audits-section-6-read-in-the-tests">Checks (all from the audit's section 6, read in the tests)</h2>
+<ul>
+<li>1 solar mass first ascent: 28 Lsun at 4,507 K and 8.7 Rsun; 2 solar masses: 164 Lsun at 4,383 K and 22 Rsun. Tip ([R4024: Table 2]): Z = 0.0001 gives 65 Rsun at 4,550 K, Z = 0.004 gives 123 Rsun at 3,640 K; the tracks are within 12%.</li>
+<li>Core helium burning: 3 solar masses 113 to 144 Lsun, 5 solar masses about 1,500 Lsun, 8 solar masses 6,477 Lsun at 4,097 K.</li>
+<li>No red supergiant above 320,000 Lsun (Humphreys-Davidson limit, [R1013]); the tracks themselves stop being red above about 25 solar masses.</li>
+</ul>
+<h2 id="the-present-mass-gen940">The present mass (GEN.940)</h2>
+<p>A star's mass is no longer its birth mass. <code>Timeline.present_mass</code> and <code>main_sequence.State.mass_sol</code> give:</p>
+<ul>
+<li><strong>Main sequence.</strong> MIST's present mass (<code>star_mass</code>, which the setup now keeps for every row): a Sun-like star is its birth mass to a thousandth, a 40 solar mass star has lost 5 percent by the end of its hydrogen burning.</li>
+<li><strong>Heavier than <code>SUPERGIANT_MIN_MASS_SOL</code>.</strong> The track's mass all through: the Dutch wind scheme of MESA ([R4557] and 2001, [R1046]) is in the rows. A 20 solar mass star ends its red supergiant life at 13 and a 40 solar mass one at 23.</li>
+<li><strong>Lighter, first ascent.</strong> MIST took the wind with eta_R = 0.1 ([R0773], section 3.7.1); [R2980] fit 0.477 +- 0.070 to the horizontal-branch morphology of 22 globular clusters. The loss of the first ascent is MIST's times 0.477 over 0.1 (<code>RED_GIANT_BRANCH_REIMERS_ETA</code>, <code>MIST_REIMERS_ETA</code>): a one solar mass star is 0.83 at the tip against MIST's 0.954, its horizontal branch 0.78, and a 0.85 to 0.9 solar mass star of an old cluster has a horizontal branch of 0.58 to 0.64, inside the observed 0.55 to 0.7.</li>
+<li><strong>Core helium burning:</strong> the track's small loss. <strong>Asymptotic branch:</strong> the mass goes from the horizontal-branch mass to the white dwarf the star becomes (<code>remnant_mass.white_dwarf_mass_sol</code>) as the track loses its own, so a giant and the dwarf it turns into are one mass. A star of 6.5 solar masses and more has a track that stops before the thermal pulses, so its asymptotic branch goes to the dwarf in a straight line in time (a stand-in, PS7).</li>
+<li>A star lighter than the lightest track of the grid takes that track and its present mass in proportion.</li>
+</ul>
+<p>The star's record carries it as <code>mass_kg</code>, so the surface gravity, the orbital periods and the habitable-zone and Hill-sphere sizes of its planets follow. The hot-subdwarf mass of the audit's L8 (0.47 solar masses) and the Wolf-Rayet mass (GEN.939) are not in it.</p>
+<h2 id="wolf-rayet-stars-gen939">Wolf-Rayet stars (GEN.939)</h2>
+<p>In the Wolf-Rayet window a star's present mass is the track's (GEN.940, 13 to 25 solar masses at the Sun's metallicity for initial masses of 30 to 150) and its luminosity follows that mass by the helium-star relation of MIST's own Wolf-Rayet rows (phase 9, 24,610 samples over every [Fe/H]): log L/Lsun = 4.31 + 1.16 log M/Msun, 0.064 dex scatter, fitted when the tracks are read (<code>isochrones.helium_star_relation</code>). The luminosity is drawn from that normal law in log luminosity and cut at <code>WR_LUMINOSITY_RANGE_SOL</code> (1e5 to 3e6; it was 1e5 to 1e6 log-uniform for every star), and the chance a star clears a bright-star floor follows its mass (<code>wolf_rayet.bright_chance</code>). The temperature and subtype are as before. The audit's finding that the code was too low above 60 solar masses does not show in MIST's tracks: their Wolf-Rayet stars of 60 to 150 solar masses end at 4e5 to 9e5 Lsun because the winds have taken them down to 13 to 23 solar masses.</p>
+<h2 id="a-forced-star-type-is-a-star-of-the-model-gen941">A forced star type is a star of the model (GEN.941)</h2>
+<p><code>SystemConfig.STAR_TYPE</code> (<code>K2III</code>, <code>B0V</code>) used to be a recipe of its own: a temperature from the letter, a luminosity drawn from the overlap of two hand-set range tables, a mass drawn uniformly in a hand-set range per Yerkes class, and an age from a lifespan fraction. It is now a request for a star the population model makes (<code>generation/forced_star.py</code>, <code>Star._generate_forced_type</code>):</p>
+<ul>
+<li><strong>The table.</strong> For each birth [Fe/H] bucket (-2.0 to 0.5 in steps of 0.5) the module scans the model once per process: 140 log-spaced masses by 60 main-sequence ages, 300 ages after the main sequence and 80 log-spaced white dwarf cooling ages, up to the age of the universe, each evaluated with <code>evolve_star</code>. A cell holds its mass, age, temperature and a weight: the mass function per log mass times the time the cell spans, so a type is drawn from the stars that would be that type in a real population.</li>
+<li><strong>The draw.</strong> A cell of the type is picked by weight (with <code>AGE</code> &quot;old&quot; or &quot;young&quot; from the older or younger half of the cells by weight), its mass and age are jittered by up to half a cell, and the star is evolved for real, up to 40 tries (a state with a draw in it, a horizontal-branch colour or a white dwarf's atmosphere, can fall out of the type; then the cell's own mass, age and recorded temperature are taken), so its mass, luminosity, age, lifespan and phase end are the model's and its type is the one asked for.</li>
+<li><strong>A type the model does not make</strong> (a B giant, an M hypergiant, an O5 subgiant) takes the model's nearest star of that Yerkes class by temperature, at the temperature the letter and subclass stand for, and says so in the log. Nothing is refused: the person asked for it.</li>
+<li><strong>Aliases and subdwarfs.</strong> <code>IA+</code> is the model's hypergiant <code>0</code> and <code>D</code> its white dwarf <code>VII</code>, under their own names. A subdwarf <code>VI</code> is a metal-poor main-sequence star of [Fe/H] -2 to -1 at least 8 Gy old, or, for the hot letters, a horizontal-branch star from 20,000 K (the sdB and sdO stars); GEN.943 decides what the class means beyond that.</li>
+<li><strong>The class pages</strong> (<code>web/lib/classref.py</code>) read their mass and luminosity ranges and the share of each letter and class from the same table (<code>forced_star.letter_summary</code>, <code>class_summary</code>), not from range tables.</li>
+</ul>
+<p>Removed with it: <code>SPECTRAL_LUMINOSITY_RANGES</code>, <code>YERKES_LUMINOSITY_RANGES</code>, <code>YERKES_MASS_CONSTRAINTS</code>, <code>SPECTRAL_PROBABILITIES_NORMAL</code> and <code>_LARGE_STAR</code>, the hot and cool white dwarf mass and temperature ranges, the lifespan-fraction age draw (<code>Star._calculate_initial_star_age_and_lifespan</code>, <code>MIN/MAX_INITIAL_STAR_AGE*</code>, <code>WHITE_DWARF_MIN/MAX_AGE_GY</code>, the subdwarf age window), the evolved-mass resampler and the random branch of <code>generate_star</code>; and <code>mass_override</code>, which nothing passed.</p>
+<h2 id="spectral-subclasses-and-the-subdwarf-class-gen943">Spectral subclasses and the subdwarf class (GEN.943)</h2>
+<p>A star's letter and subclass were linear in temperature inside each letter (the Sun's 5,770 K read G3, K0 read G8, M0 read K8, O<sub>3</sub> read O5; 50 of the 87 whole-number types of Mamajek's dwarf table came out one to three steps off, the star class audit's L1). They are now the nearest type of the Pecaut and Mamajek mean dwarf sequence (<code>datasets/mamajek_sequence.py</code>, version 2022.04.16, downloaded at setup like the other tables): the whole-number types O3V to M9V, the type of a temperature being the one whose temperature is nearest. The Sun is G2, K0 is 5,270 K, the K/M boundary falls at 3,890 K between K9 (3,930) and M0 (3,850), and the letters' temperature bands (<code>constants.TEMP_RANGES</code>, kept by a test equal to <code>letter_range_k</code>) are the midpoints between a letter's last type and the next one's first. Types hotter than O<sub>3</sub> (O<sub>2</sub>, O1, O0) are stand-ins at 50,000, 55,000 and 60,000 K (PS13). The type is read from the star's own temperature, not the temperature rounded to a hundred kelvin it is stored at.</p>
+<p>Yerkes class VI (the audit's L2) is now generated: a main-sequence star whose luminosity is <code>SUBDWARF_LUMINOSITY_DEFICIT_DEX</code> (0.3 dex) or more below that of a solar-metallicity dwarf of its temperature (the sequence's own luminosity column) is a subdwarf (<code>stellar_evolution.is_subdwarf</code>, <code>yerkes_class_of</code>, applied where the star's record is built). The model's metal-poor stars qualify (0.4 dex under the sequence for F and G stars, 0.6 for K and 1.0 for M at [Fe/H] -1.5) and its solar-metallicity ones do not (a solar M dwarf sits 0.17 dex under it, 95 percent within 0.23). The decision of the item was therefore to label, not to accept V; the margin is a registry stand-in (PS14, L3) and a forced <code>VI</code> draws from the labelled stars and the hot horizontal-branch stars (GEN.941).</p>
+<h2 id="pre-main-sequence-arrival-from-mist-gen947">Pre-main-sequence arrival from MIST (GEN.947)</h2>
+<p>The contraction model of <code>physics/pre_main_sequence.py</code> (Hayashi line, then a radiative approach at the main-sequence luminosity) reached the main sequence about twice too soon from 1.5 solar masses up and at 0.2 solar masses: 9.1 Myr for 1.5 Msun against MIST's 14 to 16, 4.2 against 8.9 to 10 at 2, 346 Myr against 708 to 794 at 0.2 (the star class audit's L6). Setup now keeps one more table from the MIST archive it already downloads: for each isochrone age the heaviest star still in phase -1, the contracting stars (<code>isochrones.parse_isochrone_file</code>'s <code>pre_edge</code>, in <code>main_sequence.npz</code>). <code>isochrones.pre_main_sequence_arrival_yr</code> reads the age at which that mass has fallen to a star's mass (log mass against log age, between the two nearest [Fe/H]); it is the age the star is on the main sequence. The model's clock is stretched by the ratio of that age to its own contraction time (<code>_track</code>'s <code>scale</code>), so the track keeps its shape and its end, the stage limits, the star's <code>phase_end_gy</code> and the runaway-greenhouse history all use MIST's arrival. A mass the rows do not reach (heavier than the youngest isochrone's contracting stars, lighter than the oldest's) keeps the model's own time. The isochrone ages are 0.05 dex apart, so an arrival is good to about 12 percent. The three constants fitted to BHAC15 stay the shape of the track; only its time is MIST's.</p>
+<h2 id="known-limits">Known limits</h2>
+<ul>
+<li>The tracks of 30 to 45 solar masses spend about half their post-main-sequence life as yellow hypergiants (5,000 to 9,000 K, 0.3 to 1 million Lsun). MIST has no eruptive mass loss, so these stars do not become luminous blue variables or Wolf-Rayet stars as the real ones do. They are rare in the sky (the mass range is a few percent of the supergiants) and the rows are tier T1 data used as the table gives them.</li>
+<li>The Wolf-Rayet window is still the last 0.3 Myr of the supergiant window (GEN.243) and the threshold mass the old one; MIST's own Wolf-Rayet stars of 100 solar masses and more are Wolf-Rayet from the main sequence (WNh), which the generator does not model.</li>
+<li>At the 2.2 solar mass boundary the horizontal branch of the lighter star (a fixed 100 Myr) and the core helium burning of the heavier (MIST, about 17 percent of the main-sequence life, 130 Myr at 2.2) differ, so the end of the last giant phase steps by 10 percent of the main-sequence life there.</li>
+<li>A mass below the lightest track of the grid that reaches the thermal pulses (0.85 to 1.0 solar masses, by metallicity) takes that track.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

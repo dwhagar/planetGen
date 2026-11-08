@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API design standards: versions, key scopes, uploads, logging, recipes - planetGen docs</title>
+<meta name="description" content="The rules the API needs before remote generation (API.3) and generate-by-recipe (API.18) are built: how the API is versioned and how a client learns it is too old, what an API key may do, how large and how fast an upload may be, how an u...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/api-design-standards.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/api-design-standards.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="api-design-standards-versions-key-scopes-uploads-logging-recipes">API design standards: versions, key scopes, uploads, logging, recipes</h1><p class="meta">docs/design/operations/api-design-standards.md</p><details class="toc"><summary>On this page (38 headings)</summary><ul><li style="margin-left:0px"><a href="#1-decisions-already-taken">1. Decisions already taken</a></li><li style="margin-left:0px"><a href="#2-summary-of-the-recommendation">2. Summary of the recommendation</a></li><li style="margin-left:0px"><a href="#3-what-the-repo-does-today-checked-2026-10-09">3. What the repo does today (checked 2026-10-09)</a></li><li style="margin-left:0px"><a href="#4-versioning-and-compatibility-api3-api4-api5-api16-api17">4. Versioning and compatibility (API.3, API.4, API.5, API.16, API.17)</a></li><li style="margin-left:14px"><a href="#41-who-can-be-skewed-and-which-scheme">4.1 Who can be skewed, and which scheme</a></li><li style="margin-left:14px"><a href="#42-handshake-api5">4.2 Handshake (API.5)</a></li><li style="margin-left:14px"><a href="#43-machine-readable-record-openapi-generation-pypi-facts-2026-10-09">4.3 Machine-readable record: OpenAPI generation (PyPI facts, 2026-10-09)</a></li><li style="margin-left:14px"><a href="#44-the-rule-answer-to-api4s-open-question">4.4 The rule (answer to API.4's open question)</a></li><li style="margin-left:14px"><a href="#45-version-key-and-reproducibility-warning-for-api17">4.5 Version key and reproducibility (warning for API.17)</a></li><li style="margin-left:0px"><a href="#5-key-scopes-api6-api9">5. Key scopes (API.6, API.9)</a></li><li style="margin-left:14px"><a href="#51-scopes">5.1 Scopes</a></li><li style="margin-left:14px"><a href="#52-storage">5.2 Storage</a></li><li style="margin-left:14px"><a href="#53-per-key-rate-limits">5.3 Per-key rate limits</a></li><li style="margin-left:14px"><a href="#54-checks-for-teststest_api_auth_sweeppy">5.4 Checks for tests/test_api_auth_sweep.py</a></li><li style="margin-left:0px"><a href="#6-upload-limits-and-batches-api3-api7-api12-api13-api14">6. Upload limits and batches (API.3, API.7, API.12, API.13, API.14)</a></li><li style="margin-left:14px"><a href="#61-measured-sizes">6.1 Measured sizes</a></li><li style="margin-left:14px"><a href="#62-compression-sector-d-482-mb-object-row-json-c">6.2 Compression (sector D, 4.82 MB, object-row JSON) [C]</a></li><li style="margin-left:14px"><a href="#63-request-decompression-in-flask-under-mod_wsgi">6.3 Request decompression in Flask under mod_wsgi</a></li><li style="margin-left:14px"><a href="#64-web-server-and-proxy-limits">6.4 Web server and proxy limits</a></li><li style="margin-left:14px"><a href="#65-resumable-batch-design">6.5 Resumable batch design</a></li><li style="margin-left:14px"><a href="#66-numeric-limit-table-proposal-for-api7">6.6 Numeric limit table (proposal for API.7)</a></li><li style="margin-left:14px"><a href="#67-what-a-client-does-at-a-limit">6.7 What a client does at a limit</a></li><li style="margin-left:0px"><a href="#7-verification-and-staging-api8-api10-api11-adm13">7. Verification and staging (API.8, API.10, API.11, ADM.13)</a></li><li style="margin-left:14px"><a href="#71-validation-order-cheapest-first-fail-early">7.1 Validation order (cheapest first, fail early)</a></li><li style="margin-left:14px"><a href="#72-id-blocks-api10">7.2 Id blocks (API.10)</a></li><li style="margin-left:14px"><a href="#73-staging-api11">7.3 Staging (API.11)</a></li><li style="margin-left:14px"><a href="#74-hash-manifests-and-api8s-open-question">7.4 Hash manifests and API.8's open question</a></li><li style="margin-left:0px"><a href="#8-logging-every-api-call-api15">8. Logging every API call (API.15)</a></li><li style="margin-left:14px"><a href="#81-fields-and-hook">8.1 Fields and hook</a></li><li style="margin-left:14px"><a href="#82-cost-and-storage">8.2 Cost and storage</a></li><li style="margin-left:0px"><a href="#9-recipes-api18-api19">9. Recipes (API.18, API.19)</a></li><li style="margin-left:14px"><a href="#91-pydantic-and-the-shape">9.1 Pydantic and the shape</a></li><li style="margin-left:14px"><a href="#92-determinism-and-the-seed-scheme">9.2 Determinism and the seed scheme</a></li><li style="margin-left:14px"><a href="#93-400-versus-422">9.3 400 versus 422</a></li><li style="margin-left:14px"><a href="#94-cost-limits">9.4 Cost limits</a></li><li style="margin-left:14px"><a href="#95-bug-found-while-testing">9.5 Bug found while testing</a></li><li style="margin-left:0px"><a href="#10-the-web-ux-and-job-management-guide-what-carries-over">10. The Web UX and Job Management Guide: what carries over</a></li><li style="margin-left:0px"><a href="#11-evidence-notes-and-sources">11. Evidence notes and sources</a></li></ul></details>
+<p>The rules the API needs before remote generation (API.3) and generate-by-recipe (API.18) are built: how the API is versioned and how a client learns it is too old, what an API key may do, how large and how fast an upload may be, how an upload is staged and checked, how every call is logged, and how a recipe is validated. It records what the repo does today, the measurements behind the numbers, and a recommended design for each item. Nothing here is built.</p>
+<p>Informs: API.3, API.4, API.5, API.6, API.7, API.8, API.9, API.10, API.11, API.12, API.13, API.14, API.15, API.16, API.17, API.18, API.19, ADM.13</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p><strong>Python floor (2026-10-15).</strong> The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the <code>test</code> extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. Library pins named for Python 3.9 (Flask-Limiter 3.11.0, pydantic 2.13.5) describe the old lock; re-check them against the 3.12 lock.</p>
+<p>Evidence tags: [S] seen in a source (URL in section 11), [C] computed or measured in the research environment, [R] recalled and unconfirmed (listed in section 11). The research environment could only read search-result text and raw files from GitHub and PyPI, not papers or RFCs, so every outside-standards claim is [S] from raw IETF, Apache, tus, Pydantic or oasdiff source text, or [R]. Absolute MB/s and millisecond figures came from a slow sandbox CPU and MariaDB 10.11 (CI targets 11.4); treat them as relative.</p>
+<p>Related: <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a> (seed, version key, API.16 and API.17), <a href="login-brute-force-protection.html">login-brute-force-protection.md</a> (lockouts, two-factor), <a href="work-queue-audit.html">work-queue-audit.md</a> (which API paths run on the queue), <a href="../architecture/library-migration.html">library-migration.md</a>, <a href="../architecture/object-ids.html">object-ids.md</a>, <a href="../../reference/api.html">../api.md</a> (the API as built).</p>
+<h2 id="1-decisions-already-taken">1. Decisions already taken</h2>
+<ul>
+<li>Remote generation (Boss, 2026-10-01 19:22Z to 19:32Z, API.3): the local machine generates in memory and needs no database; name indexes and id state are downloaded once; the server reserves id blocks and claims sectors for the run; uploads and downloads are compressed (&quot;gzip, bz2 or similar&quot;); the run is fully resumable (the client caches every call on disk until the server confirms it; the server buffers, stages and writes only complete units, a star system or a sector); the local API version must match the server's (API.4, API.5); only an admin's key can upload, user-level keys can read but never upload (API.6); upload limits are planned separately (API.7); reserved ids and claimed sectors stay reserved until the upload finishes or an admin clears it (ADM.13); the server checks every upload and has the final say (API.8).</li>
+<li>API.12 (Plan 2026-10-07, superseded 2026-10-08): the download carries the star and sector name registries and the naming key.</li>
+<li>Keys (Boss, 2026-10-02 01:31Z, API.6): every key is attached to the account that created it, and requests made with it act as that account.</li>
+<li>Logging (Boss, 2026-10-02 01:31Z, API.15): by default every API call is logged with the user (key owner, signed-in user, or <code>god</code> for the console), how it came in (API key, web session or console) and the HTTP response code; the API docs say HTTP codes are used for parity with web server logs.</li>
+<li>Recipes (Boss, 2026-10-07 11:47Z, API.18, API.19): one adaptable JSON system for sectors, systems, planets, moons, phenomena and a galaxy, any field fixed, ranged or random; validation errors are JSON with details and the command's log output; 400 for a gibberish request, 422 for a validation failure; a galaxy is built region by region.</li>
+<li>The queue (Boss, 2026-10-01 22:13Z, plan approved 2026-10-07): everything that communicates with the API uses the work queue whenever possible; long work answers <code>202</code> with a job id, short generation is queued and waited on, plain row writes stay in the request (<a href="work-queue-audit.html">work-queue-audit.md</a>; built for the routes in <a href="../../reference/api.html#queued-jobs">../api.md</a>).</li>
+<li>Libraries (Boss, 2026-10-07): request bodies are Pydantic models (ADM.21, built); request limits and login lockouts run on Flask-Limiter with Redis (SEC.30, done, PR #643); two-factor sign-in runs on pyotp and segno (SEC.29, done, PR #612). Both SEC items are verified finished (SEC rows of <a href="../../plan/todo-number-map.html">todo-number-map.md</a>; CHANGELOG.md entries for the Redis rate limits and the segno QR codes) and appear below only as constraints.</li>
+</ul>
+<h2 id="2-summary-of-the-recommendation">2. Summary of the recommendation</h2>
+<p>Version the remote-client contract only, by hand against a CI rule (4). Upload the generator's object graph in a versioned envelope, not table rows (6.1). Four key scopes in a join table, old keys grandfathered as <code>admin</code> (5). Gzip batches of 1 to 2 MiB with a 4 MiB server limit, per-path proxy exceptions and a bounded decompressor (6). Idempotent numbered batches staged on a disk spool with bookkeeping tables, not mirror tables (6.5, 7.3). Log every call to the activity log first (8). Recipes as Pydantic discriminated unions, 400 for gibberish and 422 for validation failures (9). Two bugs to fix on the way: deep JSON nesting gives a 500 (9.5), and Flask-Limiter sends <code>Retry-After</code> on 200 responses (6.7).</p>
+<h2 id="3-what-the-repo-does-today-checked-2026-10-09">3. What the repo does today (checked 2026-10-09)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fact</th>
+<th>Where</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keys are <code>pg_</code> + <code>secrets.token_urlsafe(32)</code> (256 bits), stored as SHA-256 hex, <code>UNIQUE(key_hash)</code></td>
+<td><code>admin/auth.py</code>, <code>control_schema.sql</code></td>
+<td>Storage is right; scopes, expiry and a prefix are missing.</td>
+</tr>
+<tr>
+<td><code>validate_api_key</code> runs <code>UPDATE ... last_used_at</code> and <code>commit()</code> on every authenticated request</td>
+<td><code>admin/auth.py</code></td>
+<td>A write per call; throttle it.</td>
+</tr>
+<tr>
+<td><code>admin_api_keys</code>: id, admin_user_id, label, key_hash, created_at, last_used_at, revoked_at</td>
+<td><code>control_schema.sql</code></td>
+<td><code>CONTROL_SCHEMA_VERSION = 10</code> (<code>db/store.py</code>; v10 is DB.13), so the scope migration is control v11. API.9's text says &quot;v8&quot;, which is out of date. Control migrations are still legacy steps in <code>store.py</code>; only the galaxy schema (v65) moved to Alembic revisions after v61.</td>
+</tr>
+<tr>
+<td>Every write route is <code>require_admin</code>, key or session; <code>session_only</code> for key, credential, 2FA and logout routes</td>
+<td><code>api/authz.py</code></td>
+<td>A scope check slots in beside <code>fresh</code> and <code>session_only</code>.</td>
+</tr>
+<tr>
+<td>Read routes are public, 200/day and 50/hour per IP; writes 10/minute</td>
+<td><code>api/limiter.py</code>, <code>api/routes.py</code></td>
+<td>A key-holding client needs key-based limits or the 50/hour default ruins it.</td>
+</tr>
+<tr>
+<td>Bodies are Pydantic models; failure is <code>400</code> with <code>errors:[{field,message}]</code></td>
+<td><code>api/schemas.py</code></td>
+<td>Recipes get 422; old routes stay 400 (9.3).</td>
+</tr>
+<tr>
+<td><code>MAX_CONTENT_LENGTH = 2 MiB</code>, enforced early by <code>_reject_oversized_body</code></td>
+<td><code>api/config.py</code>, <code>web/app.py</code></td>
+<td>A per-route override works (6.3).</td>
+</tr>
+<tr>
+<td>Proxy body limits: nginx <code>1m</code>; Caddy <code>max_size 1MB</code></td>
+<td><code>examples/nginx</code>, <code>macos</code>, <code>caddy</code></td>
+<td>Below the app's 2 MiB; upload paths need an exception in every file.</td>
+</tr>
+<tr>
+<td>One WSGI process, 5 threads, 60 s request timeout</td>
+<td><code>examples/apache/planetgen.conf.example</code></td>
+<td>The concurrency budget is tiny.</td>
+</tr>
+<tr>
+<td>Activity log categories <code>AUTH</code>, <code>AUTHZ</code>, <code>DB</code>, <code>GEN</code>; other categories are dropped</td>
+<td><code>admin/activity_log.py</code></td>
+<td>API.15 must add one.</td>
+</tr>
+<tr>
+<td><code>StarSystem.to_dict()</code> and <code>from_dict()</code> exist and carry <code>schema_version</code></td>
+<td><code>generation/system.py</code></td>
+<td>The natural upload unit.</td>
+</tr>
+<tr>
+<td>Python 3.9 gets Flask-Limiter 3.11.0 and limits 4.2; 3.10+ gets 4.1.1 and 5.8.0</td>
+<td><code>requirements.lock</code></td>
+<td><code>cost</code> callables and <code>key_func</code> exist in both; confirm on 3.11.0 in the 3.9 CI job.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-versioning-and-compatibility-api3-api4-api5-api16-api17">4. Versioning and compatibility (API.3, API.4, API.5, API.16, API.17)</h2>
+<h3 id="41-who-can-be-skewed-and-which-scheme">4.1 Who can be skewed, and which scheme</h3>
+<p>Three callers: the browser pages (same release, in-process through <code>web/transport.py</code>), <code>generate.py --remote</code> (installed elsewhere, can lag or lead the server), and third-party scripts. Only the second needs a handshake; third-party reads stay additive-only under a documented promise.</p>
+<p>A <code>/api/v1/</code> tree duplicates 101 routes for one skewed client. Date-based, account-pinned versions (Stripe <code>Stripe-Version</code>, GitHub <code>X-GitHub-Api-Version: 2022-11-28</code>) need per-account pinning and a converter chain built for thousands of integrators [R]. Content negotiation is awkward in <code>curl</code> and Flask for no benefit. A custom header carrying <code>MAJOR.MINOR</code> fits (no <code>X-</code> prefix, which RFC 6648 deprecated [R]); PATCH has no meaning for a contract.</p>
+<h3 id="42-handshake-api5">4.2 Handshake (API.5)</h3>
+<ul>
+<li>The client sends <code>PlanetGen-API-Version: 1.4</code> on every request; the server sends its own on every response.</li>
+<li><code>GET /api/version</code> (public, DB-free, a looser limit than <code>/api/health</code>'s 60 per minute) returns <code>{&quot;api_version&quot;:&quot;1.4&quot;,&quot;min_client&quot;:&quot;1.2&quot;,&quot;max_client&quot;:&quot;1.4&quot;,&quot;release&quot;:&quot;7.380.0&quot;,&quot;version_key&quot;:&quot;&lt;22 hex&gt;&quot;,&quot;galaxy_schema&quot;:65,&quot;remote&quot;:{&quot;upload&quot;:true}}</code>. <code>/api/health</code> also gets <code>api_version</code>, but the check must not depend on it (health is rate-limited and hits the database).</li>
+<li>Acceptance: same MAJOR and client MINOR &lt;= server MINOR is accepted as is. A lower MAJOR is accepted only if a converter exists and its window is open. This answers API.5's &quot;how many older versions&quot;: the current major, plus the previous major for one release cycle after a major bump, for upload payloads only. Converters exist only for what clients write, never for reads.</li>
+<li>Refusal: <code>400 {&quot;error&quot;:&quot;api_version_unsupported&quot;,&quot;your_version&quot;:&quot;0.9&quot;,&quot;min&quot;:&quot;1.2&quot;,&quot;max&quot;:&quot;1.4&quot;,&quot;install&quot;:&quot;update to release 7.380.x or newer&quot;}</code>; <code>410 Gone</code> past a sunset. <code>426</code> is avoided: in RFC 9110 it signals a protocol switch and needs an <code>Upgrade</code> header [R].</li>
+<li><code>generate.py --remote</code> calls <code>/api/version</code> before reading config or starting a worker and prints both versions and the fix.</li>
+<li>Deprecation: <code>Sunset</code> (RFC 8594) and <code>Deprecation</code> (RFC 9745, March 2025, a structured-field date such as <code>@1688169599</code>) with <code>Link</code> relations <code>deprecation</code> and <code>sunset</code> [R]. Send them only to clients whose declared major is older than current, and log the client version (API.15) to see who still uses an old major.</li>
+</ul>
+<h3 id="43-machine-readable-record-openapi-generation-pypi-facts-2026-10-09">4.3 Machine-readable record: OpenAPI generation (PyPI facts, 2026-10-09)</h3>
+<p>Pydantic is at 2.14.0 (2026-10-08, Python &gt;=3.10; the last for 3.9 is 2.13.5, which the lock pins) and <code>model_json_schema()</code> gives JSON Schema 2020-12, which OpenAPI 3.1 uses [R]; discriminated unions emit the OpenAPI <code>discriminator</code> [S]. The framework packages do not fit: flask-smorest (0.47.0) would mean rewriting <code>schemas.py</code> on marshmallow; apiflask (3.1.2) replaces the <code>Flask</code> class; flask-openapi3 (4.3.2) brings its own app classes; spectree (3.0.0) touches every route; flasgger (0.9.7.1) is unmaintained since 2023; flask-pydantic (0.14.0) writes no spec. schemathesis (4.30.0, Python &gt;=3.10) is an optional test tool for the 3.12 CI job, since <code>test_fuzz_api_auth.py</code> already fuzzes with hypothesis. oasdiff is a Go binary, not on PyPI: <code>oasdiff breaking</code> lists changes that break clients and <code>changelog</code> lists all [S]; licence and release channel are [R].</p>
+<p>Recommendation: no framework. A generator of about 150 lines (<code>planetgen/api/spec.py</code>) builds an OpenAPI 3.1 document for the remote contract only (roughly 12 to 15 routes: version, download, run create, id reservation, batch put, run status, seal, complete, recipes) from the Pydantic models. It adds no dependency that Python 3.9 cannot install. The 3.9 CI job compares the committed file by plain <code>json</code> equality; the 3.12 job runs <code>oasdiff</code>.</p>
+<h3 id="44-the-rule-answer-to-api4s-open-question">4.4 The rule (answer to API.4's open question)</h3>
+<ol>
+<li><code>planetgen/api/version.py</code> holds <code>API_VERSION = &quot;1.4&quot;</code>, <code>MIN_CLIENT = &quot;1.2&quot;</code> and a history list (version, summary, converters).</li>
+<li><code>python -m planetgen.api.spec --check</code> regenerates the remote-contract spec and fails if it differs from the committed <code>docs/api/openapi.json</code>.</li>
+<li>CI runs <code>oasdiff breaking</code> and <code>changelog</code> between PR base and head. A breaking diff requires a higher MAJOR; a non-breaking non-empty diff a higher MINOR; no diff an unchanged version. Description-only changes are excluded [S].</li>
+<li>The check sits beside <code>scripts/bump_version.py --check-pr</code>. <code>stamp-version.yml</code> writes the release number into the compatibility table row after merge (unknown until then, so a hand-written column would always be wrong). No <code>changes/&lt;name&gt;.api.md</code> kind is needed: the spec diff is the record.</li>
+<li>The docs compatibility table (API.4) is generated from the history list into <code>docs/reference/api.md</code>. Columns: API version, release introduced, changed routes and payloads, client versions that work.</li>
+</ol>
+<p>Without oasdiff, use the weaker rule &quot;spec changed means version changed&quot;, with a reviewer checking major versus minor.</p>
+<h3 id="45-version-key-and-reproducibility-warning-for-api17">4.5 Version key and reproducibility (warning for API.17)</h3>
+<p><a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a> section 4 puts the OS, architecture and Python micro version into the version key and says a seed reproduces a galaxy only on the exact setup. A remote run on a laptop with a different OS, architecture or Python never matches the server's key, even on an identical release, so API.17's check (&quot;produces exactly what the server would make&quot;) holds only when the keys match. Design: <code>/api/version</code> returns the server's <code>version_key</code>; the client compares and says which parts differ; the server's sample re-run (API.8) is a hard check when the keys are equal and advisory otherwise. Whether a mismatch refuses the run is Boss's call. The sentence &quot;No numpy or other numeric library is used&quot; in section 4 of that note is out of date since the physics moved to scipy and astropy (GEN.66, <code>changes/physics-on-scipy-astropy.minor.md</code>), which makes the OS and architecture parts of the key matter more.</p>
+<h2 id="5-key-scopes-api6-api9">5. Key scopes (API.6, API.9)</h2>
+<h3 id="51-scopes">5.1 Scopes</h3>
+<p>Prior art (GitHub fine-grained tokens, Stripe restricted keys <code>rk_...</code>, Google OAuth scopes [R]) points to <code>resource:action</code> plus a few coarse roles. This API has few resources, so the coarse set is enough:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Allows</th>
+<th>Implies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read</code></td>
+<td>authenticated read routes and the key's own rate-limit bucket (reads are public anyway)</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>generate</code></td>
+<td>submit recipes (API.18) and start generation jobs</td>
+<td><code>read</code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td>remote-run routes: download (API.12), reserve, batch upload, seal, status (API.3, API.14)</td>
+<td><code>read</code></td>
+</tr>
+<tr>
+<td><code>admin</code></td>
+<td>every current write route (edits, jobs, admin stats, key listing)</td>
+<td>all of the above</td>
+</tr>
+</tbody>
+</table></div>
+<p>A key's scopes are limited to what its owner's role may hold (Boss: &quot;Only admin can upload&quot;; user-level keys &quot;access but not upload&quot;). Today every owner is an admin, so the check is &quot;creator is an admin&quot; for <code>upload</code> and <code>generate</code>; USR.2 later maps roles to scopes. Account-management routes stay <code>session_only</code> whatever the scope (<a href="../../reference/api.html#authentication">../api.md</a>, TEST.44). <code>upload</code> is separate from <code>admin</code> so a key on a laptop cannot delete a sector or rename the galaxy if the laptop is lost. Refusal: <code>403 {&quot;error&quot;:&quot;this key lacks the 'upload' scope&quot;,&quot;required_scope&quot;:&quot;upload&quot;}</code>.</p>
+<p>Open policy point: the galaxy seed (API.16, API.12) lets anyone with the code predict unfilled sectors. Default: those routes need <code>upload</code> or <code>generate</code>, not public.</p>
+<h3 id="52-storage">5.2 Storage</h3>
+<ul>
+<li>Keep SHA-256 of the full token: 256 bits of entropy make a slow hash pointless (bcrypt and scrypt are for low-entropy secrets) [R], and <code>UNIQUE(key_hash)</code> lookup leaks nothing because the attacker cannot choose the hash. If lookup is ever by id, use <code>hmac.compare_digest</code>.</li>
+<li>Keep <code>pg_</code> + 43 base64url characters; optionally append a 6-character CRC32 checksum (as GitHub's 2021 token format does [R]) so typos and junk are rejected without a database lookup. Old keys keep working.</li>
+<li>Add <code>key_prefix CHAR(8)</code> (shown in the key list and in log lines beside <code>key_id</code>) and <code>expires_at TIMESTAMP NULL</code>.</li>
+<li>Scopes in <code>admin_api_key_scopes (key_id BIGINT UNSIGNED, scope VARCHAR(32), PRIMARY KEY (key_id, scope), FOREIGN KEY ... ON DELETE CASCADE)</code>. Not a JSON column: MariaDB 11.4 stores JSON as LONGTEXT with a check while MySQL 8.4's is native, and control v10 (DB.13) just replaced a JSON text column with rows. A single <code>scope</code> column cannot say &quot;upload but not admin&quot; together with &quot;generate&quot;. No CHECK on values, so a new scope needs no migration.</li>
+<li>Migration (control v11): create the table, add the columns, insert <code>admin</code> for every existing key.</li>
+<li>Rotation is create, switch, revoke. Expiry is chosen at creation (suggest 90 days for <code>upload</code> keys, none for <code>read</code>); the list shows &quot;expires in N days&quot;; an expired key is treated like a revoked one and logged <code>apikey.invalid</code>.</li>
+<li>Throttle <code>last_used_at</code>: <code>UPDATE ... WHERE key_hash=? AND (last_used_at IS NULL OR last_used_at &lt; NOW() - INTERVAL 60 SECOND)</code>, and skip the commit when no row changed.</li>
+</ul>
+<h3 id="53-per-key-rate-limits">5.3 Per-key rate limits</h3>
+<p>Flask-Limiter runs its <code>key_func</code> in <code>before_request</code>, before <code>require_admin</code> runs, so the key is not yet known. Register a <code>before_request</code> hook ahead of <code>limiter.init_app(app)</code> that resolves the bearer token once (cached on <code>g</code>), and have <code>key_func</code> return <code>key:&lt;id&gt;</code> when present, else the IP. Never key by the raw header value (random strings would mint unlimited Redis keys). The per-IP default (200/day, 50/hour) must not apply to authenticated keys, or a <code>read</code> key is capped at 50 calls an hour. <code>cost</code> as a callable per limit [S] gives the bytes budget in 6.6. Consistent with <a href="login-brute-force-protection.html">login-brute-force-protection.md</a>: an API key never needs a TOTP code, key presentation is not under the login lockout, and a 256-bit key cannot be guessed, so the checksum pre-filter and the IP limit suffice. Flask-Limiter does not limit concurrency; a Redis counter with an expiry serves as the semaphore, and during an outage it falls back to per-process counting, acceptable with one process.</p>
+<h3 id="54-checks-for-teststest_api_auth_sweeppy">5.4 Checks for <code>tests/test_api_auth_sweep.py</code></h3>
+<ul>
+<li><code>require_scope</code> sets <code>wrapped.scope_required</code>. A sweep asserts every <code>/api</code> route is exactly one of public (explicit allow-list), session-only or scoped, so a new route with none fails the build as a new unauthenticated write route fails TEST.43.</li>
+<li>A scope matrix from <code>app.url_map</code>: for each scope and route, 403 below the required scope and not 401/403 at or above it.</li>
+<li>Revoked, expired and owner-deleted keys give 401; an <code>upload</code> key cannot reach <code>session_only</code> routes; a <code>read</code> key never reaches a write route.</li>
+<li>No raw token in any column; key lists never include <code>key_hash</code>; a <code>read</code> or <code>upload</code> key gets its own limit bucket.</li>
+</ul>
+<h2 id="6-upload-limits-and-batches-api3-api7-api12-api13-api14">6. Upload limits and batches (API.3, API.7, API.12, API.13, API.14)</h2>
+<h3 id="61-measured-sizes">6.1 Measured sizes</h3>
+<p>Method [C]: <code>planetgen sector</code> on a throwaway MariaDB 10.11 (five sectors, 5 to 81 systems), every row exported with a foreign-key walk as JSON (one object per row, compact separators), then compressed. Also 40 systems generated in memory and measured as <code>StarSystem.to_dict()</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Sector</th>
+<th>Systems</th>
+<th>Rows</th>
+<th>Raw JSON</th>
+<th>gzip -6</th>
+<th>Raw per system</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>5</td>
+<td>310</td>
+<td>387 KB</td>
+<td>84 KB</td>
+<td>77 KB</td>
+</tr>
+<tr>
+<td>B</td>
+<td>8</td>
+<td>351</td>
+<td>416 KB</td>
+<td>84 KB</td>
+<td>52 KB</td>
+</tr>
+<tr>
+<td>C</td>
+<td>20</td>
+<td>1,167</td>
+<td>1.38 MB</td>
+<td>285 KB</td>
+<td>69 KB</td>
+</tr>
+<tr>
+<td>D</td>
+<td>72</td>
+<td>4,170</td>
+<td>4.82 MB</td>
+<td>979 KB</td>
+<td>67 KB</td>
+</tr>
+<tr>
+<td>E</td>
+<td>81</td>
+<td>4,409</td>
+<td>5.15 MB</td>
+<td>1.04 MB</td>
+<td>64 KB</td>
+</tr>
+</tbody>
+</table></div>
+<p>In sector D, moons are 55% of the bytes (1,886 rows at 1.4 KB, about 26 per system), planets 22%, rogue planets 15%. Rows per system: moons 26, planets 9.8, rogue planets 9.2 (phenomena are a large share), stars 1.35, comets 0.8, belts 0.9. The server's own estimate for a 20-system sector is 1.1 MB in the database: 55 KB per system with indexes against 69 KB raw JSON.</p>
+<p>In-memory <code>to_dict()</code> for 40 default-config systems: mean 58.6 KB raw, median 59.5 KB, p90 116 KB, max 155 KB; gzip -6 mean 13.8 KB (ratio 4.24); 0.04 s to generate and serialize one system.</p>
+<p>Core sectors hold far more systems, so batch limits work by units, not by an assumed sector size. The row set leaves out population tables and caches the server rebuilds.</p>
+<p>Recommendation: upload the <code>to_dict()</code> object graph in a small versioned envelope, not rows named after <code>schema.sql</code> columns. Column-shaped rows would force an API bump on nearly every schema migration (galaxy schema v65, control v10). The server saves the objects through the existing save code.</p>
+<h3 id="62-compression-sector-d-482-mb-object-row-json-c">6.2 Compression (sector D, 4.82 MB, object-row JSON) [C]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Codec</th>
+<th>Size</th>
+<th>Ratio</th>
+<th>Compress MB/s</th>
+<th>Decompress MB/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gzip 1</td>
+<td>1,161 KB</td>
+<td>4.15</td>
+<td>31.5</td>
+<td>65</td>
+</tr>
+<tr>
+<td>gzip 6</td>
+<td>979 KB</td>
+<td>4.92</td>
+<td>10.0</td>
+<td>62</td>
+</tr>
+<tr>
+<td>gzip 9</td>
+<td>955 KB</td>
+<td>5.04</td>
+<td>7.5</td>
+<td>98</td>
+</tr>
+<tr>
+<td>zstd 1</td>
+<td>863 KB</td>
+<td>5.58</td>
+<td>128</td>
+<td>524</td>
+</tr>
+<tr>
+<td>zstd 19</td>
+<td>735 KB</td>
+<td>6.56</td>
+<td>0.2</td>
+<td>1,311</td>
+</tr>
+<tr>
+<td>brotli 4</td>
+<td>856 KB</td>
+<td>5.63</td>
+<td>10.9</td>
+<td>91</td>
+</tr>
+<tr>
+<td>brotli 11</td>
+<td>703 KB</td>
+<td>6.85</td>
+<td>0.1</td>
+<td>87</td>
+</tr>
+<tr>
+<td>bz2 / xz</td>
+<td>740 / 743 KB</td>
+<td>6.5</td>
+<td>not timed</td>
+<td>not timed</td>
+</tr>
+</tbody>
+</table></div>
+<p>One sample on a slow CPU. zstd 3 and 10 were also run (1,012 KB and 890 KB); zstd 3 coming out worse than zstd 1 is odd and should be re-run.</p>
+<ul>
+<li>Float-heavy data compresses 4 to 7 times, not the 10 to 20 times usual for JSON; the 17-digit doubles cannot be rounded without breaking exact reproduction.</li>
+<li>Columnar JSON halves the raw size (2.22 MB against 4.82 MB) but gzip ends only about 17% smaller (815 KB against 979 KB). Not worth a second format.</li>
+<li>gzip -6 is stdlib on every platform and Python 3.9 and understood by every proxy. zstd needs the <code>zstandard</code> package (0.25.0, BSD-3, Python &gt;=3.9 [S]) or Python 3.14's stdlib module [R]; level 1 gains 12% over gzip -6 at 12 times the speed, which matters only if compression becomes the client's bottleneck. Ship gzip, define the envelope so <code>Content-Encoding: zstd</code> can be added without a version bump, skip bz2 and xz.</li>
+<li>Server work per 5 MB sector before validation: gunzip about 0.04 s, <code>json.loads</code> about 0.25 s (float-heavy), SHA-256 0.04 s [C]. Validation and inserts dominate and are measured when built.</li>
+</ul>
+<h3 id="63-request-decompression-in-flask-under-mod_wsgi">6.3 Request decompression in Flask under mod_wsgi</h3>
+<ul>
+<li>Flask and Werkzeug do not decode <code>Content-Encoding</code> on requests: a gzip body sent to <code>/api/auth/login</code> came back <code>400 request body must be a JSON object</code> [C].</li>
+<li>Apache can inflate with <code>SetInputFilter DEFLATE</code> (<code>DeflateInflateRatioLimit</code> default 200, burst 3 [S]); nginx and Caddy do not decompress requests natively [R]. Because deployments differ, decompress in the app so one path works everywhere.</li>
+<li>Implementation: accept only <code>Content-Encoding: gzip</code> (else <code>415</code>); require <code>Content-Length</code> (else <code>411</code>; chunked request bodies under mod_wsgi are unreliable [R]); read <code>request.stream</code> in 64 KiB pieces through <code>zlib.decompressobj(16 + zlib.MAX_WBITS)</code> with <code>decompress(chunk, max_length)</code>; answer <code>413</code> the moment the output passes the cap, or exceeds 40 times the input after the first MiB. A 300 MB zero payload (306 KB gzip) was cut at a 64 MiB cap in 0.94 s [C], hence the 32 MiB cap below. gzip cannot exceed about 1,032:1 (measured 1,028:1); zstd reached 32,676:1 and brotli 661,562:1 on zeros [C], so ratio guards matter more if those codecs are added. Tests: a bomb, a truncated stream, trailing garbage, a wrong encoding.</li>
+<li>Apply the cap per request: setting <code>request.max_content_length = 4 * 1024 * 1024</code> inside the upload view or a path-scoped <code>before_request</code> raised the limit for that route only (1 and 3 MB passed, 5 MB got 413, a 2 MiB route kept rejecting 3 MB) [C]. <code>_reject_oversized_body</code> compares to the app-wide config first, so it must become endpoint-aware or the override must run before it.</li>
+<li>Verify a <code>Content-Digest: sha-256=:...:</code> request header (RFC 9530 [R]) over the compressed bytes; it catches truncation and proxy damage before parsing.</li>
+</ul>
+<h3 id="64-web-server-and-proxy-limits">6.4 Web server and proxy limits</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Setting</th>
+<th>Default</th>
+<th>Shipped</th>
+<th>Needed for uploads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apache</td>
+<td><code>LimitRequestBody</code></td>
+<td>1 GiB since 2.4.54, unlimited before [S]</td>
+<td>none</td>
+<td>5 MiB in <code>&lt;Location &quot;/api/uploads&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>nginx</td>
+<td><code>client_max_body_size</code></td>
+<td>1m [R]</td>
+<td>1m</td>
+<td><code>location /api/uploads { client_max_body_size 5m; }</code></td>
+</tr>
+<tr>
+<td>Caddy</td>
+<td><code>request_body { max_size }</code></td>
+<td>none</td>
+<td>1MB</td>
+<td>a path matcher with 5MB</td>
+</tr>
+<tr>
+<td>Flask</td>
+<td><code>MAX_CONTENT_LENGTH</code></td>
+<td>none</td>
+<td>2 MiB</td>
+<td>per-request override, 4 MiB</td>
+</tr>
+<tr>
+<td>mod_wsgi / gunicorn</td>
+<td>request timeout</td>
+<td>none</td>
+<td>60 s</td>
+<td>keep 60 s; size batches well inside it</td>
+</tr>
+</tbody>
+</table></div>
+<p>Apache's <code>LimitRequestBody</code> counts the compressed wire body unless the DEFLATE input filter is on. The 60 s timeout limits batches on slow links: 4 MiB at 1 Mbit/s takes 34 s and 8 MiB would not fit, so the client target is 1 to 2 MiB and it shrinks on a timeout. The five threads are shared with Server-Sent Event log streams, each holding a thread up to 40 seconds (section 10), so the concurrency limits below leave threads for pages.</p>
+<h3 id="65-resumable-batch-design">6.5 Resumable batch design</h3>
+<p>tus 1.0.0 (HEAD for <code>Upload-Offset</code>, PATCH to append [S]), Google resumable uploads (256 KiB chunks [R]) and S3 multipart (numbered parts, list, complete or abort [R]) all resume one large object. Boss's units are many small, independent batches (15 to 1,000 KB), so the closest fit is the S3 model, with batch numbers and SHA-256 playing the part of ETags:</p>
+<pre><code>POST   /api/uploads                          create run (claims sectors, reserves ids)   Idempotency-Key
+PUT    /api/uploads/&lt;run&gt;/batches/&lt;seq&gt;      one gzip batch; body hash in Content-Digest
+GET    /api/uploads/&lt;run&gt;                    what the server holds: batch seqs + sha256, units sealed/finalized, id ranges left
+POST   /api/uploads/&lt;run&gt;/units/&lt;unit&gt;/seal  manifest: row counts per table + unit SHA-256
+POST   /api/uploads/&lt;run&gt;/complete           all units sealed; server finalizes the rest, reports
+DELETE /api/uploads/&lt;run&gt;                    abort (admin clearing, ADM.13, uses the same call)
+</code></pre>
+<p>Re-sending a batch with the same seq and hash is a no-op returning the stored answer; the same seq with different bytes is <code>409</code>. The client keeps every batch on disk until <code>GET</code> lists its hash (API.13), so a crash, a lost response or a restarted server all resume by asking &quot;what do you have&quot;. Verification and finalize of a sealed unit follow the queue rule (recommendation): <code>200</code> if it finishes inside the short wait, otherwise <code>202</code> with a job id on <code>GET /api/jobs/&lt;id&gt;</code>. Remote clients poll <code>GET /api/uploads/&lt;run&gt;</code>; the SSE log stream is a session-cookie page route.</p>
+<p>Idempotency follows the IETF Idempotency-Key draft [S]: a missing key on a route that requires it is <code>400</code>; the same key with a different payload is <code>422</code>; a retry while the first is running is <code>409</code>. Use it on the non-batch POSTs; batch PUTs are idempotent by (run, seq, hash). Stored answers are kept 24 hours in Redis.</p>
+<h3 id="66-numeric-limit-table-proposal-for-api7">6.6 Numeric limit table (proposal for API.7)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Limit</th>
+<th>Value</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client batch target</td>
+<td>1 to 2 MiB compressed (about 5 to 10 MiB raw, 80 to 150 systems)</td>
+<td>60 s timeout, 1 Mbit/s uplink; 13.8 KB gzip per system [C]</td>
+</tr>
+<tr>
+<td>Server hard limit, compressed body</td>
+<td>4 MiB, <code>413</code> above</td>
+<td>2 times the target; proxies set to 5 MiB on the upload path only</td>
+</tr>
+<tr>
+<td>Server hard limit, decompressed</td>
+<td>32 MiB, and ratio over 40:1 after the first MiB</td>
+<td>observed ratios 4 to 7 [C]; 306 KB bomb cut at cap [C]</td>
+</tr>
+<tr>
+<td>JSON nesting depth</td>
+<td>12 on uploads, pre-scanned before <code>json.loads</code></td>
+<td>fixes the 500 on deep nesting [C]</td>
+</tr>
+<tr>
+<td>Units per batch</td>
+<td>whole units only; a larger unit spans batches and is sealed</td>
+<td>a sector of 81 systems is about 1 MB gzip</td>
+</tr>
+<tr>
+<td>Rows per request</td>
+<td>50,000</td>
+<td>sector E has 4,409</td>
+</tr>
+<tr>
+<td>Concurrent upload requests</td>
+<td>1 per key, 2 on the whole server</td>
+<td>5 threads in the shipped config; keep 3 for pages</td>
+</tr>
+<tr>
+<td>Batch requests</td>
+<td>60 per minute per key</td>
+<td><code>WRITE_RATE_LIMIT</code> (10 per minute) would allow only 20 MiB per minute</td>
+</tr>
+<tr>
+<td>Bytes budget</td>
+<td><code>cost = ceil(compressed_bytes / 256 KiB)</code>, limit 256 per minute (64 MiB per minute) per key</td>
+<td>Flask-Limiter <code>cost</code> callable</td>
+</tr>
+<tr>
+<td>Control calls (create, reserve, seal, status, complete)</td>
+<td>600 per hour per key</td>
+<td></td>
+</tr>
+<tr>
+<td>Recipe submissions</td>
+<td>20 per minute per key, at most 5 queued jobs per key</td>
+<td>9.4</td>
+</tr>
+<tr>
+<td>Open runs</td>
+<td>2 per key</td>
+<td></td>
+</tr>
+<tr>
+<td>Staging cap</td>
+<td>2 GiB on the spool volume and at most 10% of its free space; 1 GiB per run</td>
+<td>only unsealed or unfinalized data; finalized units are deleted</td>
+</tr>
+<tr>
+<td>Id reservation</td>
+<td>per table, sized from the plan, 25% headroom, extendable by a reserve call</td>
+<td>7.2</td>
+</tr>
+<tr>
+<td>Stale flag (ADM.13)</td>
+<td>no contact for 3 days: flag only, never auto-release</td>
+<td>Boss: reserved ids stay until finished or an admin clears them</td>
+</tr>
+<tr>
+<td>Idempotency answers kept</td>
+<td>24 h</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Download side (API.12): <code>system_name_registry</code> rows are about 157 bytes of JSON, about 157 MB raw per million systems [C, extrapolated]. Serve registries paginated by cursor (<code>?after=&lt;id&gt;&amp;limit=50000</code>), each page gzip'd, never one 60 s response.</p>
+<h3 id="67-what-a-client-does-at-a-limit">6.7 What a client does at a limit</h3>
+<ul>
+<li><code>429</code> or <code>503</code>: wait <code>max(Retry-After, full-jitter backoff)</code>, a random value between 0 and min(60 s, 1 s times 2^attempt) (the AWS Architecture Blog scheme [R]). Trust <code>Retry-After</code> only on 429 and 503: Flask-Limiter sends <code>Retry-After: 3599</code> on a normal 200 [C]. Suppress it on non-429 responses (map <code>RATELIMIT_HEADER_RETRY_AFTER</code> or filter in <code>after_request</code>).</li>
+<li><code>413</code> or a timeout: halve the batch (down to one unit) and resend only if nothing was committed; after three successes grow by 25% (AIMD).</li>
+<li>Other <code>5xx</code>: retry up to 6 times with the same batch (idempotent). Other <code>4xx</code>: stop and show the problem body. <code>409</code> on a claimed sector: skip it and report.</li>
+<li>Headers: Flask-Limiter emits <code>X-RateLimit-Limit</code>, <code>-Remaining</code>, <code>-Reset</code> (an epoch timestamp) and <code>Retry-After</code> [S][C]. The IETF draft replaces the trio with <code>RateLimit-Policy</code> and <code>RateLimit</code> structured fields [S] but is not an RFC and Flask-Limiter lacks it; keep the <code>X-</code> headers and treat all as hints.</li>
+</ul>
+<h2 id="7-verification-and-staging-api8-api10-api11-adm13">7. Verification and staging (API.8, API.10, API.11, ADM.13)</h2>
+<h3 id="71-validation-order-cheapest-first-fail-early">7.1 Validation order (cheapest first, fail early)</h3>
+<ol>
+<li>Transport: authentication, scope, <code>Content-Length</code> against the limit, <code>Content-Encoding</code>, <code>Content-Digest</code>, concurrency slot.</li>
+<li>Syntax: bounded decompress, depth pre-scan, <code>json.loads</code>. Failure is <code>400</code>.</li>
+<li>Envelope (Pydantic): run id, seq, unit ids, <code>format_version</code>. An unknown version is <code>400</code> with the supported range.</li>
+<li>Sequence: is (run, seq) already held? Same hash returns the stored answer; a different hash is <code>409</code>.</li>
+<li>Reservation: the unit's sector is claimed by this run and row ids are inside its reserved ranges.</li>
+<li>Per-unit schema (Pydantic models of the generator objects, <code>from_dict</code>): <code>422</code> with every error.</li>
+<li>At seal time: counts per table and the unit hash match the manifest.</li>
+<li>Server checks: names unique (needs the registry locks) and ADM.5's physics validator.</li>
+<li>Finalize in one transaction through the normal save path; on any failure roll back and return the reasons.</li>
+</ol>
+<h3 id="72-id-blocks-api10">7.2 Id blocks (API.10)</h3>
+<p>The existing allocator is already hi/lo: <code>_allocate_id</code> takes a block per process and table (64 doubling to 4,096) from <code>id_blocks</code> by <code>INSERT ... ON DUPLICATE KEY UPDATE next_id = LAST_INSERT_ID(GREATEST(next_id, floor) + size)</code> on its own autocommit connection, never below <code>MAX(id)+1</code>; rollbacks leave gaps. A remote run is the same pattern with a bigger lease: it asks for N ids per table (planned sectors times the rows per system in 6.1, plus 25%), gets contiguous ranges recorded in <code>upload_id_ranges (run_id, table_name, first_id, last_id)</code>, and asks for more with a <code>reserve</code> call. Unused ids are abandoned; gaps are normal. Alternatives rejected: ULID, UUIDv7 or Snowflake ids (BIGINT columns and every table's ordering would be rethought) and client-local ids remapped at finalize (Boss decided the server reserves blocks, and population streams still key on row ids, GEN.57).</p>
+<p>Name clashes: registries downloaded once go stale while other uploads land. The server renames the system on finalize and its planets and moons through the admin rename code, and returns a rename map so the client's cache stays consistent.</p>
+<h3 id="73-staging-api11">7.3 Staging (API.11)</h3>
+<p>A spool directory (config <code>uploads.dir</code>, like <code>jobs.dir</code>) holds received gzip batches as files named by run and seq. Control-DB tables: <code>upload_runs</code> (id, owner, key_id, galaxy db, state, created, last_contact), <code>upload_batches</code> (run, seq, sha256, bytes, received_at), <code>upload_units</code> (run, unit key, state open, sealed, verified, finalized or rejected, manifest hash, errors), <code>upload_claims</code> (run, sector address, state) and <code>upload_id_ranges</code>. A unit's JSON is assembled in memory (a few MB) at seal. Mirror staging tables in the galaxy schema, as API.11's text says, are not recommended: about 30 content tables and 65 migrations would each need a staging twin with the foreign-key and trigger behaviour again. Boss's requirement is &quot;write to the database in a controlled way only complete units&quot;, so the unit boundary, not row-level staging, is what matters. A unit's batches are deleted after it finalizes and its manifest kept. These are control v12, separate from the scope migration.</p>
+<h3 id="74-hash-manifests-and-api8s-open-question">7.4 Hash manifests and API.8's open question</h3>
+<p>Per batch: SHA-256 of the received bytes. Per unit: SHA-256 over the canonical JSON plus row counts per table. Per run: the sorted list of unit hashes hashed at <code>complete</code>. A Merkle tree pays off only to prove one leaf among millions; with tens of thousands of units a flat list is simpler. For API.17 the server may re-run a random sample of sectors and compare unit hashes, valid only when version keys match (4.5).</p>
+<p>API.8's open question, default proposal: the server corrects only what is deterministic and cosmetic, a clashing name (rename plus dependents) and derived columns a pure function recomputes. It rejects the unit for anything else (outside the reserved sector or id range, missing children, failed physics checks, wrong format version) with reasons, and the client regenerates it. A rejection does not release the claim.</p>
+<h2 id="8-logging-every-api-call-api15">8. Logging every API call (API.15)</h2>
+<h3 id="81-fields-and-hook">8.1 Fields and hook</h3>
+<p>Time (UTC, ms), request id (also <code>X-Request-Id</code> and in error bodies), method, matched route (<code>request.url_rule.rule</code>, <code>-</code> for a 404) plus the raw path truncated to 200 characters, status, duration ms, bytes in and out, user (key owner, signed-in admin, <code>god</code> or <code>-</code>), <code>via</code> (<code>key</code>, <code>session</code>, <code>anonymous</code>, <code>console</code>), <code>key_id</code> and <code>key_prefix</code> (never the token), <code>internal=1</code> for page-to-API calls made in-process, client IP, user agent (120 characters), the client's API version header, and <code>ratelimited=1</code>. Boss's required parts (time, route, user, how it came in, status) are all there. The docs say status codes are HTTP codes for parity with the web server's logs, and that requests the web server rejects before Flask (a 413 from <code>LimitRequestBody</code>, TLS failures) appear only in its log.</p>
+<p>&quot;Console&quot;: <code>planetgen</code> commands write to the database directly and never call the HTTP API, so nothing on a request path is <code>god</code> today. Default: <code>god</code> lines come from API-shaped actions run by CLI tools or an in-process client with no request context; the existing <code>GEN</code> lines stay.</p>
+<p>Hook <code>after_request</code>: it sees every response including error-handler ones (a probe recorded 404 with endpoint <code>None</code>, 401, 413, 400 and 429, the 429 carrying <code>X-RateLimit-*</code>) [C]. <code>teardown_request</code> is only for crashes with no response. WSGI middleware loses <code>g</code> (user, key).</p>
+<p>In-process calls: opening <code>/</code>, <code>/sectors</code>, <code>/sector/1</code>, <code>/system/1</code>, <code>/search</code> and <code>/galaxy</code> each made 6 in-process API calls (3 <code>galaxy/changes</code>, <code>population</code>, <code>species</code>, the page's data call) [C; the pages returned 404 on that database, so real pages may make more]. Logged as ordinary lines they multiply volume about six times with lines that look like traffic. Mark them <code>internal=1</code> and add a setting <code>api_log.internal</code> (<code>all</code> by default, per Boss's &quot;standard will have all API calls logged&quot;; <code>off</code> drops them).</p>
+<h3 id="82-cost-and-storage">8.2 Cost and storage</h3>
+<p>Measured [C]: <code>activity_log.event</code> takes 78 to 126 microseconds per call (8,000 to 13,000 per second); one autocommit MariaDB INSERT 5.9 ms (slow sandbox disk; expect 0.5 to 2 ms on an SSD); 500 rows per commit 0.43 ms per row; about 98 bytes per row with two secondary indexes. At 1 million calls a day that is about 100 MB a day and 3.6 GB a year.</p>
+<ol>
+<li><strong>Now (API.15):</strong> add <code>API</code> to <code>CATEGORIES</code> (and its row in <code>docs/reference/config.md</code>) and write one line per call to the activity log, with its rotation and fail2ban-compatible format and the rule that writing never stops the program. Add <code>X-Request-Id</code>. No schema change, no user accounts needed.</li>
+<li><strong>When an admin page needs search:</strong> an <code>api_calls</code> table in the control DB (same columns) filled by a background thread draining a bounded <code>queue.Queue</code>, 500 rows per commit; when full, drop and count. The deployment is one process with threads, so an in-process queue is sound. Redis would add a failure mode for no gain; synchronous inserts add milliseconds to every call and stack up across 5 threads.</li>
+</ol>
+<p>Retention: full IPs 30 days, then truncated (IPv4 /24, IPv6 /48), rows kept 13 months; purge by batched <code>DELETE ... LIMIT 10000</code> from the daily maintenance run (OPS.16). Partition by month only past tens of millions of rows. Privacy: an IP address is personal data under GDPR where the operator can link it to a person, and dynamic addresses count (CJEU, Breyer, C-582/14 [R]); no statutory retention number exists for security logs, and 30 days full plus truncation is a defensible default for a hobby site. The activity log already holds IPs under logrotate (100 MB, 30 copies). State this in the docs. Never log request bodies, tokens or <code>Authorization</code> headers.</p>
+<h2 id="9-recipes-api18-api19">9. Recipes (API.18, API.19)</h2>
+<h3 id="91-pydantic-and-the-shape">9.1 Pydantic and the shape</h3>
+<p>Pydantic v2 models are the source of truth, with JSON Schema exported by <code>model_json_schema</code> for the docs and the OpenAPI file. The repo already depends on Pydantic &gt;=2.7, validates every body with it (<code>api/schemas.py</code>) and the Generate page uses <code>TypeAdapter</code>. Python 3.9 works with 2.13.5 [S] under two rules: write unions as <code>Union[...]</code> and <code>Optional[...]</code> (<code>X | Y</code> fails at runtime on 3.9), and stay within 2.13.x features. The <code>--system-file</code> format (<a href="../../reference/system-file-format.html">../system-file-format.md</a>: tri-state options, per-orbit <code>slots</code>) is already a recipe; the schema starts from it and adds <code>fixed / range / random</code> for any numeric field. Prototype [C]:</p>
+<pre><code class="language-python">Dim = Annotated[Union[Fixed, Range, Random], Field(discriminator=&quot;mode&quot;)]   # mode: fixed|range|random
+class Planet(BaseModel): kind: Literal[&quot;planet&quot;]; mass_earth: Optional[Dim]; moons: List[Moon] = Field(max_length=100)
+class System(BaseModel): kind: Literal[&quot;system&quot;]; recipe_version: int; star_type: Optional[str];
+                          slots: List[Annotated[Union[Planet, Belt], Field(discriminator=&quot;kind&quot;)]] = Field(max_length=500)
+</code></pre>
+<p>Top level: <code>{&quot;recipe_version&quot;: 1, &quot;kind&quot;: &quot;sector|system|planet|moon|phenomenon|galaxy&quot;, ...}</code>, with <code>phenomenon</code> carrying a <code>type</code> discriminator. <code>Range</code> has <code>distribution</code> (<code>uniform</code>, <code>log-uniform</code>, <code>normal</code>) and a check <code>min &lt;= max</code>. Models use <code>extra=&quot;forbid&quot;</code> and <code>strict=True</code>, as <code>schemas.py</code> does. Pydantic reports a bad tag as <code>union_tag_invalid</code> with the allowed list and reports all errors at once with <code>loc</code> paths such as <code>slots.0.planet.mass_earth.range</code> [C]. <code>recipe_version</code> is separate from the API version; older recipe versions go through <code>from_v1(...)</code> upgraders. Galaxy-scale recipes (API.19) are lists of region recipes applied one at a time through the same endpoint, not one giant document.</p>
+<h3 id="92-determinism-and-the-seed-scheme">9.2 Determinism and the seed scheme</h3>
+<pre><code>unit seed = SHA-256(galaxy seed || &quot;recipe:&quot; || recipe_hash || &quot;:&quot; || seed)
+</code></pre>
+<p><code>recipe_hash</code> is the SHA-256 of the canonical JSON of the validated recipe with defaults filled in (<code>model_dump(mode=&quot;json&quot;, by_alias=True)</code>, sorted keys, compact separators, no NaN), so omitted and explicit defaults hash the same. <code>seed</code> is the recipe's optional explicit seed or a drawn one returned in the result (<code>seed_used</code>), as <code>planetgen plan</code> draws a galaxy seed. Resubmitting with <code>seed_used</code> on the same release reproduces the output; the log line states recipe hash, seed and version key. Float <code>repr</code> in <code>json.dumps</code> is the same shortest round-trip form on 3.9 to 3.13 [R]; pin it with a golden-hash test. This is a unit seed as in <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a> section 3: the recipe job draws through <code>planetgen/util/draw.py</code> under <code>seeded</code>. Limitation: the unit stream is sequential, so any recipe edit re-rolls everything not fixed (per-field substreams would need GEN.56's helpers keyed by path); to change one field and keep the rest, fix the others.</p>
+<h3 id="93-400-versus-422">9.3 400 versus 422</h3>
+<p>RFC 9110 section 15.5.21 defines <code>422 Unprocessable Content</code>: content type and syntax are understood but the instructions cannot be processed [S via the Idempotency draft; wording R]. Two layers: an envelope check gives 400, then the kind's model plus physics checks give 422.</p>
+<ul>
+<li><strong>400, gibberish:</strong> not valid UTF-8 or JSON; not an object; nested deeper than the cap (including the <code>RecursionError</code> case); no <code>recipe_version</code> or <code>kind</code>, or an unknown <code>kind</code>.</li>
+<li><strong>422, validation:</strong> a known kind with a wrong field: unknown field, wrong type, out of range, <code>min &gt; max</code>, a list too long, a physics or consistency rule broken (<code>+habitable_world</code> with an O star), or a generation that cannot satisfy the recipe after its retries (the CLI &quot;tried five times&quot; case).</li>
+<li><strong>413</strong> size cap, <strong>415</strong> wrong <code>Content-Type</code>, <strong>429</strong> rate limits.</li>
+</ul>
+<p>Body: RFC 9457 <code>application/problem+json</code> (obsoletes RFC 7807 [R]) with <code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, and extension members <code>errors</code> (each with <code>pointer</code>, a JSON Pointer such as <code>/slots/3/mass_earth</code>, <code>code</code> and <code>message</code>), <code>log</code> (the last 100 lines or 16 KB of the command's log), <code>request_id</code>, and <code>truncated</code> when more than 50 errors exist. The existing <code>error</code> and <code>errors:[{field,message}]</code> members stay so current clients keep working: <code>ApiError</code> gets optional <code>type</code> and <code>log</code>, and a <code>ValidationFailed</code> subclass supplies 422. The log is filtered to generation log lines (no file paths, SQL or tracebacks), consistent with the 500 handler never leaking internals. Existing routes keep <code>400</code> for body validation (changing them is an API-major event under 4.4), and <a href="../../reference/api.html#errors">../api.md</a> should state the split.</p>
+<h3 id="94-cost-limits">9.4 Cost limits</h3>
+<p>Validation cost [C]: 0.1 ms for a 3 KB system recipe, 24.5 ms for 91 KB, 2.35 s for a 4 MB recipe with 500 slots times 100 moons (about 0.6 ms per KB). Proposed caps: body 256 KiB (about 70 ms), depth 12, at most 500 slots (<code>tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS</code>), 100 moons per planet, sector and neighbourhood recipes bounded by <code>generation/limits.py</code> (<code>MAX_GENERATE_RADIUS_PC = 200</code>, <code>MAX_GENERATE_LIMIT</code>), 5 queued recipe jobs per key, 50 reported errors. Recipes run as queue jobs, so the request thread only validates and enqueues; a slow one answers <code>202</code> with <code>GET /api/jobs/&lt;id&gt;</code>.</p>
+<h3 id="95-bug-found-while-testing">9.5 Bug found while testing</h3>
+<p><code>require_json_body</code> uses <code>request.get_json(silent=True)</code>, which swallows <code>ValueError</code> but not <code>RecursionError</code>. A 100,000-deep <code>[</code> body (200 KB, under the 2 MiB limit) to <code>/api/auth/login</code> returned <code>500 {&quot;error&quot;:&quot;internal server error&quot;}</code> with a traceback; depths 10, 500 and 5,000 gave 400 [C]. Fix: pre-scan nesting depth in a byte loop (or catch <code>RecursionError</code>) and answer 400. It matters more for recipes, which expect nesting.</p>
+<h2 id="10-the-web-ux-and-job-management-guide-what-carries-over">10. The Web UX and Job Management Guide: what carries over</h2>
+<p>The guide (&quot;Web UX and Job Management Guide.md&quot;, titled &quot;Single-Server Migration Guide &amp; Codebase Modernization Outline&quot;) was checked against the code and <a href="../architecture/library-migration.html">library-migration.md</a>.</p>
+<ul>
+<li><strong>Superseded:</strong> the broker-less <code>ProcessPoolExecutor</code> with SQLite state, <code>future.cancel()</code> and the SQLite WAL mitigation (Phase 1, &quot;How should single-server queue management be structured&quot;). Boss chose Redis; jobs are RQ jobs (PERF.24, built for the routes in <a href="../../reference/api.html#queued-jobs">../api.md</a>) and cancel and pause use RQ's stop command.</li>
+<li><strong>Built with changes:</strong> SSE log streaming (Phase 2, ADM.22, ADM.40). The stream is a page route, <code>/admin/generate/jobs/&lt;id&gt;/stream</code>, not <code>/api/jobs/&lt;id&gt;/stream</code>; events carry the byte offset as their id so a reconnect resumes; the log is a file read by offset, not an in-memory queue per job id, so it works across Apache's and the workers' processes; the stream closes itself every 40 s to stay under the daemon timeout. API clients get <code>GET /api/jobs/&lt;id&gt;</code> (state, result, error), not a stream.</li>
+<li><strong>Holds:</strong> WSGI worker starvation. Under Apache one open stream holds one of the 5 threads; the deployment docs set threaded mod_wsgi daemon processes, and the upload concurrency limits above leave threads for pages and streams.</li>
+<li><strong>Not API:</strong> Phases 3 and 4 (TanStack tables, Shoelace, 3D tiles, camera-relative coordinates) are UI work, built (UX.40, UX.41, MAP.102).</li>
+</ul>
+<h2 id="11-evidence-notes-and-sources">11. Evidence notes and sources</h2>
+<p>[C] results come from research scripts that are not in the repo: sector sizes and compression, per-system dict sizes, activity-log and INSERT timings, in-process call counts, deep JSON and size-limit behaviour, <code>after_request</code> coverage, <code>Retry-After</code> on 200, recipe validation timing, the per-request <code>max_content_length</code> override.</p>
+<p>[R] claims to verify when paper and RFC access is allowed:</p>
+<ul>
+<li>RFC 9745 (Deprecation) number, date and format; RFC 8594 (Sunset); the <code>Link</code> relations; RFC 9530 <code>Content-Digest</code>; RFC 9457 obsoleting 7807; RFC 6648 on <code>X-</code>; RFC 9110 section 15.5.21 text for 422 and the 426 semantics.</li>
+<li>Stripe, GitHub (fine-grained tokens, checksum token format) and Google resumable-upload details; S3 multipart limits (5 MiB parts, 10,000 parts).</li>
+<li>Defaults: nginx <code>client_max_body_size 1m</code>; whether nginx and Caddy lack request decompression; chunked request bodies under mod_wsgi.</li>
+<li>AWS full-jitter backoff, CJEU Breyer C-582/14, any regulator guidance on log retention.</li>
+<li>oasdiff licence and release channel; schemathesis behaviour on Flask.</li>
+<li>Flask-Limiter 3.11.0 (the Python 3.9 pin) against 4.1.1 for <code>cost</code>, <code>key_func</code> and <code>Retry-After</code>; only 4.1.1 was tested.</li>
+<li>The IETF ratelimit draft's current number; JSON float representation identical across Python 3.9 to 3.13; a re-run of the zstd 3 sample.</li>
+</ul>
+<p>Sources:</p>
+<ul>
+<li>tus protocol 1.0.0: https://raw.githubusercontent.com/tus/tus-resumable-upload-protocol/main/protocol.md</li>
+<li>Apache mod_deflate: https://raw.githubusercontent.com/apache/httpd/trunk/docs/manual/mod/mod_deflate.xml</li>
+<li>Apache core (LimitRequestBody default): https://raw.githubusercontent.com/apache/httpd/trunk/docs/manual/mod/core.xml</li>
+<li>IETF RateLimit header fields draft: https://raw.githubusercontent.com/ietf-wg-httpapi/ratelimit-headers/main/draft-ietf-httpapi-ratelimit-headers.md</li>
+<li>IETF Idempotency-Key draft: https://raw.githubusercontent.com/ietf-wg-httpapi/idempotency/main/draft-ietf-httpapi-idempotency-key-header.md</li>
+<li>Pydantic unions and discriminators: https://raw.githubusercontent.com/pydantic/pydantic/main/docs/concepts/unions.md</li>
+<li>oasdiff breaking changes: https://raw.githubusercontent.com/oasdiff/oasdiff/main/docs/BREAKING-CHANGES.md</li>
+<li>PyPI JSON (https://pypi.org/pypi/<name>/json, read 2026-10-09) for pydantic, flask, flask-limiter, limits, flask-smorest, apiflask, flasgger, spectree, flask-pydantic, flask-openapi3, schemathesis, zstandard, brotli; oasdiff returned 404 on PyPI.</li>
+<li>Flask-Limiter 4.1.1 source as installed (<code>constants.py</code>, <code>_extension.py</code>).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
