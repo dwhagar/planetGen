@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3660] - 2026-11-08
+
+**Headline:** The search browser tests' stand-in for the search answer accepts the sector scope again.
+
+### Fixed
+- **Search table browser tests (TEST.696).** The search page now passes `sector_scope` to the search call, but the stand-in the table tests use for it did not take that argument, so the page answered 500 and five tests failed. The stand-in takes it now; the page was never wrong.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (search tables).
+
 ## [8.0.3659] - 2026-11-08
 
 **Headline:** The Chart View and side strip browser tests open the Chart View sub-menu and expect the isometric slant.
