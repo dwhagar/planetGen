@@ -29,4 +29,4 @@ Seven columns on `planets`, `moons` and `rogue_planets` (migration 0230): `rock_
 
 The Earth is within 1.5 times in every oxide (the anchor of D). Mars (formation distance 1.524 AU, cut 1066 K, FeO 0.147) is within 2.5 times in all but its nickel. Mars's mantle nickel is the open item: the leading-term redox law cannot reach it, and the pressure, temperature and sulfur of the real metal-silicate partition are not in the model. Mercury and the Moon are not targets (their history is an impact, `volatile_depletion`).
 
-Stand-ins: MO1 to MO4 in section 6.215 of the gap-filling plan.
+Stand-ins: MO1 to MO4 in section 6.216 of the gap-filling plan.

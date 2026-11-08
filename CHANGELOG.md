@@ -2,6 +2,58 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3644] - 2026-11-08
+
+**Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
+
+### Changed
+
+- New `physics/disc_condensation.py`: the snow lines (CO 20 K, N2 22, CH4 41, CO2 47, Ar 48, Kr 53, Xe 69, H2S 80, NH3 131, H2O 182), the carbon split (half refractory grains, the rest CO, CO2 and a little CH4), the oxygen taken out of the water by CO and CO2, the nitrogen and sulfur split, the mass each condensate makes in percent of the nebula, and the gas and solid C/O across each line. Stand-ins DSC1 to DSC6 (section 6.213); N2 and H2S lines are recalled, registered as such.
+- Nothing reads it yet: part B wires the ice shares of a body to it and part C the C/O of a giant, so no generated value changes.
+
+generation-output: unchanged
+
+## [8.0.3643] - 2026-11-08
+
+**Headline:** Bringing a galaxy to a new epoch no longer generates the empty cells rogue planets landed in.
+
+### Changed
+- **bring-to-epoch leaves uncharted cells alone (GEN.1354).** A drifting rogue planet that lands in a cell nothing was generated in leaves a placeholder sector row there. The run took those rows for sectors made under an older epoch and generated each of them: in a small test galaxy 74 of the 75 sectors it would have redone were placeholders, and every one generated charted a whole new sector whose own rogues landed in more empty cells. The run now redoes only the sectors that were charted, counts only those as the fill stage when it reports what is behind, and says how many uncharted cells it left alone. A placeholder keeps its rogues and is generated when someone charts the cell.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1354.
+
+## [8.0.3642] - 2026-11-08
+
+**Headline:** `planetgen system --output` with an unwritable path now prints a one-line error instead of a traceback.
+
+### Fixed
+- **`planetgen system --output <bad path>` printed a Python traceback (UX.288).** The page write in `run_system` now catches the operating system's refusal, prints `error: the system page could not be written to <path>: <reason>` and exits 1.
+- **The system-bodies API used `math.dist` and `math.hypot` (GEN.1389).** `api/system_bodies.py` now uses `detmath.dist` and `detmath.hypot` like the rest of the package, so the barycentre distance and the central offset in km do not depend on the Python release. The sites the bug hunt named in `db/sky_tier_ledger.py`, `generation/sky_charting.py` and `galaxy/stellar_table.py` were already on `detmath` (TEST.663); the one place `test_reproducible_draws` still refused was this API. The displayed values can differ from the old ones in the last binary digit (about 1 call in 5); nothing stored reads them.
+
+generation-output: unchanged
+TODO items resolved: GEN.1389, UX.288
+
+## [8.0.3641] - 2026-11-08
+
+**Headline:** A world that spins very fast no longer makes the generator split its temperature record into hundreds of millions of empty windows; the numbers do not change (PERF.249).
+
+### Changed
+
+- `temperature_coverage.band_climate` cut the record into one window per solar day, so a planet that turns thousands of times per sample (a hypergiant's) was split into millions of empty windows on every call, costing minutes and gigabytes. The window count is now held at the number of samples (the extra windows were empty and dropped), and the windows are reduced in one pass. The result is bit-identical (tested against the old windowing), so no epoch.
+
+## [8.0.3640] - 2026-11-08
+
+**Headline:** A system whose planet holds irregular moons now saves to JSON; the flag that tells whether a zone holds temporary captures was a numpy truth value.
+
+### Changed
+- **Irregular moon flags are plain booleans (GEN.1386).** The test for a zone wide enough for temporary captures, and the gas-window flags of the stored irregular moons, came out as numpy truth values when the planet's size was a numpy number, and the JSON dump of Yerkes II and III systems refused them. They are now plain true or false. The values are the same, so no generated world changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1386.
+
 ## [8.0.3639] - 2026-11-08
 
 **Headline:** Two comet modules are built and tested but not yet drawing: the brackets between the comets measured for each ice species, and one latent ice formation temperature that makes a comet's CO, nitrogen and argon move together.

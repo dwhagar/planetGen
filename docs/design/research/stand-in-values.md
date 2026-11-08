@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1300 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1306 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 167 | 19 | 11 | 1 | 0 | 198 |
-| T2 | 125 | 54 | 1 | 1 | 0 | 181 |
-| T3 | 95 | 43 | 7 | 9 | 0 | 154 |
+| T1 | 169 | 19 | 11 | 1 | 0 | 200 |
+| T2 | 125 | 55 | 1 | 1 | 0 | 182 |
+| T3 | 95 | 44 | 8 | 10 | 0 | 157 |
 | T4 | 58 | 7 | 2 | 19 | 10 | 96 |
 | T5 | 61 | 22 | 3 | 1 | 0 | 87 |
 | T6 | 137 | 96 | 25 | 63 | 0 | 321 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 718 | 272 | 61 | 204 | 45 | 1300 |
+| All | 720 | 274 | 62 | 205 | 45 | 1306 |
 
 ## How the labels were given
 
@@ -1827,7 +1827,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CF2 | P | T3 | L1 | collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the `Normal` level's rogues per star times the stellar density of the solar neighborhood | 0.7 to 0.95 | the solar neighborhood | a microlensing mass function with a different share of Earth-mass rogues | the rogue mass function of GEN.1287 | the design's figures from the microlensing work (R3191, R2178) | - | - |
 | CF3 | P | T9 | L0 | collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands) | ice 0 to 0.3; remnant 0.1 to 0.5 | terrestrial rogues | a rogue with a very different ice shell | the ice share of the rogue builder for the rogues of the pair | none (chosen) | - | - |
 
-## 6.213 Stand-ins of the volatility depletion of a rocky body
+## 6.214 Stand-ins of the volatility depletion of a rocky body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1836,7 +1836,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | VD3 | D | T6 | L1 | volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, `data/volatile_depletion.json` reference) | the zone of the bulk Earth's accretion, 0.7 to 1.3 AU | the lever of VD2 | a bulk Earth formed from a zone that was not near 1 AU | the zone read from the formation history of the body | the Earth's own orbit; a convention that makes the cut of a body at the Earth's blackbody temperature the Earth's | - | - |
 | VD4 | B | T4 | L0 | volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50 | 400 to 664 K | elements with T50 of 500 K and up (the coolest fitted element, sulfur, is 664 K; indium, iodine, thallium and bromine, 532 to 546 K, are inside) | a bulk Earth value for an element of 500 to 660 K that the line misses by more than 0.3 dex | the ice, noble gas and carbon items of N4, which give the elements under 500 K their own condensation | the research note's validity of 500 to 1324 K; no fitted point under 664 K | - | - |
 
-## 6.214 Stand-ins of the nine added star elements
+## 6.215 Stand-ins of the nine added star elements
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1848,7 +1848,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | XE6 | P | T4 | L2 | tuning.STELLAR_XFE_FITS Li ("linear", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites | scatter 0.1 to 0.4 | stars at birth | a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled) | a Galactic chemical evolution of lithium | the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex | - | - |
 | XE7 | P | T4 | L0 | tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other | none | the five elements | a sample in which P, Zn, Co or Cu correlates with Mg or Si | the correlation of a sample with those elements | the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O) | - | - |
 
-## 6.215 Stand-ins of the minor oxides of a rocky body's rock
+## 6.216 Stand-ins of the minor oxides of a rocky body's rock
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1857,7 +1857,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MO3 | T | T5 | L1 | mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2 | n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+) | rocks of FeO 0.01 to 0.18 | a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close | a pressure and temperature dependent partition of each element (the real law has three more terms) | the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor | - | - |
 | MO4 | B | T3 | L0 | mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent | Ti 0 to 0.05 | any rocky body | a core with a Ti share above 0.05 | a partition of Ti at the pressure of a large body's core | Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite | - | - |
 
-## 6.216 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases
+## 6.217 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1865,6 +1865,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | HC2 | B | T6 | L0 | hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds | none | any atmosphere of hydrogen-rich gas | a measured abundance above the ceiling (then the star's element is wrong) | the thermochemistry of the hot-giant regimes (GEN.994), which gives the amount, not its ceiling | an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values) | GEN.994 | - |
 | HC3 | T | T5 | L0 | hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486 | none | the pressures 1e-4 to 100 bar of the fit | a fit of the chromium cloud in which the coefficient of [Cr/H] differs from that of [Fe/H] | a Gibbs minimisation (FastChem, GGchem) | the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation | GEN.994 | - |
 | HC4 | T | T6 | L0 | hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used) | none | a host whose [Cl/K] is above -0.24 dex of the Sun's | a host with a chlorine abundance below potassium's | the same Gibbs minimisation | the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it | GEN.994 | - |
+
+## 6.213 Stand-ins of the species the disc condenses
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DSC1 | D | T1 | L0 | disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12) | none | the Sun | a revised photospheric abundance | none needed | Asplund and others 2021 Table 2 [R0168], read | GEN.1363 | - |
+| DSC2 | D | T1 | L0 | disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's | CO2 42 to 52 K or 70 K, CO 18 to 22 K | a disc at about 10^-4 bar | a measured line off these by more than the range | a line computed at the disc's own pressure | [R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix | GEN.1363 | - |
+| DSC3 | P | T2 | L1 | disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1 | share 0.25 to 0.6; CO per CO2 2 to 8 | a Sun-like disc | a disc with measured grain carbon outside the range | a disc chemistry model | [R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read | GEN.1363 | - |
+| DSC4 | P | T3 | L1 | disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P | 0.01 to 0.2 | the volatile carbon of a disc | a second comet or a disc measurement of methane | the carbon chemistry of a disc | 67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc | GEN.1363 | - |
+| DSC5 | P | T3 | L3 | disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled | GEN.1363 | no data |
+| DSC6 | P | T3 | L2 | disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read | GEN.1363 | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

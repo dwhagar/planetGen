@@ -26,15 +26,27 @@ def recorded(conn):
     return {
         "plan": None if plan is None else plan["generator_epoch"],
         "scatter": store.scatter_epochs(conn),
-        "fill": _counts(conn, "sectors"),
+        "fill": _charted_counts(conn),
         "population": _counts(conn, "species"),
     }
 
 
-def _counts(conn, table):
-    rows = conn.execute(f"SELECT generator_epoch, COUNT(*) AS n FROM {table} GROUP BY generator_epoch").fetchall()
+def _charted_counts(conn):
+    """`{epoch: sectors}` of the sectors that were generated: the hand-made ones (no grid address) and those whose cell is charted (`chart_ledger`). The placeholder
+    row a drifting rogue made in a cell nothing was generated in (`store.uncharted_sector_id`) is not a made sector and has no fill epoch to be behind (GEN.1354)."""
+    rows = conn.execute("SELECT s.generator_epoch AS generator_epoch, COUNT(*) AS n FROM sectors s WHERE s.shell_index IS NULL OR EXISTS ("
+                        "SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = s.shell_index AND cl.band_index = s.band_index AND cl.wedge_index = s.wedge_index) "
+                        "GROUP BY s.generator_epoch").fetchall()
+    return _by_epoch(rows)
+
+
+def _by_epoch(rows):
     return {row["generator_epoch"]: row["n"] for row in sorted(
         rows, key=lambda row: (row["generator_epoch"] is None, row["generator_epoch"] or 0))}
+
+
+def _counts(conn, table):
+    return _by_epoch(conn.execute(f"SELECT generator_epoch, COUNT(*) AS n FROM {table} GROUP BY generator_epoch").fetchall())
 
 
 def needs(stage, epoch, current):
