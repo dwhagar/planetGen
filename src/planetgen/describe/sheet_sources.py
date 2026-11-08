@@ -40,7 +40,7 @@ _BODY = {
     "dipole_tilt_deg": "A dipole-dominated dynamo keeps its axis near the spin axis (Rayleigh, scale 6 degrees; Earth 11, Jupiter 10); a multipolar one or an ice giant's thin "
                        "shell has it at any angle, isotropic (Uranus 59, Neptune 47) [R0784, R4196].",
     "dipole_offset_class": "Offset (over 0.15 radii from the center) for an ice giant, a multipolar dynamo and the iron-rich small body; centered otherwise [R4196].",
-    "core_light_fraction": "A drawn 3 to 12 percent of the metal, split by the rock's FeO and the pressure at the base of the mantle: a reduced body puts Si and C in its core, an oxidised one S, O and H [R4608, R4833].",
+    "core_light_fraction": "A drawn 3 to 12 percent of the metal, split by the rock's FeO and the pressure at the base of the mantle: a reduced body puts Si and C in its core, an oxidized one S, O and H [R4608, R4833].",
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",

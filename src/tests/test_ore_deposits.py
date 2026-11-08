@@ -77,11 +77,11 @@ def test_no_magmatic_ore_without_a_large_magma_volume_or_on_an_icy_body():
         assert {row["status"] for row in _rows(state).values()} == {od.ABSENT_BY_STATE}
 
 
-def test_the_sulfide_needs_sulfur_and_a_mantle_that_is_not_oxidised_and_the_chromite_a_reduced_one():
+def test_the_sulfide_needs_sulfur_and_a_mantle_that_is_not_oxidized_and_the_chromite_a_reduced_one():
     dry = _rows(_state(wet=False))
     assert dry[od.NICKEL_COPPER_PGE]["status"] == od.ABSENT_BY_STATE                    # primordial sulfur only
-    oxidised = _rows(_state(redox="oxidized"))
-    assert oxidised[od.NICKEL_COPPER_PGE]["status"] == oxidised[od.CHROMITITE]["status"] == od.ABSENT_BY_STATE
+    oxidized = _rows(_state(redox="oxidized"))
+    assert oxidized[od.NICKEL_COPPER_PGE]["status"] == oxidized[od.CHROMITITE]["status"] == od.ABSENT_BY_STATE
     assert any(_rows(_state(redox="oxidized"), seed=str(i))[od.IRON_TITANIUM_VANADIUM]["status"] == od.PRESENT for i in range(20))   # the oxide type takes any mantle
     assert any(_rows(_state(wet=False, sulfur_ratio=3.0), seed=str(i))[od.NICKEL_COPPER_PGE]["status"] == od.PRESENT for i in range(40))   # a sulfur-rich star can make up for a dry body
 

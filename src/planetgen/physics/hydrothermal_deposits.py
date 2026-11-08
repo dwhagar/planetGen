@@ -13,7 +13,7 @@ supplies its own types and settings and calls `sedimentary_deposits.assess`.
 
 **The settings** (rule 2 of the design: liquid water in the crust and a heat engine; a mobile lid for the arc and collision types). Each returns `None` where the gate fails:
 
-* **Porphyry** (`porphyry_cu_mo_au`): a mobile lid, liquid water, an oxidised mantle (a sulfate-rich arc magma, as the magmatic sulfide gate has it the other way) and a crust thick enough to hold a
+* **Porphyry** (`porphyry_cu_mo_au`): a mobile lid, liquid water, an oxidized mantle (a sulfate-rich arc magma, as the magmatic sulfide gate has it the other way) and a crust thick enough to hold a
   1 to 4 km intrusion (`PORPHYRY_MIN_CRUST_KM`). The grade is Cu, capped by the star's copper.
 * **VMS** (`vms_massive_sulfide`): a mobile lid and a liquid ocean (spreading under water) with heat flow of at least `VMS_MIN_HEAT_RATIO` of the Earth's. The grade is Zn.
 * **SEDEX and MVT** (`sedex_mvt_zn_pb`): liquid water, a basin (land and an ocean to fill it), a crust sulfur index of `SEDEX_MIN_SULFUR` or more (sulfate reduction) and sediment old enough to
@@ -21,7 +21,7 @@ supplies its own types and settings and calls `sedimentary_deposits.assess`.
 * **Orogenic gold** (`orogenic_gold`): a mobile lid, liquid water, a continental crust (a granitoid share and a crust of `OROGENIC_MIN_CRUST_KM`) to metamorphose. The grade is Au.
 * **Epithermal** (`epithermal_au_ag`): a mobile lid, liquid water and volcanism (a processed mantle of `EPITHERMAL_MIN_MAGMA_RATIO`), kept only in the youngest part of the body's age (these
   deposits erode away). The grade is Au.
-* **Roll-front uranium** (`roll_front_uranium`): oxidising groundwater (oxygen in the air over `ROLL_FRONT_MIN_O2_PA`), land, a granitoid source rock and a reductant (the crust's sulfur or
+* **Roll-front uranium** (`roll_front_uranium`): oxidizing groundwater (oxygen in the air over `ROLL_FRONT_MIN_O2_PA`), land, a granitoid source rock and a reductant (the crust's sulfur or
   life). The grade is U3O8, capped by the uranium the body's rock stores (`c_u0_ppm`) times `U_CRUST_OVER_BULK`.
 
 **Endowment and grade.** The grade is drawn inside the type's range and held to `concentration * crustal mean`: the crustal mean of copper and zinc is the Earth's, scaled by the star's Cu/Fe and
@@ -53,7 +53,7 @@ SEDEX_MIN_AGE_GY = 0.5
 EPITHERMAL_MIN_MAGMA_RATIO = 0.2
 ROLL_FRONT_MIN_O2_PA = 1000.0
 """Stand-in HT2, tier T7, L3: the thinnest crust that holds a porphyry stock and a collision belt, the coldest ridge that drives a hydrothermal cell, the least sulfur for a brine to reduce sulfate,
-the youngest age with basin sediment, the least volcanism for a shallow system and the least oxygen for an oxidising groundwater."""
+the youngest age with basin sediment, the least volcanism for a shallow system and the least oxygen for an oxidizing groundwater."""
 HEAT_RATIO_CAP = 3.0
 MAGMA_RATIO_CAP = 3.0
 """float: The ceilings on the heat-flow and volcanism factors of the opportunity, so a very hot body does not multiply the count without bound. Stand-in HT3, tier T7, L3."""

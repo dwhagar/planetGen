@@ -22,8 +22,8 @@ GEN.1383, GEN.1378) add rows to the same table.
 (`surface_pressure.degassed_share`, the same measure the degassing of the air uses), over `MAGMA_REFERENCE_KG`, the processed mass of an Earth-like body at 4.5 Gyr. Below `MAGMA_MIN_RATIO`
 of it a body has no large magma volume and no magmatic ore; an icy body (a mantle under an ice shell) has none.
 
-**The gates** (rule 1 of the design: magma volume, not the lid): Ni-Cu-PGE sulfide needs the magma volume, a sulfur index of at least `SULFUR_GATE` and a mantle that is not oxidised
-(sulfate, not sulfide, is the sulfur of an oxidised magma); chromitite needs the magma volume and a reduced or intermediate mantle; Fe-Ti-V oxide needs only the magma volume.
+**The gates** (rule 1 of the design: magma volume, not the lid): Ni-Cu-PGE sulfide needs the magma volume, a sulfur index of at least `SULFUR_GATE` and a mantle that is not oxidized
+(sulfate, not sulfide, is the sulfur of an oxidized magma); chromitite needs the magma volume and a reduced or intermediate mantle; Fe-Ti-V oxide needs only the magma volume.
 
 **Endowment and grade** (section 6). The number of deposits is drawn from a Poisson law with mean `deposits * opportunity * window` (`window` is the share of the body's life in which the
 setting existed); each deposit's ore mass is a lognormal of the type's median and spread (the design file's per-deposit tonnage range); the endowment is their sum. A gate that holds and a draw

@@ -6,10 +6,10 @@ What a rocky body's metal core is made of (GEN.1364): Fe-Ni with sulfur, silicon
 `bulk_draw` draws the metal's light elements as one lump (`core_light_fraction`, a share of the metal's mass) and the star's Ni per Fe gives
 `core_ni_fraction`. This module splits the lump and gives the core thermal history (`core_heat`) the three things the split decides.
 
-1. **The split** (`split`). How much of each light element goes into the metal is set by how oxidised the silicate it formed against was. The redox is
+1. **The split** (`split`). How much of each light element goes into the metal is set by how oxidized the silicate it formed against was. The redox is
    `delta_iw`, log10 units below the iron-wustite buffer, from the FeO the rock holds: the reaction `Fe + 1/2 O2 = FeO` puts `fO2` at `(x_FeO / x_Fe)^2`
    times a constant, so `delta_IW = 2 log10(x_FeO / x_Fe)` with `x_FeO` the mole fraction of FeO in the silicate and `x_Fe` of Fe in the metal (`METAL_X_FE`,
-   0.85). A reduced body (little FeO) puts silicon and carbon in its core and keeps sulfur and oxygen in the rock; an oxidised one puts sulfur, oxygen and
+   0.85). A reduced body (little FeO) puts silicon and carbon in its core and keeps sulfur and oxygen in the rock; an oxidized one puts sulfur, oxygen and
    hydrogen in its core and no silicon. The mean shares are those of three bodies, interpolated on `delta_iw` (`ANCHORS`); the pressure at the base of the
    mantle tilts the oxygen and silicon (`PRESSURE_EXPONENT`); `CONCENTRATION` is the Dirichlet scatter about those means (one stream per body, keyed on the
    body, so no other draw moves).

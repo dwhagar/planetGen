@@ -28,10 +28,10 @@ def test_the_anchor_shares_give_back_the_cores_they_were_made_from():
     assert mars["s"] == pytest.approx(6.6 / 12.7, abs=0.01) and mars["o"] == pytest.approx(5.2 / 12.7, abs=0.01)
 
 
-def test_a_reduced_body_puts_silicon_in_its_core_and_an_oxidised_one_sulfur_and_oxygen():
-    reduced, oxidised = cc.mean_shares(-4.0, 60.0), cc.mean_shares(-1.6, 60.0)
-    assert reduced["si"] > 0.5 > oxidised["si"]
-    assert oxidised["s"] + oxidised["o"] > reduced["s"] + reduced["o"]
+def test_a_reduced_body_puts_silicon_in_its_core_and_an_oxidized_one_sulfur_and_oxygen():
+    reduced, oxidized = cc.mean_shares(-4.0, 60.0), cc.mean_shares(-1.6, 60.0)
+    assert reduced["si"] > 0.5 > oxidized["si"]
+    assert oxidized["s"] + oxidized["o"] > reduced["s"] + reduced["o"]
     assert all(sum(cc.mean_shares(redox, pressure).values()) == pytest.approx(1.0) for redox in (-6.0, -3.0, -1.0) for pressure in (5.0, 80.0, 400.0))
 
 

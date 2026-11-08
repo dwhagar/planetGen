@@ -18,7 +18,7 @@ EARTH_SHARES = (1.0, 0.0, 0.0)
 
 
 def _body(**over):
-    """An Earth-like stored state: a mobile lid, a surface ocean over 71 percent of the surface, the Earth's mantle P2O5 and an oxidised mantle."""
+    """An Earth-like stored state: a mobile lid, a surface ocean over 71 percent of the surface, the Earth's mantle P2O5 and an oxidized mantle."""
     base = dict(body_type="t", rock_p2o5_fraction=2.1e-4, hydrosphere="surface ocean", mantle_delta_iw=3.5, ocean_class="neutral", land_fraction=0.29, ocean_fraction=0.71,
                 ocean_depth_km=3.7, radius=6371.0)
     base.update(over)
@@ -106,11 +106,11 @@ def test_an_ocean_under_ice_is_reached_by_its_sea_floor_only(earth_heat):
 
 
 def test_a_reduced_mantle_starves_the_ocean_of_weathering(earth_heat):
-    oxidised, reduced = _body(), _body(mantle_delta_iw=-5.0)
-    pb.generate(oxidised)
+    oxidized, reduced = _body(), _body(mantle_delta_iw=-5.0)
+    pb.generate(oxidized)
     pb.generate(reduced)
     assert reduced.crust_schreibersite_share > 0.95
-    assert reduced.ocean_phosphate_umol_l < oxidised.ocean_phosphate_umol_l / 10.0
+    assert reduced.ocean_phosphate_umol_l < oxidized.ocean_phosphate_umol_l / 10.0
 
 
 def test_a_dry_body_has_a_crust_and_no_ocean(earth_heat):

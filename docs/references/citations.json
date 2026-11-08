@@ -25740,6 +25740,76 @@
       "kind": "paper",
       "label": "Iizuka-Oku et al. 2021",
       "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution"
+    },
+    "R5151": {
+      "kind": "paper",
+      "label": "Kemper et al. 2004",
+      "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium"
+    },
+    "R5152": {
+      "kind": "paper",
+      "label": "Draine 2003",
+      "title": "Interstellar Dust Grains"
+    },
+    "R5153": {
+      "kind": "paper",
+      "label": "Draine and Li 2007",
+      "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era"
+    },
+    "R5154": {
+      "kind": "paper",
+      "label": "Chen et al. 2021",
+      "title": "Where have all the interstellar silicon carbides gone?"
+    },
+    "R5155": {
+      "kind": "paper",
+      "label": "Hensley and Draine 2023",
+      "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium"
+    },
+    "R5156": {
+      "kind": "paper",
+      "label": "Zhang and Xia 2021",
+      "title": "Influence of water on the physical properties of olivine, wadsleyite, and ringwoodite"
+    },
+    "R5157": {
+      "kind": "paper",
+      "label": "Thomas et al. 2015",
+      "title": "Quantification of water in hydrous ringwoodite"
+    },
+    "R5158": {
+      "kind": "paper",
+      "label": "Fei 2021",
+      "title": "Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle"
+    },
+    "R5159": {
+      "kind": "paper",
+      "label": "Hirschmann 2006",
+      "title": "WATER, MELTING, AND THE DEEP EARTH H2O CYCLE"
+    },
+    "R5160": {
+      "kind": "paper",
+      "label": "Fu et al. 2019",
+      "title": "Water Concentration in Single‐Crystal (Al,Fe)‐Bearing Bridgmanite Grown From the Hydrous Melt: Implications for Dehydration Melting at the Topmost Lower Mantle"
+    },
+    "R5161": {
+      "kind": "paper",
+      "label": "Pearson et al. 2014",
+      "title": "Hydrous mantle transition zone indicated by ringwoodite included within diamond"
+    },
+    "R5162": {
+      "kind": "paper",
+      "label": "Barklem and Collet 2016",
+      "title": "Partition functions and equilibrium constants for diatomic molecules and atoms of astrophysical interest"
+    },
+    "R5163": {
+      "kind": "paper",
+      "label": "Wong et al. 2004",
+      "title": "Updated Galileo probe mass spectrometer measurements of carbon, oxygen, nitrogen, and sulfur on Jupiter"
+    },
+    "R5164": {
+      "kind": "web",
+      "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
+      "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"
     }
   }
 }

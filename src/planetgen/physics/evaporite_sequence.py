@@ -90,7 +90,7 @@ NAHCOLITE_MIN_PCO2_PA = 5.0e4
 MAGNESITE_MIN_K = 333.15
 """float: Below this temperature the magnesium carbonate that dries is the hydrated one (hydromagnesite), above it magnesite, K (60 degrees C, registry row EV8)."""
 PERCHLORATE_SHARE = 0.01
-"""float: The share of the chloride charge that is oxidised to perchlorate where the air supplies oxidants and no ozone shield stands, dimensionless (registry row EV9)."""
+"""float: The share of the chloride charge that is oxidized to perchlorate where the air supplies oxidants and no ozone shield stands, dimensionless (registry row EV9)."""
 PERCHLORATE_MIN_PA = 1.0
 """float: The least surface pressure with oxidants for the share above, Pa."""
 
@@ -256,9 +256,9 @@ def allocate(ions, temperature_k, pco2_pa=0.0, pressure_pa=0.0, o2_shield=False,
     take(magnesium_sulfate_row(temperature_k), Mg=1.0, SO4=1.0)
     take(sodium_sulfate_row(temperature_k), Na=2.0, SO4=1.0)
     if pressure_pa >= PERCHLORATE_MIN_PA and not o2_shield and left["Cl"] > 0.0 and PERCHLORATE_SHARE > 0.0:
-        oxidised = left["Cl"] * PERCHLORATE_SHARE
-        left["Cl"] -= oxidised
-        left["ClO4"] = oxidised
+        oxidized = left["Cl"] * PERCHLORATE_SHARE
+        left["Cl"] -= oxidized
+        left["ClO4"] = oxidized
         take("mg_perchlorate", Mg=1.0, ClO4=2.0)
         take("ca_perchlorate", Ca=1.0, ClO4=2.0)
     take("halite", Na=1.0, Cl=1.0)

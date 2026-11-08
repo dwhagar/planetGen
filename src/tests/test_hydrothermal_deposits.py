@@ -13,7 +13,7 @@ BY_ID = {kind.id: kind for kind in hd.TYPES}
 
 
 def _state(**over):
-    """An Earth-like finished body at 4.5 Gyr: mobile lid, oxidised mantle, 71 percent ocean, 35 km crust, heat flow of the Earth's, oxygen of the air, life."""
+    """An Earth-like finished body at 4.5 Gyr: mobile lid, oxidized mantle, 71 percent ocean, 35 km crust, heat flow of the Earth's, oxygen of the air, life."""
     base = dict(age_gy=4.5, lid=interior_heat.MOBILE, redox="oxidized", wet=True, ocean=True, ocean_fraction=0.71, land_fraction=0.29, radius_km=constants.EARTH_RADIUS_KM,
                 heat_flux_w_m2=0.087, crust_km=35.0, sulfur_index=0.8, felsic_share=0.3, magma_ratio=1.0, o2_pa=21278.0, reductant=True,
                 crust_ppm=dict(hd.CRUST_PPM), u_ppm=0.0218)
@@ -38,7 +38,7 @@ def test_a_stagnant_or_dry_body_has_no_hydrothermal_row():
     assert BY_ID[hd.SEDEX].setting(_state(wet=False)) is None and BY_ID[hd.SEDEX].setting(_state(lid=interior_heat.STAGNANT)) is not None
 
 
-def test_porphyry_needs_an_oxidised_mantle_and_a_thick_crust():
+def test_porphyry_needs_an_oxidized_mantle_and_a_thick_crust():
     assert hd._porphyry(_state(redox="reduced")) is None and hd._porphyry(_state(redox="intermediate")) is None
     assert hd._porphyry(_state(crust_km=hd.PORPHYRY_MIN_CRUST_KM - 1.0)) is None
 
