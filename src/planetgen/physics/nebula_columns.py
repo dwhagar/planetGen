@@ -72,7 +72,7 @@ COLUMNS = {"nebulae": COMMON_COLUMNS, "supernova_remnants": COMMON_COLUMNS + REM
 """dict: Table -> its composition columns."""
 
 UNITS = {
-    **{column: "ratio" for column in COMMON_COLUMNS + REMNANT_COLUMNS},
+    **{column: "frac" for column in COMMON_COLUMNS + REMNANT_COLUMNS},
     **{f"abundance_{e.lower()}": "dex" for e in ABUNDANCE_ELEMENTS},
     "gas_oh_dex": "dex", "progenitor_mass_sol": "Msun", "ejecta_mass_sol": "Msun", "swept_mass_sol": "Msun",
 }
