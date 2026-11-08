@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3688] - 2026-11-08
+
+**Headline:** The most water an icy body can hold now follows the disc's budget, where carbon monoxide and dioxide hold part of the oxygen, so it falls from 0.54 to 0.34 of the solids for the Sun (GEN.1363 part B).
+
+### Changed
+
+- `bulk_draw._icy_water_range` takes the top of an icy body's water from the new `disk_condensation.water_share_of_solids`, at the body's formation temperature and with its star's carbon and oxygen over its magnesium. For the Sun that is 0.34 beyond the water line and 0.23 beyond the CO line (Lodders's table gave 0.54 and 0.38); a star with more oxygen over its magnesium than the Sun's holds more water. The water of an icy body is a draw between a floor and this top, so every icy body's water ceiling falls by about a third for a Sun-like disc.
+- `condensate_shares.water_share_of_solids` is deleted (nothing else read it); the jump of the solid surface density at the snow line stays on Lodders's table (`WATER_ICE_SOLID_BOOST`, 2.17) until the disc's solids are weighed against the minimum-mass nebula.
+- A disk with no spare oxygen (carbon takes it all, C/O above about 1) freezes no water, so the top of the range is 0; an icy body there now holds no water and no other ice, where the draw failed with a math domain error.
+- With part C (the C/O of a giant) this is the third and last part of GEN.1363; the three share one epoch.
+
+generation-output: changed
+
 ## [8.0.3687] - 2026-11-08
 
 **Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).

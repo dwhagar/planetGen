@@ -834,8 +834,7 @@
     },
     {
       "epoch": 140,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3688",
       "reason": "Train 18: core composition split, dust species, mantle water and carbon, giant envelope species, disk condensation parts B and C, ore deposits, phosphorus budget, ground after life, no-life class list",
       "affects": ["plan", "scatter", "fill", "population"]
     }
