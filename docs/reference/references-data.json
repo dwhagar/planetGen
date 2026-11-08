@@ -90987,6 +90987,41 @@
    "volume": "171",
    "year": 2004
   },
+  "10.1016/j.icarus.2004.04.010": {
+   "authors": [
+    [
+     "Wong",
+     "M. H."
+    ],
+    [
+     "Mahaffy",
+     "P. R."
+    ],
+    [
+     "Atreya",
+     "S. K."
+    ],
+    [
+     "Niemann",
+     "H. B."
+    ],
+    [
+     "Owen",
+     "T. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2004.04.010",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "153",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Updated Galileo probe mass spectrometer measurements of carbon, oxygen, nitrogen, and sulfur on Jupiter",
+   "type": "journal-article",
+   "volume": "171",
+   "year": 2004
+  },
   "10.1016/j.icarus.2004.05.020": {
    "authors": [
     [
@@ -280392,7 +280427,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5163,
+ "id_next": 5164,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281007,6 +281042,7 @@
   "10.1016/j.icarus.2003.11.023": "R3942",
   "10.1016/j.icarus.2004.01.001": "R2626",
   "10.1016/j.icarus.2004.04.009": "R4127",
+  "10.1016/j.icarus.2004.04.010": "R5163",
   "10.1016/j.icarus.2004.05.020": "R2060",
   "10.1016/j.icarus.2004.11.020": "R2460",
   "10.1016/j.icarus.2004.12.001": "R3317",

@@ -190,3 +190,10 @@ def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_tem
     farthest = _body(1000.0, icy=True, distance=2.7 * (182.0 / 30.0) ** 2)   # 30 K: CO2 and methane too
     low, top = bulk_draw._icy_water_range(farthest)
     assert top == pytest.approx(0.378, abs=0.002) and low == tuning.ICY_WATER_MASS_FRACTION_FLOOR
+
+
+def test_the_disk_volatile_ratios_of_a_star_are_its_nitrogen_sulfur_and_argon_over_magnesium_over_the_suns():
+    """GEN.1372: the ratios `disk_condensation.envelope_enrichments` splits between gas and ice."""
+    star = _body(1000.0, icy=True, distance=2.7).star
+    nitrogen, sulfur, noble = bulk_draw.disk_volatile_ratios(star)
+    assert 0.2 < nitrogen < 5.0 and 0.2 < sulfur < 5.0 and 0.2 < noble < 5.0          # a [Fe/H] 0 star: within a few times the Sun's per magnesium

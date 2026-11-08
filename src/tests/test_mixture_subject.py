@@ -139,6 +139,7 @@ def test_a_giant_carries_the_temperature_it_formed_at_and_its_stars_disk_ratios_
     q = ms.quantities_of_body(jupiter, ts_k=165.0, pressure_bar=1.0)
     assert q["formation_temperature_k"] == pytest.approx(182.0 * math.sqrt(2.7 / 10.8), rel=0.01)       # 182 K at the snow line, the 1 / sqrt(distance) of a thin disk
     assert q["disk_carbon"] > 0.0 and q["disk_oxygen"] > 0.0
+    assert q["disk_nitrogen"] > 0.0 and q["disk_sulfur"] > 0.0 and q["disk_noble"] > 0.0          # GEN.1372
     rocky = ms.quantities_of_body(_earth(star=star), ts_k=288.0, pressure_bar=1.0)
     assert "formation_temperature_k" not in rocky
     moon = ms.quantities_of_body(_earth(body_type="g", mass=317.8 * EARTH_MASS_KG, radius=71492.0, is_moon=True, parent_distance_au=5.2, star=star), ts_k=165.0, pressure_bar=1.0)

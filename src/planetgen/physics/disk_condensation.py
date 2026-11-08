@@ -246,6 +246,13 @@ def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
     return held.carbon - carbon_solid, held.oxygen - oxygen_solid, carbon_solid, oxygen_solid
 
 
+def _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid):
+    """`sigma` of `envelope_c_over_o`: the multiple of the frozen solids the envelope holds, that makes its carbon and oxygen `enrichment` times the star's."""
+    metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
+    metals_solid = carbon_solid + oxygen_solid
+    return max(enrichment * metals_star - (carbon_gas + oxygen_gas), 0.0) / metals_solid if metals_solid > 0.0 else 0.0
+
+
 @finite_domain()
 def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
     """
@@ -266,10 +273,51 @@ def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
     if not enrichment >= 0.0:
         raise ValueError("the enrichment must be zero or more")
     carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0)
-    metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
-    metals_solid = carbon_solid + oxygen_solid
-    sigma = max(enrichment * metals_star - (carbon_gas + oxygen_gas), 0.0) / metals_solid if metals_solid > 0.0 else 0.0
+    sigma = _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid)
     oxygen_total = oxygen_gas + sigma * oxygen_solid
     if oxygen_total <= 1e-12:
         return None
     return (carbon_gas + sigma * carbon_solid) / oxygen_total
+
+
+ENRICHED_ELEMENTS = ("N", "S", "Ar", "Kr", "Xe")
+"""tuple: The elements `envelope_enrichments` gives their own factor beyond C and O (GEN.1372). P is not among them: its carriers (phosphides, apatite) condense above 1000 K, so it
+is rock at every formation temperature of a giant and follows the rock-forming metals' scale. Ne stays gas and is not enriched by solids."""
+
+
+@finite_domain()
+def envelope_enrichments(temperature_k, enrichment, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    The nitrogen, sulfur and noble gases of a giant's envelope over its star's, element by element (GEN.1372), for a giant that formed where the disk was at `temperature_k` and holds
+    `enrichment` times its star's heavy elements.
+
+    The envelope is the disk's gas plus `sigma` times what froze there (`envelope_c_over_o` gives `sigma`: the share that makes the carbon and oxygen `enrichment` times the star's),
+    so an element's factor is `(gas + sigma * solid) / (gas + solid)` of its atoms: one for an element that stays gas (the noble gases of a giant that formed warmer than their
+    lines; its Jupiter-like 3 times solar needs the cold trapping or the pebble drift this model does not have), `sigma` for one that froze whole as an ice, the rock's own scale `enrichment` for the troilite of the sulfur, and
+    between for the nitrogen (N2 gas, the ammonia and the salts frozen below the ammonia line) and the rest of the sulfur (H2S gas above its line).
+
+    Args:
+        temperature_k (float): The disk temperature where the giant formed.
+        enrichment (float): The envelope's heavy elements over its star's; zero or more.
+        carbon, oxygen, nitrogen, sulfur, noble (float): The star's ratios over the rock-forming metals, over the Sun's (`inventory`); `noble` is the argon's, taken for krypton and xenon.
+
+    Returns:
+        dict: `ENRICHED_ELEMENTS` symbol to the envelope's atoms per hydrogen over the star's.
+    """
+    if not temperature_k > 0.0:
+        raise ValueError("the temperature must be positive")
+    if not enrichment >= 0.0:
+        raise ValueError("the enrichment must be zero or more")
+    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
+    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    sigma = _planetesimal_share(enrichment, *_gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble))
+    nitrogen_total = 2.0 * held.moles["N2"] + held.moles["NH3"] + ammonium_salts(carbon, oxygen, nitrogen, sulfur, noble)
+    nitrogen_solid = 2.0 * frozen.get("N2", 0.0) + frozen.get("NH3", 0.0) + frozen.get("NH4", 0.0)
+    sulfur_total = solar_per_1e4_h("S") * sulfur
+    sulfur_ice = frozen.get("H2S", 0.0)
+    troilite = sulfur_total * (1.0 - SULFUR_AS_H2S)
+    solids = {"N": (nitrogen_total, nitrogen_solid), "Ar": (held.moles["Ar"], frozen.get("Ar", 0.0)), "Kr": (held.moles["Kr"], frozen.get("Kr", 0.0)),
+              "Xe": (held.moles["Xe"], frozen.get("Xe", 0.0))}
+    factors = {symbol: (total - solid + sigma * solid) / total for symbol, (total, solid) in solids.items()}
+    factors["S"] = (sulfur_total - troilite - sulfur_ice + enrichment * troilite + sigma * sulfur_ice) / sulfur_total      # the troilite is rock: the rock's scale, not the ices'
+    return factors

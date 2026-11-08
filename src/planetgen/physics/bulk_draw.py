@@ -183,6 +183,19 @@ def ice_forming_ratios(star):
     return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("C", "O"))
 
 
+def disk_volatile_ratios(star):
+    """
+    `(nitrogen, sulfur, noble)` of `star`: its N, S and Ar per atom of the rock-forming metal Mg, over the Sun's, the amounts `disk_condensation.envelope_enrichments` splits between gas
+    and ice for a giant (GEN.1372; argon stands for krypton and xenon, which the star's element set lacks); `None` for a compact remnant, which has no [Fe/H].
+    """
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    if fe_h is None:
+        return None
+    composition = _star_composition(fe_h, star.age, star_key(star))
+    ratio = stellar_abundances.number_ratio
+    return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("N", "S", "Ar"))
+
+
 def _solar_over_mg(symbol):
     logs = tuning.STELLAR_SOLAR_LOG_EPS
     return 10.0 ** (logs[symbol] - logs["Mg"])

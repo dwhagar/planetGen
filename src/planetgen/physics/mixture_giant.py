@@ -112,7 +112,20 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     return disk_condensation.envelope_c_over_o(temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
 
 
-def element_budget(log_enrichment, c_over_o=None, lithium_burned=False):
+def _disk_enrichments(subject, log_enrichment_over_host):
+    """
+    The nitrogen, sulfur, argon, krypton and xenon of the envelope over its star's (`disk_condensation.envelope_enrichments`, GEN.1372) for a giant that formed where the disk was at the
+    subject's `formation_temperature_k` with its star's disk ratios; an empty dict for a subject that carries no disk, whose elements all take the one scale.
+    """
+    temperature = subject.get("formation_temperature_k")
+    if temperature is None:
+        return {}
+    return disk_condensation.envelope_enrichments(
+        temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
+        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0))
+
+
+def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
     """
     The atoms per hydrogen atom of the envelope: helium as the reference, every metal at `10 ** log_enrichment` times its reference
     abundance, with the carbon and oxygen re-split to `c_over_o` at their total (when given).
@@ -122,6 +135,9 @@ def element_budget(log_enrichment, c_over_o=None, lithium_burned=False):
             host's [Fe/H]).
         c_over_o (float, optional): The carbon to oxygen number ratio; default the reference's.
         lithium_burned (bool): The object burned its lithium (`LITHIUM_BURNED_FRACTION` of it is left).
+        star_log_scale (float): The host's [Fe/H], the log10 of its metals over the reference.
+        disk_factors (dict, optional): Element symbol -> the envelope's atoms of it per hydrogen over the star's (`_disk_enrichments`); those elements are the star's own amount
+            (`10 ** star_log_scale` times the reference) times this, in place of the one scale. The carbon and oxygen are not among them (their total is the scale's).
 
     Returns:
         dict: Element symbol -> atoms per hydrogen atom, `H` included (1).
@@ -130,6 +146,8 @@ def element_budget(log_enrichment, c_over_o=None, lithium_burned=False):
     budget = {"H": 1.0, "He": SOLAR_PER_HYDROGEN["He"]}
     for symbol in METALS:
         budget[symbol] = SOLAR_PER_HYDROGEN[symbol] * scale
+    for symbol, factor in (disk_factors or {}).items():
+        budget[symbol] = SOLAR_PER_HYDROGEN[symbol] * 10.0 ** star_log_scale * factor
     if lithium_burned:
         budget["Li"] *= LITHIUM_BURNED_FRACTION
     if c_over_o is not None:
@@ -480,7 +498,10 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     lithium_burned = family == "brown-dwarf" and burned_lithium(subject.get("mass_jupiter"))
     if lithium_burned:
         constants_drawn["lithium_burned"] = True
-    budget = element_budget(log_enrichment, c_over_o, lithium_burned)
+    disk_factors = _disk_enrichments(subject, log_enrichment - fe_h)
+    for symbol, factor in disk_factors.items():
+        constants_drawn[f"enrichment_{symbol.lower()}"] = factor
+    budget = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
 
     budget, condensed = remove_clouds(
         budget, temperature, pressure, log_enrichment,
@@ -532,4 +553,4 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
         temperature_k=temperature, pressure_bar=pressure, moles=result.moles, mole_fractions=result.mole_fractions,
         total_moles=result.total_moles, iterations=result.iterations, skipped=result.skipped)
     return finish(result, family=family, drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=None,
-                  inventory=element_budget(log_enrichment, c_over_o, lithium_burned), constants=constants_drawn, condensed=condensed)
+                  inventory=element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors), constants=constants_drawn, condensed=condensed)

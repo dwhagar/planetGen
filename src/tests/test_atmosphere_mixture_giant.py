@@ -247,6 +247,32 @@ def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_
     assert no_disk.constants["c_over_o"] == 0.9          # a giant with no disk keeps the recipe's value
 
 
+def test_a_giant_with_a_disk_enriches_its_nitrogen_sulfur_and_noble_gases_element_by_element():
+    from planetgen.physics import disk_condensation
+    cold = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=40.0, disk_carbon=1.0, disk_oxygen=1.0)
+    with draw.bound(5):
+        recipe = RECIPES.draw_all(cold, categories="abdcefghijkl")
+    with draw.bound(6):
+        made = mg.giant_mixture(cold, recipe)
+    factors = disk_condensation.envelope_enrichments(40.0, recipe.values["f5"])
+    for symbol, factor in factors.items():
+        assert made.constants[f"enrichment_{symbol.lower()}"] == pytest.approx(factor)
+    inventory = made.inventory
+    assert inventory["Ar"] / mg.SOLAR_PER_HYDROGEN["Ar"] == pytest.approx(factors["Ar"])
+    assert inventory["N"] / mg.SOLAR_PER_HYDROGEN["N"] == pytest.approx(factors["N"])
+    assert inventory["Fe"] / mg.SOLAR_PER_HYDROGEN["Fe"] == pytest.approx(recipe.values["f5"])     # the rock-forming metals keep the one scale
+    with draw.bound(6):
+        bare = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), recipe)
+    assert "enrichment_n" not in bare.constants                                   # a subject with no disk keeps the one scale for every metal
+    assert bare.inventory["N"] / mg.SOLAR_PER_HYDROGEN["N"] == pytest.approx(recipe.values["f5"])
+
+
+def test_the_host_metallicity_scales_the_stars_own_amount_of_the_enriched_elements():
+    budget = mg.element_budget(0.5, disk_factors={"N": 2.0}, star_log_scale=0.3)
+    assert budget["N"] == pytest.approx(mg.SOLAR_PER_HYDROGEN["N"] * 10.0 ** 0.3 * 2.0)
+    assert budget["Mg"] == pytest.approx(mg.SOLAR_PER_HYDROGEN["Mg"] * 10.0 ** 0.5)
+
+
 # --- GEN.1374: the lithium test, the alkali chlorides and the oxide to hydride transition of a brown dwarf's air ---------------------------------
 
 def one_bar_air(temperature_k, **changes):

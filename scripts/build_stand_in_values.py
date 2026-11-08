@@ -321,6 +321,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.220", "6.220 Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.221", "6.221 Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.210", "6.210 Stand-ins of where the mass an outer disk lost goes",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.211", "6.211 Stand-ins of the asteroid field two colliding rogue planets leave",
