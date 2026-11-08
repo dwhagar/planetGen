@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3654] - 2026-11-08
+
+**Headline:** The generator battery's digest is worked out once after an update and kept, so a fill, a plan or a fingerprint no longer waits half a minute or more for it.
+
+### Changed
+- **The generator battery digest is kept on the server (PERF.250).** It takes 30 to 90 seconds and every process that stores or extends a galaxy asked for it again. It is now kept in the folder of the install's kept star tables (`/var/cache/planetgen/band-tables`, which `update.sh` makes) under a key of every file of the `planetgen` package and of the downloaded datasets (name, size, modification time), the Python, numpy and scipy versions and the platform. A changed generator file, data file, library or machine makes a new key, so a changed generator is never given an old answer; copies of older code are removed after a week. A host without the folder works it out as before. `PLANETGEN_BATTERY_DIGEST_CACHE` still names another folder (set but empty, none).
+
 ## [8.0.3653] - 2026-11-08
 
 **Headline:** Starting a sector fill on a planned galaxy no longer times out: the size and time are worked out in the background and shown as soon as they are ready.
