@@ -15,6 +15,8 @@ A note's own status line, at its top, is the authority; this page only points at
 
 **Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](research/gap-filling-plan.md) section 6.5.
 
+**History of the design:** what was chosen, dropped and replaced, and how the work moved over time, is in [../history/README.md](../history/README.md) (release headlines, decisions by month, item histories, dropped paths, and [by-note.md](../history/by-note.md), which links each note below to the dates and state of its items).
+
 ## The whole program
 
 `architecture/`: how the program fits together, and the shared data model. The generated code map and the number map are linked from here; they live in [generated/](../generated/) and [plan/](../plan/).

@@ -1,0 +1,1854 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dropped, retired, closed and replaced - planetGen docs</title>
+<meta name="description" content="Every commit title (as of 8487fa43b) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, &quot;as a finding&quot;, &quot;not built&quot;, &quot;no longer&quot;.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/dropped-and-closed.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/dropped-and-closed.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="dropped-retired-closed-and-replaced">Dropped, retired, closed and replaced</h1><p class="meta">docs/history/dropped-and-closed.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#2026-11">2026-11</a></li><li style="margin-left:0px"><a href="#2026-10">2026-10</a></li><li style="margin-left:0px"><a href="#2026-09">2026-09</a></li><li style="margin-left:0px"><a href="#2024-07">2024-07</a></li><li style="margin-left:0px"><a href="#2024-06">2024-06</a></li></ul></details>
+<p>Every commit title (as of <code>8487fa43b</code>) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, &quot;as a finding&quot;, &quot;not built&quot;, &quot;no longer&quot;. A <code>Retire GEN.n</code> commit usually means the item shipped; read the title for &quot;finding&quot;, &quot;dropped&quot; or &quot;closed&quot;. Newest first.</p>
+<h2 id="2026-11">2026-11</h2>
+<ul>
+<li>2026-11-08: Retire TEST.689, TEST.697 (green on main) (#5785)</li>
+<li>2026-11-08: Retire TEST.665 (same red as TEST.704, fixed in PR 5773) (#5780)</li>
+<li>2026-11-08: Retire GEN.1353 (PR 5777) and GEN.1309 (step A in Train 19, step B closed as a finding, noted on GEN.1405) (#5778)</li>
+<li>2026-11-08: GEN.1353: census re-tag on epoch 140 (17 class flags and 1 systems flag tagged, 51 stale tags removed) (#5777)</li>
+<li>2026-11-08: Retire TEST.704, TEST.705 (#5776)</li>
+<li>2026-11-08: Retire GEN.1423 (PR 5726 slice, PR 5769 census) (#5770)</li>
+<li>2026-11-08: Retire TEST.702, DOC.112 (PR 5767) (#5768)</li>
+<li>2026-11-08: Retire TEST.706, TEST.707, TEST.708, DB.118 (PR 5765) (#5766)</li>
+<li>2026-11-08: Retire GEN.1396, GEN.1347, GEN.1422, PERF.251, PERF.252 (Train 19, PR 5740); GEN.1423 note (#5764)</li>
+<li>2026-11-08: Boss answers: class M levers 3, 6, 7 released; GEN.1364 kept; GEN.1435 default on; retire TEST.709 (#5759)</li>
+<li>2026-11-08: Retire Lane 05 reds (PR 5755); file OPS.131 and OPS.132; overlap rule (#5756)</li>
+<li>2026-11-08: Train 19: the radius valley sweep draws 40 systems, so the count of light planets no longer rides on one seed</li>
+<li>2026-11-08: PERF.254 and OPS.124: all jobs under one memory and load gate; option 1 chosen, Dask dropped; file OPS.128 and OPS.129 (#5752)</li>
+<li>2026-11-08: Retire GEN.1311 (merged in PR 5745) (#5746)</li>
+<li>2026-11-08: Docs: retire GEN.1428 and GEN.1429, list the evidence register in the design index (#5742)</li>
+<li>2026-11-08: Docs: retire TEST.700 (PR 5736) and MAP.411 (PR 5737), file UX.295 (#5738)</li>
+<li>2026-11-08: Docs: retire GEN.1432 (PR 5729) (#5731)</li>
+<li>2026-11-08: Docs: retire GEN.1424, file TEST.706 to TEST.708, write GEN.1424's sources as IDs (#5730)</li>
+<li>2026-11-08: Docs: retire GEN.1427 (PR 5723) and join its citation list in the change note (#5725)</li>
+<li>2026-11-08: Docs: retire PERF.226 (PR 5719) (#5720)</li>
+<li>2026-11-08: Docs: retire Train 18 items (GEN.1363, 1365 to 1368, 1372, 1374, 1376, 1378, 1380, 1381, 1385, 1394, 1397 to 1399, 1401) and GEN.1208 (#5715)</li>
+<li>2026-11-08: Docs: all real materials always exist (GEN.1420, GEN.1421, GEN.1377 to Lane 14); fiction answers applied (GEN.1416 to GEN.1419 withdrawn, ADM.145 to ADM.147 admin page, ADM.144 firm) (#5712)</li>
+<li>2026-11-08: Train 18: wiring rows for the module now read deleted</li>
+<li>2026-11-08: Docs: retire the items train 17 and the lock-free merges finished; list mantle-oxides.md in the design index (#5688)</li>
+<li>2026-11-08: Drop the TEST.687 note: it merged and was released with train 17</li>
+<li>2026-11-08: Revert &quot;Train 17: _air_light_au is a transient in the serialization fuzz, golden battery rewritten for it&quot;</li>
+<li>2026-11-08: Test: the System Map look test no longer expects cls (GEN.1400) (#5686)</li>
+<li>2026-11-07: GEN.1400: remove the class-letter leftovers (trojan classes, Hycean letters, bodylook cls, world planet_class, orphan docstring) (#5667)</li>
+<li>2026-11-08: Merge claude/train-17 into GEN.1374: stand-in section 6.218, Barklem and Collet R5147, disk_condensation rename, wiring rows retired</li>
+<li>2026-11-08: GEN.1398: strength pass and final-age redraw no longer read the class letter</li>
+<li>2026-11-08: GEN.1397: no list of life-bearing class letters; a system that bars habitable worlds judges and drops the finished body instead of drawing it again</li>
+<li>2026-11-08: GEN.1366: drop the unread row_exists (wiring guard); the change note's marker lines have no backticks</li>
+<li>2026-11-08: GEN.1366: drop the unread row_exists (wiring guard)</li>
+<li>2026-11-07: Tests follow GEN.1103 and GEN.1107: the asteroid-field rate is the physical one, a retired field is not avoided (#5646)</li>
+<li>2026-11-08: GEN.1376: composition columns in frac, nebula and remnant sheet tests, drop a TODO code from a sheet string</li>
+<li>2026-11-07: Retire train 16 items and the merged real-material rows, ADM.140, TEST.680, TEST.684, TEST.687 (#5620)</li>
+<li>2026-11-07: TEST.684: drop the item code from the bring-to-epoch help, exempt two white dwarf knot tables from the ordered-pair fuzz check (#5618)</li>
+<li>2026-11-07: Retire TEST.685 and GEN.1379; file TEST.687; keep source names out of the ore-processes note (#5603)</li>
+<li>2026-11-07: Retire GEN.303 (PR 5597); file TEST.684 (#5598)</li>
+<li>2026-11-07: Retire TEST.682 (PR 5593) (#5594)</li>
+<li>2026-11-07: GEN.1073 (fields half, part 2): a retired asteroid field leaves the Phenomena lists, counts and nearby search (#5591)</li>
+<li>2026-11-07: Retire GEN.229 (PR 5589) (#5590)</li>
+<li>2026-11-07: Retire PERF.227 (fix merged and gated since); POP.26 spacing ruling (#5588)</li>
+<li>2026-11-07: Retire TEST.683 (PR 5585); progress note on OPS.118 (#5586)</li>
+<li>2026-11-07: Retire OPS.117 (PR 5582); fix date style in cache-warm-up.md (#5584)</li>
+<li>2026-11-07: OPS.117: the update's warm-up has priority; two warm-ups never run at once (supersedes #5575) (#5582)</li>
+<li>2026-11-07: Retire TEST.679 (PR 5580); file GEN.1354 (#5581)</li>
+<li>2026-11-07: Retire OPS.116 (PR 5578); file TEST.683 (#5579)</li>
+<li>2026-11-07: Retire TEST.681 (PR 5573 merged) (#5574)</li>
+<li>2026-11-07: Train 15 retired; file OPS.116 (error.log), TEST.679/680/681, GEN.1353 (#5572)</li>
+<li>2026-11-07: GEN.1107: the orbit update ages each asteroid field and retires one past 1 ly by marking (#5568)</li>
+<li>2026-11-07: File the Sensor view axis line and magnetic field lines (UX.286, UX.287, GEN.1350); retire GEN.1348 (#5565)</li>
+<li>2026-11-07: Defer USR.9, USR.23, NAV.71 (UX.260 already later) per Boss; retire GEN.1345; file GEN.1348 and OPS.115 (#5563)</li>
+<li>2026-11-07: Update script: the pull step no longer warns about untracked files</li>
+<li>2026-11-07: docs: retire TEST.678 (PR 5560) (#5561)</li>
+<li>2026-11-07: Record Boss's answers (GEN.1022, 1151, 40, 229, 157, 1110, TEST.168, MAP.170, NAV.70, PERF.204); retire GEN.371; file GEN.1347 (#5558)</li>
+<li>2026-11-07: File DB.115: find why MySQL dropped the connection in a long generation job (#5557)</li>
+<li>2026-11-07: Sky unit survives a lost MySQL connection; rollback no longer hides the real error (#5556)</li>
+<li>2026-11-07: Train 15: a run that charts a band no longer skips a cell that only holds a landed rogue planet (occupied means charted)</li>
+<li>2026-11-07: GEN.1049: wire W3 (high eccentricity label), W4 (polar orbit of close giants by host band) and W5 (resonant chain forced eccentricity); RC6 and RC7 stand-ins</li>
+<li>2026-11-07: docs: retire GEN.1339 (finding: sea worlds are global oceans by the sources); file GEN.1342 (class gap) (#5548)</li>
+<li>2026-11-07: docs: retitle GEN.1339 (sea worlds are almost all global oceans); GEN.1340 no longer waits on it (#5547)</li>
+<li>2026-11-07: docs: retire GEN.1338 (PR 5544) and TEST.677 (PR 5541) (#5545)</li>
+<li>2026-11-07: docs: retire GEN.854; file GEN.1339 (CO<sub>2</sub> draw-down) and GEN.1340 (thin air keeps nitrogen) (#5543)</li>
+<li>2026-11-07: GEN.1337: list Cl, F and F<sub>2</sub> in the gas table so a very hot outgassed gas no longer fails the draw</li>
+<li>2026-11-07: docs: retire GEN.1085; note what is left on GEN.1103 (#5540)</li>
+<li>2026-11-07: docs: train 14 merged: retire its items and GEN.752; file GEN.1338 and TEST.677 (#5539)</li>
+<li>2026-11-07: docs: retire VIEW.48 (PR 5535) (#5536)</li>
+<li>2026-11-07: VIEW.48: the dust layer's cosh no longer overflows for stars far above the plane; the result is unchanged (#5535)</li>
+<li>2026-11-07: docs: retire VIEW.45 (PR 5533); file VIEW.48 (dust cosh overflow warning) (#5534)</li>
+<li>2026-11-07: docs: retire TEST.675 (PR 5529) (#5530)</li>
+<li>2026-11-07: docs: retire GEN.1327 (PR 5526) (#5528)</li>
+<li>2026-11-07: docs: retire GEN.1241 (PR 5522); file TEST.675 (api snapshot red) (#5523)</li>
+<li>2026-11-07: docs: retire TEST.670, TEST.672, TEST.674; file GEN.1332 (nebula shape seed) (#5521)</li>
+<li>2026-11-07: docs: retire TEST.671 and TEST.673, file TEST.674 (#5517)</li>
+<li>2026-11-07: docs: retire ADM.136 (PR 5510) (#5511)</li>
+<li>2026-11-07: docs: retire GEN.743 (#5509)</li>
+<li>2026-11-07: docs: retire train 13 items and DB.114; file TEST.670 to TEST.673 (reds on main) (#5508)</li>
+<li>2026-11-07: docs: retire TEST.389 (cleared: one and four workers give the same sectors) (#5505)</li>
+<li>2026-11-06: docs: drop GEN.1330 (life gates already pressures in GEN.1321) (#5502)</li>
+<li>2026-11-07: TEST.666, TEST.461: the column round trip test lists the rogue ammonia column as empty and drops the irregular moons from the never-read list</li>
+<li>2026-11-06: docs: retire 50 built items; MAP.141 and MAP.156 move to 8.2 (#5500)</li>
+<li>2026-11-06: docs: fold, drop duplicates and superseded items (TODO plan approved by Boss) (#5498)</li>
+<li>2026-11-06: docs: retire TEST.667 and TEST.668 (#5497)</li>
+<li>2026-11-06: Retire TEST.669 (PR 5488) (#5490)</li>
+<li>2026-11-06: Retire MAP.405 (PR 5481); file TEST.669 (#5482)</li>
+<li>2026-11-06: Retire TEST.661 and TEST.664 (PRs 5470, 5479) (#5480)</li>
+<li>2026-11-06: Drop GEN.1328 (premise did not hold); file GEN.1329 (#5478)</li>
+<li>2026-11-06: Issue group 1687 closed again (OPS.110 done) (#5472)</li>
+<li>2026-11-06: Retire OPS.110 (PR 5464); file TEST.668 (#5471)</li>
+<li>2026-11-06: Retire SEC.45 (PR 5467); file TEST.667 (#5468)</li>
+<li>2026-11-06: Retire GEN.1322 (PR 5465) (#5466)</li>
+<li>2026-11-06: Retire GEN.1326; file GEN.1328 (hot class N inventory) (#5463)</li>
+<li>2026-11-06: Retire PERF.248 (PR 5460) (#5461)</li>
+<li>2026-11-06: Retire GEN.1259 (built in PR 4940) (#5458)</li>
+<li>2026-11-06: Retire SEC.42 (PR 5455); OPS.110 scope per Boss (#5457)</li>
+<li>2026-11-06: Retire DOC.109 (PR 5454); file TEST.665 (#5456)</li>
+<li>2026-11-06: Retire SEC.40 and SEC.41 (PR 5451) (#5452)</li>
+<li>2026-11-06: Retire TEST.662; GEN.1259 owner Aux 5 (#5450)</li>
+<li>2026-11-06: Record SEC.46; retire TEST.663 and PERF.241 (#5447)</li>
+<li>2026-11-06: Drop GEN.1324 (not a defect: ground dose already uses the surface rock) (#5445)</li>
+<li>2026-11-06: File TEST.664; retire SEC.44; audit thread owns SEC.42 and SEC.45 (#5442)</li>
+<li>2026-11-06: File GEN.1323 to GEN.1326 from the GEN.753 pass; retire GEN.753 (#5441)</li>
+<li>2026-11-06: Full TODO and plan sync (Boss, 11-06): goals for 100 open items, retire five, file four (#5439)</li>
+<li>2026-11-06: Retire SEC.43 and GEN.1194 (#5426)</li>
+<li>2026-11-06: Retire SEC.38 after #5422 (#5425)</li>
+<li>2026-11-06: Retire SEC.37; file SEC.44 and TEST.661 (#5421)</li>
+<li>2026-11-06: Retire TEST.600 and TEST.656; file GEN.1322 and TEST.660 (#5418)</li>
+<li>2026-11-06: TEST.600, TEST.656: class census re-tag after train 12 (69 stale tags removed, nine flags tagged with reasons) (#5415)</li>
+<li>2026-11-06: PERF.241: representation audit without planets (2,619 s to 170 s); drop the rogue planet kind GEN.1111 part 8 removed (#5409)</li>
+<li>2026-11-06: Retire DB.113 and PERF.245 after #5392 and #5399 merged (#5408)</li>
+<li>2026-11-06: PERF.245: a warm-up no longer takes every worker (#5399)</li>
+<li>2026-11-06: Docs: retire MAP.404 (#5405) (#5406)</li>
+<li>2026-11-06: Docs: empty uncharted sectors option on MAP.403; MAP.404 intro text drops the links sentence (#5404)</li>
+<li>2026-11-06: Docs: retire MAP.401; file UX.283 single-system generation interface (#5400)</li>
+<li>2026-11-06: Docs: retire GEN.968, GEN.970 (merged 10-29), GEN.1059 (#5384), GEN.801 (built by GEN.809/810/967) (#5385)</li>
+<li>2026-11-06: Docs: retire MAP.400 (#5382) and GEN.1297 (already on main) (#5383)</li>
+<li>2026-11-06: Docs: retire MAP.399, GEN.1209, GEN.1213, GEN.888, GEN.879, GEN.880 (built) (#5379)</li>
+<li>2026-11-06: Retire ten rows already built: GEN.690, 687, 685, 647, 689, DB.90, 863, 862, 1211, 1296 (#5373)</li>
+<li>2026-11-06: Retire GEN.1023 (fixed on main by GEN.1014 commit 8597d2ce9) (#5368)</li>
+<li>2026-11-06: File MAP.401, set owners GEN.1023 and GEN.1307, retire TEST.642 (#5367)</li>
+<li>2026-11-06: Retire VIEW.47, TEST.655, TEST.654 (#5363)</li>
+<li>2026-11-06: VIEW.47: the run log reports the sky floor against distance; remove the unused whole-sphere draw wrappers (#5360)</li>
+<li>2026-11-06: Retire TEST.580 (#5355 and earlier groups) (#5356)</li>
+<li>2026-11-06: Retire GEN.1305 (#5335) and TEST.653 (#5353) (#5354)</li>
+<li>2026-11-06: Retire TEST.650 (#5351) (#5352)</li>
+<li>2026-11-06: Retire GEN.1185 and GEN.1186 (already on main: #4361, #4620, release 8.0.3189) (#5347)</li>
+<li>2026-11-06: File GEN.1307; retire TEST.652 (#5346)</li>
+<li>2026-11-06: File GEN.1306; retire MAP.223, MAP.381, TEST.651 (#5344)</li>
+<li>2026-11-06: Retire MAP.224 (#5337) and TEST.647 (#5339) (#5340)</li>
+<li>2026-11-06: Docs: retire TEST.627 and TEST.606 (#5338)</li>
+<li>2026-11-06: Retire train 12 items (#5333); file TEST.650-652, VIEW.47, GEN.1305 (#5334)</li>
+<li>2026-11-06: Train 12: the moon origin test no longer needs a captured moon among the regular ones (GEN.1083 moved them to the irregular set)</li>
+<li>2026-11-06: Cap the gas metallicity of a place at +0.7 dex so a wide-disk galaxy no longer stops the nebula composition</li>
+<li>2026-11-06: Retire TEST.649 (#5331), file GEN.1304 (greenhouse refit) (#5332)</li>
+<li>2026-11-06: Retire OPS.103 (#5329), file TEST.649 (#5330)</li>
+<li>2026-11-06: Retire OPS.102 (#5327) (#5328)</li>
+<li>2026-11-06: OPS.102: the debug line names its area and drops the logger-name column (#5327)</li>
+<li>2026-11-06: Retire OPS.101 (#5325) (#5326)</li>
+<li>2026-11-06: Retire OPS.99 (#5323) (#5324)</li>
+<li>2026-11-06: Retire OPS.98 and OPS.100 (#5321) (#5322)</li>
+<li>2026-11-06: Retire TEST.646 (#5318) (#5319)</li>
+<li>2026-11-06: Docs: close PERF.244 without a build (#5316)</li>
+<li>2026-11-06: GEN.1298: a life class whose own air takes its solvent is dropped and the world is settled again without it</li>
+<li>2026-11-06: Retire TEST.648 (#5312) (#5313)</li>
+<li>2026-11-06: TEST.648: the SSR9 registry key is respelled oxidized, the retired ozone rows m1 and m2 leave the Solar System rows data (#5312)</li>
+<li>2026-11-06: Retire TEST.641 (#5310), file GEN.1303 and TEST.648 (#5311)</li>
+<li>2026-11-06: Retire TEST.644 (#5307), file TEST.647 (#5308)</li>
+<li>2026-11-06: Retire OPS.105 (#5286), file TEST.646 (#5306)</li>
+<li>2026-11-06: Retire GEN.1300 (answered: the gap is remnants made as phenomena) (#5305)</li>
+<li>2026-11-06: Retire TEST.639 (#5303) (#5304)</li>
+<li>2026-11-06: Retire GEN.1302 (#5301) (#5302)</li>
+<li>2026-11-06: Retire GEN.1301 (#5299) (#5300)</li>
+<li>2026-11-06: Retire TEST.645 (#5297) (#5298)</li>
+<li>2026-11-06: Retire TEST.640 (#5294) (#5295)</li>
+<li>2026-11-06: Docs: retire TEST.643, file TEST.644 (#5292)</li>
+<li>2026-11-05: TODO: TEST.641 filed; retire TEST.616 and TEST.585 (#5288)</li>
+<li>2026-11-06: GEN.1265: the wiring register no longer lists the rows and module this change reads</li>
+<li>2026-11-05: TODO: TEST.639 and TEST.640 filed; retire fixed test items (#5285)</li>
+<li>2026-11-05: TODO: retire the complete train 11 items; burn-down CC1 and CC2 to no data; PG1 register line to GEN.1207 (#5284)</li>
+<li>2026-11-05: GEN.1207: best-fit classes replace the first-match tree; stored class match and runner-up (migration 0213), digit 9 and nearest class for bodies that fit none, classes R U X Y Z in the class table</li>
+<li>2026-11-05: TODO: retire UX.94; TEST.616 to Tides 1 (#5277)</li>
+<li>2026-11-05: TODO: retire MAP.169 (#5275)</li>
+<li>2026-11-05: TODO: PERF.241 rescoped, PERF.242 closed, PERF.244 filed (#5273)</li>
+<li>2026-11-05: TODO: retire TEST.498, TEST.632, API.24, MAP.168; TEST.633 filed; wiring lines for the gravity kernel move to MAP.169 (#5268)</li>
+<li>2026-11-05: TODO: retire UX.276, MAP.397, GEN.1289, TEST.499; GEN.1299 filed; GEN.1288 full version after GEN.359 (moved to 8.1) (#5263)</li>
+<li>2026-11-05: Delete the unread galaxy/rogue_density module and its stand-in rows (GEN.1289) (#5261)</li>
+<li>2026-11-05: TODO: retire UX.278, UX.279, MAP.398 (#5257)</li>
+<li>2026-11-05: TODO: GEN.1296 filed, retire GEN.1294, OPS.106 to OPS.109, UX.275 (#5249)</li>
+<li>2026-11-05: TODO: GEN.1295 (burn-down rows), OPS.109, retire MAP.392 (#5245)</li>
+<li>2026-11-05: TODO: SiO2(L) fit range bug, wiring register after VIEW.44, retire merged items (#5239)</li>
+<li>2026-11-05: TODO: VIEW.43 text no longer names the source (its paper goes in the registry with PR 5232) (#5233)</li>
+<li>2026-11-05: TODO: retire UX.272, MAP.366, MAP.386, MAP.387, PERF.243; register sector_quadrant (#5227)</li>
+<li>2026-11-05: TODO: MAP.393 Chart View fixes (retired), UX.273 Sensor view, UX.274 View menu (#5223)</li>
+<li>2026-11-05: docs: issue group titles follow the retitled issues, retire TEST.626 (#5219)</li>
+<li>2026-11-05: docs: file UX.272 and DB.112, replace the quadrants with the charted region names (#5215)</li>
+<li>2026-11-05: docs: file TEST.626 and retire PERF.219 (#5214)</li>
+<li>2026-11-05: Delete the unread rogue_volatiles and rogue_radiogenic modules and the tuning defaults they replaced (GEN.1286) (#5198)</li>
+<li>2026-11-05: OPS.96: planetgen warm writes warmup.log itself, local time with zone; update.sh drops the tee (#5195)</li>
+<li>2026-11-05: docs: put 26 mis-filed generation items back in 8.1, move the logging chain to 8.3, retire OPS.104 (#5202)</li>
+<li>2026-11-05: Delete the rogue physics functions and constants nothing reads (GEN.1111 register leftovers) (#5192)</li>
+<li>2026-11-05: docs: 8.2 headline, logging foundation OPS.104 and OPS.105, retire DB.40 and DB.41 (#5190)</li>
+<li>2026-11-05: docs: retire MAP.383, UX.187 and UX.263; file GEN.1284 and GEN.1285 (#5187)</li>
+<li>2026-11-05: UX.263: delete the unused belt density module and its stand-in rows (#5185)</li>
+<li>2026-11-05: docs: retire nine merged items; file GEN.1283 and UX.263 (#5182)</li>
+<li>2026-11-05: PERF.235: planetgen warm --follow, and a hangup no longer ends a warm-up (#5174)</li>
+<li>2026-11-05: Retire TEST.612, TEST.613, TEST.615, TEST.617 and TEST.618; TEST.614 note (#5165)</li>
+<li>2026-11-05: TEST.612: a test no longer leaves a holed track in the cached timeline (#5160)</li>
+<li>2026-11-05: Retire TEST.607; TEST.606 note (#5159)</li>
+<li>2026-11-05: File TEST.612; retire TEST.608, TEST.609 and TEST.610 (#5157)</li>
+<li>2026-11-05: Retire TEST.604, TEST.605 and TEST.611 (#5154)</li>
+<li>2026-11-05: Retire TEST.599 (#5148)</li>
+<li>2026-11-05: Retire NAV.25 (#5144)</li>
+<li>2026-11-05: Retire NAV.26 (#5143)</li>
+<li>2026-11-05: Retire NAV.74, NAV.75 and NAV.76 (#5142)</li>
+<li>2026-11-05: Retire NAV.62; file NAV.74-76; TEST.603 (#5137)</li>
+<li>2026-11-05: Retire TEST.411 and TEST.292; PERF.238 fixture cost note (#5133)</li>
+<li>2026-11-05: Retire NAV.27 and NAV.51; NAV.6 in-system note (#5131)</li>
+<li>2026-11-05: Retire GEN.1232 (#5125)</li>
+<li>2026-11-05: GEN.1232b: remove the unused belt giant_event and companion limit (#5124)</li>
+<li>2026-11-05: Close GEN.1279 and GEN.1280 as test-galaxy findings; VIEW.30 and VIEW.42 notes (#5122)</li>
+<li>2026-11-05: Retire TEST.601 (#5121)</li>
+<li>2026-11-05: File GEN.1279, GEN.1280, VIEW.42 from the HYG calibration; retire NAV.58 (#5118)</li>
+<li>2026-11-05: Retire TEST.596; TEST.580 groups note (#5115)</li>
+<li>2026-11-05: Retire MAP.382 (by design) (#5111)</li>
+<li>2026-11-05: Retire NAV.49; file TEST.599 (#5109)</li>
+<li>2026-11-05: Retire TEST.597 (#5106)</li>
+<li>2026-11-05: Retire TEST.575 and TEST.595; file MAP.382 (#5104)</li>
+<li>2026-11-05: Retire GEN.1218 (leftovers deleted in #5098) (#5099)</li>
+<li>2026-11-05: GEN.1218: delete the two unread surface_liquids functions (stable_liquids, sea_density_kg_m3) and their register lines (#5098)</li>
+<li>2026-11-05: Retire TEST.346; owners for GEN.1111 and GEN.1218 leftovers (#5097)</li>
+<li>2026-11-05: Retire train 10 items; GEN.1070, GEN.1232 part notes; GEN.1111/1120/1218 register leftovers (#5096)</li>
+<li>2026-11-05: Retire NAV.21 and NAV.23; NAV.5 keeps NAV.22 (#5091)</li>
+<li>2026-11-05: Retire TEST.594: not a defect, bare node run fails by design (#5088)</li>
+<li>2026-11-05: TODO: retire NAV.18; NAV.4 note (#5085)</li>
+<li>2026-11-05: TODO: retire NAV.28, file TEST.594 (#5083)</li>
+<li>2026-11-05: TODO: retire TEST.593 (#5080)</li>
+<li>2026-11-05: TODO: retire NAV.72, file TEST.593 (#5077)</li>
+<li>2026-11-05: TODO: retire TEST.592 (#5075)</li>
+<li>2026-11-05: TODO: retire NAV.54, file TEST.592 (#5067)</li>
+<li>2026-11-05: TODO: close MAP.195 as measured and not built; MAP.194 note (#5065)</li>
+<li>2026-11-05: TODO: retire VIEW.38; fix the TEST.591 change note heading (#5064)</li>
+<li>2026-11-05: Train 10: rogue gas-giant sort index, sheet rule for the dropped description, stellar-bulk tests on the physics rogue</li>
+<li>2026-11-05: TODO: retire VIEW.37, TEST.591 part note (#5062)</li>
+<li>2026-11-05: TODO: retire TEST.586, TEST.587 and TEST.588 (#5059)</li>
+<li>2026-11-05: TODO: retire TEST.590 (#5052)</li>
+<li>2026-11-05: TODO: retire VIEW.35 and VIEW.36 (#5049)</li>
+<li>2026-11-05: GEN.1261: cite the registered paper by number, drop unregistered author-year names</li>
+<li>2026-11-05: TODO: retire VIEW.34, file TEST.590, GEN.359 note (#5047)</li>
+<li>2026-11-05: TODO: retire TEST.589 (#5045)</li>
+<li>2026-11-05: TODO: retire VIEW.31, file TEST.588, notes on PERF.134 and VIEW.25 (#5041)</li>
+<li>2026-11-04: TODO: retire VIEW.33 and VIEW.41, file TEST.587, VIEW.31 owner (#5034)</li>
+<li>2026-11-04: TODO: retire MAP.142 (#5030)</li>
+<li>2026-11-04: MAP.142 part 4: retire the nebula shape mesh (#5029)</li>
+<li>2026-11-04: TODO: retire MAP.179, TEST.581 and TEST.583 (#5028)</li>
+<li>2026-11-04: TODO: retire MAP.178, MAP.180, MAP.181, GEN.1214 and GEN.1215 (#5023)</li>
+<li>2026-11-04: TODO: retire NAV.36 (#5019)</li>
+<li>2026-11-04: TODO: retire NAV.69 (#5016)</li>
+<li>2026-11-04: TODO: retire PERF.232, NAV.73, NAV.68 and GEN.1255 (#5014)</li>
+<li>2026-11-04: TODO: retire VIEW.23; more red tests on TEST.585 (#5010)</li>
+<li>2026-11-04: TODO: retire NAV.67, file TEST.585 (#5007)</li>
+<li>2026-11-04: TODO: retire GEN.1269 and TEST.234; API.33 waits behind DOC.15 (#5005)</li>
+<li>2026-11-04: TODO: retire GEN.1274 and UX.237, file UX.262, fix a citation style in a change file (#5003)</li>
+<li>2026-11-04: TODO: retire TEST.584, MAP.177, NAV.65, NAV.66, MAP.380 (#4999)</li>
+<li>2026-11-04: MAP.380: the two-star wheel test scrolls in on a close pair the map can show (#4997)</li>
+<li>2026-11-04: TEST.584: the sector-delete test follows GEN.1127's RESTRICT (409 first, then delete the facility) (#4993)</li>
+<li>2026-11-04: TODO: retire MAP.373; TEST.584 goes to Core 5 (#4992)</li>
+<li>2026-11-04: TODO: retire GEN.1270, VIEW.22 and MAP.372; GEN.1274 goes to Sources 2 (#4989)</li>
+<li>2026-11-04: TODO: retire VIEW.24 (#4984)</li>
+<li>2026-11-04: TODO: retire MAP.371 (#4983)</li>
+<li>2026-11-04: TODO: retire PERF.239 and VIEW.29 (#4981)</li>
+<li>2026-11-04: TODO: store nebula composition (GEN.1276, GEN.1277), retire MAP.375 (#4976)</li>
+<li>2026-11-04: TODO: retire API.39 and API.40, file GEN.1275 and TEST.584 (#4975)</li>
+<li>2026-11-04: File NAV.73 and TEST.583; retire VIEW.20, VIEW.27, VIEW.28, PERF.233 (#4966)</li>
+<li>2026-11-04: Retire VIEW.21 (#4959) and VIEW.32 (#4958) (#4960)</li>
+<li>2026-11-04: Owners for moved lane items; file MAP.380 and PERF.239; retire MAP.378 and MAP.379 (#4955)</li>
+<li>2026-11-04: Retire UX.261 (explainer links, #4950) (#4951)</li>
+<li>2026-11-04: UX.261: explainer links say &quot;More information&quot;; repeated links removed (#4950)</li>
+<li>2026-11-04: File UX.261 (explainer links: drop repeats, reword to More information) (#4948)</li>
+<li>2026-11-04: Retire GEN.1147 (merged with train 8, #4655) and drop DB.99 (ground type and fractions already stored) (#4945)</li>
+<li>2026-11-04: Retire PERF.234 and PERF.237; file TEST.581 (#4943)</li>
+<li>2026-11-04: Retire OPS.95 and MAP.376; file GEN.1260; fix two wiring register lines (#4936)</li>
+<li>2026-11-04: Retire OPS.94 (#4926)</li>
+<li>2026-11-04: Retire MAP.377 (#4922)</li>
+<li>2026-11-04: Train 10: wiring register after the merges (stale lines deleted, erosion_efficiency by design)</li>
+<li>2026-11-04: Drop TEST.577: does not reproduce (#4915)</li>
+<li>2026-11-04: Drop GEN.1251 (GEN.1052 already covers the non-water tide hook) (#4909)</li>
+<li>2026-11-04: Retire TEST.578 (already fixed on main) (#4905)</li>
+<li>2026-11-04: File the ID-name items (GEN.1254 to GEN.1257, UX.259, API.38) under goal #4899, retire TEST.572 (#4901)</li>
+<li>2026-11-04: Retire TEST.576, note on DOC.103 for the stored disc sentence, fix a time stamp the citation lock read as a source (#4897)</li>
+<li>2026-11-04: TEST.576: plain-words corpus of sixteen systems; the Formerly line drops the epoch; Largest body label (#4896)</li>
+<li>2026-11-04: Retire TEST.435 (#4895)</li>
+<li>2026-11-04: GEN.1033: ice-giant internal heat spread (stable composition gradient), rows IGH1 to IGH3, CC14 retired</li>
+<li>2026-11-04: Retire MAP.275, GEN.375 (#4892)</li>
+<li>2026-11-04: Retire TEST.571 (#4886)</li>
+<li>2026-11-04: Retire GEN.972, GEN.982, GEN.1229 (#4881)</li>
+<li>2026-11-04: Retire train 9 items: GEN.1138, 1139, 1140, 1162, 1000, 1160, 1156, PERF.231 (#4880)</li>
+<li>2026-11-04: Retire MAP.367 (#4878)</li>
+<li>2026-11-04: Retire TEST.126 (#4876)</li>
+<li>2026-11-04: Retire DOC.94, TEST.194 (#4874)</li>
+<li>2026-11-04: Retire DOC.93 (#4871)</li>
+<li>2026-11-04: Retire TEST.574 (#4869)</li>
+<li>2026-11-04: Retire MAP.370, TEST.573 (#4865)</li>
+<li>2026-11-04: Retire MAP.368, file TEST.573 (#4858)</li>
+<li>2026-11-04: Retire MAP.191, MAP.222 (#4856)</li>
+<li>2026-11-04: Retire TEST.324, TEST.570 (#4852)</li>
+<li>2026-11-04: Retire TEST.198, TEST.317, TEST.321, TEST.137, TEST.262, TEST.287 (#4850)</li>
+<li>2026-11-04: Retire MAP.215, TEST.333, TEST.297 (#4848)</li>
+<li>2026-11-04: Retire MAP.365, file TEST.571 (#4844)</li>
+<li>2026-11-04: Retire GEN.1248 and TEST.295 (#4842)</li>
+<li>2026-11-04: GEN.1120 slice 4: left-over mass becomes light asteroid fields; deletes of rogues mark their sector for the storage checksum</li>
+<li>2026-11-04: Retire DOC.91 (#4840)</li>
+<li>2026-11-04: Retire GEN.1222 (#4838)</li>
+<li>2026-11-04: Retire DOC.92, file TEST.570 (#4837)</li>
+<li>2026-11-04: Retire swept flake items, file TEST.569, PERF.232, GEN.1248, fix a time stamp in nebula_density.py (#4834)</li>
+<li>2026-11-04: Retire DOC.90 and GEN.615 (#4830)</li>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: Retire GEN.670, assign MAP.275 to Core 2 (#4826)</li>
+<li>2026-11-04: Retire TEST.568 (#4823)</li>
+<li>2026-11-04: Restore the .test-reports files the part 9 commit deleted by mistake</li>
+<li>2026-11-04: Retire MAP.364, file TEST.568 (#4820)</li>
+<li>2026-11-04: Retire TEST.567 (#4818)</li>
+<li>2026-11-04: Retire TEST.566 (#4815)</li>
+<li>2026-11-04: File TEST.567 and DOC.103, retire DOC.102 (#4813)</li>
+<li>2026-11-04: File TEST.566, retire PERF.188, fix a time stamp the citation lock read as a citation (#4811)</li>
+<li>2026-11-04: Retire TEST.284, TEST.298 and TEST.561 (#4809)</li>
+<li>2026-11-04: GEN.1111 part 8: delete the flat-rate rogue planet path</li>
+<li>2026-11-04: Retire UX.225 and TEST.414 (#4806)</li>
+<li>2026-11-04: Retire UX.228; UX.225 to Core 1 (#4803)</li>
+<li>2026-11-04: Retire UX.252 (#4799)</li>
+<li>2026-11-04: Retire TEST.479, TEST.331, TEST.412, TEST.408 and TEST.409 (pass on main) (#4797)</li>
+<li>2026-11-04: File GEN.1247; retire TEST.563 and TEST.565 (#4796)</li>
+<li>2026-11-04: Retire GEN.1245 (#4792)</li>
+<li>2026-11-04: Retire TEST.387, TEST.336, TEST.391 and TEST.564 (#4788)</li>
+<li>2026-11-04: Retire DOC.86; file DOC.102 American spelling sweep (#4787)</li>
+<li>2026-11-04: Retire TEST.332 and TEST.319 (#4784)</li>
+<li>2026-11-04: Retire TEST.558 (#4782)</li>
+<li>2026-11-04: Retire TEST.559 and TEST.560 (#4779)</li>
+<li>2026-11-04: GEN.1127: chart_ledger column units; old-schema helper drops a changed key before adding it back</li>
+<li>2026-11-01: GEN.1127: chart_ledger table; a deleted or regenerated sector takes only what was born in it</li>
+<li>2026-11-04: File GEN.1245; retire TEST.555 (#4774)</li>
+<li>2026-11-04: Retire UX.142; UX.228 to Core 1 (#4772)</li>
+<li>2026-11-04: Retire TEST.548 (#4771)</li>
+<li>2026-11-04: TEST.555 part 2: sector fills no longer move the galaxy tile base (#4768)</li>
+<li>2026-11-04: File GEN.1244; retire TEST.557 and GEN.1243 (#4767)</li>
+<li>2026-11-04: Retire TEST.556 (merged in #4756) (#4757)</li>
+<li>2026-11-04: Retire GEN.1066, file GEN.1241 (#4755)</li>
+<li>2026-11-04: Train 9: GEN.1238, GEN.1229 chain merged; wiring register lines for wired items removed, generated pages rebuilt</li>
+<li>2026-11-04: Retire UX.255, UX.258, TEST.554; drop GEN.1239; file GEN.1240 (#4753)</li>
+<li>2026-11-04: UX.255: remove the light-theme branches from the map scripts (#4751)</li>
+<li>2026-11-04: File full-suite findings (UX.258, TEST.554, GEN.1239, TEST.555), drop GEN.1237 (#4748)</li>
+<li>2026-11-04: GEN.972 chain: delete the nine wiring-register lines for what is read now</li>
+<li>2026-11-04: Retire DOC.101 and TEST.553 (merged in #4744) (#4746)</li>
+<li>2026-11-04: File GEN.1237 and GEN.1238 (Earth and Venus twins), retire GEN.819 (#4745)</li>
+<li>2026-11-04: DOC.101: standards, regulations, documentation and web pages are listed sources; DOC.99: the lock also fails on a name and year the list does not know; TEST.553: retire the harvest-based outcome test (#4744)</li>
+<li>2026-11-01: GEN.1127: chart_ledger table; a deleted or regenerated sector takes only what was born in it</li>
+<li>2026-11-01: Retire PERF.230, lanes.md 1:12 AM EDT entry (#4743)</li>
+<li>2026-11-01: File DOC.101, retire TEST.520 (merged in #4738) (#4739)</li>
+<li>2026-11-01: DOC.98 follow-up: bibliography lists of the imported notes become source IDs; TEST.520: remove three unused functions and three duplicate register lines (#4738)</li>
+<li>2026-11-01: GEN.1139: resolve_uid is read now; drop its wiring register line</li>
+<li>2026-11-01: Retire GEN.824 and GEN.821 (merged with train 8, #4655) (#4736)</li>
+<li>2026-11-01: Retire UX.257 (merged in #4734) (#4735)</li>
+<li>2026-11-01: Retire GEN.996 and GEN.1137 (merged with train 8, #4655) (#4733)</li>
+<li>2026-11-01: Retire GEN.999 and GEN.1200 (merged in #4549) (#4732)</li>
+<li>2026-11-01: Retire UX.243, file UX.257 (life text phone overflow and link contrast) (#4730)</li>
+<li>2026-11-01: Retire UX.135 (merged in #4721) (#4728)</li>
+<li>2026-11-01: GEN.524: trace gases of table m wired after the life stage; halogen budget (HCl, HF); ozone rows m1 and m2 retired</li>
+<li>2026-11-01: Retire TEST.552 (merged #4726) and TEST.501 (merged #4725) (#4727)</li>
+<li>2026-11-01: Retire ADM.137 (merged #4723) and TEST.546 (merged #4719) (#4724)</li>
+<li>2026-11-01: ADM.137: plan operations stabilise without the pin and no longer set or keep a class (derived since epoch 121) (#4723)</li>
+<li>2026-11-01: Retire TEST.545, drop PERF.224, file PERF.230, ADM.137 to Star 2 (#4717)</li>
+<li>2026-11-01: Retire TEST.551 (merged #4710); PERF.224 finding; ADM.137 owner (#4713)</li>
+<li>2026-11-01: Retire UX.82 (merged #4708) (#4709)</li>
+<li>2026-11-01: File TEST.551; retire TEST.541 and TEST.549 (merged #4704); re-scope GEN.1232 (#4707)</li>
+<li>2026-11-01: Retire TEST.547 (merged #4701) (#4703)</li>
+<li>2026-11-01: Train 8: keep the asteroid guards in the life and class sweeps that the merge of main dropped</li>
+</ul>
+<h2 id="2026-10">2026-10</h2>
+<ul>
+<li>2026-10-31: Retire TEST.543 (merged #4699); GEN.1234 and GEN.1235 were sweep rule gaps, fixed by the same PR (#4700)</li>
+<li>2026-10-31: File and retire OPS.92 (warm-up chunk progress, #4687) and OPS.93 (faster version key, #4688) (#4690)</li>
+<li>2026-10-31: File and retire OPS.91 (the site sets and keeps its own secret key, #4685) (#4686)</li>
+<li>2026-10-31: File and retire OPS.90 (warm-up 302 on /galaxy in maintenance, #4683) (#4684)</li>
+<li>2026-10-31: Retire TEST.542 and TEST.544 (#4674, #4677) (#4678)</li>
+<li>2026-10-31: File and retire ADM.135 (#4675); file ADM.136 (New galaxy job stalls on an unidentified generation run, bug) (#4676)</li>
+<li>2026-10-31: Data check no longer fails on a busy check place; waits and refusals name the holder (#4675)</li>
+<li>2026-10-31: File and retire OPS.89 (health API returns the maintenance reason, #4670) (#4672)</li>
+<li>2026-10-31: File and retire OPS.88 (warm-up split around the Apache reload, #4669) (#4671)</li>
+<li>2026-10-31: Retire OPS.86 (update uses the configured API address, #4664) (#4665)</li>
+<li>2026-10-31: File and retire OPS.87 (progress bar while recording the version key, #4660) (#4663)</li>
+<li>2026-10-31: File and retire OPS.85 (update.sh says what it is doing while it records the version key, #4658) (#4661)</li>
+<li>2026-10-31: Retire UX.256 (cancel from a job page returns to the page the visitor came from, #4656) (#4657)</li>
+<li>2026-10-31: Retire DOC.6 and DOC.57 (help registry and auto-linker merged in #4599) (#4651)</li>
+<li>2026-10-31: Retire DOC.100 (citation IDs, #4648); note the style on DOC.97 to DOC.99 (#4649)</li>
+<li>2026-10-31: Sweep tests: an Asteroid-type moon has no class letter (GEN.1160), class T has two kinds, 19 letters since Q retired, a dry body for class C is 0.1 Earth masses or more</li>
+<li>2026-10-31: Retire PERF.225 (cluster field built ahead in parts, #4626 and #4641) (#4642)</li>
+<li>2026-10-31: Retire DOC.96 (unverifiable citations removed, #4638 and #4639) (#4640)</li>
+<li>2026-10-31: DOC.96: remove references to papers that did not resolve (#4638)</li>
+<li>2026-10-31: File UX.255 (remove the unused light-theme branches in the map scripts) (#4635)</li>
+<li>2026-10-31: Remove the redo log and out-of-memory advice from install.sh and update.sh (PERF.222, PERF.223) (#4632)</li>
+<li>2026-10-31: Retire DOC.88 (References pages, #4624); note page contract on DOC.89 to DOC.92 (#4625)</li>
+<li>2026-10-31: GEN.1171: a ring's life follows its mass and planet: viscous spreading and meteoroid erosion replace the fixed 1/e decay (build only, no epoch)</li>
+<li>2026-10-31: Retire TEST.540 (#4618) (#4619)</li>
+<li>2026-10-31: GEN.1174: keep main's schema_v194 fixture (the rebase had dropped it)</li>
+<li>2026-10-31: Retire TEST.539 (#4616) (#4617)</li>
+<li>2026-10-31: Retire TEST.526 (#4613), file TEST.540 (orbit_elements reds on main) (#4615)</li>
+<li>2026-10-31: TEST.526: wire, register or delete the eight functions only tests called (#4613)</li>
+<li>2026-10-31: Retire TEST.538 (#4609) (#4610)</li>
+<li>2026-10-31: File TEST.538 (AM28 and AM29 name a test that no longer exists) (#4608)</li>
+<li>2026-10-31: File DOC.96 (remove references to papers that did not resolve, Boss decision) (#4606)</li>
+<li>2026-10-31: Retire DOC.95 (#4603) and note the citation counts on DOC.89 (#4605)</li>
+<li>2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)</li>
+<li>2026-10-31: Merge origin/main into claude/gen1014-wiring; the wiring guard: moon_window_km deleted, log_uniform_quantile registered for GEN.1068</li>
+<li>2026-10-31: Retire GEN.809 (the giant dynamo is wired by GEN.967 in train 7, as Aux 3 reported) (#4601)</li>
+<li>2026-10-31: GEN.1130: rebase on train 7; drop the unread meets_with_moons</li>
+<li>2026-10-31: GEN.1130: drop the tests of the removed forced habitable distance</li>
+<li>2026-10-31: Retire the train 7 items (GEN.733 to GEN.1173 list), log train 7 in lanes.md, regenerate the architecture map (#4598)</li>
+<li>2026-10-31: GEN.821: nitrogen of the Titan-like air from the body's ammonia ice (Erkaev et al. 2020); drop a stray report file</li>
+<li>2026-10-31: GEN.1000: retire the largest-body stand-in (LB1), wiring register lines for the ledger the belts now read</li>
+<li>2026-10-31: Retire MAP.363 (#4594) (#4595)</li>
+<li>2026-10-31: Owners of retired lanes' items; TEST.537 filed and retired (#4593)</li>
+<li>2026-10-31: Retire TEST.535 (already fixed by #4442) (#4584)</li>
+<li>2026-10-31: Retire TEST.534 (#4580) (#4581)</li>
+<li>2026-10-31: Retire TEST.536 (#4578) (#4579)</li>
+<li>2026-10-31: Oxford comma rule (DOC.86), References items (DOC.87 to DOC.95), retire PERF.221-223 and TEST.533, file GEN.1230 and TEST.536 (#4577)</li>
+<li>2026-10-31: Retire MAP.279 (#4572); file MAP.363 object page lump (#4573)</li>
+<li>2026-10-31: GEN.996: the helium-core white dwarf of a close binary (physics module, tests, stand-ins HC1-HC4; not wired)</li>
+<li>2026-10-31: Retire UX.239 (#4569); file TEST.534 and TEST.535 (red tests on main) (#4571)</li>
+<li>2026-10-31: Retire TEST.532 (backfill unit direct test, #4566) (#4567)</li>
+<li>2026-10-31: Retire TEST.531 (#4564)</li>
+<li>2026-10-31: TEST.531: delete the sector-settle queue chain no route reaches (api_jobs.settle_sectors, queue_settle) (#4563)</li>
+<li>2026-10-31: Retire PERF.220; file PERF.223 (protect MySQL from the OOM killer) (#4562)</li>
+<li>2026-10-31: File PERF.220 and PERF.221 (scatter memory cap, wrong stage in message); retire TEST.529 (#4557)</li>
+<li>2026-10-31: Train 7: drop air-loss helper that main deleted (TEST.524)</li>
+<li>2026-10-31: Retire UX.227; owners of TEST.529, TEST.531, TEST.532 (#4553)</li>
+<li>2026-10-31: Retire TEST.521 and TEST.527; file TEST.531 and TEST.532 (#4547)</li>
+<li>2026-10-31: Retire MAP.274 (#4544)</li>
+<li>2026-10-31: GEN.1068: a requested belt is made again under the final ceiling; fix the zero inner edge; gap test replaces the slot test</li>
+<li>2026-10-31: Retire UX.254 (#4542)</li>
+<li>2026-10-31: Retire TEST.524 (#4538)</li>
+<li>2026-10-31: TEST.524: 31 physics functions nothing called are deleted with their tests, 7 name the item that will use them, log10_k is registered by design (#4537)</li>
+<li>2026-10-31: Retire TEST.525 and TEST.530 (#4536)</li>
+<li>2026-10-31: TEST.525: delete eight functions nothing used, register the rest of the shadow functions (#4533)</li>
+<li>2026-10-31: docs: retire GEN.342, TEST.519, TEST.522; PERF.197 part a; file TEST.529 and TEST.530 (#4532)</li>
+<li>2026-10-31: TEST.522: register, wire or delete Core 3's 29 test-only functions (#4528)</li>
+<li>2026-10-31: docs: retire GEN.338 (PR 4526) (#4527)</li>
+<li>2026-10-31: docs: retire UX.226 (PR 4523) and PERF.196 (decided), PERF.197 plan (#4525)</li>
+<li>2026-10-31: docs: GEN.197 lock-free part merged, GEN.1174 head, retire TEST.528 (#4524)</li>
+<li>2026-10-31: docs: retire TEST.523 (PR 4519) (#4521)</li>
+<li>2026-10-31: TEST.523: Star 2's wiring-guard shadow functions each get an owner (delete 3, VIEW.11 2, UX.254 1, by design 12) (#4519)</li>
+<li>2026-10-31: GEN.1139 first slice: a retired ID answers 301 to a read, 409 to a write and 410 for a deleted object, in the API and on the pages</li>
+<li>2026-10-31: docs: retire MAP.277 (PR 4515), file TEST.528 and UX.254 (#4517)</li>
+<li>2026-10-31: docs: retire UX.158 (PR 4511), PERF.196 owner (#4512)</li>
+<li>2026-10-31: docs: retire VIEW.9 (PR 4508), note on VIEW.11 (#4510)</li>
+<li>2026-10-31: docs: GEN.1227 comet coma store, retire DOC.84, lane notes (#4507)</li>
+<li>2026-10-31: docs: retire GEN.1225 (research report), carry its findings to GEN.1215, GEN.1217, GEN.1218 (#4503)</li>
+<li>2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavour branch head (#4501)</li>
+<li>2026-10-31: Retire UX.253 (PR #4496); Boss confirmed class letters Y, U, X, Z (#4498)</li>
+<li>2026-10-31: Retire GEN.1224 (research report); GEN.1207 note on the giant class law (#4493)</li>
+<li>2026-10-31: Retire GEN.1223 (research report); file GEN.1224 envelope share research; GEN.1207 note (#4492)</li>
+<li>2026-10-31: Retire UX.251 (PR #4488) and GEN.1216 (research report); file TEST.519; notes on GEN.1214, GEN.1217, GEN.1222 (#4489)</li>
+<li>2026-10-31: Retire GEN.1210; burn-down lines for the life readings stand-ins (#4482)</li>
+<li>2026-10-31: Retire DOC.83 (PR #4478) (#4479)</li>
+<li>2026-10-31: Retire GEN.1205 and GEN.1206 (PRs #4469, #4473); burn-down lines for the best-fit shoulders; GEN.1207 and UX.252 notes (#4475)</li>
+<li>2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: Goldsby and Kohlstedt 2001 Table 5 and Durham 1996 preprint read (#4466)</li>
+<li>2026-10-31: UX.250 retired (PR #4462); file TEST.518 flaky bodyview rotation test (#4463)</li>
+<li>2026-10-31: Retire TEST.516 and TEST.517 (#4459)</li>
+<li>2026-10-31: Retire UX.224 and DOC.19; GEN.1174 decided by Boss (#4454)</li>
+<li>2026-10-31: Retire TEST.183 and UX.102 (#4451)</li>
+<li>2026-10-31: Retire UX.236; USR.7 note on moving preferences into the account (#4449)</li>
+<li>2026-10-31: Retire MAP.338 and TEST.496 (#4445)</li>
+<li>2026-10-31: Retire TEST.515 (#4443)</li>
+<li>2026-10-31: Retire TEST.514 (#4438)</li>
+<li>2026-10-31: GEN.839: the life pass no longer makes the hydrosphere again after life changed the air</li>
+<li>2026-10-31: Retire TEST.459 (already green on main) (#4427)</li>
+<li>2026-10-31: Retire TEST.468, TEST.469; MAP.338 plan note (#4426)</li>
+<li>2026-10-31: Retire MAP.337 (#4424)</li>
+<li>2026-10-31: MAP.337 steps 3 and 4: history entries keep the camera address only; dead stage code removed (#4423)</li>
+<li>2026-10-31: Retire TEST.472 (#4422)</li>
+<li>2026-10-31: Retire TEST.480 (already green on main) (#4420)</li>
+<li>2026-10-31: Retire TEST.483 (#4416)</li>
+<li>2026-10-31: Retire TEST.470 (already fixed on main) (#4414)</li>
+<li>2026-10-31: Retire TEST.513 (#4413)</li>
+<li>2026-10-31: Retire TEST.511, file TEST.513 (TODO codes in shown strings) (#4411)</li>
+<li>2026-10-31: Retire TEST.512 (rogue parity ceiling, #4405); add the ceiling rule to lanes.md (#4408)</li>
+<li>2026-10-31: Retire TEST.510 (#4403); file GEN.1201, TEST.511, TEST.512 (#4404)</li>
+<li>2026-10-31: Retire GEN.1026 (carbon and S star row, #4399); file GEN.1199 (small moon hydrogen air) (#4400)</li>
+<li>2026-10-31: Retire train 6 items (PR #4385, epoch 128) (#4396)</li>
+<li>2026-10-31: Retire MAP.356 to MAP.362 (map legend, navigation, sector view, superbubbles, #4393) (#4394)</li>
+<li>2026-10-31: Map: small corner Key, region points of interest, card buttons in view, full-window sector and system maps, close sector view, superbubbles off by default (MAP.356 to MAP.362) (#4393)</li>
+<li>2026-10-31: Close GEN.1197 as research with no change; note wording owed on GEN.1193 (#4392)</li>
+<li>2026-10-31: Retire GEN.1119 (ejection records, #4389); register replace lines now name GEN.1111 (#4390)</li>
+<li>2026-10-31: Retire TEST.507 (Canes Venatici I in reference table, #4387) (#4388)</li>
+<li>2026-10-31: Test: the giant-settle moon-drop test leaves out the moon history, which removed its stand-in moon (GEN.959) (#4386)</li>
+<li>2026-10-31: Retire GEN.1183 (ice phase strength tables, #4383) (#4384)</li>
+<li>2026-10-31: File GEN.1195/1196 (cluster maximum mass), retire GEN.589 research (#4381)</li>
+<li>2026-10-31: Retire TEST.509 (climate sweep Earth twin, #4376) (#4377)</li>
+<li>2026-10-31: Retire GEN.973 with the held-vapour test, file GEN.1194 runaway greenhouse opacity (#4375)</li>
+<li>2026-10-31: Retire TEST.508 (#4372)</li>
+<li>2026-10-31: Close GEN.535, file GEN.1191 to GEN.1193 and TEST.508 (#4368)</li>
+<li>2026-10-31: Retire GEN.1188, close GEN.1187, file GEN.1190 (#4366)</li>
+<li>2026-10-31: Train 6: drop the wiring register line for 6.108:TF1 (read now)</li>
+<li>2026-10-31: GEN.961: the final-age settle keeps the birth spin; a moon the planet's history replaced is made again (GEN.992)</li>
+<li>2026-10-30: Close GEN.1182, replace GEN.1181 with GEN.1188 (keep 6.5 km/s, record sources, pin band) (#4362)</li>
+<li>2026-10-30: Retire GEN.1184 (#4360)</li>
+<li>2026-10-30: Retire GEN.366, file TEST.507 for the missing satellite row (#4358)</li>
+<li>2026-10-30: Retire train 5 items (#4321), close GEN.536, file GEN.1181 and GEN.1182 (#4355)</li>
+<li>2026-10-30: Retire GEN.1177 (#4353)</li>
+<li>2026-10-30: Close GEN.1180 with Sources 1 report; note GEN.1175 finding (#4351)</li>
+<li>2026-10-30: Retire TEST.504, fixed by #4283 (#4349)</li>
+<li>2026-10-30: Retire GEN.1176 (#4348)</li>
+<li>2026-10-30: Retire GEN.1155 (#4345)</li>
+<li>2026-10-31: GEN.1135, GEN.1136, GEN.1142: retire class Q, V line at 2 g, class lines from conditions (deep-frozen class E)</li>
+<li>2026-10-30: File GEN.1172 to GEN.1174 and close GEN.1164, GEN.1168, GEN.1169 findings (#4341)</li>
+<li>2026-10-30: Retire GEN.1158 roundness engine and add burn-down lines for RN3 to RN5 (#4339)</li>
+<li>2026-10-30: Remove leftover merge-conflict markers from the burn-down register (#4337)</li>
+<li>2026-10-30: Drop GEN.1166 (withdrawn); file GEN.1170 A and B star spin by mass (#4335)</li>
+<li>2026-10-30: Retire TEST.506 (#4333) (#4334)</li>
+<li>2026-10-30: Drop the item code from the --around help text (TEST.506) (#4333)</li>
+<li>2026-10-30: Retire GEN.784 and GEN.785 (#4331) (#4332)</li>
+<li>2026-10-30: Retire GEN.780 and GEN.781 (#4327) (#4328)</li>
+<li>2026-10-30: Retire GEN.946 (burn-down batches #4319, #4320; rest kept as no data) (#4322)</li>
+<li>2026-10-30: Retire GEN.789 and GEN.790 (#4317) (#4318)</li>
+<li>2026-10-31: GEN.705: the [Fe/H] close-companion factor reaches the tree draw</li>
+<li>2026-10-30: Retire GEN.716 (fixed by GEN.710, #3033) (#4316)</li>
+<li>2026-10-30: Retire GEN.720 and GEN.839 (closed by GEN.992 and GEN.763; test #4313) (#4314)</li>
+<li>2026-10-30: Retire GEN.660 (#4310) (#4312)</li>
+<li>2026-10-30: Retire GEN.542 (#4309) and GEN.1004 (not reproducible) (#4311)</li>
+<li>2026-10-30: Retire TEST.463 (#4307) (#4308)</li>
+<li>2026-10-30: File and retire OPS.84 (update.sh waits explained, #4303) (#4304)</li>
+<li>2026-10-30: Retire GEN.1148 and file GEN.1156 belt rate decision (#4302)</li>
+<li>2026-10-30: Retire GEN.1028 and OPS.83; file TEST.505 and GEN.1155; fix GEN.1154 text (#4301)</li>
+<li>2026-10-31: Burn-down register: conflict markers that reached main removed, both sides kept</li>
+<li>2026-10-30: Retire GEN.399 (report only); file GEN.1154 (halo mass above 3e10) (#4299)</li>
+<li>2026-10-30: Retire PERF.137, file PERF.219 and Boss's map bugs MAP.356 to MAP.359 (#4294)</li>
+<li>2026-10-30: Retire GEN.1046 (PR #4290); wiring and burn-down lines for climate_branches; rebuild the stand-in list (#4293)</li>
+<li>2026-10-30: Retire GEN.934 (PR #4281); file TEST.504 and GEN.1152 from Sources 1 (#4282)</li>
+<li>2026-10-31: GEN.768: drop the wiring-register lines of the outside-hours pieces, now read by habitability_world</li>
+<li>2026-10-30: Retire GEN.1149 (PR #4273); point the trojan wiring rows at GEN.1150, list the design note in the index (#4275)</li>
+<li>2026-10-30: Record UX.248 (close pair planets drawn about the pair centre), done in PR #4268 (#4270)</li>
+<li>2026-10-30: Draw a close pair's planets about the pair's centre; describe a multiple system's hierarchy (#4268)</li>
+<li>2026-10-30: File GEN.1148 (belt and binary share shifts), note Bug 2 reds on TEST.503, retire UX.245 (PR #4266) (#4267)</li>
+<li>2026-10-30: Restore the grouped On this page menu on object pages (retire the sideways-scrolling bar) (#4263)</li>
+<li>2026-10-30: Retire OPS.79, GEN.1146, UX.240; file GEN.1147 (ocean-fraction decision); belt density wiring now names UX.241 (#4260)</li>
+<li>2026-10-30: OPS.78 filed and retired (update.sh health probe, #4256) (#4257)</li>
+<li>2026-10-30: Retire UX.244, file UX.245 (locked moon and picture label follow-up) (#4255)</li>
+<li>2026-10-30: Retire GEN.1080 (captured body composition) (#4250)</li>
+<li>2026-10-30: Retire GEN.1145, GEN.1146 starts now (ocean share is two humps, M gets 3 percent) (#4249)</li>
+<li>2026-10-30: Retire GEN.1079 and GEN.1143 (#4246)</li>
+<li>2026-10-30: GEN.1142 class lines from the class index result (E retired, F, K, L, O, H, M, P), file GEN.1145 and GEN.1146 (#4244)</li>
+<li>2026-10-30: Retire GEN.1077 (captured-moon population module) (#4240)</li>
+<li>2026-10-30: File GEN.1142 to GEN.1144 (class lines patch, class count script, post-train-6 re-sweep), retire GEN.1123, GEN.1127 gets the sector-delete audit findings (#4237)</li>
+<li>2026-10-30: GEN.1121: designation history design note (retired-only table, IDs reserved forever, members follow)</li>
+<li>2026-10-30: Retire TEST.489 and TEST.500, TEST.502 and GEN.1137 into train 6, file GEN.1137 (cooling track edge) (#4231)</li>
+<li>2026-10-30: Retire GEN.1094 (librating share of near-resonant pairs) (#4227)</li>
+<li>2026-10-30: Retire GEN.1062 and GEN.1064 (belt resonance map, belt history) (#4226)</li>
+<li>2026-10-30: Retire GEN.1076 and GEN.1067, move Class Q retirement GEN.1135 to train 6, renumber the resonance stand-in section to 6.116 (merge race), repoint irregular_zone wiring to GEN.1083 (#4223)</li>
+<li>2026-10-30: Merge fix: take main's wiring register with the member_record line removed</li>
+<li>2026-10-30: Train 5: stand-in values rebuilt, wiring register lines for wired modules removed</li>
+<li>2026-10-30: Replace the rogue ejection kick guess with the N-body speed law and add moon survival (GEN.1113, GEN.1117) (#4218)</li>
+<li>2026-10-30: Retire GEN.1126; repoint TF2 burn-down line (#4214)</li>
+<li>2026-10-30: Retire GEN.1112 and GEN.1102; file GEN.1134 radiogenic inputs (#4211)</li>
+<li>2026-10-30: Retire GEN.1124 (#4207); GEN.1113 and GEN.1117 move to Aux 7 (#4208)</li>
+<li>2026-10-30: Retire GEN.1101 (#4205) and GEN.1125 (#4204) (#4206)</li>
+<li>2026-10-30: Retire GEN.1100 (#4200) and TEST.476 (#4199) (#4201)</li>
+<li>2026-10-30: File the region object store items (GEN.1123 to GEN.1129, TEST.501); reword GEN.1111, GEN.1120, GEN.1121; retire GEN.1063, 1090, 1099, 1115, 1118, 1122, revoke GEN.1116 (#4198)</li>
+<li>2026-10-30: Retire GEN.1098; index the field sources note (#4195)</li>
+<li>2026-10-30: Retire GEN.1091 (Class D wording, #4188) (#4191)</li>
+<li>2026-10-30: Retire GEN.1081 (captured_weight, #4184); TEST.500 failure text (#4189)</li>
+<li>2026-10-30: File rogue abundance option, designation history, gas-drag read, ice-line test bug; Boss rogue answers; retire GEN.1087 and GEN.1095 (#4187)</li>
+<li>2026-10-30: GEN.942: the life paces a star supports come from its own lifespan; the per-letter lifespan table is removed</li>
+<li>2026-10-30: Retire GEN.1060 and GEN.1061 (belt sources read, belt_ledger merged in #4159 and #4180) (#4181)</li>
+<li>2026-10-30: TODO: rogue RP items GEN.1119 TEST.499, retire GEN.1109 and GEN.1114, GEN.1110 module note (#4179)</li>
+<li>2026-10-30: GEN.1114: closed-form drift of an ejected planet (pure module), registry 6.89 rows GD1 to GD4 (#4178)</li>
+<li>2026-10-30: TODO: retire GEN.1075, index the captured moon sources note (#4177)</li>
+<li>2026-10-30: TODO: retire GEN.1089 and GEN.963, GEN.1118 follow-up, wiring rows repointed (#4174)</li>
+<li>2026-10-30: TODO: retire GEN.1088 (#4170)</li>
+<li>2026-10-30: TODO: retire PERF.210 and GEN.1093 (#4169)</li>
+<li>2026-10-30: TODO: rogue drift items GEN.1113 to GEN.1117 and design doc, GEN.1111 held for Boss, retire GEN.1065 TEST.495 TEST.497 GEN.1078 (#4167)</li>
+<li>2026-10-30: TODO: GEN.913 withdrawn, a civilization is never forced (rule in the life notes) (#4162)</li>
+<li>2026-10-30: TODO: retire GEN.1040 (#4154)</li>
+<li>2026-10-30: TODO: retire GEN.1037, GEN.1042, GEN.1045, GEN.1053, TEST.490, TEST.494 (#4151)</li>
+<li>2026-10-30: Systems tables: Stars, Objects and Habitable world columns replace Binary</li>
+<li>2026-10-30: TODO: belt page items GEN.1093 UX.240 UX.241, Kuiper sweep notes, retire GEN.1031 GEN.1036 GEN.1038 GEN.1041 GEN.1056 GEN.355, repoint ring_origin wiring rows (#4137)</li>
+<li>2026-10-30: MAP.337 step 1: delete the Galaxy Map's wheel stage-crossing code (#4119)</li>
+<li>2026-10-30: TODO: retire TEST.484 (#4120), file GEN.1059, list ocean-tides in the design index (#4122)</li>
+<li>2026-10-30: TODO: retire MAP.213 (#4073, #4107), drop TEST.488 as duplicate, file TEST.489 (#4108)</li>
+<li>2026-10-30: Test: moon history sample covers 16 systems (close-in planets now lose all their moons in the smaller sample)</li>
+<li>2026-10-30: TODO: retire train 4 items (#4105), file GEN.1032 and TEST.485 to 488, registers (#4106)</li>
+<li>2026-10-30: TODO: retire PERF.203 (#4093, #4100) (#4102)</li>
+<li>2026-10-30: TODO: retire GEN.1029 (#4098), file GEN.1031, GEN.1014 part 1 merged (#4101)</li>
+<li>2026-10-30: TODO: retire TEST.481 (#4096), TEST.484 to Aux 5 (#4097)</li>
+<li>2026-10-30: TODO: retire TEST.482 (#4093), file TEST.483, PERF.203 step 4 merged (#4094)</li>
+<li>2026-10-30: TODO: retire PERF.218 and TEST.464; PERF.188 progress (#4076)</li>
+<li>2026-10-30: TODO: retire TEST.477; file GEN.1023 (planet pair under 10 mutual Hill radii) (#4072)</li>
+<li>2026-10-30: TODO: retire GEN.794 (#4070)</li>
+<li>2026-10-30: TODO: retire GEN.1020; GEN.1019 wiring for a train; GEN.1021 to Sources 1 (#4067)</li>
+<li>2026-10-30: GEN.1019, GEN.1020: sourced far wings and the acid cloud in the infrared column (IR3 removed) (#4063)</li>
+<li>2026-10-30: TODO: file GEN.1021 (replace the 67P comet species calibration) (#4062)</li>
+<li>2026-10-30: TODO: retire TEST.478, GEN.1005 progress; list the magma-ocean redox note in the design index (#4058)</li>
+<li>2026-10-30: TODO: retire TEST.403, TEST.302, TEST.219; PERF.218 to Aux 5 (#4053)</li>
+<li>2026-10-30: TODO: retire TEST.475; file PERF.218 (band table memo) and TEST.478 (test_api bright row) (#4050)</li>
+<li>2026-10-30: TODO: retire GEN.1018 (#4043), note on GEN.1016 (#4044)</li>
+<li>2026-10-30: TODO: retire GEN.1002 (#4025, #4038) (#4039)</li>
+<li>2026-10-30: TODO: retire PERF.212 (#4033) (#4034)</li>
+<li>2026-10-30: TODO: retire TEST.473 (#4031) and TEST.474 (#4023) (#4032)</li>
+<li>2026-10-30: TODO: retire PERF.190 (#4028) and PERF.209 (#4029) (#4030)</li>
+<li>2026-10-30: TODO: retire TEST.474 (#4023), note on GEN.1004 (#4024)</li>
+<li>2026-10-30: TODO: file GEN.1005 (replace Solar System-anchored redox, dry carbon, comet rows) (#4022)</li>
+<li>2026-10-30: TODO: file UX.239 and GEN.1004, retire TEST.345, PERF.217, TEST.471 (#4020)</li>
+<li>2026-10-30: TODO: retire MAP.255 (merged #4015), file TEST.474 (bright-star fixture red) (#4017)</li>
+<li>2026-10-30: TODO: retire PERF.214 (merged #4013) (#4014)</li>
+<li>2026-10-30: Lanes: Core 5 retired (#4011)</li>
+<li>2026-10-30: TODO: retire PERF.211 (merged #4009), schema v186 note (#4010)</li>
+<li>2026-10-30: TODO: retire MAP.349 (merged #4006) (#4007)</li>
+<li>2026-10-30: Tag the system and occurrence census gaps the planet architecture leaves (GEN.728), drop the tags it closed</li>
+<li>2026-10-30: TODO: retire train 3 items (PR #3984), GEN.842 parts 1 and 3 noted (#3995)</li>
+<li>2026-10-30: TODO: retire PERF.216, file PERF.217 and TEST.471 (#3993)</li>
+<li>2026-10-30: TODO: retire MAP.348 (#3990) (#3991)</li>
+<li>2026-10-30: TODO: retire PERF.213 (#3985) (#3986)</li>
+<li>2026-10-30: TODO: retire TEST.165, file PERF.216 (#3981)</li>
+<li>2026-10-30: TODO: retire MAP.234 (#3978) (#3979)</li>
+<li>2026-10-30: GEN.985, GEN.987: tides of every orbit taken again at the final star age; a moon's tide does not read its parent's radius; moons a smaller giant cannot hold are dropped</li>
+<li>2026-10-30: TODO: retire train 2 items (PR #3973) (#3974)</li>
+<li>2026-10-30: TODO: retire DOC.72 and DOC.73, Aux 3 owns TEST.165 (#3966)</li>
+<li>2026-10-30: TODO: retire TEST.200, Aux 3 owns DOC.72 then DOC.73 (#3963)</li>
+<li>2026-10-30: TODO: retire TEST.161 and TEST.201, Aux 3 owns TEST.200 (#3961)</li>
+<li>2026-10-30: TODO: retire TEST.215, file GEN.1002 (Solar System rows flagged stand-in) (#3955)</li>
+<li>2026-10-30: TODO: retire GEN.811 (#3952), notes on GEN.809, UX.237, TEST.215 owner (#3953)</li>
+<li>2026-10-30: TODO: retire PERF.208 and PERF.215 (#3949), migration 0181 taken (#3950)</li>
+<li>2026-10-30: TODO: retire MAP.302 (#3945) and MAP.352 (#3946) (#3947)</li>
+<li>2026-10-30: TEST.464: the component pass tests fit the gate; register lines for two closed items (#3943)</li>
+<li>2026-10-30: TODO: retire MAP.347 (#3940), notes on MAP.348 and MAP.349 (#3941)</li>
+<li>2026-10-30: TODO: retire OPS.72, OPS.73, OPS.74 (#3938) (#3939)</li>
+<li>2026-10-30: OPS.72-74: delete the dead tuning constants and uncalled helpers, and guard that every tuning constant has a reader (#3938)</li>
+<li>2026-10-30: TODO: retire PERF.207 (#3935), file PERF.215, GEN.1001 step 2 rides train 3 (#3936)</li>
+<li>2026-10-30: TODO: retire TEST.465 and TEST.466 (#3932), note TEST.463 progress (#3934)</li>
+<li>2026-10-30: TODO: retire PERF.206 (#3929) (#3930)</li>
+<li>2026-10-30: TODO: drop GEN.27, GEN.90, GEN.145, GEN.356 after the Core 4 classifier re-read; narrow GEN.29, GEN.91, GEN.963 (#3926)</li>
+<li>2026-10-30: TODO: retire GEN.873 (merged as #3918) (#3922)</li>
+<li>2026-10-30: TODO: retire the 21 items of train 1 (#3920) (#3921)</li>
+<li>2026-10-30: TODO: retire PERF.205, file PERF.211, migration 0178 taken, GEN.834 ready (#3917)</li>
+<li>2026-10-30: TODO: retire DOC.65 (#3913), GEN.873 to Core 3 (#3914)</li>
+<li>2026-10-30: TODO: retire GEN.845 (#3910) and DOC.63 (#3907), file TEST.466, DOC.65 to Core 3 (#3912)</li>
+<li>2026-10-30: TODO: retire MAP.350 (merged as #3905) (#3906)</li>
+<li>2026-10-30: TODO: retire UX.238 (merged as #3900) (#3901)</li>
+<li>2026-10-30: TODO: retire MAP.351, migration 0176 taken (#3898)</li>
+<li>2026-10-30: TODO: retire GEN.975, note the xfail on GEN.972-974 (#3896)</li>
+<li>2026-10-30: TODO: retire GEN.997 (#3888)</li>
+<li>2026-10-29: TODO: retire TEST.450, file MAP.352 (#3881)</li>
+<li>2026-10-29: TODO: retire API.37, note more reds on TEST.463 (#3872)</li>
+<li>2026-10-29: TODO: retire GEN.740, note remainder on GEN.894 (#3862)</li>
+<li>2026-10-29: Docs: retire PERF.202 (#3860)</li>
+<li>2026-10-29: Docs: retire GEN.480, GEN.489 to GEN.491; record Sources 2 (#3854)</li>
+<li>2026-10-29: Docs: retire GEN.484 to GEN.488, GEN.775 to GEN.777; file GEN.993 (#3850)</li>
+<li>2026-10-30: GEN.985, GEN.987: tides of every orbit taken again at the final star age; a moon's tide does not read its parent's radius; moons a smaller giant cannot hold are dropped</li>
+<li>2026-10-29: Docs: retire MAP.345; file MAP.351 for the map half (#3830)</li>
+<li>2026-10-29: Docs: retire GEN.788 (#3826)</li>
+<li>2026-10-29: Docs: retire GEN.722; record Planets 1 lock-free step (#3825)</li>
+<li>2026-10-30: GEN.953: interim birth-spin scale 0.4 and small-planet factor (SP11, SP12), replaced by GEN.979</li>
+<li>2026-10-29: Docs: retire TEST.456; file GEN.988 to GEN.990 (#3818)</li>
+<li>2026-10-29: Docs: retire GEN.978 (#3812)</li>
+<li>2026-10-29: Docs: retire GEN.724, GEN.754, GEN.956, GEN.958; file GEN.982, GEN.983; data catalog S rows; wiring rule (#3811)</li>
+<li>2026-10-29: docs: MAP.350 map window fills the screen, GEN.977 merged and retired (#3805)</li>
+<li>2026-10-29: docs: GEN.966 merged and retired, GEN.981 filed for the rest of GEN.779 (#3804)</li>
+<li>2026-10-29: docs: data catalog, Data we hold notes on 172 items, GEN.980 filed, GEN.954 retired (#3800)</li>
+<li>2026-10-30: Train 1: census tags after the train (stale GEN.646, GEN.889 tags removed; K5V moon tiers GEN.746; K5V photosynthesis GEN.889; M2V habitable class GEN.646)</li>
+<li>2026-10-29: docs: correct EDT stamps, GEN.779 merged and retired (#3798)</li>
+<li>2026-10-29: GEN.779: the moons' induced moment is filled; remove its stale open-gap excuse (#3796)</li>
+<li>2026-10-29: docs: TEST.462 merged and retired (#3795)</li>
+<li>2026-10-29: docs: MAP.329 retired, four new lanes recorded (#3792)</li>
+<li>2026-10-29: GEN.899: the companion range reads the hydrogen-burning limit from the mass boundary table (GEN.933 removed the constant)</li>
+<li>2026-10-29: docs: MAP.336 merged and retired, TEST.459 filed (#3779)</li>
+<li>2026-10-29: docs: UX.186 merged and retired, UX.187 to Core 3 (#3776)</li>
+<li>2026-10-29: docs: PERF.180 merged and retired, Aux 7 ready for train 1 (#3774)</li>
+<li>2026-10-29: docs: TEST.458 merged and retired (#3772)</li>
+<li>2026-10-29: UX.164: the wipe line gives real counts of the tables wiped and the rows removed (#3769)</li>
+<li>2026-10-29: docs: PERF.178 and PERF.179 merged and retired, PERF.180 and UX.164 to Aux 7 (#3768)</li>
+<li>2026-10-29: docs: GEN.926 and TEST.454 merged and retired (#3765)</li>
+<li>2026-10-29: docs: TEST.457 merged and retired (#3763)</li>
+<li>2026-10-29: docs: UX.205 and MAP.301 retired, TEST.457 and TEST.458 filed (#3758)</li>
+<li>2026-10-29: docs: MAP.299 retired, OPS.72-74 to Aux 3, UX.186/UX.205 out of Core 5's chain (#3757)</li>
+<li>2026-10-29: docs: MAP.300 merged and retired, UX.205 to Aux 7 (#3752)</li>
+<li>2026-10-29: docs: Air 1 lane, GEN.949 licence wait removed, GEN.952 filed (#3750)</li>
+<li>2026-10-29: Docs: retire MAP.289 (Aux 4, #3743); file GEN.945, TEST.455, GEN.946 (hand-tuned constants chain) (#3744)</li>
+<li>2026-10-29: Docs: retire MAP.236 (Aux 3, #3739); file GEN.933, GEN.934 (unified mass rules) (#3740)</li>
+<li>2026-10-29: Docs: file GEN.922 star mass function chain (Boss); GEN.914 superseded, GEN.919 absorbed (#3737)</li>
+<li>2026-10-29: Docs: retire the class cut-over items (Aux 1, #3729); file GEN.920, GEN.921; re-scope class rules (#3734)</li>
+<li>2026-10-29: Docs: retire PERF.192, TEST.276; PERF.137 audit; file PERF.205-208 (#3733)</li>
+<li>2026-10-29: Docs: retire PERF.154, UX.213, PERF.194, TEST.452 (#3730)</li>
+<li>2026-10-29: Docs: retire PERF.149 (Core 5, #3723) (#3724)</li>
+<li>2026-10-29: Remove the generate-on-visit entry point; a visit to an uncharted sector generates nothing (PERF.149 rule 2) (#3723)</li>
+<li>2026-10-29: Docs: retire epoch 120 items (Aux 2, #3702); file TEST.453; lock to Aux 1 (#3719)</li>
+<li>2026-10-29: Docs: retire PERF.182 (Core 5, #3711) (#3712)</li>
+<li>2026-10-29: Docs: retire TEST.451 (Bug 1, #3707) (#3708)</li>
+<li>2026-10-29: Docs: Boss decided GEN.911; retire PERF.128, PERF.120, GEN.896 (#3704)</li>
+<li>2026-10-29: Docs: retire ADM.134 (already fixed on main) (#3699)</li>
+<li>2026-10-29: Docs: retire PERF.172 (Core 5, #3697); file TEST.451 (#3698)</li>
+<li>2026-10-29: Docs: retire OPS.71 (Bug 1, #3695); allocate_numbers.py in lanes.md (#3696)</li>
+<li>2026-10-29: Docs: retire TEST.328, TEST.418 (Bug 1); TEST.450 and TEST.411 notes (#3694)</li>
+<li>2026-10-29: Docs: retire TEST.398/402/405/406/420 (Bug 1), file TEST.450 for Core 2 (#3691)</li>
+<li>2026-10-29: Docs: retire TEST.434, TEST.428, TEST.426 (Bug 1) (#3688)</li>
+<li>2026-10-29: Docs: retire NAV.61 (Core 1, #3685); GEN.843 to Core 1's second change (#3686)</li>
+<li>2026-10-29: Docs: retire TEST.429, TEST.449 (#3681); GEN.907 decided, TEST.435 note (#3682)</li>
+<li>2026-10-29: Docs: retire ADM.58 (Core 4, #3677) (#3678)</li>
+<li>2026-10-29: Docs: retire TEST.439 (#3674), file TEST.449 sheet-fill red (#3676)</li>
+<li>2026-10-29: Docs: retire TEST.448 (Aux 3, #3672) (#3673)</li>
+<li>2026-10-29: Docs: GEN.872 to Aux 2's epoch 120, retire GEN.853, file GEN.907 (#3668)</li>
+<li>2026-10-29: Docs: retire GEN.855, GEN.750, PERF.119, Bug 1's items; lock to Aux 2; file GEN.906, TEST.448 (#3666)</li>
+<li>2026-10-29: Docs: retire DOC.20 (#3661) (#3662)</li>
+<li>2026-10-29: Docs: retire MAP.344 (#3659), DOC.20 to Aux 4, migration 0174 taken (#3660)</li>
+<li>2026-10-29: Docs: retire PERF.100 and PERF.86 (#3656), PERF.119 to Aux 2, file TEST.446 (#3657)</li>
+<li>2026-10-29: PERF.100: delete the MySQL job tree and the work_* tables (#3656)</li>
+<li>2026-10-29: Docs: drop MAP.342, retire PERF.98, PERF.100 to Aux 2 (#3655)</li>
+<li>2026-10-29: PERF.98: generation runs and web jobs no longer write the MySQL job tree (#3654)</li>
+<li>2026-10-29: Docs: retire MAP.341 (#3652), MAP.342 to Core 3 (#3653)</li>
+<li>2026-10-29: Docs: retire TEST.445 (#3650) (#3651)</li>
+<li>2026-10-29: Docs: retire MAP.335 (#3647), file TEST.445 (#3648)</li>
+<li>2026-10-29: Docs: retire DB.29 (#3645), ADM.58 to Core 4, PERF.100 note (#3646)</li>
+<li>2026-10-29: Docs: retire TEST.444 (#3643) (#3644)</li>
+<li>2026-10-29: Docs: retire MAP.340, TEST.442, MAP.346; MAP.341 to Core 3; file TEST.444 (#3641)</li>
+<li>2026-10-29: Docs: retire MAP.339 (#3636), MAP.340 to Core 3, UX.236 note (#3637)</li>
+<li>2026-10-29: Docs: retire MAP.266 (already shipped as #3088) (#3635)</li>
+<li>2026-10-29: Docs: retire PERF.201 (#3633), file MAP.346, notes on TEST.388/441, MAP.266 to Aux 7 (#3634)</li>
+<li>2026-10-29: Docs: retire UX.208 (#3629), GEN.782, GEN.783; give GEN.657 to Aux 2 as its lock-free item (#3630)</li>
+<li>2026-10-28: Docs: retire TEST.211 (#3625), give DB.29 to Core 4 as its lock-free item (#3627)</li>
+<li>2026-10-28: Retire MAP.176 (merged as #3623); MAP.339 to Core 3 (#3626)</li>
+<li>2026-10-28: Retire TEST.433 (#3621); note TEST.435 first run (#3622) (#3624)</li>
+<li>2026-10-28: Retire TEST.301 (merged as #3619); file the remainder as TEST.443 (8.6) (#3620)</li>
+<li>2026-10-28: Retire UX.231 (merged as #3616); UX.208 to Aux 2 (#3618)</li>
+<li>2026-10-28: Retire TEST.214 (merged as #3615); file GEN.903 (#3617)</li>
+<li>2026-10-28: Retire TEST.209 and TEST.210 (merged as #3613) (#3614)</li>
+<li>2026-10-28: Retire UX.233 (merged as #3611); UX.231 to Aux 2 (#3612)</li>
+<li>2026-10-28: Retire MAP.173 (merged as #3609); MAP.176 to Core 3 (#3610)</li>
+<li>2026-10-28: Retire MAP.240 (merged as #3605); file TEST.442 (#3606)</li>
+<li>2026-10-28: Retire UX.122 (merged as #3600); file PERF.201 (#3602)</li>
+<li>2026-10-28: Retire GEN.711 (merged as #3596) (#3598)</li>
+<li>2026-10-28: Retire GEN.893 (#3593) and GEN.892 (#3595); TEST.422 to Aux 2 (#3597)</li>
+<li>2026-10-28: Retire GEN.791 (merged as #3592) (#3594)</li>
+<li>2026-10-28: Retire GEN.886 (merged as #3590) (#3591)</li>
+<li>2026-10-28: Retire TEST.432 (merged as #3588) (#3589)</li>
+<li>2026-10-28: Retire TEST.431 (merged as #3585); TEST.395 first cut noted (#3586)</li>
+<li>2026-10-28: Retire GEN.875 (merged as #3583) (#3584)</li>
+<li>2026-10-28: Retire GEN.870 (merged as #3581) (#3582)</li>
+<li>2026-10-28: Retire TEST.437 (#3558), GEN.866 and GEN.895 (#3578) (#3580)</li>
+<li>2026-10-28: Retire MAP.343 (merged as #3576) (#3577)</li>
+<li>2026-10-28: Retire UX.215-UX.222 and MAP.328 (merged as #3573); file TEST.441; Aux 6 retired (#3574)</li>
+<li>2026-10-28: Retire TEST.440 (merged as #3571) (#3572)</li>
+<li>2026-10-28: Docs: retire UX.127, GEN.231 and TEST.315; TEST.430 part A noted (#3570)</li>
+<li>2026-10-28: Docs: UX.237 owner is Core 5; Aux 13 retires (#3566)</li>
+<li>2026-10-28: Retire MAP.311 and TEST.438 (merged as #3562); file TEST.440, MAP.343, MAP.344 (#3564)</li>
+<li>2026-10-28: Docs: GEN.874 and GEN.885 no longer proposal-only, both into 8.1 (#3560)</li>
+<li>2026-10-28: Docs: retire MAP.333, file TEST.437 to TEST.439 (reds), record the GEN.750 timing proposal (#3557)</li>
+<li>2026-10-28: Docs: retire MAP.122 (merged as #3553) (#3554)</li>
+<li>2026-10-28: Docs: retire GEN.812, file GEN.866 (interior-heat hang), lock to Core 1 (#3552)</li>
+<li>2026-10-28: Retire MAP.190 as done; open-on rule moves to MAP.336 and MAP.189 (#3549)</li>
+<li>2026-10-28: Retire MAP.220 (merged as #3547); file TEST.434; migration 0172 taken (#3548)</li>
+<li>2026-10-28: Retire API.4 (merged as #3543) (#3544)</li>
+<li>2026-10-28: Retire UX.123 (merged as #3540); Math 2 takes UX.122 (#3541)</li>
+<li>2026-10-28: Retire GEN.822 (merged as #3354); file GEN.856; lock to Core 1 (#3539)</li>
+<li>2026-10-28: Retire DOC.48; file prevalence suite parts TEST.431-433; rescope MAP.122 (#3538)</li>
+<li>2026-10-28: Retire MAP.331 (merged as #3535) and TEST.368 (already on main as #3171) (#3536)</li>
+<li>2026-10-28: Retire MAP.332 (merged as #3533); record lock-free assignments for waiting lanes (#3534)</li>
+<li>2026-10-28: Retire TEST.392 (merged as #3528); Aux 16 retired (#3529)</li>
+<li>2026-10-28: Retire OPS.77 and TEST.425 (merged as #3525) (#3526)</li>
+<li>2026-10-28: Retire GEN.836 (merged as #3523); lock to Aux 17 (#3524)</li>
+<li>2026-10-28: File GEN.853 (no civilization reaches technology in test generation); Aux 5 retired (#3520)</li>
+<li>2026-10-28: Retire UX.214, UX.232; file TEST.429 (#3519)</li>
+<li>2026-10-28: Retire UX.235, GEN.721/735/759/767/763; file zoom redesign MAP.333-338, UX.236, black hole MAP.339-342; lock to Aux 14 (#3516)</li>
+<li>2026-10-28: Retire MAP.322 (#3514)</li>
+<li>2026-10-28: Retire GEN.715, GEN.717, GEN.718; file GEN.850-852, TEST.428 (#3508)</li>
+<li>2026-10-28: Retire GEN.830, GEN.823, GEN.837, TEST.399; file GEN.849; lock to Aux 5 (#3506)</li>
+<li>2026-10-28: Retire MAP.306; file TEST.426 (#3502)</li>
+<li>2026-10-28: Retire GEN.742, GEN.464, GEN.723, UX.234, TEST.424, TEST.413; file TEST.425; release GEN.684; lock to Aux 8 (#3500)</li>
+<li>2026-10-28: A slow search no longer loops on preparing (UX.234) (#3498)</li>
+<li>2026-10-28: File UX.234 (Boss bug: M class planet search loops on preparing), retire MAP.303 (#3497)</li>
+<li>2026-10-28: Retire MAP.305, note on MAP.303 (#3495)</li>
+<li>2026-10-28: Retire GEN.826 (#3491)</li>
+<li>2026-10-28: Retire TEST.423, GEN.795, GEN.796; file GEN.848 (day and night swings for the other temperatures) (#3488)</li>
+<li>2026-10-28: Retire MAP.318, note on POP.30 (#3485)</li>
+<li>2026-10-28: Retire MAP.321 (#3484)</li>
+<li>2026-10-28: Retire GEN.769-773 and GEN.831, file TEST.424, record MAP.321 c (#3481)</li>
+<li>2026-10-28: Retire DB.83 (#3477)</li>
+<li>2026-10-28: Retire GEN.423 and DB.67 (#3475)</li>
+<li>2026-10-28: Retire GEN.415 (#3473)</li>
+<li>2026-10-28: Retire GEN.847, TEST.416, TEST.421 (#3469)</li>
+<li>2026-10-28: Retire DB.108 (#3466)</li>
+<li>2026-10-28: Retire DB.48 and DB.9, file GEN.847 and DB.109 (#3461)</li>
+<li>2026-10-28: Retire DB.47 (#3457)</li>
+<li>2026-10-28: Retire MAP.330; record MAP.305/303 progress (#3455)</li>
+<li>2026-10-28: Retire DB.46, file TEST.423 (#3452)</li>
+<li>2026-10-28: Retire PERF.193, PERF.174, PERF.175; file TEST.422; pool Aux 16's unstarted items (#3450)</li>
+<li>2026-10-28: File GEN.846 (star rotation period), note MAP.328 progress, mark Aux 10 retired (#3448)</li>
+<li>2026-10-28: Retire MAP.316 and MAP.327 (#3446)</li>
+<li>2026-10-28: Retire GEN.844, release DB.83, note the red golden seed test (#3444)</li>
+<li>2026-10-28: Retire GEN.637 (sweep shows 0 grid warnings, no code change) (#3442)</li>
+<li>2026-10-28: File TEST.421 (habitable worlds migration test helper no longer draws a Blue or Green world) (#3441)</li>
+<li>2026-10-28: Retire GEN.764 and GEN.445, file GEN.845, note GEN.768 part 2 for the pool (#3440)</li>
+<li>2026-10-28: Docs: retire MAP.314 (#3432), GEN.832 (#3433), TEST.397, TEST.415 (#3434)</li>
+<li>2026-10-28: Docs: retire MAP.121 (#3430); file MAP.329 (#3431)</li>
+<li>2026-10-28: Docs: retire TEST.419 (#3428); MAP.121 progress; file GEN.844 (#3429)</li>
+<li>2026-10-28: Docs: retire UX.212 (#3423); TEST.420 ids; MAP.121 and API.33 notes (#3425)</li>
+<li>2026-10-28: Docs: retire MAP.249 (#3420); file PERF.200; list the performance note in the design README (#3421)</li>
+<li>2026-10-28: Docs: retire MAP.209, MAP.210; file TEST.419; MAP.248 and MAP.249 notes (#3417)</li>
+<li>2026-10-28: Docs: retire DB.45 (#3414), MAP.320 (#3415); file TEST.418, UX.233 (#3416)</li>
+<li>2026-10-28: Docs: retire MAP.241 (#3412), MAP.214; fold MAP.237 into MAP.316 (#3413)</li>
+<li>2026-10-28: Docs: retire GEN.749 (#3410); file GEN.843; lock registry (#3411)</li>
+<li>2026-10-28: Docs: retire GEN.841, TEST.410, MAP.319; file TEST.417; MAP.121 scope (#3407)</li>
+<li>2026-10-28: Docs: retire MAP.315 (#3403); lock registry: Math 1 holds, Math 2 queued (#3404)</li>
+<li>2026-10-28: Docs: retire GEN.727, GEN.737, GEN.731 (#3380); file TEST.416, GEN.842 (#3402)</li>
+<li>2026-10-28: Docs: retire DOC.82 (#3400) (#3401)</li>
+<li>2026-10-28: Docs: retire API.35 (#3396); file TEST.415; DOC.82 unblocked (#3398)</li>
+<li>2026-10-28: Docs: retire MAP.317 (#3395); file TEST.414 (#3397)</li>
+<li>2026-10-28: Docs: retire DB.96 (#3393); epoch 112 and migration 0162 taken; file TEST.413 (#3394)</li>
+<li>2026-10-28: Docs: retire UX.126 and UX.49 (#3387); file TEST.412 (#3388)</li>
+<li>2026-10-28: Docs: retire DB.107, GEN.797, TEST.401, TEST.394, TEST.383; file TEST.410, TEST.411; GEN.328 queued (#3386)</li>
+<li>2026-10-28: Docs: retire GEN.430 and GEN.642 (#3378); epoch 111 recorded; lock to Math 2 (#3379)</li>
+<li>2026-10-28: Docs: retire GEN.825 and GEN.827 (#3375); migration 0161 goes to DB.107 (#3376)</li>
+<li>2026-10-28: Docs: retire GEN.815, GEN.667, GEN.673 (#3373); epoch 110 taken, Aux 6 on 111; Aux 1 retired (#3374)</li>
+<li>2026-10-28: Docs: retire TEST.407 (#3371); golden_update builds once (#3372)</li>
+<li>2026-10-28: Docs: retire GEN.357 (#3367); file TEST.408 and TEST.409; GEN.358 notes (#3368)</li>
+<li>2026-10-28: Docs: retire OPS.75 and OPS.76 (#3363) (#3364)</li>
+<li>2026-10-28: The update's reload check works while the site is closed and names what failed; state/ is not a local edit (OPS.75, OPS.76) (#3363)</li>
+<li>2026-10-25: Docs: retire MAP.324 (#3359) (#3360)</li>
+<li>2026-10-25: Docs: retire GEN.732 (#3348) and GEN.734, epoch 109 recorded, file GEN.836 and TEST.405 (#3350)</li>
+<li>2026-10-25: Docs: retire UX.210 (#3347) (#3349)</li>
+<li>2026-10-25: Docs: retire MAP.326 (#3345), red map tests noted (#3346)</li>
+<li>2026-10-25: Docs: retire GEN.441 (#3335), file GEN.833 to GEN.835, epoch 108 recorded (#3339)</li>
+<li>2026-10-25: Docs: retire MAP.323 and MAP.325 (#3331), red map tests noted (#3333)</li>
+<li>2026-10-25: Docs: retire TEST.396 (#3329), TEST.394 finding, TEST.383 to Bug 1 (#3330)</li>
+<li>2026-10-25: Docs: retire MAP.308 (#3327), file TEST.396 (fuzz web routes red on main) (#3328)</li>
+<li>2026-10-25: Docs: file MAP.326 and MAP.327, MAP.325 darker background, pragmatic-tweak rule, retire DB.102 (#3324)</li>
+<li>2026-10-25: GEN.668: a loss event that removes air scales the stored ozone column and the UV index (#3307)</li>
+<li>2026-10-25: Docs: Boss priority order, GEN.646 owner, TEST.384 closed, TEST.392 and TEST.393 filed (#3300)</li>
+<li>2026-10-25: Docs: retire GEN.738, file TEST.391, MAP.320 gains sector and region icons, asteroid fields by volume (#3296)</li>
+<li>2026-10-25: Docs: POI icon items MAP.320 to MAP.322 and DB.108, regions plan priority; retire TEST.370, TEST.390 (#3295)</li>
+<li>2026-10-25: Docs: regions chain to 8.1 (design 0.2), retire TEST.371, TEST.377, TEST.367, TEST.379 (#3292)</li>
+<li>2026-10-25: A worker killed soon after it started is replaced at once; cache warm-up test follows the registry (TEST.371, TEST.377) (#3291)</li>
+<li>2026-10-25: Docs: retire GEN.814, file GEN.823 and GEN.824 (#3287)</li>
+<li>2026-10-25: Docs: retire MAP.297, MAP.304, file TEST.390 (#3285)</li>
+<li>2026-10-25: Docs: retire GEN.466 (#3283)</li>
+<li>2026-10-25: Docs: retire UX.229, UX.230 (#3281)</li>
+<li>2026-10-25: Docs: retire GEN.802, Aux 8 takes GEN.814 (#3279)</li>
+<li>2026-10-25: Docs: retire POP.37, retire Aux 3 (#3277)</li>
+<li>2026-10-25: Docs: retire TEST.385, file UX.229 and UX.230 (#3275)</li>
+<li>2026-10-25: Docs: retire PERF.199, TEST.318 (#3272)</li>
+<li>2026-10-25: Docs: retire ADM.132 (#3269)</li>
+<li>2026-10-24: Docs: retire GEN.701, file PERF.199 (#3267)</li>
+<li>2026-10-24: Docs: Boss update.sh bugs OPS.75 and OPS.76, TEST.388 and TEST.389; retire GEN.818 (#3266)</li>
+<li>2026-10-24: Docs: retire DOC.79 (#3262) (#3263)</li>
+<li>2026-10-24: Docs: retire GEN.761 (#3259)</li>
+<li>2026-10-24: Docs: retire GEN.813 (#3254), file GEN.821 (#3255)</li>
+<li>2026-10-24: Docs: retire GEN.512, file GEN.820 (#3251)</li>
+<li>2026-10-24: Docs: retire GEN.739 (#3246), file GEN.819 (wire impact_inventory into the supply law) (#3247)</li>
+<li>2026-10-24: Docs: retire GEN.803 (#3240), issue groups for the new goals, lanes board Now paragraph under the new lane names, counts (#3245)</li>
+<li>2026-10-24: Docs: unused stored values chains (POP.40-45, GEN.804-811, UX.224-228, PERF.195-197, OPS.72-74), air fixed point findings GEN.812-818, bugs ADM.134 and TEST.387; retire GEN.654, DB.92, GEN.751 (#3223)</li>
+<li>2026-10-24: Docs: retire TEST.375, drop TEST.374; file the resource locations tree (GEN.798-799, DB.106, MAP.312-313, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34) (#3219)</li>
+<li>2026-10-24: Docs: retire GEN.327; file GEN.797, TEST.384, TEST.385 and the planet page redesign UX.215-222 (#3217)</li>
+<li>2026-10-24: Docs: retire GEN.792, GEN.793; file GEN.794 to GEN.796; fix a report link (#3212)</li>
+<li>2026-10-24: Docs: retire UX.211; file UX.212, UX.213, GEN.792, GEN.793 (#3210)</li>
+<li>2026-10-24: Docs: retire GEN.734, file registry data jobs and the UX.208 fill audit items (#3208)</li>
+<li>2026-10-24: Docs: retire GEN.765, GEN.766 (#3202) (#3203)</li>
+<li>2026-10-24: Docs: retire PERF.125 (#3198) (#3199)</li>
+<li>2026-10-24: Docs: file the numbers-without-units items; retire UX.195, UX.196, UX.198, UX.199, UX.209, TEST.378 (#3196)</li>
+<li>2026-10-24: Docs: retire PERF.124 (#3193), file GEN.769 and GEN.770 (#3194)</li>
+<li>2026-10-24: Docs: retire SEC.36, OPS.29, TEST.376, TEST.372, OPS.70; file TEST.379 (#3192)</li>
+<li>2026-10-24: Docs: retire GEN.180, GEN.181, UX.200 to UX.204, UX.207; file TEST.378 (#3188)</li>
+<li>2026-10-24: Docs: retire UX.125 and DB.100, file TEST.377 (#3184)</li>
+<li>2026-10-24: Docs: retire ADM.129 (#3180) (#3181)</li>
+<li>2026-10-24: Docs: retire PERF.184 (#3176) (#3178)</li>
+<li>2026-10-24: Docs: file UX.207 (breadcrumb labels), retire TEST.373 (#3175)</li>
+<li>2026-10-24: UX.200, UX.201, UX.202: tidier Location block, one Nav menu, drop the composition-origin row (#3174)</li>
+<li>2026-10-24: Docs: retire MAP.293 and MAP.294 (#3167) (#3168)</li>
+<li>2026-10-24: Docs: retire GEN.725 (#3163); file TEST.374 and TEST.375 (#3165)</li>
+<li>2026-10-24: Docs: retire GEN.719, GEN.691, GEN.398 (#3162); file TEST.372 to TEST.373 and PERF.194; testing rule (#3164)</li>
+<li>2026-10-24: Docs: retire GEN.310 (#3159) (#3160)</li>
+<li>2026-10-24: Docs: retire TEST.362 to TEST.364 (#3154, #3155), file TEST.369 to TEST.371 (#3156)</li>
+<li>2026-10-24: TEST.364: remove 56 unused imports, duplicate imports and 13 unused variables</li>
+<li>2026-10-24: Docs: retire TEST.77 and GEN.55 (#3152); file UX.203 to UX.205 and GEN.767 (#3153)</li>
+<li>2026-10-24: Docs: retire UX.197 (#3150) (#3151)</li>
+<li>2026-10-24: docs: retire TEST.365; drop TEST.366 (#3142) (#3145)</li>
+<li>2026-10-24: docs: retire SEC.34, SEC.35; drop TEST.335 (#3141) (#3143)</li>
+<li>2026-10-24: docs: retire API.15; file TEST.367 (#3136) (#3137)</li>
+<li>2026-10-24: docs: retire UX.190 to UX.194; file MAP.294 (#3122, #3134) (#3135)</li>
+<li>2026-10-24: docs: retire GEN.762, GEN.756, GEN.757, MAP.287, MAP.291; file SEC.34, SEC.35 and lane findings (#3133)</li>
+<li>2026-10-24: docs: retire PERF.187, PERF.189, DOC.80, DOC.77; file PERF.193, TEST.360, TEST.361 (#3125, #3126) (#3127)</li>
+<li>2026-10-24: docs: retire TEST.358 (#3123) (#3124)</li>
+<li>2026-10-24: docs: retire PERF.191 (#3120), file PERF.192 (#3121)</li>
+<li>2026-10-24: docs: retire TEST.359 (#3118) (#3119)</li>
+<li>2026-10-24: docs: retire UX.188 and UX.189 (#3116), file TEST.358 and TEST.359 (#3117)</li>
+<li>2026-10-24: docs: retire MAP.267 (#3114), MAP.240 progress (#3115)</li>
+<li>2026-10-24: docs: retire GEN.726, DB.71, GEN.424; captain-first pages chain UX.188 to UX.194 (#3112)</li>
+<li>2026-10-24: docs: retire TEST.352/353/357 (#3103), TEST.344 first half (#3107), file GEN.763 (#3108)</li>
+<li>2026-10-24: docs: retire MAP.292 (#3104) (#3106)</li>
+<li>2026-10-24: docs: retire GEN.639 (#3020), epoch 94 taken (#3105)</li>
+<li>2026-10-24: docs: move the physics fix items into 8.1 (Boss), retire TEST.354/355/356 (#3098), split Math lanes (#3099)</li>
+<li>2026-10-24: docs: retire OPS.62 (#3094), TEST.357 second red (#3096)</li>
+<li>2026-10-24: docs: 14 physics items to the Math lane, retire OPS.66 and OPS.67 (#3095)</li>
+<li>2026-10-24: OPS.66, OPS.67: remove the old queue executor; docs say what detached helpers log (#3093)</li>
+<li>2026-10-24: docs: retire DB.89, PERF.173; physics contradiction items; file TEST.357 (#3091)</li>
+<li>2026-10-24: PERF.173: a worker warms a unit before RQ makes its execution record; a done unit no longer fails the run (#3034)</li>
+<li>2026-10-24: docs: retire TEST.350, note TEST.344 progress, file PERF.188 (#3090)</li>
+<li>2026-10-24: docs: retire USR.31, ADM.86, GEN.714; epoch 93 taken; lane-machine data note (#3086)</li>
+<li>2026-10-24: docs: retire GEN.686 (#3080), file TEST.355 and TEST.356, epoch 92 taken (#3082)</li>
+<li>2026-10-24: docs: retire PERF.186 and PERF.183 (#3078), file PERF.187 (phenomena scatter memory) (#3079)</li>
+<li>2026-10-24: docs: retire MAP.261, MAP.262, TEST.343, GEN.674; file TEST.354 and GEN.751 (#3073)</li>
+<li>2026-10-24: MAP.261, MAP.262: the map draws sector-block nodes by projected size and the cube tiles are retired (API version 8) (#3070)</li>
+<li>2026-10-24: docs: retire TEST.349 (#3068), Lane H owns GEN.721 and GEN.735, TEST.353 check note (#3069)</li>
+<li>2026-10-24: docs: retire UX.184 and UX.175 (#3065), record TEST.349 root cause (#3066)</li>
+<li>2026-10-24: Docs: hold 4c for GEN.726, clear Math lane items, retire UX.183, TEST.351, GEN.672 (#3062)</li>
+<li>2026-10-24: Docs: retire GEN.272 and MAP.290; file GEN.724 and UX.186; record epoch order (#3056)</li>
+<li>2026-10-24: Docs: retire DOC.75, note GEN.445, file TEST.350 (#3053)</li>
+<li>2026-10-24: Docs: file PERF.186 critical, retire UX.121, TEST.347, TEST.348, fix gap plan link (#3051)</li>
+<li>2026-10-24: Docs: retire GEN.699, UX.185, API.26, API.31; file TEST.349; record migration and epoch order (#3048)</li>
+<li>2026-10-24: Docs: retire GEN.633 and GEN.57; record epoch 89 taken (#3044)</li>
+<li>2026-10-24: Docs: retire GEN.452 and PERF.185; record epoch and migration order (#3042)</li>
+<li>2026-10-24: Docs: retire GEN.675, UX.152, UX.153; file TEST.347, TEST.348, GEN.723 (#3039)</li>
+<li>2026-10-24: Docs: retire PERF.181 and GEN.710, file PERF.184, keep PERF.173 first priority (#3035)</li>
+<li>2026-10-24: Docs: retire PERF.99, file TEST.345 and TEST.346 (#3032)</li>
+<li>2026-10-24: Docs: apply the twelve efficiency suggestions (TEST.344, OPS.70, OPS.71, PERF.183), drop TEST.334 and TEST.303 (#3029)</li>
+<li>2026-10-24: Docs: lane reorganisation (blocker lanes, core chains, letter trees), retire GEN.509, file GEN.722 (#3026)</li>
+<li>2026-10-24: Docs: retire GEN.713 (research report), GEN.559 carries the findings (#3024)</li>
+<li>2026-10-24: Docs: retire GEN.700 and GEN.704, file TEST.343, record owner changes, epoch 86 used (#3022)</li>
+<li>2026-10-24: Docs: retire GEN.709 and TEST.130, file PERF.181 (critical OOM) and MAP.291, epoch 85 taken (#3018)</li>
+<li>2026-10-24: Docs: retire OPS.15, note TEST.335 flake (#3015) (#3016)</li>
+<li>2026-10-24: Docs: retire TEST.329, file UX.183 to UX.185 from UX.175, detail pages lane retired (#3013) (#3014)</li>
+<li>2026-10-24: Docs: retire UX.173, UX.174, UX.176, UX.177, UX.178 (#3012)</li>
+<li>2026-10-24: Retire TEST.342 (#3009); OPS.62 note (#3010)</li>
+<li>2026-10-24: Retire UX.168 to UX.172 (#3003) (#3004)</li>
+<li>2026-10-24: Retire MAP.231 (#3001); Core 2 starts MAP.290 (#3002)</li>
+<li>2026-10-24: Retire UX.136 (#2999), PERF.41, GEN.461 (#2993); file lane H items; renumber (#3000)</li>
+<li>2026-10-24: Retire GEN.678 (#2997); Core 4 starts GEN.272 (#2998)</li>
+<li>2026-10-24: Retire GEN.712 (#2995); file GEN.719 (#2996)</li>
+<li>2026-10-24: Retire GEN.703 (#2992); file GEN.717 and GEN.718; TEST.329 note (#2994)</li>
+<li>2026-10-24: Retire OPS.35 (#2990); Lane 4 takes UX.136; TEST.141 note (#2991)</li>
+<li>2026-10-24: Retire TEST.338, TEST.340 (#2986); drop TEST.337, TEST.339; file GEN.716 (#2988)</li>
+<li>2026-10-24: Retire GEN.649, GEN.653, DB.91 (#2930) and DB.84 (#2984); renumber epochs and migrations (#2985)</li>
+<li>2026-10-24: GEN.649: four life scores (Microbial, Flora, Fauna, Sentient) replace the three habitability scores; every body with a life chemistry has an evolutionary path; the Suitability food rung comes from Flora and Fauna</li>
+<li>2026-10-24: Retire MAP.229, MAP.230, MAP.233, MAP.268 (#2980) (#2982)</li>
+<li>2026-10-24: Retire PERF.111 (#2974), note #2975 and the TEST.342 flake (#2977)</li>
+<li>2026-10-24: Docs: retire GEN.658, note TEST.300, DOC.75 and UX.153 progress (#2972)</li>
+<li>2026-10-24: Docs: retire GEN.677, note TEST.340 progress (#2969)</li>
+<li>2026-10-24: Docs: retire GEN.460 and GEN.642, renumber epochs (#2965)</li>
+<li>2026-10-24: Docs: retire OPS.69, note TEST.342 cause (#2964)</li>
+<li>2026-10-24: Docs: retire GEN.442, note GEN.477 field half and unwired GEN.466/471/462, file GEN.712, GEN.713, TEST.341 (#2957)</li>
+<li>2026-10-24: Docs: retire GEN.651, file TEST.338 and TEST.339 (#2953)</li>
+<li>2026-10-24: Docs: retire OPS.37, file TEST.337 (#2951)</li>
+<li>2026-10-24: Close TEST.305 and TEST.323 as not reproduced (load-bound) (#2949)</li>
+<li>2026-10-24: Retire GEN.650 (#2947), file GEN.711 (#2948)</li>
+<li>2026-10-24: Retire TEST.304, TEST.299, TEST.311 (#2945) and TEST.330 (#2850); file GEN.710 (#2946)</li>
+<li>2026-10-24: Retire MAP.265 (#2941) (#2942)</li>
+<li>2026-10-24: Retire MAP.259, MAP.260 (#2937) and GEN.632 (#2938); next free migration 0148 and epoch 77 (#2939)</li>
+<li>2026-10-24: Retire GEN.309 (#2934), file TEST.336; next free epoch 76 (#2936)</li>
+<li>2026-10-24: Retire DB.98 (#2931); regenerate the architecture map (#2932)</li>
+<li>2026-10-24: Retire GEN.271 (#2928), file GEN.707, GEN.708, TEST.335; next free epoch 74 (#2929)</li>
+<li>2026-10-24: Retire OPS.65 (#2723), file TEST.334 (#2927)</li>
+<li>2026-10-24: Retire PERF.155 (#2923) and GEN.560 (#2924), file PERF.180 and TEST.332 (#2925)</li>
+<li>2026-10-24: Retire GEN.702 (#2920) (#2921)</li>
+<li>2026-10-24: Retire TEST.313 (#2918) (#2919)</li>
+<li>2026-10-24: Retire GEN.643 (#2886); two PRs claim migration 0147 (#2917)</li>
+<li>2026-10-24: Retire GEN.631 (#2915), file GEN.705, GEN.706, TEST.330; next free epoch 73 (#2916)</li>
+<li>2026-10-24: Retire MAP.258 (#2896), file MAP.289; next free migration 0147 (#2914)</li>
+<li>2026-10-24: Retire GEN.443 (#2910), file GEN.703 for the greenhouse tau0; next free 0146 and epoch 72 (#2911)</li>
+<li>2026-10-24: Retire GEN.428, GEN.429, DB.69 (#2751); next free 0145 and epoch 71 (#2909)</li>
+<li>2026-10-24: Retire UX.167 (#2902); file GEN.702 (#2907)</li>
+<li>2026-10-24: Retire DB.97 (#2905); record the no-marker migration contract (#2906)</li>
+<li>2026-10-24: Retire MAP.264 (#2903) (#2904)</li>
+<li>2026-10-24: Retire GEN.666, GEN.692 (#2799); drop TEST.326 as a duplicate; next free 0144 and epoch 70 (#2901)</li>
+<li>2026-10-24: Retire TEST.218, TEST.273, TEST.233 (#2899) (#2900)</li>
+<li>2026-10-24: Retire GEN.574 (#2806) (#2898)</li>
+<li>2026-10-24: Retire TEST.327 (#2892); GEN.571 group 1 (#2893) and GEN.560 notes (#2894)</li>
+<li>2026-10-24: TEST.327: the search symbol test reads the first row's links before scrolling drops the row (#2892)</li>
+<li>2026-10-24: Retire UX.157 and UX.166 (#2890); Firefox install note on OPS.62 (#2891)</li>
+<li>2026-10-24: Retire MAP.263 (#2888); file TEST.329 (#2889)</li>
+<li>2026-10-24: Retire MAP.219 (#2860); counts at 856 of 1268 (#2887)</li>
+<li>2026-10-24: Retire UX.160, UX.161 (#2884) and TEST.306; counts at 855 of 1268 (#2885)</li>
+<li>2026-10-24: Retire DB.94, GEN.671, UX.163, TEST.322, TEST.325; drop DB.95; file TEST.327, TEST.328 (#2882)</li>
+<li>2026-10-24: Retire GEN.270 (#2879); file TEST.326 (#2880)</li>
+<li>2026-10-24: GEN.270 close-binary types in the member tree (#2879)</li>
+<li>2026-10-24: Retire UX.162 and PERF.176 (#2877) (#2878)</li>
+<li>2026-10-24: Retire GEN.412 and MAP.288; file GEN.700, GEN.701, TEST.325 (#2876)</li>
+<li>2026-10-24: Retire UX.159 (#2873): old .py addresses and NAV redirects removed (#2874)</li>
+<li>2026-10-24: Remove the retired /&lt;name&gt;.py redirects and the old NAV parameter style</li>
+<li>2026-10-24: Docs: GEN.459 merged (#2868), retired; epoch 67 and migration 0141 taken; 841 of 1262 (#2870)</li>
+<li>2026-10-24: Docs: UX.180 to UX.182 merged (#2867), retired; class B never has hydrogen or helium, GEN.695 to GEN.698 dropped; 840 of 1262 (#2869)</li>
+<li>2026-10-24: Docs: PERF.123 merged (#2865), retired; file TEST.323 and TEST.324; 837 of 1266 (#2866)</li>
+<li>2026-10-24: Docs: GEN.693, GEN.694, DB.73 merged, retired; file GEN.696 to GEN.698, TEST.322; migration 0140 taken; 836 of 1264 (#2864)</li>
+<li>2026-10-24: Docs: MAP.256 merged (#2852), retired; file TEST.317 (sector reach test flaky under load); 830 of 1239 (#2853)</li>
+<li>2026-10-24: Docs: DOC.75 part 1 merged (#2850), TEST.316 retired; 829 of 1238 (#2851)</li>
+<li>2026-10-24: Docs: PERF.177 merged (#2836), retired; PERF.178 wording merged (#2831); owners are the Generation-log analysis lane; 828 of 1237 (#2848)</li>
+<li>2026-10-24: Docs: lane M finished; GEN.518, GEN.520, PERF.113, PERF.114 retired; 827 of 1237 (#2847)</li>
+<li>2026-10-24: Docs: GEN.656 and UX.154 merged (#2844), retired; migration 0137 taken, next 0138; 823 of 1237 (#2845)</li>
+<li>2026-10-24: Docs: file the class design steps C6 to C16 (GEN.681 to GEN.690, TEST.314, TEST.315), retire C1, C2, C4 (#2781), UX.148 and MAP.270 (#2838); 821 of 1233 (#2840)</li>
+<li>2026-10-24: Docs: TEST.310 merged (#2837), retired; Blocker 6 finished; 816 of 1218 (#2839)</li>
+<li>2026-10-23: Docs: GEN.92 merged (#2833, epoch 65) retired; file TEST.313 (M5V belt flake); next epoch 66 (#2834)</li>
+<li>2026-10-23: Docs: GEN.676 dropped (Boss: NH<sub>3</sub> gap accepted as a labelled stand-in); 815 of 1210 (#2828)</li>
+<li>2026-10-23: Docs: GEN.501 (#2824) and GEN.663 (#2822) merged, retired; file GEN.676; 815 of 1211 (#2825)</li>
+<li>2026-10-23: Docs: lane L merged (#2820), retire five items; file GEN.672 to GEN.675 (#2823)</li>
+<li>2026-10-23: Docs: GEN.664, GEN.665 merged (#2815), retired; the four new lanes on the board; 808 of 1206 (#2821)</li>
+<li>2026-10-23: Docs: GEN.655, DB.93, POP.15 merged (#2766), retired; migration 0137 next; 806 of 1206 (#2819)</li>
+<li>2026-10-23: Docs: UX.100, UX.155, UX.156 (#2784) and DOC.78 (#2813) merged, retired; 803 of 1206 (#2818)</li>
+<li>2026-10-23: GEN.655, DB.93: the survival equipment line replaces equipment_tier (schema v136) (#2766)</li>
+<li>2026-10-23: Docs: file UX.161 (main page counts after reset, bug), TEST.312 merged (#2810) retired; 799 of 1202 (#2811)</li>
+<li>2026-10-23: Docs: DOC.64 merged (#2808), retired; counts 798 of 1201 (#2809)</li>
+<li>2026-10-23: Docs: MAP.244 merged (#2805), retired; board times corrected (#2807)</li>
+<li>2026-10-23: Docs: OPS.68 filed and retired (update.sh download fix, #2786), TEST.310 confirms its ops tests (#2797)</li>
+<li>2026-10-23: Docs: PERF.115 to PERF.117 and MAP.276 merged, retired (#2796)</li>
+<li>2026-10-23: Docs: GEN.420 merged (#2791), retired (#2795)</li>
+<li>2026-10-23: Docs: MAP.271, MAP.272, MAP.273 merged (#2789), retired (#2792)</li>
+<li>2026-10-23: Docs: body-rendering items placed by version (Boss's plan, 10:26 PM EDT), build lane row, new items MAP.279 to MAP.285 and DB.99, TEST.308 dropped (#2782)</li>
+<li>2026-10-23: Docs: GEN.418 (#2768) and GEN.419 (#2773) retired, counts and lane M row (#2779)</li>
+<li>2026-10-24: Remove the bare expressions left where unused variables were dropped</li>
+<li>2026-10-24: Delete regression tests that guard nothing and the unused galaxy shape visualizer</li>
+<li>2026-10-23: Docs: UX.151 merged (#2733), PERF.161 and PERF.171 closed as no change (#2763) (#2764)</li>
+<li>2026-10-23: Docs: GEN.413 merged (#2761) and retired, lane F follow-ups, next epoch 64 and migration 0136 (#2762)</li>
+<li>2026-10-23: Docs: GEN.503 merged (#2753), retired (#2754)</li>
+<li>2026-10-23: Docs: retire GEN.629 (#2744) and PERF.159 (#2745), file GEN.660 (#2746)</li>
+<li>2026-10-23: Docs: retire GEN.622 (#2739), file UX.155, UX.156, DB.94, DB.95, GEN.659, correct the interstellar debris density (#2741)</li>
+<li>2026-10-23: Docs: retire UX.101 (#2706) (#2734)</li>
+<li>2026-10-23: Docs: retire PERF.156 to PERF.158 (#2731), close PERF.160, file PERF.174 and PERF.175 (#2732)</li>
+<li>2026-10-23: Docs: retire UX.147 (#2729) (#2730)</li>
+<li>2026-10-23: Docs: retire GEN.453 (#2726), epoch 62 taken, next free 63, nine-step ladder in the lane orders (#2727)</li>
+<li>2026-10-23: Docs: debug mode items (OPS.65 to OPS.67), GEN.648 nine-step ladder, retire GEN.417 (#2724), file TEST.303 (#2725)</li>
+<li>2026-10-23: Docs: retire OPS.63 (#2712), file TEST.302 (benchmark test kills other tests' queue workers) (#2719)</li>
+<li>2026-10-23: Docs: Boss's pipeline card answers (GEN.648 rewritten, owners for GEN.553, GEN.651, GEN.652), retire UX.124 (#2716) (#2717)</li>
+<li>2026-10-23: Docs: the four life scores (GEN.649, DB.91, UX.151, UX.152, DOC.77), human operability removed (#2713)</li>
+<li>2026-10-23: Docs: Boss's live bugs (MAP.256, MAP.257, UX.149), ADM.128, retire GEN.267, record #2703 (#2705)</li>
+<li>2026-10-23: Docs: retire PERF.170 (#2696), refresh Performance lane and 8.1 progress (#2698)</li>
+<li>2026-10-23: Docs: retire MAP.174 (#2694) and GEN.638 (#2695), file TEST.298 and OPS.63, Setup script lane (#2697)</li>
+<li>2026-10-23: Docs: retire GEN.630 (#2689), re-cut GEN.631, file GEN.640 (#2690)</li>
+<li>2026-10-23: Docs: retire TEST.296 (#2687), TEST.297 data recorded (#2688)</li>
+<li>2026-10-23: Docs: retire GEN.146 (#2685), file GEN.639, epoch 60 taken (#2686)</li>
+<li>2026-10-23: Docs: retire GEN.253 (#2681), GEN.267 scope and migration, GEN.450 progress (#2682)</li>
+<li>2026-10-23: Docs: retire PERF.167 (#2679), file PERF.171 (#2680)</li>
+<li>2026-10-23: Docs: retire ADM.126 (#2677), file TEST.296 and TEST.297 (#2678)</li>
+<li>2026-10-23: Docs: retire GEN.258 (#2674) (#2675)</li>
+<li>2026-10-23: Docs: retire GEN.497 (#2671), file GEN.638 (#2672)</li>
+<li>2026-10-23: Docs: retire TEST.291 (#2669), MAP.210 observation (#2670)</li>
+<li>2026-10-23: Docs: retire SEC.32 (#2667) (#2668)</li>
+<li>2026-10-23: Docs: retire TEST.294 and TEST.293 (#2663), TEST.291 third sighting (#2664)</li>
+<li>2026-10-23: Docs: retire API.32 (#2659), TEST.290 not reproduced (#2661)</li>
+<li>2026-10-23: Docs: retire GEN.458 (#2655, Alembic 0132, schema v132) (#2660)</li>
+<li>2026-10-23: Docs: retire OPS.58 (#2654), OPS.28 and GEN.636 (#2653); Alembic head 0131, GEN.458 renumbers to 0132 (#2656)</li>
+<li>2026-10-23: Docs: retire POP.14 (#2651, epoch 59), GEN.636 decision, POP.13 note (#2652)</li>
+<li>2026-10-23: Docs: retire PERF.169 (#2648), TEST.293 hang finding (#2649)</li>
+<li>2026-10-23: Docs: retire ADM.125 (#2646), file TEST.293, second sighting on TEST.291 (#2647)</li>
+<li>2026-10-23: Docs: merge GEN.465/GEN.468 second-pass tables as part H, retire GEN.465 and GEN.468 (#2645)</li>
+<li>2026-10-23: Docs: TEST.196 (#2642) retired; GEN.450 card recorded (#2643)</li>
+<li>2026-10-23: TEST.196: the close-binary check by primary mass and [Fe/H] against the published ranges (#2642)</li>
+<li>2026-10-23: Docs: GEN.284 (#2640, epoch 58) retired; TEST.292 filed (#2641)</li>
+<li>2026-10-23: Docs: GEN.369, GEN.624, GEN.403 and GEN.627 (#2638, epoch 57) retired; GEN.634 and GEN.635 filed (#2639)</li>
+<li>2026-10-23: Docs: PERF.165 (#2636) retired; PERF.169 and PERF.170 filed (#2637)</li>
+<li>2026-10-23: Docs: GEN.329 (#2634, epoch 56) retired; epoch 57 is next (#2635)</li>
+<li>2026-10-23: Docs: PERF.168 filed and retired (#2632); API.32 retitled as a test that depends on the machine (#2633)</li>
+<li>2026-10-23: Docs: GEN.625 (epoch 55), OPS.57 and TEST.181 retired; GEN.57 waits on GEN.633 only (#2629)</li>
+<li>2026-10-23: Docs: PERF.164, GEN.325 (epoch 54) and TEST.288 retired; PERF.167, API.32, TEST.290 filed (#2626)</li>
+<li>2026-10-23: Docs: MAP.146 verified and retired; ADM.125 is control schema v17, not an Alembic migration (#2622)</li>
+<li>2026-10-23: Docs: TEST.281 (#2619) and GEN.628 (#2620, epoch 53) retired; GEN.633 backfill order dependence and TEST.289 filed; MAP.146 children all done (#2621)</li>
+<li>2026-10-23: Docs: GEN.305 merged (#2617), GEN.136 umbrella retired; dispersion-convention finding folded into GEN.284 (#2618)</li>
+<li>2026-10-23: Docs: full progress documentation update after Blocker 2 finished; TEST.286 retired (#2612), GEN.632 filed (#2614)</li>
+<li>2026-10-23: Docs: ADM.127 (#2608) and UX.146 (#2610) retired; TEST.287 and TEST.288 filed (#2611)</li>
+<li>2026-10-23: Docs: GEN.316 split into GEN.630 (N-star host and migration) and GEN.631 (fill draws member trees, two-star classes deleted) (#2607)</li>
+<li>2026-10-23: Docs: TEST.285 retired (#2602); TEST.284 corrected (load-dependent, not 2 against 3) (#2603)</li>
+<li>2026-10-23: Docs: TEST.275 and TEST.277 retired (#2600); TEST.285 confirmed, TEST.284 parked (#2601)</li>
+<li>2026-10-23: TEST.275: cells_in_band_range is cached, so a repeated plan preview no longer re-adds every shell's wedges</li>
+<li>2026-10-23: Docs: GEN.626 retired (#2598); GEN.625 started (#2599)</li>
+<li>2026-10-22: Docs: GEN.307 (#2595), GEN.495 and GEN.623 (#2596) retired; epoch 51 taken, GEN.629 filed (#2597)</li>
+<li>2026-10-22: Docs: GEN.478 retired (#2587); TEST.285 filed (plan-step test needs the downloads) (#2592)</li>
+<li>2026-10-22: Docs: GEN.470 retired (#2590); GEN.452 and GEN.497 unblocked (#2591)</li>
+<li>2026-10-22: Docs: PERF.150 retired (#2588); Fair scheduling lane finished, PERF.154 and PERF.155 owners updated (#2589)</li>
+<li>2026-10-22: Docs: GEN.496 retired (#2585) (#2586)</li>
+<li>2026-10-22: Docs: DB.85 (#2582) and GEN.498 (#2583) retired; full progress documentation update (versions, tree, plans, HTML) (#2584)</li>
+<li>2026-10-22: Docs: GEN.427 retired (#2580), GEN.623 progress, NLTK gate note (#2581)</li>
+<li>2026-10-22: GEN.427: the shared materials table; the licence is no longer a column (#2580)</li>
+<li>2026-10-22: Docs: GEN.304 retired (#2578) (#2579)</li>
+<li>2026-10-22: Docs: PERF.163 retired (#2576), PERF.165, PERF.166 and TEST.284 filed (#2577)</li>
+<li>2026-10-22: Docs: TEST.270, TEST.271, TEST.272, TEST.280 retired (#2573), TEST.275 cross-linked to PERF.163 (#2574)</li>
+<li>2026-10-22: Docs: UX.140 retired (#2571), UX.128 and GEN.349 back in the pool (#2572)</li>
+<li>2026-10-22: Docs: PERF.119 F3/F4 and PERF.123 slice 1 merged (#2563), TEST.283 retired (#2570)</li>
+<li>2026-10-23: GEN.304: the canonical fingerprint encoder (nine significant digits, three digests) replaces the stand-in</li>
+<li>2026-10-22: Docs: GEN.416 retired (#2566), GEN.498 stand-in hosts question recorded (#2567)</li>
+<li>2026-10-22: Docs: PERF.151, PERF.152, PERF.153 retired (#2562) (#2565)</li>
+<li>2026-10-22: Docs: GEN.599 retired (#2560), DOC.72 README row recorded (#2564)</li>
+<li>2026-10-22: Docs: PERF.146 retired (#2559), PERF.164 and TEST.283 filed, lanes updated (#2561)</li>
+<li>2026-10-23: PERF.146: the suite's options reject a non-finite or non-positive number, no TODO code in its help, the report test reads the ranking</li>
+<li>2026-10-22: docs: NAV.17 retired (#2553), gate rule and dead-code pass, built-but-uncalled code noted (#2554)</li>
+<li>2026-10-22: docs: DB.88 and TEST.282 retired (#2545, #2547), PERF.146 findings filed as PERF.156 to PERF.162 and GEN.624 (#2548)</li>
+<li>2026-10-22: docs: UX.129 retired (#2544), TEST.281 filed, TEST.275 fourth sighting (#2546)</li>
+<li>2026-10-22: docs: GEN.348, TEST.279, GEN.585, GEN.586 retired, DB.87 retired, DB.88 filed (#2543)</li>
+<li>2026-10-22: docs: DB.58 and DB.62 retired (#2536, #2537), TEST.280 filed, DB.85 gets 0130 and epoch 51 (#2538)</li>
+<li>2026-10-22: docs: DB.77 retired (#2534), DB.74 slices 1 to 3 recorded (#2535)</li>
+<li>2026-10-22: docs: DB galaxy-schema items DB.30 to DB.63 retired (#2520 to #2530, Alembic head 0129), GEN.379 retired (#2531), DB.85 proposed for the DB lane (#2532)</li>
+<li>2026-10-22: DB.74: readers keep the order of the lists the registry replaced</li>
+<li>2026-10-22: DB.74: one registry of kind tables replaces the per-site lists</li>
+<li>2026-10-22: docs: MAP.254 retired (#2514), TEST.275 third sighting, UX.129 and NAV.17 confirmed for Core 2, PERF.123 cards recorded (#2515)</li>
+<li>2026-10-22: docs: TEST.278 filed and retired (#2510), Core 3 column-units rule, all HTML pages rebuilt (#2511)</li>
+<li>2026-10-22: docs: GEN.410 retired (#2450, #2508), TEST.277 filed, UX.140 owned by Core 3, goal #2293 closed, all HTML pages rebuilt (#2509)</li>
+<li>2026-10-22: docs: DB.56 (#2505) and the four closing audits (#2504) retired, GEN.622 filed, PERF.146 owned (#2506)</li>
+<li>2026-10-22: docs: TEST.268 retired (#2502), migration 0118 held by DB.56 (#2503)</li>
+<li>2026-10-22: TEST.268: the tests see a roomy database drive; the generate tests no longer depend on the host's free space</li>
+<li>2026-10-22: Bug hunt: planetgen benchmark builds its plan line; drop dead copies in xfetch and orbits</li>
+<li>2026-10-22: docs: TEST.275 owner is Bug Hunt, Galaxy dials lane retired (#2500)</li>
+<li>2026-10-22: docs: admin redesign finished (#2496, #2498): ADM.55, ADM.56, ADM.99, ADM.110 to ADM.112, ADM.114, ADM.116, ADM.117 retired (#2499)</li>
+<li>2026-10-22: docs: TEST.274 retired (#2493) (#2495)</li>
+<li>2026-10-22: TEST.274: the far-from-its-epoch test moves a stored binary, not a removed function (#2493)</li>
+<li>2026-10-22: docs: GEN.569, GEN.573, UX.139 and GEN.299 retired (#2490) (#2491)</li>
+<li>2026-10-22: docs: DB.43 retired (#2423) (#2489)</li>
+<li>2026-10-22: docs: DB.76 retired (#2487), DB.86 filed, TEST.268 recurrence (#2488)</li>
+<li>2026-10-22: docs: UX.144 merged in part (#2485), TEST.267 retired, TEST.273 filed (#2486)</li>
+<li>2026-10-22: docs: PERF.121, PERF.122 retired (#2441), TEST.270 and TEST.271 probable causes (#2483)</li>
+<li>2026-10-22: docs: GEN.311, GEN.269 retired (#2481), epoch 50 taken, MAP.255 filed (#2482)</li>
+<li>2026-10-22: docs: GEN.598 retired (#2478), epoch 49 taken, DB.74 plan (#2480)</li>
+<li>2026-10-22: Retire GEN.568 (#2476); GEN.569, GEN.573 and UX.139 gate as one PR (#2477)</li>
+<li>2026-10-22: Docs: retire the orbital update library batch (#2473); file TEST.271, TEST.272; Quantity items rescoped onto GEN.569 (#2474)</li>
+<li>2026-10-22: Docs: retire MAP.139 (#2468) and GEN.617 (#2469); narrow MAP.254; file DB.85 (#2470)</li>
+<li>2026-10-22: Docs: retire GEN.600 (#2464) and TEST.266 (#2466); GEN.379 first slice, epoch 49 for GEN.311 (#2467)</li>
+<li>2026-10-22: Docs: retire GEN.370 (#2460) and TEST.258 (#2461); Core 3 and Bug Hunt rows (#2462)</li>
+<li>2026-10-22: GEN.370: query no longer imports halo_mass_pinned</li>
+<li>2026-10-22: Retire ADM.97, ADM.100, ADM.102 to ADM.106 (#2456); split named recipes out of ADM.115 as ADM.125 (#2457)</li>
+<li>2026-10-22: Retire TEST.241 (#2454); assign GEN.569 to Core 4; record Core 1 order GEN.598, DB.76, DB.73, DB.74 (#2455)</li>
+<li>2026-10-22: Drop TEST.268: not reproducible on main (#2449)</li>
+<li>2026-10-22: Retire TEST.265 (#2442) and GEN.607 (#2443); file TEST.268 and DOC.73; Galaxy dials lane finished (#2444)</li>
+<li>2026-10-22: TEST.262: a test database drop waits for readers instead of ending them</li>
+<li>2026-10-22: Retire DB.66 (#2439); Alembic head 0117; GEN.379 reads the NULL columns (#2440)</li>
+<li>2026-10-22: Retire DB.33 (#2436); file TEST.267; gate environment and grant notes corrected (#2437)</li>
+<li>2026-10-22: DB.33: tests that keep a foreign key's default delete rule from reading as drift</li>
+<li>2026-10-22: Retire GEN.545 (#2434, epoch 46 pending); GEN.607 Census unblocked; gate environment note (#2435)</li>
+<li>2026-10-22: Retire GEN.596 (#2428); epoch 45 taken; eighth load sighting on TEST.262 (#2429)</li>
+<li>2026-10-22: Retire TEST.260 and TEST.264 (#2425); sixth load sighting on TEST.262 (#2426)</li>
+<li>2026-10-22: Retire DB.44 (#2420); file DB.83 (galaxy_block_stats maintainer) and DB.84 (sectors FULLTEXT rebuilds); Alembic head 0115 (#2421)</li>
+<li>2026-10-22: Retire GEN.621 (#2418); GEN.545 and GEN.370 take epoch 45 or later (#2419)</li>
+<li>2026-10-22: Retire UX.145, PERF.145, TEST.257, TEST.263 (#2416); fifth load sighting on TEST.262 (#2417)</li>
+<li>2026-10-22: MAP.249: a zoom no longer walks every drawn star for each missing tile or for an unchanged view; guards for the tiles per view (#2414)</li>
+<li>2026-10-22: Docs: retire ADM.98 and ADM.101, admin redesign lane row (#2412)</li>
+<li>2026-10-22: Retire UX.141 (finished as built: #2401, #2404, #2408) (#2409)</li>
+<li>2026-10-22: Docs: UX.141 second part, retire DB.80, GEN.621 in the dials goal, load flake sightings (#2407)</li>
+<li>2026-10-22: DB.80: drop the MariaDB leftovers (MySQL 8.0.19 is the minimum) (#2406)</li>
+<li>2026-10-22: Retire the galaxy dials delivered by #2403 (GEN.602 to 606, 609 to 611, DB.81); file GEN.621 (Auto default); 0114 and epoch 44 taken (#2405)</li>
+<li>2026-10-21: Retire GEN.597 (#2399); record GEN.554 slices 2 and 3 and epoch 43 (#2400)</li>
+<li>2026-10-21: Retire PERF.148 (#2397); epoch 42 is taken; sightings on TEST.260 (#2398)</li>
+<li>2026-10-21: Retire GEN.601 and GEN.608 (#2395); note GEN.602 progress, the 0114 migration collision, and lane machine setup findings (#2396)</li>
+<li>2026-10-21: Retire DB.31 (umbrella, subitems done in #2206); fix the control version wording on DB.62 (#2393)</li>
+<li>2026-10-21: Remove the Suggested, not filed ideas from the release roadmap (#2392)</li>
+<li>2026-10-21: Record the GEN.537 plan configuration decisions and the region removal item GEN.620; retire DB.82 (#2391)</li>
+<li>2026-10-21: Docs pages: finished subtasks shown checked off and crossed out under their thread and goal; retire GEN.530 (#2388) (#2389)</li>
+<li>2026-10-21: Docs: record Boss's card answers (GEN.457 approved and retired, GEN.537, audits gate, 9.0, PERF.41, OPS.62, GEN.612) (#2385)</li>
+<li>2026-10-21: Docs: retire MAP.251 (#2375), record galaxy types Q2/Q3 and the GEN.457 porosity taper (#2376)</li>
+<li>2026-10-21: Docs: file GEN.619 (variable sector edge), drop GEN.616, record the 28 pc scale length floor and density floor (#2373)</li>
+<li>2026-10-21: Docs: retire PERF.140 (#2370), unblock UX.141 and PERF.141, second TEST.262 sighting (#2371)</li>
+<li>2026-10-21: Docs: file GEN.614 to GEN.618 from the density limits report, retire GEN.378 (#2368), record the 3e8 structure cut (#2369)</li>
+<li>2026-10-21: TODO: retire PERF.144 (#2366), Bug Hunt progress notes (#2367)</li>
+<li>2026-10-21: TODO: retire DB.79 (#2361, Alembic 0113), file TEST.263 (test_every_check_rejects_a_bad_row fails on main), TEST.262 sighting (#2362)</li>
+<li>2026-10-21: TODO: retire PERF.142 and PERF.143 (#2345), PERF.141 slice 3 (#2346), file TEST.262, widen PERF.144 to every RQ job (Boss, 5:32 PM EDT) (#2347)</li>
+<li>2026-10-21: TODO: PERF.145, drop the repeated stage lines under the stage banner (Boss, 5:22 PM EDT) (#2343)</li>
+<li>2026-10-21: Raise the documented database minimum to MySQL 8.0.19 and drop MariaDB from the install docs (DB.80) (#2336)</li>
+<li>2026-10-21: A run or job whose process was killed no longer blocks new runs or the update; reset_jobs and update.sh --reset-jobs (PERF.142, PERF.143)</li>
+<li>2026-10-21: TODO: retire TEST.253 and TEST.255, file and retire TEST.259 (#2332), note TEST.254 (#2333)</li>
+<li>2026-10-21: TODO: retire GEN.592 and TEST.256 (#2327), Core 3 row and the orbital update ready list (#2329)</li>
+<li>2026-10-21: TODO: retire GEN.544 (#2323), note the density gap on GEN.545 (#2324)</li>
+<li>2026-10-21: TODO: retire PERF.139 and PERF.133 (#2316), record cache.max_mb notes, DB.79 and PERF.140 owner (#2317)</li>
+<li>2026-10-21: PERF.139: one cache size key, cache.max_mb (1024); PERF.133 part 2: at the budget drop the least recently visited tiles, keep those built ahead, stop warming (#2316)</li>
+<li>2026-10-21: Skip and retire PERF.131 (Boss, 11:27 AM EDT); DB.33 owner Core 1; restore a catalogue row label that test_system_type_rates reads (#2315)</li>
+<li>2026-10-21: Retire PERF.107, PERF.108, GEN.591, GEN.318, GEN.130; note GEN.553 slice 2; epochs 37 to 39 (#2309)</li>
+<li>2026-10-21: Contradiction sweep: apply all of Boss's answers, 55 newer-wins design-note fixes, lane reports; retire TEST.129 and GEN.142 (#2304)</li>
+<li>2026-10-21: Retire PERF.132 (#2298, no epoch); lanes board and todo-tree at 716 open (#2302)</li>
+<li>2026-10-18: Retire PERF.138 (#2297, epoch 35); record Boss's no-recompile rule on the cache items (#2299)</li>
+<li>2026-10-18: PERF.107: a SIGTERM ends a run as cancelled; the galaxy tests no longer read the old lease and queue node</li>
+<li>2026-10-18: docs: retire TEST.246 and TEST.252 (#2286), close TEST.224, TEST.227 and TEST.243 with notes (#2287)</li>
+<li>2026-10-18: docs: retire GEN.590 (#2282), file GEN.594 (AD datasets refuse-or-fall-back) and TEST.255 (test_workers in loaded gates) (#2283)</li>
+<li>2026-10-18: docs: retire PERF.106 (slice 5, #2278) (#2280)</li>
+<li>2026-10-18: docs: retire PERF.130 (#2276), MAP.249 notes the cache warming step (#2279)</li>
+<li>2026-10-18: docs: Boss has provided all the AD1 data he can (3:07 PM EDT): drop the AD1 papers from every waiting-on-Boss list (#2275)</li>
+<li>2026-10-18: docs: retire TEST.247, TEST.249 and TEST.251 (#2272) (#2273)</li>
+<li>2026-10-18: docs: retire GEN.404 (#2270), epoch 34 stamped, record Core 4's GEN.553 and GEN.565 plan and the DB.74 notes (#2271)</li>
+<li>2026-10-18: docs: retire GEN.546, GEN.547 (#2268) and TEST.250 (#2267), epoch 33 stamped, file TEST.253 (#2269)</li>
+<li>2026-10-18: docs: retire GEN.317 (#2265), epoch 32 stamped, file TEST.252 (#2266)</li>
+<li>2026-10-18: docs: retire TEST.248 (#2261), Core 4 findings on TEST.247 and TEST.249 (#2262)</li>
+<li>2026-10-18: docs: file GEN.593, Core 3 findings on TEST.246 and PERF.138, issue #2197 closed (#2258)</li>
+<li>2026-10-18: docs: retire GEN.244, GEN.282, GEN.563 (#2253, #2255, #2256), file TEST.248 and TEST.249, epochs 29 to 31 stamped (#2257)</li>
+<li>2026-10-18: docs: retire MAP.252, TEST.223, TEST.238 (#2252), MAP.251 stays open in part, Blocker 1 gate restarts (#2254)</li>
+<li>2026-10-18: GEN.590: the data check holds for the whole test session, names the setup command, and drops TODO codes from shown strings</li>
+<li>2026-10-18: TODO: GEN.549 retired (#2247), epoch 28 stamped, epoch notes updated (#2248)</li>
+<li>2026-10-18: TODO: GEN.572 retired (#2243), epoch 27 stamped, TEST.246 filed (#2244)</li>
+<li>2026-10-18: TODO: UX.107, DOC.45 and GEN.561 retired (#2240), epoch 26 stamped, epoch notes updated (#2241)</li>
+<li>2026-10-18: TODO: GEN.543 retired (#2238) (#2239)</li>
+<li>2026-10-18: TODO: GEN.548 retired (#2236), GEN.590 and PERF.138 filed, architecture map gains the datasets area (#2237)</li>
+<li>2026-10-18: TODO: UX.109 retired (#2234), architecture page and map regenerated without mdrender.py (#2235)</li>
+<li>2026-10-18: UX.109: remove the old description path (per-class text, mdrender and the markdown package) (#2234)</li>
+<li>2026-10-18: Docs: drop the mdrender.py rows ahead of UX.109, which deletes the module (#2233)</li>
+<li>2026-10-18: TODO: MAP.247 retired (#2229), global documents rebuilt (#2230)</li>
+<li>2026-10-18: TODO: #2227 retired (OPS.60, OPS.61, TEST.225, TEST.236, TEST.245), MAP.252 step 1 and TEST.223 cause recorded, global documents rebuilt (#2228)</li>
+<li>2026-10-18: TODO: GEN.402 retired (#2224), epochs 24 and 25 stamped, epoch notes updated (#2225)</li>
+<li>2026-10-18: TODO: GEN.562 retired (#2220), global documents rebuilt (#2222)</li>
+<li>2026-10-18: TODO: TEST.235 retired (#2218), lane board refreshed, global documents rebuilt (#2219)</li>
+<li>2026-10-18: TODO: GEN.552 and TEST.220 retired (#2214), global documents rebuilt (#2215)</li>
+<li>2026-10-18: OPS.61: the step names of the removed dedupe command go too</li>
+<li>2026-10-18: TODO: PERF.126 retired (#2211), GEN.572 recorded in its gate, global documents rebuilt (#2212)</li>
+<li>2026-10-18: TODO: GEN.439 and GEN.440 retired (#2208), GEN.548 recorded in its gate, global documents rebuilt (#2209)</li>
+<li>2026-10-18: TODO: description-layer bundle retired (#2206), head is 0111, global documents rebuilt (#2207)</li>
+<li>2026-10-18: TODO: PR #2124 retired (OPS.59, UX.110, UX.133, GEN.397 and 10 test items), Bug Hunt status (#2205)</li>
+<li>2026-10-18: TODO: DOC.69 retired (#2172), global documents rebuilt with the new step (#2201)</li>
+<li>2026-10-18: TODO: MAP.243 retired (#2199), TEST.235 sighting, architecture map regenerated (#2200)</li>
+<li>2026-10-18: TODO: GEN.567 retired (black hole density design, #2190) (#2191)</li>
+<li>2026-10-18: TODO: GEN.438, GEN.532 and GEN.533 retired (#2184, #2186), architecture map regenerated, lanes board and epochs (#2187)</li>
+<li>2026-10-17: TODO: GEN.563 rewritten for the metallicity-dependent black hole density, design step GEN.567 filed, GEN.243 retired (#2178) (#2180)</li>
+<li>2026-10-17: TODO: withdraw the TEST.171 sighting from Core 1, GEN.560 lane and GEN.562/563 owners (#2175)</li>
+<li>2026-10-17: TODO: retire PERF.127 (#2166), name planetgen warm where warm_map stood in the plan (#2168)</li>
+<li>2026-10-17: TODO: retire PERF.135 (#2163), GEN.252 and GEN.541 (#2164), file GEN.549 (#2165)</li>
+<li>2026-10-17: TODO: retire PERF.118 (#2159), record Boss's card answers on Core 5's order and the sweep (#2161)</li>
+<li>2026-10-17: TODO: retire MAP.250 (#2155) (#2158)</li>
+<li>2026-10-17: TODO: retire DOC.67, DOC.52, PERF.112, PERF.75 and the PERF.20 umbrella (#2154), file TEST.237 (#2156)</li>
+<li>2026-10-17: TODO: retire MAP.239 (#2152) (#2153)</li>
+<li>2026-10-17: TODO: retire TEST.232 (#2149) (#2151)</li>
+<li>2026-10-17: TODO: retire TEST.231 (#2147), TEST.126 partly fixed (#2148)</li>
+<li>2026-10-17: TODO: retire the GEN.241 umbrella, sightings on TEST.220 and TEST.225, TEST.236 fix noted (#2146)</li>
+<li>2026-10-17: TODO: retire GEN.321 (#2144), file TEST.236, TEST.220 sighting (#2145)</li>
+<li>2026-10-17: TODO: retire GEN.469 (#2139); file GEN.546 and GEN.547 (its follow-ups); sighting on TEST.174 (#2140)</li>
+<li>2026-10-17: TODO: retire GEN.238 and GEN.298 (#2132); file PERF.135 (jump box for the Uncharted and Phenomena tables); free MAP.207 (#2134)</li>
+<li>2026-10-17: TODO: retire TEST.230 (#2128); file DOC.68 (execution plan page generator) (#2129)</li>
+<li>2026-10-17: TEST.230: the O-star nebula test no longer assumes a D or E cluster holds no star as hot as the host (#2128)</li>
+<li>2026-10-17: TODO: retire GEN.314 (#2125); file TEST.230, TEST.231, MAP.251, MAP.252 and GEN.543 (#2126)</li>
+<li>2026-10-17: TODO: retire the stellar bundle (#2112) and TEST.213; GEN.321 stays with Core 3 (#2115)</li>
+<li>2026-10-17: TODO: TEST.213 passes on main after #2103, Bug Hunt drops its test change (#2111)</li>
+<li>2026-10-17: TODO: retire GEN.289 (#2108), migration head 0109 (#2109)</li>
+<li>2026-10-17: TODO: retire GEN.447 to GEN.449 and MAP.245, file GEN.541, TEST.196 and TEST.213 notes (#2104)</li>
+<li>2026-10-17: OPS.60, OPS.61: the admin commands do one job each; remove the one-off tools</li>
+<li>2026-10-17: Docs: retire UX.118 (#2089); file PERF.113-119 (generation stages as commands behind one wrapper, measure-first parallel items); test sightings on TEST.126 and TEST.172 (#2090)</li>
+<li>2026-10-17: Docs: retire UX.3 and DOC.24 (#2086); PERF.75 part 1 done; file PERF.112; TEST.172 sighting (#2087)</li>
+<li>2026-10-17: Docs: drop 76 stale prerequisites that point at items already done (#2084)</li>
+<li>2026-10-17: Docs: retire DB.53 and GEN.294 (done on main by #1952 and its subitems); clean stale prerequisites (#2083)</li>
+<li>2026-10-17: Docs: retire GEN.528 (#2077); file GEN.534 and GEN.535 from Core 3's report (#2078)</li>
+<li>2026-10-17: Docs: retire GEN.527 (#2075); TEST.213 fails alone on current main, TEST.220 second sighting (#2076)</li>
+<li>2026-10-17: Docs: atmosphere colour note drops the licence gate wording (GEN.500 removed) (#2073)</li>
+<li>2026-10-17: Remove GEN.500 (the licence audit): Boss ruled every acquired paper and dataset usable (#2072)</li>
+<li>2026-10-17: Docs: Core 5's #2070 retired (PERF.36, GEN.308, PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, TEST.221); DOC.51 keeps the API sentence; TEST.224 filed (#2071)</li>
+<li>2026-10-17: Docs: composition design notes GEN.409, 426, 435, 436, 437 retired (#2063); widest-range rule Decided in the notes (#2064)</li>
+<li>2026-10-17: Docs: retire GEN.401 (#2051); file GEN.532, GEN.533 and TEST.223 (#2053)</li>
+<li>2026-10-17: Docs: retire PERF.109, PERF.110, PERF.47, PERF.48, TEST.156, TEST.187, TEST.188 (#2050); file TEST.222 (#2052)</li>
+<li>2026-10-17: Docs: retire GEN.526 (#2043); the Clouds' derived shares noted on GEN.369 (#2044)</li>
+<li>2026-10-17: Docs: drop retired TEST.186 from the #1665 group (#2042)</li>
+<li>2026-10-17: Docs: retire TEST.186 (#2040), file TEST.221, record the three Gemini-check conflicts as Decided (widen, keep both), TEST.213 sighting (#2041)</li>
+<li>2026-10-17: Docs: retire DOC.47 (#2037); file the Gemini batch 1 check and the TEST.213 sighting (#2038)</li>
+<li>2026-10-17: Docs: retire MAP.225 (wheel part, #2031), MAP.227 and MAP.228 (#2032); file the rest of MAP.225 as MAP.245 (#2034)</li>
+<li>2026-10-17: TODO: DB.65 retired (#2025), migration head 0106 (#2026)</li>
+<li>2026-10-17: TODO: GEN.320 retired (#2014), GEN.373 dropped by Boss (#2016)</li>
+<li>2026-10-17: GEN.320: the stars a nebula needs: cloud protostars, a planetary nebula's close companion, a hosted roll from the star's own seed (#2014)</li>
+<li>2026-10-17: TODO: GEN.400 retired, stellar halo constants moved to GEN.406 (#2012)</li>
+<li>2026-10-17: TODO: GEN.242 retired, GEN.529 filed, TEST.174 sighting (#2010)</li>
+<li>2026-10-17: TODO: MAP.217 retired (#2007)</li>
+<li>2026-10-17: TODO: GEN.319 retired, GEN.528 filed, TEST.174 sighting (#2004)</li>
+<li>2026-10-17: TODO: NAV.45 retired, sightings on TEST.213 and TEST.216 (#2002)</li>
+<li>2026-10-17: TODO: PERF.97 retired (#2000)</li>
+<li>2026-10-17: TODO: TEST.193 retired, TEST.218, TEST.219 and GEN.527 filed (#1998)</li>
+<li>2026-10-17: TODO: GEN.240 retired, GEN.526 filed (satellites with gas get young and intermediate populations) (#1996)</li>
+<li>2026-10-17: TODO: GEN.322, GEN.323 and GEN.324 retired, migration queue moved up one (#1995)</li>
+<li>2026-10-17: Drop TEST.217 from the change note (fixed by #1989)</li>
+<li>2026-10-17: TODO: UX.114 retired, TEST.217 closed by the same PR (#1990)</li>
+<li>2026-10-17: TODO: GEN.407 retired, GEN.502 filed, TEST.216 and TEST.217 records (#1986)</li>
+<li>2026-10-17: TODO: NAV.60 retired (#1977), Boss's second research note recorded as awaiting verification (#1979)</li>
+<li>2026-10-17: TODO: body composition research merged into docs/design, GEN.432-434 and GEN.134 retired, GEN.457-469 filed, five Boss decisions recorded (#1972)</li>
+<li>2026-10-17: TODO: atmosphere composition research merged into docs/design, GEN.431 retired, GEN.452-456 and DB.71 filed (#1970)</li>
+<li>2026-10-17: TODO: GEN.276 retired (#1966), seven Bug Hunt test items merged (#1967)</li>
+<li>2026-10-17: TODO: GEN.372 precision audit (#1959) and GEN.368 laws table (#1960) retired (#1962)</li>
+<li>2026-10-17: Galaxy laws table: replace every Milky Way copy with a calculated law (GEN.368) (#1960)</li>
+<li>2026-10-17: TODO: composition joins the 9.0 headline; research, designs and tables in 8.1; GEN.103 retired (#1956)</li>
+<li>2026-10-17: TODO: retire DB.55, GEN.336, GEN.337 (#1952); DB.53 first slice and TEST.128 sighting recorded (#1954)</li>
+<li>2026-10-17: GEN.103: close-pair share by metallicity and a wide-pair limit from the place's density (#1953)</li>
+<li>2026-10-16: TODO: retire GEN.306 (#1942) (#1943)</li>
+<li>2026-10-16: TODO: withdraw TEST.207 (fixed in #1921 before it was filed) (#1939)</li>
+<li>2026-10-16: TODO: retire GEN.286 and GEN.287 (#1932); file GEN.396 (#1933)</li>
+<li>2026-10-16: TODO: retire GEN.135 and TEST.205 (#1927); drop GEN.388, the galaxy stores no home position (#1928)</li>
+<li>2026-10-16: TODO: retire ADM.43 and ADM.44 on #1921 (#1923)</li>
+<li>2026-10-16: TODO: retire API.27 and UX.113 on #1919 (#1920)</li>
+<li>2026-10-16: TODO: retire ADM.85 and UX.116, file TEST.203 flaky parallel-generation test (#1912)</li>
+<li>2026-10-16: TODO: GEN.285 needs GEN.338 and moves to 8.3; no longer gates GEN.301 (#1907)</li>
+<li>2026-10-16: TODO: retire GEN.333 and GEN.283 (#1904); file GEN.377 and TEST.202; TEST.172 sighting (#1906)</li>
+<li>2026-10-16: TODO: retire DB.18 (#1901); browser-hang sighting on TEST.193/195; DB.65 revision 0105 (#1902)</li>
+<li>2026-10-16: TODO: retire ADM.50 (#1896); GEN.368 records the black hole stays at the origin (#1897)</li>
+<li>2026-10-16: ADM.50: remove the galaxy settings files; the galaxy_shape row is the one record (#1896)</li>
+<li>2026-10-16: GEN.102 void census note (retire, no pre-fill) and GEN.103 placement-by-population note (#1891)</li>
+<li>2026-10-16: Retire DB.54 (#1887); file TEST.197 and TEST.198; migration order 0101 to 0104 (#1888)</li>
+<li>2026-10-16: Record Boss's GEN.103 answers and file TEST.196 (close-binary check) (#1885)</li>
+<li>2026-10-16: Retire GEN.335 and TEST.192 (#1883); migration order 0101-0104 (#1884)</li>
+<li>2026-10-16: Retire TEST.166 (#1881); Core 4's sighting on TEST.192 and GEN.103 corrections (#1882)</li>
+<li>2026-10-16: Retire DB.59 (already built, found by Core 2); DB.54 takes revision 0102 (#1880)</li>
+<li>2026-10-16: Retire GEN.102 (no pre-fill) and record Boss's research for GEN.103 (#1879)</li>
+<li>2026-10-16: Retire OPS.56 (#1877) and file TEST.195; add Core 2's reproduction to TEST.193 (#1878)</li>
+<li>2026-10-16: Retire ADM.84 (#1875) and file TEST.194; add Core 1's sighting to TEST.192 (#1876)</li>
+<li>2026-10-16: Retire PERF.88 (#1873) and file TEST.193 (teardown hang) (#1874)</li>
+<li>2026-10-16: Retire GEN.364 (adaptive per-cell system cap, #1868) (#1870)</li>
+<li>2026-10-16: Retire MAP.226 and record the satellite derivation chain (#1862)</li>
+<li>2026-10-16: Retire ADM.87, ADM.83 and ADM.96 after their merge (#1858)</li>
+<li>2026-10-16: Retire GEN.280 after its merge (#1856)</li>
+<li>2026-10-16: Retire GEN.237 after its merge and note the unverified satellite table (#1853)</li>
+<li>2026-10-16: Track the asteroid render items and the closed core-disc issue in the issue table (#1850)</li>
+<li>2026-10-16: Set the new lane orders, close ten items on Boss's approval and file the asteroid render steps (#1849)</li>
+<li>2026-10-16: Count a blocker chain once, drop GEN.99, correct migration numbers and Core 1 owners (#1848)</li>
+<li>2026-10-16: TODO: retire MAP.152 (#1832, #1838) (#1841)</li>
+<li>2026-10-16: TODO: retire PERF.104 (#1826) (#1827)</li>
+<li>2026-10-16: TODO: retire GEN.236 (#1824) (#1825)</li>
+<li>2026-10-16: TODO: retire GEN.281 (#1820), migration 0098 merged (#1821)</li>
+<li>2026-10-16: TODO: retire GEN.160 (#1817) (#1818)</li>
+<li>2026-10-16: TODO: retire GEN.254 (#1814) and GEN.251 (#1815), file GEN.298 (#1816)</li>
+<li>2026-10-16: TODO: retire GEN.159 (#1810), file GEN.297 (#1813)</li>
+<li>2026-10-16: TODO: retire GEN.101 (#1807), file TEST.173 (#1809)</li>
+<li>2026-10-16: TODO: retire GEN.278 (#1805) (#1806)</li>
+<li>2026-10-16: TODO: retire TEST.163, GEN.154, GEN.189 (#1801, #1799, #1800), file TEST.172 (#1803)</li>
+<li>2026-10-16: TODO: retire GEN.153 (#1792) and GEN.151 (#1795) (#1798)</li>
+<li>2026-10-16: TODO: retire GEN.262 (#1793) (#1794)</li>
+<li>2026-10-16: TODO: retire GEN.158 (#1789), file GEN.296 (#1790)</li>
+<li>2026-10-16: TODO: retire MAP.211 (#1787) (#1788)</li>
+<li>2026-10-16: TODO: retire GEN.235 (#1784), file TEST.171, build notes on dependants (#1786)</li>
+<li>2026-10-16: TODO: retire UX.117, GEN.288, OPS.41, OPS.53, OPS.54 (#1778 to #1782) (#1783)</li>
+<li>2026-10-16: OPS.41: the site is closed while an update runs, and a failed update leaves it closed (#1780)</li>
+<li>2026-10-16: TODO: retire MAP.208 (#1774) (#1775)</li>
+<li>2026-10-16: TODO: retire GEN.266 (#1771) (#1772)</li>
+<li>2026-10-16: TODO: retire PERF.103 (#1769) (#1770)</li>
+<li>2026-10-16: TODO: retire GEN.265 (#1766) (#1767)</li>
+<li>2026-10-16: TODO: retire GEN.234 (#1763), renumber migration revisions (#1765)</li>
+<li>2026-10-16: GEN.234: stellar halo replaces the density floor (migration 0094) (#1763)</li>
+<li>2026-10-15: TODO: retire GEN.149 (#1760) (#1762)</li>
+<li>2026-10-15: TODO: retire GEN.223, GEN.230, GEN.233, DB.34, DB.35, GEN.260 (#1757), file TEST.170 (#1759)</li>
+<li>2026-10-15: TODO: retire OPS.51 (#1741), fix the Liquid delimiter in TEST.163's note, Interface idle (#1742)</li>
+<li>2026-10-15: TODO: GEN.286 covers the horizontal-branch and AGB phases, no longer waits on GEN.158 (#1737)</li>
+<li>2026-10-15: TODO: retire GEN.279 (#1728), file GEN.280 to GEN.285, queued stages go to the Core lanes (#1729)</li>
+<li>2026-10-15: TODO: retire GEN.277 and GEN.113 (#1721); file GEN.278; index the scatter note (#1722)</li>
+<li>2026-10-15: TODO: retire GEN.155 (#1716) (#1719)</li>
+<li>2026-10-15: TODO: retire OPS.31 (#1715); Quality queue unassigned (#1717)</li>
+<li>2026-10-15: Note that the nuclear-cluster object is not built (GEN.155) (#1716)</li>
+<li>2026-10-15: TODO: retire OPS.52 (#1711) (#1714)</li>
+<li>2026-10-15: Tests: remove the cylinder geometry module and save sectors by shell, band and wedge (TEST.156) (#1708)</li>
+<li>2026-10-15: TODO: retire GEN.261 (#1705); file OPS.51 (maintenance-mode flag file bug); Core 2 findings (#1706)</li>
+<li>2026-10-15: TODO: retire GEN.268 (#1702) (#1703)</li>
+<li>2026-10-15: TODO: retire GEN.250 (#1700) (#1701)</li>
+<li>2026-10-15: TODO: retire TEST.158 (#1697) and DOC.21 (#1698); Quality findings on GEN.231, TEST.156, DOC.24, DB.33 (#1699)</li>
+<li>2026-10-15: TODO: retire PERF.102 (#1626) (#1636)</li>
+<li>2026-10-15: TODO: retire MAP.205, MAP.206 (#1612), file GEN.231 and GEN.232, Interface lane remap (#1632)</li>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+<li>2026-10-15: TODO: retire PERF.101 (PR #1620) (#1629)</li>
+<li>2026-10-15: TODO: retire DOC.34 (PR #1623) (#1624)</li>
+<li>2026-10-15: TODO: retire DOC.36 (#1616) (#1617)</li>
+<li>2026-10-15: TODO: retire GEN.228 (#1610), file GEN.229 (#1611)</li>
+<li>2026-10-15: TODO: retire DB.32, GEN.226, GEN.227, UX.111, UX.112 (spherical switch #1607) (#1608)</li>
+<li>2026-10-15: TODO: retire TEST.139 (#1605) (#1606)</li>
+<li>2026-10-15: TODO: retire DOC.22 and DOC.23 (#1599), note DOC.21 and DOC.27 progress (#1600)</li>
+<li>2026-10-15: TODO: retire DOC.26 (#1596) (#1597)</li>
+<li>2026-10-15: TODO: retire DOC.25 and DOC.37 (#1594) (#1595)</li>
+<li>2026-10-15: TODO: retire DOC.39 (#1590) (#1591)</li>
+<li>2026-10-15: TODO: retire DOC.35 (#1588) (#1589)</li>
+<li>2026-10-15: TODO: retire DOC.30 and DOC.38 (#1586) (#1587)</li>
+<li>2026-10-15: TODO: retire DOC.41 to DOC.44 (#1583, #1584) (#1585)</li>
+<li>2026-10-15: TODO: retire DOC.29 and DOC.40 (#1581) (#1582)</li>
+<li>2026-10-15: TODO: retire TEST.132 (#1578), record flake loop runs (#1579)</li>
+<li>2026-10-15: TODO: UX.112 closes the site only while maps update; MAP.205/206 clear it (#1568)</li>
+<li>2026-10-15: TODO: retire UX.78 (#1562) (#1563)</li>
+<li>2026-10-15: TODO: retire GEN.225 (#1551), GEN.226 progress, spherical switch branch (#1561)</li>
+<li>2026-10-15: TODO: retire MAP.200 (#1556) (#1557)</li>
+<li>2026-10-15: TODO: retire PERF.96, PERF.33 and POP.12, file TEST.157, record the uniform wedge rule (#1555)</li>
+<li>2026-10-15: TODO: retire GEN.224 (#1549), record wedge-rule rewrite and single switch (#1550)</li>
+<li>2026-10-15: Retire MAP.151 (PR #1539) (#1540)</li>
+<li>2026-10-15: Retire UX.106 (PR #1533) (#1534)</li>
+<li>2026-10-15: Retire GEN.222 (PR #1529) (#1530)</li>
+<li>2026-10-15: Retire API.25 (PR #1527) (#1528)</li>
+<li>2026-10-15: Retire POP.10 (PRs #1517, #1524) (#1526)</li>
+<li>2026-10-15: Retire TEST.152 (PR #1520) (#1522)</li>
+<li>2026-10-15: Retire MAP.203 (PR #1519) (#1521)</li>
+<li>2026-10-15: Retire MAP.199 (PR #1513) (#1514)</li>
+<li>2026-10-15: Retire UX.22 and UX.81 (PR #1504) (#1512)</li>
+<li>2026-10-15: Retire UX.104 (PR #1509) (#1510)</li>
+<li>2026-10-15: TODO: retire PERF.95, PERF.40, PERF.78, ADM.15 (PR #1506) (#1508)</li>
+<li>2026-10-15: TODO: retire the bug lanes; move GEN.222 and PERF.101 to feature lanes (#1505)</li>
+<li>2026-10-15: TODO: retire UX.103 (PR #1496) (#1498)</li>
+<li>2026-10-15: TODO: retire MAP.201 (PR #1494) (#1495)</li>
+<li>2026-10-15: TODO: retire GEN.217 (PR #1492) (#1493)</li>
+<li>2026-10-15: TODO: retire MAP.202 (PR #1490) (#1491)</li>
+<li>2026-10-15: TODO: retire TEST.154 (PR #1486) (#1487)</li>
+<li>2026-10-15: TODO: retire TEST.151 (PR #1484) (#1485)</li>
+<li>2026-10-15: TODO: retire GEN.216 (PR #1482) (#1483)</li>
+<li>2026-10-15: TODO: retire GEN.215 (PR #1478) (#1479)</li>
+<li>2026-10-15: TODO: retire DB.28 (PR #1476) (#1477)</li>
+<li>2026-10-15: TODO: retire GEN.214 (PR #1472) (#1473)</li>
+<li>2026-10-15: TODO: retire MAP.198 (PR #1470) (#1471)</li>
+<li>2026-10-15: TODO: retire UX.42 (PR #1466) (#1467)</li>
+<li>2026-10-15: TODO: retire POP.9 and POP.7 (PR #1461), move GEN.214-216 to Generation (#1462)</li>
+<li>2026-10-14: TODO: retire GEN.148 (PR #1457) (#1458)</li>
+<li>2026-10-14: TODO: retire MAP.197 (PR #1455), add TEST.154 (#1456)</li>
+<li>2026-10-14: MAP.197: remove the drill container code the map flip left unused (#1455)</li>
+<li>2026-10-14: TODO: retire TEST.153 (PR #1451) (#1452)</li>
+<li>2026-10-14: A single hung test can no longer stall a run (TEST.153) (#1451)</li>
+<li>2026-10-14: TODO: retire DB.27 (PR #1446) (#1449)</li>
+<li>2026-10-14: TODO: retire GEN.178 (PR #1447) (#1448)</li>
+<li>2026-10-14: Retire GEN.150 (nebula H II radius and density, PR #1442) (#1443)</li>
+<li>2026-10-14: Record the MAP.152 plan change; drop retired MAP.150 from the lane (#1441)</li>
+<li>2026-10-14: Retire GEN.208 (habitability description, PR #1433) (#1434)</li>
+<li>2026-10-14: Retire TEST.150 (test run progress log, PR #1431) (#1432)</li>
+<li>2026-10-14: Retire GEN.207 (habitability domains, PR #1429) (#1430)</li>
+<li>2026-10-14: Retire DB.26 and OPS.50; add DB.27 and DB.28 migrations for POP.9 and POP.10 (#1426)</li>
+<li>2026-10-14: Retire POP.8 (tech-level design, PR #1422) (#1424)</li>
+<li>2026-10-14: Retire GEN.213 (#1412) (#1413)</li>
+<li>2026-10-14: Retire GEN.177 (#1410) (#1411)</li>
+<li>2026-10-14: Retire TEST.133, TEST.147, TEST.149 (#1405); add GEN.213 (#1407)</li>
+<li>2026-10-14: Retire ADM.54 and add the induced moment to DB.26 (#1402)</li>
+<li>2026-10-14: Retire MAP.150 (#1382); add MAP.197 (#1398)</li>
+<li>2026-10-14: Retire OPS.48 (#1395) (#1396)</li>
+<li>2026-10-14: Retire NAV.47 and give Bugfixes lane 2 its next queue (#1390)</li>
+<li>2026-10-14: Retire OPS.49 (#1387) (#1388)</li>
+<li>2026-10-14: TODO: retire PERF.94 (#1383); file TEST.149 (#1384)</li>
+<li>2026-10-14: TODO: retire UX.93 (#1378) (#1379)</li>
+<li>2026-10-14: TODO: retire DB.25 (#1376); schema v86; MAP.151b unblocked (#1377)</li>
+<li>2026-10-14: TODO: retire ADM.51 (#1374) (#1375)</li>
+<li>2026-10-14: TODO: retire PERF.92 (#1371); schema v85 (#1372)</li>
+<li>2026-10-14: TODO: retire UX.98 (#1369); OPS.49 cause (#1370)</li>
+<li>2026-10-14: TODO: retire TEST.145 and TEST.146 (#1367); full run about 49 minutes (#1368)</li>
+<li>2026-10-14: TODO: retire PERF.93, DB.23, GEN.201; file TEST.147 (#1366)</li>
+<li>2026-10-14: Retire OPS.46 (#1359) (#1360)</li>
+<li>2026-10-14: TODO: retire UX.99 (#1355) (#1356)</li>
+<li>2026-10-14: TODO: retire PERF.82 (#1352) (#1353)</li>
+<li>2026-10-14: TODO: retire OPS.47 (#1346) (#1347)</li>
+<li>2026-10-14: TODO: retire OPS.45 (#1333) (#1334)</li>
+<li>2026-10-14: TODO: retire MAP.196 (#1331) (#1332)</li>
+<li>2026-10-14: TODO: documentation sweep filed as DOC.18 to DOC.44; retire MAP.159 (#1305) (#1327)</li>
+<li>2026-10-14: TODO: retire GEN.205 (#1325) (#1326)</li>
+<li>2026-10-14: TODO: retire DB.24, OPS.43, OPS.44, ADM.53 (#1317, #1307, #1318) (#1319)</li>
+<li>2026-10-14: TODO: retire UX.97 (#1315) (#1316)</li>
+<li>2026-10-14: TODO: retire TEST.125, TEST.142, TEST.143; MAP.151a done; add MAP.196 (#1314)</li>
+<li>2026-10-14: TODO: retire GEN.211 and GEN.156 (#1310) (#1311)</li>
+<li>2026-10-14: Retire PERF.89 (#1308), note TEST.128 sighting (#1309)</li>
+<li>2026-10-14: Retire MAP.154 (#1303) (#1304)</li>
+<li>2026-10-14: Retire PERF.87 and PERF.90 (#1300) (#1302)</li>
+<li>2026-10-14: Retire UX.95 (#1299), note TEST.126 sightings (#1301)</li>
+<li>2026-10-14: Retire OPS.42 (#1291) (#1292)</li>
+<li>2026-10-14: Retire MAP.187 (#1288) and MAP.188 (#1289) (#1290)</li>
+<li>2026-10-14: Retire MAP.184 (#1282) and MAP.186 (#1283) (#1286)</li>
+<li>2026-10-14: Retire PERF.54 (#1284), record test rebuild stage 1 (#1280) (#1285)</li>
+<li>2026-10-14: Remove the Sector Map's redundant Mark rogue planets button (MAP.184) (#1282)</li>
+<li>2026-10-14: Retire GEN.206 (#1278) and MAP.185 (#1279) (#1281)</li>
+<li>2026-10-14: Retire PERF.84 (#1274) (#1275)</li>
+<li>2026-10-14: TODO: test fixes move to the rebuild thread on hold; retire UX.96 (#1267) (#1268)</li>
+<li>2026-10-14: Retire PERF.85 (#1265) (#1266)</li>
+<li>2026-10-14: PERF.85: a step that never ticks replaces the finished step in the progress file; log the index build (#1265)</li>
+<li>2026-10-14: Retire PERF.83 (#1259) (#1260)</li>
+<li>2026-10-14: TODO: retire PERF.80, GEN.200, MAP.155; file TEST.143 and TEST.144 (#1254)</li>
+<li>2026-10-14: TODO: retire PERF.67, file TEST.142 (#1250)</li>
+<li>2026-10-14: TODO: retire the nebula tuning chain, file the math and library efficiency items (#1240)</li>
+<li>2026-10-14: TODO: retire PERF.81, file TEST.140 and TEST.141 from the lane 2 suite run (#1237)</li>
+<li>2026-10-10: TODO: retire PERF.73 (PR #1209) (#1210)</li>
+<li>2026-10-10: TODO: retire PERF.69, PERF.79 (PR #1206) (#1207)</li>
+<li>2026-10-10: TODO: retire MAP.175 (PR #1203), add TEST.138 (#1205)</li>
+<li>2026-10-10: TODO: CI is no longer manual-only (#1202)</li>
+<li>2026-10-10: TODO: retire PERF.76, PERF.77, narrow PERF.75 (#1200)</li>
+<li>2026-10-10: TODO: retire PERF.65, PERF.66 (PR #1197) (#1198)</li>
+<li>2026-10-10: TODO: retire NAV.48 (PR #1195), add TEST.137 (#1196)</li>
+<li>2026-10-10: TODO: retire PERF.68, PERF.70, PERF.74 (PR #1193) (#1194)</li>
+<li>2026-10-10: TODO: NAV.47 no longer waits on a missing bug (#1192)</li>
+<li>2026-10-10: TODO: retire PERF.46, GEN.169 and GEN.128 (PR #1186) (#1187)</li>
+<li>2026-10-10: TODO: retire PERF.31, file PERF.79-82, reorder Foundations lane 1 (#1181)</li>
+<li>2026-10-10: TODO: close PERF.59 as superseded, file TEST.134 (#1178)</li>
+<li>2026-10-10: TODO: file the nine builds from the PERF.71 research, retire PERF.71 (PR #1175) (#1177)</li>
+<li>2026-10-10: TODO: file map luminosity items (GEN.200, DB.23, GEN.201, MAP.171) and PERF.73, retire PERF.63 (PR #1174) (#1176)</li>
+<li>2026-10-10: TODO: retire NAV.52 (PR #1172) (#1173)</li>
+<li>2026-10-10: TODO: file ADM.50, remove the galaxy settings files entirely (#1170)</li>
+<li>2026-10-10: TODO: retire PERF.64 (PR #1161); file its leftovers PERF.68, PERF.69, PERF.70 (#1163)</li>
+<li>2026-10-10: TODO: retire MAP.148 (PR #1160); reorganize the Foundations lane queues (#1162)</li>
+<li>2026-10-10: TODO: retire NAV.42 (PR #1153) (#1154)</li>
+<li>2026-10-10: TODO: retire PERF.39 (PR #1151) (#1152)</li>
+<li>2026-10-10: TODO: retire PERF.38 (PR #1144), Ludicrous Speed re-run moved to ADM.15 (#1145)</li>
+<li>2026-10-10: TODO: retire MAP.149 (PR #1141); MAP.121 and MAP.141 built in part (#1142)</li>
+<li>2026-10-10: TODO: retire NAV.9 (PR #1139); file TEST.125 (#1140)</li>
+<li>2026-10-10: TODO: retire API.23 and DOC.17 (PRs #1119, #1127, #1133) (#1134)</li>
+<li>2026-10-10: TODO: retire PERF.55 (PR #1131) (#1132)</li>
+<li>2026-10-10: TODO: retire MAP.161 (PR #1129) (#1130)</li>
+<li>2026-10-10: TODO: retire DB.22, API.23 stage 2 done (PR #1127) (#1128)</li>
+<li>2026-10-10: TODO: retire TEST.122 (PR #1125); note API.23 stage 3 test failure (#1126)</li>
+<li>2026-10-10: TODO: retire MAP.158 (PR #1123) (#1124)</li>
+<li>2026-10-10: TODO: retire TEST.123 (PR #1121) (#1122)</li>
+<li>2026-10-10: TODO: retire API.22, API.23 stage 1 done, file DB.22 (PR #1119) (#1120)</li>
+<li>2026-10-10: TODO: retire ADM.49 (PR #1116) (#1117)</li>
+<li>2026-10-10: TODO: retire MAP.157 (PR #1112) (#1115)</li>
+<li>2026-10-10: TODO: retire PERF.61 (measured, PR #1113), file PERF.63 (#1114)</li>
+<li>2026-10-10: TODO: retire MAP.165 (PR #1110) (#1111)</li>
+<li>2026-10-10: TODO: retire PERF.58 (PR #1108), re-scope PERF.59 (#1109)</li>
+<li>2026-10-10: TODO: retire PERF.60 (PR #1106) (#1107)</li>
+<li>2026-10-10: TODO: retire UX.91 (PR #1104); lane 2 gets MAP.165 then ADM.49 (#1105)</li>
+<li>2026-10-10: TODO: retire TEST.124 (PR #1077) (#1103)</li>
+<li>2026-10-10: TODO: PERF.57 built (PR #1101); PERF.58/61 remove the grouping (#1102)</li>
+<li>2026-10-10: TODO: retire NAV.11 (PR #1099) (#1100)</li>
+<li>2026-10-10: TODO: retire UX.87 (PR #1097) (#1098)</li>
+<li>2026-10-10: TODO: retire NAV.8 (PR #1095), file UX.92, extend NAV.9 (#1096)</li>
+<li>2026-10-10: TODO: retire GEN.196 (PR #1093) (#1094)</li>
+<li>2026-10-10: TODO: retire GEN.186 (#1090)</li>
+<li>2026-10-10: TODO: retire MAP.162 (PR #1085) (#1086)</li>
+<li>2026-10-10: TODO: retire DB.21 (PR #1082) (#1084)</li>
+<li>2026-10-10: TODO: retire GEN.195 (PR #1081) (#1083)</li>
+<li>2026-10-10: TODO: drop PERF.62 (superseded by PERF.58) (#1080)</li>
+<li>2026-10-10: Docs: retire PERF.56 (PR #1077) (#1078)</li>
+<li>2026-10-10: Docs: retire GEN.172, GEN.176, TEST.110, DOC.5 (PR #1075); file GEN.197 and DOC.17 (#1076)</li>
+<li>2026-10-10: Docs: withdraw the PERF.58 shunting amendment (#1074)</li>
+<li>2026-10-10: Docs: PERF.58 drops the stack rule (#1072)</li>
+<li>2026-10-10: Docs: retire MAP.166 (PR #1070) (#1071)</li>
+<li>2026-10-10: Docs: file PERF.58-61 scatter sampler items, retire PERF.57 as superseded (#1067)</li>
+<li>2026-10-10: Docs: retire UX.90 (PR #1065) (#1066)</li>
+<li>2026-10-10: Docs: retire GEN.187 (PR #1059), file TEST.124 (#1060)</li>
+<li>2026-10-10: Docs: retire UX.89 (PR #1057) (#1058)</li>
+<li>2026-10-10: Docs: retire DB.20 and GEN.171 (PR #1055) (#1056)</li>
+<li>2026-10-10: Docs: retire GEN.194 (PR #1051) (#1052)</li>
+<li>2026-10-10: Docs: retire UX.88 (PR #1049) (#1050)</li>
+<li>2026-10-10: TODO: retire API.9 (#1034)</li>
+<li>2026-10-10: TODO: retire MAP.163 and MAP.164, file MAP.165 (#1030)</li>
+<li>2026-10-10: TODO: retire GEN.89 and GEN.83 (#1027)</li>
+<li>2026-10-10: TODO: file and retire GEN.193 (Phenomena table empty after scatter) (#1020)</li>
+<li>2026-10-10: TODO: retire GEN.170, file TEST.123 (#1018)</li>
+<li>2026-10-10: TODO: retire PERF.53, note whole-job stat on PERF.55 (#1016)</li>
+<li>2026-10-10: TODO: retire GEN.192 (#1014)</li>
+<li>2026-10-10: TODO: retire GEN.190 and GEN.191 (#1010)</li>
+<li>2026-10-10: TODO: retire OPS.40 and GEN.188, file TEST.122, note MAP.163 cause, fix default values in the scatter design note (#1009)</li>
+<li>2026-10-10: Retire TEST.121 (PR #1002), TEST.120; file PERF.54 (#1003)</li>
+<li>2026-10-10: Retire MAP.153 (PR #998); file GEN.189 (#999)</li>
+<li>2026-10-10: Retire TEST.119, PERF.52; file TEST.121 (#995)</li>
+<li>2026-10-10: Retire ADM.28, ADM.45 (PR #991) (#992)</li>
+<li>2026-10-10: Fix update.sh log location check loading the deleted appconfig.py; test script repo paths exist (#989)</li>
+<li>2026-10-10: Retire GEN.173, GEN.174 (PR #987); file TEST.119, TEST.120 (#988)</li>
+<li>2026-10-10: Retire GEN.87 (PR #985) (#986)</li>
+<li>2026-10-10: Retire OPS.39 (PR #981), TEST.115, OPS.34, TEST.118 (PR #975) (#982)</li>
+<li>2026-10-10: Remove Windows support (OPS.39) (#981)</li>
+<li>2026-10-10: Retire ADM.31 (PR #976) (#977)</li>
+<li>2026-10-10: File OPS.39 (remove Windows support); TEST.115 and OPS.34 superseded (#973)</li>
+<li>2026-10-10: Retire GEN.183 (PR #969), file TEST.118 (#970)</li>
+<li>2026-10-10: Retire OPS.38, TEST.117 and GEN.175 (#968)</li>
+<li>2026-10-10: Remove committed Redis dump.rdb files and ignore them (#967)</li>
+<li>2026-10-10: Retire GEN.184 (PR #965) (#966)</li>
+<li>2026-10-10: Retire GEN.88 (PR #963), file OPS.38 and TEST.117 (#964)</li>
+<li>2026-10-09: Retire TEST.112 (PR #955) (#956)</li>
+<li>2026-10-09: Retire GEN.185 (PR #953) (#954)</li>
+<li>2026-10-09: Retire GEN.97 (PR #950), file GEN.186 (#951)</li>
+<li>2026-10-09: Retire GEN.165 (PR #948) (#949)</li>
+<li>2026-10-09: Retire TEST.114 (PR #946) (#947)</li>
+<li>2026-10-09: Retire GEN.182 (PR #938) (#939)</li>
+<li>2026-10-09: Retire UX.86 (PR #936) (#937)</li>
+<li>2026-10-09: Retire ADM.30 (PR #934), file TEST.114 (#935)</li>
+<li>2026-10-09: Retire UX.85 (PR #932) (#933)</li>
+<li>2026-10-09: TODO: retire UX.84 (PR #930) (#931)</li>
+<li>2026-10-09: TODO: retire ADM.29 (PR #926) (#927)</li>
+<li>2026-10-09: TODO: retire DB.15 (PR #924) (#925)</li>
+<li>2026-10-09: TODO: retire PERF.50 (PR #922) (#923)</li>
+<li>2026-10-09: TODO: retire PERF.51 and TEST.113 (PRs #919, #920) (#921)</li>
+<li>2026-10-09: TODO: retire GEN.96 (PR #915); file GEN.179-181 and TEST.113 (#916)</li>
+<li>2026-10-09: TODO: retire ADM.42 (PR #912) (#913)</li>
+<li>2026-10-09: TODO: retire GEN.86 (PR #908); file GEN.177 and GEN.178 (#909)</li>
+<li>2026-10-09: TODO: retire PERF.32 (PR #905) (#906)</li>
+<li>2026-10-09: Record generation rates per worker count, delete on a new version (PERF.32) (#905)</li>
+<li>2026-10-09: Retire UX.83 (PR #895); file PERF.50 and TEST.111 (#896)</li>
+<li>2026-10-09: Retire DB.8 (PR #893) (#894)</li>
+<li>2026-10-09: Retire UX.35; record zoom visibility dependencies; add section 8a to the fly-through note (#882)</li>
+<li>2026-10-09: Retire OPS.14; close DB.19 (#877)</li>
+<li>2026-10-09: Retire PERF.49 and correct the measurement note (#871)</li>
+<li>2026-10-09: Retire the Bugfixes lane 1 batch (PRs 865 and 868) (#869)</li>
+<li>2026-10-09: Retire GEN.166 to GEN.168; DB.19 becomes conditional (#867)</li>
+<li>2026-10-09: Retire PERF.44, PERF.45, ADM.48; PERF.46 position half built (#864)</li>
+<li>2026-10-09: Retire PERF.43, file ADM.48 (#862)</li>
+<li>2026-10-09: Drop the user-facing rebuild of a galaxy from a seed; keep the internal same-seed work (#856)</li>
+<li>2026-10-09: Retire GEN.85 (#850)</li>
+<li>2026-10-09: Retire ADM.47 and record the name-reservation timing (#847)</li>
+<li>2026-10-09: Retire GEN.137, NAV.53, OPS.33, UX.79, UX.80 (#844)</li>
+<li>2026-10-09: Retire NAV.12 and PERF.42 (#842)</li>
+<li>2026-10-09: Drop ADM.46 (withdrawn: Boss wants the opposite, stats missing on neighbourhood runs) (#833)</li>
+<li>2026-10-09: Cite verified stability forms in GEN.95, GEN.129 and GEN.130; retire GEN.104 (#825)</li>
+<li>2026-10-09: Retire GEN.94 and record Boss's answers on GEN.95 and GEN.130 (#823)</li>
+<li>2026-10-09: Retire DB.7, NAV.10, GEN.108, ADM.18 and GEN.107 (PRs #813-#817) (#818)</li>
+<li>2026-10-09: Retire GEN.131, GEN.127, GEN.132, GEN.133, OPS.8, GEN.58, OPS.13, PERF.34; file GEN.134 (#806)</li>
+<li>2026-10-09: Retire GEN.106, GEN.84, NAV.43, NAV.44; GEN.109 rule; file GEN.132, GEN.133 (#801)</li>
+<li>2026-10-09: Delete the finished phase 0 plan; retire UX.76, ADM.39, ADM.40, ADM.41 (#799)</li>
+<li>2026-10-09: Retire MAP.136, MAP.137, MAP.138 and UX.77 (PR #797) (#798)</li>
+<li>2026-10-09: Retire GEN.100 (PR #793) and GEN.98 (PR #795); plan moves to schema v65 (#796)</li>
+<li>2026-10-09: Retire GEN.56 (PR #791); execution plan shows it merged (#792)</li>
+<li>2026-10-09: Retire MAP.135; file ADM.45 (prevalence shares); write Boss's answers into their items; open decisions cleared (#789)</li>
+<li>2026-10-09: Tier plan: open questions are collapsible; drop the two Boss has answered (NAV.43, GEN.57) (#787)</li>
+<li>2026-10-09: Retire GEN.125 (PR #782) and move the Alembic order in the execution plan to 0065 (#783)</li>
+<li>2026-10-09: Retire MAP.89 on Boss's word and add the Phase 1+ execution plan (#781)</li>
+<li>2026-10-09: TODO: retire DB.13 (PR #766); phase 0 is complete, major note for 8.0 (#773)</li>
+<li>2026-10-09: TODO: retire GEN.126 (PR #771) (#772)</li>
+<li>2026-10-09: TODO: retire GEN.66 (PR #767) and OPS.20 (all its library swaps are done) (#768)</li>
+<li>2026-10-09: TODO: retire MAP.134 (PR #764) (#765)</li>
+<li>2026-10-09: TODO: retire GEN.123 (PR #762) (#763)</li>
+<li>2026-10-09: TODO: retire UX.39 (PR #759); document mdrender, alembic_runner and the generated models (#760)</li>
+<li>2026-10-09: Render system Markdown with the markdown package; delete mdconvert.py (UX.39) (#759)</li>
+<li>2026-10-09: TODO: close MAP.58 as superseded by MAP.125; drop the run-update.sh reminders (#756)</li>
+<li>2026-10-09: Fix two flaky tests: the databases listing no longer copies another schema's counts, and a job drops its queue before it releases its lock (#755)</li>
+<li>2026-10-09: TODO: retire MAP.123 (PR #753) (#754)</li>
+<li>2026-10-09: TODO: retire DB.11 (PR #751) and update the architecture flow for Alembic (#752)</li>
+<li>2026-10-09: Remove the legacy migration steps and old-schema fixtures; Alembic carries every migration from v61 (DB.11) (#751)</li>
+<li>2026-10-08: TODO: retire ADM.21 (PR #748) (#749)</li>
+<li>2026-10-08: TODO: retire GEN.122 (PR #741) (#742)</li>
+<li>2026-10-08: TODO: retire GEN.67 (done with GEN.70 and GEN.71) (#740)</li>
+<li>2026-10-08: TODO: retire GEN.71 (PR #738), GEN.73 folded in (#739)</li>
+<li>2026-10-08: TODO: retire GEN.121 (PRs #729, #735), file GEN.125 for facility velocity (#737)</li>
+<li>2026-10-08: TODO: retire GEN.70 (PR #731), progress notes on ADM.18 and MAP.123 (#732)</li>
+<li>2026-10-08: TODO: retire GEN.124, progress notes on GEN.121 and GEN.122 (PR #729) (#730)</li>
+<li>2026-10-08: TODO: retire MAP.133 (PR #722) (#726)</li>
+<li>2026-10-08: TODO: retire NAV.50 and NAV.3 (PR #724) (#725)</li>
+<li>2026-10-08: TODO: retire NAV.24 and VIEW.5 (PR #719) (#720)</li>
+<li>2026-10-08: TODO: retire NAV.20 (PR #711) (#712)</li>
+<li>2026-10-08: TODO: retire UX.21 (PR #707) (#710)</li>
+<li>2026-10-08: TODO: retire NAV.16 (PR #697) (#700)</li>
+<li>2026-10-08: TODO: retire MAP.124 (PR #696) (#698)</li>
+<li>2026-10-08: TODO: retire MAP.131 (PR #692) (#693)</li>
+<li>2026-10-08: TODO: retire TEST.108 and TEST.109 (PR #690) (#691)</li>
+<li>2026-10-08: TODO: retire NAV.7 (PR #688) (#689)</li>
+<li>2026-10-08: TODO: retire MAP.126 (PR #686) (#687)</li>
+<li>2026-10-08: Retire MAP.125 (#684)</li>
+<li>2026-10-08: Retire UX.75; MAP.125 progress line (#680)</li>
+<li>2026-10-08: Retire MAP.62, MAP.67, MAP.70 to MAP.74; file TEST.109 (#674)</li>
+<li>2026-10-08: Retire UX.54, UX.55, UX.37; file TEST.108 (#672)</li>
+<li>2026-10-08: Retire MAP.69; close TEST.107 (not reproducible) (#669)</li>
+<li>2026-10-08: Retire GEN.74; file TEST.107 (#666)</li>
+<li>2026-10-08: Retire UX.51 (#664)</li>
+<li>2026-10-08: Retire UX.69 (#660)</li>
+<li>2026-10-08: Retire GEN.72 (#658)</li>
+<li>2026-10-08: Retire UX.52, UX.53 (#655)</li>
+<li>2026-10-08: Retire TEST.106 (#651)</li>
+<li>2026-10-08: Layout test leaves the maps' popover menus closed when it opens every folded section (TEST.106) (#650)</li>
+<li>2026-10-08: Retire UX.67, UX.70, UX.71, TEST.105; file TEST.106 (#649)</li>
+<li>2026-10-08: Retire UX.68; file UX.75 (#647)</li>
+<li>2026-10-08: Retire NAV.32, TEST.104, SEC.30, TEST.83; file TEST.105; fold GEN.73 into GEN.71; GEN.72 note (#644)</li>
+<li>2026-10-08: Plan: retire UX.50, UX.59 and UX.61 (#641)</li>
+<li>2026-10-08: Plan: retire UX.57, UX.58, UX.60 and UX.62; UX.50 partly done (#639)</li>
+<li>2026-10-08: Plan: retire UX.65 (#636)</li>
+<li>2026-10-08: Plan: retire UX.72, UX.56 and UX.73 (#633)</li>
+<li>2026-10-08: Plan: retire MAP.61; MAP.67 stays open under MAP.62 (#630)</li>
+<li>2026-10-08: Plan: retire ADM.38 (#628)</li>
+<li>2026-10-08: Plan: retire TEST.103 (#626)</li>
+<li>2026-10-08: Plan: retire GEN.68 and GEN.69 (#624)</li>
+<li>2026-10-08: Plan: retire UX.64, UX.66 and UX.74 (#621)</li>
+<li>2026-10-08: Plan: retire UX.63; fold the 820 px case into TEST.103 (#619)</li>
+<li>2026-10-08: Plan: retire NAV.29 and NAV.33 (#616)</li>
+<li>2026-10-08: Plan: retire SEC.29 and TEST.72; file TEST.103 and TEST.104 (#613)</li>
+<li>2026-10-08: Plan: retire TEST.102 (#611)</li>
+<li>2026-10-08: Plan: retire GEN.116 (closed by Boss, not seen since the one report) (#609)</li>
+<li>2026-10-08: Retire UX.41 and UX.33 (PRs #594 to #606) (#607)</li>
+<li>2026-10-08: Retire MAP.102 and MAP.109 (PRs #574, #603) (#604)</li>
+<li>2026-10-08: Retire MAP.116, MAP.115 and GEN.117 (PRs #598, #600, #601) (#602)</li>
+<li>2026-10-08: Close MAP.128: sector space is not tinted; MAP.131 is Galaxy Map only (#596)</li>
+<li>2026-10-08: Retire MAP.103 and MAP.104 (PR #592) (#593)</li>
+<li>2026-10-08: Retire MAP.105 and UX.38 (PR #590) (#591)</li>
+<li>2026-10-08: Retire MAP.106 (PR #586) (#587)</li>
+<li>2026-10-08: Retire MAP.113 (PR #584) (#585)</li>
+<li>2026-10-08: Retire GEN.75 (PRs #576, #579, #580) (#581)</li>
+<li>2026-10-08: Retire MAP.79 (PR #577); narrow MAP.113, note MAP.123 progress (#578)</li>
+<li>2026-10-08: Retire MAP.68 (PR #573); narrow MAP.67 to the system and body URL forms (#575)</li>
+<li>2026-10-08: Retire NAV.14 (PR #571); note the GEN.68 comparison awaiting Boss's pick (#572)</li>
+<li>2026-10-08: Retire MAP.66 (PR #548); the sector page embed rides with MAP.68 (#570)</li>
+<li>2026-10-08: Retire NAV.46 (closed as already fixed, test in PR #568) (#569)</li>
+<li>2026-10-08: Retire NAV.15 (PR #566) (#567)</li>
+<li>2026-10-08: Retire NAV.13 (PR #564); split NAV.15's body endpoints into NAV.50 (#565)</li>
+<li>2026-10-08: Retire ADM.34 and MAP.95 (PR #562); UX.37 has no prerequisites left (#563)</li>
+<li>2026-10-08: Retire ADM.24, ADM.25, ADM.26 (PR #560) (#561)</li>
+<li>2026-10-08: Retire UX.26 (PR #558) (#559)</li>
+<li>2026-10-08: Retire DB.14, MAP.129, MAP.130 (PR #556); narrow MAP.128 to the Sector Map (#557)</li>
+<li>2026-10-08: Retire GEN.120 (PR #554); point GEN.67/GEN.70 and the architecture map at the new codec path (#555)</li>
+<li>2026-10-08: Retire ADM.22 (PR #551) (#552)</li>
+<li>2026-10-08: Retire TEST.94 to TEST.101 (PR #549) and close MAP.108 as not reproducible (#550)</li>
+<li>2026-10-08: Retire UX.40 and ADM.14 (PR #544); file UX.49 form fields as Shoelace components (#547)</li>
+<li>2026-10-08: Progress bar on the database reset and orbital update; reset no longer counts every row first (#546)</li>
+<li>2026-10-07: Retire MAP.112 (done in PR #541) (#542)</li>
+<li>2026-10-07: Charted only no longer stops picking (MAP.112) (#541)</li>
+<li>2026-10-07: Retire UX.27 (done in PR #539) (#540)</li>
+<li>2026-10-07: Retire MAP.107 (done in PR #537); note MAP.108 part 1 and new flake sightings (#538)</li>
+<li>2026-10-07: Retire UX.31 (done in PR #533); note UX.26 and UX.40 progress (#534)</li>
+<li>2026-10-07: Retire MAP.111 (done in PR #531); file TEST.98 to TEST.101 (#532)</li>
+<li>2026-10-07: Retire MAP.65 (done in PR #521) (#530)</li>
+<li>2026-10-07: Retire UX.2 (done in PR #528); note UX.40 progress (#529)</li>
+<li>2026-10-07: Retire OPS.19 (done in PR #525); file TEST.97 (#526)</li>
+<li>2026-10-07: Retire MAP.110 (done in PR #520) (#524)</li>
+<li>2026-10-07: Retire TEST.92 and TEST.93 (done in PR #522); file TEST.95 and TEST.96 (#523)</li>
+<li>2026-10-07: Retire PERF.24 (done in PRs #496-#517) (#518)</li>
+<li>2026-10-07: Retire ADM.37 (PR #514); file TEST.94; note TEST.93's cause (#516)</li>
+<li>2026-10-07: Retire ADM.23 (done in PR #508) (#509)</li>
+<li>2026-10-07: Log lines no longer hard-wrapped on a progress bar's console (ADM.23) (#508)</li>
+<li>2026-10-07: Retire ADM.16 (done in PR #506) (#507)</li>
+<li>2026-10-07: File TEST.93 (load-only timing failures, MariaDB drops); note GET /api/jobs/&lt;id&gt; (#505)</li>
+<li>2026-10-07: Retire GEN.48, GEN.52 and TEST.75 (done in PR #502) (#503)</li>
+<li>2026-10-07: Retire GEN.118 and GEN.119 (done in PR #491); note the galaxy reset (#499)</li>
+<li>2026-10-07: Retire PERF.19 (done in PR #492) (#495)</li>
+<li>2026-10-07: Retire UX.28 and UX.25 (PR #490) and TEST.91 (PR #493) (#494)</li>
+<li>2026-10-07: Retire UX.24 and UX.29 (done in PR #487) (#488)</li>
+<li>2026-10-07: Retire TEST.71, 78, 82, 84, 86, 88, 89 and 90 (done in PR #484) (#485)</li>
+<li>2026-10-07: Flaky tests made deterministic; a slow-starting job runner no longer counts as interrupted (TEST.71, 82, 84, 86, 88, 89, 90) (#484)</li>
+<li>2026-10-07: TODO: retire PERF.25 (PR #478) (#480)</li>
+<li>2026-10-07: Docs: architecture page after the package move; retire OPS.27, ADM.33, GEN.65; file GEN.116, TEST.90 (#477)</li>
+<li>2026-10-07: TODO: retire OPS.24 and OPS.22 (PR #473); move TEST.71 to the bugfix lane (#474)</li>
+<li>2026-10-07: Editable install replaces the sys.path pushes; wikiClient into planetgen.wiki (OPS.24 step 14b) (#473)</li>
+<li>2026-10-07: TODO: retire PERF.26 (PR #470) (#471)</li>
+<li>2026-10-07: TODO: retire GEN.81 and OPS.26 (PR #467) (#468)</li>
+<li>2026-10-07: TODO: retire the PR #457 bugs (#463)</li>
+<li>2026-10-07: TODO: retire GEN.77, GEN.78 and GEN.79 (PR #461) (#462)</li>
+<li>2026-10-07: TODO: retire PERF.28 (PR #454) (#455)</li>
+<li>2026-10-07: TODO: retire GEN.82, UX.34, OPS.9, GEN.80, ADM.27 (PR #448); population doc drops species without a civilization (#449)</li>
+<li>2026-10-07: Windows scripts: the Redis check's warning no longer becomes the script's exit code</li>
+<li>2026-10-07: GEN.80: species only for worlds with a technological civilization; a pass removes the others</li>
+<li>2026-10-07: TODO: retire the CI red group (PR #442); file TEST.89 (Galaxy Map drill-down flake) (#443)</li>
+<li>2026-10-07: TODO: retire OPS.21 (PR #437); PERF.25 drops diskcache (#438)</li>
+<li>2026-10-07: TODO: retire OPS.23 (PR #435); OPS.24 moves with no shims or wrappers (#436)</li>
+<li>2026-10-03: Galaxy Map: stars no longer take the click (MAP.101) (#431)</li>
+<li>2026-10-02: TODO: retire MAP.86 (PR #432); Sector stats lane done, Sector and system pages running (#433)</li>
+<li>2026-10-02: TODO: retire MAP.80 (PR #429) (#430)</li>
+<li>2026-10-02: TODO: retire NAV.34 and TEST.79 (PR #427), NAV.12 names its xfail tests, TEST.83 covers six more rate-limit flakes (#428)</li>
+<li>2026-10-02: TODO: retire GEN.44, PERF.11, PERF.1 (PR #425); GEN.57 band question, PERF.11 defaults, TEST.71 cause (#426)</li>
+<li>2026-10-02: TODO: retire MAP.98, MAP.99, MAP.100 (PR #422); Routing groundwork running (#423)</li>
+<li>2026-10-02: TODO: retire GEN.47 (PR #419); Generation bugs lane done, UX.33 and NAV.24 unblocked (#420)</li>
+<li>2026-10-02: TODO: file MAP.99 (slab buttons split/shrink/drop) and MAP.100 (one-line slab labels) (#418)</li>
+<li>2026-10-02: TODO: retire GEN.60 and GEN.38 (PR #415); class S noted on GEN.28, rogue sizes on GEN.29 (#416)</li>
+<li>2026-10-02: TODO: retire the Galaxy Map drill-down lane (PRs #410, #413) (#414)</li>
+<li>2026-10-02: TODO: retire GEN.64 (PR #406); Generation bugs lane running (#412)</li>
+<li>2026-10-02: TODO: retire MAP.56 (PR #408) (#411)</li>
+<li>2026-10-02: Galaxy Map: arc, slab, segment ladder replaces the 3x3 region pick (MAP.56) (#408)</li>
+<li>2026-10-02: TODO: retire MAP.57, MAP.88, MAP.92 (PR #405); System Map lane done (#407)</li>
+<li>2026-10-02: TODO: retire TEST.85 (PR #403), file TEST.87 id-block test timeout (bug) (#404)</li>
+<li>2026-10-02: TODO: retire NAV.40, MAP.93, MAP.94, NAV.31 (PR #399); Galaxy Map follow-ups lane done (#402)</li>
+<li>2026-10-02: TODO: retire GEN.51 (PR #398) and MAP.91 (PR #395) (#400)</li>
+<li>2026-10-02: TODO: retire GEN.62 (PR #393); TEST.85 is a real naming bug, moved after GEN.51 (#394)</li>
+<li>2026-10-02: Binary star names: close pairs A and B, wide pairs share the first word (GEN.62) (#393)</li>
+<li>2026-10-02: TODO: apply the bugs-first phase revision; retire OPS.10 (PR #391); file UX.38 (nebula '-' split from UX.21) (#392)</li>
+<li>2026-10-02: TODO: retire DB.6 (PR #387); DB.7, OPS.10, OPS.13 point at versionKey.version_key; schema v52 (#388)</li>
+<li>2026-10-02: TODO: retire GEN.39 (DB.6 and OPS.10 stand alone, schema v51); file TEST.86 (#383)</li>
+<li>2026-10-01: TODO: retire GEN.49 and GEN.50; file TEST.84 and TEST.85 (#380)</li>
+<li>2026-10-01: TODO: retire the Galaxy map picker and arc items; file TEST.83 (#374)</li>
+<li>2026-10-01: TODO: retire GEN.46 and the parallel-path items; file TEST.80-82 and GEN.62 (#372)</li>
+<li>2026-10-01: TODO: retire GEN.53 and GEN.54 (PR #367) (#368)</li>
+<li>2026-10-01: TODO: retire MAP.90 (PR #365) (#366)</li>
+<li>2026-10-01: TODO: Design links to the new design docs, retire OPS.11 (PR #362), notes on drilldown section 15 (#364)</li>
+<li>2026-10-01: TODO: retire the map groundwork lane (PR #351) and NAV.38 (PR #357) (#361)</li>
+<li>2026-10-01: TODO: GEN.59 net admin diff moves to phase 1, ADM.18 file name and word list; retire GEN.31 (PR #353) (#355)</li>
+<li>2026-10-01: TODO: retire GEN.25/34/35/36/37/45 (PR #350), add GEN.60; JSON file holds net admin changes, regeneration seeds and the word list (#354)</li>
+<li>2026-10-01: TODO: retire DB.2 and DB.3 (done in PR #347) (#348)</li>
+<li>2026-10-02: DB.2: the composition rows are read now; drop them from the never-read list</li>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+<li>2026-10-01: TODO: NAV.12 is Boss's routing guarantee (phase 0) split into NAV.35-37 and UX.35; version and arc size decided; retire DB.4 and DB.5 (PR #342); file TEST.78 (#345)</li>
+<li>2026-10-01: TODO: GEN.39 seed derivation (SHA-256 per unit, scatter seed from the 128-bit seed, no dropped bits) (#339)</li>
+<li>2026-10-01: Docs: GEN.39 no longer points at the retired TEST.19</li>
+<li>2026-10-01: Docs: retire PR #321's items (TEST.19, 22, 27, 37-39), file TEST.73 (bug)</li>
+<li>2026-10-01: Docs: retire PR #315's items (TEST.6-9, 11-18)</li>
+<li>2026-10-01: Docs: retire PR #303's items (TEST.4, 5, 23-26, 28-36, 69)</li>
+<li>2026-10-01: Docs: retire PR #288's items (OPS.5, TEST.10, TEST.60-62), file OPS.6</li>
+<li>2026-10-01: TODO: retire TEST.55-59 (PR #307); note the nebula xfail on UX.21</li>
+<li>2026-10-01: TODO: retire ADM.10-12, TEST.20, TEST.21, TEST.40, TEST.41 (PRs #285, #294, #302, #305)</li>
+<li>2026-10-01: TODO: retire ADM.4 (PR #279); add ADM.14 (Generate page text boxes line up, bug)</li>
+<li>2026-10-01: TODO: retire TEST.42-54 (PR #293); add bugs GEN.31, GEN.32, MAP.57</li>
+<li>2026-10-01: Retire GEN.30 from TODO.md (PR #295)</li>
+<li>2026-10-01: TODO: retire TEST.63 and TEST.68 (math gate done, PRs #281 and #290)</li>
+<li>2026-10-01: TODO: add MAP.56 (drop the 3x3 block pick; select slab, zoom, select segment)</li>
+<li>2026-10-01: TODO: retire TEST.64-67 (done in PR #281)</li>
+<li>2026-10-01: TODO: retire GEN.26 (done in PR #263)</li>
+<li>2026-10-01: TODO: retire ADM.1 and ADM.6-8 (PRs #244, #260); add TEST.69 colony test flake</li>
+<li>2026-10-01: TODO: retire PERF.4 and PERF.9 (done in PR #258)</li>
+<li>2026-10-01: Add Delete and Regenerate for sectors, systems, bodies and phenomena (ADM.8) (#244)</li>
+<li>2026-10-01: Remove tests that no longer checked anything (#250)</li>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+<li>2026-10-01: Estimate size and time before bulk generation, refuse what won't fit, record speed per density (PERF.3, PERF.10)</li>
+<li>2026-10-01: Merge main (PERF.7 done in #227): drop PERF.7 from TODO too</li>
+<li>2026-10-01: System Map: belt rings no longer cover planet orbits (MAP.49)</li>
+<li>2026-10-01: TODO 99: drop a reference to a standards doc that doesn't exist</li>
+<li>2026-10-01: Galaxy Map: finish TODO 19 (drop shared faces of solid blocks, DPR note, sorting check) (#168)</li>
+<li>2026-10-01: Delete shipped TODO 49 (System Map labels, done in #135)</li>
+<li>2026-10-01: Drop the duplicate system_detail inside key (main already sets it)</li>
+<li>2026-10-01: Remove shipped TODO items 33 and 50</li>
+</ul>
+<h2 id="2026-09">2026-09</h2>
+<ul>
+<li>2026-09-30: Keep a close binary's planets outside the binary (TODO 42)</li>
+<li>2026-09-30: Fuzz test: replace the removed density= case with a bad tile key</li>
+<li>2026-09-30: Remove the server's leftover density sampling (TODO 20)</li>
+<li>2026-09-30: TODO item 61: belts and comets join the ordered list; drop all three body tables</li>
+<li>2026-09-30: Update the fuzz tests for main's removed CGI helpers; add a Testing section to the README</li>
+<li>2026-09-30: TODO: find filled sectors through the block solid, drop the dots (item 8)</li>
+<li>2026-09-30: Ask whether to migrate or delete the database; show migration progress</li>
+<li>2026-09-30: Web cleanup: drop the CGI pages, shims and Apache CGI rules</li>
+<li>2026-09-24: Remove the retired /galaxy/view endpoint and version the Galaxy Map script URL</li>
+<li>2026-09-24: Point doc comments at rendered Markdown instead of the dropped column</li>
+<li>2026-09-24: Render system pages from the database and drop stored wiki text (schema v28)</li>
+<li>2026-09-23: Remove the sector map's wireframe outline</li>
+<li>2026-09-19: Add unified logging module with --debug/--quiet/--silent, drop file/console output</li>
+<li>2026-09-19: Remove the outer Sectors progress bar too</li>
+<li>2026-09-19: Remove per-sector progress bar; fix remaining bar's flicker/scroll</li>
+<li>2026-09-17: Remove the separate write-capable MySQL config; use mysql section for everything</li>
+<li>2026-09-18: Remove the database-picker landing page; fix site title branding</li>
+<li>2026-09-12: Fix test (3.9) CI failure: replace statistics.correlation with a 3.9-compatible helper</li>
+<li>2026-09-11: Replace noticeable-motion stat with a floating-point update guard (v12)</li>
+<li>2026-09-10: Remove planet Class W entirely</li>
+<li>2026-09-09: Replace vertices_pc JSON column with a normalized sector_vertices table</li>
+<li>2026-09-09: Replace corner-averaged cubes with exact per-shell Voronoi tessellation</li>
+<li>2026-09-07: Anchor orbit spacing to a typical log-step, not the innermost body itself; alternate/drop crowded body labels</li>
+<li>2026-09-07: Drop pre-rendered table_* display columns; fix System Map center clearance</li>
+<li>2026-09-07: Replace core-pressure calibration factor with analytic polytrope solution</li>
+<li>2026-09-07: Remove Class R, fix naming/navbar/TOC bugs, bump to 5.4.2</li>
+<li>2026-09-07: Updated planet classes, removed classes S,U,X,Y classes as redundant.  Also trying to free up planet class letters as I'm pretty sure I'm going to have to rework them.  Right now there really aren't a lot of rocky worlds that are generated in the cold zone, so I'm thinking the 4 class letters that are free, and Z was never used anyway, can be used to that end, just not sure how yet.  Made sure that the generation of planet size uses a standard bell curve distribution for size that is centered on size_mode.  This is probably overkill but I don't care.  Also added a command line option for sectorGen to generate more than 1 sector but without galactic coordinates.</li>
+</ul>
+<h2 id="2024-07">2024-07</h2>
+<ul>
+<li>2024-07-11: Distance is now better for plants and for asteroid belts, no longer has overlap that I can tell.</li>
+</ul>
+<h2 id="2024-06">2024-06</h2>
+<ul>
+<li>2024-06-26: The program now corrects for planetary position, hill radius, and other such factors to create a star system where the orbits do not overlap or get too close.  Corrections also added so that the inner / outer bounds of an asteroid belt do not overlap with planets.</li>
+<li>2024-06-26: The program now corrects for planetary position, hill radius, and other such factors to create a star system where the orbits do not overlap or get too close.  Corrections also added so that the inner / outer bounds of an asteroid belt do not overlap with planets.</li>
+<li>2024-06-22: Stopping testing for now, waiting until GF is on vacation, but I feel like I'm close now that I can see what's goign on inside the script.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
