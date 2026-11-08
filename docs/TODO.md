@@ -13446,6 +13446,12 @@ clears each one.
   Prerequisites: none. Related: UX.291, MAP.347, TEST.696.
   Filed by the TODO thread.
 
+- [ ] **TEST.697 test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug)**
+  Lane 02 (as the lane reported, 5:11 AM EST on 2026-11-08), from the train 18 gate: src/tests/test_sweep_life.py::test_an_index_that_reads_the_letter_is_reported fails on origin/main as well (1 failed, 2 passed), so it is not a train fault. The test patches habitability_world.compute so that a body scored as another class gets phi_bio -1.0, then expects sweep rules._check_scores_class_blind to report 'as class X the habitability index differs ... phi_bio'. Do: find whether the check stopped re-scoring the body under another letter (the class-last work moved the letter) or the test patch no longer reaches the scorer; fix the check or the test so a real letter-reading index is still caught (this guard is how class-last leaks are found), as a test or sweep-rules PR. Lock-free. If the check can no longer see a leak, say so before changing it.
+  Owner (proposed by TODO, confirm with TODO before taking): Lane 04.
+  Prerequisites: none. Related: GEN.1397, TEST.696.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
