@@ -408,6 +408,8 @@ def _build_oxygen(planet, living):
     if rise is None or not biogenic_oxygen.apply(planet, target):
         return False
     log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis from the first producers; the oxygen rose at {rise:.2f} Gyr")
+    if biogenic_oxygen.rebalance_co2(planet):      # GEN.1309 A: the carbon sink is asked again at the temperature the burnt methane left
+        log.choice("Carbon balance", f"{atmosphere.partial_kpa(planet, 'co2'):.3g} kPa of carbon dioxide", f"the sink solved again at {planet.surface_temperature:.0f} K after the oxygen rise")
     return True
 
 

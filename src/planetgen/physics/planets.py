@@ -655,6 +655,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     air = surface_air.solve(setting, start_k)
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
+    planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
     if air is None or not air.partials_pa:
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
