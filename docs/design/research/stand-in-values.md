@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1287 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1285 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 167 | 19 | 10 | 1 | 0 | 197 |
+| T1 | 166 | 19 | 10 | 1 | 0 | 196 |
 | T2 | 125 | 55 | 1 | 1 | 0 | 182 |
 | T3 | 92 | 43 | 8 | 10 | 0 | 153 |
 | T4 | 56 | 5 | 1 | 19 | 10 | 91 |
 | T5 | 60 | 21 | 3 | 1 | 0 | 85 |
-| T6 | 133 | 95 | 25 | 63 | 0 | 316 |
+| T6 | 133 | 94 | 25 | 63 | 0 | 315 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 708 | 269 | 60 | 205 | 45 | 1287 |
+| All | 707 | 268 | 60 | 205 | 45 | 1285 |
 
 ## How the labels were given
 
@@ -1414,8 +1414,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| TB1 | D | T1 | L0 | trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more | none | every giant | a change of the class row | the class row itself | planet_classes.json, the class J sentence | GEN.1151 | - |
-| TB2 | P | T6 | L1 | trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from | 0.05 to 0.3 low; 5 to 10 high | terrestrial worlds | a generated Class M world outside the range | the generated planet's own mass | planet_classes.json giants from 10 Earth masses; no source for a floor | GEN.1151 | - |
 | TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; [R0919] ([R0919], abstract READ) grow trojans in the disc | GEN.1151 | no data |
 | TB4 | P | T4 | L4 | trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read | GEN.1151 | no data |
 
