@@ -2327,6 +2327,9 @@ function initGalaxyMap3d(canvasEl, data) {
       if (!regionPoiGroups.length) return;
       regionPoiLayer = document.createElement("div");
       regionPoiLayer.className = "map-region-pois";
+      // MAP.411: a point sits over the map like the Key does, and the wheel over it zooms the map as it does over the Key (MAP.234); a region point at the
+      // middle of the view used to swallow the wheel, so the zoom stopped.
+      regionPoiLayer.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
       viewport.appendChild(regionPoiLayer);
     }
     var seen = new Set();
