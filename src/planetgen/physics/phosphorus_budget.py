@@ -19,7 +19,7 @@ Phosphorus is one chain, and each link is a number a body already stores or this
    supply, `FLOOR_UMOL_L`; a soda lake has no free calcium to precipitate apatite [R4399], so its phosphate climbs until the ceiling of the ocean's solubility.
 
 Left out, and said so: the burial of phosphorus with iron oxides in an oxygenated ocean (the Earth's calibration has it, another oxidation state would change it), and the recycling by
-a biosphere (the life timeline of GEN.750 runs after this and does not feed back). The numbers that stand in are in the registry (GEN.725, `docs/design/research/gap-filling-plan.md` section 6.221).
+a biosphere (the life timeline of GEN.750 runs after this and does not feed back). The numbers that stand in are in the registry (GEN.725, `docs/design/research/gap-filling-plan.md` section 6.222).
 
 `phosphorus` (high, limited, starved) is kept as the name of the band of the number (`phosphorus_class`), for a page that wants words.
 """

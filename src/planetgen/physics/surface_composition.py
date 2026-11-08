@@ -55,7 +55,7 @@ SOURCES = {
                  "(part E table 2.8b, second-hand)",
     "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands [R0277] applied to a melt of the stored mantle",
     "millero": "mean ocean salinity 35 g/kg ([R3078], Deep-Sea Research I 55, 50)",
-    "evaporite": "physics/evaporite_sequence.py: the salts of a brine in the order of its chemical divides, the gypsum and anhydrite boundary of [R5147]",
+    "evaporite": "physics/evaporite_sequence.py: the salts of a brine in the order of its chemical divides, the gypsum and anhydrite boundary of [R5164]",
 }
 
 RANGES = {

@@ -26,7 +26,7 @@ supplies its own types and settings and calls `sedimentary_deposits.assess`.
 
 **Endowment and grade.** The grade is drawn inside the type's range and held to `concentration * crustal mean`: the crustal mean of copper and zinc is the Earth's, scaled by the star's Cu/Fe and
 Zn/Fe over the reference mix's (`ore_deposits.over_iron`); gold has no star ratio and follows the iron. The opportunity is the surface area over the Earth's times the heat flow, the ocean or
-the land the type needs, over the Earth's. Every constant is a stand-in in section 6.223 of the gap-filling plan (HT1 to HT7). The grade ranges, the concentration factors and the tonnage
+the land the type needs, over the Earth's. Every constant is a stand-in in section 6.224 of the gap-filling plan (HT1 to HT7). The grade ranges, the concentration factors and the tonnage
 range of each type are the design file's, recalled.
 """
 

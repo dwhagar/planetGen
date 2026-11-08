@@ -1810,7 +1810,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
 
-## 6.223 Stand-ins of the hydrothermal and uranium deposits
+## 6.224 Stand-ins of the hydrothermal and uranium deposits
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1822,7 +1822,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | HT6 | P | T7 | L3 | hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0) | each edge by 0.2 | all six types | a type found outside its window on the Earth's record | the Earth's deposit counts by era and an erosion model | educated guess from physics (shallow deposits erode away, deep ones survive), recalled from the file's remark | - | no data |
 | HT7 | P | T7 | L3 | hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window | deposits 0.3x to 3x | wet rocky bodies | an Earth-like draw with a total far from the Earth's known endowment of the type | the Earth's deposit counts and tonnage distributions | medians inside the file's tonnage ranges (1e8 to 1e10 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t U), recalled; the counts are mine | - | no data |
 
-## 6.222 Stand-ins of the sedimentary and biogenic deposits
+## 6.223 Stand-ins of the sedimentary and biogenic deposits
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1836,7 +1836,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SD8 | P | T7 | L3 | sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis | lag 0.1 to 1 Gyr; deposits 15 to 150 | surface and ice-covered oceans with life | kerogen on a lifeless ocean | an ocean productivity and anoxia model | the item's title names kerogen; no design row, the numbers are the design's own | - | no data |
 | SD9 | T | T7 | L3 | sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down | 1 to 4 Gyr | all seven types | a type whose count does not follow its window | the Earth's deposit counts by era | design file section 6: 'the share of the body's life during which the setting existed'; the 2 Gyr reference is the design's | - | no data |
 
-## 6.221 Stand-ins of the phosphorus budget
+## 6.222 Stand-ins of the phosphorus budget
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1851,7 +1851,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PB9 | B | T6 | L3 | phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor | ceiling 300 to 3000; floor 0.001 to 0.1 | oceans | a sealed ocean with a measured phosphate far above the floor | an ice-ocean exchange model for the sealed case | the old class values of `habitability_world` (GEN.654: high 1000, starved 0.01), kept as the two bounds | - | no data |
 | PB10 | T | T6 | L3 | phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of `phosphorus_class` | starved 0.03 to 0.3; high 30 to 300 | all oceans | a band that a life score does not follow | none; a label for a page, the number drives the score | research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only | - | no data |
 
-## 6.220 Stand-ins of the crust fields and the magmatic ore types
+## 6.227 Stand-ins of the crust fields and the magmatic ore types
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1863,7 +1863,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | ORE6 | P | T5 | L2 | ore_deposits.TYPES median ore per deposit (3e10, 1e11, 3e11 kg) and the lognormal spread (1.5, 2.0, 1.0 in ln); the grade ranges (Ni 0.5 to 3 percent, Cr2O3 30 to 60, TiO2 10 to 35) | the median within a factor of 3; the spread 0.5 to 2.5 | the three magmatic types | a per-deposit tonnage or grade outside the file's range | the data file's per-deposit statistics when its sources are opened | the data file's ranges (Ni-Cu-PGE 1e6 to 1e9 t, chromitite 1e7 to 1e10 t, Fe-Ti-V 1e8 to 1e9 t; grades as above), recalled; the medians are the geometric middles | - | - |
 | ORE7 | P | T6 | L2 | ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share) | each crust-over-bulk within 40 percent | the three magmatic types | an Earth-like bulk silicate whose cap falls outside its type's grade range | a crust model that gives the element's crustal mean from the rock types | the design file's concentration factors (Ni 320, Cr 3300) recalled; the crust-over-bulk shares are the crust's recalled abundance (Ni 47 ppm, Cr 100 ppm, TiO2 0.7 percent) over the Earth's bulk silicate (Ni 1960 ppm, Cr2O3 0.38 percent, TiO2 0.2 percent), Cr set so the Earth's bulk caps the grade at the middle of the range | - | - |
 
-## 6.219 Stand-ins of the accessory minerals of the asteroid taxon mixes
+## 6.225 Stand-ins of the accessory minerals of the asteroid taxon mixes
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1872,7 +1872,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | ACC3 | B | T6 | L0 | accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled | none | belts with a host star | a measured dependence of the carbonate or sulfide share on the host star's bulk | a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items) | the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them | - | - |
 | ACC4 | T | T6 | L0 | accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap | the exponent 0.5 to 1.5 | stars within a factor of 3 of the reference in the element | a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus | a speciation of the bulk in which the mineral competes for its cations | the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit | - | - |
 
-## 6.218 Stand-ins of the evaporite sequence
+## 6.226 Stand-ins of the evaporite sequence
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

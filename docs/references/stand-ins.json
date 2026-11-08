@@ -41187,8 +41187,8 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
-      "key": "6.223",
-      "number": "6.223",
+      "key": "6.224",
+      "number": "6.224",
       "rows": [
         {
           "burn_down": null,
@@ -41219,9 +41219,9 @@
             ]
           ],
           "id": "HT1",
-          "key": "6.223:HT1",
+          "key": "6.224:HT1",
           "kind": "B",
-          "slug": "6-223-ht1",
+          "slug": "6-224-ht1",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -41261,9 +41261,9 @@
             ]
           ],
           "id": "HT2",
-          "key": "6.223:HT2",
+          "key": "6.224:HT2",
           "kind": "T",
-          "slug": "6-223-ht2",
+          "slug": "6-224-ht2",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41303,9 +41303,9 @@
             ]
           ],
           "id": "HT3",
-          "key": "6.223:HT3",
+          "key": "6.224:HT3",
           "kind": "T",
-          "slug": "6-223-ht3",
+          "slug": "6-224-ht3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41341,9 +41341,9 @@
             ]
           ],
           "id": "HT4",
-          "key": "6.223:HT4",
+          "key": "6.224:HT4",
           "kind": "B",
-          "slug": "6-223-ht4",
+          "slug": "6-224-ht4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -41379,9 +41379,9 @@
             ]
           ],
           "id": "HT5",
-          "key": "6.223:HT5",
+          "key": "6.224:HT5",
           "kind": "P",
-          "slug": "6-223-ht5",
+          "slug": "6-224-ht5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
@@ -41421,9 +41421,9 @@
             ]
           ],
           "id": "HT6",
-          "key": "6.223:HT6",
+          "key": "6.224:HT6",
           "kind": "P",
-          "slug": "6-223-ht6",
+          "slug": "6-224-ht6",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41463,9 +41463,9 @@
             ]
           ],
           "id": "HT7",
-          "key": "6.223:HT7",
+          "key": "6.224:HT7",
           "kind": "P",
-          "slug": "6-223-ht7",
+          "slug": "6-224-ht7",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41473,12 +41473,12 @@
           "what": "hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window"
         }
       ],
-      "slug": "6-223-stand-ins-of-the-hydrothermal-and-uranium-deposits",
+      "slug": "6-224-stand-ins-of-the-hydrothermal-and-uranium-deposits",
       "title": "Stand-ins of the hydrothermal and uranium deposits"
     },
     {
-      "key": "6.222",
-      "number": "6.222",
+      "key": "6.223",
+      "number": "6.223",
       "rows": [
         {
           "burn_down": [
@@ -41513,9 +41513,9 @@
             ]
           ],
           "id": "SD1",
-          "key": "6.222:SD1",
+          "key": "6.223:SD1",
           "kind": "T",
-          "slug": "6-222-sd1",
+          "slug": "6-223-sd1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -41555,9 +41555,9 @@
             ]
           ],
           "id": "SD2",
-          "key": "6.222:SD2",
+          "key": "6.223:SD2",
           "kind": "P",
-          "slug": "6-222-sd2",
+          "slug": "6-223-sd2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -41597,9 +41597,9 @@
             ]
           ],
           "id": "SD3",
-          "key": "6.222:SD3",
+          "key": "6.223:SD3",
           "kind": "P",
-          "slug": "6-222-sd3",
+          "slug": "6-223-sd3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -41639,9 +41639,9 @@
             ]
           ],
           "id": "SD4",
-          "key": "6.222:SD4",
+          "key": "6.223:SD4",
           "kind": "P",
-          "slug": "6-222-sd4",
+          "slug": "6-223-sd4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -41681,9 +41681,9 @@
             ]
           ],
           "id": "SD5",
-          "key": "6.222:SD5",
+          "key": "6.223:SD5",
           "kind": "P",
-          "slug": "6-222-sd5",
+          "slug": "6-223-sd5",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41723,9 +41723,9 @@
             ]
           ],
           "id": "SD6",
-          "key": "6.222:SD6",
+          "key": "6.223:SD6",
           "kind": "P",
-          "slug": "6-222-sd6",
+          "slug": "6-223-sd6",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41765,9 +41765,9 @@
             ]
           ],
           "id": "SD7",
-          "key": "6.222:SD7",
+          "key": "6.223:SD7",
           "kind": "P",
-          "slug": "6-222-sd7",
+          "slug": "6-223-sd7",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41807,9 +41807,9 @@
             ]
           ],
           "id": "SD8",
-          "key": "6.222:SD8",
+          "key": "6.223:SD8",
           "kind": "P",
-          "slug": "6-222-sd8",
+          "slug": "6-223-sd8",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41849,9 +41849,9 @@
             ]
           ],
           "id": "SD9",
-          "key": "6.222:SD9",
+          "key": "6.223:SD9",
           "kind": "T",
-          "slug": "6-222-sd9",
+          "slug": "6-223-sd9",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -41859,12 +41859,12 @@
           "what": "sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down"
         }
       ],
-      "slug": "6-222-stand-ins-of-the-sedimentary-and-biogenic-deposits",
+      "slug": "6-223-stand-ins-of-the-sedimentary-and-biogenic-deposits",
       "title": "Stand-ins of the sedimentary and biogenic deposits"
     },
     {
-      "key": "6.221",
-      "number": "6.221",
+      "key": "6.222",
+      "number": "6.222",
       "rows": [
         {
           "burn_down": null,
@@ -41895,9 +41895,9 @@
             ]
           ],
           "id": "PB1",
-          "key": "6.221:PB1",
+          "key": "6.222:PB1",
           "kind": "B",
-          "slug": "6-221-pb1",
+          "slug": "6-222-pb1",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -41933,9 +41933,9 @@
             ]
           ],
           "id": "PB2",
-          "key": "6.221:PB2",
+          "key": "6.222:PB2",
           "kind": "B",
-          "slug": "6-221-pb2",
+          "slug": "6-222-pb2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -41971,9 +41971,9 @@
             ]
           ],
           "id": "PB3",
-          "key": "6.221:PB3",
+          "key": "6.222:PB3",
           "kind": "P",
-          "slug": "6-221-pb3",
+          "slug": "6-222-pb3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -42009,9 +42009,9 @@
             ]
           ],
           "id": "PB4",
-          "key": "6.221:PB4",
+          "key": "6.222:PB4",
           "kind": "P",
-          "slug": "6-221-pb4",
+          "slug": "6-222-pb4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -42047,9 +42047,9 @@
             ]
           ],
           "id": "PB5",
-          "key": "6.221:PB5",
+          "key": "6.222:PB5",
           "kind": "P",
-          "slug": "6-221-pb5",
+          "slug": "6-222-pb5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -42089,9 +42089,9 @@
             ]
           ],
           "id": "PB6",
-          "key": "6.221:PB6",
+          "key": "6.222:PB6",
           "kind": "T",
-          "slug": "6-221-pb6",
+          "slug": "6-222-pb6",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42131,9 +42131,9 @@
             ]
           ],
           "id": "PB7",
-          "key": "6.221:PB7",
+          "key": "6.222:PB7",
           "kind": "T",
-          "slug": "6-221-pb7",
+          "slug": "6-222-pb7",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42169,9 +42169,9 @@
             ]
           ],
           "id": "PB8",
-          "key": "6.221:PB8",
+          "key": "6.222:PB8",
           "kind": "P",
-          "slug": "6-221-pb8",
+          "slug": "6-222-pb8",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -42211,9 +42211,9 @@
             ]
           ],
           "id": "PB9",
-          "key": "6.221:PB9",
+          "key": "6.222:PB9",
           "kind": "B",
-          "slug": "6-221-pb9",
+          "slug": "6-222-pb9",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42253,9 +42253,9 @@
             ]
           ],
           "id": "PB10",
-          "key": "6.221:PB10",
+          "key": "6.222:PB10",
           "kind": "T",
-          "slug": "6-221-pb10",
+          "slug": "6-222-pb10",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42263,12 +42263,12 @@
           "what": "phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of phosphorus_class"
         }
       ],
-      "slug": "6-221-stand-ins-of-the-phosphorus-budget",
+      "slug": "6-222-stand-ins-of-the-phosphorus-budget",
       "title": "Stand-ins of the phosphorus budget"
     },
     {
-      "key": "6.220",
-      "number": "6.220",
+      "key": "6.227",
+      "number": "6.227",
       "rows": [
         {
           "burn_down": [
@@ -42303,9 +42303,9 @@
             ]
           ],
           "id": "ORE1",
-          "key": "6.220:ORE1",
+          "key": "6.227:ORE1",
           "kind": "T",
-          "slug": "6-220-ore1",
+          "slug": "6-227-ore1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42345,9 +42345,9 @@
             ]
           ],
           "id": "ORE2",
-          "key": "6.220:ORE2",
+          "key": "6.227:ORE2",
           "kind": "T",
-          "slug": "6-220-ore2",
+          "slug": "6-227-ore2",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -42387,9 +42387,9 @@
             ]
           ],
           "id": "ORE3",
-          "key": "6.220:ORE3",
+          "key": "6.227:ORE3",
           "kind": "T",
-          "slug": "6-220-ore3",
+          "slug": "6-227-ore3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -42425,9 +42425,9 @@
             ]
           ],
           "id": "ORE4",
-          "key": "6.220:ORE4",
+          "key": "6.227:ORE4",
           "kind": "T",
-          "slug": "6-220-ore4",
+          "slug": "6-227-ore4",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L2",
@@ -42467,9 +42467,9 @@
             ]
           ],
           "id": "ORE5",
-          "key": "6.220:ORE5",
+          "key": "6.227:ORE5",
           "kind": "P",
-          "slug": "6-220-ore5",
+          "slug": "6-227-ore5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -42505,9 +42505,9 @@
             ]
           ],
           "id": "ORE6",
-          "key": "6.220:ORE6",
+          "key": "6.227:ORE6",
           "kind": "P",
-          "slug": "6-220-ore6",
+          "slug": "6-227-ore6",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L2",
@@ -42543,9 +42543,9 @@
             ]
           ],
           "id": "ORE7",
-          "key": "6.220:ORE7",
+          "key": "6.227:ORE7",
           "kind": "P",
-          "slug": "6-220-ore7",
+          "slug": "6-227-ore7",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
@@ -42553,12 +42553,12 @@
           "what": "ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share)"
         }
       ],
-      "slug": "6-220-stand-ins-of-the-crust-fields-and-the-magmatic-ore-types",
+      "slug": "6-227-stand-ins-of-the-crust-fields-and-the-magmatic-ore-types",
       "title": "Stand-ins of the crust fields and the magmatic ore types"
     },
     {
-      "key": "6.219",
-      "number": "6.219",
+      "key": "6.225",
+      "number": "6.225",
       "rows": [
         {
           "burn_down": null,
@@ -42589,9 +42589,9 @@
             ]
           ],
           "id": "ACC1",
-          "key": "6.219:ACC1",
+          "key": "6.225:ACC1",
           "kind": "P",
-          "slug": "6-219-acc1",
+          "slug": "6-225-acc1",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -42627,9 +42627,9 @@
             ]
           ],
           "id": "ACC2",
-          "key": "6.219:ACC2",
+          "key": "6.225:ACC2",
           "kind": "P",
-          "slug": "6-219-acc2",
+          "slug": "6-225-acc2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -42665,9 +42665,9 @@
             ]
           ],
           "id": "ACC3",
-          "key": "6.219:ACC3",
+          "key": "6.225:ACC3",
           "kind": "B",
-          "slug": "6-219-acc3",
+          "slug": "6-225-acc3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42703,9 +42703,9 @@
             ]
           ],
           "id": "ACC4",
-          "key": "6.219:ACC4",
+          "key": "6.225:ACC4",
           "kind": "T",
-          "slug": "6-219-acc4",
+          "slug": "6-225-acc4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42713,12 +42713,12 @@
           "what": "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
         }
       ],
-      "slug": "6-219-stand-ins-of-the-accessory-minerals-of-the-asteroid-taxon-mixes",
+      "slug": "6-225-stand-ins-of-the-accessory-minerals-of-the-asteroid-taxon-mixes",
       "title": "Stand-ins of the accessory minerals of the asteroid taxon mixes"
     },
     {
-      "key": "6.218",
-      "number": "6.218",
+      "key": "6.226",
+      "number": "6.226",
       "rows": [
         {
           "burn_down": null,
@@ -42749,9 +42749,9 @@
             ]
           ],
           "id": "EV1",
-          "key": "6.218:EV1",
+          "key": "6.226:EV1",
           "kind": "P",
-          "slug": "6-218-ev1",
+          "slug": "6-226-ev1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -42787,9 +42787,9 @@
             ]
           ],
           "id": "EV2",
-          "key": "6.218:EV2",
+          "key": "6.226:EV2",
           "kind": "P",
-          "slug": "6-218-ev2",
+          "slug": "6-226-ev2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42825,9 +42825,9 @@
             ]
           ],
           "id": "EV3",
-          "key": "6.218:EV3",
+          "key": "6.226:EV3",
           "kind": "P",
-          "slug": "6-218-ev3",
+          "slug": "6-226-ev3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42863,9 +42863,9 @@
             ]
           ],
           "id": "EV4",
-          "key": "6.218:EV4",
+          "key": "6.226:EV4",
           "kind": "P",
-          "slug": "6-218-ev4",
+          "slug": "6-226-ev4",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -42901,9 +42901,9 @@
             ]
           ],
           "id": "EV5",
-          "key": "6.218:EV5",
+          "key": "6.226:EV5",
           "kind": "P",
-          "slug": "6-218-ev5",
+          "slug": "6-226-ev5",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -42939,9 +42939,9 @@
             ]
           ],
           "id": "EV6",
-          "key": "6.218:EV6",
+          "key": "6.226:EV6",
           "kind": "P",
-          "slug": "6-218-ev6",
+          "slug": "6-226-ev6",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -42977,9 +42977,9 @@
             ]
           ],
           "id": "EV7",
-          "key": "6.218:EV7",
+          "key": "6.226:EV7",
           "kind": "P",
-          "slug": "6-218-ev7",
+          "slug": "6-226-ev7",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -43015,9 +43015,9 @@
             ]
           ],
           "id": "EV8",
-          "key": "6.218:EV8",
+          "key": "6.226:EV8",
           "kind": "P",
-          "slug": "6-218-ev8",
+          "slug": "6-226-ev8",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -43053,9 +43053,9 @@
             ]
           ],
           "id": "EV9",
-          "key": "6.218:EV9",
+          "key": "6.226:EV9",
           "kind": "P",
-          "slug": "6-218-ev9",
+          "slug": "6-226-ev9",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -43091,9 +43091,9 @@
             ]
           ],
           "id": "EV10",
-          "key": "6.218:EV10",
+          "key": "6.226:EV10",
           "kind": "P",
-          "slug": "6-218-ev10",
+          "slug": "6-226-ev10",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -43129,9 +43129,9 @@
             ]
           ],
           "id": "EV11",
-          "key": "6.218:EV11",
+          "key": "6.226:EV11",
           "kind": "P",
-          "slug": "6-218-ev11",
+          "slug": "6-226-ev11",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -43139,7 +43139,7 @@
           "what": "surface_composition.weathered_oxides puts back the sodium of waterworld_carbon.CRUST_SODIUM_WT and the potassium of the basaltic reservoir, because the stored rock carries no alkalis"
         }
       ],
-      "slug": "6-218-stand-ins-of-the-evaporite-sequence",
+      "slug": "6-226-stand-ins-of-the-evaporite-sequence",
       "title": "Stand-ins of the evaporite sequence"
     },
     {

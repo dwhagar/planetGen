@@ -262,25 +262,25 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.76:PF3 | no data | - | L3, the super-puff start share 0.05 of the 2 to 10 Earth-mass cores inside 100 days and the occurrence share 0.005 were fitted so that the gate passes the 0.84 percent of the sub-Neptunes the Kepler super-puffs make; they go when a survey of the super-puff share by core mass and period is in hand (GEN.1343) |
 | 6.36:PA15 | no data | - | L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems |
 | 6.93:MT8 | no data | - | no survey measures the energy ratios of the impacts that stripped rocky planets; the iron shares of the iron-rich planets read (Mercury, Kepler-107 c, [R3545]) lie inside the range, and a population-synthesis distribution of impact speeds and mass ratios would replace it |
-| 6.221:PB6 | no data | - | no measured weathering supply for a stagnant-lid body exists; Mars and Venus have no rivers to measure, so the erosion ratio stays a design choice |
-| 6.221:PB7 | no data | - | the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land |
-| 6.221:PB9 | no data | - | the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term |
-| 6.221:PB10 | no data | - | the bands are a label for pages; the number drives the score, so no measurement can fix the band edges |
-| 6.220:ORE1 | replace | GEN.1383 | the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened |
-| 6.220:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
-| 6.220:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
-| 6.220:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |
-| 6.223:HT2 | no data | - | the gate numbers are design choices; no source measures where a deposit class stops forming |
-| 6.223:HT3 | no data | - | the ceilings are design choices; only the Earth's counts exist |
-| 6.223:HT6 | no data | - | the windows are design choices; only the Earth's deposits by era exist |
-| 6.223:HT7 | no data | - | the counts are design choices; only the Earth's deposits exist |
-| 6.222:SD1 | no data | - | no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened |
-| 6.222:SD2 | no data | - | the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists |
-| 6.222:SD3 | no data | - | the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists |
-| 6.222:SD4 | no data | - | the basin count and the drying temperature are set by the design; only the Earth's evaporite totals exist |
-| 6.222:SD5 | no data | - | no survey says how many carbonate platforms a planet with an ocean has; the Earth is the one case |
-| 6.222:SD6 | no data | - | no survey says how many chert beds a planet with complex life has; the Earth is the one case |
-| 6.222:SD7 | no data | - | no survey says how many coal fields a planet with forests has; the Earth is the one case |
-| 6.222:SD8 | no data | - | no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case |
-| 6.222:SD9 | no data | - | the reference window is a design choice; only the Earth's deposits by era exist |
+| 6.222:PB6 | no data | - | no measured weathering supply for a stagnant-lid body exists; Mars and Venus have no rivers to measure, so the erosion ratio stays a design choice |
+| 6.222:PB7 | no data | - | the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land |
+| 6.222:PB9 | no data | - | the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term |
+| 6.222:PB10 | no data | - | the bands are a label for pages; the number drives the score, so no measurement can fix the band edges |
+| 6.227:ORE1 | replace | GEN.1383 | the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened |
+| 6.227:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
+| 6.227:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
+| 6.227:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |
+| 6.224:HT2 | no data | - | the gate numbers are design choices; no source measures where a deposit class stops forming |
+| 6.224:HT3 | no data | - | the ceilings are design choices; only the Earth's counts exist |
+| 6.224:HT6 | no data | - | the windows are design choices; only the Earth's deposits by era exist |
+| 6.224:HT7 | no data | - | the counts are design choices; only the Earth's deposits exist |
+| 6.223:SD1 | no data | - | no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened |
+| 6.223:SD2 | no data | - | the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists |
+| 6.223:SD3 | no data | - | the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists |
+| 6.223:SD4 | no data | - | the basin count and the drying temperature are set by the design; only the Earth's evaporite totals exist |
+| 6.223:SD5 | no data | - | no survey says how many carbonate platforms a planet with an ocean has; the Earth is the one case |
+| 6.223:SD6 | no data | - | no survey says how many chert beds a planet with complex life has; the Earth is the one case |
+| 6.223:SD7 | no data | - | no survey says how many coal fields a planet with forests has; the Earth is the one case |
+| 6.223:SD8 | no data | - | no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case |
+| 6.223:SD9 | no data | - | the reference window is a design choice; only the Earth's deposits by era exist |
 | 6.213:DSC5 | no data | - | L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand |

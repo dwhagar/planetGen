@@ -280209,7 +280209,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5148,
+ "id_next": 5165,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286588,7 +286588,7 @@
   "setup:https://zenodo.org/": "R4962",
   "web:http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html": "R5055",
   "web:http://endavid.com/index.php?entry=76": "R5047",
-  "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5147",
+  "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5164",
   "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
   "web:https://alextardif.com/taa.html": "R5061",
   "web:https://bartwronski.com/page/3/": "R5063",

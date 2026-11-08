@@ -5248,6 +5248,7 @@ Sources that are not papers or data: a standard or regulation a number rests on,
 - <a id="paper-r5061"></a>**R5061** Temporal anti-aliasing. Tardif, A, web page. Last opened 2026-11-01. <https://alextardif.com/TAA.html>
 - <a id="paper-r5038"></a>**R5038** Temporal anti-aliasing step by step. Barakat, Z, web page, 2020. Last opened 2026-11-01. <https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/>
 - <a id="paper-r5036"></a>**R5036** The art and science of dithering. Albumentations, web page, 2025. Last opened 2026-11-01. <https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/>
+- <a id="paper-r5164"></a>**R5164** The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200). Mineralogical Society of America, web page, 1967. Last opened 2026-11-08. <http://www.minsocam.org/ammin/AM52/AM52_171.pdf>
 - <a id="paper-r5058"></a>**R5058** Third-person camera systems: How it works. Moonjump, web page. Last opened 2026-11-01. <https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/>
 - <a id="paper-r5050"></a>**R5050** Transparency dithering. HedgeDocs, software documentation. Last opened 2026-11-01. <https://hedgedocs.com/index.php/Transparency_Dithering>
 - <a id="paper-r5059"></a>**R5059** Triplanar dither biplanar. RyanDowlingSoka, web page. Last opened 2026-11-01. <https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/>

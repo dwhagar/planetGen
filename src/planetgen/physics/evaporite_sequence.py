@@ -20,7 +20,7 @@ is the cation charge (a brine is neutral). Nothing is a named world: the class i
    path.
 3. *Alkaline path*: the carbonate left takes magnesium (hydromagnesite, magnesite from `MAGNESITE_MIN_K`) and then sodium, as nahcolite where the carbon dioxide is high
    (`NAHCOLITE_MIN_PCO2_PA`) and trona where it is low, or the hydrate of sodium carbonate the temperature allows (`sodium_carbonate_row`).
-4. *Calcium path*: calcium sulfate (`calcium_sulfate_row`: gypsum or anhydrite from [R5147]), then, if calcium is still left, calcium chloride; sulfate left takes magnesium
+4. *Calcium path*: calcium sulfate (`calcium_sulfate_row`: gypsum or anhydrite from [R5164]), then, if calcium is still left, calcium chloride; sulfate left takes magnesium
    (`magnesium_sulfate_row`: epsomite, hexahydrite or kieserite), then sodium (`sodium_sulfate_row`: mirabilite or thenardite).
 5. *Chlorides*: perchlorate (magnesium, then calcium) where the air supplies the oxidant and no ozone shield stands, halite, carnallite, sylvite, bischofite and last
    antarcticite.
@@ -28,9 +28,9 @@ is the cation charge (a brine is neutral). Nothing is a named world: the class i
 A mole of a solid is its formula's mole; the mass share is mole times molar mass. The ions that no step can pair (an acid water's free acid, a cation with no anion left) are
 reported as `unplaced` and carry no mass.
 
-**The calcium sulfate** is the only boundary read in a source: [R5147] measured the gypsum and anhydrite equilibrium as a function of temperature and the activity of
+**The calcium sulfate** is the only boundary read in a source: [R5164] measured the gypsum and anhydrite equilibrium as a function of temperature and the activity of
 water (`GYPSUM_ANHYDRITE_AW`), and a brine saturated with halite has an activity of water of 0.75, at which gypsum dehydrates above 18 degrees C. The other boundaries are
-stand-ins (registry section 6.218): the mirabilite and thenardite transition, the epsomite, hexahydrite and kieserite ones, the sodium carbonate hydrates, the nahcolite and
+stand-ins (registry section 6.226): the mirabilite and thenardite transition, the epsomite, hexahydrite and kieserite ones, the sodium carbonate hydrates, the nahcolite and
 trona boundary, and the anions of the classes.
 
 Limits: the sequence is equilibrium on the complete desiccation of a brine, not the kinetics of a basin (a real sequence stops, mixes and redissolves); the double salts
@@ -64,19 +64,19 @@ carbonate enough to take its calcium (the carbon dioxide of a living-range air i
 left for the chloride), an acid water none; sulfate is the rest of the charge. `ice-sealed` and a body with no class take `neutral`'s."""
 DEFAULT_CLASS = "neutral"
 
-# --- the calcium sulfate, from [R5147] ----------------------------------------------------------------------------------------------
+# --- the calcium sulfate, from [R5164] ----------------------------------------------------------------------------------------------
 
 GYPSUM_ANHYDRITE_AW = (
     (285.15, 0.725), (291.15, 0.750), (296.15, 0.770), (303.15, 0.800), (312.15, 0.845), (318.15, 0.880), (323.15, 0.915), (328.15, 0.960), (331.15, 1.000),
 )
-"""tuple: The equilibrium of gypsum and anhydrite, `(temperature K, activity of water)`: Hardie's table of the gypsum-anhydrite equilibrium ([R5147: p. 181], 12 to 58 degrees C;
+"""tuple: The equilibrium of gypsum and anhydrite, `(temperature K, activity of water)`: Hardie's table of the gypsum-anhydrite equilibrium ([R5164: p. 181], 12 to 58 degrees C;
 12, 18 and 58 are extrapolated in the source, 23, 39 and 55 measured). Gypsum is the stable form above the line (more water), anhydrite below it."""
 HALITE_SATURATED_AW = 0.75
-"""float: The activity of water of a brine saturated with halite, dimensionless: the lower end of the activity [R5147] gives for the calcium sulfate of natural brines (the assemblage gypsum or anhydrite with halite and solution)."""
+"""float: The activity of water of a brine saturated with halite, dimensionless: the lower end of the activity [R5164] gives for the calcium sulfate of natural brines (the assemblage gypsum or anhydrite with halite and solution)."""
 GYPSUM_STAGE_AW = 0.94
 """float: The activity of water of the brine at which calcium sulfate first precipitates, before halite, dimensionless (registry row EV3)."""
 
-# --- the other boundaries (stand-ins, registry section 6.218) -----------------------------------------------------------------------
+# --- the other boundaries (stand-ins, registry section 6.226) -----------------------------------------------------------------------
 
 SODIUM_SULFATE_K = 305.55
 """float: Below it the sodium sulfate that dries is mirabilite (the decahydrate), above it thenardite (the anhydrous salt), K (32.4 degrees C, registry row EV4)."""
@@ -116,7 +116,7 @@ _MOLAR_MASS = {row: elements.molar_mass(formula) for row, formula in FORMULAS.it
 
 
 def gypsum_anhydrite_aw(temperature_k):
-    """The activity of water at which gypsum and anhydrite are in equilibrium at `temperature_k` [R5147]: the table's line, extended below 12 degrees C by its lowest
+    """The activity of water at which gypsum and anhydrite are in equilibrium at `temperature_k` [R5164]: the table's line, extended below 12 degrees C by its lowest
     slope and held at 1.0 above 58 (past it anhydrite is stable in water of any activity)."""
     points = GYPSUM_ANHYDRITE_AW
     if temperature_k >= points[-1][0]:
@@ -131,7 +131,7 @@ def gypsum_anhydrite_aw(temperature_k):
 
 
 def calcium_sulfate_row(temperature_k, water_activity):
-    """`gypsum` where the brine's activity of water is above the equilibrium line at `temperature_k`, `anhydrite` where it is at or below it [R5147]."""
+    """`gypsum` where the brine's activity of water is above the equilibrium line at `temperature_k`, `anhydrite` where it is at or below it [R5164]."""
     return "gypsum" if water_activity > gypsum_anhydrite_aw(temperature_k) else "anhydrite"
 
 
