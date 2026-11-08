@@ -15,7 +15,7 @@ For one magnesium atom of the body, an element X with star ratio r (atoms of X p
    formation zone). Ti, Cr and Ni are at or near 1; Na and K keep about a quarter at the Earth cut, Mn 0.6 and P 0.6.
 2. **The core.** Of that, the share `s` is in the metal: a metal and silicate partition `s = D c / (D c + 1 - c)` with c the core's share of the dry
    mass (`core_fraction`) and `D` the coefficient that gives the Earth's own share at the Earth's own core (`EARTH_CORE_SHARE` at c = `EARTH_CORE_FRACTION`;
-   Wang, Lineweaver and Ireland 2018, the core ppm over the bulk ppm times the core mass fraction): Cr 0.55, Mn 0.60, Ni 0.93, P 0.94. A bigger core takes
+   [R4608], the core ppm over the bulk ppm times the core mass fraction): Cr 0.55, Mn 0.60, Ni 0.93, P 0.94. A bigger core takes
    a bigger share of each, and Ti, which is lithophile, takes none. Na and K carry the 5 percent the research note caps them at (the Earth's concordance
    table has 20 and 30 percent from one old model). D moves with how oxidized the mantle is: the element goes into the metal as a neutral atom and out of the
    silicate as an oxide of valence n, so D scales as the mantle's FeO to the power minus n/2 (`VALENCE`; Ni, Cr and Mn 2, P 5), set to the Earth's D at the Earth's
@@ -43,10 +43,10 @@ OXIDE_NAMES = tuple(oxide for oxide, _ in OXIDE_OF.values())
 """tuple: The seven oxides, in the order of `SYMBOLS`."""
 
 EARTH_CORE_FRACTION = 0.325
-"""float: The Earth's core mass fraction of its whole mass (Wang, Lineweaver and Ireland 2018: 32.5 +- 0.3 percent), the c at which `EARTH_CORE_SHARE` was measured."""
+"""float: The Earth's core mass fraction of its whole mass ([R4608]: 32.5 +- 0.3 percent), the c at which `EARTH_CORE_SHARE` was measured."""
 
 EARTH_ROCK_FEO = 0.0805
-"""float: The FeO mass fraction of the Earth's bulk silicate (McDonough and Sun 1995: 8.05 percent; the Wang, Lineweaver and Ireland 2018 concordance has 8.1), the FeO at which
+"""float: The FeO mass fraction of the Earth's bulk silicate (McDonough and Sun 1995: 8.05 percent; the [R4608] concordance has 8.1), the FeO at which
 `EARTH_CORE_SHARE` was measured. [Stand-in MO3, with `VALENCE`.]"""
 
 VALENCE = {"Ti": 0, "Cr": 2, "Mn": 2, "Ni": 2, "P": 5, "Na": 0, "K": 0}

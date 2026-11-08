@@ -13,10 +13,10 @@ SUN_RATIOS = bulk_draw.HostRatios(fe=0.81, si=0.91, al=0.07, ca=0.06, ni=0.045, 
                                   c_over_o=0.55, y_envelope=0.27, z=0.014)
 
 BSE = dict(Na2O=0.35, K2O=0.0285, TiO2=0.196, Cr2O3=0.377, MnO=0.134, NiO=0.242, P2O5=0.0189)
-"""dict: The bulk silicate Earth, wt percent (the 12-oxide concordance of Wang, Lineweaver and Ireland 2018)."""
+"""dict: The bulk silicate Earth, wt percent (the 12-oxide concordance of [R4608])."""
 
 MARS = dict(Na2O=0.59, K2O=0.043, TiO2=0.17, Cr2O3=0.88, MnO=0.37, NiO=0.046, P2O5=0.17)
-"""dict: The bulk silicate Mars, wt percent (Yoshizaki and McDonough 2020, Table 4)."""
+"""dict: The bulk silicate Mars, wt percent ([R4833: Table 4])."""
 
 
 def _earth():
