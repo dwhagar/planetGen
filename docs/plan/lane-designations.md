@@ -12,7 +12,7 @@ Numbering: 0x runs the system, 1x is core generation and product families, 2x is
 | 02 | Train Manager: merge trains | Train Manager (was Bug 2) | builds and merges the trains |
 | 03 | Gate: run gates, fix reds | Gate 1 | started 2026-11-07, runs gate shards and fixes reds for lane 02 |
 | 04 | Bugs and test health | Bug 1 | the current Bug 1 thread (an older Bug 1 thread ran in October 2026 and is retired) |
-| 05 | Bugs and test health, second lane | none (new 2026-11-08) | Boss, 8:10 PM EST 2026-11-07: a second bug lane to assist lane 04 with the 8.1 bug-hunt queue (GEN.1390, TEST.695 and their splits) |
+| 05 | Bugs and test health, second lane | none (new 2026-11-08) | Boss, 8:10 PM EST on 2026-11-07: a second bug lane to assist lane 04 with the 8.1 bug-hunt queue (GEN.1390, TEST.695 and their splits) |
 | 11 | Oddities, census, ore design | Core 1 | |
 | 12 | Storage, remnants, volatility law | Core 2 | |
 | 13 | Galaxy and admin | Core 3 | |
