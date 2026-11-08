@@ -245,3 +245,65 @@ def test_a_galaxy_with_a_very_wide_disk_caps_the_gas_metallicity_and_every_class
         for density in (0.01, 1.0, 1e4):
             made = nc.makeup(nebula_class, nc.gas_oh(0.0, "wide-0"), density, 10.0)
             assert 0.0 < made.dust_to_gas < 10.0
+
+
+# --- the dust species (GEN.1376) --------------------------------------------------------------------------------------------------------------
+
+def test_the_species_split_each_kind_without_losing_any_dust():
+    assert set(nc.SPECIES) == {"amorphous_olivine", "amorphous_pyroxene", "crystalline_silicate", "iron", "amorphous_carbon", "graphite", "PAH", "SiC", "ice"}
+    for letter in CLASS_LETTERS:
+        m = make(letter, density=1e3 if letter in COLD else 100.0)
+        if not m.grains:
+            continue
+        assert set(m.species) == set(nc.SPECIES), letter
+        assert sum(m.species.values()) == pytest.approx(1.0), letter
+        silicate = m.species["amorphous_olivine"] + m.species["amorphous_pyroxene"] + m.species["crystalline_silicate"]
+        assert silicate == pytest.approx(m.grains.get("silicate", 0.0)), letter
+        assert m.species["amorphous_carbon"] + m.species["graphite"] == pytest.approx(m.grains.get("carbon", 0.0)), letter
+        assert m.species["SiC"] == pytest.approx(m.grains.get("SiC", 0.0)), letter
+
+
+def test_the_amorphous_silicate_is_85_percent_olivine_and_the_diffuse_medium_is_barely_crystalline():
+    """Kemper, Vriend and Tielens 2004: 84.9 percent amorphous olivine and 15.1 percent pyroxene by mass; 0.2 +- 0.2 percent crystalline."""
+    m = make("B")
+    amorphous = m.species["amorphous_olivine"] + m.species["amorphous_pyroxene"]
+    assert m.species["amorphous_olivine"] / amorphous == pytest.approx(0.849)
+    assert m.species["crystalline_silicate"] / m.grains["silicate"] == pytest.approx(0.002)
+
+
+def test_the_stellar_ejecta_silicates_are_11_to_18_percent_crystalline():
+    for letter in ("H", "J", "L"):
+        m = make(letter)
+        assert 0.11 <= m.species["crystalline_silicate"] / m.grains["silicate"] <= 0.18, letter
+
+
+def test_the_silicon_in_interstellar_sic_is_under_five_percent_of_the_silicon_in_silicates():
+    """Whittet et al. 1990, as quoted by Draine 2003: Si in SiC dust under 5 percent of Si in silicates."""
+    for name in ("diffuse", "dense", "reflection"):
+        mix = nc.GRAIN_MIXES[name]
+        in_sic = mix["SiC"] * nc.GRAINS["SiC"]["Si"]
+        in_silicate = mix["silicate"] * nc.GRAINS["silicate"]["Si"]
+        assert in_sic <= 0.05 * in_silicate, name
+        assert in_sic == pytest.approx(nc.SIC_SI_SHARE_OF_SILICATE_SI * in_silicate, rel=0.05), name
+
+
+def test_a_carbon_star_wind_is_the_only_mix_with_a_tenth_of_its_dust_in_sic():
+    assert nc.GRAIN_MIXES["carbon-rich"]["SiC"] == pytest.approx(0.10)
+    assert all(mix.get("SiC", 0.0) < 0.01 for name, mix in nc.GRAIN_MIXES.items() if name != "carbon-rich")
+    assert make("K").species["SiC"] > 10 * make("B").species["SiC"]
+    assert make("K").species["amorphous_carbon"] > make("K").species["graphite"]
+
+
+def test_the_ice_mantle_is_boogerts_and_gives_the_ice_its_carbon_and_nitrogen():
+    assert nc.ICE_MANTLE["H2O"] == pytest.approx(0.4419, abs=1e-3)
+    assert sum(nc.ICE_MANTLE.values()) == pytest.approx(1.0)
+    assert nc.ICE_MANTLE["CO2"] > nc.ICE_MANTLE["CO"] > nc.ICE_MANTLE["CH3OH"] > nc.ICE_MANTLE["NH3"] > nc.ICE_MANTLE["CH4"]
+    assert {"H", "O", "C", "N"} == set(nc.GRAINS["ice"]) and nc.GRAINS["ice"]["C"] > 0.15
+    cloud = make("M", density=1e4)
+    assert cloud.species["ice"] > 0.2 and cloud.dust_elements["N"] > 0.0
+
+
+def test_sic_survives_as_the_silicates_do():
+    shocked = make("S")
+    assert shocked.grains["SiC"] / shocked.grains["silicate"] == pytest.approx(make("A").grains["SiC"] / make("A").grains["silicate"] * 1.0, rel=0.3)
+    assert nc.SURVIVES_AS["SiC"] == "silicate"

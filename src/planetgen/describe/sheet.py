@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -45,7 +45,7 @@ GROUPS = {
     "composition": "Composition", "atmosphere": "Atmosphere", "climate": "Climate", "water": "Water",
     "magnetism": "Magnetic field", "radiation": "Radiation", "habitability": "Habitability", "life": "Life",
     "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Disk",
-    "radiogenic": "Radiogenic heat", "gas": "Gas and light", "compact": "Compact object", "activity": "Activity",
+    "radiogenic": "Radiogenic heat", "gas": "Gas and light", "dust": "Dust", "compact": "Compact object", "activity": "Activity",
     "ratings": "Ratings",
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
@@ -332,6 +332,46 @@ _GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orb
                         ("galactic_orbital_phase_deg", "Galactic orbital phase"))
 _DISTANCE = _rows("galactic", ("galactic_radius_pc", "Distance from the galactic center"))
 
+_COMPOSITION_ROWS = (
+    *_rows("composition", ("mass_fraction_h", "Hydrogen share of its mass (gas and dust)"), ("mass_fraction_he", "Helium share of its mass (gas and dust)"),
+           ("mass_fraction_z", "Heavy-element share of its mass (gas and dust)"),
+           ("mass_fraction_c", "Carbon share of its mass (gas and dust)"),
+           ("mass_fraction_n", "Nitrogen share of its mass (gas and dust)"),
+           ("mass_fraction_o", "Oxygen share of its mass (gas and dust)"),
+           ("mass_fraction_ne", "Neon share of its mass (gas and dust)"),
+           ("mass_fraction_s", "Sulfur share of its mass (gas and dust)"),
+           ("mass_fraction_ar", "Argon share of its mass (gas and dust)"),
+           ("mass_fraction_fe", "Iron share of its mass (gas and dust)")),
+    *_rows("gas", ("gas_oh_dex", "Oxygen of its gas, relative to the Sun (log)"), ("ionized_share", "Hydrogen that is ionized"), ("atomic_share", "Hydrogen that is atomic"),
+           ("molecular_share", "Hydrogen that is molecular"),
+           ("abundance_c", "Carbon in the gas, 12 + log(n/nH)"),
+           ("abundance_n", "Nitrogen in the gas, 12 + log(n/nH)"),
+           ("abundance_o", "Oxygen in the gas, 12 + log(n/nH)"),
+           ("abundance_ne", "Neon in the gas, 12 + log(n/nH)"),
+           ("abundance_s", "Sulfur in the gas, 12 + log(n/nH)"),
+           ("abundance_ar", "Argon in the gas, 12 + log(n/nH)"),
+           ("abundance_fe", "Iron in the gas, 12 + log(n/nH)")),
+    *_rows("dust", ("dust_to_gas", "Dust mass over gas mass"), ("dust_to_metals", "Dust mass over metal mass"),
+           ("grain_amorphous_olivine", "Share of the dust that is amorphous olivine"),
+           ("grain_amorphous_pyroxene", "Share of the dust that is amorphous pyroxene"),
+           ("grain_crystalline_silicate", "Share of the dust that is crystalline silicate"),
+           ("grain_iron", "Share of the dust that is iron"),
+           ("grain_amorphous_carbon", "Share of the dust that is amorphous carbon"),
+           ("grain_graphite", "Share of the dust that is graphite"),
+           ("grain_pah", "Share of the dust that is PAH molecules"),
+           ("grain_sic", "Share of the dust that is silicon carbide"),
+           ("grain_ice", "Share of the dust that is ice mantles")),
+)
+"""tuple: The rows of the stored composition (GEN.1268, GEN.1272), the same for a nebula and a remnant; a remnant adds `_REMNANT_PARTS`."""
+
+_REMNANT_PARTS = (
+    *_rows("dust", ("progenitor_mass_sol", "Mass of the star that exploded"), ("ejecta_mass_sol", "Mass thrown out by the explosion"),
+           ("swept_mass_sol", "Interstellar mass inside the blast wave"),
+           ("ejecta_mass_fraction_h", "Hydrogen share of the ejecta"), ("ejecta_mass_fraction_he", "Helium share of the ejecta"),
+           ("ejecta_mass_fraction_z", "Heavy-element share of the ejecta"), ("swept_mass_fraction_h", "Hydrogen share of the swept-up gas"),
+           ("swept_mass_fraction_he", "Helium share of the swept-up gas"), ("swept_mass_fraction_z", "Heavy-element share of the swept-up gas")),
+)
+
 _NEBULA = (
     *_rows("identity", ("nebula_class", "Class", TEXT), ("nebula_type", "Type", TEXT),
            ("formation_cause", "Formation", TEXT)),
@@ -339,6 +379,8 @@ _NEBULA = (
     *_rows("composition", ("composition", "Composition", TEXT), ("dominant_species", "Dominant gas", TEXT),
            ("hosts", "Stars it hosts", TEXT), ("age_myr", "Age of the stars"), ("q_total", "Ionizing photons")),
     *_rows("gas", ("density_cm3", "Density"), ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_rows("dust", ("progenitor_mass_sol", "Mass of the star that made it")),
+    *_COMPOSITION_ROWS,
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -378,6 +420,7 @@ _SUPERNOVA_REMNANT = (
     *_rows("physical", ("age_years", "Age"), ("radius_ly", "Radius"), ("mass_kg", "Mass")),
     *_rows("gas", ("dominant_species", "Dominant gas", TEXT), ("density_cm3", "Density"),
            ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_COMPOSITION_ROWS, *_REMNANT_PARTS,
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -573,10 +616,6 @@ def _container_not_shown():
     }
 
 
-_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud; its sheet rows come with the item that wires the composition text")
-                       for table, columns in nebula_columns.COLUMNS.items()}
-"""dict: Table -> the composition columns of a nebula or remnant, each excused until the sheet shows the composition."""
-
 NOT_SHOWN = {
     "star": {
         **_excuse(("id", "uid", "star_system_id", "parent_type", "parent_id", "epoch_unix",
@@ -609,7 +648,7 @@ NOT_SHOWN = {
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
     "nebula": _phenomenon_not_shown(
-        "nebula", **_COMPOSITION_STORED["nebulae"], **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
+        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
                                                "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
                                                "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
                                                "shape_iso", "shape_scale")}),
@@ -619,7 +658,7 @@ NOT_SHOWN = {
     "black_hole": _phenomenon_not_shown("black_hole"),
     "neutron_star": _phenomenon_not_shown("neutron_star"),
     "supernova_remnant": _phenomenon_not_shown(
-        "supernova_remnant", **_COMPOSITION_STORED["supernova_remnants"], compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
+        "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
     "rogue_planet": {
         **{name: reason for name, reason in _BODY_NOT_SHOWN.items()

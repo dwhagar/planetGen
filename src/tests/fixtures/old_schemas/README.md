@@ -111,3 +111,4 @@ Commit each file came from:
 - v225: train 15 after GEN.1103's migration 0225 (asteroid field age columns), before GEN.1105 field members (0226)
 - v226: train 16 after GEN.1105's migration 0226 (field members), before MAP.402 uncharted sector rows (0227, no schema change)
 - v227: train 16 after MAP.402's migration 0227 (uncharted sector rows, no schema change), before GEN.1047 oddities column (0228)
+- v228: train 16 after GEN.1047's migration 0228 (oddities column), before GEN.1376 dust species (0229)
