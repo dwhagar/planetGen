@@ -248,11 +248,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.217:HK2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
 | row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
-| module | planetgen.physics.disk_condensation | GEN.1363 | the species the disc condenses (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon), the carbon split and the C/O of the gas and solids across each snow line; part B wires the ice shares of a body to it and part C the C/O of a giant, in one epoch |
-| row | 6.213:DSC1 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC2 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC3 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC4 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC5 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC6 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
