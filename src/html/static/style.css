@@ -3746,6 +3746,17 @@ code {
   .starmap-info[data-overlay] {
     --info-share: 100%;
   }
+
+  /* UX.291: the card is narrow on a phone (the controls take the rest), so a label beside its value wrapped to several lines of a few
+     letters each ("Habitable worlds" in a column of its own); the label stands over its value instead, one line each. */
+  .starmap-info[data-overlay] > dl {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .starmap-info[data-overlay] > dl > dd {
+    margin-bottom: 0.2rem;
+  }
 }
 
 /* An expanded card has a region to scroll, so the pointer has to reach the card. */
