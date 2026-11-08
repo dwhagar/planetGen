@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3718] - 2026-11-08
+
+**Headline:** a script that measures how far each class quantity moves when one stand-in is moved across its registered range.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py` (GEN.1311, part one of the class fudge table): reads the registry's constant and knobs cells, overrides one module constant at a time (low end, high end) on a fixed sample of systems, and records how far gravity, mean temperature, pressure, gas shares, ocean cover, the regional, day and night temperatures and the wet bulb move. `rows` lists which registry rows can be overridden and why the others cannot; `screen` runs the pass and writes a report. Nothing it does changes a generated world.
+
+## [8.0.3717] - 2026-11-08
+
+**Headline:** The registry now keeps eighteen known gaps from the unseen-compounds report as watch lines, each with its status, its chance of existing, its chance that the predicted properties are right, and why it changes no generated number yet.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` section 6.238 lists the watch lines: solid metallic hydrogen, sulfide and salt clouds, ices beyond ice X, the Mercury hollows phase, Titan cryominerals, superionic iron alloys, Venus heavy-metal frost, tholins, bcc iron, Fe-Si-O phases, noble-gas compounds, doubly superionic ammonia-water, post-post-perovskite, phosphine on Venus, dimethyl sulfide on K2-18 b, quark cores, azotosomes and superheavy nuclides.
+- Each line has a status in `evidence-register.md`: predicted only, disputed (solid metallic hydrogen, phosphine, dimethyl sulfide) or observed in a lab (the Titan co-crystals). Fifteen papers join the references.
+
+generation-output: unchanged
+
+## [8.0.3716] - 2026-11-08
+
+**Headline:** The list of stand-in values now says for every row whether the thing it stands for has been seen: in a planet, in a laboratory, predicted only, or disputed. Seven materials that were once only predicted are now ordinary seen rows.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` has an evidence-status column, filled from `docs/design/research/evidence-register.md`; a row with no line there reads `predicted only`, and a test fails if any row has no status. A short note beside the tier explains the four statuses.
+- The Venus cloud and air rows (6.228, 6.229) are the first rows with a status: the acid droplets, sulfur dioxide and the trace gases are seen in the planet, and disulfur monoxide stays predicted only.
+- New section 6.237 records BC8 carbon, superionic water ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, and ambient-pressure cubic gauche nitrogen as seen in the laboratory, each with its paper in the references. No number the generator computes changes.
+
+generation-output: unchanged
+
+## [8.0.3715] - 2026-11-08
+
+**Headline:** The list of stand-in values now says for every row whether the thing it stands for has been seen: in a planet, in a laboratory, predicted only, or disputed. Seven materials that were once only predicted are now ordinary seen rows.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` has an evidence-status column, filled from `docs/design/research/evidence-register.md`; a row with no line there reads `predicted only`, and a test fails if any row has no status. A short note beside the tier explains the four statuses.
+- The Venus cloud and air rows (6.228, 6.229) are the first rows with a status: the acid droplets, sulfur dioxide and the trace gases are seen in the planet, and disulfur monoxide stays predicted only.
+- New section 6.237 records BC8 carbon, superionic water ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, and ambient-pressure cubic gauche nitrogen as seen in the laboratory, each with its paper in the references. No number the generator computes changes.
+
+generation-output: unchanged
+
+## [8.0.3714] - 2026-11-08
+
+**Headline:** The tests that need a system with a technological civilization start from four pinned candidate numbers instead of hunting for one, so test_species_limits takes about nine minutes and not over an hour.
+
+### Changed
+
+- `tests/data/civilized_pins.json` names four candidate numbers whose generated system holds a civilization; `python -m tests.civilized_pins refresh --hunt 4` writes them again after a change that alters generation, and `test_the_pinned_civilized_seeds_still_qualify` says when they are old.
+
+generation-output: unchanged
+
 ## [8.0.3713] - 2026-11-08
 
 **Headline:** The chemistry the one measured acid cloud holds is now a registered set that the generator can give to any air with the supplies for it.

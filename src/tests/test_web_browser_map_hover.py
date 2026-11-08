@@ -118,6 +118,7 @@ def test_a_region_hovered_shows_its_first_view(page, map_site):
     _click_through(page, at, state["title"])
 
 
+@pytest.mark.holes_marked
 def test_a_black_hole_hovered_shows_its_first_view(page, map_site):
     """MAP.348: a black hole's mark."""
     page.set_viewport_size({"width": 1280, "height": 900})
