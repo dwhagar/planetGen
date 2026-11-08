@@ -31,7 +31,7 @@ lanes' gates then gets fewer workers instead of timeouts and OOM kills; the phas
 
 Containers (TEST.376): before every run, `src/tests/lane_services.py` loads the `PLANETGEN_TEST_*` variables from
 /etc/profile.d/planetgen-test.sh when they are missing, starts MySQL and Redis when they do not answer, purges the
-MySQL binlogs when the disk is nearly full, checks `argon2-cffi` and (for the browser tests) `playwright` 1.56.0 and fetches the
+MySQL binlogs when the disk is nearly full, checks `argon2-cffi` and (for the browser tests) `playwright` (the release whose Chromium the machine has) and fetches the
 white-dwarf data a fresh machine lacks;
 what it cannot repair stops the run before it starts (exit 2, `--no-preflight` skips the check). While a phase runs a
 watchdog asks MySQL and Redis every 15 seconds; one that is gone is restarted at once, the phase's pytest is stopped and
@@ -151,10 +151,15 @@ def depmap_options(command, base, check):
     return []
 
 
+MAX_WORKER_RESTARTS = 1000
+"""int: How many crashed xdist workers a phase replaces (TEST.694). xdist's own limit is four times the workers, after which it stops replacing and the
+rest of the run is left to the workers that survived: in the bug hunt 12 workers were killed by the memory killer and two ran the tail alone for hours."""
+
+
 def pytest_command(marker, workers, extra):
     command = [sys.executable, "-m", "pytest", "-m", marker, "-p", "no:cacheprovider", "--dist", "worksteal"]
     if workers and workers > 1:
-        command += ["-n", str(workers)]
+        command += ["-n", str(workers), "--max-worker-restart", str(MAX_WORKER_RESTARTS)]
     return command + list(extra)
 
 
@@ -476,7 +481,7 @@ def start_progress_log(command_key, extra, base, directory=None, now=None, resum
         return Progress(identifier, path, parts)
     earlier, tests = progress_log.read(path)
     same = {nodeid for nodeid, line in tests.items() if line.get("outcome") == "passed"}
-    across, _looked, blocked = reuse.reusable(directory, parts, current, skip=path)
+    across, _looked, blocked = reuse.reusable(directory, parts, current, skip=path, at=now)
     across = {nodeid: found for nodeid, found in across.items() if nodeid not in same}
     if not earlier and not across:
         if not any(progress_log.read(os.path.join(directory, name))[0].get("command") == command_key
@@ -623,8 +628,9 @@ def main(argv=None):
     if args.check:
         refusal = check_without_changes(args.base)
         if refusal:
-            print(f"scripts/test.py full --check: {refusal} Nothing was run.", flush=True)
-            return 2
+            # TEST.694: on main there is nothing to compare, but the full run itself is wanted: run it, without the list of failures the selection misses
+            print(f"scripts/test.py full --check: {refusal} Running the full run without the check.", flush=True)
+            args.check = False
     if args.command == "env" or not args.no_preflight:
         problems = _services().preflight(os.environ, browser=args.command != "quick",
                                          say=lambda text: print(f"scripts/test.py {args.command}: {text}", flush=True))
@@ -674,6 +680,9 @@ def main(argv=None):
     except OSError:
         pass
     environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE, PLANETGEN_PROGRESS_LOG=progress_path)
+    # TEST.694: the census and sweep tests write their `*-latest.md` reports where they are told, not into the tracked `.test-reports/` (a run left the
+    # tree dirty); a report to keep is copied from here
+    environment.setdefault("PLANETGEN_REPORT_DIR", os.path.join(ROOT, ".test-progress", "reports"))
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
     if args.command == "full":
@@ -700,6 +709,10 @@ def main(argv=None):
                 capped = f" (capped: {why})" if why else ""
             first_phase = False
             print(f"--- {label}: -m {marker!r}, {workers} worker(s){capped}", flush=True)
+            if label == "browser":      # TEST.693: a browser that will not start fails the phase instead of skipping every test
+                environment["PLANETGEN_REQUIRE_BROWSER"] = "1"
+            else:
+                environment.pop("PLANETGEN_REQUIRE_BROWSER", None)
             if args.no_preflight:
                 code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
             else:

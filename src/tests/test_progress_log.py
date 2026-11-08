@@ -284,8 +284,11 @@ def test_a_resume_with_nothing_to_resume_says_why(tmp_path, monkeypatch):
     assert "no earlier run of `quick`" in nothing.problem
     first = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
     _finished(first.path, "a", "passed")
-    # Another day is another environment (TEST.208): nothing is reused and every test runs, with the reason.
-    tomorrow = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(days=1), resume=True)
+    # A run across midnight UTC keeps its passes (TEST.694); another day is another environment (TEST.208): nothing is reused and every test
+    # runs, with the reason.
+    next_day = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(hours=14), resume=True)
+    assert next_day.problem is None and "date" not in (next_day.note or "")
+    tomorrow = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(days=2), resume=True)
     assert tomorrow.problem is None and tomorrow.skip_file is None and "date" in tomorrow.note
     other = runner.start_progress_log("full", [], "", directory=directory, now=NOW, resume=True)
     assert "no earlier run of `full`" in other.problem

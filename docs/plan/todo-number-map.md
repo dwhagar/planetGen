@@ -16,11 +16,11 @@ release is stamped.
 | UX | UX.289 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
-| GEN | GEN.1391 |
-| PERF | PERF.250 |
+| GEN | GEN.1397 |
+| PERF | PERF.251 |
 | DB | DB.116 |
 | API | API.42 |
-| ADM | ADM.142 |
+| ADM | ADM.143 |
 | SEC | SEC.47 |
 | TEST | TEST.697 |
 | USR | USR.32 |
@@ -2175,6 +2175,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
 | GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
+| GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
+| GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
+| GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | open |
+| GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) | none | open |
+| GEN.1391 | Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364) | GEN.1364, GEN.1360 | open |
+| GEN.1392 | Reduced cores and the dynamo energy scale: let rock FeO reach below IW-3.3 so Mercury-like Si-rich cores occur, and re-tune the compositional dynamo energy that stopped most small-body dynamos | GEN.1364 | open |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) | none | open |
 | TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) | none | open |
 | TEST.690 | src/tests/test_pulsar_planets.py fails on main: a pulsar disk planet comes out class T (bug) | none | open |
@@ -2195,6 +2201,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) | none | open |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | open |
+| PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | open |
+| ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
