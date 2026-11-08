@@ -2936,3 +2936,21 @@ Baseline: PR #1817.
 | GEN.1354 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1350 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.698 | 8.1 | Bugs and flaky tests |
+| GEN.1385 | 8.1 | Bugs and flaky tests |
+| GEN.1397 | 8.1 | Bugs and flaky tests |
+| GEN.1398 | 8.1 | Bugs and flaky tests |
+| GEN.1399 | 8.1 | Bugs and flaky tests |
+| GEN.1401 | 8.1 | Bugs and flaky tests |
+| GEN.1394 | 8.1 | Bugs and flaky tests |
+| GEN.1363 | 8.1 | Stand-in replacements |
+| GEN.1365 | 8.1 | Stand-in replacements |
+| GEN.1366 | 8.1 | Stand-in replacements |
+| GEN.1367 | 8.1 | Stand-in replacements |
+| GEN.1368 | 8.1 | Stand-in replacements |
+| GEN.1372 | 8.1 | Stand-in replacements |
+| GEN.1374 | 8.1 | Stand-in replacements |
+| GEN.1376 | 8.1 | Stand-in replacements |
+| GEN.1378 | 8.1 | Stand-in replacements |
+| GEN.1380 | 8.1 | Stand-in replacements |
+| GEN.1381 | 8.1 | Stand-in replacements |
+| GEN.1208 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
