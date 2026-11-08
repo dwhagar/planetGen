@@ -22,6 +22,7 @@ COLUMNS = ("rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "roc
 def upgrade():
     connection = op.get_bind()
     for table in TABLES:
-        for name in COLUMNS:
-            if not helpers.exists_column(connection, table, name):
-                connection.execute(sa.text(f"ALTER TABLE {table} ADD COLUMN {name} DOUBLE NULL, ALGORITHM=INSTANT"))
+        missing = [name for name in COLUMNS if not helpers.exists_column(connection, table, name)]
+        if missing:
+            # No ALGORITHM clause: `planets` and `moons` carry a FULLTEXT key, which refuses ALGORITHM=INSTANT; one rebuild adds all of the columns.
+            connection.execute(sa.text(f"ALTER TABLE {table} " + ", ".join(f"ADD COLUMN {name} DOUBLE NULL" for name in missing)))
