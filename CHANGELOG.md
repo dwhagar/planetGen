@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3714] - 2026-11-08
+
+**Headline:** The tests that need a system with a technological civilization start from four pinned candidate numbers instead of hunting for one, so test_species_limits takes about nine minutes and not over an hour.
+
+### Changed
+
+- `tests/data/civilized_pins.json` names four candidate numbers whose generated system holds a civilization; `python -m tests.civilized_pins refresh --hunt 4` writes them again after a change that alters generation, and `test_the_pinned_civilized_seeds_still_qualify` says when they are old.
+
+generation-output: unchanged
+
 ## [8.0.3713] - 2026-11-08
 
 **Headline:** The chemistry the one measured acid cloud holds is now a registered set that the generator can give to any air with the supplies for it.
