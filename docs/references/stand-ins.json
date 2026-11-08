@@ -17018,48 +17018,6 @@
           "burn_down": [
             "no data",
             "-",
-            "a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range)"
-            ],
-            [
-              "The range it moves in",
-              "free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000"
-            ],
-            [
-              "Where it holds",
-              "slot and forced-class requests"
-            ],
-            [
-              "What would show it wrong",
-              "test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist"
-            ],
-            [
-              "What replaces it",
-              "the class-conditioned draw of the architecture (a plan that places the requested class)"
-            ],
-            [
-              "Evidence",
-              "design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not)"
-            ]
-          ],
-          "id": "PA14",
-          "key": "6.36:PA14",
-          "kind": "P",
-          "slug": "6-36-pa14",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
-          "unread": null,
-          "what": "tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range)"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
             "L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems"
           ],
           "fields": [
@@ -41133,48 +41091,6 @@
           "what": "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
-            ],
-            [
-              "The range it moves in",
-              "one in four to one in two"
-            ],
-            [
-              "Where it holds",
-              "rocky planets asked for by class (V, 2 g or more, needs a bare core)"
-            ],
-            [
-              "What would show it wrong",
-              "a forced V that no seed reaches"
-            ],
-            [
-              "What replaces it",
-              "a formation-time draw against the disk's lifetime, which the generator does not make"
-            ],
-            [
-              "Evidence",
-              "with no late cores every rocky planet of 4 Earth masses or more keeps an envelope except close in, and V (2 g) is out of reach (0 of 40 seeds); alternate draws reach it in 12 of 40"
-            ]
-          ],
-          "id": "EC7",
-          "key": "6.206:EC7",
-          "kind": "B",
-          "slug": "6-206-ec7",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
-          "unread": null,
-          "what": "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
-        },
-        {
           "burn_down": null,
           "fields": [
             [
@@ -41707,6 +41623,52 @@
       ],
       "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
       "title": "Stand-ins of the species the disc condenses"
+    },
+    {
+      "key": "6.214",
+      "number": "6.214",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.REQUEST_ECOSPHERE_TEMPERATURE_K (273.15, 400): a request whose rocky body must have a mean surface temperature of at least freezing and under 400 K is placed in the ecosphere; any other keeps the place of its slot"
+            ],
+            [
+              "The range it moves in",
+              "high end 323 to 450 K"
+            ],
+            [
+              "Where it holds",
+              "a request with a temperature range"
+            ],
+            [
+              "What would show it wrong",
+              "a request for a surface in that range that a body outside the ecosphere meets"
+            ],
+            [
+              "What replaces it",
+              "a placement that tries the distance range the request's temperature gives"
+            ],
+            [
+              "Evidence",
+              "the low end is the freezing point of water, the high end the edge of class G and the habitable request's range (323 K); chosen"
+            ]
+          ],
+          "id": "CRQ1",
+          "key": "6.214:CRQ1",
+          "kind": "B",
+          "slug": "6-214-crq1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.REQUEST_ECOSPHERE_TEMPERATURE_K (273.15, 400): a request whose rocky body must have a mean surface temperature of at least freezing and under 400 K is placed in the ecosphere; any other keeps the place of its slot"
+        }
+      ],
+      "slug": "6-214-stand-ins-of-the-request-that-names-conditions",
+      "title": "Stand-ins of the request that names conditions"
     },
     {
       "key": "6.197",

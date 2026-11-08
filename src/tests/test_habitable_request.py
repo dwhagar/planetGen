@@ -105,7 +105,6 @@ def test_a_request_that_no_draw_can_meet_keeps_the_last_planet_and_places_nothin
     planets, seen = _drawn_in_ecosphere(system, monkeypatch, 0.0, 3)
     assert not any(hr.meets(p) for p in planets)
     assert len(seen) >= 3 and {d for d, _ in seen} == {1.0}
-    assert not system._request_unreachable                # a habitable request is no placement; it just comes out unmet
 
 
 def test_a_planet_with_no_surface_is_kept_as_drawn(system, monkeypatch):
