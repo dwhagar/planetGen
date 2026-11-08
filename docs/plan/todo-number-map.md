@@ -2276,7 +2276,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
 | OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
 | OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
-| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | open |
+| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | done, PR #5763 |
 | OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it | none | open |
 | OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
@@ -3704,7 +3704,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
 | DOC.111 | The link-neighbors command is in no document | none | done, PR #5755 |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | done, PR #5767 |
-| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
+| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | done, PR #5751 |
 | DOC.114 | Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text | none | open |
 | DOC.115 | One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept | DOC.114 | open |
 | DOC.116 | A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/ | none | done, PR #5791 |
