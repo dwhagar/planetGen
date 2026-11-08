@@ -25813,6 +25813,21 @@
     },
     "R5165": {
       "kind": "paper",
+      "label": "Li 2021",
+      "title": "Tasting nuclear pasta made with classical molecular dynamics simulations"
+    },
+    "R5166": {
+      "kind": "paper",
+      "label": "Passamonti and Pons 2016",
+      "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases"
+    },
+    "R5167": {
+      "kind": "web",
+      "label": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+      "title": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)"
+    },
+    "R5168": {
+      "kind": "paper",
       "label": "Tsagkogeorgas et al. 2017",
       "title": "Evaporation of sulfate aerosols at low relative humidity"
     }

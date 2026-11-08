@@ -99,19 +99,19 @@
    "value": 10156.0,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The 10156 K of the Ayers pure-acid curve as three open papers print it ([R0976: eq. 16], [R1516: eq. 4a], [R5165: eq. 11]); the primary source ([R2516], Kulmala and Laaksonen 1990, pay only) was not opened"
+   "basis": "The 10156 K of the Ayers pure-acid curve as three open papers print it ([R0976: eq. 16], [R1516: eq. 4a], [R5168: eq. 11]); the primary source ([R2516], Kulmala and Laaksonen 1990, pay only) was not opened"
   },
   "pure_acid_reference_k": {
    "value": 360.0,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The reference temperature: [R0976: eq. 16] prints 360 K (as does Boss's pasted text) and [R5165: eq. 11] 360.15 K, a 0.04 percent difference in the correction; [R1516: eq. 4a] prints 340 K, which does not give the same curve with the constant 16.259 (1.2 to 1.5 times higher at 190 to 250 K) and is not used; the primary ([R2516], pay only) was not opened"
+   "basis": "The reference temperature: [R0976: eq. 16] prints 360 K (as does Boss's pasted text) and [R5168: eq. 11] 360.15 K, a 0.04 percent difference in the correction; [R1516: eq. 4a] prints 340 K, which does not give the same curve with the constant 16.259 (1.2 to 1.5 times higher at 190 to 250 K) and is not used; the primary ([R2516], pay only) was not opened"
   },
   "pure_acid_constant": {
    "value": 16.259,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The constant of ln p(atm) = 16.259 - 10156/T0 at the reference temperature ([R0976: eq. 16] and [R1516: eq. 4b]); the refit of Noppel and others 2002 ([R5165: eq. 11], -11.695 where this gives -11.940) is 1.28 times higher at every temperature, the spread of this curve"
+   "basis": "The constant of ln p(atm) = 16.259 - 10156/T0 at the reference temperature ([R0976: eq. 16] and [R1516: eq. 4b]); the refit of Noppel and others 2002 ([R5168: eq. 11], -11.695 where this gives -11.940) is 1.28 times higher at every temperature, the spread of this curve"
   },
   "pure_acid_curvature": {
    "value": 0.38,
@@ -123,13 +123,13 @@
    "value": 905.0,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The critical temperature of the correction, 905 K in all three papers ([R5165: eq. 11] prints 0.38/545, that is 905 - 360.15 rounded)"
+   "basis": "The critical temperature of the correction, 905 K in all three papers ([R5168: eq. 11] prints 0.38/545, that is 905 - 360.15 rounded)"
   },
   "pure_acid_alternative_constant": {
    "value": -11.695,
    "tier": "T3",
    "tweak": "L1",
-   "basis": "The refit constant L of Noppel and others 2002 (ln of the pressure in atmospheres at the reference temperature) as [R5165: eq. 11] prints it, with its own reference temperature 360.15 K; the curve is a constant 1.28 times the default at every temperature. The window under it is the second end of the bracket"
+   "basis": "The refit constant L of Noppel and others 2002 (ln of the pressure in atmospheres at the reference temperature) as [R5168: eq. 11] prints it, with its own reference temperature 360.15 K; the curve is a constant 1.28 times the default at every temperature. The window under it is the second end of the bracket"
   },
   "water_curve_a": {
    "value": 18.452406985,
@@ -171,7 +171,7 @@
    "value": 360.15,
    "tier": "T3",
    "tweak": "L1",
-   "basis": "The reference temperature that goes with the refit constant: [R5165: eq. 11] prints 360.15 K with L = -11.695"
+   "basis": "The reference temperature that goes with the refit constant: [R5168: eq. 11] prints 360.15 K with L = -11.695"
   }
  }
 }

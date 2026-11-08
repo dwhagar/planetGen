@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3710] - 2026-11-08
+
+**Headline:** The map menu test accepts the layer counts and the gravity slab label as text.
+
+### Fixed
+- **Galaxy and sector menu browser test (TEST.696).** The check that every visible word in a map menu is a heading or a control flagged the "8 of 9 on" counts beside the layer groups and the "slab 9 of 16" label of the Gravity settings. Both are readouts that belong to the menu, so the test now lets them through, as it already does for the group headings and the gravity note.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (galaxy and sector menus).
+
+## [8.0.3709] - 2026-11-08
+
+**Headline:** A neutron star's page now shows the nuclear pasta layer at the bottom of its crust, the five shapes the nuclei are predicted to take, marked as predicted and never observed.
+
+### Changed
+
+- GEN.1427: `neutron_star_crust.PASTA` (data in `neutron_star_crust.json`, block `pasta`) holds the layer below the inner crust: from 0.2 of the normal nuclear density (0.165 nucleons per fm^3) to the bottom of the crust table, about 100 m thick, holding up to half the crust's mass, with the shapes in order of rising density (gnocchi, spaghetti, lasagna, anti-spaghetti, anti-gnocchi). The loader refuses a block with fewer than three shapes, a start above the crust-core boundary or a mass share above 1. The neutron star page's Crust table has a new row, "Nuclear pasta", that says it is predicted, not observed. Stand-ins PS1 to PS3 in section 6.232; sources [R5165, R5166, R5167].
+- Nothing stored changes: the layer is a described fact read when the page is built, so the generated systems are the same as before.
+
+generation-output: unchanged
+
 ## [8.0.3708] - 2026-11-08
 
 **Headline:** The block light totals stage is now held to the workers the host's memory holds, and a stage's cut into units runs with the other workers gone, so a full-galaxy run is less likely to be killed for memory at the end of the block lights.

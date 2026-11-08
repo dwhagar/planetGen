@@ -16,7 +16,7 @@ value; `GEN.1425` (the cloud step of the Venus chemistry set) reads it.
   water, 185 to 260 K, carried to the triple point) below it. A water pressure in the air gives the water activity `p / p0`, and the model
   gives the acid mole fraction at that activity (`composition`): the weight percent of an aerosol in equilibrium with the air.
 * **Acid.** The pure liquid curve is the Ayers form with the Kulmala and Laaksonen (1990) low-temperature correction as three open papers
-  print it ([R0976], [R1516], [R5165]); the primary paper was not opened, so the tier is T3. The refit constant of Noppel and others
+  print it ([R0976], [R1516], [R5168]); the primary paper was not opened, so the tier is T3. The refit constant of Noppel and others
   2002 is the other end of the bracket (1.28 times higher at every temperature), reported by `condensation_temperature_k(..., alternative=True)`.
 * **The window.** An air condenses the liquid where the acid vapor pressure it holds is above the pressure over the solution that its water
   fixes (`condenses`); the warmest temperature at which it does is `condensation_temperature_k`, and the cloud lies where the air is cooler

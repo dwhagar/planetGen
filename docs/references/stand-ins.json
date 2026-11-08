@@ -41827,7 +41827,7 @@
           "fields": [
             [
               "What it is",
-              "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5165: equation 11]) is 1.28 times higher at every temperature"
+              "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
             ],
             [
               "The range it moves in",
@@ -41847,7 +41847,7 @@
             ],
             [
               "Evidence",
-              "2ND-HAND ([R0976: equation 16] and [R5165: equation 11], of [R2516] and [R0210]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
+              "2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R2516] and [R0210]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
             ]
           ],
           "id": "SV2",
@@ -41858,7 +41858,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5165: equation 11]) is 1.28 times higher at every temperature"
+          "what": "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
         },
         {
           "burn_down": null,
