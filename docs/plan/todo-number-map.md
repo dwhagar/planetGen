@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.289 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
-| GEN | GEN.1391 |
+| GEN | GEN.1393 |
 | PERF | PERF.251 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2175,6 +2175,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
 | GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
+| GEN.1391 | Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364) | GEN.1364, GEN.1360 | open |
+| GEN.1392 | Reduced cores and the dynamo energy scale: let rock FeO reach below IW-3.3 so Mercury-like Si-rich cores occur, and re-tune the compositional dynamo energy that stopped most small-body dynamos | GEN.1364 | open |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) | none | open |
 | TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) | none | open |
 | TEST.690 | src/tests/test_pulsar_planets.py fails on main: a pulsar disk planet comes out class T (bug) | none | open |
