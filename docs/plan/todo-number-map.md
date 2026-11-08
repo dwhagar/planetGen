@@ -3666,7 +3666,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.1.7 | PERF.9 |
 | PERF.1.8 | PERF.10 |
 | PERF.1.9 | PERF.11 |
-| PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | open |
+| PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |

@@ -13090,11 +13090,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 (with Lane 13 for the measurement), first in Lane 22's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
   Filed by the TODO thread.
 
-- [ ] **PERF.255 Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world**
-  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 13, the same family as PERF.253. Do: profile the three, find the shared slow call and cache or shrink it. Done: each finishes under the timeout in the gate. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
 - [ ] **MAP.409 Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in**
   Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load[single]. Do: find the object that is null when the wheel carries the map into a system (the scene update) and fix the page, not the test. Done: the test passes with no uncaught exception and the scene fades in. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
