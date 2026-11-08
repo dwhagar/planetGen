@@ -322,6 +322,8 @@ Smaller choices I took, which you can overrule: the graph lives in our Redis and
 
 All steps now have an item. The independence harness is OPS.131 and the per-pair overlap rollout with the narrow edges is OPS.132 (TODO, 2026-11-08).
 
+**Order of the build (Boss approved, 2026-11-08, 6:43 PM EST):** PERF.254; then OPS.123 and OPS.129 (hooks and bundled commands become single-purpose commands); then OPS.122 and OPS.128 (job model, planner); then OPS.124 and OPS.130 (memory broker, fair scheduler); then OPS.126 (sector jobs); last OPS.131 and OPS.132 (independence harness, per-pair overlap). Boss also agreed that drawing and saving a sector stay one command (`generate-sector`). OPS.127 (stage by stage migration with the byte-for-byte check) runs alongside every step.
+
 ## 10. What I did not verify
 
 * The default galaxy's sector count and the time of one sector job; the commit rate at one sector a job; per-job cost for a link or a settle.
