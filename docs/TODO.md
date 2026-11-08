@@ -9644,6 +9644,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
+  Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 11; lock-free, one item at a time on its own branch.
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
   scoring (a percent match per class, best match wins, replacing the
   first-match tree) and send it to TODO. Design:
@@ -10184,6 +10185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.149.
 
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
+  Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 22; lock-free, one item at a time on its own branch.
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
   generation run on hal that began about 2:34 PM EDT failed after 11104
   s with an out-of-memory error (Boss confirmed). PERF.220 (#4560,
@@ -12781,6 +12783,7 @@ clears each one.
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
+  Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 14; lock-free, one item at a time on its own branch.
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
   merging GEN.841 and TEST.410 (#3405). The exobase loop is not the
   cause (only a NaN input made it run unbounded, now an error); the long
