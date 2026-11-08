@@ -4388,9 +4388,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) | none | done, PR #5755 |
 | TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change | none | open |
 | TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change | none | open |
-| TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 | none | open |
-| TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor | none | open |
-| TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | open |
+| TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 | none | done, PR #5765 |
+| TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor | none | done, PR #5765 |
+| TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | done, PR #5765 |
 | TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row | none | done, PR #5758 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
@@ -4466,7 +4466,7 @@ Each citation below resolves to one item by its date.
 | DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) | none | open |
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | open |
 | DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | open |
-| DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) | none | open |
+| DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) | none | done, PR #5765 |
 | DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word | none | done, PR #5755 |
 | DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py | none | done, PR #5755 |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |

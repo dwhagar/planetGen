@@ -13141,11 +13141,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 (with Lane 13 for the measurement), first in Lane 22's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
   Filed by the TODO thread.
 
-- [ ] **DB.118 Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug)**
-  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 3; 2 cases fail on MySQL. Do: find the column added without its literal-insert row, fix the insert path, and check no other table drifted. Done: the test passes and the cause is named in the change note. Lock-free unless a stored value changes.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
 - [ ] **TEST.702 Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j**
   Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 4; test_db_boundary_values fails 2 cases. Do: decide with the check owner whether the extreme values are valid input; make the test and util/checks agree. Done: both pass. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
@@ -13184,21 +13179,6 @@ clears each one.
 - [ ] **MAP.410 Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')"**
   Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_each_edit_of_the_waypoints_plans_the_course_again. Do: find the element read before it exists or after it is removed, and fix the page. Done: the test passes with no uncaught exception. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
-- [ ] **TEST.706 test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226**
-  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: run python scripts/american_spelling_sweep.py apply and check the test file still tests the same thing (the name is a fake timer's attribute, so change every use together). Done: the test passes. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
-- [ ] **TEST.707 test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor**
-  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: reword the shown string so it carries no TODO code. Done: the test passes and the text reads as plain words. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
-- [ ] **TEST.708 test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold**
-  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: decide whether Dust is a real area; add it to the test's area list or rename the group. Done: the test passes. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
   Filed by the TODO thread.
 
 - [ ] **GEN.1440 Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs)**
