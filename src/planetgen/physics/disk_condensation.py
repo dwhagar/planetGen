@@ -210,6 +210,35 @@ def water_share_of_solids(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, s
     return masses.get("H2O", 0.0) / sum(masses.values())
 
 
+SNOW_LINE_SOLID_JUMP_K = 0.5 * (LINES_K["H2O"] + LINES_K["NH3"])
+"""float: The temperature at which the jump of the solid density at the snow line is read, K: the middle of the water and ammonia lines, where the water is frozen and the ammonia is not."""
+
+
+@finite_domain()
+def snow_line_solid_jump(carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    How many times the rock's surface density the solids make just beyond the water line (GEN.1396): everything condensed at
+    `SNOW_LINE_SOLID_JUMP_K` (the rock, the refractory carbon grains and the water ice, from `masses_percent`) over the rock alone. The divisor is
+    the rock because the density scale of the solids is the rock's: the minimum-mass nebula is built from the rock of the planets ([R1854] puts the
+    jump at 30 / 7), and the planets of the inner disk hold far less carbon than the grains would bring (meteorites and the bulk silicate Earth have
+    a C/Si well under the Sun's, so the grains are destroyed there [R0357]), so the grains are a part of the solids only where they survive.
+    Lodders's equilibrium table gave 2.17 (all the spare oxygen as water); the disk holds part of that oxygen in CO and CO2 gas, which is not frozen
+    here, and the grains add 0.145 percent of the nebula, so the Sun's value is 1.97.
+
+    Args:
+        carbon, oxygen, nitrogen, sulfur, noble (float): The star's ratios of the element over the rock-forming metals, over the Sun's (1 is the Sun).
+
+    Returns:
+        float: The jump, 1.97 for the Sun.
+    """
+    masses = masses_percent(SNOW_LINE_SOLID_JUMP_K, carbon, oxygen, nitrogen, sulfur, noble)
+    return sum(masses.values()) / masses[condensate_shares.ROCK]
+
+
+SNOW_LINE_SOLID_JUMP = snow_line_solid_jump()
+"""float: The jump of the solid surface density at the snow line for the Sun's composition (1.97); `formation.mmsn_surface_density_gcm2` multiplies the disk's solids by it beyond a star's own snow line."""
+
+
 @finite_domain()
 def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
     """

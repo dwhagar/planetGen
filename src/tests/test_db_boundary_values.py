@@ -61,9 +61,9 @@ def _count(config, table):
     1.7976931348623157e308, -1.7976931348623157e308, 5e-324, 2.2250738585072014e-308, -0.0, 1e-300])
 def test_double_extremes_round_trip(mysql_config, value):
     system, cfg = _system(PLANETS=False)
-    system.star.mass = value
+    system.star.metallicity_fe_h = value      # a column of its own: the star's mass now feeds the stored binding energy, which overflows at 1.8e308 (TEST.702)
     system_id = store.save_system(system, cfg, config=mysql_config)
-    loaded = _load(mysql_config, system_id).star.mass
+    loaded = _load(mysql_config, system_id).star.metallicity_fe_h
     assert loaded == value
     if value != 0:
         # Zero's sign carries no meaning in a stored value, and MariaDB
@@ -76,7 +76,7 @@ def test_double_extremes_round_trip(mysql_config, value):
 def test_nan_and_infinity_are_refused_with_nothing_written(mysql_config, value):
     system, cfg = _system(PLANETS=False)
     name = system.name
-    system.star.mass = value
+    system.star.metallicity_fe_h = value
     with pytest.raises(pymysql.err.ProgrammingError):
         store.save_system(system, cfg, config=mysql_config)
     assert system.name == name

@@ -2970,3 +2970,15 @@ Baseline: PR #1817.
 | DB.120 | 8.1 | Stand-in replacements |
 | DOC.111 | 8.1 | Stand-in replacements |
 | TEST.709 | 8.1 | Stand-in replacements |
+| PERF.251 | 8.1 | Bugs and flaky tests |
+| PERF.252 | 8.1 | Bugs and flaky tests |
+| GEN.1422 | 8.1 | Stand-in replacements |
+| GEN.1396 | 8.1 | Stand-in replacements |
+| GEN.1347 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.706 | 8.1 | Stand-in replacements |
+| TEST.707 | 8.1 | Stand-in replacements |
+| TEST.708 | 8.1 | Stand-in replacements |
+| DB.118 | 8.1 | Stand-in replacements |
+| TEST.702 | 8.1 | Stand-in replacements |
+| DOC.112 | 8.1 | Stand-in replacements |
+| GEN.1423 | 8.1 | Stand-in replacements |

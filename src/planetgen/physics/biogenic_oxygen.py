@@ -95,6 +95,14 @@ MINIMUM_PA = 1.0
 EUKARYOTE_MINIMUM_PA = 200.0
 """float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: [R3084]; T3, L0)."""
 
+REBALANCE_PASSES = 8
+"""int: The most times `rebalance_co2` works the CO2 and the temperature against each other after the oxygen has risen (GEN.1309 A); each pass takes half of the way to the sink's answer
+(`REBALANCE_DAMPING`), and the fixed point is held to `REBALANCE_TOLERANCE`."""
+
+REBALANCE_DAMPING = 0.5
+REBALANCE_TOLERANCE = 0.01
+"""float: The relative change of the CO2 pressure under which `rebalance_co2` stops."""
+
 APPLY_RISE = 1.01
 """float: The air takes new oxygen only when the target is this much above what it holds, so that applying the model again changes nothing."""
 
@@ -323,6 +331,40 @@ def apply(body, target_mol):
         return False
     store_air(body, air)
     return True
+
+
+def rebalance_co2(body):
+    """
+    Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
+    them (the methane's carbon is CO2 now, one for one) and the air found another surface temperature (7 to 67 K lower in the worlds this was measured on), but the sink that holds
+    the CO2 of a world (continental weathering, seafloor weathering, or the sealed ocean's chemistry: `surface_air.CarbonSink`) was not asked again. It is asked at the new
+    temperature: the pressure it holds there against the one it held where the air was solved shifts the CO2 by the same amount, the greenhouse of the new CO2 gives the temperature
+    again, and the two are worked against each other (`REBALANCE_PASSES`, damped by half) until the CO2 settles. A body with no sink (no carbon to weather, or an air the oddity
+    rows replaced) is left as it is.
+
+    Returns:
+        bool: Whether the air changed.
+    """
+    sink = getattr(body, "_co2_sink", None)
+    if sink is None or not sink.solved_bar > 0.0:
+        return False
+    air = dict(atmosphere.gas_partials_pa(body))
+    base = air.get("CO2", 0.0)
+    cap = getattr(body, "_retention_cap_pa", None)
+    moved = False
+    for _ in range(REBALANCE_PASSES):
+        current = air.get("CO2", 0.0)
+        target = max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
+        step = current + REBALANCE_DAMPING * (target - current)
+        if abs(step - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
+            break
+        if cap is not None:     # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
+            step = min(step, max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0))
+        air = {formula: pascal for formula, pascal in {**air, "CO2": step}.items() if pascal > 0.0}
+        store_air(body, air)
+        air = dict(atmosphere.gas_partials_pa(body))
+        moved = True
+    return moved
 
 
 def store_air(body, air):

@@ -30,6 +30,8 @@ _OPEN_UNIT_RANGE = re.compile(r"^`?(\w+)`?\s*>\s*0\)?\s+and\s+\(?`?\1`?\s*<=\s*1
 _ABOVE_ZERO = re.compile(r"^`?(\w+)`?\s*>\s*0$")
 _ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re.IGNORECASE)
 """`(a = 1) or (b = 0)`: the seed row must have b non-zero, so moving a off 1 breaks both arms."""
+_NULL_OR_AT_LEAST = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s*>=\s*(-?\d+(?:\.\d+)?)$", re.IGNORECASE)
+"""`(a is null) or (a >= n)`: a nullable column that may not fall below n (GEN.1377's initial ratio)."""
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
@@ -168,6 +170,9 @@ def _breaking_value(conn, table, clause, row):
     match = _ABOVE_ZERO.match(clause)
     if match:
         return match[1], -1
+    match = _NULL_OR_AT_LEAST.match(clause)
+    if match:
+        return match[1], float(match[2]) - 1
     match = _NULL_TOGETHER.search(clause)
     if match:
         column = match[1]

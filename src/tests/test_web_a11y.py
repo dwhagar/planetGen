@@ -425,7 +425,7 @@ def sample_params(site_app, sample_job, sample_run):
     assert resp.status_code == 200, (sample_system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
     planet = resp.get_json()["planets"][0]
     phenomena = items("/api/phenomena?limit=100")
-    phenomenon = phenomena[0]
+    phenomenon = next(item for item in phenomena if item["type"] != "rogue_planet")      # a rogue planet is a planet since v207: its page is the planet's, not /phenomenon/
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
     try:
         scatter_id = conn.execute("SELECT id FROM phenomenon_scatter WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]

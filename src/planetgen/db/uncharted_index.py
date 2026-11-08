@@ -78,7 +78,7 @@ def _batch(conn, shell, cells, edge_pc, generator_epoch, run_id):
     return made
 
 
-def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None):
+def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shells=None):
     """
     Makes the placeholder sector row of every cell that holds a waiting bright star or an unbuilt scattered phenomenon and has none (module note).
 
@@ -88,6 +88,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None):
         on_progress (callable, optional): `on_progress(done_shells, total_shells)` after each shell.
         on_phase (callable, optional): `on_phase(text)` with what the run says about itself.
         run_id (int, optional): The run the rows are recorded under; with none, the one run that saves made outside a run share (`store.sector_run_id`).
+        shells (list, optional): `shells_with_objects(conn)` when the caller has it already (it sized a bar with it).
 
     Returns:
         int: The rows made.
@@ -97,7 +98,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None):
 
     say = on_phase or (lambda text: None)
     say("Looking for the sector shells that hold waiting objects...")
-    shells = shells_with_objects(conn)
+    shells = shells_with_objects(conn) if shells is None else shells
     made = 0
     if shells:      # nothing is read of the galaxy, and no run is recorded, until there is a cell to make a row for
         edge_pc = query.galaxy_edge_pc(conn) if edge_pc is None else edge_pc

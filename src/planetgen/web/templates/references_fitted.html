@@ -5,18 +5,18 @@
 <aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
 <section class="panel" id="fitted" aria-labelledby="fitted-heading">
   <div class="panel-header"><h2 id="fitted-heading">{{ page.title }}</h2></div>
-  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- for paragraph in page.intro %}<p>{{ paragraph|chem }}</p>{% endfor %}
 </section>
 {%- for level in page.levels %}
 <section class="panel" id="level-{{ level.code|lower }}" aria-labelledby="level-{{ level.code|lower }}-heading">
-  <div class="panel-header"><h2 id="level-{{ level.code|lower }}-heading">{{ level.code }}: {{ level.name }} ({{ level.rows|length }})</h2></div>
-  <p>{{ level.meaning[:1]|upper }}{{ level.meaning[1:] }}.</p>
+  <div class="panel-header"><h2 id="level-{{ level.code|lower }}-heading">{{ level.code }}: {{ level.name|chem }} ({{ level.rows|length }})</h2></div>
+  <p>{{ (level.meaning[:1]|upper ~ level.meaning[1:])|chem }}.</p>
   {%- if level.rows %}
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Stand-in</th><th scope="col">Section</th><th scope="col">What it is</th><th scope="col">Tier</th></tr></thead>
     <tbody>
       {%- for row in level.rows %}
-      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.section }}</td><td>{{ row.what }}</td><td>{{ row.tier }}</td></tr>
+      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.section|chem }}</td><td>{{ row.what|chem }}</td><td>{{ row.tier }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -30,7 +30,7 @@
     <thead><tr><th scope="col">Target</th><th scope="col">Statistic</th><th scope="col">Value</th><th scope="col">Label</th><th scope="col">Source</th><th scope="col">Shown wrong if</th></tr></thead>
     <tbody>
       {%- for target in page.targets %}
-      <tr><th scope="row">{{ target.id }}</th><td>{{ target.statistic|safe }}</td><td>{{ target.value }}{% if target.sigma %} ± {{ target.sigma }}{% endif %}</td><td>{{ target.label }}</td><td>{{ target.source|safe }}</td><td>{{ target.falsifier|safe }}</td></tr>
+      <tr><th scope="row">{{ target.id }}</th><td>{{ target.statistic|safe }}</td><td>{{ target.value }}{% if target.sigma %} ± {{ target.sigma }}{% endif %}</td><td>{{ target.label|chem }}</td><td>{{ target.source|safe }}</td><td>{{ target.falsifier|safe }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
