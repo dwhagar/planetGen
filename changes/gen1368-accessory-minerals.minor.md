@@ -8,5 +8,5 @@
 - The metal, refractory and matrix axes of the chondrite-group label count the new inclusion and clay rows.
 - Twenty-nine rows of the materials table lose their vocabulary-only tag (TEST.685) because the mixes now name them.
 
-`generation-output: changed`
-`TODO items resolved: GEN.1368`
+generation-output: changed
+TODO items resolved: GEN.1368
