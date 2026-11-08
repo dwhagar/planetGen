@@ -21,7 +21,7 @@ def base_url(tmp_path_factory):
     data = FakeData()
     patch = pytest.MonkeyPatch()
     for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers",
-                 "auth_me", "get_galaxy_nebula_cover"):
+                 "auth_me", "get_galaxy_nebula_cover", "get_galaxy_charted_regions"):
         patch.setattr(apiclient, name, getattr(data, name))
     for name in ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window"):
         patch.setattr(tilecache, name, getattr(data, name))
