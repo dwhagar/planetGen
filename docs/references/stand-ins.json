@@ -16519,15 +16519,11 @@
       "number": "6.36",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU [R1479], and a measured pebble-flux model replaces them"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
+              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.58, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
             ],
             [
               "The range it moves in",
@@ -16547,7 +16543,7 @@
             ],
             [
               "Evidence",
-              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed)"
+              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed); GEN.1406: the enhancement 0.4647 to 0.58 after the inner systems lost mass (below, PA4) moved the share of Sun-like stars with a giant at 2 to 8 AU on the test's seeds from 0.105 to 0.102 with the survey at 0.141 +- 0.019; over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 (inside one sigma) and 0.61 gives 0.136, so 0.58 is the smallest step that returns the share inside one sigma of [R1479]"
             ]
           ],
           "id": "PA1",
@@ -16556,9 +16552,9 @@
           "slug": "6-36-pa1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
-          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
+          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.58, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
         },
         {
           "burn_down": [
@@ -16653,7 +16649,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+              "tuning.INNER_PLANET_MASS_EARTH 2.5 (GEN.1406; 3.631 before) with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
             ],
             [
               "The range it moves in",
@@ -16673,7 +16669,7 @@
             ],
             [
               "Evidence",
-              "[R4897] ([R4897], READ: 1 to 10 Earth masses); [R3196] ([R3196], READ: constant mass ratio); [R3499] ([R3499], READ: sub-Neptune occurrence doubles over 0.8 dex)"
+              "[R4897] ([R4897], READ: 1 to 10 Earth masses); [R3196] ([R3196], READ: constant mass ratio); [R3499] ([R3499], READ: sub-Neptune occurrence doubles over 0.8 dex); GEN.1406: lowered from 3.631 to 2.5 because the rocky peak of the radius histogram sat at 1.5 to 1.75 Earth radii where [R1478] ([R1478], READ: the abstract) finds it at 1.3 (and the sub-Neptune peak at 2.4), the counts of 4 to 6 Earth radii planets (3 times) and of 3 to 30 Earth mass planets inside 50 days (5 times the radial-velocity rate of Howard) ran high, and only 5.5 percent of G2V stars held a planet of 0.8 to 1.25 Earth radii inside 85 days; a core of 1.35 Earth radii has 2.4 Earth masses by the mass-radius law of the architecture, and 2.5 gives (200 G2V, 100 K3V, 60 F5V systems) 8.0, 19.0 and 8.3 percent, or 15.1 percent with Fressin's FGK weights against 16.5 +- 3.6 [R1459] (10.6 before)"
             ]
           ],
           "id": "PA4",
@@ -16684,7 +16680,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+          "what": "tuning.INNER_PLANET_MASS_EARTH 2.5 (GEN.1406; 3.631 before) with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
         },
         {
           "burn_down": [
