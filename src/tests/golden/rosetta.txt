@@ -91,7 +91,7 @@
 "band7_night_hours":null,
 "band7_state":null,
 "band7_swing_k":null,
-"binding_energy_j":6.97408402e+32,
+"binding_energy_j":5.82744761e+32,
 "body_type":"t",
 "bond_albedo":1.57871264e-01,
 "born_beyond_snow_line":null,
@@ -791,7 +791,7 @@
 "rock_p2o5_fraction":1.23527845e-03,
 "rock_tio2_fraction":1.66843611e-03,
 "rotation_period_hours":4.25587830e+01,
-"roundness_ratio":null,
+"roundness_ratio":2.24143900e+01,
 "runner_up_class":null,
 "runner_up_match":0.00000000e+00,
 "scale_height":3.91444824e+01,
@@ -924,7 +924,7 @@
 "water_mass_fraction":5.17850973e-02,
 "xuv_exposure_index":4.68221432e-12,
 "xuv_flux_earth":4.83309714e-12,
-"yield_strength_pa":null,
+"yield_strength_pa":3.79326996e+06,
 "zone":"c"}
 
 == nebula-shape ==
