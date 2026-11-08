@@ -29,6 +29,7 @@ GROUPS = {
     "search": "Search engines",
     "previews": "Link previews",
     "speed": "Speed and disk",
+    "generation": "World generation",
     "protection": "Abuse protection",
     "housekeeping": "Housekeeping",
     "generation": "Galaxy generation",
