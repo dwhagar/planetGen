@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1371 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1375 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 103 | 44 | 9 | 10 | 0 | 166 |
 | T4 | 62 | 11 | 2 | 19 | 10 | 104 |
 | T5 | 62 | 22 | 4 | 1 | 0 | 89 |
-| T6 | 145 | 100 | 27 | 75 | 0 | 347 |
-| T7 | 34 | 15 | 8 | 28 | 0 | 85 |
+| T6 | 146 | 101 | 27 | 75 | 0 | 349 |
+| T7 | 34 | 17 | 8 | 28 | 0 | 87 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 746 | 285 | 67 | 228 | 45 | 1371 |
+| All | 747 | 288 | 67 | 228 | 45 | 1375 |
 
 ## How the labels were given
 
@@ -2413,3 +2413,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MR2 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt% | 1.0 to 3.0 wt% | wadsleyite and ringwoodite, 13 to 23 GPa | a transition zone shown to saturate under 1.0 or over 3 wt% | a capacity as a function of temperature and pressure for each phase | the pages read print "up to about 3 wt%" [R5156: Introduction], ringwoodite 1.5 to 2 wt% [R5157: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5161] and about 1.0 wt% by several lines of evidence [R5158: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed | - | - |
 | MR3 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm) | 20 ppm to 0.1 wt% | bridgmanite and ferropericlase beyond 23 GPa | a lower mantle shown to hold over 0.1 wt% | a capacity of aluminous bridgmanite | [R5159: Abstract] gives under 20 ppm and [R5158: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5160: Abstract], so the lower mantle's cap is the least certain of the three | - | - |
 | MR4 | T | T4 | L1 | mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite) | 2 to 4 | the upper mantle and the transition zone, 15 to 45 GPa | a mantle that holds carbonate at dIW 1 or diamond at dIW 5 | the phase boundary of carbon as a function of pressure and temperature | read in a lecture note (Plinius 38, 2012, no DOI, not in the reference list): diamond and carbonate meet about 3 log units over iron-wuestite at 15 to 45 GPa; the primary papers were not opened | - | - |
+
+## 6.220 Stand-ins of the superionic boundaries of water and ammonia
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SI1 | T | T6 | L0 | superionic.FALLBACK_FLOOR_BEYOND_GPA 60.0: the water floor of 1900 K measured at 60 GPa [R5165: Abstract] is held at all higher pressures | 60 to 190 GPa | water at 60 to 400 GPa | a measured floor of water between 60 and 190 GPa that differs by more than 300 K | a floor curve measured to 400 GPa | [R5165: Abstract] gives the floor to 60 GPa (fcc superionic ice is the only phase above it) and [R3081: Abstract] superionic ice XVIII at 100 to 400 GPa, with no floor point between | - | - |
+| SI2 | T | T6 | L1 | superionic.CEILING_INTERPOLATION_GPA (20.0, 105.0): the ceiling of water is a straight line from the triple point at 20 GPa and 900 K to the point at 105 GPa and 4000 K | the line within 700 K, the spread [R5165: Abstract] gives for the melting line near 50 GPa | water at 20 to 105 GPa | a melting line of water measured at 50 GPa that is 700 K off the line | the melting line of Table S3 of [R5165] when opened | the end points are read [R5165: Abstract]; the line between them is interpolated, and the melting-line points of other experiments (up to 700 K apart) are not opened | - | - |
+| SI3 | T | T7 | L1 | superionic.AMMONIA_FLOOR_GPA_K (30.0, 1500.0): ammonia is superionic from 1500 K at 30 GPa upward, and melts on a line to 5500 K at 300 GPa | 1000 to 2500 K for the floor | ammonia at 30 to 300 GPa | a measured superionic onset of ammonia 1000 K away | the phase lines of [R5166] when opened in full | [R5166: Abstract] gives only the range (30 to 300 GPa, 300 to 7000 K), the superionic phase between the solid and the ionic liquid, and the metallic temperature of 5500 K; the onset of about 60 GPa and 1500 K is recalled, not opened | - | - |
+| SI4 | T | T7 | L1 | superionic.FALLBACK_TEMPERATURE_K 2500.0 | 2000 to 5000 K | the deep ice layer of a body whose structure model carries no adiabat | an ice giant whose adiabat at its mantle bottom is outside 2000 to 5000 K | the adiabat of the model, which the body has whenever the hydrogen-helium tables are present | the planetary isentrope of [R5166: Abstract] runs inside the superionic and ionic fields at 30 to 300 GPa; the number is the middle of that range | - | - |
