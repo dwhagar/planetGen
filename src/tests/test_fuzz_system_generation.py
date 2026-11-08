@@ -498,7 +498,7 @@ def test_explicit_slot_lists(seed, slots, star_type):
 
 
 def test_invalid_slot_type_and_unknown_planet_class_raise_value_error():
-    for bad in ({"type": "comet"}, {"type": "planet", "planet_class": "Z"},
+    for bad in ({"type": "comet"}, {"type": "planet", "planet_class": "Q"},
                 {"type": "planet", "planet_class": "m"}):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
