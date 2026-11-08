@@ -18,6 +18,9 @@
 //     azimuth = atan2(y, x)       R = hypot(x, y)       height = z       (pc from the galactic center)
 //     x_px = pad + (R - R_min) * pxPerPc        y_px = middle - z * pxPerPc * HEIGHT_EXAGGERATION
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+
 export const HEIGHT_EXAGGERATION = 2.2;
 export const WEDGE_DEG = 60;
 // The strip draws at most this many stars (the brightest first); 2,000 on a phone.
@@ -141,7 +144,7 @@ export function readoutText(r, heightPc, shape) {
   const read = heightReadout(heightPc, shape);
   const side = heightPc > 0 ? " above the plane" : heightPc < 0 ? " below the plane" : " on the plane";
   const sign = heightPc > 0 ? "+" : heightPc < 0 ? "-" : "";
-  let text = "Height " + sign + Math.round(Math.abs(heightPc)).toLocaleString("en-US") + " pc" + side;
+  let text = "Height " + sign + formatNumber(Math.round(Math.abs(heightPc))) + " pc" + side;
   if (read.thin !== null && read.thick !== null) {
     text += " (" + oneDecimal(read.thin) + " thin-disk and " + oneDecimal(read.thick) + " thick-disk scale heights)";
   }
@@ -306,7 +309,7 @@ export function createSideStrip(options) {
       }
     }
     caption.textContent = "Side strip: the " + Math.round(wedge.widthDeg) + " degree wedge toward " + Math.round(wedge.centerDeg)
-      + " degrees from the galactic center, " + drawn.toLocaleString("en-US") + " stars, heights drawn " + HEIGHT_EXAGGERATION + " times true.";
+      + " degrees from the galactic center, " + formatNumber(drawn) + " stars, heights drawn " + HEIGHT_EXAGGERATION + " times true.";
     readout.textContent = selected
       ? readoutText(Math.hypot(selected.x, selected.y), selected.z, shape) + (inside ? "" : " (outside this wedge)")
       : "Click a star in the strip to select it on the map.";
