@@ -14,7 +14,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import atmosphere, body_radiation, constants, equipment
+from planetgen.physics import atmosphere, body_radiation, constants, equipment, planet_type
 from planetgen.physics import habitability_world as hw
 from planetgen.physics import habitability, life_scores
 from planetgen.physics.protection_limits import limit
@@ -161,7 +161,7 @@ def test_every_generated_body_is_scored_consistently():
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
                 seen["giant"] += 1
                 # the two energy inputs the sheet shows for every body are set on a giant (GEN.784); every score is None
                 assert all(getattr(body, name) is None for name in hw.SCORE_FIELDS)
@@ -197,7 +197,7 @@ def test_a_neutron_stars_planets_get_the_heaviest_radiation_gear():
             cfg = SystemConfig()
             system = StarSystem(system_config=cfg, compact_remnant=NeutronStar(cfg))
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):
                 continue
             seen += 1
             assert body.eq_shelter == 2 and body.eq_rad_suit == 3 and body.tier_radiation == 3
@@ -390,7 +390,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
             config.STAR_TYPE = "G2V"  # a cool star's zone has lost its water before any life (GEN.639)
             system = StarSystem(config, galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):
                 continue
             stage = life_scores.food_stage(body.life_microbial, body.life_flora, body.life_fauna)
             stages.add(stage)

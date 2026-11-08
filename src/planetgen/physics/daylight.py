@@ -38,7 +38,7 @@ taken at the parent's distance for a moon (the moon's own distance from its plan
 
 import math
 
-from planetgen.physics import constants, day_night, spin
+from planetgen.physics import constants, day_night, planet_type, spin
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -181,7 +181,7 @@ def compute(body, parent=None):
     rotation = getattr(body, "rotation_period_hours", None)
     star = getattr(body, "star", None)
     host = parent if parent is not None else body
-    solid = getattr(body, "body_type", "t") != "g"
+    solid = planet_type.has_ground(body)      # GEN.1334: a planet under a deep envelope has no surface for a day to fall on
     if not solid:
         out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:

@@ -212,7 +212,7 @@ def apply(planet, host=None):
     body = ring_origin.Planet(planet.mass, planet.radius, around.distance, star_mass_kg)
     passages = ring_origin.draw_comet_passages(body, age_yr, cold)
     feeders = () if planet.is_moon else tuple(ring_origin.FeederMoon(moon.radius or 0.0, _au_to_km(moon.distance)) for moon in planet.moons)
-    if planet.body_type == "g" and not planet.is_moon:
+    if (planet.body_type == "g" or parent == moon_composition.GIANT) and not planet.is_moon:      # GEN.1334: a planet under a deep envelope has the small moons a giant has
         feeders += ring_origin.draw_feeders(body)
     history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages, feeders)
     resonance = None

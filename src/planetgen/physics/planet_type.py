@@ -46,6 +46,16 @@ def planet_type(body):
     return type_of(get("envelope_mass_fraction"), get("body_type"))[0]
 
 
+def has_ground(body):
+    """
+    Whether a planet or moon has a surface to stand on (GEN.1334): a gas body has none, and neither has a rocky one under an envelope of `TERRESTRIAL_MAX_ENVELOPE` or more of
+    its mass (a sub-Neptune, a gas dwarf), whose pressure rises through the hydrogen and helium down to the core; a body whose envelope share is not stored has its
+    `body_type`'s.
+    """
+    get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
+    return type_of(get("envelope_mass_fraction"), get("body_type"))[0] == TERRESTRIAL
+
+
 FIELDS = ("planet_type",)
 """tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1219)."""
 

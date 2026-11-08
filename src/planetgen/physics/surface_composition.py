@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, rock_types, saturation, surface_liquid_world
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -582,7 +582,7 @@ def generate_surface(body):
     has no ground (every field `None`)."""
     for field in COLUMN_FIELDS:
         setattr(body, field, None)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # GEN.1334: nor has a planet under a deep envelope
         return
     result = draw_surface(inputs_of(body))
     if result is not None:
