@@ -201,6 +201,16 @@ def masses_percent(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1
 
 
 @finite_domain()
+def water_share_of_solids(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    Water ice over everything solid (`masses_percent`: rock, the carbon grains and every ice) at `temperature_k`; 0 above the water line. The oxygen that CO and CO2 hold is out of the
+    water, so the Sun's water share is 0.34 against the 0.54 of Lodders's equilibrium with all the spare oxygen as water (`condensate_shares`, before GEN.1363 part B).
+    """
+    masses = masses_percent(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    return masses.get("H2O", 0.0) / sum(masses.values())
+
+
+@finite_domain()
 def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
     """
     The carbon over oxygen atoms of the gas and of the solids at `temperature_k`, as `(gas, solid)` ([R3322]: the gas C/O rises outward past the water, CO2 and CO lines). The gas is what

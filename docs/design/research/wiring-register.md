@@ -242,4 +242,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
 | row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
 | row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
-| function | planetgen.physics.disc_condensation.masses_percent | GEN.1363 | the ice shares of a body from the disc budget, which part B wires into the condensate shares and the bulk draw (part C already reads `envelope_c_over_o`) |

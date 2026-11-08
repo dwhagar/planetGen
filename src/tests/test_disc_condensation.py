@@ -135,3 +135,17 @@ def test_the_envelope_c_over_o_follows_the_star_and_refuses_a_negative_enrichmen
         dc.envelope_c_over_o(100.0, -1.0)
     with pytest.raises(ValueError):
         dc.envelope_c_over_o(0.0, 1.0)
+
+
+def test_the_water_share_of_the_solids_is_zero_inside_the_line_and_never_rises_outward():
+    assert dc.water_share_of_solids(300.0) == 0.0
+    shares = [dc.water_share_of_solids(t) for t in (181.9, 150.0, 100.0, 60.0, 45.0, 30.0, 18.0)]
+    assert shares[0] == pytest.approx(0.341, abs=0.002) and all(a >= b for a, b in zip(shares, shares[1:]))
+    assert shares[-1] == pytest.approx(0.229, abs=0.003)
+
+
+def test_the_oxygen_held_by_carbon_monoxide_and_dioxide_leaves_less_water_than_the_equilibrium_table():
+    equilibrium = 0.571 / (0.489 + 0.571)                               # [R2726: Table 11], every spare oxygen atom in water
+    assert dc.water_share_of_solids(150.0) < equilibrium - 0.1
+    assert dc.water_share_of_solids(150.0, oxygen=1.5) > dc.water_share_of_solids(150.0) > dc.water_share_of_solids(150.0, oxygen=0.6)
+    assert dc.water_share_of_solids(150.0, carbon=2.0) < dc.water_share_of_solids(150.0)       # a carbon-rich star: more of the oxygen sits in CO and CO2
