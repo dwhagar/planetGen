@@ -24,7 +24,7 @@ Coverage of the compounds named by the project text (where each condensed phase 
 | CO2 | ice curve and optical constants | 2.4, 2.8 | 2ND-HAND, READ |
 | H2O | liquid and ice; ice-salt eutectics NOT REACHED | 2.4, 2.5 | 2ND-HAND, DATA |
 | NH3, NH4SH, NH4Cl | ice and NH4SH fit; NH4Cl enthalpy only | 2.1, 2.4, 2.5 | READ, 2ND-HAND |
-| sulfides, H2SO4 | MnS, Na2S, ZnS (FeS suppressed); H2SO4-H2O vapour curve NOT REACHED | 2.1, 2.3, 2.8 | READ, NOT REACHED |
+| sulfides, H2SO4 | MnS, Na2S, ZnS (FeS suppressed); H2SO4-H2O vapour curve REACHED by GEN.1424 (`physics/sulfuric_vapor.py`, [R4877], [R4289], [R0210], [R2516]) | 2.1, 2.3, 2.8 | READ |
 | Na, K | Na2S, KCl, metal vapour sets | 2.1, 2.5 | READ, DATA |
 | mineral dust, carbonates | densities and optics; decomposition equilibria NOT REACHED | 2.8, 2.12 | DATA |
 | perchlorates, NOx hydrates, HNO3 | NOT REACHED (HNO3 optics files exist, unread) | section 4 | NOT REACHED |
@@ -203,7 +203,7 @@ All rows COMPUTED from the READ fits in 2.1 and the 2ND-HAND ice curves in 2.4 (
 | 37 to 62 | N2 ice (partial pressure 1e-7 to 0.1 bar), CO ice 34 to 66 K | 30.6 to 62.2 | N |
 
 NH4H2PO4 ([R4562] eq. 52, READ) would condense at 311 K (0.1 bar), 333 K (1 bar), 360 K (10 bar) at [M/H] = 0 (COMPUTED) if phosphorus were in equilibrium; Visscher states this equilibrium is not attained in the giant planets of the Solar System, so treat it as an upper-bound flag, not a default cloud.
-Between about 300 and 750 K the reached curves cover only liquid water (2.5) and, at the top of the range, the salts and sulfides; the vapour curves for H2SO4-H2O, NH4Cl, ammonium salts, NaCl, perchlorates and carbonates are NOT REACHED (section 4). For T_eq below about 950 K photochemical organic haze dominates the aerosol opacity over silicate clouds in the [R1513] grid (READ), and KCl is hidden below the haze unless the haze is absent.
+Between about 300 and 750 K the reached curves cover only liquid water (2.5) and, at the top of the range, the salts and sulfides; the vapour curve for H2SO4-H2O is `physics/sulfuric_vapor.py` (GEN.1424, [R4877]: 200 to 350 K, carried to 445 K); the curves for NH4Cl, ammonium salts, NaCl, perchlorates and carbonates are NOT REACHED (section 4). For T_eq below about 950 K photochemical organic haze dominates the aerosol opacity over silicate clouds in the [R1513] grid (READ), and KCl is hidden below the haze unless the haze is absent.
 Sudarsky class sequence, Cahoy colour table and Venus and Earth cloud optical depths (20 to 30 and about 10) are quoted in the project note docs/design/composition/atmosphere-colour.md section 4 and its source check; they were not re-read here (2ND-HAND at best, not re-verified).
 
 ### 2.7 Cloud structure parameters (sedimentation efficiency and mixing)
@@ -443,7 +443,7 @@ For omega = 1, mu0 = 0.5: g = 0 gives R = 0.501, 0.656, 0.820, 0.900, 0.943 at t
 ## 4. Boss must research (not reached, or reached only second-hand)
 
 1. Origin[R1445] (Planet. Space Sci. 57, 2053): lower validity limits of every sublimation fit and the coefficients themselves (read through a SOM table of [R2711] with two typos); H2 and He sublimation. Needed for every cold ice.
-2. Saturation or solubility data not found: H2SO4-H2O vapour pressure for 60 to 98 wt percent ([R0210, R4289, R4877]; only the statement that vapour is below 1e-6 Pa at stratospheric temperatures was read, in [R2735] citing [R2516]); NH4Cl and NH4HSO4; HNO3 and HCl hydrates; solid NaCl and KCl vapour (JANAF); Cr2O3, Fe2O3, Fe3O4 against the metal; carbonate and sulfate decomposition (CaCO3, MgCO3, CaSO4; NIST-JANAF); the radon sublimation branch.
+2. Saturation or solubility data not found: NH4Cl and NH4HSO4; HNO3 and HCl hydrates; solid NaCl and KCl vapour (JANAF); Cr2O3, Fe2O3, Fe3O4 against the metal; carbonate and sulfate decomposition (CaCO3, MgCO3, CaSO4; NIST-JANAF); the radon sublimation branch.
 3. Perchlorate brines: Ca(ClO4)2 and Mg(ClO4)2 eutectic temperatures, deliquescence humidity, water activity (Chevrier, Hanley, Gough and related papers). Needed for cold dry rocky surfaces.
 4. Optical constants: numeric Mars dust spectrum and imaginary index [R2645, R3326, R4395, R4743]; Titan haze absolute spectrum ([R4392, R4394], [R1144]); visible k of CH4 and NH3 ice; H2SO4 at Venus temperatures; hydrated sea salt; perchlorates; carbonate k; the FeS row; the HITRAN-RI H2SO4, HNO3 and organic-acid files (unread).
 5. Haze yield: lab mg/h to planetary mass flux ([R2009] says impossible), production rates, K_zz(P) per class, coagulation outcome tables.

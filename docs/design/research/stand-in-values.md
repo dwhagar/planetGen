@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1371 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1379 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 170 | 19 | 11 | 1 | 0 | 201 |
-| T2 | 129 | 58 | 1 | 1 | 0 | 189 |
-| T3 | 103 | 44 | 9 | 10 | 0 | 166 |
+| T1 | 171 | 20 | 11 | 1 | 0 | 203 |
+| T2 | 130 | 58 | 1 | 1 | 0 | 190 |
+| T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 62 | 11 | 2 | 19 | 10 | 104 |
 | T5 | 62 | 22 | 4 | 1 | 0 | 89 |
 | T6 | 145 | 100 | 27 | 75 | 0 | 347 |
-| T7 | 34 | 15 | 8 | 28 | 0 | 85 |
+| T7 | 35 | 15 | 9 | 30 | 0 | 89 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 746 | 285 | 67 | 228 | 45 | 1371 |
+| All | 749 | 287 | 68 | 230 | 45 | 1379 |
 
 ## How the labels were given
 
@@ -1834,6 +1834,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GE1 | P | T6 | L0 | disk_condensation.envelope_enrichments: the troilite of the sulfur (`1 - SULFUR_AS_H2S` of it) is rock and takes the rock-forming metals' scale `enrichment`, not the ices' `sigma`; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K) | none | giants formed below about 700 K (troilite stable) | a measured P/Fe or S/Fe in a giant's envelope off the rock's by more than a factor of 2 | a model of how rock and troilite reach an envelope | the Galileo S is 2.75 +/- 0.66 times solar against 3.1 here ([R5163: Table 2]); the probe has no phosphorus (PH3 only as a mass-34 interference), so P is a choice, not a fit | - | - |
 | GE2 | P | T6 | L0 | disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (`disk_noble`), because the star's element set has no krypton or xenon | none | stars with the Sun's ratios of the noble gases | a star with a measured krypton or xenon over argon off the Sun's by more than a factor of 2 | the star's own krypton and xenon, if the element set gains them | [R0168] gives the Sun's krypton and xenon; no star sample here measures them | - | - |
 | GE3 | P | T6 | L0 | disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same `sigma` (the planetesimals carry the disk's proportions of all species) | none | giants whose heavy elements came mostly as planetesimals | a giant whose nitrogen and sulfur enrichments differ from its carbon and oxygen by the ice split alone by more than a factor of 2 | a model of which ices the planetesimals shed in the envelope (volatiles are lost on the way in) | nitrogen 3.0 and sulfur 3.1 against the probe's 2.96 and 2.75 times solar at one formation temperature and four times the star's heavy elements; one giant, so not a test of the split | - | - |
+
+## 6.228 Stand-ins of the vapor pressure over aqueous sulfuric acid and its condensation window
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SV1 | D | T1 | L0 | sulfuric_vapor.json `zeleznik_1991`: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid | none | 200 to 350 K, 0.1 MPa, every strength (the paper says no measurement above 25 C for the concentrated acid) | a measured water or acid activity over the solution off the model by more than the paper's 0.75 percent in the Gibbs energy | a newer thermodynamic model (the Clegg and Brimblecombe model, [R4289] fits it) | READ ([R4877: Table 6], checked against [R4877: Table 7] at 200, 250 and 300 K) | - | - |
+| SV2 | B | T3 | L1 | sulfuric_vapor.json `pure_acid_*`: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature | default curve; refit curve as the other end | 190 to 445 K (never the raw Ayers line below 300 K: it is 4.5 times high at 200 K) | the pure acid vapor pressure measured off the curve by more than the 1.28 spread | the primary [R2516] or a fourth open paper | 2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R2516] and [R0210]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used | - | - |
+| SV3 | B | T2 | L0 | the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K) | Zeleznik's activity used everywhere in 200 to 350 K, so acid and water stay consistent | 185 to 260 K for the comparison | a measured water pressure over 60 to 80 percent acid below 260 K | the measurements of Massucci and others 1996 behind [R4289], if opened | READ ([R4877], [R4289: Table 1]) | - | - |
+| SV4 | D | T1 | L1 | the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of `saturation`) | none | 185 to 273 K | a measured supercooled water pressure off it by more than 2 percent between 260 and 273 K | the Wagner supercooled curve | READ ([R4289: equation 1]); the 260 to 273 K part is carried, not printed | - | - |
+| SV5 | T | T7 | L2 | the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is `extrapolated` there | none | 350 to 445 K | a measured acid or water pressure over concentrated acid above 350 K | a model that reaches the sub-cloud region | the base of the published cloud sits at 345 to 367 K, so this part is where the Venus base is decided; the 97 to 99 percent base strengths are consistent with the published over 95 percent ([R0157: Table 1]) | - | - |
+| SV6 | T | T7 | L0 | `condenses`: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them) | none | any air | a cloud whose base is not where this puts it for the air's own acid and water | the cloud step of GEN.1425 with the sulfur chemistry | derived from the activities above; next to no acid condenses at the dew point of the water | - | - |
+| SV7 | P | T7 | L3 | no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5]) | none | warm clouds; cold ones are the window's edge | a cold acid aerosol that is solid where this puts it liquid | the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function | not read into code; [R4877] prints the solid phases | - | replace (GEN.1425) |
+| SV8 | P | T7 | L3 | no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split | none | below 400 K | a measured SO3 share of the sub-cloud vapor | a decomposition equilibrium | recalled from the Venus acid-cloud report (P8), not opened | - | no data |
 
 ## 6.224 Stand-ins of the hydrothermal and uranium deposits
 

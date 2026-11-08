@@ -248,3 +248,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
 | row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
+| module | planetgen.physics.sulfuric_vapor | GEN.1425 | the vapor pressure of sulfuric acid and water over aqueous sulfuric acid and the window the liquid condenses in (GEN.1424); the cloud step of the Venus chemistry set reads `condensation_temperature_k` and `window` for the cloud base and top |
+| data | sulfuric_vapor.json | GEN.1425 | read by `physics/sulfuric_vapor.py` only |

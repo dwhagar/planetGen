@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5047 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5048 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -4626,6 +4626,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r4434"></a>**R4434** Trujillo, I., Chamba, N., & Knapen, J. H. 2020, A physically motivated definition for the size of galaxies in an era of ultradeep imaging, MNRAS, 493, 87, doi:10.1093/mnras/staa236, arXiv:2001.02689. [paper](https://doi.org/10.1093/mnras/staa236) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/staa236/abstract)
 - <a id="paper-r4435"></a>**R4435** Trujillo, I. & Pohlen, M. 2005, Stellar Disk Truncations at High z : Probing Inside-Out Galaxy Formation, ApJ, 630, L17, doi:10.1086/491472. [paper](https://doi.org/10.1086/491472) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/491472/abstract)
 - <a id="paper-r4436"></a>**R4436** Trujillo-Gomez, S., Reina-Campos, M., & Kruijssen, J. M. D. 2019, A model for the minimum mass of bound stellar clusters and its dependence on the galactic environment, MNRAS, 488, 3972, doi:10.1093/mnras/stz1932, arXiv:1907.04861. [paper](https://doi.org/10.1093/mnras/stz1932) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stz1932/abstract)
+- <a id="paper-r5168"></a>**R5168** Tsagkogeorgas, G., et al. 2017, Evaporation of sulfate aerosols at low relative humidity, Atmos. Chem. Phys., 17, 8923, doi:10.5194/acp-17-8923-2017. [paper](https://doi.org/10.5194/acp-17-8923-2017) · [ADS](https://ui.adsabs.harvard.edu/abs/10.5194/acp-17-8923-2017/abstract)
 - <a id="paper-r4437"></a>**R4437** Tsai, S. M., et al. 2023, Photochemically produced SO2 in the atmosphere of WASP-39b, Nature, 617, 483, doi:10.1038/s41586-023-05902-2, arXiv:2211.10490. [paper](https://doi.org/10.1038/s41586-023-05902-2) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41586-023-05902-2/abstract)
 - <a id="paper-r4438"></a>**R4438** Tsiaras, A., et al. 2018, A Population Study of Gaseous Exoplanets, AJ, 155, 156, doi:10.3847/1538-3881/aaaf75, arXiv:1704.05413. [paper](https://doi.org/10.3847/1538-3881/aaaf75) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/aaaf75/abstract)
 - <a id="paper-r4439"></a>**R4439** Tsuchiyama, A., et al. 2009, Three‐dimensional structures and elemental distributions of Stardust impact tracks using synchrotron microtomography and X‐ray fluorescence analysis, M&PS, 44, 1203, doi:10.1111/j.1945-5100.2009.tb01218.x. [paper](https://doi.org/10.1111/j.1945-5100.2009.tb01218.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1945-5100.2009.tb01218.x/abstract)
