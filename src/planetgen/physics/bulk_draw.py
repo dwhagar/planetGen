@@ -440,14 +440,15 @@ def _water_and_ice(body):
     """
     Water as a share of the whole body, the other ices beside it and those ices' shares by species (`ice_species`): the Bern delivery law for a rocky
     body, the icy range for one beyond the snow line, whose other ices follow the comet volatiles it draws. `(water, ice, shares)`; the shares are
-    `None` for a body with no other ice.
+    `None` for a body with no other ice. A disk with no spare oxygen freezes no water (the share of the solids is 0), so an icy body there holds none and no other ice.
     """
     if origin_of(body) == ICY:
-        water = log_uniform(*_icy_water_range(body))
+        low, top = _icy_water_range(body)
+        water = log_uniform(low, top) if top > 0.0 else 0.0
     else:
         water = _rocky_water(body)
     ice, shares = 0.0, None
-    if origin_of(body) == ICY:
+    if origin_of(body) == ICY and water > 0.0:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])
         percent = _with_nitrogen_ice(body, volatiles.percent)
         ice = water * sum(percent.values()) / 100.0
