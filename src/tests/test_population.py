@@ -198,13 +198,30 @@ def _seed_file():
     return pathlib.Path(tempfile.gettempdir()) / f"planetgen-civilized-seeds-{_fingerprint()}.json"
 
 
-def _known_seeds():
-    """The candidate numbers an earlier test process found a civilization in, with this generator (TEST.417)."""
+PINS_FILE = "civilized_pins.json"
+"""str: The file in `tests/data` that names candidate numbers a civilization was found in (TEST.700): they are tried first, so a run on a machine that has
+not searched yet makes a handful of systems instead of a hunt of a few dozen (about 23 s each). A pin from an older generator is just a candidate that does not
+qualify now; `test_the_pinned_civilized_seeds_still_qualify` says so, and `python -m tests.civilized_pins refresh` writes the file again."""
+
+
+def pinned_seeds():
+    """The candidate numbers of `tests/data/civilized_pins.json`, in file order."""
     import json
+    import pathlib
     try:
-        return [int(number) for number in json.loads(_seed_file().read_text())["seeds"]]
+        return [int(number) for number in json.loads((pathlib.Path(__file__).parent / "data" / PINS_FILE).read_text())["seeds"]]
     except (OSError, ValueError, KeyError, TypeError):
         return []
+
+
+def _known_seeds():
+    """The candidate numbers an earlier test process found a civilization in, with this generator (TEST.417), after the pinned ones (TEST.700)."""
+    import json
+    try:
+        found = [int(number) for number in json.loads(_seed_file().read_text())["seeds"]]
+    except (OSError, ValueError, KeyError, TypeError):
+        found = []
+    return [*pinned_seeds(), *(number for number in found if number not in set(pinned_seeds()))]
 
 
 def _remember_seed(number):
@@ -236,6 +253,16 @@ def _candidate(number):
 
 def _has_civilization(system):
     return any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets)
+
+
+
+def test_the_pinned_civilized_seeds_still_qualify():
+    """TEST.700: the first pinned candidate still holds a technological civilization with this generator (one system, about 23 s). When it does not, the
+    pins are old and every test that needs a civilized system hunts again: `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
+    seeds = pinned_seeds()
+    assert seeds, "tests/data/civilized_pins.json names no candidate: python -m tests.civilized_pins refresh --hunt 4"
+    system, _cfg = _candidate(seeds[0])
+    assert _has_civilization(system), f"candidate {seeds[0]} no longer holds a civilization: python -m tests.civilized_pins refresh --hunt 4"
 
 
 def _next_candidate_number():
