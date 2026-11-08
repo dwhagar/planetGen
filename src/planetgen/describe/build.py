@@ -39,6 +39,7 @@ from planetgen.physics import (
     giant_interior,
     habitability,
     habitability_explain,
+    mantle_reservoirs,
     meteorite_groups,
     neutron_star_crust,
     outside_hours,
@@ -289,7 +290,19 @@ def _crust_block():
         fact("crust_outer", "Outer crust", "single nuclei in a lattice, each down to the density shown: ", *outer[:-1]),
         fact("crust_drip", "Neutron drip", "neutrons run free from ", _density(neutron_star_crust.NEUTRON_DRIP_G_CM3)),
         fact("crust_inner", "Inner crust", "clusters in a gas of free neutrons: ", *inner[:-1]),
+        fact("crust_pasta", "Nuclear pasta", *_pasta_text()),
     ])
+
+
+def _pasta_text():
+    """The nuclear pasta layer at the bottom of the crust (GEN.1427): predicted by calculation, not observed; the shapes the nuclei take with rising density."""
+    pasta = neutron_star_crust.PASTA
+    shapes = []
+    for item in pasta.shapes:
+        shapes += [f"{item.name} ({item.shape})", ", "]
+    return ["predicted, not observed: from ", _density(pasta.lower_g_cm3), " to ", _density(pasta.upper_g_cm3), " at the core, a layer about ",
+            qty("length", pasta.thickness_m, "m"), " thick that may hold up to ", qty("fraction", pasta.crust_mass_share_at_most, "frac"),
+            " of the crust's mass; with rising density the nuclei are predicted to take these shapes in turn: ", *shapes[:-1]]
 
 
 def _star_section(star, children=()):
@@ -548,6 +561,20 @@ def _equipment_block(planet):
     return facts("Survival equipment", rows) if rows else None
 
 
+def _mantle_block(planet):
+    """GEN.1365: the water the mantle of a rocky or icy body can store, and the form its carbon takes; `None` for a giant or a body with no rock."""
+    rock = getattr(planet, "rock_mass_fraction", None)
+    if planet.body_type == "g" or not rock or not planet.radius:
+        return None
+    capacity = mantle_reservoirs.water_capacity_fraction(planet.mass, planet.radius * 1000.0, min(rock, 1.0)) * planet.mass
+    rows = [fact("mantle_water_capacity", "Water the mantle can store", _mass(capacity))]
+    redox = getattr(planet, "mantle_delta_iw", None)
+    if redox is not None:
+        rows.append(fact("mantle_carbon", "Carbon in the mantle",
+                         "carbonate" if mantle_reservoirs.carbon_form(redox) == "carbonate" else "diamond, graphite and iron carbide"))
+    return facts("Mantle", rows)
+
+
 def _planet_section(planet):
     blocks = [_planet_facts(planet)]
     summary = [f"It is {planet_class_text.description(planet.planet_class, planet.is_moon).lower()}."]
@@ -560,6 +587,7 @@ def _planet_section(planet):
     else:
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
+    blocks.append(_mantle_block(planet))
     blocks.append(_ratings_block(planet))
     blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))

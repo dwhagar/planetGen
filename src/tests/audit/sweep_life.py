@@ -41,7 +41,7 @@ LIFE_MODULES = ("planetgen.generation.life", "planetgen.generation.evolution", "
                 "planetgen.physics.biogenic_oxygen")
 """tuple: The modules that judge whether, and what, life lives on a body. A module that does not exist yet (epoch 120 adds some) is skipped."""
 
-CLASS_NAMES = ("planet_class", "PLANET_CLASSES", "HABITABLE_PLANET_CLASSES", "classify", "life_ceiling_by_class")
+CLASS_NAMES = ("planet_class", "PLANET_CLASSES", "classify", "life_ceiling_by_class")
 """tuple: The names whose use in the life code is a read of the class letter or of the class tables."""
 
 

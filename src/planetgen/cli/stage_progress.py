@@ -8,7 +8,7 @@ the same two-bar shape a galaxy run draws (`run_common._generation_progress`),
 so the terminal and the Generate page's job status
 (`PLANETGEN_PROGRESS_FILE`) show these runs the way they show a generation
 run. Both are `planetgen.generation.steps` (PERF.51): each draws when it is
-predicted to take over 15 seconds (or has no recorded speed yet).
+predicted to take over 5 seconds (`tuning.PROGRESS_BAR_SECONDS`) (or has no recorded speed yet).
 """
 
 from planetgen.generation import run_common, steps

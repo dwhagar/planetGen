@@ -46,7 +46,7 @@ from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, 
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world, life_classes, life_scores, score_filters
+from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
@@ -87,7 +87,7 @@ from planetgen.galaxy.navigation import (
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
-    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
+    DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
@@ -1157,6 +1157,34 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
                     lambda c: {"placement": [], "binary": [], "octant": []})
 
 
+def _class_clause(alias, codes, clauses, params):
+    """
+    Appends the filter on `alias.planet_class` for the written class `codes` (a set of tags such as `{"M", "F2"}`). A letter alone matches all its digits
+    ("Searching or filtering by a letter matches all its digits", `physics/class_code.py`); a letter and a digit (`class_code.parse_code`, GEN.1208) matches that
+    position of the family only, a stored digit of NULL being digit 0. A tag that is not a class code matches nothing, as it did.
+    """
+    letters, coded = [], []
+    for code in sorted(codes):
+        if code[-1:].isdigit():
+            try:
+                coded.append(class_code.parse_code(code))
+                continue
+            except class_code.ClassCodeError:
+                pass
+        letters.append(code)
+    parts = []
+    if letters:
+        parts.append(f"{alias}.planet_class IN ({','.join('?' * len(letters))})")
+        params.extend(letters)
+    for letter, digit in coded:
+        parts.append(f"({alias}.planet_class = ? AND COALESCE({alias}.class_variant, 0) = ?)")
+        params.extend((letter, digit))
+    if len(parts) == 1:
+        clauses.append(parts[0])
+    elif parts:
+        clauses.append("(" + " OR ".join(parts) + ")")
+
+
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
     """
     Builds the shared `WHERE`/params fragment `list_planets` and
@@ -1183,8 +1211,7 @@ def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km,
     clauses = []
     params = []
     if planet_class is not None:
-        clauses.append(f"{table_alias}.planet_class = ?")
-        params.append(planet_class)
+        _class_clause(table_alias, {planet_class}, clauses, params)
     size_range = None
     if min_radius_km is not None or max_radius_km is not None:
         size_range = (min_radius_km, max_radius_km)
@@ -4339,9 +4366,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
-    `StarSystem.count_habitable` uses), `habitable_class` (its class is one of `tuning.HABITABLE_PLANET_CLASSES`),
-    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column, kept
-    for a habitable class only) and
+    `StarSystem.count_habitable` uses), `habitable_class` (its conditions support a life class, or one lives on it, GEN.1387: no list of class letters),
+    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column) and
     `inhabited` (reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -4354,9 +4380,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["life_classes"] = _life_classes_of(body, living)
-    body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["habitable_class"] = body["life_class_id"] is not None or bool(body["life_class_scores"])      # GEN.1387: the conditions support a life class, or one lives here
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
-    body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
     body["compact_host"] = compact_host
     body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
@@ -7573,8 +7598,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _equipment_clause("p", equipment_tags, clauses, params)
     _score_clauses("p", tags or {}, "", clauses)
     if class_tags:
-        clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("p", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))
@@ -7606,8 +7630,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _equipment_clause("m", equipment_tags, clauses, params)
     _score_clauses("m", tags or {}, "moon_", clauses)
     if class_tags:
-        clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("m", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))

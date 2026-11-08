@@ -23,9 +23,11 @@ section 8):
   1.4e21 kg of ocean); carbon and nitrogen are at least that (volatiles
   arrive with water), or the air's own carbon (CO2, CO, CH4) against
   7.5e19 kg or its nitrogen against 4.0e18 kg, when larger.
-* **Phosphate.** The ocean's `phosphorus` class: 1000 umol/L "high" (soda
-  lakes), 2.3 "limited" (Earth), 0.01 "starved" (ice-sealed); a methane sea
-  takes the "limited" value (the term has no non-aqueous model).
+* **Phosphate.** The ocean's phosphate, umol/L, from the phosphorus budget
+  (`ocean_phosphate_umol_l`, GEN.1367: the crust's P2O5 weathered into the
+  ocean, 2.3 for the Earth, 1000 at most in a soda lake, 0.01 under a sealed
+  ice); a methane sea takes the Earth's value (the term has no non-aqueous
+  model), and so does the water of an aquifer.
 * **Energy.** A surface liquid gets 6% of the starlight (Earth's 1361 W/m2
   gives its 80 W/m2 of usable light) or the chemical power of the body's
   heat flow, 1% of it (Earth's 0.09 W/m2 gives 9e-4), whichever is more; an
@@ -55,7 +57,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -114,10 +116,9 @@ LIGHT_SHARE = 0.06
 CHEMICAL_SHARE = 0.01
 """float: The share of starlight, and of the body's heat flow, that life can use."""
 
-PHOSPHATE_UMOL_L = {"high": 1000.0, "limited": 2.3, "starved": 0.01, None: 0.0}
-"""dict: An ocean's `phosphorus` class as phosphate, umol/L. The water of an aquifer, which has no ocean class, is `limited`
-(rock weathering supplies it; DESIGN stand-in, GEN.654)."""
-NON_AQUEOUS_PHOSPHATE_UMOL_L = 2.3
+AQUIFER_PHOSPHATE_UMOL_L = phosphorus_budget.EARTH_OCEAN_UMOL_L
+"""float: The phosphate of the water of an aquifer, umol/L: it has no ocean to budget, and rock weathering supplies it (DESIGN stand-in, GEN.654; the Earth's ocean value)."""
+NON_AQUEOUS_PHOSPHATE_UMOL_L = phosphorus_budget.EARTH_OCEAN_UMOL_L
 
 CHLORIDE_BRINE_CHAOTROPICITY = 200.0
 """float: kJ/kg per unit of water activity below 1 in a chloride brine."""
@@ -159,7 +160,7 @@ def values_from_body(body):
         "ocean_class": getattr(body, "ocean_class", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
         "water_activity": getattr(body, "water_activity", None),
-        "phosphorus": getattr(body, "phosphorus", None),
+        "ocean_phosphate_umol_l": getattr(body, "ocean_phosphate_umol_l", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
         "rock_mg_si_ratio": getattr(body, "rock_mg_si_ratio", None),
@@ -371,7 +372,8 @@ def world_from(values, lethal_host=None):
         chaotropicity_kj_kg=CHLORIDE_BRINE_CHAOTROPICITY * (1.0 - activity) if aqueous and brine else 0.0,
         ph=values.get("ocean_ph") if aqueous else None,
         inventories=inventories(values),
-        phosphate_umol_l=(PHOSPHATE_UMOL_L.get(values.get("phosphorus") or ("limited" if underground != "none" else None), 0.0)
+        phosphate_umol_l=((values.get("ocean_phosphate_umol_l") if values.get("ocean_phosphate_umol_l") is not None
+                           else AQUIFER_PHOSPHATE_UMOL_L if underground != "none" else 0.0)
                           if aqueous else NON_AQUEOUS_PHOSPHATE_UMOL_L if medium else 0.0),
         energy_flux_w_m2=values.get("energy_flux_w_m2") or 0.0,
         surface_dose_sv_yr=surface_dose,

@@ -71,8 +71,14 @@ def test_a_rogue_giant_keeps_a_binding_energy_only():
 
 
 def test_a_terrestrial_rogue_planet_is_round_and_has_a_strength():
-    rogue, _ = _rogue(4, 3.0, 0)
+    rogue, _ = _rogue(4, 1.0, 0)        # GEN.1398: a rocky body under an envelope of 0.5 percent or more is judged as a giant (`body_strength._is_giant`), so the rocky rogue is 1 Earth mass
     assert rogue.roundness_ratio > 1.0 and rogue.yield_strength_pa > 0.0 and rogue.binding_energy_j > 0.0
+
+
+def test_a_rogue_sub_neptune_keeps_a_binding_energy_only():
+    rogue, _ = _rogue(4, 3.0, 0)        # 3 Earth masses holds a hydrogen-helium envelope of some percent: no ground, no measurable strength
+    assert rogue.envelope_mass_fraction >= 0.005 and rogue.binding_energy_j > 0.0
+    assert rogue.roundness_ratio is None and rogue.yield_strength_pa is None
 
 
 def test_an_interstellar_comet_has_what_a_comet_has():
@@ -88,7 +94,7 @@ def test_the_rows_of_every_kind_are_stored_with_the_values(mysql_config):
     config = SystemConfig()
     draw.set_run_seed(9)
     sector_id = store.save_sector(SpaceSector("Bulk Sector", edge_ly=10.0), config=mysql_config)
-    rogue, landing = _rogue(9, 3.0, 0)
+    rogue, landing = _rogue(9, 1.0, 0)
     with store.get_connection(mysql_config) as conn:
         ids = {
             "black_holes": store.insert_black_hole(conn, BlackHole(config)),
