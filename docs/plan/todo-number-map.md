@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.293 |
+| UX | UX.294 |
 | MAP | MAP.409 |
 | NAV | NAV.78 |
-| GEN | GEN.1408 |
+| GEN | GEN.1420 |
 | PERF | PERF.254 |
-| DB | DB.116 |
-| API | API.42 |
-| ADM | ADM.143 |
+| DB | DB.118 |
+| API | API.43 |
+| ADM | ADM.145 |
 | SEC | SEC.47 |
-| TEST | TEST.699 |
+| TEST | TEST.700 |
 | USR | USR.32 |
 | OPS | OPS.122 |
-| DOC | DOC.110 |
+| DOC | DOC.111 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
 
@@ -570,6 +570,7 @@ Parents marked "new parent" had no old number of their own.
 | API.39 | /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug) | none | done, PR #4975 |
 | API.40 | Audit every link to a system or body page for row ids that should be object IDs | none | done, PR #4975 |
 | API.41 | Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature | none | open |
+| API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -2186,6 +2187,18 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | open |
 | GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | open |
 | GEN.1407 | K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light | none | open |
+| GEN.1408 | Fictional materials part 1: the fiction table (each fictional material, its kind, default inclusion and default name) | none | open |
+| GEN.1409 | Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name) | GEN.1408 | open |
+| GEN.1410 | Fictional materials part 3: the settings object and its config default (per-material include flag and custom name) | GEN.1409 | open |
+| GEN.1411 | Fictional materials part 7: the biomass index (the gate for the three life-gated crystals) | none | open |
+| GEN.1412 | Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off) | GEN.1410 | open |
+| GEN.1413 | Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch) | GEN.1411, GEN.1412 | open |
+| GEN.1414 | Fictional materials part 11: the crystal rows and their GEN.725 registry rows | GEN.1408 | open |
+| GEN.1415 | Fictional materials part 12: Tritanium rows and the reduced-body ore law | GEN.1408 | open |
+| GEN.1416 | Fictional materials part 13: the Dilithium row and the felsic-crust law | GEN.1408 | open |
+| GEN.1417 | Fictional materials part 14: aliases for Pergium, Topaline, Kelbonite and Deuterium over existing rows | GEN.1412 | open |
+| GEN.1418 | Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists) | GEN.1408 | open |
+| GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy (only if Boss says yes) | GEN.1413 | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | done, PR #5688 |
@@ -2210,6 +2223,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
 | UX.291 | Phone width: the star-system map card is 338 px high against the half-window limit of 329 px because its three rows wrap (bug) | none | open |
 | UX.292 | At phone width an expanded star-system card with long rows scrolls itself instead of its rest region: the first view alone fills the card's maximum height (bug) | none | open |
+| UX.293 | Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names | GEN.1412, DB.117 | open |
 | GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) | none | open |
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) | none | done, PR #5688 |
 | GEN.1389 | Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug) | none | done, PR #5688 |
@@ -2218,12 +2232,15 @@ Parents marked "new parent" had no old number of their own.
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
 | TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | open |
 | TEST.698 | test_systems position-in-plane check stale since GEN.1352: moons are set in the system frame, their inclination and node stay in the equator frame (bug) | none | done, PR #5703 |
+| TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | open |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | done, PR #5688 |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | done, PR #5688 |
 | PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
 | PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | open |
 | PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
+| ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | open |
+| ADM.144 | Fictional materials part 17: edit custom names after generation (only if Boss says yes) | DB.116 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
@@ -3612,6 +3629,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | done, PR #5452 |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | done, PR #5452 |
 | DOC.109 | Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about | none | done, PR #5456 |
+| DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | done, PR #5468 |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
@@ -4376,6 +4394,8 @@ Each citation below resolves to one item by its date.
 | DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) | none | done, PR #5408 |
 | DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) | DB.113 | done, PR #5508 |
 | DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) | none | open |
+| DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | open |
+| DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |

@@ -166,3 +166,4 @@ Rules:
 | [#1212](https://github.com/dwhagar/planetGen/issues/1212) | closed | Galactic Map Sector Boarders | MAP.202 |
 | [#1211](https://github.com/dwhagar/planetGen/issues/1211) | closed | View artifacts in Galactic View | MAP.187 |
 | [#1204](https://github.com/dwhagar/planetGen/issues/1204) | open | Nebulas and Globular Clusters | GEN.209, MAP.194, GEN.237, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164, DB.61, GEN.534, GEN.535, GEN.320, GEN.325, GEN.326, GEN.359, MAP.223, MAP.224, GEN.530, GEN.1191, GEN.1192, GEN.1193, GEN.1198, MAP.388 |
+| [#5709](https://github.com/dwhagar/planetGen/issues/5709) | open | Fictional materials: a per-material inclusion setting with optional custom names, chosen at galaxy generation time (8.2) | GEN.1408, GEN.1409, GEN.1410, DB.116, ADM.143, API.42, GEN.1411, GEN.1412, GEN.1413, DB.117, GEN.1414, GEN.1415, GEN.1416, GEN.1417, UX.293, GEN.1418, ADM.144, GEN.1419, TEST.699, DOC.110 |

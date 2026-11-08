@@ -13488,6 +13488,106 @@ clears each one.
   Version 8.1. Prerequisites: none. Related: GEN.909, GEN.1309.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
 
+- [ ] **GEN.1408 Fictional materials part 1: the fiction table (each fictional material, its kind, default inclusion and default name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1409 Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1410 Fictional materials part 3: the settings object and its config default (per-material include flag and custom name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1409. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DB.116 Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Carries a migration.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.143 Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **API.42 Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: DB.116. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1411 Fictional materials part 7: the biomass index (the gate for the three life-gated crystals)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1412 Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1413 Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Takes the epoch.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1411, GEN.1412. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DB.117 Fictional materials part 10: the per-body rare-material table (migration)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Carries a migration.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1414 Fictional materials part 11: the crystal rows and their GEN.725 registry rows**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1415 Fictional materials part 12: Tritanium rows and the reduced-body ore law**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1416 Fictional materials part 13: the Dilithium row and the felsic-crust law**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1417 Fictional materials part 14: aliases for Pergium, Topaline, Kelbonite and Deuterium over existing rows**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1412. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **UX.293 Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1412, DB.117. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1418 Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Conditional: only if a neutron-star interior description exists.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.144 Fictional materials part 17: edit custom names after generation (only if Boss says yes)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Conditional: only if Boss says yes.
+  Version 8.2. Owner: none yet. Prerequisites: DB.116. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1419 Fictional materials part 18: add fictional materials to an existing galaxy (only if Boss says yes)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Conditional: only if Boss says yes.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **TEST.699 Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DOC.110 Fictional materials part 20: reference docs and help for the setting**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time. Parent plan: /mnt/project-files/research/materials-8-2-plan-2026-11-07.md; the fiction thread's settings plan numbers these twenty parts in chain order. Placeholder with the title only; the fiction thread adds the Do and Done text when its plan is final. Lock-free unless a note here says otherwise.
+  Version 8.2. Owner: none yet. Prerequisites: ADM.143. Related: GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
