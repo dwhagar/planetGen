@@ -6,5 +6,5 @@
 ### Changed
 - A belt's stored makeup detail gains `hosted`: the vocabulary names its mixes can carry, each with its largest host row. No mass is drawn for them, so the shares, porosities and densities are unchanged; the stored belt detail moves, so the next epoch is needed.
 
-`generation-output: changed`
-`TODO items resolved: GEN.1369`
+generation-output: changed
+TODO items resolved: GEN.1369
