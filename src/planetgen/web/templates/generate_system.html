@@ -55,7 +55,7 @@
       <label class="search-field">System file (JSON, optional)
         <textarea name="system_file" rows="8" class="content-box" spellcheck="false" autocomplete="off"
           placeholder="{{ system_file_example }}">{{ form.get("system_file", "") }}</textarea>
-        <span class="field-hint">Anything <code>--system-file</code> accepts, such as an exact slot layout. The options above override it.</span>
+        <span class="field-hint">Anything <code>--system-file</code> accepts, such as an exact slot layout. A planet slot asks for a planet by what it is like (<code>"conditions"</code>: <code>kind</code>, <code>air</code> and a <code>[low, high]</code> range for a quantity such as <code>temperature_k</code>); <code>"planet_class"</code> is only a shorthand for the conditions of that class. The options above override it.</span>
       </label>
     </details>
     <div class="search-fields system-format">

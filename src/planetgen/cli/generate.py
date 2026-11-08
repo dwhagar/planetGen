@@ -396,6 +396,9 @@ def validate_system_args(args, parser):
                 and 0 <= file_num_orbits <= limits.MAX_NUM_ORBITS):
             parser.error(f"--system-file {args.system_file!r}: num_orbits {file_num_orbits!r} must be a "
                          f"whole number from 0 to {limits.MAX_NUM_ORBITS}.")
+        slots_problem = run_system.slots_problem(file_data.get("slots"))
+        if slots_problem:
+            parser.error(f"--system-file {args.system_file!r}: {slots_problem}")
 
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")

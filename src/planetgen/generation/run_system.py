@@ -20,7 +20,7 @@ from planetgen.generation.system import StarSystem
 from planetgen import describe
 from planetgen.db import render
 from planetgen.db.render import render_star_system
-from planetgen.generation import followed, run_common
+from planetgen.generation import condition_request, followed, run_common
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 from planetgen.util import draw
 
@@ -64,15 +64,18 @@ def load_system_file(path):
 
     `slots`, if present, is a list whose entries are either `null` or an
     object with a required `"type"` ("planet" or "asteroid_belt") and, for
-    planets, optional `"planet_class"` (e.g. "M") and `"moons"` (an exact
-    moon count) keys, e.g.:
+    planets, an optional request and an optional `"moons"` (an exact moon
+    count). The request is `"conditions"` (what the planet is like: `"kind"`,
+    `"air"` and a `[low, high]` range for a quantity, GEN.688) or
+    `"planet_class"` (a letter, only sugar for the conditions of that class);
+    never both. `slots_problem` says what is wrong with a list. E.g.:
 
         {
           "star_type": "G2V",
           "num_orbits": 5,
           "habitable_world": true,
           "slots": [
-            {"type": "planet", "planet_class": "M", "moons": 1},
+            {"type": "planet", "conditions": {"kind": "t", "air": true, "temperature_k": [273, 320]}, "moons": 1},
             {"type": "asteroid_belt"},
             null,
             {"type": "planet", "planet_class": "J", "moons": 4},
@@ -89,6 +92,50 @@ def load_system_file(path):
     import json
     with open(path, 'r') as f:
         return json.load(f)
+
+
+SLOT_TYPES = ("planet", "asteroid_belt")
+"""tuple: What a slot of a system file's `slots` may hold."""
+
+SLOT_KEYS = ("type", "planet_class", "conditions", "moons")
+"""tuple: The keys of a slot (`SystemConfig.SLOTS`)."""
+
+
+def slots_problem(slots):
+    """
+    Why a system file's `slots` cannot be used, in plain words, or `None`: it is a list of `null` and objects with a `"type"` of planet or asteroid_belt and no
+    key outside `SLOT_KEYS`; a planet's request is a class letter (sugar) or conditions, never both, and reads
+    (`condition_request.from_spec`); `moons` is a whole number from 0; a belt names no request or moons. `None` (left out) is fine.
+    """
+    if slots is None:
+        return None
+    if not isinstance(slots, list):
+        return "slots must be a list with one entry (null or an object) for each orbit."
+    for number, slot in enumerate(slots, start=1):
+        where = f"slot {number}"
+        if slot is None:
+            continue
+        if not isinstance(slot, dict):
+            return f"{where} must be null or an object."
+        unknown = [key for key in slot if key not in SLOT_KEYS]
+        if unknown:
+            return f"{where} has {', '.join(map(repr, unknown))}, which is no key of a slot ({', '.join(SLOT_KEYS)})."
+        kind = slot.get("type", "planet")
+        if kind not in SLOT_TYPES:
+            return f"{where} has the type {kind!r}; it must be 'planet' or 'asteroid_belt'."
+        if kind == "asteroid_belt":
+            named = [key for key in ("planet_class", "conditions", "moons") if key in slot]
+            if named:
+                return f"{where} is an asteroid belt, which takes no {', '.join(named)}."
+            continue
+        moons = slot.get("moons")
+        if moons is not None and (isinstance(moons, bool) or not isinstance(moons, int) or moons < 0):
+            return f"{where}: moons must be a whole number from 0, not {moons!r}."
+        try:
+            condition_request.from_spec(slot.get("planet_class"), slot.get("conditions"))
+        except condition_request.RequestError as exc:
+            return f"{where}: {exc}"
+    return None
 
 
 def apply_system_file(system_config, data):
