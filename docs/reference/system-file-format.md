@@ -86,7 +86,8 @@ entry is either:
   | Field | Required | Description |
   |---|---|---|
   | `type` | yes | `"planet"` or `"asteroid_belt"`. |
-  | `planet_class` | no (`type: "planet"` only) | A specific planet class letter (see [Planet classes](#planet-classes)). If omitted, the planet is drawn normally and gets whatever class it comes out as. |
+  | `conditions` | no (`type: "planet"` only; not with `planet_class`) | What the planet is like (GEN.688): `"kind"` (`"t"` rocky, the default, or `"g"` giant), `"air"` (`true` for an air of 10 Pa or more, `false` for none, left out for either) and, for any quantity the classes read (`mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa`, `ocean_fraction` and the rest of `physics/data/planet_class_fit.json`), a range `[low, high]` (low reached, high not; `null` leaves an end open). A state such as `phase_water` takes the value it must have. A finished planet meets the request when every condition holds, whatever letter it is given. |
+  | `planet_class` | no (`type: "planet"` only; not with `conditions`) | A class letter (see [Planet classes](#planet-classes)), only sugar for the conditions of that class in the fit table. The letter never draws or steers the planet; a body that meets those conditions is kept, and the letter the classifier gives it may differ at the edge of two classes. If neither this nor `conditions` is given, the planet is drawn normally and gets whatever class it comes out as. |
   | `moons` | no (`type: "planet"` only) | An exact number of moons to generate, `0` for none. If omitted, moon generation falls back to the `moons` option / random 50-50 chance. |
 
 The array doesn't need to cover every orbit — it can be shorter than
@@ -107,6 +108,8 @@ Notes on how slots interact with the rest of generation:
 - **`moons` is best-effort.** A planet only has so much stable orbital room
   for satellites (governed by its Hill sphere). If you ask for more moons
   than fit, you'll get as many as fit and no more — no error.
+- A request that asks for a surface warm enough for liquid water and cool enough to keep it (a `temperature_k` range inside the ecosphere's) can only be met there, and its orbit is placed in the ecosphere like a requested habitable world's.
+- A slot that cannot be read is refused before anything is generated, in plain words: a key a slot does not have, a type that is neither planet nor asteroid_belt, both `planet_class` and `conditions`, a quantity no class reads, a range that is not two numbers, a negative moon count, a belt that names a request. The command line reports it as a usage error (`slots_problem`) and the Generate page's system file field says it under the form.
 - A slot with `planet_class` set to one of the habitable classes (see below)
   still counts toward satisfying a top-level `habitable_world: true`
   requirement.

@@ -135,7 +135,7 @@ it, `system` exits with an error and saves nothing.
 }
 ```
 
-`slots` is an optional, per-orbit list: each entry is either `null` (generate that slot normally) or an object with a required `"type"` (`"planet"` or `"asteroid_belt"`) and, for planets, an optional `"planet_class"` (e.g. `"M"`) and/or `"moons"` (an exact moon count, `0` for none). The list doesn't need to cover every orbit — slots past the end of the list are generated normally too.
+`slots` is an optional, per-orbit list: each entry is either `null` (generate that slot normally) or an object with a required `"type"` (`"planet"` or `"asteroid_belt"`) and, for planets, an optional request (`"conditions"`: `"kind"`, `"air"` and a `[low, high]` range for a quantity such as `"temperature_k"`; or `"planet_class"`, e.g. `"M"`, which is only sugar for the conditions of that class; never both) and/or `"moons"` (an exact moon count, `0` for none). See [system-file-format.md](system-file-format.md#slots). The list doesn't need to cover every orbit — slots past the end of the list are generated normally too.
 
 ### Sector Generation
 

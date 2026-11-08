@@ -35,7 +35,7 @@ from planetgen.queue import api_jobs
 from planetgen import describe
 from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
-from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, stars_problem
+from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, slots_problem, stars_problem
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
 from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
@@ -70,7 +70,7 @@ _FORMAT_MIMETYPES = {fmt: mimetype for fmt, _label, _extension, mimetype in FORM
 SYSTEM_FILE_EXAMPLE = """{
   "num_orbits": 5,
   "slots": [
-    {"type": "planet", "planet_class": "M", "moons": 1},
+    {"type": "planet", "conditions": {"kind": "t", "air": true, "temperature_k": [273, 320]}, "moons": 1},
     {"type": "asteroid_belt"},
     null,
     {"type": "planet", "planet_class": "J", "moons": 4},
@@ -148,6 +148,9 @@ def system_request(form):
             raise FormError(f"The system file isn't valid JSON: {exc}.") from None
         if not isinstance(system_file, dict):
             raise FormError("The system file must be a JSON object ({ ... }).")
+        problem = slots_problem(system_file.get("slots"))
+        if problem:
+            raise FormError(f"The system file's {problem}")
 
     # A form value wins over the system file's, as on the command line.
     resolved = lambda key, value: (system_file or {}).get(key) if value is None else value  # noqa: E731
