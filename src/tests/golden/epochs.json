@@ -822,8 +822,7 @@
     },
     {
       "epoch": 138,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3627",
       "reason": "Train 16: uncharted rows, belt and collision fields, scattering belt loss, oxygen cap, super-puffs, air knee, water-loss efficiency",
       "affects": ["plan", "scatter", "fill", "population"]
     }
