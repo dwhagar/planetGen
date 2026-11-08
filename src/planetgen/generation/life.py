@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -503,19 +503,22 @@ def decide_flavor_text(planet):
 
     # Check for habitable and multicellular/technological life
     is_habitable = planet.life_class is not None
+    # The orbital list is for a body with no ground to put a wreck on: a gas giant, or a rock whose whole surface is molten. It is judged by the stored
+    # conditions of the body, never by its class letter (GEN.1399: the class is decided last).
+    has_no_ground = planet.body_type == "g" or getattr(planet, "surface_liquid", None) in surface_liquid_world.LAVA_IDS
     has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
 
     if is_habitable and has_multicellular_life:
         selected_flavor = draw.choice(available_habitable_flavor)
         flavor_category = "habitable (multicellular/technological life present)"
         flavor_list = "habitable"
-    elif planet.body_type == "t" and planet_classes.classify(planet) != "A":
+    elif planet.body_type == "t" and not has_no_ground:
         selected_flavor = draw.choice(available_planet_flavor)
-        flavor_category = "planet (terrestrial body, not class A)"
+        flavor_category = "planet (terrestrial body with a ground)"
         flavor_list = "planet"
-    elif planet.body_type == "g" or planet_classes.classify(planet) == "A":
+    elif has_no_ground:
         selected_flavor = draw.choice(available_orbital_flavor)
-        flavor_category = "orbital (gas giant or class A body)"
+        flavor_category = "orbital (gas giant or molten surface)"
         flavor_list = "orbital"
     else:
         flavor_category = None
