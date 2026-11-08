@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import accessory_minerals, comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
+from planetgen.physics import accessory_minerals, asteroid_vocabulary, comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -363,7 +363,7 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None, host=
     albedo = math.fsum(shares[t] * TAXON_DATA[t].albedo for t in names)
     makeup = _makeup(kind, components, 0.0, albedo)
     group, group_distance = chondrite_group(makeup.components)
-    detail = dict(detail, group=group, group_distance=group_distance)
+    detail = dict(detail, group=group, group_distance=group_distance, hosted=asteroid_vocabulary.hosted(makeup.components))
     # the belt's own figures: the grains' mixing density of the whole belt and the mass-weighted bulk density of its taxa
     return SmallBodyMakeup(kind, makeup.components, makeup.metal, makeup.rock, makeup.water, makeup.ice, mean_porosity,
                            makeup.grain_density_kg_m3, mean_bulk, albedo,

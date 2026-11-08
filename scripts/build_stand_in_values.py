@@ -321,6 +321,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.213", "6.213 Stand-ins of the accessory minerals of the asteroid taxon mixes",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.214", "6.214 Stand-in of the hosts of the asteroid vocabulary names",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.210", "6.210 Stand-ins of the minor oxides of a rocky body's rock",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.209", "6.209 Stand-ins of the nine added star elements",

@@ -3292,3 +3292,11 @@ The world classes and two life classes judged oxygen by its share of the air. A 
 | ACC3 | B | T6 | L0 | accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled | none | belts with a host star | a measured dependence of the carbonate or sulfide share on the host star's bulk | a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items) | the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them |
 | ACC4 | T | T6 | L0 | accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap | the exponent 0.5 to 1.5 | stars within a factor of 3 of the reference in the element | a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus | a speciation of the bulk in which the mineral competes for its cations | the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit |
 
+### 6.214 Stand-in of the hosts of the asteroid vocabulary names (GEN.1369)
+
+`asteroid_vocabulary.HOSTED` gives each of the 84 names of the old asteroid list the mineral of a primitive body's mix that hosts it. The host per element group is the recalled standard answer of the ore and meteorite literature (research file `real-material-data-3`, section 4).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| ACV1 | T | T3 | L0 | asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides | the host list of each element group | the primitive taxa of the mixes | a meteorite analysis that puts the element group in a host the list lacks, or finds it in none of them | a speciation of the bulk into the minerals (GEN.1362 and its successors) | the research file's table of hosts in a primitive body, recalled from the ore and meteorite literature; not opened |
+

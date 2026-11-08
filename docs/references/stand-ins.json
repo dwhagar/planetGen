@@ -41001,6 +41001,52 @@
       "title": "Stand-ins of the accessory minerals of the asteroid taxon mixes"
     },
     {
+      "key": "6.214",
+      "number": "6.214",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides"
+            ],
+            [
+              "The range it moves in",
+              "the host list of each element group"
+            ],
+            [
+              "Where it holds",
+              "the primitive taxa of the mixes"
+            ],
+            [
+              "What would show it wrong",
+              "a meteorite analysis that puts the element group in a host the list lacks, or finds it in none of them"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the bulk into the minerals (GEN.1362 and its successors)"
+            ],
+            [
+              "Evidence",
+              "the research file's table of hosts in a primitive body, recalled from the ore and meteorite literature; not opened"
+            ]
+          ],
+          "id": "ACV1",
+          "key": "6.214:ACV1",
+          "kind": "T",
+          "slug": "6-214-acv1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "asteroid_vocabulary.HOSTED: the platinum-group elements and gold in kamacite and taenite (0.01 to 10 ppm), the osmium-iridium alloy in the inclusion phases, titanium in ilmenite and perovskite, the polycyclic aromatic hydrocarbons in the organic matter, the major elements in the silicates, metal and sulfides"
+        }
+      ],
+      "slug": "6-214-stand-in-of-the-hosts-of-the-asteroid-vocabulary-names",
+      "title": "Stand-in of the hosts of the asteroid vocabulary names"
+    },
+    {
       "key": "6.210",
       "number": "6.210",
       "rows": [
