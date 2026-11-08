@@ -13120,11 +13120,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 21. Prerequisites: none. Related: GEN.1364, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1427 Neutron-star nuclear pasta: the inner crust layer between the outer crust and the core, in the neutron star interior and radius model**
-  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report row 7. Do: a sourced layer description (density range, thickness fraction from the crust model) in the remnant interior; small. Done: a neutron star's stored interior lists the pasta layer with its sources. Lock item if a stored value changes.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: GEN.725.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1428 GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed**
   Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report section 6 card 2. Do: one new column in the stand-in registry (scripts/build_stand_in_values.py and docs/design/research/stand-in-values.md), a value for each of the 316 rows (observed in a planet or lab only where the source says so), a test that no row is blank, and a one-line note where tier is shown. Also list as ordinary observed rows (not hypotheticals): BC8 carbon, superionic ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, ambient cg-N. Done: the column is filled and the guard test passes; lock-free. Every row of the tiered Venus and acid cloud values in /mnt/project-files/reports/venus-acid-cloud-standins-2026-11-08.md already has a tier and a tweak level; use them as the first rows with an evidence status.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 12 (after TEST.700). Prerequisites: none. Related: GEN.725.
@@ -13248,6 +13243,21 @@ clears each one.
 - [ ] **PERF.255 Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world**
   Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 13, the same family as PERF.253. Do: profile the three, find the shared slow call and cache or shrink it. Done: each finishes under the timeout in the gate. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **MAP.409 Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load[single]. Do: find the object that is null when the wheel carries the map into a system (the scene update) and fix the page, not the test. Done: the test passes with no uncaught exception and the scene fades in. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **MAP.410 Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')"**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_each_edit_of_the_waypoints_plans_the_course_again. Do: find the element read before it exists or after it is removed, and fix the page. Done: the test passes with no uncaught exception. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **MAP.411 Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Lane 03 thinks these are one map regression, not many stale tests, and will not loosen any test. Do: bisect the first bad commit on the map page, decide per case whether the page or the test is wrong, and split into items if more than one cause is found. Tests: the hover test for the Fixture Maw black hole, point-phenomena hover for the neutron star, the nebula group ring, the close-star choices popup, two info-card size tests (content 132 in a 208 box), the flag drag position, the scale line after the wheel, and galaxy_closed. Done: each passes on main with the cause named. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

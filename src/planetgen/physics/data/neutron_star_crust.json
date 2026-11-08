@@ -203,5 +203,36 @@
    "neutrons_in_cell": 950
   }
  ],
- "neutron_drip_g_cm3": 427000000000.0
+ "neutron_drip_g_cm3": 427000000000.0,
+ "pasta": {
+  "source": "[R5167] (READ: the pasta lies in the bottom layer of the crust, about 100 m thick, at 0.2 to 0.5 of the normal nuclear density 0.165 nucleons per fm^3, and may hold half the mass of the crust; shapes in the order of its Fig. 1 with rising density); the shape names are the nicknames of [R5165] (READ). Predicted by calculation, not observed.",
+  "label": "READ",
+  "evidence": "predicted only",
+  "saturation_density_fm3": 0.165,
+  "lower_fraction_of_saturation": 0.2,
+  "thickness_m": 100.0,
+  "crust_mass_share_at_most": 0.5,
+  "shapes": [
+   {
+    "name": "gnocchi",
+    "shape": "spherical nuclei"
+   },
+   {
+    "name": "spaghetti",
+    "shape": "rod-like nuclei"
+   },
+   {
+    "name": "lasagna",
+    "shape": "slab-like nuclei"
+   },
+   {
+    "name": "anti-spaghetti",
+    "shape": "cylindrical bubbles of the neutron gas (the rods turned inside out)"
+   },
+   {
+    "name": "anti-gnocchi",
+    "shape": "spherical bubbles of the neutron gas (the spheres turned inside out)"
+   }
+  ]
+ }
 }
