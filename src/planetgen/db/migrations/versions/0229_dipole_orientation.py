@@ -1,7 +1,7 @@
 """Where the magnetic dipole points and the surface field of a star (GEN.1350).
 
 Schema v229. `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (DOUBLE, NULL: the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and
-`dipole_offset_class` (VARCHAR(8), NULL: `centred` or `offset`). `stars` gains `surface_dipole_field_gauss` (DOUBLE, NULL: the polar field of the large-scale dipole of a cool
+`dipole_offset_class` (VARCHAR(8), NULL: `centered` or `offset`). `stars` gains `surface_dipole_field_gauss` (DOUBLE, NULL: the polar field of the large-scale dipole of a cool
 dwarf or an Ap dwarf) and `neutron_stars` gains `magnetic_inclination_deg` (DOUBLE, NULL: the angle between the magnetic and the spin axis, 0 to 90 degrees). A row made before v229
 has NULL in them and gets the values when the galaxy is regenerated (a migration does not draw; `physics/magnetic_geometry.py`). A column already there is skipped, so a stopped run
 can be started again.

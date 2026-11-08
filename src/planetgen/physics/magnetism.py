@@ -222,7 +222,7 @@ def generate_field(body, core=None):
     moment, share = _moment(body, mass_earth, core)
     body.magnetic_moment_a_m2 = moment
     body.dipole_tilt_deg = body.dipole_offset_class = None
-    if moment > 0.0:      # GEN.1350: where the dipole points and whether it is off centre, from a stream of the body's own
+    if moment > 0.0:      # GEN.1350: where the dipole points and whether it is off center, from a stream of the body's own
         body.dipole_tilt_deg, body.dipole_offset_class = magnetic_geometry.of_body(_dynamo_kind(body, mass_earth, share), _stream_key(body))
     if moment <= 0.0:
         body.dipole_class = "none"

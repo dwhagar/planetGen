@@ -276,7 +276,7 @@ def test_back_up_change_compare_restore_and_import_in_the_browser(browser, serve
     try:
         page.goto(base_url + "/admin/settings/backups", wait_until="load")
         page.click("button:has-text('Back up now')")
-        page.wait_for_selector("text=Backed up Settings in ")
+        page.wait_for_selector("text=/Backed up Settings(, [A-Za-z ]+)? in /")       # Back up now names every part the archive holds: the settings, and the parity file where the site has one
 
         page.goto(base_url + "/admin/settings", wait_until="load")
         page.fill("#opt-site_name", "Home")

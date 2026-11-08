@@ -141,7 +141,7 @@ def test_the_progress_callback_reports_every_case_and_changes_nothing(monkeypatc
 def test_the_running_digest_passes_the_progress_callback_on(monkeypatch):
     monkeypatch.setattr(battery, "_running", None)
     monkeypatch.setattr(battery, "case_value", lambda name: {"case": name})
-    monkeypatch.delenv("PLANETGEN_BATTERY_DIGEST_CACHE", raising=False)
+    monkeypatch.setenv("PLANETGEN_BATTERY_DIGEST_CACHE", "")        # none kept: the stand-in cases must not be kept as the real digest
     seen = []
     battery.running_digest(lambda done, total: seen.append(done))
     assert seen[-1] == len(battery.CASES)

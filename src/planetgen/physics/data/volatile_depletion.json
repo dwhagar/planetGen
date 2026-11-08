@@ -1,0 +1,200 @@
+{
+ "title": "Volatility depletion of a rocky body against CI chondrites by the 50 percent condensation temperature of the element (GEN.1361)",
+ "source": "Bulk Earth from [R4608: Table 1] (READ), CI chondrites from [R0168: Table 2] (READ), 50 percent condensation temperatures at 1e-4 bar from [R2726: Table 8] (READ); the ratios are Earth over CI with both normalised to magnesium and rounded to the shown digits (COMPUTED by the research thread, real-material data set)",
+ "label": "READ, COMPUTED",
+ "law": {
+  "slope_per_k": 0.00165,
+  "cut_k": 1316.6,
+  "min_t50_earth_k": 500.0,
+  "note": "log10 f = slope * (t50 - cut) up to the cut and f = 1 above it: the least-squares hinge to the 26 rows (rms 0.079 dex); the research set quotes the same line as -2.150 + 0.001623 * t50 from 13 of the rows (0.001623 * 1324.7 = 2.150)"
+ },
+ "reference": {
+  "distance_au": 1.0,
+  "luminosity_w": 3.828e+26,
+  "note": "the blackbody temperature of the zone the bulk Earth fit is made for (the Sun's light at 1 AU, 278.3 K); the cut moves with the blackbody temperature of the body's formation distance"
+ },
+ "elements": [
+  {
+   "symbol": "S",
+   "t50_k": 664.0,
+   "earth_over_ci": 0.0734,
+   "log10_depletion": -1.13,
+   "host_phase": "Troilite"
+  },
+  {
+   "symbol": "Zn",
+   "t50_k": 726.0,
+   "earth_over_ci": 0.094,
+   "log10_depletion": -1.03,
+   "host_phase": "Forsterite + enstatite"
+  },
+  {
+   "symbol": "F",
+   "t50_k": 734.0,
+   "earth_over_ci": 0.142,
+   "log10_depletion": -0.85,
+   "host_phase": "F apatite"
+  },
+  {
+   "symbol": "Rb",
+   "t50_k": 800.0,
+   "earth_over_ci": 0.198,
+   "log10_depletion": -0.7,
+   "host_phase": "Feldspar"
+  },
+  {
+   "symbol": "Ge",
+   "t50_k": 883.0,
+   "earth_over_ci": 0.169,
+   "log10_depletion": -0.77,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "Cl",
+   "t50_k": 948.0,
+   "earth_over_ci": 0.145,
+   "log10_depletion": -0.84,
+   "host_phase": "Sodalite"
+  },
+  {
+   "symbol": "Na",
+   "t50_k": 958.0,
+   "earth_over_ci": 0.28,
+   "log10_depletion": -0.55,
+   "host_phase": "Feldspar"
+  },
+  {
+   "symbol": "Ga",
+   "t50_k": 968.0,
+   "earth_over_ci": 0.299,
+   "log10_depletion": -0.52,
+   "host_phase": "Fe alloy + feldspar"
+  },
+  {
+   "symbol": "K",
+   "t50_k": 1006.0,
+   "earth_over_ci": 0.263,
+   "log10_depletion": -0.58,
+   "host_phase": "Feldspar"
+  },
+  {
+   "symbol": "Cu",
+   "t50_k": 1037.0,
+   "earth_over_ci": 0.333,
+   "log10_depletion": -0.48,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "Li",
+   "t50_k": 1142.0,
+   "earth_over_ci": 0.703,
+   "log10_depletion": -0.15,
+   "host_phase": "Forsterite + enstatite"
+  },
+  {
+   "symbol": "Mn",
+   "t50_k": 1158.0,
+   "earth_over_ci": 0.592,
+   "log10_depletion": -0.23,
+   "host_phase": "Forsterite + enstatite"
+  },
+  {
+   "symbol": "P",
+   "t50_k": 1229.0,
+   "earth_over_ci": 0.626,
+   "log10_depletion": -0.2,
+   "host_phase": "Schreibersite"
+  },
+  {
+   "symbol": "Cr",
+   "t50_k": 1296.0,
+   "earth_over_ci": 0.955,
+   "log10_depletion": -0.02,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "Si",
+   "t50_k": 1310.0,
+   "earth_over_ci": 0.96,
+   "log10_depletion": -0.02,
+   "host_phase": "Gehlenite then forsterite + enstatite"
+  },
+  {
+   "symbol": "Fe",
+   "t50_k": 1334.0,
+   "earth_over_ci": 1.06,
+   "log10_depletion": 0.02,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "Mg",
+   "t50_k": 1336.0,
+   "earth_over_ci": 1.0,
+   "log10_depletion": 0.0,
+   "host_phase": "Spinel then forsterite"
+  },
+  {
+   "symbol": "Co",
+   "t50_k": 1352.0,
+   "earth_over_ci": 1.05,
+   "log10_depletion": 0.02,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "Ni",
+   "t50_k": 1353.0,
+   "earth_over_ci": 1.04,
+   "log10_depletion": 0.02,
+   "host_phase": "Fe alloy"
+  },
+  {
+   "symbol": "V",
+   "t50_k": 1429.0,
+   "earth_over_ci": 1.13,
+   "log10_depletion": 0.05,
+   "host_phase": "Titanate"
+  },
+  {
+   "symbol": "Sr",
+   "t50_k": 1464.0,
+   "earth_over_ci": 1.16,
+   "log10_depletion": 0.06,
+   "host_phase": "Titanate"
+  },
+  {
+   "symbol": "Ca",
+   "t50_k": 1517.0,
+   "earth_over_ci": 1.17,
+   "log10_depletion": 0.07,
+   "host_phase": "Hibonite + gehlenite"
+  },
+  {
+   "symbol": "Ti",
+   "t50_k": 1582.0,
+   "earth_over_ci": 1.14,
+   "log10_depletion": 0.06,
+   "host_phase": "Titanate"
+  },
+  {
+   "symbol": "Al",
+   "t50_k": 1653.0,
+   "earth_over_ci": 1.16,
+   "log10_depletion": 0.06,
+   "host_phase": "Hibonite"
+  },
+  {
+   "symbol": "Y",
+   "t50_k": 1659.0,
+   "earth_over_ci": 1.19,
+   "log10_depletion": 0.07,
+   "host_phase": "Hibonite"
+  },
+  {
+   "symbol": "Zr",
+   "t50_k": 1741.0,
+   "earth_over_ci": 1.19,
+   "log10_depletion": 0.08,
+   "host_phase": "ZrO2"
+  }
+ ]
+}

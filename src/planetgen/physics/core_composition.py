@@ -22,7 +22,7 @@ What a rocky body's metal core is made of (GEN.1364): Fe-Ni with sulfur, silicon
 
 A body from before GEN.1364 stored no split: its core takes the Earth's reference mix (`EARTH`), which leaves its liquidus and its energy as they were.
 
-Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.213).
+Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.218).
 """
 
 import math
@@ -59,7 +59,7 @@ ALPHA_FLOOR = 0.02
 
 SOLID_TO_LIQUID = {"s": 0.02, "si": 0.67, "o": 0.02, "c": 0.5, "h": 0.3}
 """dict: STAND-IN CX4: the mass concentration of each light element in the solid inner core over that in the liquid it freezes from. Silicon is 1 over 1.5 (a
-liquid/solid partition coefficient of 1.5 +- 0.3, as used by [R5146], read second-hand); oxygen is highly incompatible in solid iron ([R5146], read, no
+liquid/solid partition coefficient of 1.5 +- 0.3, as used by [R5148], read second-hand); oxygen is highly incompatible in solid iron ([R5148], read, no
 number: 0.02 is a stand-in); sulfur, carbon and hydrogen are recalled (sulfur stays in the liquid, carbon and hydrogen go in partly)."""
 LIQUIDUS_DEPRESSION_K = 3700.0
 """float: STAND-IN CX5: K the freezing point falls at the inner core boundary (5,400 K) for a mole fraction of 1 of light elements left in the liquid;
@@ -143,7 +143,7 @@ MARS = Mix(ni=7.4 / _mars_total, s=6.6 / _mars_total, si=0.0, o=5.2 / _mars_tota
 """Mix: Mars' core, the model of [R4833: Table 8] (read; Co, P, Cu and Zn left out), no silicon or carbon."""
 MERCURY_SHARES = {"s": 0.08, "si": 0.76, "o": 0.02, "c": 0.12, "h": 0.02}
 """dict: STAND-IN CX7: the shares of Mercury's light elements: silicon the most (5 to 25 wt percent in the favoured reduced models), carbon 1 to 4, sulfur at most
-1.5 to 2 ([R5145], ranges read; there is no consensus)."""
+1.5 to 2 ([R5147], ranges read; there is no consensus)."""
 
 
 def _shares(mix):

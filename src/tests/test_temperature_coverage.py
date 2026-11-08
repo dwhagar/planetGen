@@ -7,6 +7,7 @@ pieces, the extremes by place and season, the best site and its longest spell in
 """
 
 import math
+import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -215,3 +216,41 @@ def test_the_best_site_of_a_slow_spinner_has_to_go_indoors_for_days_and_that_of_
     assert 5.0 < slow.best_site.longest_out_days < 40.0
     for name in ("earth", "nitrikin 1 bar", "nitrikin 0.3 bar", "locked 1 bar"):
         assert reads[name].best_site.livable_time == 1.0 and reads[name].best_site.longest_out_days == 0.0
+
+
+# --- PERF.249: a world that turns many times per sample --------------------------------------------------------------------------------------------------------------
+
+def _reference_daily_swing(temperature, step_days, solar_days):
+    """The day and night swing as `band_climate` first computed it: one window per solar day, empty ones dropped."""
+    steps = temperature.shape[2]
+    days = max(int(round(steps * step_days / solar_days)), 1)
+    windows = [window for window in np.array_split(np.arange(steps), days) if window.size]
+    return np.mean([temperature[:, :, window].max(axis=2) - temperature[:, :, window].min(axis=2) for window in windows], axis=0)
+
+
+def _series(temperature, solar_days, step_days):
+    rows, columns, _ = temperature.shape
+    grid = SimpleNamespace(row_weight=np.ones(rows) / rows, latitude_deg=np.linspace(-80.0, 80.0, rows), longitude_deg=np.linspace(0.0, 350.0, columns))
+    return SimpleNamespace(temperature_k=temperature, grid=grid, solar_days=solar_days, step_days=step_days)
+
+
+@pytest.mark.parametrize("solar_days", [0.05, 1.0, 3.7, 40.0, 900.0])
+def test_the_band_swing_is_the_mean_daily_range_of_the_windowed_reference_bit_for_bit(solar_days):
+    temperature = np.random.default_rng(3).normal(300.0, 40.0, (14, 6, 97))
+    series = _series(temperature, solar_days, 1.3)
+    daily = _reference_daily_swing(temperature, 1.3, solar_days)
+    expected = []
+    for mask in tc._band_masks(series):
+        share = (np.repeat(series.grid.row_weight / 6, 6).reshape(14, 6))[mask]
+        expected.append(float(np.sum(daily[mask] * share) / np.sum(share)) if mask.any() else math.nan)
+    got = [swing for _, swing in tc.band_climate(series)]
+    assert [g if not math.isnan(g) else None for g in got] == [e if not math.isnan(e) else None for e in expected]
+
+
+def test_a_world_with_a_million_solar_days_per_span_is_read_in_a_blink():
+    # PERF.249: the day count was split into millions of empty windows (a hypergiant's planet spins a thousand times per sample): 152 million calls and 8 GB
+    temperature = np.random.default_rng(4).normal(300.0, 20.0, (24, 12, 200))
+    started = time.perf_counter()
+    bands = tc.band_climate(_series(temperature, 1e-5, 1.0))
+    assert time.perf_counter() - started < 2.0
+    assert all(swing == 0.0 for _, swing in bands if not math.isnan(swing))      # a window of one sample has no range

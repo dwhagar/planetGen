@@ -65,6 +65,11 @@ class NotFoundError(Exception):
     -- callers turn this into a 404 page (`web/errors.py`)."""
 
 
+class NoGalaxyError(NotFoundError):
+    """Raised for the 404 of a database that holds no galaxy yet (MAP.407: the API's `noGalaxy` flag). It is a `NotFoundError`, so code that
+    only handles something that is not there treats it as one; the page says there is no galaxy yet (`web/errors.py`)."""
+
+
 class MovedError(NotFoundError):
     """Raised for a 301 response (GEN.1139): the ID asked for is one an object gave up. `retired_id` is the ID asked for and `current_id` the
     object's ID now; the page routes turn it into a 301 to the same page under the current ID (`web/errors.py`). It is a `NotFoundError`, so
@@ -276,7 +281,7 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
         detail = _error_detail(response)
         _log_call(method, where, start, f"HTTP {response.status}: {detail}")
         if response.status == 404:
-            raise NotFoundError(detail)
+            raise (NoGalaxyError if _flag_of(response, "noGalaxy") else NotFoundError)(detail)
         if response.status == 410:
             raise GoneError(detail)
         raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
@@ -285,6 +290,15 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
                                     f"{len(response.set_cookie_headers)} Set-Cookie header(s), "
                                     f"{'a' if json_body is not None else 'no'} JSON request body")
     return response
+
+
+def _flag_of(response, key):
+    """Whether the JSON body of `response` has `key` set (an error body's extra flag)."""
+    try:
+        body = json.loads(response.body)
+    except (ValueError, TypeError):
+        return False
+    return isinstance(body, dict) and body.get(key) is True
 
 
 def _parse_json(raw_body):

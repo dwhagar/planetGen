@@ -168,7 +168,7 @@ def test_a_cold_air_world_between_minus_40_c_and_freezing_is_class_w_unless_clas
 
 
 def test_a_fifth_carbon_dioxide_is_g_whatever_the_oxygen():
-    # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide with 3 to 16 percent oxygen
+    # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide (a share, class G's edge) with 3 to 16 kPa of oxygen (GEN.1321)
     assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
     assert cf.best_class(body(share_co2=0.05, share_o2=0.1))[0] == "L"
 
@@ -192,3 +192,16 @@ def test_carbon_dioxide_of_the_oxygen_water_classes_is_judged_by_pressure():
     deep = body(atmospheric_pressure_pa=2.0e5, p_co2_kpa=1.8, p_o2_kpa=40.0, p_n2_kpa=150.0, p_ar_kpa=2.0)       # 0.9 percent of the molecules, 1.8 kPa
     assert cf.scores(deep)["M"] < 1.0
     assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
+
+
+def test_a_cool_global_ocean_with_oxygen_is_o_and_a_cool_damp_desert_is_h_and_a_world_with_no_water_is_neither():
+    # GEN.1342 (Boss): O and H take their mean temperature from M's floor (275 K) up to their old ceilings (312 and 315 K)
+    for kelvin in (276.0, 285.0, 300.0):
+        ocean = body(surface_temperature_k=kelvin, ocean_fraction=0.95)
+        assert cf.best_class(ocean)[:2] == ("O", 1.0), kelvin
+        desert = body(surface_temperature_k=kelvin, ocean_fraction=0.1, groundwater="aquifer")
+        assert cf.best_class(desert)[0] == "H" and cf.best_class(desert)[1] > 0.9, kelvin
+    assert cf.best_class(body(surface_temperature_k=285.0, ocean_fraction=0.5))[0] == "M"
+    assert cf.best_class(body(surface_temperature_k=309.0, ocean_fraction=0.95))[0] == "O"
+    dry = body(surface_temperature_k=285.0, ocean_fraction=0.0, groundwater="none")
+    assert cf.best_class(dry)[0] != "H"

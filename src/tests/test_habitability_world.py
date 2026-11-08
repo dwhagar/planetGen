@@ -14,7 +14,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import atmosphere, body_radiation, constants, equipment
+from planetgen.physics import atmosphere, body_radiation, constants, equipment, planet_type
 from planetgen.physics import habitability_world as hw
 from planetgen.physics import habitability, life_scores
 from planetgen.physics.protection_limits import limit
@@ -161,7 +161,7 @@ def test_every_generated_body_is_scored_consistently():
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
                 seen["giant"] += 1
                 # the two energy inputs the sheet shows for every body are set on a giant (GEN.784); every score is None
                 assert all(getattr(body, name) is None for name in hw.SCORE_FIELDS)
@@ -197,7 +197,7 @@ def test_a_neutron_stars_planets_get_the_heaviest_radiation_gear():
             cfg = SystemConfig()
             system = StarSystem(system_config=cfg, compact_remnant=NeutronStar(cfg))
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):
                 continue
             seen += 1
             assert body.eq_shelter == 2 and body.eq_rad_suit == 3 and body.tier_radiation == 3
@@ -223,7 +223,7 @@ def _system_with_rocky_worlds():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=26000.0)
-        if any(body.body_type == "t" for body in _bodies(system)):
+        if any(body.body_type == "t" and planet_type.has_ground(body) for body in _bodies(system)):      # GEN.1334: a planet under a deep envelope has no ratings to score
             return cfg, system
     raise AssertionError("no seed gave a rocky world")
 
@@ -269,6 +269,9 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         rows = store.with_life_inputs(conn, stored, False)
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
+            if not planet_type.has_ground(row):      # GEN.1334: a planet under a deep envelope stores no ratings, before or after the cloud
+                assert row["eq_body"] is None
+                continue
             again = hw.compute({**row, "is_moon": False, "native_life": store._stored_native_life(row)})
             assert row["eq_body"] >= 4  # an airless world needs a pressure suit at least: a hot or a cold surface asks for a heavier body
             for name in hw.SCORE_FIELDS:
@@ -390,7 +393,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
             config.STAR_TYPE = "G2V"  # a cool star's zone has lost its water before any life (GEN.639)
             system = StarSystem(config, galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):
                 continue
             stage = life_scores.food_stage(body.life_microbial, body.life_flora, body.life_fauna)
             stages.add(stage)

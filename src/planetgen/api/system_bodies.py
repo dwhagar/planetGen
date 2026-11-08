@@ -19,6 +19,7 @@ import math
 
 from planetgen.physics import system_bodies as ledger
 from planetgen.physics import unit_registry as units
+from planetgen.util import detmath
 from planetgen.web.maps.systemscene import build_scene
 
 _km_to_au = units.converter("km", "au")
@@ -177,7 +178,7 @@ def build(conn, system_id):
     offset = ledger.central_offset_au(rows)
     for identifier in order:
         entry = _entry(by_id[identifier], names)
-        entry["distance_from_barycenter_au"] = math.dist(places[identifier], barycenter)
+        entry["distance_from_barycenter_au"] = detmath.dist(places[identifier], barycenter)
         payload["bodies"].append(entry)
     wobble = ledger.belt_wobble_au(rows)
     for belt in scene["belts"]:
@@ -188,6 +189,6 @@ def build(conn, system_id):
             "belt": belt["ref"], "name": belt["name"], "mass_kg": stored, "members": len(members), "stored_members_kg": math.fsum(r.mass_kg for r in members),
             "extended_kg": math.fsum(r.mass_kg for r in extended),
             "residual": ledger.belt_mass_residual(rows, belt["ref"], stored) if stored else None})
-    payload.update(total_mass_kg=ledger.total_mass_kg(rows), barycenter_au=list(barycenter), central_offset_au=list(offset), central_offset_km=_au_to_km(math.hypot(*offset)),
+    payload.update(total_mass_kg=ledger.total_mass_kg(rows), barycenter_au=list(barycenter), central_offset_au=list(offset), central_offset_km=_au_to_km(detmath.hypot(*offset)),
                    belt_wobble_au=wobble, belt_wobble_km=_au_to_km(wobble), central_radius_km=by_id[order[0]].radius_km)
     return payload

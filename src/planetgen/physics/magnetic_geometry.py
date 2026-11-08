@@ -7,16 +7,16 @@ from the physics that decides it, and a surface dipole field for the stars the s
 stream keyed on the body alone (`draw.Stream`, the way `oddities` and `chemically_peculiar` do it), so a body made again is the same and no other draw shifts.
 
 **Planets, moons and rogue planets (`of_body`).** `dipole_tilt_deg` is the angle between the dipole's axis and the spin axis, folded into 0 to 90 degrees (the axis, not
-the direction of the field), and `dipole_offset_class` is `centred` or `offset` (the dipole's centre more than `OFFSET_CLASS_RP` of a radius from the body's centre).
+the direction of the field), and `dipole_offset_class` is `centered` or `offset` (the dipole's center more than `OFFSET_CLASS_RP` of a radius from the body's center).
 Dynamo simulations of a thick, fast-rotating shell give a dipole close to the spin axis ([R0784]: Earth 11 degrees, Jupiter 9.6, Ganymede 4, Saturn under 0.1, Mercury under 3
-degrees); a thin shell round a stable interior, the geometry of the ice giants, gives a dipole at a large angle that is off centre ([R4196]: Uranus 59 degrees and 0.3 radii,
+degrees); a thin shell round a stable interior, the geometry of the ice giants, gives a dipole at a large angle that is off center ([R4196]: Uranus 59 degrees and 0.3 radii,
 Neptune 47 and 0.55). The model:
 
 * a **dipole-dominated dynamo** (the dipole holds at least half the field, `magnetism.generate_field`'s share): the tilt is Rayleigh with scale `AXIAL_TILT_SIGMA_DEG`;
-  a centred dipole, except the small iron-rich body of the Mercury stand-in, which is `offset`;
+  a centered dipole, except the small iron-rich body of the Mercury stand-in, which is `offset`;
 * a **multipolar dynamo** (the dipole under half): the axis is isotropic, `cos(tilt)` uniform, and the dipole is `offset`;
 * an **ice giant** (the conducting layer is the water of the mantle, a thin shell over a stable core): isotropic and `offset`;
-* a **gas giant or brown dwarf** (the metallic hydrogen layer): Rayleigh, centred.
+* a **gas giant or brown dwarf** (the metallic hydrogen layer): Rayleigh, centered.
 
 A body with no field has neither. A rogue planet and a moon take the same rules as a planet.
 
@@ -97,7 +97,7 @@ def of_body(kind, key):
     """
     stream = draw.Stream(f"dipole-tilt:{key}")
     tilt = _isotropic_deg(stream) if kind in ("multipolar", "ice-giant") else _rayleigh_deg(stream, AXIAL_TILT_SIGMA_DEG)
-    return tilt, ("offset" if kind in OFFSET_KINDS else "centred")
+    return tilt, ("offset" if kind in OFFSET_KINDS else "centered")
 
 
 def neutron_star_inclination_deg(pulsar_type, age_yr, key):

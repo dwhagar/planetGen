@@ -48,6 +48,13 @@ DETAIL_ATTRIBUTES = {
     "rock_feo": "rock_feo_fraction",
     "rock_al2o3": "rock_al2o3_fraction",
     "rock_mg_si": "rock_mg_si_ratio",
+    "rock_na2o": "rock_na2o_fraction",
+    "rock_k2o": "rock_k2o_fraction",
+    "rock_tio2": "rock_tio2_fraction",
+    "rock_cr2o3": "rock_cr2o3_fraction",
+    "rock_mno": "rock_mno_fraction",
+    "rock_nio": "rock_nio_fraction",
+    "rock_p2o5": "rock_p2o5_fraction",
     "envelope_helium": "envelope_helium_fraction",
     "envelope_z": "envelope_z_fraction",
     "porosity": "porosity",
@@ -85,6 +92,8 @@ class BulkFractions:
         rock_feo (float or None): FeO, a mass fraction of the rock.
         rock_al2o3 (float or None): Al2O3, a mass fraction of the rock (the Earth's bulk silicate has 0.045).
         rock_mg_si (float or None): Molar Mg/Si of the rock.
+        rock_na2o, rock_k2o, rock_tio2, rock_cr2o3, rock_mno, rock_nio, rock_p2o5 (float or None): The seven minor oxides, each a mass fraction of the rock
+            (GEN.1362, `mantle_oxides`); `None` for a carbon rock, an envelope-only giant, or a body saved before GEN.1362.
         envelope_helium (float or None): Y, a mass fraction of the envelope.
         envelope_z (float or None): Heavy elements, a mass fraction of the envelope.
         porosity (float or None): Void share of a small body's volume.
@@ -112,6 +121,13 @@ class BulkFractions:
     carbon_rock: bool = False
     origin: str = "drawn"
     ice_shares: dict | None = None
+    rock_na2o: float | None = None
+    rock_k2o: float | None = None
+    rock_tio2: float | None = None
+    rock_cr2o3: float | None = None
+    rock_mno: float | None = None
+    rock_nio: float | None = None
+    rock_p2o5: float | None = None
 
     def __post_init__(self):
         shares = self.shares()

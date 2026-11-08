@@ -66,6 +66,43 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Lane 13 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) |  |  |
+| GEN.1397 | Remove the life-bearing class list: life comes from conditions (bug) |  | Boss, highest priority, train 18. Absorbs GEN.1387 and PERF.240. |
+| GEN.1398 | The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2) |  | Class-last audit, train 18. |
+| GEN.1399 | The flavor-text draw list is chosen by class A: choose it by conditions (audit F6) |  | Class-last audit, train 18. |
+| GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) |  | Class-last audit, train 18. |
+| GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) |  | Found by Lane 15, 2026-11-08. |
+| GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) |  | Found by Lane 05, 2026-11-08. |
+| GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) |  | Lane 04 train 17 triage. |
+| GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) |  | Lane 04 train 17 triage. |
+| TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) |  |  |
+| TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) |  |  |
+| TEST.690 | src/tests/test_pulsar_planets.py fails on main: a pulsar disk planet comes out class T (bug) |  |  |
+| TEST.691 | The ozone-loss radiation test fails on main (bug) |  |  |
+| TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) |  |  |
+| GEN.1386 | np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| MAP.406 | The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| TEST.693 | One failing browser test leaves an asyncio loop and about 1,500 browser tests skip silently while the phase prints a pass; Playwright is pinned to 1.56.0 but the image has chromium 1243 (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) |  | Boss live observation, PR 5666. |
+| UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step |  | Boss, 2026-11-08. |
+| UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) |  | Browser phase run, 2026-11-08. |
+| GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| GEN.1389 | Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| TEST.695 | Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) |  | Boss live bug, 9:02 PM EST on 2026-11-07. |
+| PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) |  | Found with ADM.141. |
+| PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) |  | Boss live observation, 2026-11-08. |
+| PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) |  | Boss's full-galaxy run 20261108-020807-50fea318. |
+| ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) |  | Found with ADM.141. |
+| MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) |  | Bug Hunt first pass, 2026-11-07. |
+| MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) |  | Browser phase run, 2026-11-08. |
 
 ### Nebula data foundations
 
@@ -442,6 +479,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | |
 | TEST.686 | Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row | GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369 | |
 | GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins |  |  |
+| GEN.1391 | Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364) | GEN.1364, GEN.1360 | Lane 23 follow-on to GEN.1364. |
+| GEN.1392 | Reduced cores and the dynamo energy scale: let rock FeO reach below IW-3.3 so Mercury-like Si-rich cores occur, and re-tune the compositional dynamo energy that stopped most small-body dynamos | GEN.1364 | Lane 23 follow-on to GEN.1364. |
+| GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | Boss, 9:43 PM EST on 2026-11-07. |
+| GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | Boss, 9:43 PM EST on 2026-11-07. |
 
 ### Weight research (atmosphere)
 
