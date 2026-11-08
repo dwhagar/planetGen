@@ -25,7 +25,7 @@ of the body's age) and the cap the host puts on the grade:
 * **Kerogen** (`kerogen`): organic-rich marine mud, from the first photosynthesis plus `KEROGEN_LAG_GY` in a surface or ice-covered ocean.
 
 **Endowment** is as the magmatic types': a Poisson count of deposits (`deposits` times the opportunity times the window's share of the type's reference window) of lognormal size.
-Every constant is a stand-in in section 6.217 of the gap-filling plan (SD1 to SD9); the grade ranges and the per-deposit tonnage are the design file's (recalled) where it has them.
+Every constant is a stand-in in section 6.222 of the gap-filling plan (SD1 to SD9); the grade ranges and the per-deposit tonnage are the design file's (recalled) where it has them.
 """
 
 import math

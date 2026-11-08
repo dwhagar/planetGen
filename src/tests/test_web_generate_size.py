@@ -16,7 +16,7 @@ from planetgen.web import generate_page, jobs
 from planetgen.web.app import create_app
 
 from tests.test_web_generate import (  # noqa: F401 -- fixtures
-    _ESTIMATE, _uncached_estimates, client, jobs_root, no_spawn, site,
+    _ESTIMATE, _estimates_run_in_the_request, _uncached_estimates, client, jobs_root, no_spawn, site,
 )
 
 SHELL_40 = {"what": "grid", "mode": "shell", "shell_index": "40", "shell_limit": "200"}

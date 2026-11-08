@@ -1328,3 +1328,16 @@ def test_the_warm_up_counts_the_profile_answers_of_addressed_sectors_as_cached_o
     second = _warm(galaxy, "sectors")
     assert first["warmed"] == 5
     assert second["built"] == 0, second["line"]
+
+
+def test_the_warm_up_a_change_started_does_not_run_during_generation(script, redis_server, monkeypatch, capsys):
+    """Boss 11-08: warm-up requests failed while a generation run changed the data. A change's warm-up waits for the generation run to end."""
+    conn = redisqueue.connect(redis_server)
+    run_id = runrecord.start_run(conn, "Generate", [runrecord.Stage("lists", "Lists", units=1)], kind=runrecord.GENERATION)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.05)
+    threading.Timer(0.4, runrecord.finish_run, args=(conn, run_id, "done")).start()
+    warm_cli._warm_once(_args("lists"), reason="positions")
+    out = capsys.readouterr().out
+    assert "no warm-up runs during generation" in out
+    assert runrecord.read_run(conn, run_id)["state"] == "done"
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "it ran only after the generation run had ended"

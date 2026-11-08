@@ -227,3 +227,18 @@ def test_main_says_how_many_tests_were_reused_and_from_which_run(tmp_path, monke
                and "1 in the run started 2026-10-15T09:30:00Z of build earlierbuild" in line for line in out)
     assert "--skip-passed" in commands[0]
     assert "(RESUMED build" in out[-1] and "1 more passed earlier" in out[-1] and "of build earlierbuild" in out[-1]
+
+
+def test_a_run_that_crossed_midnight_utc_keeps_its_passes_for_a_day(directory):
+    """TEST.694: a different `date` alone no longer keeps passes out when the earlier run started within `reuse.DATE_GRACE_HOURS`."""
+    _log(directory, "old", tests=TESTS, started="2026-10-15T22:00:00Z")
+    after_midnight = dict(PARTS, date="2026-10-16")
+    at = datetime.datetime(2026, 10, 16, 6, 0, tzinfo=datetime.timezone.utc)
+    found, _looked, blocked = reuse.reusable(directory, after_midnight, dict(FILES), at=at)
+    assert set(found) == set(TESTS) and blocked == []
+    found, _looked, blocked = reuse.reusable(directory, after_midnight, dict(FILES), at=at + datetime.timedelta(hours=40))
+    assert found == {} and blocked == ["date"]                     # a day and more later it is another day
+    found, _looked, blocked = reuse.reusable(directory, dict(after_midnight, python="3.14.0"), dict(FILES), at=at)
+    assert found == {} and blocked == ["python"]                   # any other part still keeps the passes out
+    found, _looked, _blocked = reuse.reusable(directory, after_midnight, dict(FILES, **{"src/planetgen/a.py": "2"}), at=at)
+    assert "src/tests/test_a.py::test_uses_a" not in found          # and a file a test used that changed still runs it again

@@ -404,7 +404,7 @@ VOCABULARY_ONLY = {
     "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
     "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
     **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
-        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
+        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "alabandite", "daubreelite", "osbornite",
         "sinoite", "khamrabaevite")},
 }
 

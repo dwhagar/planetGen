@@ -51,7 +51,8 @@ def _archive_view(archive):
         "version": archive.version, "size_bytes": archive.size, "complete": archive.complete,
         "readable": archive.readable,
         "parts": [{"name": p.name, "label": labels.get(p.name, p.name), "size_bytes": p.size, "files": len(p.files),
-                   "known": p.known} for p in archive.parts],
+                   "known": p.known, "empty": p.info.get("present") is False, "note": p.info.get("reason", "") if p.info.get("present") is False else ""}
+                  for p in archive.parts],
     }
 
 

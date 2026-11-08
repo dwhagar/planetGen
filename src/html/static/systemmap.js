@@ -1119,6 +1119,12 @@ function initSystemMap(root) {
     clearMeasureSelection();
     layoutLabels(active);
 
+    // UX.290: the info panel is shared with the 3D view (systempage3d.js). While the diagram is hidden the panel is the 3D view's, and the
+    // diagram, which sets itself up after the page script and the 3D view may already have picked a body, must not overwrite it.
+    var diagramEl = document.getElementById("sysmap-diagram");
+    if (diagramEl && diagramEl.hidden) {
+      return;
+    }
     var self = active.querySelector('[data-self="true"]');
     if (self) {
       showInfo(self);

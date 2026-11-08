@@ -17,9 +17,9 @@ For one magnesium atom of the body, an element X with star ratio r (atoms of X p
    mass (`core_fraction`) and `D` the coefficient that gives the Earth's own share at the Earth's own core (`EARTH_CORE_SHARE` at c = `EARTH_CORE_FRACTION`;
    [R4608], the core ppm over the bulk ppm times the core mass fraction): Cr 0.55, Mn 0.60, Ni 0.93, P 0.94. A bigger core takes
    a bigger share of each, and Ti, which is lithophile, takes none. Na and K carry the 5 percent the research note caps them at (the Earth's concordance
-   table has 20 and 30 percent from one old model). D moves with how oxidised the mantle is: the element goes into the metal as a neutral atom and out of the
+   table has 20 and 30 percent from one old model). D moves with how oxidized the mantle is: the element goes into the metal as a neutral atom and out of the
    silicate as an oxide of valence n, so D scales as the mantle's FeO to the power minus n/2 (`VALENCE`; Ni, Cr and Mn 2, P 5), set to the Earth's D at the Earth's
-   FeO (`EARTH_ROCK_FEO`). A reduced body (Mercury) puts nearly all its P in the metal and a more oxidised one (Mars, FeO 0.147) keeps four times the Earth's P
+   FeO (`EARTH_ROCK_FEO`). A reduced body (Mercury) puts nearly all its P in the metal and a more oxidized one (Mars, FeO 0.147) keeps four times the Earth's P
    in the mantle, which is how the model reaches Mars's phosphorus. The law is the leading term only: it leaves out the pressure, the temperature and the sulfur
    of the real metal, which is why Mars's NiO (0.046 percent against the model's 0.3) is not reached.
 3. **The mantle.** What is not in the core is the rock's oxide, `n (1 - s) M(oxide) / (atoms of X in the oxide)` grams per Mg atom.
@@ -54,8 +54,7 @@ VALENCE = {"Ti": 0, "Cr": 2, "Mn": 2, "Ni": 2, "P": 5, "Na": 0, "K": 0}
 Cr is taken as 2 (Cr2+ at the oxygen fugacity of core formation; Cr3+ would give 3), the alkalis and Ti as 0 (Na and K have a fixed cap; Ti is lithophile)."""
 
 EARTH_CORE_SHARE = {"Ti": 0.0, "Cr": 0.552, "Mn": 0.601, "Ni": 0.929, "P": 0.942, "Na": 0.05, "K": 0.05}
-"""dict: The share of each element that is in the Earth's core (1): the core ppm times 0.325 over the bulk ppm, from the concordance table of Wang, Lineweaver and
-Ireland 2018 (Cr 6590 / 3883, Mn 3257 / 1760, Ni 50600 / 17700, P 2774 / 957 ppm). Ti has no core ppm. Na and K are capped at 5 percent, the research note's cap on
+"""dict: The share of each element that is in the Earth's core (1): the core ppm times 0.325 over the bulk ppm, from the concordance table of [R4608] (Cr 6590 / 3883, Mn 3257 / 1760, Ni 50600 / 17700, P 2774 / 957 ppm). Ti has no core ppm. Na and K are capped at 5 percent, the research note's cap on
 the core fractions of the old model (Na 0.20 and K 0.30 there). [Stand-ins MO1 and MO2.]"""
 
 _MOLAR = {symbol: elements.element(symbol).atomic_weight for symbol in SYMBOLS}

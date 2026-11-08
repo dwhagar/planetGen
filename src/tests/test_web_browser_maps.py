@@ -513,13 +513,16 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.
+    # (Given the state before the click: the camera leaves for the step only once its data has loaded, so a wait for the map to hold still
+    # alone returned on the unchanged 27-window on a loaded machine and read four steps where two were asked for.)
+    before = _state(page)
     more = page.locator("#galaxymap3d-crumbs .crumb-menu")
     if more.count():  # the second step is folded into "…" (MAP.93)
         more.locator("summary").click()
         more.locator("button").first.click()
     else:
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
-    _wait_settled(page)
+    _wait_settled(page, before)
     # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
     # block's edge: the 3-ary ladder takes more steps than the old one did, each centered on the cell clicked.
     crumbs = _crumbs(page)
@@ -979,6 +982,37 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     page.goto(f"{base_url}/system/{system_id}", wait_until="load")
     page.wait_for_selector('#sysmap-root[data-ready="true"]')
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
+
+
+def test_system_page_3d_view_keeps_a_picked_body_when_the_diagram_script_is_slow(page, base_url, site_app):
+    """UX.290: the diagram and the 3D view share the info panel (#sysmap-info). The diagram sets itself up after the page script, so on an
+    address with `?object=` a slow diagram script used to reset the panel to its hint after the 3D view had shown the body. The diagram
+    script is held back here for 4 s (its last import, which only the diagram uses), so it always lands after the pick; the panel keeps the body's name."""
+    import time
+
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.click(".sysview-list summary")
+    page.locator("#sysview3d-list button").nth(1).click()
+    assert page.locator("#sysmap-info h3").count() == 1
+    picked = page.locator("#sysmap-info h3").inner_text()
+    address = page.url
+    assert "object=" in address, address
+
+    def slow(route):
+        time.sleep(4)
+        route.continue_()
+
+    page.route("**/systemgravity.js*", slow)
+    page.goto(address, wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_selector("#sysmap-info h3", timeout=10000)
+    page.wait_for_timeout(6000)    # the held-back diagram script has run by now
+    assert page.locator("#sysmap-info h3").inner_text() == picked
+    page.unroute("**/systemgravity.js*")
 
 
 def test_system_page_3d_view_draws_a_nav_course_that_lies_in_the_system(page, base_url, site_app, monkeypatch):

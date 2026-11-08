@@ -25,7 +25,7 @@ def test_every_row_the_sequence_can_make_is_a_row_of_the_table():
 
 
 def test_the_gypsum_anhydrite_line_is_hardies_table():
-    """[R5143: p. 181]: 12, 18, 23, 30, 39, 45, 50, 55 and 58 degrees C."""
+    """[R5147: p. 181]: 12, 18, 23, 30, 39, 45, 50, 55 and 58 degrees C."""
     for celsius, activity in ((12, 0.725), (18, 0.750), (23, 0.770), (30, 0.800), (39, 0.845), (45, 0.880), (50, 0.915), (55, 0.960), (58, 1.000)):
         assert ev.gypsum_anhydrite_aw(celsius + 273.15) == pytest.approx(activity, abs=1e-9), celsius
     assert ev.gypsum_anhydrite_aw(333.15) == 1.0                                       # past 58 degrees C anhydrite is stable in water of any activity
@@ -33,7 +33,7 @@ def test_the_gypsum_anhydrite_line_is_hardies_table():
 
 
 def test_a_halite_saturated_brine_makes_anhydrite_above_eighteen_degrees_and_gypsum_below():
-    """[R5143]: the gypsum in a brine saturated with halite dehydrates above about 18 degrees C."""
+    """[R5147]: the gypsum in a brine saturated with halite dehydrates above about 18 degrees C."""
     assert ev.calcium_sulfate_row(18.5 + 273.15, ev.HALITE_SATURATED_AW) == "anhydrite"
     assert ev.calcium_sulfate_row(17.0 + 273.15, ev.HALITE_SATURATED_AW) == "gypsum"
     assert ev.calcium_sulfate_row(25.0 + 273.15, 1.0) == "gypsum"                      # pure water: gypsum to 58 degrees C

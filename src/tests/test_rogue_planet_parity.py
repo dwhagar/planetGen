@@ -24,6 +24,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena import starless_host
 
 # Planet columns a rogue row does not carry: the host and the orbit round it, and the keys that file a planet in a system.
+DIPOLE_FIELDS = frozenset({"dipole_tilt_deg", "dipole_offset_class"})      # GEN.1350: a dipole's direction exists only while the dynamo runs, and a rogue and a bound planet of one mass can differ in that (the core cools under another mantle)
 ODDITY_FIELDS = frozenset({"oddities"})      # GEN.1047: an oddity row is gated on the body's own quantities (light, air, spin), so a rogue and a bound planet of one mass can differ in whether one is rolled
 SYSTEM_KEYS = frozenset({"dynamical_state", "host_node_id", "orbital_index", "star_id", "star_system_id"})
 
@@ -218,7 +219,7 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS
+        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
         if (bound.envelope_mass_fraction or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
             allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:

@@ -56,7 +56,7 @@ import cmath
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior
+from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -69,7 +69,7 @@ _km_to_m = units.converter("km", "m")
 _au_to_m = units.converter("au", "m")
 
 BODY_FIELDS = (
-    "magnetic_moment_a_m2", "dipole_class", "induced_moment_a_m2", "magnetopause_rp",
+    "magnetic_moment_a_m2", "dipole_class", "dipole_tilt_deg", "dipole_offset_class", "induced_moment_a_m2", "magnetopause_rp",
     "xuv_flux_earth", "xuv_exposure_index", "flare_irradiation_index",
 )
 """tuple: What this module sets on a planet or moon, as stored in `planets`
@@ -196,6 +196,24 @@ def _moment(body, mass_earth, core):
     return found.moment_a_m2 * scatter, found.dipole_fraction
 
 
+def _dynamo_kind(body, mass_earth, share):
+    """The kind of dynamo that decides the dipole's direction (`magnetic_geometry.of_body`): an ice giant's thin conducting shell, a multipolar core (the dipole under half the field),
+    the iron-rich small body of the Mercury stand-in, or the axial dipole of any other."""
+    if body.body_type == "g":
+        interior = giant_interior.interior_of(body)
+        if interior is not None and interior.kind == "ice_giant":
+            return "ice-giant"
+    elif not body.is_moon and MIN_DYNAMO_MASS_EARTH <= mass_earth < 0.1 and core_mass_fraction(mass_earth, getattr(body, "density", None) or EARTH_DENSITY) > 0.4:
+        return "mercury"
+    return "multipolar" if share < magnetic_geometry.DIPOLE_DOMINATED_SHARE else "axial"
+
+
+def _stream_key(body):
+    """The key of the body's own stream (`oddities.body_key`: its star, orbit and mass, nothing drawn)."""
+    from planetgen.physics import oddities
+    return oddities.body_key(body)
+
+
 def generate_field(body, core=None):
     """Draws `magnetic_moment_a_m2` (the dipole's moment, already reduced by the dipole's share) and `dipole_class` for a planet or moon (call once its
     rotation period is known), and its magnetopause when `update_exposure` has given its distance from the star. `core` is a rocky planet's or moon's
@@ -203,6 +221,9 @@ def generate_field(body, core=None):
     mass_earth = _kg_to_mearth(body.mass)
     moment, share = _moment(body, mass_earth, core)
     body.magnetic_moment_a_m2 = moment
+    body.dipole_tilt_deg = body.dipole_offset_class = None
+    if moment > 0.0:      # GEN.1350: where the dipole points and whether it is off center, from a stream of the body's own
+        body.dipole_tilt_deg, body.dipole_offset_class = magnetic_geometry.of_body(_dynamo_kind(body, mass_earth, share), _stream_key(body))
     if moment <= 0.0:
         body.dipole_class = "none"
     elif share < 0.5:

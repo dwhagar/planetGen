@@ -1,6 +1,6 @@
 """The crust of a rocky body and the magmatic ore types it was assessed for (GEN.1380).
 
-Schema v231. `planets`, `moons` and `rogue_planets` gain `crust_thickness_km`, `craton_fraction` and `crust_sulfur_index` (DOUBLE, nullable), and three child tables,
+Schema v232. `planets`, `moons` and `rogue_planets` gain `crust_thickness_km`, `craton_fraction` and `crust_sulfur_index` (DOUBLE, nullable), and three child tables,
 `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types`, hold one row per magmatic ore type a body was assessed for (`deposit_type`, `status` present,
 absent_by_state or absent_by_chance, `endowment_kg`, `grade`, `key_element`, the age window and whether the host capped the grade). A body saved before v228 has NULL columns and no rows,
 which reads as 'not assessed'; nothing is backfilled. A column or table already there is skipped, so a stopped run can be started again.
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0231"
-down_revision = "0230"
+revision = "0232"
+down_revision = "0231"
 branch_labels = None
 depends_on = None
 
