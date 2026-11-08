@@ -111,9 +111,10 @@ def test_a_backup_archive_answers_its_sizes_in_bytes():
 
     from planetgen.api import backups
 
-    part = SimpleNamespace(name="settings", size=1234, files=[1, 2], known=True)
+    part = SimpleNamespace(name="settings", size=1234, files=[1, 2], known=True, info={"present": True})
     archive = SimpleNamespace(name="a", taken_at="t", taken_by="u", reason="r", version="8.0", size=5678, complete=True,
                               readable=True, parts=[part])
     view = backups._archive_view(archive)
     assert view["size_bytes"] == 5678 and "size" not in view
     assert view["parts"][0]["size_bytes"] == 1234 and "size" not in view["parts"][0]
+    assert view["parts"][0]["empty"] is False and view["parts"][0]["note"] == ""
