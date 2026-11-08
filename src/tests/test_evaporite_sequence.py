@@ -20,7 +20,6 @@ def _sequence(cls, temperature_k=290.0, **kwargs):
 
 
 def test_every_row_the_sequence_can_make_is_a_row_of_the_table():
-    assert not [row for row in ev.ROW_IDS if not ev.row_exists(row)]
     for row in ev.ROW_IDS:
         assert materials.material(row).formula, row
 

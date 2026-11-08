@@ -41,7 +41,7 @@ instead of anhydrite, is not formed; the activity of water is the halite one whe
 import math
 from dataclasses import dataclass, field
 
-from planetgen.physics import elements, materials
+from planetgen.physics import elements
 
 OXIDE_CATIONS = {"CaO": ("Ca", 2, 1), "MgO": ("Mg", 2, 1), "Na2O": ("Na", 1, 2), "K2O": ("K", 1, 2)}
 """dict: Oxide -> (cation, its charge, cations per formula unit)."""
@@ -289,12 +289,3 @@ def salts_of(oxides, ocean_class, temperature_k, pco2_pa=0.0, pressure_pa=0.0, o
         return {"halite": 1.0}
     result = allocate(brine_ions(oxides, ocean_class), temperature_k, pco2_pa, pressure_pa, o2_shield, acid=ocean_class == "acid sulfate")
     return dict(result.shares)
-
-
-def row_exists(row_id):
-    """Whether a materials row of this id is in the table (the tests check every id this module can return)."""
-    try:
-        materials.material(row_id)
-    except KeyError:
-        return False
-    return True
