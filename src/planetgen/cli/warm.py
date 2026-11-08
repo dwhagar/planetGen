@@ -169,13 +169,34 @@ def _cancel_other_warm_up(conn, holder, sleep, clock):
         sleep(1.0)
 
 
-def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic):
+def _wait_for_generation(conn, database, sleep, log_line=True):
+    """
+    A warm-up a change started does not run while a generation run is live: the run changes the data the warm-up
+    reads, so its requests fail or build nodes the run is about to make stale. It waits as long as the run lives
+    (a dead one is let go), keeps its automatic-warm-up lock fresh so no second waiter starts, and the run's end
+    asks for a warm-up of its own, so nothing is left unwarmed.
+    """
+    holder = runrecord.active_run(conn, runrecord.GENERATION)
+    if holder is None or runrecord.holder_is_dead(conn, holder):
+        return
+    log.normal(f"{runrecord.busy_message(conn, holder)}: no warm-up runs during generation; waiting for it to end.")
+    while True:
+        sleep(OTHER_WARM_POLL_SECONDS)
+        holder = runrecord.active_run(conn, runrecord.GENERATION)
+        if holder is None or runrecord.holder_is_dead(conn, holder):
+            log.normal("The generation run has ended: starting this warm-up.")
+            return
+        if database is not None:
+            warmstart.keep(database)
+
+
+def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic, database=None):
     """
     Two warm-ups never run at the same time (OPS.117, Boss's ruling). When another maintenance run holds the machine:
 
     - the update's own warm-up (`warm_log.UPDATE`) cancels it, if it is a warm-up (the one an epoch or an orbital update started, or one by
       hand), and goes on; any other maintenance run it waits for;
-    - the warm-up a change started (`warm_log.AUTOMATIC`) waits for it to end, for `OTHER_WARM_WAIT_SECONDS` at most, and then warms what
+    - the warm-up a change started (`warm_log.AUTOMATIC`) first waits for any generation run to end (`_wait_for_generation`), then waits for it to end, for `OTHER_WARM_WAIT_SECONDS` at most, and then warms what
       is left;
     - one started by hand (`warm_log.HAND`) does not start: it says which run holds the machine and how to watch it.
 
@@ -189,6 +210,8 @@ def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic):
         conn.ping()
     except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
         return
+    if origin == warm_log.AUTOMATIC:
+        _wait_for_generation(conn, database, sleep)
     holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
     if holder is None or runrecord.holder_is_dead(conn, holder) or runrecord.followed_here(conn, holder):
         return
@@ -359,7 +382,7 @@ def _warm_run(args, reason, record):
         try:
             _wait_for_update()
             origin = warm_log.origin(reason)
-            _settle_with_other_runs(origin)
+            _settle_with_other_runs(origin, database=args.database)
             tally = warmup.PhaseTally([step.key for step in steps])
             phases = [name for name, _text, families in warmup.PHASES if any(step.key in families for step in steps)]
             warmphases.begin(args.database, phases, reason)
