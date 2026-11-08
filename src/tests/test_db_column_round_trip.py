@@ -48,6 +48,7 @@ NULL_IN_THIS_GALAXY = {
     # child tables hold nothing.
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
         ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
@@ -231,6 +232,7 @@ NEVER_READ = {
                                           "kind", "layer_index", "mass_earth", "nh3_ice", "rock", "rogue_planet_id", "state", "top_pressure_gpa",
                                           "top_radius_fraction", "water_liquid")),
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
@@ -240,13 +242,13 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
+        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
-        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
+        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
