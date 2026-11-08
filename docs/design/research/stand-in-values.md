@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1287 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1293 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 165 | 19 | 10 | 1 | 0 | 195 |
-| T2 | 128 | 52 | 1 | 1 | 0 | 182 |
-| T3 | 94 | 42 | 7 | 9 | 0 | 152 |
+| T1 | 166 | 19 | 10 | 1 | 0 | 196 |
+| T2 | 129 | 52 | 1 | 1 | 0 | 183 |
+| T3 | 95 | 43 | 7 | 9 | 0 | 154 |
 | T4 | 59 | 5 | 1 | 19 | 10 | 94 |
-| T5 | 60 | 21 | 3 | 1 | 0 | 85 |
+| T5 | 61 | 22 | 3 | 1 | 0 | 87 |
 | T6 | 135 | 93 | 25 | 63 | 0 | 316 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 716 | 263 | 59 | 204 | 45 | 1287 |
+| All | 720 | 265 | 59 | 204 | 45 | 1293 |
 
 ## How the labels were given
 
@@ -1842,6 +1842,27 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | EV9 | P | T4 | L0 | evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield | 0.001 to 0.05 | bodies with air and chloride and under 100 Pa of free oxygen | a measured perchlorate share of an arid chloride crust above 10 percent or below 0.1 percent | a photochemical and atmospheric oxidation rate of chloride | no source opened: perchlorate in arid surface salts is observed in the recalled literature; the share is chosen | - | - |
 | EV10 | P | T4 | L0 | evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest | 0.2 to 0.8 | acid sulfate waters | a measured jarosite to alunite ratio of an acid deposit outside 0.2 to 4 | a speciation of the acid water with its iron and aluminium | no source: the share is chosen | - | - |
 | EV11 | P | T2 | L0 | surface_composition.weathered_oxides puts back the sodium of `waterworld_carbon.CRUST_SODIUM_WT` and the potassium of the basaltic reservoir, because the stored rock carries no alkalis | sodium within 50 percent | silicate crusts | a crust whose measured alkali content differs from them by a factor of 3 | a stored alkali content of the rock (a later bulk-composition item) | [R1494] through [R2381] for sodium (read, tier 1, GEN.1319) and N-MORB [R1494] for the potassium | - | - |
+
+## 6.210 Stand-ins of the minor oxides of a rocky body's rock
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MO1 | D | T1 | L0 | mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm | the core ppm of the concordance (Cr 6590, Mn 3257, Ni 50600, P 2774; bulk 3883, 1760, 17700, 957) | the Earth, and any body by the scaling of D | a core ppm of the same elements from a later compilation that differs by more than the table's uncertainty | an interior model that fixes the partition from pressure, temperature and fO2 for each element | the numbers are read from the table of [R4608] by the research lane (`bulk_earth_pm_core_and_depletion.csv`, "read"); the core mass fraction 0.325 is the same paper's | - | - |
+| MO2 | P | T3 | L1 | mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium | 0 to 0.30 (the same table has 0.20 and 0.30 from one model) | any rocky body | a core with a measured share of K or Na outside 0 to 0.1 (a K-bearing core would change the heat budget) | a partition of the alkalis from sulfur-rich metal and pressure | the research note (real-material-data-2, section 1) caps the model's 0.20 and 0.30 at 0.05 as the old model's; the cap is the research lane's choice, not a measurement; the mantle Na2O and K2O reach 0.88 and 1.4 times the Earth's | - | - |
+| MO3 | T | T5 | L1 | mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2 | n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+) | rocks of FeO 0.01 to 0.18 | a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close | a pressure and temperature dependent partition of each element (the real law has three more terms) | the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor | - | - |
+| MO4 | B | T3 | L0 | mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent | Ti 0 to 0.05 | any rocky body | a core with a Ti share above 0.05 | a partition of Ti at the pressure of a large body's core | Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite | - | - |
+
+## 6.209 Stand-ins of the nine added star elements
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SL1 | P | T5 | L0 | surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it | window 6 to 24 steps (whole cycles of 2, 3, 4, 6); swing 0.5 to 5 K; share 0.3 to 0.7 | unsettled airs of rocky bodies and moons | test_surface_air_knee; an unsettled air whose stored temperature is further from a fine scan's balance than its swing | a fixed point that keeps the haze or ocean switch as a state (partial cover) and so has a fixed point | educated guess from physics: the Filippov value of a switch, the time average of the two states, is the state the physical system keeps at a jump of its map; not fitted | - | - |
+
+## 6.208 Stand-ins of the volatility depletion of a rocky body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ER1 | P | T2 | L0 | tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses | 0.1 [R2769, R4637] to 0.15 ([R2512]: 0.10 to 0.20); the full published spread is about 0.01 to 0.3 | rocky bodies with surface water past the runaway greenhouse limit, hydrogen-rich steam escaping at the energy limit | test_runaway_history::test_the_water_loss_efficiency_is_the_atmosphere_escape_efficiency; a measured water loss of a planet near the limit | a hydrodynamic escape model with a real efficiency by star, mass and XUV (GEN.511) | READ [R2512, R2769, R4637]; Boss's choice of 2026-11-07 inside the range; replaces his 10-23 DESIGN value 0.01 | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

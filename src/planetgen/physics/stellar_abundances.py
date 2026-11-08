@@ -20,7 +20,8 @@ The chain:
    high-alpha when the number is below the probability, so the branch flips at most once as [Fe/H] falls and an edited
    [Fe/H] never makes a star flicker.
 3. **The offsets.** The [X/Fe] of C, O, Mg, Si and Ca are the branch's mean at [Fe/H] (`mean_xfe`, hinge fits of [R0349, R3294]) plus, for C, O, Mg and Si, a residual: four standard normals through the Cholesky factor of the residual
-   correlation [R0535] times the branch's scatter. S and Ar follow Ca; Ne follows O (or Mg, a switch);
+   correlation [R0535] times the branch's scatter. Ti, V, Cr and Mn (GEN.1360) are fitted lines to the same dwarfs with residuals correlated with
+   those four, and P, Zn, Co, Cu and Li have a trend or none and an independent residual. S and Ar follow Ca; Ne follows O (or Mg, a switch);
    everything else is 0. Below [Fe/H] -2 a carbon-enhanced share of stars has [C/Fe] of 0.7 or more.
 4. **The fractions.** `composition` turns [Fe/H] and the offsets into X, Y, Z and each element's mass fraction, and
    `mass_ratio` and `number_ratio` give Fe/Si, Mg/Si, C/O and O/Si, which the planets inherit (GEN.428).
@@ -58,8 +59,9 @@ BRANCH_HIGH_ALPHA = "high-alpha"
 BRANCHES = (BRANCH_THIN, BRANCH_HIGH_ALPHA)
 """tuple: The two abundance sequences of the disk and halo."""
 
-RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si", "Ca")
-"""tuple: The elements that carry a correlated residual, in the order of `tuning.STELLAR_XFE_CORRELATION`."""
+RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si", "Ca", "Ti", "V", "Cr", "Mn", "P", "Zn", "Co", "Cu", "Li")
+"""tuple: The elements that carry a residual, in the order of `tuning.STELLAR_XFE_CORRELATION`: the first nine are correlated with each other (the table of
+[R0535]), the last five (GEN.1360) are independent."""
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
@@ -106,6 +108,17 @@ RELATIONS = (
     Relation("[X/Fe] means of C and O by branch", "[R3294] NLTE (part A 2.7)", PARTLY_VERIFIED,
              "the two oxygen sets differ by up to 0.1 dex on the plateau; neon's physics is open"),
     Relation("[X/Fe] residual scatter and correlation", "[R0535] (844 dwarfs)", VERIFIED),
+    Relation("[X/Fe] means and scatter of Ti, V, Cr and Mn by branch", "straight lines to the 1,615 dwarfs of [R0535] weighted by each "
+             "branch's probability (GEN.1360, scripts/fit_stellar_xfe_iron_peak.py)", PARTLY_VERIFIED,
+             "the high-alpha lines rest on about 40 stars' weight; the scatter is the table's robust one, measurement error included"),
+    Relation("[P/Fe] and [Zn/Fe] trends", "[R2785: Table 4] bins (P) and [R0349] text (Zn), read by the research lane "
+             "(real-material-data-1 section 1.2); one trend for both branches", PARTLY_VERIFIED,
+             "P only over [Fe/H] -0.5 to +0.3 and Zn over -1 to 0; Zn's thick-disk offset is visible in the paper but not tabulated; the scatters are stand-ins"),
+    Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5144] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
+             "thin and thick indistinguishable), [R1062] prints no Cu value (thick disk higher by a few hundredths between -0.5 and -0.2), "
+             "and Li's trend is recalled", STAND_IN,
+             "the rises are not modelled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),
+    Relation("log eps of Li, P, Ti, V, Cr, Mn, Co, Cu and Zn", "[R0168: Table 2], the photosphere; Li the CI chondrites", VERIFIED),
     Relation("carbon-enhanced metal-poor share", "[R1448]: 20 to 30 percent below [Fe/H] -2", VERIFIED),
     Relation("neon follows oxygen (or magnesium)", "the solids-law filing prefers oxygen; part A 3.2 step 4 prefers magnesium", OPEN,
              "neon is not measured in photospheres (set values 7.93 to 8.15); both options are kept, 8 percent apart in Z"),
@@ -152,13 +165,15 @@ RELATIONS = (
 
 def _mass_fraction_at_proto(symbol):
     """Mass fraction of `symbol` in the proto-solar mixture: A21's log eps with the metal offset, against hydrogen."""
-    number_per_hydrogen = 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[symbol] + tuning.STELLAR_PROTO_METAL_OFFSET_DEX - 12.0)
+    offset = 0.0 if symbol in tuning.STELLAR_PROTO_NO_OFFSET else tuning.STELLAR_PROTO_METAL_OFFSET_DEX
+    number_per_hydrogen = 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[symbol] + offset - 12.0)
     return (tuning.STELLAR_PROTO_X * number_per_hydrogen * elements.element(symbol).atomic_weight
             / elements.element("H").atomic_weight)
 
 
-METAL_SYMBOLS = ("C", "N", "O", "Ne", "Na", "Mg", "Al", "Si", "S", "Ar", "K", "Ca", "Fe", "Ni")
-"""tuple: The 14 metals of the scale; together 99.7 percent of the proto-solar Z."""
+METAL_SYMBOLS = ("C", "N", "O", "Ne", "Na", "Mg", "Al", "Si", "S", "Ar", "K", "Ca", "Fe", "Ni",
+                 "Li", "P", "Ti", "V", "Cr", "Mn", "Co", "Cu", "Zn")
+"""tuple: The 23 metals of the scale: the 14 that make 99.7 percent of the proto-solar Z, and Li, P, Ti, V, Cr, Mn, Co, Cu and Zn (GEN.1360)."""
 
 PROTO_MASS_FRACTION = {symbol: _mass_fraction_at_proto(symbol) for symbol in METAL_SYMBOLS}
 """dict: Element to its proto-solar mass fraction (A21 Table 2 with the diffusion offset)."""
@@ -174,7 +189,7 @@ HELIUM_PER_METAL = (1.0 - PRIMORDIAL_Y - PROTO_X) / PROTO_Z - 1.0
 2007 observe 2.1 +- 0.9; the rounded 1.68 of the research note would reproduce X to 1e-4 only."""
 
 UNLISTED_METAL_FRACTION = PROTO_Z - sum(PROTO_MASS_FRACTION.values())
-"""float: The proto-solar Z the 14 metals leave out (4.9e-5), scaled with iron (partly verified, flagged)."""
+"""float: The proto-solar Z the 23 metals leave out (a few 1e-6: the heavier elements), scaled with iron (partly verified, flagged)."""
 
 
 # --- The branch --------------------------------------------------------------------------------------------------------
@@ -261,8 +276,8 @@ def _fit_value(fit, fe_h):
 
 
 def mean_xfe(symbol, fe_h, branch):
-    """The branch's mean [X/Fe] (dex) of C, O, Mg, Si, Ca, Al or Eu at [Fe/H] `fe_h`, with [Fe/H] held at the edge of the range
-    the fit was made over (thin -0.9 to +0.5, high-alpha -1.6 to +0.1).
+    """The branch's mean [X/Fe] (dex) of C, O, Mg, Si, Ca, Al, Eu, Ti, V, Cr, Mn, P, Zn, Co, Cu or Li at [Fe/H] `fe_h`, with [Fe/H] held at the edge of the
+    range the fit was made over (thin -0.9 to +0.5, high-alpha -1.6 to +0.1, narrower for an element in `tuning.STELLAR_XFE_ELEMENT_RANGE`).
 
     Raises:
         StellarAbundanceError: The branch or the element has no fit.
@@ -272,6 +287,9 @@ def mean_xfe(symbol, fe_h, branch):
     except KeyError:
         raise StellarAbundanceError(f"no [X/Fe] fit for {symbol!r} on the {branch!r} sequence") from None
     low, high = tuning.STELLAR_FE_H_FIT_RANGE[branch]
+    own = tuning.STELLAR_XFE_ELEMENT_RANGE.get(symbol)
+    if own is not None:
+        low, high = max(low, own[0]), min(high, own[1])
     return _fit_value(fit, min(max(fe_h, low), high))
 
 
@@ -289,10 +307,10 @@ _CHOLESKY = _cholesky(tuning.STELLAR_XFE_CORRELATION)
 
 
 def residual_offsets(branch, normals):
-    """The correlated residuals (dex) of C, O, Mg, Si and Ca for five independent standard normals `normals`: the normals through
+    """The residuals (dex) of the `RESIDUAL_ELEMENTS` (C, O, Mg, Si, Ca, Ti, V, Cr, Mn, then P, Zn, Co, Cu, Li) for as many independent standard normals `normals`: the normals through
     the Cholesky factor of the residual correlation, each times the branch's scatter of its element."""
     if len(normals) != len(RESIDUAL_ELEMENTS):
-        raise StellarAbundanceError("the residuals take five standard normals (C, O, Mg, Si, Ca)")
+        raise StellarAbundanceError(f"the residuals take {len(RESIDUAL_ELEMENTS)} standard normals ({', '.join(RESIDUAL_ELEMENTS)})")
     scatter = tuning.STELLAR_XFE_SIGMA[branch]
     return {symbol: sum(_CHOLESKY[i][k] * normals[k] for k in range(i + 1)) * scatter[symbol]
             for i, symbol in enumerate(RESIDUAL_ELEMENTS)}
@@ -315,7 +333,7 @@ def abundance_offsets(fe_h, branch, normals, u_enhanced=1.0, u_carbon=0.0, neon_
     """
     The [X/Fe] (dex) of every element of the scale for one star: C, O, Mg, Si and Ca with their residuals; S and Ar
     following Ca (neither is in the Brewer and Fischer table; both are alpha elements); Ne following O (or Mg, `neon_follows`; the
-    default is `tuning.STELLAR_NEON_FOLLOWS`); N, Na, Al, K, Fe and Ni at 0. `normals` are five standard normals (C, O, Mg, Si, Ca);
+    default is `tuning.STELLAR_NEON_FOLLOWS`); Ti, V, Cr, Mn, P, Zn, Co, Cu and Li likewise (GEN.1360); N, Na, Al, K, Fe and Ni at 0. `normals` are 14 standard normals (`RESIDUAL_ELEMENTS`);
     `u_enhanced` and `u_carbon` the two uniform numbers of `carbon_enhanced` (the default never makes a star carbon-enhanced). A
     star with a carbon excess keeps the residuals of the other elements.
     """

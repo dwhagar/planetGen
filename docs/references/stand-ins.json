@@ -41263,7 +41263,7 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
-      "key": "6.210",
+      "key": "6.210 Stand-ins of where the mass an outer disk lost goes",
       "number": "6.210",
       "rows": [
         {
@@ -41893,6 +41893,258 @@
       ],
       "slug": "6-212-stand-ins-of-the-evaporite-sequence",
       "title": "Stand-ins of the evaporite sequence"
+    },
+    {
+      "key": "6.210 Stand-ins of the minor oxides of a rocky body's rock",
+      "number": "6.210",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+            ],
+            [
+              "The range it moves in",
+              "the core ppm of the concordance (Cr 6590, Mn 3257, Ni 50600, P 2774; bulk 3883, 1760, 17700, 957)"
+            ],
+            [
+              "Where it holds",
+              "the Earth, and any body by the scaling of D"
+            ],
+            [
+              "What would show it wrong",
+              "a core ppm of the same elements from a later compilation that differs by more than the table's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "an interior model that fixes the partition from pressure, temperature and fO2 for each element"
+            ],
+            [
+              "Evidence",
+              "the numbers are read from the table of [R4608] by the research lane (bulk_earth_pm_core_and_depletion.csv, \"read\"); the core mass fraction 0.325 is the same paper's"
+            ]
+          ],
+          "id": "MO1",
+          "key": "6.210:MO1",
+          "kind": "D",
+          "slug": "6-210-mo1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.30 (the same table has 0.20 and 0.30 from one model)"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a measured share of K or Na outside 0 to 0.1 (a K-bearing core would change the heat budget)"
+            ],
+            [
+              "What replaces it",
+              "a partition of the alkalis from sulfur-rich metal and pressure"
+            ],
+            [
+              "Evidence",
+              "the research note (real-material-data-2, section 1) caps the model's 0.20 and 0.30 at 0.05 as the old model's; the cap is the research lane's choice, not a measurement; the mantle Na2O and K2O reach 0.88 and 1.4 times the Earth's"
+            ]
+          ],
+          "id": "MO2",
+          "key": "6.210:MO2",
+          "kind": "P",
+          "slug": "6-210-mo2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+            ],
+            [
+              "The range it moves in",
+              "n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+)"
+            ],
+            [
+              "Where it holds",
+              "rocks of FeO 0.01 to 0.18"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close"
+            ],
+            [
+              "What replaces it",
+              "a pressure and temperature dependent partition of each element (the real law has three more terms)"
+            ],
+            [
+              "Evidence",
+              "the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor"
+            ]
+          ],
+          "id": "MO3",
+          "key": "6.210:MO3",
+          "kind": "T",
+          "slug": "6-210-mo3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+            ],
+            [
+              "The range it moves in",
+              "Ti 0 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a Ti share above 0.05"
+            ],
+            [
+              "What replaces it",
+              "a partition of Ti at the pressure of a large body's core"
+            ],
+            [
+              "Evidence",
+              "Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite"
+            ]
+          ],
+          "id": "MO4",
+          "key": "6.210:MO4",
+          "kind": "B",
+          "slug": "6-210-mo4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+        }
+      ],
+      "slug": "6-210-stand-ins-of-the-minor-oxides-of-a-rocky-body-s-rock",
+      "title": "Stand-ins of the minor oxides of a rocky body's rock"
+    },
+    {
+      "key": "6.209",
+      "number": "6.209",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it"
+            ],
+            [
+              "The range it moves in",
+              "window 6 to 24 steps (whole cycles of 2, 3, 4, 6); swing 0.5 to 5 K; share 0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "unsettled airs of rocky bodies and moons"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air_knee; an unsettled air whose stored temperature is further from a fine scan's balance than its swing"
+            ],
+            [
+              "What replaces it",
+              "a fixed point that keeps the haze or ocean switch as a state (partial cover) and so has a fixed point"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the Filippov value of a switch, the time average of the two states, is the state the physical system keeps at a jump of its map; not fitted"
+            ]
+          ],
+          "id": "SL1",
+          "key": "6.209:SL1",
+          "kind": "P",
+          "slug": "6-209-sl1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it"
+        }
+      ],
+      "slug": "6-209-stand-ins-of-the-nine-added-star-elements",
+      "title": "Stand-ins of the nine added star elements"
+    },
+    {
+      "key": "6.208",
+      "number": "6.208",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses"
+            ],
+            [
+              "The range it moves in",
+              "0.1 [R2769, R4637] to 0.15 ([R2512]: 0.10 to 0.20); the full published spread is about 0.01 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with surface water past the runaway greenhouse limit, hydrogen-rich steam escaping at the energy limit"
+            ],
+            [
+              "What would show it wrong",
+              "test_runaway_history::test_the_water_loss_efficiency_is_the_atmosphere_escape_efficiency; a measured water loss of a planet near the limit"
+            ],
+            [
+              "What replaces it",
+              "a hydrodynamic escape model with a real efficiency by star, mass and XUV (GEN.511)"
+            ],
+            [
+              "Evidence",
+              "READ [R2512, R2769, R4637]; Boss's choice of 2026-11-07 inside the range; replaces his 10-23 DESIGN value 0.01"
+            ]
+          ],
+          "id": "ER1",
+          "key": "6.208:ER1",
+          "kind": "P",
+          "slug": "6-208-er1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses"
+        }
+      ],
+      "slug": "6-208-stand-ins-of-the-volatility-depletion-of-a-rocky-body",
+      "title": "Stand-ins of the volatility depletion of a rocky body"
     },
     {
       "key": "6.197",

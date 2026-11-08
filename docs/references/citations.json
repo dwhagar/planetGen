@@ -25705,6 +25705,11 @@
       "kind": "web",
       "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
       "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"
+    },
+    "R5144": {
+      "kind": "paper",
+      "label": "Battistini and Bensby 2015",
+      "title": "The origin and evolution of the odd-Z iron-peak elements Sc, V, Mn, and Co in the Milky Way stellar disk"
     }
   }
 }
