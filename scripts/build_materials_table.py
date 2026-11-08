@@ -48,7 +48,7 @@ SOURCES = {
     "computed-e": "Computed in part E from its other columns (molar mass, latent heat per kilogram, interaction length from oxides)",
     "handbook-mineralogy": "Anthony, Bideaux, Bladh and Nichols, Handbook of Mineralogy, Mineralogical Society of America (Mineral Data "
                            "Publishing, 2001-2005), the page of the mineral: D(calc.) and D(meas.)",
-    "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
+    "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density, Mohs hardness, crystal system and color listed there",
     "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
     "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
     "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 "
@@ -57,6 +57,13 @@ SOURCES = {
     "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
     "slb2024-burnman": "[R4233], Thermodynamics of mantle minerals III, GJI 237, 1699 "
                        "[R4233], as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+    "lsbu-ice-phases": "Chaplin, Water Structure and Science, the ice phases table (water.lsbu.ac.uk/water/ice_phases.html), the crystallographic density "
+                       "column; a web compilation read for GEN.1359",
+    "titan-haze-density": "Titan haze density compilation of the UCSC titan materials group (titanmaterials.sites.ucsc.edu/haze-density): pycnometry "
+                          "of laboratory tholins (three groups, one of them [R2080]), and the same page's effective density of aggregates (0.95 to 1.13 g/cm3)",
+    "sshade-solid": "SSHADE solid-phase pages (Solid Spectroscopy Hosting Architecture of Databases and Expertise), the density listed for the compound",
+    "wikipedia-infobox": "Wikipedia compound or element infobox density, no temperature given there; the cited handbook was not read",
+    "wikipedia-solid-oxygen": "Wikipedia, Solid oxygen: the molar volume of the alpha phase (21 cm3/mol), turned into a density here with the molar mass",
     "exoplex": "ExoPlex 1.0.1a1 source distribution ([R0111] liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
     "hp2011-burnman": "[R1981] data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
     "journaux2020": "[R2204], JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C "
@@ -118,6 +125,11 @@ DENSITY_LIMIT = {
     "webmineral": "a web compilation: a listed average or single value",
     "crc-density-wiki": "the CRC values as listed on a Wikipedia data page; the handbook was not read",
     "pubchem": "an annotation quoted with its source; the temperature is the annotation's",
+    "lsbu-ice-phases": "a web compilation of the crystallographic density; the original structure papers were not read",
+    "titan-haze-density": "a web compilation of lab pycnometry on laboratory analogues, not of a material measured in a natural haze",
+    "sshade-solid": "a database listing without the temperature or the original measurement",
+    "wikipedia-infobox": "an infobox value with no temperature; the handbook behind it was not read",
+    "wikipedia-solid-oxygen": "computed from a molar volume read on a web page; the temperature of the phase is not tied to one value",
 }
 
 
@@ -217,6 +229,61 @@ def formula_for(item):
         return text
     except (ValueError, KeyError):
         return None
+
+
+
+def _solid(row_id, name, family, formula, aliases=(), value=None, source=None, code="H", basis="", measured_range=None, gas=None, note="", **row_extra):
+    """One solid species row with a density and its source, or a null density and the note that says why none is kept."""
+    row = new_row(row_id, name, family, formula, aliases, gas=gas, note=note, **row_extra)
+    if value is None:
+        row["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
+    else:
+        row["props"]["rho_grain_g_cm3"] = prop(value, code, source, "g/cm3", basis=basis, measured_range=measured_range)
+    return row
+
+
+def species_rows():
+    """The ice species and organics that the comet and giant-planet inventories name and the table lacked (GEN.1359).
+
+    Only the density is carried, and only where a source was read; a species whose solid density was not reached keeps a null with the note, as the other ices do.
+    The `complex_organics` row (the leaf the comet draw reads) is not touched: the rows here split what it lumps and no draw reads them yet.
+    """
+    nld = "No solid density was reached for GEN.1359."
+    out = [
+        _solid("ice_ic", "ice Ic", "ice", "H2O", ["cubic ice"], 0.933, "lsbu-ice-phases", basis="crystallographic density; measured about 0.943 near 80 K",
+               measured_range=[0.933, 0.943], gas="H2O"),
+        _solid("ice_iv", "ice IV", "ice", "H2O", [], 1.275, "lsbu-ice-phases", basis="crystallographic density (metastable high-pressure phase)", gas="H2O"),
+        _solid("ice_ix", "ice IX", "ice", "H2O", [], 1.160, "lsbu-ice-phases", basis="crystallographic density (proton-ordered ice III)", gas="H2O"),
+        _solid("ice_xi", "ice XI", "ice", "H2O", [], 0.930, "lsbu-ice-phases", basis="crystallographic density (proton-ordered ice Ih)", gas="H2O"),
+        _solid("ice_xv", "ice XV", "ice", "H2O", [], 1.328, "lsbu-ice-phases", basis="crystallographic density (proton-ordered ice VI)", gas="H2O"),
+        _solid("o2_ice", "oxygen ice", "ice", "O2", ["oxygen ice", "solid oxygen", "alpha oxygen"], 1.524, "wikipedia-solid-oxygen", code="C",
+               basis="alpha phase: 31.9988 g/mol over the molar volume 21 cm3/mol (the gamma phase is 23.5 cm3/mol, about 1.36)", gas="O2"),
+        _solid("xe_ice", "xenon ice", "ice", "Xe", ["xenon ice", "solid xenon"], 3.408, "wikipedia-infobox", basis="solid at the triple point", gas="Xe"),
+        _solid("ar_ice", "argon ice", "ice", "Ar", ["argon ice", "solid argon"], gas="Ar", note=nld),
+        _solid("kr_ice", "krypton ice", "ice", "Kr", ["krypton ice", "solid krypton"], gas="Kr", note=nld),
+        _solid("c2h2_ice", "acetylene ice", "organic ice", "C2H2", ["acetylene ice", "solid acetylene"], gas="C2H2", note=nld),
+        _solid("nh4cl", "ammonium chloride", "halide", "NH4Cl", ["sal ammoniac"], 1.519, "sshade-solid", basis="solid, no temperature listed"),
+        _solid("nh4hco3", "ammonium bicarbonate", "ammonium salt", "NH4HCO3", ["ammonium hydrogen carbonate"], 1.58, "sshade-solid",
+               basis="the middle of 1.573 to 1.586", measured_range=[1.573, 1.586]),
+        _solid("nh4sh", "ammonium hydrosulfide", "ammonium salt", "NH4SH", ["ammonium hydrosulphide"], 1.17, "wikipedia-infobox"),
+        _solid("ammonium_formate", "ammonium formate", "ammonium salt", "HCOONH4", [], 1.26, "wikipedia-infobox"),
+        _solid("ammonium_sulfate", "ammonium sulfate", "ammonium salt", "(NH4)2SO4", ["ammonium sulphate"], 1.77, "wikipedia-infobox"),
+        _solid("ammonia_monohydrate", "ammonia monohydrate", "ice", "NH3H2O", ["nh3 monohydrate"],
+               note="The ammonia-water compound of the cold moons; its density was not reached (the crystal database page was empty)."),
+        _solid("sulfuric_acid_monohydrate", "sulfuric acid monohydrate", "ice", "H2SO4H2O", ["sulphuric acid monohydrate"],
+               note="Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached."),
+        _solid("sulfuric_acid_tetrahydrate", "sulfuric acid tetrahydrate", "ice", "H2SO4(H2O)4", ["sulphuric acid tetrahydrate"],
+               note="Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached."),
+        _solid("tholin", "tholin", "organic", None, ["tholins", "titan tholin"], 1.40, "titan-haze-density",
+               basis="laboratory pycnometry 1.343 [R2080], 1.38 and 1.45 (two other groups): the middle of the widest range", measured_range=[1.343, 1.45],
+               composition="nitrogen-rich organic solid made by irradiating or sparking CH4 and N2",
+               note="The material density; an aggregate of the haze has a lower effective density (0.95 to 1.13 g/cm3 in laboratory "
+                    "experiments), and the haze code of aerosols.py assumes 1.0 for the aggregates, which this row does not change."),
+        _solid("insoluble_organic_matter", "insoluble organic matter", "organic", None, ["IOM", "chondritic insoluble organic matter"],
+               composition="macromolecular organic solid of chondrites and comets, the part no solvent dissolves",
+               note="No density source was read (GEN.1359); the lumped complex_organics row stays the one the comet draw reads."),
+    ]
+    return {row["id"]: row for row in out}
 
 
 def main():
@@ -394,6 +461,7 @@ def main():
             row["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
             row["note"] = "No solid density was reached (part D lists no cell for the solid)."
         rows[row_id] = row
+    rows.update(species_rows())
     ac = new_row("amorphous_carbon", "amorphous carbon", "carbon", "C", ["amorphous carbon"])
     ac["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
     ac["note"] = "No density source reached; the value depends on the hydrogen content and the formation."
@@ -426,6 +494,30 @@ def main():
     ]
     for row_id, name, family, members, names in groups:
         rows[row_id] = new_row(row_id, name, family, None, names, members=members)
+
+    # --- GEN.1355: the silicates and oxides the recipes and the norm name (Webmineral pages read 2026-11-07); like GEN.1356, no band albedo was reached
+    # for them, so the three bands are explicit nulls (code N)
+    # --- GEN.1357: the carbonates, salts and phosphates, the same way (a page named PubChem is read from the PubChem record)
+    for row_id, (formula, family, aliases_here, page_formula, crystal, mohs, density, basis, measured, color, page) in {
+            **data.PART1_MINERALS, **data.PART3_MINERALS}.items():
+        source = "pubchem" if page.startswith("PubChem") else "webmineral"
+        row = new_row(row_id, row_id, family, formula, aliases_here, composition=page_formula if page_formula != formula else "")
+        extra = {"measured_range": list(measured)} if measured else {}
+        row["props"]["rho_grain_g_cm3"] = prop(density, "R" if source == "pubchem" else "H", source, "g/cm3", basis=f"{basis}; page {page}", **extra)
+        if mohs is not None:
+            row["props"]["mohs"] = prop(mohs[0], "H", "webmineral", "1", measured_range=[mohs[1], mohs[2]],
+                                        basis=f"the middle of the hardness range the page prints; page {page}")
+        else:
+            row["props"]["mohs"] = null_prop("mohs")
+        for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
+            row["props"][band] = null_prop(band)
+        if crystal:
+            row["crystal_system"] = crystal
+        if color:
+            row["color"] = color
+        rows[row_id] = row
+    for row_id, (name, members) in {**data.PART1_GROUPS, **data.PART3_GROUPS}.items():
+        rows[row_id] = new_row(row_id, name, "mineral group", None, [name], members=list(members))
 
     # --- hydrogen and helium
     hydrogen = new_row("hydrogen", "hydrogen", "envelope", "H2", ["hydrogen"], gate=PLANETARY, gas="H2")

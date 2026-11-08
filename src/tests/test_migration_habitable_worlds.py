@@ -8,11 +8,11 @@ galaxy made at v134 gets the counts from the scores it already holds.
 
 import pytest
 
-from planetgen.db import block_stats, query, store
+from planetgen.db import block_stats, chart_ledger, query, store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability
-from planetgen.util import draw
+from planetgen.util import draw, generator_epoch as generatorEpoch
 from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
@@ -43,6 +43,7 @@ def _fill_one_sector(conn):
     conn.execute("UPDATE planets SET phi4 = ? WHERE id = ?", (0.9, first))
     expected = _scored_green_or_better(conn, system_id)
     assert expected == 1
+    chart_ledger.record(conn, ADDRESS, None, generatorEpoch.generator_epoch())      # a filled sector is a charted one (MAP.402)
     store.record_sector_stats(conn, sector_id, ADDRESS, CENTER_PC)
     block_stats.refresh_chain(conn, ADDRESS)
     conn.commit()
@@ -70,7 +71,8 @@ def test_a_filled_sector_counts_its_habitable_worlds_and_the_blocks_above_it_add
         assert [child["stats"]["habitable_worlds"] for child in stage["children"]] == [expected]
         store.forget_sector_fill(conn, ADDRESS)
         assert conn.execute("SELECT habitable_worlds FROM sector_stats").fetchone()["habitable_worlds"] is None
-        assert {row["habitable_worlds"] for row in conn.execute("SELECT habitable_worlds FROM galaxy_block_stats").fetchall()} == {0}
+        # a forgotten fill is an uncharted cell again (MAP.402), so the blocks above hold no total for it: no row, or a zero
+        assert {row["habitable_worlds"] for row in conn.execute("SELECT habitable_worlds FROM galaxy_block_stats").fetchall()} <= {0}
     finally:
         conn.close()
 

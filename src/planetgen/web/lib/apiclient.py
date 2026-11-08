@@ -1315,6 +1315,23 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     return body
 
 
+def admin_settings_update_plan(cookie_header, remove=(), apply=()):
+    """`POST /api/admin/settings/update/plan` -- what "Update config.json" would add (with its value), list as recommended
+    and not set, and flag as stale; nothing is written (ADM.140)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings/update/plan", cookie_header=cookie_header,
+                                              json_body={"remove": list(remove), "apply": list(apply)})
+    return body
+
+
+def admin_settings_update(cookie_header, remove=(), apply=(), expect_hash=None):
+    """`POST /api/admin/settings/update` -- writes the update after a backup; a file changed since `expect_hash` or one that
+    can't be written raises `ApiError` (409) (ADM.140)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings/update", cookie_header=cookie_header,
+                                              json_body={"remove": list(remove), "apply": list(apply),
+                                                         "expect_hash": expect_hash})
+    return body
+
+
 def admin_images(cookie_header):
     """`GET /api/admin/images` -- each upload kind with the stored file in use (ADM.44)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/images", cookie_header=cookie_header)

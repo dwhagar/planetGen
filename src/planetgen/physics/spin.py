@@ -135,6 +135,39 @@ def orbit_normal(inclination_deg, ascending_node_deg):
     return (math.sin(node) * math.sin(i), -math.cos(node) * math.sin(i), math.cos(i))
 
 
+def turn_to_axis(vector, axis):
+    """`vector`, written against an equator whose pole is +z, as it stands in the frame where that pole is the unit `axis` (the turn of +z onto `axis` about
+    `z x axis`, so that an `axis` of +z leaves it as it is). GEN.1352: a moon's orbit is drawn against its planet's equator and set in the system's frame with this."""
+    return _turn(vector, axis, 1.0)
+
+
+def turn_from_axis(vector, axis):
+    """The turn back: `vector` in the frame where the pole is `axis`, written against the equator of that pole (`turn_to_axis` undone)."""
+    return _turn(vector, axis, -1.0)
+
+
+def _turn(vector, axis, sense):
+    a = _unit(axis)
+    k = (-a[1], a[0], 0.0)                   # z x axis
+    s = math.sqrt(k[0] * k[0] + k[1] * k[1])
+    c = a[2]
+    if s < 1.0e-12:
+        return tuple(vector) if c > 0.0 else (vector[0], -vector[1], -vector[2])    # a pole upside down: half a turn about x (either way)
+    k = (k[0] / s, k[1] / s, 0.0)
+    s *= sense
+    kxv = _cross(k, vector)
+    along = (1.0 - c) * (k[0] * vector[0] + k[1] * vector[1])
+    return tuple(vector[i] * c + kxv[i] * s + k[i] * along for i in range(3))
+
+
+def moon_orbit_normal(moon, planet):
+    """The unit normal of a moon's orbit in the system's frame: the one its stored elements give against its `planet`'s equator, turned onto the planet's
+    spin axis (GEN.1352); the elements as they are for a moon whose planet has no axis."""
+    normal = orbit_normal(getattr(moon, "orbital_inclination_deg", None) or 0.0, getattr(moon, "orbital_ascending_node_deg", None) or 0.0)
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z")) if planet is not None else (None,)
+    return normal if any(c is None for c in axis) else turn_to_axis(normal, axis)
+
+
 def orbit_normal_from_state(position, velocity):
     """The unit normal of the orbit a body on this position and velocity (about its primary) is on: `r x v`, in the same
     frame. Raises `ZeroDivisionError` for a body moving straight at or away from its primary."""

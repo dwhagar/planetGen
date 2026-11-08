@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1384 |
+| GEN | GEN.1386 |
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
@@ -522,7 +522,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.131 | Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans | none | open |
 | ADM.132 | After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug) | none | done, PR #3268 |
 | ADM.133 | Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them | none | open |
-| ADM.134 | /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug) | none | done, already fixed on main (admin_queue_log aborts 403 for a visitor; Core 5 confirmed, no change) |
+| ADM.134 | /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug) | none | done, already fixed on main (admin_queue_log aborts 403 for a visitor; Lane 15 confirmed, no change) |
 | ADM.135 | The data check in front of a Generate job no longer fails because another check holds the check place, and a refusal names the run that holds it (bug) | none | done, PR #4675 |
 | ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) | none | done, PR #5511 |
 | ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | done, PR #4723 |
@@ -622,13 +622,13 @@ Parents marked "new parent" had no old number of their own.
 | DB.50 | Migration only: structure columns for life and flavour | none | done, PR #2206 |
 | DB.51 | Generation stores structure, not prose; the readers and the string searches go | none | done, PR #2206 |
 | DB.52 | Migration only: drop the prose columns and tables | none | done, PR #2206 |
-| DB.53 | Built-system star storage: the orbit_nodes table, stars.parent_node_id, planets.host_node_id, the catalogue columns and the disk descriptor (one Core 1 revision) | none | done, PR #1952 |
+| DB.53 | Built-system star storage: the orbit_nodes table, stars.parent_node_id, planets.host_node_id, the catalogue columns and the disk descriptor (one Lane 11 revision) | none | done, PR #1952 |
 | DB.54 | The three scatter-limit settings as galaxy_shape columns: core luminosity floor, core mass limit and halo luminosity floor | none | done, PR #1887 |
 | DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance | none | done, PR #1952 |
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings | none | done, PR #2505 |
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | done, PR #2536 |
-| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Core 2 2026-10-16 6:05 PM EDT |
+| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Lane 12 2026-10-16 6:05 PM EDT |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | done, PR #2526 |
 | DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | done, PR #2528 |
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | done, PR #2537 |
@@ -816,7 +816,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.24 | Generate the galactic core on layer 0 | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: layers are gone and the core is shell 0, filled by the shell mode) |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/systems/rogue-planet-surface.md) |
-| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | dropped (classes are derived from the finished body (cut-over epoch 121); Lane 14 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | done (sweep report reports/core4-class-sweep-2026-10-30.md, items GEN.1131, GEN.1132, GEN.1133) |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
@@ -879,7 +879,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.87 | Surface radiation dose | none | done, PR #985 |
 | GEN.88 | Hydrosphere and ocean chemistry | none | done, PR #963 |
 | GEN.89 | The habitability score for every planet and moon | none | done, PR #1025 |
-| GEN.90 | Refactor the planet classes around the habitability index | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
+| GEN.90 | Refactor the planet classes around the habitability index | none | dropped (classes are derived from the finished body (cut-over epoch 121); Lane 14 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
 | GEN.92 | Life and its highest stage follow the habitability score | none | done, PR #2833 |
 | GEN.93 | Nebula conditions in planet generation | none | dropped, folded into GEN.358 |
@@ -934,7 +934,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | superseded by GEN.557 (folded into the wanderer body draw), 2026-10-21 |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | dropped, duplicate of GEN.347 |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | done, PR #2473 |
-| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | dropped (classes are derived from the finished body (cut-over epoch 121); Lane 14 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | done, PR #2685 |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | done, PR #1457 |
@@ -1145,7 +1145,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.353 | Class Y, Titan-like world | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.354 | Class Z, lifeless temperate world | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.355 | Atmosphere retention module with its test table | none | done, PR #4132 |
-| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
+| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | none | dropped (classes are derived from the finished body (cut-over epoch 121); Lane 14 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | none | done, PR #3367 |
 | GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | none | open |
 | GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | none | done, PR #5334 |
@@ -1162,7 +1162,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | done, PR #2460 |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | done, PR #5558 |
 | GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
-| GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it) |
+| GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Lane 14 reported it) |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | done, PR #2473 |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | done, PR #4892 |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` | none | open |
@@ -1353,7 +1353,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | done, PR #2240 |
 | GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
 | GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | done, PR #2256 |
-| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | folded into GEN.764 (Core 1, 7:32 PM EDT 2026-10-24) |
+| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | folded into GEN.764 (Lane 11, 7:32 PM EDT 2026-10-24) |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | done, PR #2800 |
 | GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | done, PR #2190 |
@@ -1649,8 +1649,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.857 | Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in | none | done, PR #3783 |
 | GEN.858 | Stage-aware air: the atmosphere follows the world's life stage from the timeline (pre-life, microbial anoxic, oxygenation, ozone shield and its UV effect on the surface), so every planet carries the air its life type and stage would make | none | done, PR #3783 |
 | GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | none | done, PR #3783 |
-| GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | none | dropped, absorbed by GEN.881 (Core 1, no melanin table exists in code) |
-| GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | none | dropped, absorbed by GEN.881 and the class store (Core 1) |
+| GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | none | dropped, absorbed by GEN.881 (Lane 11, no melanin table exists in code) |
+| GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | none | dropped, absorbed by GEN.881 and the class store (Lane 11) |
 | GEN.862 | Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage) | none | done, PR #5373 |
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | done, PR #5373 |
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
@@ -1710,11 +1710,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.918 | The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902) | none | done, PR #5500 |
 | GEN.919 | White dwarfs are 8.1% of stars against 4.5% to 7% expected once the low-mass slope is 1.1; their share follows the old-population age spread, not the slope (bug) | none | absorbed by GEN.925 (white dwarfs fall out of the present-day populations) |
 | GEN.920 | Giants around F, G and K stars are too rare after the class cut-over: 0.03 cold and 0.07 in all per star against 0.05 to 0.25 and 0.08 to 0.35 observed; retune the mass-law gas share (bug) | none | done, PR #4105 |
-| GEN.921 | Moons per planet rose after the class cut-over (G2V 1.90 against 1.25): find out why and whether it is right (bug) | none | done (diagnosed by Bug 1, no defect: the planet mix and the 1e20 kg moon floor; report /mnt/project-files/reports/bug1/moons-per-planet-gen921-2026-10-30.md; the rocky-planet rate is GEN.962) |
+| GEN.921 | Moons per planet rose after the class cut-over (G2V 1.90 against 1.25): find out why and whether it is right (bug) | none | done (diagnosed by Lane 04, no defect: the planet mix and the 1e20 kg moon floor; report /mnt/project-files/reports/bug1/moons-per-planet-gen921-2026-10-30.md; the rocky-planet rate is GEN.962) |
 | GEN.922 | The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak) | none | open |
-| GEN.923 | Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match) | none | dropped, replaced by TEST.454 and GEN.926 to GEN.932 (Bug 1 plan) |
-| GEN.924 | A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars | none | dropped, replaced by GEN.927 and GEN.928 (Bug 1 plan) |
-| GEN.925 | Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned | none | dropped, replaced by GEN.929 and GEN.930 (Bug 1 plan) |
+| GEN.923 | Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match) | none | dropped, replaced by TEST.454 and GEN.926 to GEN.932 (Lane 04 plan) |
+| GEN.924 | A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars | none | dropped, replaced by GEN.927 and GEN.928 (Lane 04 plan) |
+| GEN.925 | Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned | none | dropped, replaced by GEN.929 and GEN.930 (Lane 04 plan) |
 | GEN.926 | One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output | none | done, PR #3760 |
 | GEN.927 | Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note | none | done, PR #3984 |
 | GEN.928 | System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees | none | done, PR #3984 |
@@ -1726,8 +1726,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.934 | Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar) | none | done, PR #4281 |
 | GEN.935 | Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag | none | done, PR #3984 |
 | GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the [R0254] table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | done, PR #4105 |
-| GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | absorbed by GEN.930 (remnant masses, Bug 1 triage 5:47 PM EDT 2026-10-29) |
-| GEN.938 | One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss | none | absorbed by GEN.930 (one white dwarf initial-final relation, Bug 1 triage) |
+| GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | absorbed by GEN.930 (remnant masses, Lane 04 triage 5:47 PM EDT 2026-10-29) |
+| GEN.938 | One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss | none | absorbed by GEN.930 (one white dwarf initial-final relation, Lane 04 triage) |
 | GEN.939 | Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority) | none | done, PR #3984 |
 | GEN.940 | Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars | none | done, PR #3984 |
 | GEN.941 | Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges | none | done, PR #3984 |
@@ -1922,7 +1922,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization | none | done, PR #5500 |
 | GEN.1131 | Class descriptions for N, K and Q agree with the bodies their rules select | none | done, PR #4213 |
 | GEN.1132 | Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation | none | done (report core4-class-q-assessment-2026-10-30.md, Q retired by GEN.1135) |
-| GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree | none | done, PR #4385 |
+| GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Lane 14's recommendation so the size range and the class agree | none | done, PR #4385 |
 | GEN.1134 | Rogue radiogenic inputs from the ejecting star's composition: the long-lived heat (Th, U, K) and 26Al of an ejected planet from the parent star's stored composition, replacing the sigma 0.22 dex offsets and ROGUE_ACTIVE_HEAT_FLUX_W_M2 | none | done, PR #4215 |
 | GEN.1135 | Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high | none | done, PR #4385 |
 | GEN.1136 | Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725 | none | done, PR #4385 |
@@ -1953,7 +1953,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) | none | dropped, duplicate of GEN.1105 |
 | GEN.1162 | Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite | none | done, PR #4880 |
 | GEN.1163 | Stars hotter than about 6300 K all take the hot-star spin branch (a median 180 km/s whatever the mass), so F stars rotate in under a day where the real Kraft break rises gradually (about 20 to 70 km/s) (bug) | none | done, PR #4385 |
-| GEN.1164 | About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles | none | done, answered by Tides 1 (GEN.1172) |
+| GEN.1164 | About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles | none | done, answered by Lane 23 (GEN.1172) |
 | GEN.1165 | Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies | none | done, PR #4385 |
 | GEN.1166 | A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug) | none | dropped (withdrawn by Aux 7: a forced F5V is an exact model star; the 6500 K was rounding and the mass spread is main-sequence evolution) |
 | GEN.1167 | The stellar-to-halo relation [R3181] has 0.3 to 0.4 dex more stars than [R0319] in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation | none | open |
@@ -2113,11 +2113,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent | none | done, PR #5540 |
 | GEN.1322 | Prevalence with +habitable_world 50 reads 0.62 to 0.66 against 0.876: prevalence.resolve still assumes a forced system gets the world, but GEN.1130 made the request raise odds only (bug) | none | done, PR #5466 |
 | GEN.1323 | Close-in planets of 4 to 40 Earth masses carry no hydrogen envelope, so there are no sub-Neptunes and no radius valley: the envelope recipes of GEN.509 and GEN.722 are not read by the generator (bug) | none | done, PR #5572 |
-| GEN.1324 | Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug) | none | dropped, not a defect (Core 5, 8:18 PM EST 11-06) |
+| GEN.1324 | Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug) | none | dropped, not a defect (Lane 15, 8:18 PM EST 11-06) |
 | GEN.1325 | Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants | none | done, PR #5572 |
 | GEN.1326 | Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results | none | done, PR #5463 |
 | GEN.1327 | Fewer life-capable bodies on the train 13 sweep than on main: letters holding a capable body fell from 12 to 9, with class C 21 to 16, E 35 to 29, N 1 to 0 of 22, Z 1 to 0 of 6 and F 1 to 0 of 1 while G, S, T and U rose; check whether the drop is intended (bug) | none | done, PR #5528 |
-| GEN.1328 | Hot class N planets keep 600 to 3,600 bar of CO2, about 2 percent of the planet's mass and ten times Venus's, where the shoreline and the JWST hot rocky targets say bare or thin: trace the volatile inventory of class N and why the loss does not strip it (bug) | none | dropped, the premise did not hold (Core 5 trace: 0.03 to 0.07 percent of planet mass, hot hosts keep thick CO2 airs as 55 Cnc e does) |
+| GEN.1328 | Hot class N planets keep 600 to 3,600 bar of CO2, about 2 percent of the planet's mass and ten times Venus's, where the shoreline and the JWST hot rocky targets say bare or thin: trace the volatile inventory of class N and why the loss does not strip it (bug) | none | dropped, the premise did not hold (Lane 15 trace: 0.03 to 0.07 percent of planet mass, hot hosts keep thick CO2 airs as 55 Cnc e does) |
 | GEN.1329 | Three of 20 hot rocky planets hold 1e5 bar steam airs of 3 to 7 percent of the planet's mass on K hosts: check whether the water inventory and the loss are right (bug) | none | done, PR #5572 |
 | GEN.1330 | Life gates read oxygen pressure: life_classes.json and age_needs.json judge oxygen by partial pressure, not share | GEN.1321 | dropped, covered by GEN.1321 |
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321, GEN.1330 | open |
@@ -2173,6 +2173,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1381 | Ore processes build, hydrothermal and sedimentary-hosted deposits | GEN.1380, GEN.1378 | open |
 | GEN.1382 | Ore processes build, weathering and pegmatite deposits (bauxite and laterite, REE and Li pegmatites) | GEN.1380, GEN.1371 | open |
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
+| GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
+| GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2514,7 +2516,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.339 | Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug) | none | done, PR #3636 |
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | done, PR #3640 |
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | done, PR #3652 |
-| MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | dropped (measured by Core 3, 2026-10-29: saves under 15 KB gzipped once per view) |
+| MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | dropped (measured by Lane 13, 2026-10-29: saves under 15 KB gzipped once per view) |
 | MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | done, PR #3576 |
 | MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | done, PR #3659 |
 | MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | done, PR #3829 |
@@ -3899,7 +3901,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | done, PR #4784 |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) | none | done, PR #4848 |
 | TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) | none | dropped (Debug mode thread, 2:21 PM EDT 2026-10-24 as the lane reported: not red on main; its lane machine ran without PLANETGEN_TEST_REDIS_URL so real workers ran) |
-| TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | dropped (not reproduced on main by Bug 1, 8 of 8 pass, 7:14 PM EDT 2026-10-24 as the lane reported) |
+| TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | dropped (not reproduced on main by Lane 04, 8 of 8 pass, 7:14 PM EDT 2026-10-24 as the lane reported) |
 | TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) | none | done, PR #4788 |
 | TEST.337 | test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug) | none | dropped (not reproduced on main by Bug Hunt, 10:41 AM EDT 2026-10-24 as the lane reported) |
 | TEST.338 | test_bright_star_scatter::test_plan_scatter_stores_stars_and_fill_builds_their_systems fails on main: the built primary differs from the stored row in 2 of 7 systems (bug) | none | done, PR #2986 |
@@ -3910,7 +3912,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.343 | Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug) | none | done, PR #3071 |
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory | none | open |
 | TEST.345 | test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug) | none | done, PR #4018 |
-| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) | none | done, PR #5097 |
+| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Lane 13 and Lane 15 but pass for Bug Hunt (bug) | none | done, PR #5097 |
 | TEST.347 | test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug) | none | done, PR #3050 |
 | TEST.348 | test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug) | none | done, PR #3050 |
 | TEST.349 | The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug) | none | done, PR #3068 |
@@ -3924,13 +3926,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) | none | done, PR #3103 |
 | TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | done, PR #3123 |
 | TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
-| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
-| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
+| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | dropped (not reproduced on main by Lane 04, 6:35 PM EDT 2026-10-24 as the lane reported) |
+| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | dropped (not reproduced on main by Lane 04, 6:35 PM EDT 2026-10-24 as the lane reported) |
 | TEST.362 | test_object_rows read-back fails on main with KeyError partial_pa (bug) | none | done, PR #3155 |
 | TEST.363 | test_protection describer disagrees with habitability_explain on main (bug) | none | done, PR #3155 |
 | TEST.364 | Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits) | none | done, PR #3154 |
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
-| TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
+| TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Lane 04, 7:20 PM EDT 2026-10-24 as the lane reported) |
 | TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | done, PR #3291 |
 | TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | done, PR #3171 |
 | TEST.369 | test_age_needs (two tests) and test_eta_estimator fail on clean main (bug) | none | done, PR #3155 |
@@ -3938,7 +3940,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | done, PR #3291 |
 | TEST.372 | scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug) | none | done, PR #3192 |
 | TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | done, PR #3155 |
-| TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | dropped (not reproduced on main: bump_version --check passes and the notes with "### Tests" were stamped out, Bug 1, 10:31 PM EDT 2026-10-24 as the lane reported) |
+| TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | dropped (not reproduced on main: bump_version --check passes and the notes with "### Tests" were stamped out, Lane 04, 10:31 PM EDT 2026-10-24 as the lane reported) |
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | done, PR #3219 |
 | TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | done, PR #3192 |
 | TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | done, PR #3291 |
@@ -3948,7 +3950,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
 | TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | done, PR #3385 |
-| TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | closed, does not reproduce on main (Bug 1, 1:37 AM EDT 2026-10-25) |
+| TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | closed, does not reproduce on main (Lane 04, 1:37 AM EDT 2026-10-25) |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | done, PR #3273 |
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | done, PR #4788 |
@@ -4014,7 +4016,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.448 | test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug) | none | done, PR #3672 |
 | TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | done, PR #3681 |
 | TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) | none | done, PR #3879 |
-| TEST.451 | Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
+| TEST.451 | Ten reds Lane 15 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | none | done, PR #3728 |
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | done, PR #3920 |
 | TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | done, PR #3764 |
@@ -4026,7 +4028,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.460 | test_sweep_life has 5 setup errors on main: KeyError 'h' because tuning.PLANET_CLASSES has no class h since the class cut-over (bug) | none | dropped (Bug 2: the KeyError was fixed in PR 3747 at 6:00 PM EDT as the lane reported; a gate on an older base shows it, a rebase clears it) |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) | none | dropped, folded into TEST.666 |
 | TEST.462 | test_planets_respect_their_stars_age_and_history fails in a batch run: a class E planet in the habitable list around a star under 0.1 Gy (bug) | none | done, PR #3794 |
-| TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) | none | done, PR #4307 |
+| TEST.463 | Reds on main reported by Lane 15 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) | none | done, PR #4307 |
 | TEST.464 | Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug) | none | done, PR #4075 |
 | TEST.465 | test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug) | none | done, PR #3932 |
 | TEST.466 | test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug) | none | done, PR #3932 |
@@ -4052,7 +4054,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.486 | test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug) | none | done, PR #4321 |
 | TEST.487 | test_no_todo_codes_shown fails twice: a GEN.474 string and the PERF.203 help text show TODO codes to users (bug) | none | done, PR #4140 |
 | TEST.488 | test_migration_albedo_greenhouse is red on clean main (bug) | none | dropped (duplicate of TEST.472 (albedo_greenhouse migration is named there)) |
-| TEST.489 | Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug) | none | done, PR #4230 |
+| TEST.489 | Reds on clean main found by Lane 13: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug) | none | done, PR #4230 |
 | TEST.490 | Oddity plausibility harness (src/tests/oddity_plausibility_cli.py): force each oddity on 200 bodies with a fixed seed and assert the general invariants (energy, structure, stability, air, class derived, no NaN) and each row's own | none | done, PR #4147 |
 | TEST.491 | W21 audit: check end to end that M dwarf water loss can leave an oxygen air and that the life scores never read oxygen alone [R2769, R4771] | none | done, PR #4135 |
 | TEST.492 | Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14) | none | open |
@@ -4084,13 +4086,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
 | TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) | none | done, PR #4531 |
 | TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads | none | done, PR #4738 |
-| TEST.521 | Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions) | none | done, PR #4545 |
-| TEST.522 | Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions) | none | done, PR #4528 |
+| TEST.521 | Wire, register or delete the 27 pure functions nothing calls in 13 modules (Lane 11's share of the TEST.520 shadow functions) | none | done, PR #4545 |
+| TEST.522 | Wire, register or delete the 29 pure functions nothing calls in 21 modules (Lane 13's share of the TEST.520 shadow functions) | none | done, PR #4528 |
 | TEST.523 | Wire, register or delete the 17 pure functions nothing calls in 12 modules (Star 2's share of the TEST.520 shadow functions) | none | done, PR #4519 |
 | TEST.524 | Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions) | none | done, PR #4537 |
 | TEST.525 | Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions) | none | done, PR #4533 |
-| TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) | none | done, PR #4613 |
-| TEST.527 | Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions) | none | done, PR #4546 |
+| TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Lane 23's share of the TEST.520 shadow functions) | none | done, PR #4613 |
+| TEST.527 | Wire, register or delete the 12 pure functions nothing calls in 5 modules (Lane 04's share of the TEST.520 shadow functions) | none | done, PR #4546 |
 | TEST.528 | tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug) | none | done, PR #4520 |
 | TEST.529 | test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug) | none | done, PR #4556 |
 | TEST.530 | Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug) | none | done, PR #4535 |
@@ -4140,7 +4142,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | done, PR #4869 |
 | TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | done, PR #5104 |
 | TEST.576 | test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug) | none | done, PR #4897 |
-| TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | dropped (did not reproduce: 26 of 26 pass on main, Core 3) |
+| TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | dropped (did not reproduce: 26 of 26 pass on main, Lane 13) |
 | TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) | none | done, PR #5334 |
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) | none | done, PR #5356 |
@@ -4217,8 +4219,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) | none | done, PR #5363 |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | done, PR #5418 |
 | TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | done, PR #5389 |
-| TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
-| TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
+| TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Lane 02) | none | done, PR #5376 |
+| TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Lane 02) | none | done, PR #5401 |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train | none | open |
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) | none | done, PR #5480 |
 | TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) | none | done, PR #5450 |

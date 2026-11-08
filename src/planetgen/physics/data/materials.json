@@ -11,13 +11,18 @@
   "e-table-2.6": "Band reflectance of part E table 2.6, computed from the spectral library values it lists (label C)",
   "computed-e": "Computed in part E from its other columns (molar mass, latent heat per kilogram, interaction length from oxides)",
   "handbook-mineralogy": "Anthony, Bideaux, Bladh and Nichols, Handbook of Mineralogy, Mineralogical Society of America (Mineral Data Publishing, 2001-2005), the page of the mineral: D(calc.) and D(meas.)",
-  "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
+  "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density, Mohs hardness, crystal system and color listed there",
   "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
   "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
   "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 [R3992: Tables 1], 2 and 3 (read)",
   "hakim2018": "[R1752] (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
   "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
   "slb2024-burnman": "[R4233], Thermodynamics of mantle minerals III, GJI 237, 1699 [R4233], as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+  "lsbu-ice-phases": "Chaplin, Water Structure and Science, the ice phases table (water.lsbu.ac.uk/water/ice_phases.html), the crystallographic density column; a web compilation read for GEN.1359",
+  "titan-haze-density": "Titan haze density compilation of the UCSC titan materials group (titanmaterials.sites.ucsc.edu/haze-density): pycnometry of laboratory tholins (three groups, one of them [R2080]), and the same page's effective density of aggregates (0.95 to 1.13 g/cm3)",
+  "sshade-solid": "SSHADE solid-phase pages (Solid Spectroscopy Hosting Architecture of Databases and Expertise), the density listed for the compound",
+  "wikipedia-infobox": "Wikipedia compound or element infobox density, no temperature given there; the cited handbook was not read",
+  "wikipedia-solid-oxygen": "Wikipedia, Solid oxygen: the molar volume of the alpha phase (21 cm3/mol), turned into a density here with the molar mass",
   "exoplex": "ExoPlex 1.0.1a1 source distribution ([R0111] liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
   "hp2011-burnman": "[R1981] data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
   "journaux2020": "[R2204], JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
@@ -72,6 +77,26 @@
     "magnesium",
     "ice"
    ],
+   "silicon, iron, magnesium, ice, and hydrocarbons": [
+    "silicon",
+    "iron",
+    "magnesium",
+    "ice",
+    "hydrocarbons"
+   ],
+   "silicon, iron, magnesium, water ice, and ammonia": [
+    "silicon",
+    "iron",
+    "magnesium",
+    "water ice",
+    "ammonia"
+   ],
+   "silicon, iron, magnesium, and sulfur": [
+    "silicon",
+    "iron",
+    "magnesium",
+    "sulfur"
+   ],
    "silicate rock over a large iron core": [
     "silicate rock",
     "iron"
@@ -120,21 +145,118 @@
   "carbon_diamond": "carbon polymorph: the carbon draws name graphite, black and amorphous carbon only",
   "amorphous_carbon": "carbon form: no draw names it",
   "wustite": "iron oxide: no draw names it",
-  "periclase": "magnesium oxide: no draw names it",
   "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
   "komatiite": "rock type: no recipe or taxon names it",
   "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
   "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
   "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+  "ice_ic": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_iv": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_ix": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_xi": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_xv": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "o2_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "xe_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ar_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "kr_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "c2h2_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4cl": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4hco3": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4sh": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonium_formate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonium_sulfate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonia_monohydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "sulfuric_acid_monohydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "sulfuric_acid_tetrahydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
+  "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
   "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "oldhamite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "niningerite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "alabandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "daubreelite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "osbornite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "sinoite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
-  "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)"
+  "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "akaganeite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "cronstedtite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "ferrihydrite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lepidocrocite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "maghemite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "magnesiochromite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "schwertmannite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tochilinite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "ulvospinel": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "antigorite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "beidellite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "brucite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "chamosite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "chrysotile": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "clinochlore": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "illite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lizardite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "montmorillonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "nontronite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "palygorskite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "saponite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "sepiolite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "talc": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "cristobalite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lime": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lonsdaleite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "opal": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "portlandite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tridymite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "akermanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "gehlenite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "grossmanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "hibonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "melilite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "analcime": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "augite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "epidote": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "hornblende": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "jadeite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "pigeonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tremolite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "smectite": "group added as table data (GEN.1355): surface_composition.py names Hu's Mg-smectite only in a comment, kaolinite stands in, and swapping it is a change to drawn output (a later epoch item)",
+  "chlorite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "amphibole": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "ankerite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "aragonite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "dolomite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "hydromagnesite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "magnesite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "nesquehonite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "rhodochrosite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "siderite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "alunite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "anhydrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "bassanite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "bischofite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "burkeite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "carnallite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "epsomite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "glauberite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "hexahydrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "jarosite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "kainite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "kieserite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "langbeinite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "mirabilite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "nahcolite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "natrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "polyhalite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "sylvite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "thenardite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "thermonatrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "trona": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "merrillite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "whitlockite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "mg_perchlorate": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
+  "ca_perchlorate": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
  },
  "materials": [
   {
@@ -5947,6 +6069,569 @@
    "limit": ""
   },
   {
+   "id": "ice_ic",
+   "name": "ice Ic",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [
+    "cubic ice"
+   ],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.933,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density; measured about 0.943 near 80 K",
+     "measured_range": [
+      0.933,
+      0.943
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_iv",
+   "name": "ice IV",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.275,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (metastable high-pressure phase)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_ix",
+   "name": "ice IX",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.16,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice III)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_xi",
+   "name": "ice XI",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.93,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice Ih)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_xv",
+   "name": "ice XV",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.328,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice VI)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "o2_ice",
+   "name": "oxygen ice",
+   "family": "ice",
+   "formula": "O2",
+   "composition": "",
+   "aliases": [
+    "oxygen ice",
+    "solid oxygen",
+    "alpha oxygen"
+   ],
+   "members": null,
+   "gas_formula": "O2",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.524,
+     "unit": "g/cm3",
+     "source": "wikipedia-solid-oxygen",
+     "code": "C",
+     "basis": "alpha phase: 31.9988 g/mol over the molar volume 21 cm3/mol (the gamma phase is 23.5 cm3/mol, about 1.36)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=C",
+   "note": "",
+   "source": "wikipedia-solid-oxygen",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "xe_ice",
+   "name": "xenon ice",
+   "family": "ice",
+   "formula": "Xe",
+   "composition": "",
+   "aliases": [
+    "xenon ice",
+    "solid xenon"
+   ],
+   "members": null,
+   "gas_formula": "Xe",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.408,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": "solid at the triple point"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ar_ice",
+   "name": "argon ice",
+   "family": "ice",
+   "formula": "Ar",
+   "composition": "",
+   "aliases": [
+    "argon ice",
+    "solid argon"
+   ],
+   "members": null,
+   "gas_formula": "Ar",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "kr_ice",
+   "name": "krypton ice",
+   "family": "ice",
+   "formula": "Kr",
+   "composition": "",
+   "aliases": [
+    "krypton ice",
+    "solid krypton"
+   ],
+   "members": null,
+   "gas_formula": "Kr",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "c2h2_ice",
+   "name": "acetylene ice",
+   "family": "organic ice",
+   "formula": "C2H2",
+   "composition": "",
+   "aliases": [
+    "acetylene ice",
+    "solid acetylene"
+   ],
+   "members": null,
+   "gas_formula": "C2H2",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "nh4cl",
+   "name": "ammonium chloride",
+   "family": "halide",
+   "formula": "NH4Cl",
+   "composition": "",
+   "aliases": [
+    "sal ammoniac"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.519,
+     "unit": "g/cm3",
+     "source": "sshade-solid",
+     "code": "H",
+     "basis": "solid, no temperature listed"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "sshade-solid",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a database listing without the temperature or the original measurement"
+  },
+  {
+   "id": "nh4hco3",
+   "name": "ammonium bicarbonate",
+   "family": "ammonium salt",
+   "formula": "NH4HCO3",
+   "composition": "",
+   "aliases": [
+    "ammonium hydrogen carbonate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.58,
+     "unit": "g/cm3",
+     "source": "sshade-solid",
+     "code": "H",
+     "basis": "the middle of 1.573 to 1.586",
+     "measured_range": [
+      1.573,
+      1.586
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "sshade-solid",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a database listing without the temperature or the original measurement"
+  },
+  {
+   "id": "nh4sh",
+   "name": "ammonium hydrosulfide",
+   "family": "ammonium salt",
+   "formula": "NH4SH",
+   "composition": "",
+   "aliases": [
+    "ammonium hydrosulphide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.17,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonium_formate",
+   "name": "ammonium formate",
+   "family": "ammonium salt",
+   "formula": "HCOONH4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.26,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonium_sulfate",
+   "name": "ammonium sulfate",
+   "family": "ammonium salt",
+   "formula": "(NH4)2SO4",
+   "composition": "",
+   "aliases": [
+    "ammonium sulphate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.77,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonia_monohydrate",
+   "name": "ammonia monohydrate",
+   "family": "ice",
+   "formula": "NH3H2O",
+   "composition": "",
+   "aliases": [
+    "nh3 monohydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "The ammonia-water compound of the cold moons; its density was not reached (the crystal database page was empty).",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "sulfuric_acid_monohydrate",
+   "name": "sulfuric acid monohydrate",
+   "family": "ice",
+   "formula": "H2SO4H2O",
+   "composition": "",
+   "aliases": [
+    "sulphuric acid monohydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "sulfuric_acid_tetrahydrate",
+   "name": "sulfuric acid tetrahydrate",
+   "family": "ice",
+   "formula": "H2SO4(H2O)4",
+   "composition": "",
+   "aliases": [
+    "sulphuric acid tetrahydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "tholin",
+   "name": "tholin",
+   "family": "organic",
+   "formula": null,
+   "composition": "nitrogen-rich organic solid made by irradiating or sparking CH4 and N2",
+   "aliases": [
+    "tholins",
+    "titan tholin"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.4,
+     "unit": "g/cm3",
+     "source": "titan-haze-density",
+     "code": "H",
+     "basis": "laboratory pycnometry 1.343 [R2080], 1.38 and 1.45 (two other groups): the middle of the widest range",
+     "measured_range": [
+      1.343,
+      1.45
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "The material density; an aggregate of the haze has a lower effective density (0.95 to 1.13 g/cm3 in laboratory experiments), and the haze code of aerosols.py assumes 1.0 for the aggregates, which this row does not change.",
+   "source": "titan-haze-density",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of lab pycnometry on laboratory analogues, not of a material measured in a natural haze"
+  },
+  {
+   "id": "insoluble_organic_matter",
+   "name": "insoluble organic matter",
+   "family": "organic",
+   "formula": null,
+   "composition": "macromolecular organic solid of chondrites and comets, the part no solvent dissolves",
+   "aliases": [
+    "IOM",
+    "chondritic insoluble organic matter"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No density source was read (GEN.1359); the lumped complex_organics row stays the one the comet draw reads.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
    "id": "amorphous_carbon",
    "name": "amorphous carbon",
    "family": "carbon",
@@ -6195,6 +6880,4786 @@
     "anorthosite_powder",
     "forsterite",
     "enstatite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "akaganeite",
+   "name": "akaganeite",
+   "family": "oxidized",
+   "formula": null,
+   "composition": "Fe+++(O,OH,Cl)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Akaganeite"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Brown, Rusty brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "cronstedtite",
+   "name": "cronstedtite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Fe++2Fe+++(SiFe+++)O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.34,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Cronstedtite",
+     "measured_range": [
+      3.34,
+      3.35
+     ]
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Cronstedtite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Brownish black, Greenish black, Dark brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "ferrihydrite",
+   "name": "ferrihydrite",
+   "family": "oxidized",
+   "formula": null,
+   "composition": "Fe+++2O3.0.5(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.8,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Ferrihydrite"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Yellow brown, Dark brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "lepidocrocite",
+   "name": "lepidocrocite",
+   "family": "oxidized",
+   "formula": "FeO(OH)",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed value (read; the research file had it recalled); page Lepidocrocite"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Lepidocrocite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Red, Yellowish brown, Blackish brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "maghemite",
+   "name": "maghemite",
+   "family": "oxidized",
+   "formula": "Fe2O3",
+   "composition": "gamma-Fe+++2O3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.9,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Maghemite"
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Maghemite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "Dark brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "magnesiochromite",
+   "name": "magnesiochromite",
+   "family": "oxide",
+   "formula": "MgCr2O4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Magnesiochromite"
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.5,
+      5.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Magnesiochromite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "schwertmannite",
+   "name": "schwertmannite",
+   "family": "oxidized",
+   "formula": "Fe16O16(OH)12(SO4)2",
+   "composition": "Fe+++16O16(OH)12(SO4)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.88,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Schwertmannite",
+     "measured_range": [
+      3.77,
+      3.99
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Schwertmannite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "Brownish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "tochilinite",
+   "name": "tochilinite",
+   "family": "sulfide",
+   "formula": null,
+   "composition": "6Fe0.9S.5(Mg,Fe++)(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.97,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tochilinite",
+     "measured_range": [
+      2.96,
+      2.99
+     ]
+    },
+    "mohs": {
+     "value": 1.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      1.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Tochilinite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Bronze black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "ulvospinel",
+   "name": "ulvospinel",
+   "family": "oxide",
+   "formula": "Fe2TiO4",
+   "composition": "TiFe++2O4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.91,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "calc; page Ulvospinel"
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.5,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Ulvospinel"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "antigorite",
+   "name": "antigorite",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "(Mg,Fe++)3Si2O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.54,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Antigorite",
+     "measured_range": [
+      2.5,
+      2.6
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Antigorite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Green, Gray, Bluish gray, Brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "beidellite",
+   "name": "beidellite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Na0.5Al2(Si3.5Al0.5)O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Beidellite",
+     "measured_range": [
+      2.0,
+      2.3
+     ]
+    },
+    "mohs": {
+     "value": 1.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Beidellite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White, Gray, Reddish white, Brownish white, Pale yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "brucite",
+   "name": "brucite",
+   "family": "oxide",
+   "formula": "Mg(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.39,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Brucite",
+     "measured_range": [
+      2.39,
+      2.4
+     ]
+    },
+    "mohs": {
+     "value": 2.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Brucite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Blue, Gray, Gray blue, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "chamosite",
+   "name": "chamosite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Fe++,Mg,Fe+++)5Al(Si3Al)O10(OH,O)8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Chamosite",
+     "measured_range": [
+      3.0,
+      3.4
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.0,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Chamosite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Gray, Greenish gray, Brown, Blackish green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "chrysotile",
+   "name": "chrysotile",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.53,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Chrysotile"
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Chrysotile"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "clinochlore",
+   "name": "clinochlore",
+   "family": "clay",
+   "formula": "Mg5Al2Si3O10(OH)8",
+   "composition": "(Mg,Fe++)5Al(Si3Al)O10(OH)8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.65,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Clinochlore",
+     "measured_range": [
+      2.55,
+      2.75
+     ]
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Clinochlore"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Blackish green, Bluish green, White, Yellowish green, Olive ",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "illite",
+   "name": "illite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(K,H3O)(Al,Mg,Fe)2(Si,Al)4O10[(OH)2,(H2O)]",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.75,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Illite",
+     "measured_range": [
+      2.6,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 1.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Illite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "lizardite",
+   "name": "lizardite",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.57,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Lizardite",
+     "measured_range": [
+      2.55,
+      2.6
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Lizardite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "triclinic",
+   "color": "Green, Green blue, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "montmorillonite",
+   "name": "montmorillonite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Na,Ca)0,3(Al,Mg)2Si4O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.35,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Montmorillonite",
+     "measured_range": [
+      2.0,
+      2.7
+     ]
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.5,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Montmorillonite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White, Gray white, Yellow, Brownish yellow, Greenish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "nontronite",
+   "name": "nontronite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Na0.3Fe+++2(Si,Al)4O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Nontronite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.5,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Nontronite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Greenish yellow, Brownish green, Olive green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "palygorskite",
+   "name": "palygorskite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Mg,Al)2Si4O10(OH).4(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Palygorskite",
+     "measured_range": [
+      2.1,
+      2.2
+     ]
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Palygorskite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White, Gray, Brownish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "saponite",
+   "name": "saponite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Ca/2,Na)0,3(Mg,Fe++)3(Si,Al)4O10(OH)2.4(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Saponite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.5,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Saponite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White, Yellowish white, Greenish white, Reddish white, Bluis",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "sepiolite",
+   "name": "sepiolite",
+   "family": "clay",
+   "formula": "Mg4Si6O15(OH)2.6H2O",
+   "composition": "Mg4Si6O15(OH)2.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Sepiolite"
+    },
+    "mohs": {
+     "value": 2.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Sepiolite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Grayish white, Yellowish white, Bluish green white, Reddish ",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "talc",
+   "name": "talc",
+   "family": "clay",
+   "formula": "Mg3Si4O10(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.75,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Talc",
+     "measured_range": [
+      2.7,
+      2.8
+     ]
+    },
+    "mohs": {
+     "value": 1.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      1.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Talc"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Pale green, White, Gray white, Yellowish white, Brownish whi",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "cristobalite",
+   "name": "cristobalite",
+   "family": "oxide",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.27,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Cristobalite"
+    },
+    "mohs": {
+     "value": 6.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.5,
+      6.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Cristobalite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "Blue gray, Brown, Gray, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "lime",
+   "name": "lime",
+   "family": "oxide",
+   "formula": "CaO",
+   "composition": "",
+   "aliases": [
+    "calcium oxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.35,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Lime"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Lime"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "lonsdaleite",
+   "name": "lonsdaleite",
+   "family": "carbon",
+   "formula": "C",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.41,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Lonsdaleite",
+     "measured_range": [
+      3.3,
+      3.52
+     ]
+    },
+    "mohs": {
+     "value": 7.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      7.0,
+      8.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Lonsdaleite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "hexagonal",
+   "color": "Brownish black, Light brownish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "opal",
+   "name": "opal",
+   "family": "oxide",
+   "formula": null,
+   "composition": "SiO2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.09,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Opal",
+     "measured_range": [
+      1.9,
+      2.3
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.5,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Opal"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "amorphous",
+   "color": "White, Yellow, Red, Brown, Blue",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "portlandite",
+   "name": "portlandite",
+   "family": "oxide",
+   "formula": "Ca(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.23,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Portlandite"
+    },
+    "mohs": {
+     "value": 2.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Portlandite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Colorless",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "tridymite",
+   "name": "tridymite",
+   "family": "oxide",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tridymite",
+     "measured_range": [
+      2.28,
+      2.33
+     ]
+    },
+    "mohs": {
+     "value": 6.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.5,
+      7.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Tridymite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "triclinic",
+   "color": "Colorless, White, Yellowish white, Gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "akermanite",
+   "name": "akermanite",
+   "family": "silicate",
+   "formula": "Ca2MgSi2O7",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.94,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Akermanite"
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Akermanite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "Colorless, Grayish, Green, Brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "gehlenite",
+   "name": "gehlenite",
+   "family": "silicate",
+   "formula": "Ca2Al2SiO7",
+   "composition": "Ca2Al(AlSi)O7",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.98,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Gehlenite",
+     "measured_range": [
+      2.9,
+      3.07
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Gehlenite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "Brown, Colorless, Greenish, Gray, Yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "grossmanite",
+   "name": "grossmanite",
+   "family": "silicate",
+   "formula": "CaTiAlSiO6",
+   "composition": "CaTi+++AlSiO6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.41,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "calc; page Grossmanite"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hibonite",
+   "name": "hibonite",
+   "family": "oxide",
+   "formula": null,
+   "composition": "(Ca,Ce)(Al,Ti,Mg)12O19",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Hibonite"
+    },
+    "mohs": {
+     "value": 7.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      7.5,
+      8.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Hibonite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "hexagonal",
+   "color": "Black, Black, Reddish brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "melilite",
+   "name": "melilite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Ca,Na)2(Al,Mg,Fe++)(Si,Al)2O7",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.95,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Melilite",
+     "measured_range": [
+      2.9,
+      3.0
+     ]
+    },
+    "mohs": {
+     "value": 5.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Melilite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "White, Yellowish white, Brown, Gray, Greenish gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "analcime",
+   "name": "analcime",
+   "family": "silicate",
+   "formula": "NaAlSi2O6.H2O",
+   "composition": "NaAlSi2O6.(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Analcime"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Analcime"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "triclinic",
+   "color": "White, Grayish white, Greenish white, Yellowish white, Reddi",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "augite",
+   "name": "augite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Ca,Na)(Mg,Fe,Al,Ti)(Si,Al)2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.4,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Augite",
+     "measured_range": [
+      3.2,
+      3.6
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      6.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Augite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Brown green, Green, Light brown, Dark brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "epidote",
+   "name": "epidote",
+   "family": "silicate",
+   "formula": null,
+   "composition": "Ca2(Fe+++,Al)3(SiO4)3(OH) = Ca2(Fe,Al)Al2(SiO4)(Si2O7)O(OH)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.45,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Epidote",
+     "measured_range": [
+      3.3,
+      3.6
+     ]
+    },
+    "mohs": {
+     "value": 7.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      7.0,
+      7.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Epidote"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Yellowish green, Brownish green, Black, Yellow, Gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hornblende",
+   "name": "hornblende",
+   "family": "silicate",
+   "formula": null,
+   "composition": "Ca2(Mg,Fe,Al)5(Si,Al)8O22(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.23,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed average of 3 to 3.47 (the page of magnesiohornblende, where webmineral redirects hornblende); page Magnesiohornblende",
+     "measured_range": [
+      3.0,
+      3.47
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Magnesiohornblende"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Brown, Green, Greenish brown, Greenish black, Dark green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hypersthene",
+   "name": "hypersthene",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Mg,Fe++)2Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.55,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Hypersthene",
+     "measured_range": [
+      3.2,
+      3.9
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.5,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Hypersthene"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Grayish white, Greenish white, Yellowish white, Bronzy brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "jadeite",
+   "name": "jadeite",
+   "family": "silicate",
+   "formula": "NaAlSi2O6",
+   "composition": "Na(Al,Fe+++)Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Jadeite",
+     "measured_range": [
+      3.25,
+      3.35
+     ]
+    },
+    "mohs": {
+     "value": 6.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.5,
+      6.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Jadeite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Green, White, Pale bluish gray, Grayish green, Pale purple",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "leucite",
+   "name": "leucite",
+   "family": "silicate",
+   "formula": "KAlSi2O6",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.47,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Leucite"
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Leucite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "Colorless, Gray, Yellow gray, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "nepheline",
+   "name": "nepheline",
+   "family": "silicate",
+   "formula": "NaAlSiO4",
+   "composition": "(Na,K)AlSiO4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.59,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Nepheline",
+     "measured_range": [
+      2.55,
+      2.65
+     ]
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Nepheline"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "hexagonal",
+   "color": "White, Gray, Brown, Brownish gray, Reddish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "pigeonite",
+   "name": "pigeonite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Mg,Fe++,Ca)(Mg,Fe++)Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.38,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Pigeonite",
+     "measured_range": [
+      3.3,
+      3.46
+     ]
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      6.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Pigeonite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Brown, Greenish brown, Light purple brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "tremolite",
+   "name": "tremolite",
+   "family": "silicate",
+   "formula": "Ca2Mg5Si8O22(OH)2",
+   "composition": "[ ]Ca2Mg5Si8O22(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.05,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tremolite",
+     "measured_range": [
+      2.9,
+      3.2
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      6.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Tremolite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Brown, Colorless, Gray, White, Light green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "wollastonite",
+   "name": "wollastonite",
+   "family": "silicate",
+   "formula": "CaSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed average of 2.8 to 2.9 (Wollastonite-1A page; the research file had a recalled 2.9); page Wollastonite-1A",
+     "measured_range": [
+      2.8,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Wollastonite-1A"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "triclinic",
+   "color": "White, Yellow, Gray, Red, Brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "ankerite",
+   "name": "ankerite",
+   "family": "carbonate",
+   "formula": null,
+   "composition": "Ca(Fe++,Mg,Mn)(CO3)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.05,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 3 to 3.1; page Ankerite",
+     "measured_range": [
+      3.0,
+      3.1
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Ankerite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Brown, Brownish yellow, Gray, Gray brown, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "aragonite",
+   "name": "aragonite",
+   "family": "carbonate",
+   "formula": "CaCO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.93,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Aragonite"
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Aragonite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Colorless, White, Gray, Yellowish white, Reddish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "dolomite",
+   "name": "dolomite",
+   "family": "carbonate",
+   "formula": "CaMg(CO3)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.8 to 2.9; page Dolomite",
+     "measured_range": [
+      2.8,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Dolomite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "White, Gray, Reddish white, Brownish white, Gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hydromagnesite",
+   "name": "hydromagnesite",
+   "family": "carbonate",
+   "formula": "Mg5(CO3)4(OH)2.4H2O",
+   "composition": "Mg5(CO3)4(OH)2.4(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.18,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.16 to 2.2; page Hydromagnesite",
+     "measured_range": [
+      2.16,
+      2.2
+     ]
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Hydromagnesite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "magnesite",
+   "name": "magnesite",
+   "family": "carbonate",
+   "formula": "MgCO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Magnesite"
+    },
+    "mohs": {
+     "value": 4.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      4.0,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Magnesite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Colorless, White, Grayish white, Yellowish white, Brownish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "nesquehonite",
+   "name": "nesquehonite",
+   "family": "carbonate",
+   "formula": "Mg(HCO3)(OH).2H2O",
+   "composition": "Mg(HCO3)(OH).2(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 1.83 to 1.85; page Nesquehonite",
+     "measured_range": [
+      1.83,
+      1.85
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Nesquehonite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "rhodochrosite",
+   "name": "rhodochrosite",
+   "family": "carbonate",
+   "formula": "MnCO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.69,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Rhodochrosite"
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.0,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Rhodochrosite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Pinkish red, Red, Rose red, Yellowish gray, Brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "siderite",
+   "name": "siderite",
+   "family": "carbonate",
+   "formula": "FeCO3",
+   "composition": "Fe++CO3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.96,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Siderite"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Siderite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Yellowish brown, Brown, Gray, Yellowish gray, Greenish gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "alunite",
+   "name": "alunite",
+   "family": "evaporite",
+   "formula": "KAl3(SO4)2(OH)6",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.74,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.59 to 2.9; page Alunite",
+     "measured_range": [
+      2.59,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Alunite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "White, Gray, Yellowish gray, Reddish gray, Yellowish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "anhydrite",
+   "name": "anhydrite",
+   "family": "evaporite",
+   "formula": "CaSO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.97,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.96 to 2.98; page Anhydrite",
+     "measured_range": [
+      2.96,
+      2.98
+     ]
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Anhydrite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Colorless, White, Bluish white, Violet white, Dark gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "bassanite",
+   "name": "bassanite",
+   "family": "evaporite",
+   "formula": "Ca2(SO4)2.H2O",
+   "composition": "2CaSO4.(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.7,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Bassanite"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Colorless, Snow white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "bischofite",
+   "name": "bischofite",
+   "family": "evaporite",
+   "formula": "MgCl2.6H2O",
+   "composition": "MgCl2.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.56,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Bischofite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.5,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Bischofite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "burkeite",
+   "name": "burkeite",
+   "family": "carbonate",
+   "formula": "Na6(CO3)(SO4)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.57,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Burkeite"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Burkeite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Gray, Gray white, White, Light brown, Pink",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "carnallite",
+   "name": "carnallite",
+   "family": "evaporite",
+   "formula": "KMgCl3.6H2O",
+   "composition": "KMgCl3.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.6,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Carnallite"
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Carnallite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Blue, Colorless, Yellow, White, Red",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "epsomite",
+   "name": "epsomite",
+   "family": "evaporite",
+   "formula": "MgSO4.7H2O",
+   "composition": "MgSO4.7(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.67,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 1.67 to 1.68; page Epsomite",
+     "measured_range": [
+      1.67,
+      1.68
+     ]
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Epsomite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Colorless, White, Yellowish white, Greenish white, Pinkish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "glauberite",
+   "name": "glauberite",
+   "family": "evaporite",
+   "formula": "Na2Ca(SO4)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.77,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.7 to 2.85; page Glauberite",
+     "measured_range": [
+      2.7,
+      2.85
+     ]
+    },
+    "mohs": {
+     "value": 2.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Glauberite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, Gray, Gray white, Yellow, Yellowish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hexahydrite",
+   "name": "hexahydrite",
+   "family": "evaporite",
+   "formula": "MgSO4.6H2O",
+   "composition": "MgSO4.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.76,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Hexahydrite"
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Hexahydrite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White, Greenish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "jarosite",
+   "name": "jarosite",
+   "family": "evaporite",
+   "formula": "KFe3(SO4)2(OH)6",
+   "composition": "KFe+++3(SO4)2(OH)6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.09,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.9 to 3.3; page Jarosite",
+     "measured_range": [
+      2.9,
+      3.3
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Jarosite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Brown, Yellow, Yellow brown, Light yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "kainite",
+   "name": "kainite",
+   "family": "evaporite",
+   "formula": "KMgSO4Cl.3H2O",
+   "composition": "MgSO4.KCl.3(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.1,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Kainite"
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.0,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Kainite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Blue, Colorless, Violet, Gray, Gray blue",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "kieserite",
+   "name": "kieserite",
+   "family": "evaporite",
+   "formula": "MgSO4.H2O",
+   "composition": "MgSO4.(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.57,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Kieserite"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Kieserite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, Green yellow, Gray white, Yellowish, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "langbeinite",
+   "name": "langbeinite",
+   "family": "evaporite",
+   "formula": "K2Mg2(SO4)3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.83,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Langbeinite"
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Langbeinite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "Colorless, Violet, Greenish, Gray, Yellowish",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "mirabilite",
+   "name": "mirabilite",
+   "family": "evaporite",
+   "formula": "Na2SO4.10H2O",
+   "composition": "Na2SO4.10(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.49,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Mirabilite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.5,
+      2.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Mirabilite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White, Yellowish white, Greenish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "nahcolite",
+   "name": "nahcolite",
+   "family": "carbonate",
+   "formula": "NaHCO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.21,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Nahcolite"
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Nahcolite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, White, Gray, Brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "natrite",
+   "name": "natrite",
+   "family": "carbonate",
+   "formula": "Na2CO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.54,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Natrite"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      3.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Natrite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, Yellow orange, White, Pink",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "polyhalite",
+   "name": "polyhalite",
+   "family": "evaporite",
+   "formula": "K2Ca2Mg(SO4)4.2H2O",
+   "composition": "K2Ca2Mg(SO4)4.2(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.77,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.77 to 2.78; page Polyhalite",
+     "measured_range": [
+      2.77,
+      2.78
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      3.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Polyhalite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "triclinic",
+   "color": "Colorless, Gray, Gray white, White, Pink",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "sylvite",
+   "name": "sylvite",
+   "family": "evaporite",
+   "formula": "KCl",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.99,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Sylvite"
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Sylvite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "White, Yellowish white, Reddish white, Bluish white, Brownish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "thenardite",
+   "name": "thenardite",
+   "family": "evaporite",
+   "formula": "Na2SO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.68,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.67 to 2.7; page Thenardite",
+     "measured_range": [
+      2.67,
+      2.7
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Thenardite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "White, Grayish white, Yellowish white, Reddish white, Brownish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "thermonatrite",
+   "name": "thermonatrite",
+   "family": "carbonate",
+   "formula": "Na2CO3.H2O",
+   "composition": "Na2CO3.(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.255,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Thermonatrite"
+    },
+    "mohs": {
+     "value": 1.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      1.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Thermonatrite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "Colorless, Grayish yellow, Grayish, Yellowish, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "trona",
+   "name": "trona",
+   "family": "carbonate",
+   "formula": "Na3H(CO3)2.2H2O",
+   "composition": "Na3(CO3)(HCO3).2(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.13,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 2.11 to 2.17; page Trona",
+     "measured_range": [
+      2.11,
+      2.17
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.5,
+      2.5
+     ],
+     "basis": "the middle of the hardness range the page prints; page Trona"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "Colorless, Gray white, Grayish, Yellowish, Yellowish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "chlorapatite",
+   "name": "chlorapatite",
+   "family": "phosphate",
+   "formula": "Ca5(PO4)3Cl",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 3.1 to 3.2; page Apatite-(CaCl)",
+     "measured_range": [
+      3.1,
+      3.2
+     ]
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Apatite-(CaCl)"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "hexagonal",
+   "color": "White, Light yellow, Pink white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "hydroxylapatite",
+   "name": "hydroxylapatite",
+   "family": "phosphate",
+   "formula": "Ca5(PO4)3(OH)",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.08,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Apatite-(CaOH)"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Apatite-(CaOH)"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "hexagonal",
+   "color": "Colorless, White, Gray, Yellow, Yellowish green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "merrillite",
+   "name": "merrillite",
+   "family": "phosphate",
+   "formula": "Ca18Na2Mg2(PO4)14",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.1,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the specific gravity listed (the page also gives a bulk electron density of 3.07); page Merrillite"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "whitlockite",
+   "name": "whitlockite",
+   "family": "phosphate",
+   "formula": "Ca9Mg(PO4)6(PO3OH)",
+   "composition": "Ca9(Mg,Fe++)(PO4)6(PO3OH)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.13,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single value listed; page Whitlockite"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Whitlockite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Colorless, Gray, Gray white, Yellowish, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "mg_perchlorate",
+   "name": "mg_perchlorate",
+   "family": "evaporite",
+   "formula": "Mg(ClO4)2",
+   "composition": "",
+   "aliases": [
+    "magnesium perchlorate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.21,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "PubChem density annotation 2.21 at 68 F (a US Coast Guard record); the research file had a recalled 2.6; page PubChem CID 24840"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=N;alb=N",
+   "note": "",
+   "source": "pubchem",
+   "state": "partly verified",
+   "limit": "mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "ca_perchlorate",
+   "name": "ca_perchlorate",
+   "family": "evaporite",
+   "formula": "Ca(ClO4)2",
+   "composition": "",
+   "aliases": [
+    "calcium perchlorate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.651,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "PubChem record text: density 2.651 g/cm3; page PubChem CID 61629"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=N;alb=N",
+   "note": "",
+   "source": "pubchem",
+   "state": "partly verified",
+   "limit": "mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "smectite",
+   "name": "smectite",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "smectite"
+   ],
+   "members": [
+    "montmorillonite",
+    "saponite",
+    "nontronite",
+    "beidellite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "chlorite",
+   "name": "chlorite",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "chlorite"
+   ],
+   "members": [
+    "clinochlore",
+    "chamosite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "amphibole",
+   "name": "amphibole",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "amphibole"
+   ],
+   "members": [
+    "tremolite",
+    "hornblende"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "apatite",
+   "name": "apatite",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "apatite"
+   ],
+   "members": [
+    "fluorapatite",
+    "chlorapatite",
+    "hydroxylapatite"
    ],
    "gas_formula": null,
    "gate": "any",
