@@ -451,9 +451,11 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1426 | Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets |  | Boss, 2026-11-08. |
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting |  | Lane 11, 2026-11-08. |
 | GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) |  | Lane 15, 2026-11-08. |
-| GEN.1441 | Sum every star's light into each planet's and moon's mean starlight, and feed that one total into temperature, the air and greenhouse solve, albedo and ice, the runaway greenhouse test and the habitable zone |  | Boss, 2026-11-08. |
-| GEN.1442 | Add each companion star's UV and flare dose, by distance, to the dose and ozone calculation of a body | GEN.1441 | Boss, 2026-11-08. |
-| GEN.1443 | Optional second sun in the sky and in the day and night text: daylight and the surface cycle count the other stars as extra suns | GEN.1441 | Boss, 2026-11-08. |
+| GEN.1441 | The radiation field of a system: the time-averaged light, UV, X-ray, flare and particle dose that every radiating object puts on any body, from 3D positions, and its use for the mean starlight of planets and moons |  | Boss, 2026-11-08. |
+| GEN.1442 | Every radiating object's UV, X-ray, flare and particle dose joins the dose and ozone calculation of planets and moons | GEN.1441 | Boss, 2026-11-08. |
+| GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | Boss, 2026-11-08. |
+| GEN.1444 | Belts, asteroids and comets get the same radiation field: temperature, ice survival and surface dose from all sources | GEN.1441 | Boss, 2026-11-08. |
+| GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | Boss, 2026-11-08. |
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 |  | Lane 15, 2026-11-08. |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor |  | Lane 15, 2026-11-08. |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold |  | Lane 15, 2026-11-08. |
