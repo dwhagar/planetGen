@@ -54423,6 +54423,280 @@
       ],
       "slug": "6-219-stand-ins-of-the-water-and-carbon-a-mantle-stores",
       "title": "Stand-ins of the water and carbon a mantle stores"
+    },
+    {
+      "key": "6.233",
+      "number": "6.233",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "BC8 carbon (post-diamond) exists above about 1.1 TPa, from molten carbon: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "the pressure of the first appearance, about 1.1 TPa"
+            ],
+            [
+              "Where it holds",
+              "carbon-rich deep layers at over 1 TPa, which the generator does not make"
+            ],
+            [
+              "What would show it wrong",
+              "a second group that cannot reproduce the diffraction"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5171: abstract]: the first single-crystal diffraction, one group so far (a preprint of 2026-11-04)"
+            ]
+          ],
+          "id": "NM1",
+          "key": "6.233:NM1",
+          "kind": "D",
+          "slug": "6-233-nm1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "BC8 carbon (post-diamond) exists above about 1.1 TPa, from molten carbon: a status entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic water ice (bcc and fcc oxygen lattices) exists above about 900 K and 20 GPa (bcc) and about 1300 K and 29 GPa (fcc) in a diamond cell, and near 190 GPa by shock: a status entry, the boundary itself is a build item"
+            ],
+            [
+              "The range it moves in",
+              "the boundary: the two experiments disagree, so the wider range"
+            ],
+            [
+              "Where it holds",
+              "water worlds and ice-giant mantles"
+            ],
+            [
+              "What would show it wrong",
+              "a boundary outside both experiments' range"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5172: abstract] for the diamond cell; the 2019 shock diffraction is not opened yet"
+            ]
+          ],
+          "id": "NM2",
+          "key": "6.233:NM2",
+          "kind": "D",
+          "slug": "6-233-nm2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "superionic water ice (bcc and fcc oxygen lattices) exists above about 900 K and 20 GPa (bcc) and about 1300 K and 29 GPa (fcc) in a diamond cell, and near 190 GPa by shock: a status entry, the boundary itself is a build item"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnesium peroxide MgO2 exists above 94 GPa and 2150 K: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "94 GPa and 2150 K"
+            ],
+            [
+              "Where it holds",
+              "mantles of the largest rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "a peroxide not seen by Raman on release or at pressure"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5173: abstract]: synthesised, the peroxide ion seen by Raman"
+            ]
+          ],
+          "id": "NM3",
+          "key": "6.233:NM3",
+          "kind": "D",
+          "slug": "6-233-nm3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "magnesium peroxide MgO2 exists above 94 GPa and 2150 K: a status entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "Na2He exists at high pressure: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "the pressure of formation"
+            ],
+            [
+              "Where it holds",
+              "deep interiors of helium-rich bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a synthesis that does not reproduce"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5174: abstract]: predicted, then synthesised"
+            ]
+          ],
+          "id": "NM4",
+          "key": "6.233:NM4",
+          "kind": "D",
+          "slug": "6-233-nm4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "Na2He exists at high pressure: a status entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "iron-helium FeHe(x) exists, x up to 0.13 in the fcc and 0.48 in the hcp phase, from 5 to 54 GPa, and survives release at room temperature: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "x of 0.13 and 0.48"
+            ],
+            [
+              "Where it holds",
+              "iron cores with trapped helium"
+            ],
+            [
+              "What would show it wrong",
+              "a compound that does not survive release"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5175: abstract]"
+            ]
+          ],
+          "id": "NM5",
+          "key": "6.233:NM5",
+          "kind": "D",
+          "slug": "6-233-nm5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "iron-helium FeHe(x) exists, x up to 0.13 in the fcc and 0.48 in the hcp phase, from 5 to 54 GPa, and survives release at room temperature: a status entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "Xe-Fe and Xe-Ni compounds exist at core conditions: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "core pressure and temperature"
+            ],
+            [
+              "Where it holds",
+              "iron cores, the missing-xenon question"
+            ],
+            [
+              "What would show it wrong",
+              "compounds that do not form at core conditions"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5176: abstract]: made in a diamond cell"
+            ]
+          ],
+          "id": "NM6",
+          "key": "6.233:NM6",
+          "kind": "D",
+          "slug": "6-233-nm6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "Xe-Fe and Xe-Ni compounds exist at core conditions: a status entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cubic gauche polymeric nitrogen (cg-N) exists at ambient pressure: a status entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "room pressure and temperature"
+            ],
+            [
+              "Where it holds",
+              "nitrogen-rich ices"
+            ],
+            [
+              "What would show it wrong",
+              "an ambient sample that decays"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5177: abstract] and [R5178: abstract]: two 2024 syntheses, Raman evidence"
+            ]
+          ],
+          "id": "NM7",
+          "key": "6.233:NM7",
+          "kind": "D",
+          "slug": "6-233-nm7",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cubic gauche polymeric nitrogen (cg-N) exists at ambient pressure: a status entry, no number"
+        }
+      ],
+      "slug": "6-233-stand-ins-of-the-materials-seen-since-the-textbooks",
+      "title": "Stand-ins of the materials seen since the textbooks"
     }
   ]
 }
