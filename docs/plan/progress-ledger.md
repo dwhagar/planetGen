@@ -2994,3 +2994,4 @@ Baseline: PR #1817.
 | PERF.255 | 8.1 | Stand-in replacements |
 | TEST.692 | 8.1 | Bugs and flaky tests |
 | TEST.691 | 8.1 | Bugs and flaky tests |
+| PERF.253 | 8.1 | Bugs and flaky tests |

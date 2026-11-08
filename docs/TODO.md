@@ -13405,12 +13405,6 @@ clears each one.
   Prerequisites: none. Related: UX.291, MAP.347, TEST.696.
   Filed by the TODO thread.
 
-- [ ] **PERF.253 test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)**
-  Lane 05 (as the lane reported, 9:07 AM EST on 2026-11-08), from the GEN.1390 grouping: test_systems.py::test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s test timeout inside habitability_world.world_from, in temperature_coverage.series_of_values. Do: find why one forced case spends more than 900 s there (an unbounded or repeated series for a moon of a binary B2V host) and cut it without changing any value; if it is only slowness it is lock-free. Done: the case runs well inside the timeout and the profile is written down.
-  Prerequisites: none. Related: GEN.1390, TEST.695.
-  Owner (proposed by TODO, confirm with TODO before taking): Lane 05.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
   Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
