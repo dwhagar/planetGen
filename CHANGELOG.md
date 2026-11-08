@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3664] - 2026-11-08
+
+**Headline:** The Generate page's size and time estimate, which runs in the work queue since ADM.141, is on the queue's allowlist, so the worker no longer refuses it.
+
+### Changed
+- `planetgen.web.lib.estimatejob:work` is added to `allowlist.API_FUNCTIONS`. ADM.141 moved the estimate into the work queue but left the function off the list, so `api_jobs.execute` refused it and `test_every_function_the_api_queues_is_on_the_list` failed on main.
+
 ## [8.0.3663] - 2026-11-08
 
 **Headline:** A run killed while it was cutting the next stage into units now says so, names that stage, and logs what the cut is doing and how much memory it holds; the starting-sector and scatter workers are sized from the full-galaxy run that went over.
