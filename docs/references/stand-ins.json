@@ -41461,6 +41461,204 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.220",
+      "number": "6.220",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "1 bar, solar composition"
+            ],
+            [
+              "What would show it wrong",
+              "a condensation sequence at 1 bar that puts the titanium or the chromium cloud more than 50 K from these"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R2725] (the 1963 K and the 1958 K of perovskite alone) and [R2731: section 1.5.3] were opened for this item; the iron fit of the same code gives 1838 K against the review's 1843 K"
+            ]
+          ],
+          "id": "BD1",
+          "key": "6.220:BD1",
+          "kind": "P",
+          "slug": "6-220-bd1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "0.1 to 10 bar, [Fe/H] -1 to +1"
+            ],
+            [
+              "What would show it wrong",
+              "a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade"
+            ],
+            [
+              "What replaces it",
+              "the slopes of the stability fields in the figures of [R2725, R2731], read"
+            ],
+            [
+              "Evidence",
+              "the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact"
+            ]
+          ],
+          "id": "BD2",
+          "key": "6.220:BD2",
+          "kind": "P",
+          "slug": "6-220-bd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "brown dwarfs above 65 Jupiter masses"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models"
+            ],
+            [
+              "What replaces it",
+              "the depletion against mass and age from the evolutionary models"
+            ],
+            [
+              "Evidence",
+              "the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled)"
+            ]
+          ],
+          "id": "BD3",
+          "key": "6.220:BD3",
+          "kind": "P",
+          "slug": "6-220-bd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 6000 K, ideal gas, 1 bar standard state"
+            ],
+            [
+              "What would show it wrong",
+              "a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K"
+            ],
+            [
+              "What replaces it",
+              "the NASA Glenn or JANAF fit of the two gases, if one is published"
+            ],
+            [
+              "Evidence",
+              "the fits are the polynomial that FastChem ships for the data of [R5162]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here"
+            ]
+          ],
+          "id": "BD4",
+          "key": "6.220:BD4",
+          "kind": "P",
+          "slug": "6-220-bd4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 883 K crystal, above it liquid; below 300 K read at 300 K"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium condensate that forms at another temperature at 1 bar: [R2731: section 1.5.5] names Li2S (low pressure) and LiF (high pressure) and gives no temperature"
+            ],
+            [
+              "What replaces it",
+              "Li2S and LiF, if their free energies are held"
+            ],
+            [
+              "Evidence",
+              "the database holds no Li2S or LiF gas or crystal in the file; LiCl is the lithium and chlorine condensate it does hold, and without any lithium condensate the chlorine of the cold air re-forms HCl ice for ever (the caps did not settle)"
+            ]
+          ],
+          "id": "BD5",
+          "key": "6.220:BD5",
+          "kind": "P",
+          "slug": "6-220-bd5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
+        }
+      ],
+      "slug": "6-220-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
+      "title": "Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air"
+    },
+    {
       "key": "6.210",
       "number": "6.210",
       "rows": [
@@ -42459,7 +42657,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
         },
         {
@@ -42497,7 +42695,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
         },
         {
@@ -42535,7 +42733,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
         },
         {
@@ -42573,7 +42771,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
         },
         {
@@ -42615,7 +42813,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
         },
         {
@@ -42653,8 +42851,46 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
+            ],
+            [
+              "The range it moves in",
+              "spread of f7 (core 0.15 dex, tail to 1.5)"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc (not a brown dwarf or a rogue)"
+            ],
+            [
+              "What would show it wrong",
+              "a retrieved sample whose C/O spread around the disc value is narrower"
+            ],
+            [
+              "What replaces it",
+              "a model of what a giant swallows after the disc has set the place"
+            ],
+            [
+              "Evidence",
+              "f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center"
+            ]
+          ],
+          "id": "DSC7",
+          "key": "6.213:DSC7",
+          "kind": "P",
+          "slug": "6-213-dsc7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": null,
+          "what": "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
         }
       ],
       "slug": "6-213-stand-ins-of-the-species-the-disk-condenses",
