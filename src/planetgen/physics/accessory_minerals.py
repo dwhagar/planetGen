@@ -28,6 +28,7 @@ phosphates, but the aluminium that the spinel takes does not come out of the pla
 import math
 
 from planetgen import tuning
+from planetgen.physics import materials
 
 ACCESSORIES = {
     "C": {"cronstedtite": 0.100, "saponite": 0.040, "dolomite": 0.020, "magnesite": 0.010, "pentlandite": 0.012, "pyrrhotite": 0.012, "tochilinite": 0.020, "epsomite": 0.015,
@@ -56,6 +57,20 @@ CONTROL = {
 
 HOST_FIELD = {"Cr": "cr", "Ti": "ti", "P": "p", "Al": "al", "Ni": "ni", "Mn": "mn", "Na": "na"}
 """dict: Element -> the `bulk_draw.HostRatios` attribute that holds its atoms per magnesium atom."""
+
+
+def _check_rows():
+    """Every row an accessory list or the control table names is in the materials table, and every share is a fraction (a row with no entry is refused when the module loads)."""
+    for taxon, rows in ACCESSORIES.items():
+        for row, share in rows.items():
+            materials.material(row)
+            if not 0.0 < share < 1.0:
+                raise ValueError(f"the accessory share of {row} in taxon {taxon} must be a fraction")
+    for row in CONTROL:
+        materials.material(row)
+
+
+_check_rows()
 
 
 def reference_ratio(element):

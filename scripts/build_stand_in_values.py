@@ -319,6 +319,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.207", "6.207 Stand-in of the bodies an asteroid field stores",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.213", "6.213 Stand-ins of the accessory minerals of the asteroid taxon mixes",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.210", "6.210 Stand-ins of the minor oxides of a rocky body's rock",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.209", "6.209 Stand-ins of the nine added star elements",

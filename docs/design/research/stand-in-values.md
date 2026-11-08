@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1273 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1277 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 167 | 18 | 11 | 1 | 0 | 197 |
 | T2 | 125 | 52 | 1 | 1 | 0 | 179 |
-| T3 | 94 | 42 | 7 | 9 | 0 | 152 |
+| T3 | 96 | 42 | 7 | 9 | 0 | 154 |
 | T4 | 57 | 7 | 2 | 19 | 10 | 95 |
 | T5 | 54 | 22 | 3 | 1 | 0 | 80 |
-| T6 | 132 | 92 | 25 | 62 | 0 | 311 |
+| T6 | 134 | 92 | 25 | 62 | 0 | 313 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 700 | 265 | 61 | 202 | 45 | 1273 |
+| All | 704 | 265 | 61 | 202 | 45 | 1277 |
 
 ## How the labels were given
 
@@ -1800,6 +1800,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.213 Stand-ins of the accessory minerals of the asteroid taxon mixes
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ACC1 | P | T3 | L0 | accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like | each share within a factor of 2 | the ordinary, differentiated and enstatite taxa | a modal analysis of the analogue meteorites whose accessory shares lie outside a factor of 2 of these | the modal averages read from the group reviews | the ranges of the research file `chondrite_groups_modal_and_minerals.csv` (chromite 0.5 to 0.7, phosphates about 0.5 for the ordinary chondrites), recalled; not opened | - | - |
+| ACC2 | P | T3 | L0 | accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5 | each within a factor of 2 (the nanodiamond and silicon carbide shares within a factor of 10) | the carbonaceous taxa | a modal analysis outside those ranges | the modal averages of the carbonaceous groups | the research file's CI, CM, CO and CV lines, recalled; the nanodiamond and silicon carbide abundances are orders of magnitude from the recalled ppm of Murchison-type meteorites | - | - |
+| ACC3 | B | T6 | L0 | accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled | none | belts with a host star | a measured dependence of the carbonate or sulfide share on the host star's bulk | a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items) | the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them | - | - |
+| ACC4 | T | T6 | L0 | accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap | the exponent 0.5 to 1.5 | stars within a factor of 3 of the reference in the element | a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus | a speciation of the bulk in which the mineral competes for its cations | the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit | - | - |
 
 ## 6.210 Stand-ins of the minor oxides of a rocky body's rock
 

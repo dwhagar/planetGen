@@ -418,3 +418,8 @@ VOCABULARY_ONLY["smectite"] = ("group added as table data (GEN.1355): surface_co
 _ADDED_BY_1357 = "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
 _NORM_NAMED_1357 = ("apatite", "chlorapatite", "hydroxylapatite")   # the norm (physics/rock_types.py) names apatite, and the group reaches its members
 VOCABULARY_ONLY.update({row_id: _ADDED_BY_1357 for row_id in (*PART3_MINERALS, *PART3_GROUPS) if row_id not in _NORM_NAMED_1357})
+
+# GEN.1368: the taxon mixes carry these as accessory minerals (physics/accessory_minerals.py names them), so they lose their tag
+_READ_BY_1368 = ('alabandite', 'carbon_diamond', 'carbon_graphite', 'chlorapatite', 'chromite', 'cohenite', 'cronstedtite', 'daubreelite', 'dolomite', 'epsomite', 'gypsum', 'hibonite', 'hydroxylapatite', 'ilmenite', 'magnesite', 'melilite', 'merrillite', 'moissanite', 'nepheline', 'niningerite', 'oldhamite', 'pentlandite', 'perovskite', 'pyrrhotite', 'saponite', 'sinoite', 'spinel', 'tochilinite', 'whitlockite')
+for _row_id in _READ_BY_1368:
+    VOCABULARY_ONLY.pop(_row_id, None)

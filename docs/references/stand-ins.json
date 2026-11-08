@@ -40841,6 +40841,166 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.213",
+      "number": "6.213",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+            ],
+            [
+              "The range it moves in",
+              "each share within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "the ordinary, differentiated and enstatite taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis of the analogue meteorites whose accessory shares lie outside a factor of 2 of these"
+            ],
+            [
+              "What replaces it",
+              "the modal averages read from the group reviews"
+            ],
+            [
+              "Evidence",
+              "the ranges of the research file chondrite_groups_modal_and_minerals.csv (chromite 0.5 to 0.7, phosphates about 0.5 for the ordinary chondrites), recalled; not opened"
+            ]
+          ],
+          "id": "ACC1",
+          "key": "6.213:ACC1",
+          "kind": "P",
+          "slug": "6-213-acc1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2 (the nanodiamond and silicon carbide shares within a factor of 10)"
+            ],
+            [
+              "Where it holds",
+              "the carbonaceous taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis outside those ranges"
+            ],
+            [
+              "What replaces it",
+              "the modal averages of the carbonaceous groups"
+            ],
+            [
+              "Evidence",
+              "the research file's CI, CM, CO and CV lines, recalled; the nanodiamond and silicon carbide abundances are orders of magnitude from the recalled ppm of Murchison-type meteorites"
+            ]
+          ],
+          "id": "ACC2",
+          "key": "6.213:ACC2",
+          "kind": "P",
+          "slug": "6-213-acc2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "belts with a host star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dependence of the carbonate or sulfide share on the host star's bulk"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items)"
+            ],
+            [
+              "Evidence",
+              "the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them"
+            ]
+          ],
+          "id": "ACC3",
+          "key": "6.213:ACC3",
+          "kind": "B",
+          "slug": "6-213-acc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+            ],
+            [
+              "The range it moves in",
+              "the exponent 0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "stars within a factor of 3 of the reference in the element"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the bulk in which the mineral competes for its cations"
+            ],
+            [
+              "Evidence",
+              "the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit"
+            ]
+          ],
+          "id": "ACC4",
+          "key": "6.213:ACC4",
+          "kind": "T",
+          "slug": "6-213-acc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+        }
+      ],
+      "slug": "6-213-stand-ins-of-the-accessory-minerals-of-the-asteroid-taxon-mixes",
+      "title": "Stand-ins of the accessory minerals of the asteroid taxon mixes"
+    },
+    {
       "key": "6.210",
       "number": "6.210",
       "rows": [
