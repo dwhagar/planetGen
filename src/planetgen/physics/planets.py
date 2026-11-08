@@ -494,6 +494,10 @@ def settle_giant(planet):
         bool: Whether the giant's radius moved.
     """
     if not giant_draw.settle(planet):
+        # The radius stayed (the tables moved it by under the tolerance, or the giant was sized another way), but the star's age rose after the flux was
+        # stored and the giant's own heat falls with the age: the flux it radiates is made again at the final age.
+        if not planet.is_moon and getattr(planet, "energy_flux_w_m2", None) is not None:
+            planet.energy_flux_w_m2 = habitability_world.giant_energy_flux_w_m2(planet)
         return False
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     calculate_surface_gravity(planet)
