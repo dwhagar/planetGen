@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.293 |
 | MAP | MAP.409 |
 | NAV | NAV.78 |
-| GEN | GEN.1403 |
+| GEN | GEN.1408 |
 | PERF | PERF.254 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2181,6 +2181,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) | none | open |
 | GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) | none | open |
 | GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) | none | open |
+| GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | open |
+| GEN.1404 | Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives | none | open |
+| GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | open |
+| GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | open |
+| GEN.1407 | K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light | none | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | done, PR #5688 |
