@@ -20,7 +20,8 @@ table and the name for an object saved on its own. An object that has a composit
 * `abundance_c` and the rest of the seven: 12 + log(X/H) of the gas phase (NULL where a hydrogen-free ejecta has none);
 * `ionized_share`, `atomic_share`, `molecular_share`: the shares of the hydrogen mass in each phase (add to 1);
 * `dust_to_gas`, `dust_to_metals`: dust mass over gas mass, and over metal mass;
-* `grain_silicate`, `grain_iron`, `grain_carbon`, `grain_pah`, `grain_ice`: the share of the dust mass in each grain kind (add to 1 where there is dust);
+* `grain_amorphous_olivine`, `grain_amorphous_pyroxene`, `grain_crystalline_silicate`, `grain_iron`, `grain_amorphous_carbon`, `grain_graphite`, `grain_pah`, `grain_sic`, `grain_ice`: the
+  share of the dust mass in each grain species (add to 1 where there is dust; GEN.1376); the molecules of the ice mantle are `nebula_composition.ICE_MANTLE`, one table, not stored;
 * `progenitor_mass_sol`: the initial mass of the star that made a planetary nebula (classes H to L) or a remnant; NULL for the other nebulae.
 
 A remnant adds `ejecta_mass_sol` and `swept_mass_sol` (the mass thrown out by the explosion and the interstellar mass inside the blast wave, solar masses) and the
@@ -45,8 +46,11 @@ from planetgen.physics import planetary_nebula_ejecta as pne
 from planetgen.physics import remnant_composition as rc
 
 ABUNDANCE_ELEMENTS = nc.ABUNDANCE_ELEMENTS
-GRAIN_COLUMNS = {"silicate": "grain_silicate", "iron": "grain_iron", "carbon": "grain_carbon", "PAH": "grain_pah", "ice": "grain_ice"}
-"""dict: The grain kind of `nebula_composition.GRAINS` -> its column."""
+GRAIN_COLUMNS = {
+    "amorphous_olivine": "grain_amorphous_olivine", "amorphous_pyroxene": "grain_amorphous_pyroxene", "crystalline_silicate": "grain_crystalline_silicate",
+    "iron": "grain_iron", "amorphous_carbon": "grain_amorphous_carbon", "graphite": "grain_graphite", "PAH": "grain_pah", "SiC": "grain_sic", "ice": "grain_ice",
+}
+"""dict: The grain species of `nebula_composition.SPECIES` -> its column (GEN.1376 split the silicate and carbon columns of GEN.1276 and added SiC)."""
 
 COMMON_COLUMNS = (
     "gas_oh_dex", "mass_fraction_h", "mass_fraction_he", "mass_fraction_z",
@@ -83,7 +87,8 @@ SPECIES_SHARE = 0.05
 GRAIN_NAME_SHARE = 0.15
 """float: The share of the dust a grain kind must hold to be named in `species_summary`. [Stand-in NBC15, tier T9, tweak L0: a wording cut, no physics.]"""
 
-_GRAIN_WORDS = {"silicate": "silicate dust", "iron": "iron dust", "carbon": "carbon dust", "PAH": "PAH molecules", "ice": "ice mantles"}
+_GRAIN_WORDS = {"amorphous_olivine": "amorphous olivine dust", "amorphous_pyroxene": "amorphous pyroxene dust", "crystalline_silicate": "crystalline silicate dust", "iron": "iron dust",
+                "amorphous_carbon": "amorphous carbon dust", "graphite": "graphite dust", "PAH": "PAH molecules", "SiC": "silicon carbide dust", "ice": "ice mantles"}
 _ELEMENT_WORDS = {"C": "carbon", "N": "nitrogen", "O": "oxygen", "Ne": "neon", "S": "sulfur", "Ar": "argon", "Fe": "iron"}
 
 
@@ -145,7 +150,7 @@ def _common(made, oh, progenitor_mass):
     for column, value in made.values().items():
         values[column] = value
     for kind, column in GRAIN_COLUMNS.items():
-        values[column] = made.grains.get(kind, 0.0)
+        values[column] = made.species.get(kind, 0.0)
     return {column: (None if value != value else value) for column, value in values.items()}
 
 

@@ -156385,6 +156385,33 @@
    "volume": "609",
    "year": 2004
   },
+  "10.1086/421339": {
+   "authors": [
+    [
+     "Kemper",
+     "F."
+    ],
+    [
+     "Vriend",
+     "W. J."
+    ],
+    [
+     "Tielens",
+     "A. G. G. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/421339",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "826",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium",
+   "type": "journal-article",
+   "volume": "609",
+   "year": 2004
+  },
   "10.1086/422087": {
    "authors": [
     [
@@ -158685,6 +158712,29 @@
    "title": "A Near‐Infrared Study of 2MASS Bars in Local Galaxies: An Anchor for High‐Redshift Studies",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "657",
+   "year": 2007
+  },
+  "10.1086/511055": {
+   "authors": [
+    [
+     "Draine",
+     "B. T."
+    ],
+    [
+     "Li",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/511055",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "810",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era",
+   "type": "journal-article",
    "volume": "657",
    "year": 2007
   },
@@ -184318,6 +184368,37 @@
    "title": "A road-map to white dwarf pollution: Tidal disruption, eccentric grind-down, and dust accretion",
    "type": "journal-article",
    "volume": "",
+   "year": 2021
+  },
+  "10.1093/mnras/stab3175": {
+   "authors": [
+    [
+     "Chen",
+     "T."
+    ],
+    [
+     "Xiao",
+     "C. Y."
+    ],
+    [
+     "Li",
+     "A."
+    ],
+    [
+     "Zhou",
+     "C. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stab3175",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "5231",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Where have all the interstellar silicon carbides gone?",
+   "type": "journal-article",
+   "volume": "509",
    "year": 2021
   },
   "10.1093/mnras/stab323": {
@@ -235892,6 +235973,25 @@
    "volume": "40",
    "year": 2002
   },
+  "10.1146/annurev.astro.41.011802.094840": {
+   "authors": [
+    [
+     "Draine",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.astro.41.011802.094840",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "241",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Interstellar Dust Grains",
+   "type": "journal-article",
+   "volume": "41",
+   "year": 2003
+  },
   "10.1146/annurev.astro.41.011802.094844": {
    "arxiv": "astro-ph/0301540",
    "authors": [
@@ -255011,6 +255111,29 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "Volumetric Rates of Luminous Red Novae and Intermediate-luminosity Red Transients with the Zwicky Transient Facility",
+   "type": "journal-article",
+   "volume": "948",
+   "year": 2023
+  },
+  "10.3847/1538-4357/acc4c2": {
+   "authors": [
+    [
+     "Hensley",
+     "B. S."
+    ],
+    [
+     "Draine",
+     "B. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/acc4c2",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "55",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium",
    "type": "journal-article",
    "volume": "948",
    "year": 2023
@@ -280065,7 +280188,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5143,
+ "id_next": 5148,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282370,6 +282493,7 @@
   "10.1086/383525": "R2788",
   "10.1086/420709": "R1621",
   "10.1086/421232": "R3951",
+  "10.1086/421339": "R5143",
   "10.1086/422087": "R0700",
   "10.1086/422919": "R0362",
   "10.1086/423264": "R4423",
@@ -282434,6 +282558,7 @@
   "10.1086/510380": "R0528",
   "10.1086/510999": "R4785",
   "10.1086/511025": "R3035",
+  "10.1086/511055": "R5145",
   "10.1086/511129": "R3959",
   "10.1086/511150": "R5129",
   "10.1086/511302": "R0331",
@@ -283051,6 +283176,7 @@
   "10.1093/mnras/stab2897": "R3796",
   "10.1093/mnras/stab2969": "R2899",
   "10.1093/mnras/stab3009": "R4990",
+  "10.1093/mnras/stab3175": "R5146",
   "10.1093/mnras/stab323": "R1236",
   "10.1093/mnras/stab3624": "R0573",
   "10.1093/mnras/stab370": "R0458",
@@ -284202,6 +284328,7 @@
   "10.1146/annurev.astro.38.1.427": "R1226",
   "10.1146/annurev.astro.40.060401.093840": "R1451",
   "10.1146/annurev.astro.40.060401.093923": "R3910",
+  "10.1146/annurev.astro.41.011802.094840": "R5144",
   "10.1146/annurev.astro.41.011802.094844": "R2530",
   "10.1146/annurev.astro.41.071601.170049": "R2278",
   "10.1146/annurev.astro.41.090401.094542": "R2942",
@@ -284702,6 +284829,7 @@
   "10.3847/1538-4357/acbcc7": "R4732",
   "10.3847/1538-4357/acbd44": "R1153",
   "10.3847/1538-4357/acc2b9": "R2245",
+  "10.3847/1538-4357/acc4c2": "R5147",
   "10.3847/1538-4357/acc795": "R2723",
   "10.3847/1538-4357/acc9ae": "R1605",
   "10.3847/1538-4357/ace346": "R2088",
