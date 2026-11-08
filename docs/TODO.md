@@ -12960,7 +12960,7 @@ clears each one.
   Prerequisites: none. Related: MAP.401.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
-  SPLIT (Boss wants the oxygen fixes in train 18; Lane 21's read at 12:35 AM EST on 2026-11-08, report reports/gen1309-oxygen-census-after-train14-2026-11-07.md): of 3,544 bodies only 10 have a living sea and 16 kPa of oxygen. They miss class M because (a) CO2 over the 1 kPa limit, 8 of 10 (1.5 to 17 kPa, no CO2 draw-down is modelled for an oxygen world), (b) thin near-pure-oxygen air under 50 kPa, 4 of 10 (the steady-oxygen law adds oxygen on top of the air that exists), (c) gravity over 2 g, 4 of 13 (mass distribution, not oxygen). Lane 21 corrected itself at 12:36 AM EST: a thin-air split has no clean physics (Earth's oxygen is limited by buried carbon in rock, not by air CO2) and would not raise the class M count, since capping the oxygen share only makes low-oxygen thin airs; so no share cap is built. The real lever is the CO2. Part 1 and part 2 are now one lock item, owner Lane 21 with Lane 15 measuring first, aimed at train 18 if the measure and a physical law are ready before the freeze, otherwise train 19: the CO2 draw-down (weathering and burial holding an oxygenic world's CO2 near the carbonate balance, using the law already in surface_pressure.py); Lane 15 measures how CO2 reaches 5 to 17 kPa and reports before any law is chosen. Even a perfect fix gives only about 5 to 8 more class M per 3,544 bodies; the rest of the gap is the unmet habitable request (GEN.909, GEN.853).
+  SPLIT (Boss wants the oxygen fixes in train 18; Lane 21's read at 12:35 AM EST on 2026-11-08, report reports/gen1309-oxygen-census-after-train14-2026-11-07.md): of 3,544 bodies only 10 have a living sea and 16 kPa of oxygen. They miss class M because (a) CO2 over the 1 kPa limit, 8 of 10 (1.5 to 17 kPa, no CO2 draw-down is modelled for an oxygen world), (b) thin near-pure-oxygen air under 50 kPa, 4 of 10 (the steady-oxygen law adds oxygen on top of the air that exists), (c) gravity over 2 g, 4 of 13 (mass distribution, not oxygen). Lane 21 corrected itself at 12:36 AM EST: a thin-air split has no clean physics (Earth's oxygen is limited by buried carbon in rock, not by air CO2) and would not raise the class M count, since capping the oxygen share only makes low-oxygen thin airs; so no share cap is built. The real lever is the CO2. Part 1 and part 2 are now one lock item, owner Lane 21 with Lane 15 measuring first, aimed at train 18 if the measure and a physical law are ready before the freeze, otherwise train 19: the CO2 draw-down (weathering and burial holding an oxygenic world's CO2 near the carbonate balance, using the law already in surface_pressure.py); Lane 15 measures how CO2 reaches 5 to 17 kPa and reports before any law is chosen. Even a perfect fix gives only about 5 to 8 more class M per 3,544 bodies; the rest of the gap is that a request for a habitable world mostly goes unmet because few temperate liquid-water worlds exist (GEN.909 diagnosed this as cold by the physics, no code change; GEN.853 is a different, finished item about civilizations, so it is not part of this).
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
   (1437-world sample: no world reaches even a partial match with M, H, L,
@@ -12994,6 +12994,7 @@ clears each one.
   Progress (6:35 AM EST on 2026-11-07, as Lane 21 reported): after train 14 only 13 of 1,692 natural bodies hold 16 kPa or more oxygen; the causes are filed as GEN.1339 (sea worlds are almost all global oceans, which leaves CO2 high) and GEN.1340 (thin air keeps its nitrogen). GEN.854 as worded is met and retired; this item stays open until those two land and the census is re-run.
 
 - [ ] **GEN.1311 Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves**
+  Boss held the rest of the fudge chain (GEN.1312 to GEN.1315) at 12:42 AM EST on 2026-11-08 until the oxygen and CO2 fix (GEN.1309) lands; this harness part does not depend on it and may proceed.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). scripts/stand_in_sensitivity.py parses the numeric ranges from the
   stand-in registry (GEN.725) for the in-scope rows only (the 355 rows that
   feed a class quantity: mass law, architecture, radius valley, envelope
@@ -13014,6 +13015,7 @@ clears each one.
   Prerequisites: none. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1312 Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix**
+  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Screening pass first (low and high only, 5 systems) to drop the rows that
   move nothing, then the full pass on the rest, on the same bodies as the
   matrix report. Hours of a lane machine with the datasets; TODO picks the
@@ -13026,6 +13028,7 @@ clears each one.
   Update (coordinator, 6:36 PM EST on 2026-11-06): the sweep runs in its own thread ("Run fudge cap simulation sweep"), on a lane machine with MySQL, Redis and the datasets (scripts/lane_up.sh brings them up after a restart). The sweep is rerun after GEN.1309 and GEN.1306 parts 2 and 3 merge, to revisit the spread.
 
 - [ ] **GEN.1313 Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths**
+  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Per quantity: width = root sum of squares of the column of the matrix; a
   T1 to T3 range is used as printed, a T4 to T8 range widened by 1.5 and a
   T9 range by 2 (stand-ins with registry rows of their own); shoulder = 2
@@ -13041,6 +13044,7 @@ clears each one.
   Prerequisites: GEN.1312. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1314 Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored**
+  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The linear shoulder stays (no new code shape), its width per quantity
   comes from the table. The CF1 to CF7 and DM1 to DM8 hand shoulders are
   replaced, not kept beside it (no backward-compat shims). Generator epoch,
@@ -13052,6 +13056,7 @@ clears each one.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
 - [ ] **GEN.1315 Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters)**
+  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move. Also rework when it starts: the barred-world loop it mentions is deleted by GEN.1397 (the finished body is judged and dropped), and habitable counts no longer use a letter list.
   REWORKED: the barred-world loop it reads is rebuilt by GEN.1397 (the bar asks whether any life class scores above zero, no letter list). This item reads that new bar; it follows GEN.1397 in the same train or after it, and the habitable count by threshold uses the stored life class.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
   the barred-world loop and the +habitable_world request read the stored
