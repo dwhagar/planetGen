@@ -32,7 +32,8 @@ def test_a_plan_stores_a_container_for_each_globular_cluster(mysql_config):
     finally:
         conn.close()
     assert len(clusters) == planned_cluster_count(mysql_config, info)
-    assert all(c["name"] and c["component_id"] and c["extent_pc"] > 0 for c in clusters)
+    assert all(c["component_id"] and c["extent_pc"] > 0 for c in clusters)
+    assert all(c["name"] is None for c in clusters)     # GEN.359: a generated cluster has no name until the first fill that touches it
     assert all(c["kind"] != "superbubble" or c["bubble"] for c in found)
     assert len({c["uid"] for c in found}) == len(found)
 
