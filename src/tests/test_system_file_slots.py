@@ -38,7 +38,7 @@ def test_a_slot_list_that_can_be_read_has_no_problem(slots):
     ([{"type": "planet", "class": "M"}], "slot 1 has 'class'"),
     ([{"type": "planet", "planet_class": "M", "conditions": WARM}], "not both"),
     ([{"type": "planet", "planet_class": "Q"}], "'Q' is not a planet class"),
-    ([{"type": "planet", "conditions": {"flavour": [1, 2]}}], "is not a quantity"),
+    ([{"type": "planet", "conditions": {"flavor": [1, 2]}}], "is not a quantity"),
     ([{"type": "planet", "conditions": {"temperature_k": 300}}], "must be a range"),
     ([{"type": "planet", "conditions": {"temperature_k": [320, 273]}}], "low end under its high end"),
     ([{"type": "planet", "conditions": {"kind": "x"}}], "kind must be"),
@@ -81,7 +81,7 @@ def test_the_page_says_what_is_wrong_with_a_slot():
     with pytest.raises(generate_page.FormError, match="The system file's slot 1: .* not both"):
         system_page.system_request(_form([{"type": "planet", "planet_class": "M", "conditions": WARM}]))
     with pytest.raises(generate_page.FormError, match="is not a quantity"):
-        system_page.system_request(_form([{"type": "planet", "conditions": {"flavour": [1, 2]}}]))
+        system_page.system_request(_form([{"type": "planet", "conditions": {"flavor": [1, 2]}}]))
 
 
 def _arguments(monkeypatch, tmp_path, slots):
