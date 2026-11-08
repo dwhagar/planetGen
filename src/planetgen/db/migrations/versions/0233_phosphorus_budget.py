@@ -1,8 +1,8 @@
 """The phosphorus budget of a rocky body (GEN.1367).
 
-Schema v231. `planets`, `moons` and `rogue_planets` gain `crust_p2o5_wt` (the crust's P2O5, weight percent), `crust_apatite_share`, `crust_merrillite_share` and `crust_schreibersite_share` (the shares of
+Schema v233. `planets`, `moons` and `rogue_planets` gain `crust_p2o5_wt` (the crust's P2O5, weight percent), `crust_apatite_share`, `crust_merrillite_share` and `crust_schreibersite_share` (the shares of
 the crust's phosphorus in each host, adding to 1) and `ocean_phosphate_umol_l` (the ocean's phosphate, umol/L), all DOUBLE and nullable. `phosphorus` stays and is now the band of the number
-(`phosphorus_budget.phosphorus_class`). A body saved before v231 has them NULL and keeps the class it has; nothing is backfilled. Each column is skipped when it is already there, so a stopped run
+(`phosphorus_budget.phosphorus_class`). A body saved before v233 has them NULL and keeps the class it has; nothing is backfilled. Each column is skipped when it is already there, so a stopped run
 can be started again.
 """
 
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0231"
-down_revision = "0230"
+revision = "0233"
+down_revision = "0232"
 branch_labels = None
 depends_on = None
 

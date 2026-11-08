@@ -2592,14 +2592,14 @@ CREATE TABLE IF NOT EXISTS planets (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
-    crust_p2o5_wt               DOUBLE,  -- v231 (GEN.1367): The crust's P2O5, weight percent
-    crust_apatite_share         DOUBLE,  -- v231 (GEN.1367): Share of the crust's phosphorus in apatite
-    crust_merrillite_share      DOUBLE,  -- v231 (GEN.1367): Share in merrillite
-    crust_schreibersite_share   DOUBLE,  -- v231 (GEN.1367): Share in schreibersite
-    ocean_phosphate_umol_l      DOUBLE,  -- v231 (GEN.1367): The ocean's phosphate, umol/L
-    crust_thickness_km          DOUBLE,  -- v232 (GEN.1380): the mean crust thickness, km
-    craton_fraction             DOUBLE,  -- v232 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
-    crust_sulfur_index          DOUBLE,  -- v232 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -2719,7 +2719,7 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     KEY idx_planet_reflection_spectrum_planet_id (planet_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The magmatic ore types a rocky planet was assessed for (v232, GEN.1380): one row per type, its status, endowment and grade.
+-- The magmatic ore types a rocky planet was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
 CREATE TABLE IF NOT EXISTS planet_deposit_types (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     planet_id  BIGINT UNSIGNED NOT NULL,
@@ -3104,14 +3104,14 @@ CREATE TABLE IF NOT EXISTS moons (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
-    crust_p2o5_wt               DOUBLE,  -- v231 (GEN.1367): The crust's P2O5, weight percent
-    crust_apatite_share         DOUBLE,  -- v231 (GEN.1367): Share of the crust's phosphorus in apatite
-    crust_merrillite_share      DOUBLE,  -- v231 (GEN.1367): Share in merrillite
-    crust_schreibersite_share   DOUBLE,  -- v231 (GEN.1367): Share in schreibersite
-    ocean_phosphate_umol_l      DOUBLE,  -- v231 (GEN.1367): The ocean's phosphate, umol/L
-    crust_thickness_km          DOUBLE,  -- v232 (GEN.1380): the mean crust thickness, km
-    craton_fraction             DOUBLE,  -- v232 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
-    crust_sulfur_index          DOUBLE,  -- v232 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -3234,7 +3234,7 @@ CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
     KEY idx_moon_reflection_spectrum_moon_id (moon_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The magmatic ore types a rocky moon was assessed for (v232, GEN.1380): one row per type, its status, endowment and grade.
+-- The magmatic ore types a rocky moon was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
 CREATE TABLE IF NOT EXISTS moon_deposit_types (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     moon_id  BIGINT UNSIGNED NOT NULL,
@@ -4472,14 +4472,14 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
-    crust_p2o5_wt               DOUBLE,  -- v231 (GEN.1367): The crust's P2O5, weight percent
-    crust_apatite_share         DOUBLE,  -- v231 (GEN.1367): Share of the crust's phosphorus in apatite
-    crust_merrillite_share      DOUBLE,  -- v231 (GEN.1367): Share in merrillite
-    crust_schreibersite_share   DOUBLE,  -- v231 (GEN.1367): Share in schreibersite
-    ocean_phosphate_umol_l      DOUBLE,  -- v231 (GEN.1367): The ocean's phosphate, umol/L
-    crust_thickness_km          DOUBLE,  -- v232 (GEN.1380): the mean crust thickness, km
-    craton_fraction             DOUBLE,  -- v232 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
-    crust_sulfur_index          DOUBLE,  -- v232 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
     envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
     porosity                    DOUBLE,  -- v207 (GEN.1111)
@@ -4614,7 +4614,7 @@ CREATE TABLE IF NOT EXISTS rogue_planet_reflection_spectrum (
     KEY idx_rogue_planet_reflection_spectrum_rogue_planet_id (rogue_planet_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The magmatic ore types a rocky rogue planet was assessed for (v232, GEN.1380): one row per type, its status, endowment and grade.
+-- The magmatic ore types a rocky rogue planet was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
 CREATE TABLE IF NOT EXISTS rogue_planet_deposit_types (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     rogue_planet_id  BIGINT UNSIGNED NOT NULL,
