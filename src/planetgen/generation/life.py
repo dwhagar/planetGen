@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.generation import evolution
 from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
-from planetgen.physics import hydrothermal_deposits, sedimentary_deposits
+from planetgen.physics import carbide_deposits, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -70,6 +70,7 @@ def apply_life_data(planet, keep_stored=False):
             vars(planet).clear()
             vars(planet).update(vars(_trial_copy(before)))
     _remake_ground_if_thawed(planet, before)
+    carbide_deposits.generate(planet)            # GEN.1423: moissanite and cohenite on a carbon-rich body, on streams of their own
     hydrothermal_deposits.generate(planet)       # GEN.1381: the hydrothermal and uranium deposits, which read the air the life pass left, on streams of their own
     sedimentary_deposits.generate(planet)        # GEN.1378: the deposits that read the life timeline, on streams of their own (no draw of the run's)
 
@@ -408,6 +409,8 @@ def _build_oxygen(planet, living):
     if rise is None or not biogenic_oxygen.apply(planet, target):
         return False
     log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis from the first producers; the oxygen rose at {rise:.2f} Gyr")
+    if biogenic_oxygen.rebalance_co2(planet):      # GEN.1309 A: the carbon sink is asked again at the temperature the burnt methane left
+        log.choice("Carbon balance", f"{atmosphere.partial_kpa(planet, 'co2'):.3g} kPa of carbon dioxide", f"the sink solved again at {planet.surface_temperature:.0f} K after the oxygen rise")
     return True
 
 

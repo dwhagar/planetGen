@@ -76,8 +76,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| function | planetgen.physics.super_puff.tidal_inflation_ratio | GEN.1347 | the obliquity-tide inflation of a super-puff's radius ([R3079] eq. 14); `envelope_capture.kept` multiplies it in once the planet has a drawn obliquity and tidal quality (the spin step draws the tilt after the envelope) |
-| function | planetgen.physics.super_puff.tidal_luminosity_ratio | GEN.1347 | the tidal power over the starlight that gates `tidal_inflation_ratio` (1e-5), read with it |
 | module | planetgen.physics.helium_fractionation | GEN.1047 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
