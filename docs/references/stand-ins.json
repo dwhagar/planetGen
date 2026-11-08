@@ -50315,6 +50315,196 @@
           "tweak": "L1",
           "unread": null,
           "what": "comet_species.SIGMA_DEX 0.4 (the width of every species, decades)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio"
+            ],
+            [
+              "The range it moves in",
+              "the ends of each by their quoted errors"
+            ],
+            [
+              "Where it holds",
+              "comets and asteroids of any formation temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a comet measured outside a species' bracket"
+            ],
+            [
+              "What replaces it",
+              "a third comet widens it (GEN.1021 later part)"
+            ],
+            [
+              "Evidence",
+              "the widest range between the comets (two sources in question): N2 per CO of 67P and C/2016 R2 [R0109, R0836]; Ar per water of 67P and Hale-Bopp ([R3835, R4215], a coma, not a nucleus); OCS and SO2 the range of the comets in Table 7 of the 46P paper (A&A 648, A49, no comet named; a compilation, so T3); O2 Halley [R3836] to 67P [R0386]; test_comet_species::test_a_comet_measured_falls_inside_its_species_bracket"
+            ]
+          ],
+          "id": "CB1",
+          "key": "6.59:CB1",
+          "kind": "P",
+          "slug": "6-59-cb1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton)"
+            ],
+            [
+              "The range it moves in",
+              "0.089 +/- 0.021 and 0.269 +/- 0.064"
+            ],
+            [
+              "Where it holds",
+              "comets of any formation temperature"
+            ],
+            [
+              "What would show it wrong",
+              "Kr per Ar or Xe per Kr measured in a second comet outside the errors"
+            ],
+            [
+              "What replaces it",
+              "a second comet's noble gases"
+            ],
+            [
+              "Evidence",
+              "one comet, 67P [R3834]; the laboratory shifts Ar/Kr and Ar/Xe by at most 40 percent (read in the GEN.1021 report), which is the L1 slack; test_comet_species::test_krypton_and_xenon_are_argon_times_the_ratios_of_67p"
+            ]
+          ],
+          "id": "CB2",
+          "key": "6.59:CB2",
+          "kind": "P",
+          "slug": "6-59-cb2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp)"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "comets of the population (row k5)"
+            ],
+            [
+              "What would show it wrong",
+              "a comet at the cold end of its species with CO/H2O outside 0.15 to 0.3"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); the value read when a source opens for Hale-Bopp's CO/H2O"
+            ],
+            [
+              "Evidence",
+              "Hale-Bopp's 'notably high CO' of about 0.2, recalled from the GEN.1021 report and not opened; test_comet_ice_formation::test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_cold_end"
+            ]
+          ],
+          "id": "CY1",
+          "key": "6.59:CY1",
+          "kind": "P",
+          "slug": "6-59-cy1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades)"
+            ],
+            [
+              "The range it moves in",
+              "N2 0.03 to 0.1; Ar 0.2 to 0.8; ties 0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "comets of the population"
+            ],
+            [
+              "What would show it wrong",
+              "the scatter of a species at fixed CO/H2O across comets measured outside the knob"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); a population of comets with the species measured"
+            ],
+            [
+              "Evidence",
+              "the range of N2 per CO in C/2016 R2 (0.06 to 0.09, 0.18 dex) and of argon in 67P over its season (1.4 decades) over the square root of 12, and the laboratory's 40 percent fractionation; test_comet_ice_formation::test_a_residual_moves_only_its_own_species_by_its_width"
+            ]
+          ],
+          "id": "CY2",
+          "key": "6.59:CY2",
+          "kind": "P",
+          "slug": "6-59-cy2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K)"
+            ],
+            [
+              "The range it moves in",
+              "10 to 15 K per decade; anchor +/- 5 K"
+            ],
+            [
+              "Where it holds",
+              "ice formed between 25 and 100 K"
+            ],
+            [
+              "What would show it wrong",
+              "a laboratory law of CO trapping against temperature that departs from log-linear by more than a factor of 3 over 38 to 50 K"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); the table of trapping by temperature, which cannot be read in the open text ([R0802] shows the trapping also depends on deposition rate and partial pressure)"
+            ],
+            [
+              "Evidence",
+              "Bar-Nun: the trapped gas falls six decades from 25 to 100 K and Halley's CO needs 48 +/- 5 K ([R0267], NTRS N90-16610); test_comet_ice_formation::test_the_laboratory_law_gives_halley_its_anchor_and_six_decades_in_75_kelvin"
+            ]
+          ],
+          "id": "CY3",
+          "key": "6.59:CY3",
+          "kind": "P",
+          "slug": "6-59-cy3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K)"
         }
       ],
       "slug": "6-59-stand-ins-of-the-comet-species",

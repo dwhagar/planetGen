@@ -44,6 +44,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
+| data | partial_pressure_rules.json | by design | the list of which oxygen and carbon dioxide rules are pressures and which stay shares, read by `test_partial_pressure_rules.py` (GEN.1331) to hold the rule files to it; the generator reads the rule files themselves |
 | data | potassium_depletion.json | GEN.492 | the K/U of six bodies ([R1003: Table 1]) with CI chondrites; `radiogenic.draw_content` will take the potassium depletion and CI K/U from it |
 | module | planetgen.physics.potassium_depletion | GEN.492 | the potassium depletion drawn by body class; replaces the log-uniform `tuning.RADIOGENIC_K_DEPLETION_RANGE` once `radiogenic` calls it with the body's mass |
 | row | 6.61:KD3 | GEN.492 | `potassium_depletion.CLASS_MASS_EARTH`, not read until `radiogenic` calls the module |
@@ -238,3 +239,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
 | function | planetgen.physics.volatile_depletion.earth_over_ci | by design | the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it |
 | function | planetgen.physics.volatile_depletion.retained_fractions | by design | the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time |
+| function | planetgen.physics.comet_species.low_over_h2o | GEN.1021 | the low end of a species' bracket for the loguniform rows of atmosphere-k:k7 (OCS, SO2, O2); the wiring swap rides a train with GEN.1022's, in one epoch |
+| function | planetgen.physics.comet_species.high_over_h2o | GEN.1021 | the high end of the same bracket; wired with it |
+| module | planetgen.physics.comet_ice_formation | GEN.1022 | the latent ice formation temperature that draws a comet's CO/H2O, N2, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch |
+| row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
+| row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
+| row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
