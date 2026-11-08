@@ -1,6 +1,6 @@
 # Disc condensation, species by species (GEN.1363)
 
-Item GEN.1363, Lane 14. Part A (merged): `physics/disc_condensation.py`, the budget, the lines and the C/O across a line. Part B (built): the water share of the solids an icy body can reach follows the budget at its formation temperature, with its star's carbon and oxygen. Part C (built): a gas giant's C/O comes from the gas and solids of the disc where it formed. One epoch for the three.
+Item GEN.1363, Lane 14. Part A (merged): `physics/disk_condensation.py`, the budget, the lines and the C/O across a line. Part B (built): the water share of the solids an icy body can reach follows the budget at its formation temperature, with its star's carbon and oxygen. Part C (built): a gas giant's C/O comes from the gas and solids of the disc where it formed. One epoch for the three.
 
 ## 1. What was missing
 
@@ -31,7 +31,7 @@ The gas C/O (`gas_and_solid_c_over_o`) rises outward: 0.76 hot (the rock has the
 
 ## 3. What parts B and C wire
 
-**Part B.** `bulk_draw._icy_water_range` takes the top of an icy body's water from `disc_condensation.water_share_of_solids` (water ice over rock, carbon grains and every ice) at the body's formation temperature, with the carbon and oxygen of its star (`bulk_draw.ice_forming_ratios`). For the Sun that is 0.34 beyond the water line and 0.23 beyond the CO line, where Lodders's table gave 0.54 and 0.38; a star with more oxygen over its magnesium than the Sun's (the [Fe/H] 0 star of the tests, 1.25) gets 0.43. `condensate_shares.water_share_of_solids` is deleted. The icy-body water is a draw between a floor and this top, so every icy body's water ceiling falls by about a third.
+**Part B.** `bulk_draw._icy_water_range` takes the top of an icy body's water from `disk_condensation.water_share_of_solids` (water ice over rock, carbon grains and every ice) at the body's formation temperature, with the carbon and oxygen of its star (`bulk_draw.ice_forming_ratios`). For the Sun that is 0.34 beyond the water line and 0.23 beyond the CO line, where Lodders's table gave 0.54 and 0.38; a star with more oxygen over its magnesium than the Sun's (the [Fe/H] 0 star of the tests, 1.25) gets 0.43. `condensate_shares.water_share_of_solids` is deleted. The icy-body water is a draw between a floor and this top, so every icy body's water ceiling falls by about a third.
 
 Not wired: the ice over rock that sets the jump of the surface density at the snow line (`condensate_shares.WATER_ICE_SOLID_BOOST`, 2.17) stays on Lodders's table. The disc's solids would give about 1.6 against the grains-and-rock inside the line, which would cut every core beyond the snow line by a quarter; that needs the minimum-mass nebula weighed first (open point below).
 

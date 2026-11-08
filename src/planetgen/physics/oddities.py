@@ -230,6 +230,18 @@ def probability(row, dial=None, scale=None):
     return min(1.0, max(0.0, row.rate.value * dial * scale.get(row.id, 1.0)))
 
 
+def site_dial():
+    """The dial the settings file or page sets (`generation.weirdness_dial`), or `None` when it names none (the tuning's applies). Read live: the settings are re-read only
+    when the file changes. A settings file that does not fit the model leaves the tuning's dial, since generation must not stop for it."""
+    from planetgen.util import settings
+
+    try:
+        section = settings.get_settings().generation
+    except settings.SettingsError:
+        return None
+    return section.weirdness_dial if "weirdness_dial" in section.model_fields_set else None
+
+
 def stream(row_id, body_key):
     """The stream of one oddity on one body: seeded by the id and the body's key alone (a string seed, hashed by SHA-512, so it does not depend on
     `PYTHONHASHSEED`), so no other row and no other draw of the run moves when a row is added, removed or turned off."""
@@ -367,7 +379,9 @@ def apply(body, levers=None, rows=None, dial=None, scale=None):
         return []
     _import_effects()
     if dial is None:
-        dial = getattr(getattr(body, "system_config", None), "WEIRDNESS_DIAL", None)       # a run's own dial; the tuning's when it has none
+        dial = getattr(getattr(body, "system_config", None), "WEIRDNESS_DIAL", None)       # a run's own dial; the settings file's, then the tuning's, when it has none
+        if dial is None:
+            dial = site_dial()
     found = quantities_of(body)
     forced = set(forced_ids(body))
     key = body_key(body)

@@ -190,7 +190,7 @@ def test_a_generated_body_stores_the_score_of_its_final_conditions():
     """GEN.217: a lifeless moon used to keep the score it was first given, before its temperature settled, so the
     chip disagreed with the description (which is worked out from the final conditions)."""
     checked = 0
-    for seed in range(30):
+    for seed in range(40):    # GEN.1334: a planet under an envelope is scored for nothing, so the same seeds hold fewer scored bodies
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

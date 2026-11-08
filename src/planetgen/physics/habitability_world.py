@@ -55,7 +55,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -150,6 +150,7 @@ def values_from_body(body):
     values = {
         "planet_class": getattr(body, "planet_class", None),
         "body_type": getattr(body, "body_type", None),
+        "envelope_mass_fraction": getattr(body, "envelope_mass_fraction", None),
         "atmospheric_pressure_pa": getattr(body, "atmospheric_pressure", None),
         "surface_temperature_k": getattr(body, "surface_temperature", None),
         "gravity_g": getattr(body, "gravity", None),
@@ -420,7 +421,7 @@ def compute(values, compact_host=None):
     without a temperature, or a gas giant, scores nothing (every field
     `None`).
     """
-    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+    if not planet_type.has_ground(values) or values.get("surface_temperature_k") is None:
         return {name: None for name in (*SCORE_FIELDS, *LIKELIHOOD_FIELDS)}
     world = world_from(values, lethal_host=compact_host)
     # The life scores come first: the Suitability food rung is made from them (Flora and Fauna, GEN.649)
@@ -486,7 +487,7 @@ def class_life_scores(values, world, stage):
 def living_kinds(values):
     """`{class id: (microbial, flora, fauna, sentient)}` for each class of `life_living` on the body of `values`, each at its own stage (the body's own
     four scores are the highest of each of these)."""
-    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+    if not planet_type.has_ground(values) or values.get("surface_temperature_k") is None:
         return {}
     rated = _class_rater(values, world_from(values))
     return {entry["life_class"]: rated(entry["life_class"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
@@ -522,7 +523,7 @@ def rescore(body):
     """Recomputes a scored body's `SCORE_FIELDS` once its life is known (`native_life`
     is part of the score's inputs and life is drawn after it). A gas giant, or a body
     that was not scored, is left alone."""
-    if body.body_type == "g" or getattr(body, "surface_temperature", None) is None:
+    if not planet_type.has_ground(body) or getattr(body, "surface_temperature", None) is None:
         return
     if getattr(body, "phi4", None) is None:
         return
@@ -545,7 +546,7 @@ def generate(body, internal_flux_w_m2):
     keeps the swing the insolation gave it, and is scored with it."""
     swing = getattr(body, "flux_variation", None)
     _clear(body)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334): no ground to score
         body.flux_variation = swing
         body.energy_flux_w_m2 = giant_energy_flux_w_m2(body)
         return

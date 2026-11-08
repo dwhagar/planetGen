@@ -71,7 +71,7 @@ WANTED = {
 
 # GEN.1374: the two metal hydrides the thermo.inp lacks (the oxide to hydride transition of the L dwarfs, [R2731] section 1.5.3), made from atoms: the natural
 # logarithm of the equilibrium constant of M + H = MH (1 bar standard state) as the fit `ln K = c1/T + c2 ln T + c3 + c4 T + c5 T^2` that FastChem ships
-# (github.com/exoclime/FastChem, input/logK/logK.dat) for the data of [R5143], valid 300 to 6000 K. The fit is a sum with the atoms' own
+# (github.com/exoclime/FastChem, input/logK/logK.dat) for the data of [R5147], valid 300 to 6000 K. The fit is a sum with the atoms' own
 # NASA coefficients (the free energy is linear in the coefficients), so the species is an ordinary entry of the file; the check against NASA's FeO (JANAF in the same
 # file) is within 0.02 in ln K at 500 to 3000 K, which pins the convention (natural logarithm, atoms as the reference, bar).
 DERIVED = {

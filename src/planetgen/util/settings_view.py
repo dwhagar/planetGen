@@ -31,7 +31,7 @@ GROUPS = {
     "speed": "Speed and disk",
     "protection": "Abuse protection",
     "housekeeping": "Housekeeping",
-    "generation": "Galaxy generation",
+    "generation": "Galaxy and world generation",
     "database": "Database connection",
     "queue": "Queue server",
     "logging": "Logging",

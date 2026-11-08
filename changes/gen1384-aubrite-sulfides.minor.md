@@ -1,0 +1,4 @@
+**Headline:** The enstatite-rich asteroid class now carries the sulfides of aubrites, a little troilite and niningerite, instead of five percent troilite alone.
+
+### Changed
+- GEN.1384 (part 2): the aubrite taxon E of the belt and field makeups goes from enstatite 0.88, troilite 0.05, kamacite 0.04, albite 0.03 to enstatite 0.918, troilite 0.0085, niningerite 0.0035, kamacite 0.04, albite 0.03. Troilite and niningerite are the middle of the aubrite modal ranges (0.3 to 1.4 and 0.1 to 0.6 percent; [R5146: Table 1], which gives the enstatite range 63 to 97 and albite 0.1 to 13 the new shares stay inside); the freed mass goes to enstatite. The grains' density of the taxon falls from 3,303 to 3,255 kg/m3. Generator output changes (stored belt and field compositions, densities and the nearest meteorite group of belts with this taxon), so it needs an epoch with `--affects fill` and rides a train. The `niningerite` row leaves the vocabulary-only list.

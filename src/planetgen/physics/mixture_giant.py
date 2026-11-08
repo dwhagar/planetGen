@@ -36,7 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, disc_condensation, gas_equilibrium, saturation, species_thermo, stellar_abundances, unit_registry as units
+from planetgen.physics import constants, disk_condensation, gas_equilibrium, saturation, species_thermo, stellar_abundances, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 
@@ -100,16 +100,16 @@ SOLAR_PER_HYDROGEN = {symbol: 10.0 ** (_log_eps(symbol) - 12.0) for symbol in ("
 """dict: Atoms per hydrogen atom of the reference (photospheric) scale, the zero point of [Fe/H] and of the metallicity."""
 
 
-def _disc_c_over_o(subject, log_enrichment_over_host):
+def _disk_c_over_o(subject, log_enrichment_over_host):
     """
-    The C/O of the envelope of a giant that formed where the disc was at the subject's `formation_temperature_k` with its star's `disc_carbon` and `disc_oxygen`
-    and holds `10 ** log_enrichment_over_host` times its star's heavy elements (`disc_condensation.envelope_c_over_o`, GEN.1363 part C); `None` for a subject that carries no
-    disc (a brown dwarf, a rogue, a hand-built subject), whose C/O is the recipe's `f7`; the caller spreads the value by `f7` over the center of its core.
+    The C/O of the envelope of a giant that formed where the disk was at the subject's `formation_temperature_k` with its star's `disk_carbon` and `disk_oxygen`
+    and holds `10 ** log_enrichment_over_host` times its star's heavy elements (`disk_condensation.envelope_c_over_o`, GEN.1363 part C); `None` for a subject that carries no
+    disk (a brown dwarf, a rogue, a hand-built subject), whose C/O is the recipe's `f7`; the caller spreads the value by `f7` over the center of its core.
     """
     temperature = subject.get("formation_temperature_k")
     if temperature is None:
         return None
-    return disc_condensation.envelope_c_over_o(temperature, 10.0 ** log_enrichment_over_host, subject.get("disc_carbon", 1.0), subject.get("disc_oxygen", 1.0))
+    return disk_condensation.envelope_c_over_o(temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
 
 
 def element_budget(log_enrichment, c_over_o=None, lithium_burned=False):
@@ -472,9 +472,9 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     metallicity = 10.0 ** log_enrichment
     constants_drawn["log_enrichment"] = log_enrichment
     c_over_o = recipe.values.get("f7")
-    disc = _disc_c_over_o(subject, log_enrichment - fe_h)
-    if disc is not None:       # GEN.1363 part C: the C/O of the disc where it formed, spread as the recipe's row f7 spreads it (the history of what the giant swallowed)
-        c_over_o = disc if c_over_o is None else disc * c_over_o / disc_condensation.RECIPE_C_OVER_O_CENTER
+    disk = _disk_c_over_o(subject, log_enrichment - fe_h)
+    if disk is not None:       # GEN.1363 part C: the C/O of the disk where it formed, spread as the recipe's row f7 spreads it (the history of what the giant swallowed)
+        c_over_o = disk if c_over_o is None else disk * c_over_o / disk_condensation.RECIPE_C_OVER_O_CENTER
     if c_over_o is not None:
         constants_drawn["c_over_o"] = c_over_o
     lithium_burned = family == "brown-dwarf" and burned_lithium(subject.get("mass_jupiter"))

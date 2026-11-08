@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3648] - 2026-11-08
+
+**Headline:** The test machine setup now downloads the datasets it needs and says so when it cannot.
+
+### Fixed
+- **Setup fetched nothing and still ended well (OPS.119).** The cloud environment setup ran the dataset download with `python -I`, which also drops `PYTHONPATH`, so `planetgen` could not be imported, the step only warned, and setup finished as if it had worked. It now runs with `-P` (no current directory, `PYTHONPATH` kept), checks the result with `datasets status`, and ends with a SETUP INCOMPLETE line when the data is not all there. The test preflight also fetches every dataset the math check reads (isochrones, spectra, the helium-hydrogen equation of state, HYG and Mamajek, besides the white-dwarf tables), where it fetched only the white-dwarf data and the math check then stopped a fresh machine's run with 16 DataMissing failures.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119.
+
+## [8.0.3647] - 2026-11-08
+
+**Headline:** A browser that will not start now fails the test run instead of skipping 1,500 tests.
+
+### Fixed
+- **Browser tests no longer skip silently (TEST.693).** The test preflight demanded Playwright 1.56.0 whatever Chromium the machine carried, so on an image with Chromium 1243 every browser test skipped with "Executable doesn't exist" and the phase still printed a pass. The preflight now asks the installed Playwright for its own Chromium and, if it is not there, names the Playwright that matches each Chromium build on the machine; the cloud setup script picks the matching release too. In the browser phase of `scripts/test.py` a test that skips because Playwright or Chromium would not start is now a failure.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.693.
+
 ## [8.0.3646] - 2026-11-08
 
 **Headline:** Two tests that assumed asteroid fields are rolled in a sector, or stand wider than a light year, now follow the rules that retired both.

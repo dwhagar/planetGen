@@ -136,13 +136,14 @@
     "keep": 20,
     "python": ""
   },
+  "generation": {
+    "cell_cap": 5000.0,
+    "weirdness_dial": 1.0
+  },
   "parity": {
     "enabled": false,
     "dir": "",
     "group_size": 32,
     "parity_blocks": 2
-  },
-  "generation": {
-    "cell_cap": 5000.0
   }
 }
