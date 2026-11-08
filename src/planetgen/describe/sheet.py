@@ -548,7 +548,7 @@ _BODY_NOT_SHOWN = {
     "flavor_text_count": "how many flavor lines exist; bookkeeping",
     "flavor_key": "which flavor line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
-    "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line (GEN.1047)",
+    "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(regional_temperature.BAND_COLUMNS,
