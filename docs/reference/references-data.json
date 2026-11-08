@@ -123835,6 +123835,57 @@
    "volume": "13",
    "year": 2022
   },
+  "10.1038/s41467-022-27991-9": {
+   "authors": [
+    [
+     "Edmund",
+     "E."
+    ],
+    [
+     "Morard",
+     "G."
+    ],
+    [
+     "Baron",
+     "M. A."
+    ],
+    [
+     "Rivoldini",
+     "A."
+    ],
+    [
+     "Yokoo",
+     "S."
+    ],
+    [
+     "Boccato",
+     "S."
+    ],
+    [
+     "Hirose",
+     "K."
+    ],
+    [
+     "Pakhomova",
+     "A."
+    ],
+    [
+     "Antonangeli",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41467-022-27991-9",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "387",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Fe-FeSi phase diagram at Mercury’s core conditions",
+   "type": "journal-article",
+   "volume": "13",
+   "year": 2022
+  },
   "10.1038/s41467-022-31620-w": {
    "authors": [
     [
@@ -280185,7 +280236,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5147,
+ "id_next": 5148,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281788,6 +281839,7 @@
   "10.1038/s41467-020-19896-2": "R2628",
   "10.1038/s41467-021-26403-8": "R3627",
   "10.1038/s41467-021-27811-6": "R1318",
+  "10.1038/s41467-022-27991-9": "R5147",
   "10.1038/s41467-022-31620-w": "R1912",
   "10.1038/s41467-024-46326-4": "R2938",
   "10.1038/s41550-017-0042": "R4309",

@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5028 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5029 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1264,6 +1264,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r1211"></a>**R1211** Echelmeyer, K. & Kamb, B. 1986, Rheology of Ice II and Ice III from High‐Pressure Extrusion, GeoRL, 13, 693, doi:10.1029/gl013i007p00693. [paper](https://doi.org/10.1029/gl013i007p00693) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/gl013i007p00693/abstract)
 - <a id="paper-r1212"></a>**R1212** Edinburgh, I., Kadadevaramath, A., Kadadevaramath, R. S., & Joseph, J. 2024, A Literature survey on application of MCDM approaches for the sustainable supplier selection in manufacturing industries, IJBSR, 18, 10061056, doi:10.1504/ijbsr.2024.10061056. [paper](https://doi.org/10.1504/ijbsr.2024.10061056) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1504/ijbsr.2024.10061056/abstract)
 - <a id="paper-r1213"></a>**R1213** Edlen, B. 1966, Измерение длин волн в вакуумной ультрафиолетовой области спектра, Успехи физических наук, 89, 483, doi:10.3367/ufnr.0089.196607g.0483. [paper](https://doi.org/10.3367/ufnr.0089.196607g.0483) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3367/ufnr.0089.196607g.0483/abstract)
+- <a id="paper-r5147"></a>**R5147** Edmund, E., et al. 2022, The Fe-FeSi phase diagram at Mercury’s core conditions, NatCo, 13, 387, doi:10.1038/s41467-022-27991-9. [paper](https://doi.org/10.1038/s41467-022-27991-9) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41467-022-27991-9/abstract)
 - <a id="paper-r1214"></a>**R1214** Efroimsky, M. 2012, TIDAL DISSIPATION COMPARED TO SEISMIC DISSIPATION: IN SMALL BODIES, EARTHS, AND SUPER-EARTHS, ApJ, 746, 150, doi:10.1088/0004-637x/746/2/150, arXiv:1105.3936. [paper](https://doi.org/10.1088/0004-637x/746/2/150) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/746/2/150/abstract)
 - <a id="paper-r1215"></a>**R1215** Efroimsky, M. & Lainey, V. 2007, Physics of bodily tides in terrestrial planets and the appropriate scales of dynamical evolution, JGRE, 112, 2007JE002908, doi:10.1029/2007je002908, arXiv:0709.1995. [paper](https://doi.org/10.1029/2007je002908) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2007je002908/abstract)
 - <a id="paper-r1216"></a>**R1216** Efstathiou, G. 2000, A model of supernova feedback in galaxy formation, MNRAS, 317, 697, doi:10.1046/j.1365-8711.2000.03665.x. [paper](https://doi.org/10.1046/j.1365-8711.2000.03665.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1046/j.1365-8711.2000.03665.x/abstract)

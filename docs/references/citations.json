@@ -25720,6 +25720,11 @@
       "kind": "paper",
       "label": "Badro et al. 2014",
       "title": "A seismologically consistent compositional model of Earth’s core"
+    },
+    "R5147": {
+      "kind": "paper",
+      "label": "Edmund et al. 2022",
+      "title": "The Fe-FeSi phase diagram at Mercury’s core conditions"
     }
   }
 }
