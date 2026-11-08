@@ -138,7 +138,6 @@ def apply_class(planet):
     if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
     planet.planet_class = detail.letter
-    body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
@@ -744,7 +743,7 @@ def refresh_at_final_age(body):
     surface_w = getattr(body, "_surface_w", None)
     if body.body_type in ("g", "a") or surface_w is None:
         return
-    seed = f"final-age:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
+    seed = f"final-age:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
     flux = internal_heat_flux_w_m2(body)            # the heat at the star's age now (no draws; the life pass has run it already)
     ground = surface_composition.mix_of(body)
     with draw.bound(draw.Stream(seed)):
