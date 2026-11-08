@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3632] - 2026-11-08
+
+**Headline:** A few sub-Neptunes now start as super-puffs, planets of a few Earth masses with a thick envelope and a density under 0.1 g/cc, and a planet that ends up that way is typed a super-puff (GEN.1343).
+
+### Changed
+
+- Before, no generated planet had an envelope thick enough to be a super-puff like Kepler-51 b, c and d: sub-Neptunes started with at most 20 percent of their mass as gas. Now one sub-Neptune core in 20 (2 to 10 Earth masses, inside 100 days) starts with an envelope of 7 to 45 percent of its mass (`envelope_capture.draw_puff_start`, log-uniform over `super_puff.PUFF_ENVELOPE`). The XUV loss of its star and the age term of the envelope law then fade it as for any sub-Neptune, and its radius is `super_puff.radius_earth`. Most of them are stripped or contract; about one in nine ends under 0.1 g/cc, nearly all around stars younger than 1 Gyr.
+- `planet_type` gains the type `super-puff`: a transitional planet that passes `super_puff.is_super_puff` (under 10 Earth masses, under 0.1 g/cc, 10 to 100 days, young). The Body type sheet row and the stored `planet_type` column show it. A stored row alone (no star) stays transitional.
+- `super_puff.envelope_for_radius` and `radius_at_age_earth` are gone: the loss and the age term live in `envelope_capture.kept`; the tests keep their own copies. The tidal inflation of the radius (`tidal_inflation_ratio`, [R3079]) is not applied yet: it needs the planet's obliquity, which the spin step draws after the envelope.
+- Measured: see the report `gen1343-super-puffs-2026-11-07.md`. Every sub-Neptune core of 2 to 10 Earth masses inside 100 days draws two more numbers from its own stream, and about one in 20 of them has a different envelope, radius, density, air and class (epoch).
+
 ## [8.0.3631] - 2026-11-08
 
 **Headline:** A belt past the outermost planet loses mass to planets that scattered each other, by the Safronov number of that planet (GEN.1341).
