@@ -40841,6 +40841,52 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.210",
+      "number": "6.210",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_REQUEST_GRAVITY_MASS_EXPONENT 0.46 (a rocky planet's gravity goes as mass to 0.46, from a radius going as mass to 0.27) and CLASS_REQUEST_GRAVITY_WIDEN 2 (the mass window of each gravity edge widened a factor of 2 each way), and CLASS_REQUEST_MAX_ATTEMPTS 80 (the draws of a class request at one place; 40 before)"
+            ],
+            [
+              "The range it moves in",
+              "exponent 0.4 to 0.5; widen 1.5 to 3; draws 40 to 160"
+            ],
+            [
+              "Where it holds",
+              "classes that name both ends of a gravity (G, P, M, H, O, R, F), asked for by FORCE_CLASS or a slot"
+            ],
+            [
+              "What would show it wrong",
+              "a forced G that stays under 18 in 24 Sun-like systems with the window and the draws right, or a class whose bodies lie outside the window"
+            ],
+            [
+              "What replaces it",
+              "the mass-radius law of the body the class holds (bulk_draw) read at the class's gravity edges"
+            ],
+            [
+              "Evidence",
+              "the 0.27 radius law is recalled (Zeng and Sasselov, Earth-like composition), not read; the window is wide because envelope and ice bodies are less dense; a forced G in Sun-like (G2V) systems: 15 of 24 with the gravity window and 40 draws, 18 of 24 with 80 draws (3 of 12 systems at random stars on main before, 7 of 24 with the window); the window width did not matter (1.0: 14, 1.4: 12, 2.0: 15 of 24)"
+            ]
+          ],
+          "id": "RQ1",
+          "key": "6.210:RQ1",
+          "kind": "P",
+          "slug": "6-210-rq1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLASS_REQUEST_GRAVITY_MASS_EXPONENT 0.46 (a rocky planet's gravity goes as mass to 0.46, from a radius going as mass to 0.27) and CLASS_REQUEST_GRAVITY_WIDEN 2 (the mass window of each gravity edge widened a factor of 2 each way), and CLASS_REQUEST_MAX_ATTEMPTS 80 (the draws of a class request at one place; 40 before)"
+        }
+      ],
+      "slug": "6-210-stand-ins-of-the-masses-a-request-for-a-planet-class-draws",
+      "title": "Stand-ins of the masses a request for a planet class draws"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [

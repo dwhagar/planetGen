@@ -225,6 +225,10 @@ GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
 CLASS_REQUEST_FREE_ATTEMPTS = 8
+CLASS_REQUEST_MAX_ATTEMPTS = 80
+"""int: How many planets a request for a class draws at one place before it keeps the last (GEN.1333; `REQUEST_MAX_PLANET_ATTEMPTS`, 40, stays the habitable request's). A
+forced G was met in 15 of 24 Sun-like systems at 40 draws and 18 of 24 at 80, because about one draw in forty of the masses it can hold is a carbon dioxide air at
+273 to 400 K. A planetGen stand-in, a time limit and not physics (tier T9, tweak L3; registry row RQ1)."""
 CLASS_REQUEST_LATE_CORE_EVERY = 2
 """int: After the free attempts of a class request, every this-many-th draw is a core that finished growing after the gas disk went and captured no envelope
 (GEN.1323, `Planet(late_core=True)`): a class that needs a bare dense core (V, 2 g or more) is out of reach of the envelope draw at most places. A planetGen
@@ -233,6 +237,13 @@ CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 """int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
 after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold
 one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
+CLASS_REQUEST_GRAVITY_MASS_EXPONENT = 0.46
+"""float: A request for a class that names both ends of a surface gravity (`planet_class_fit.json`: G 0.5 to 2 g, P 0.75 to 2 g, M, H, O, R and F) draws its
+late masses over the masses that give that gravity instead of over all masses (GEN.1333): a rocky planet's radius goes as mass to 0.27 [I] (the 0.27 of
+the Zeng and Sasselov law, recalled), so its gravity goes as mass to 0.46. A planetGen stand-in (tier T7, tweak L3; registry row RQ1)."""
+CLASS_REQUEST_GRAVITY_WIDEN = 2.0
+"""float: How far past the mass of each gravity edge a class request draws (a factor either way), because the density of a body with an envelope or of ice
+is not a bare rocky one (GEN.1333). A planetGen stand-in (tier T9, tweak L3; registry row RQ1)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
 # any (10 kPa), and the water a surface ocean.

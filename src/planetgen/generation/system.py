@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
+from planetgen.physics import bulk_draw, class_fit, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -125,6 +125,20 @@ def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
         bool: True if `obj` extends past `orbit_ceiling_au`.
     """
     return validation.exceeds_orbit_ceiling(obj, orbit_ceiling_au)
+
+
+def _request_mass_range_earth(planet_class):
+    """
+    The masses (Earth masses) a request for `planet_class` draws over after its free attempts (GEN.1333): all the masses a planet has, or, for a class that
+    names both ends of a surface gravity, the masses that give that gravity on a rocky planet (gravity goes as mass to
+    `CLASS_REQUEST_GRAVITY_MASS_EXPONENT`), widened by `CLASS_REQUEST_GRAVITY_WIDEN` each way and kept inside the planet masses.
+    """
+    low, high = class_fit.gravity_band(planet_class)
+    if low is None or high is None:
+        return tuning.CLASS_REQUEST_MASS_EARTH
+    exponent, widen = tuning.CLASS_REQUEST_GRAVITY_MASS_EXPONENT, tuning.CLASS_REQUEST_GRAVITY_WIDEN
+    floor, ceiling = tuning.CLASS_REQUEST_MASS_EARTH
+    return max(floor, low ** (1.0 / exponent) / widen), min(ceiling, high ** (1.0 / exponent) * widen)
 
 
 class StarSystem:
@@ -1919,7 +1933,7 @@ class StarSystem:
         """
         A planet at `distance`, drawn again until it is the one a slot names (GEN.688): its derived class is `planet_class`. Each draw is a
         whole planet (a new mass, make and air from the stream); after `CLASS_REQUEST_FREE_ATTEMPTS` misses the mass is drawn log-uniformly
-        over all the masses a planet has. With no class this is one `Planet`. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS` draws
+        over all the masses a planet has. With no class this is one `Planet`. The last draw is kept when `CLASS_REQUEST_MAX_ATTEMPTS` draws
         miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request. A request for a habitable world is no
         class and is not built here: it only raises the odds (`_planet_in_ecosphere`, GEN.1130).
 
@@ -1939,12 +1953,12 @@ class StarSystem:
             raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
         if planet_class is None:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
-        for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
+        for attempt in range(tuning.CLASS_REQUEST_MAX_ATTEMPTS):
             # A request for a class is left to chance, and then draws a mass log-uniformly over all the masses a planet has (the
             # architecture's disk makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
             given = {}
             if attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
-                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
+                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in _request_mass_range_earth(planet_class)))))
                 # GEN.1323: every rocky planet of 1 to 20 Earth masses captures an envelope that only a close star strips, so a class that needs a
                 # dense bare core (V, 2 g or more) is out of reach of the envelope draw at most places; every other draw after the free ones is a
                 # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)

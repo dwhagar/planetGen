@@ -92,6 +92,17 @@ SHOULDERS = DOCUMENT["shoulders"]
 LETTERS = tuple(sorted({c.letter for c in CLASSES}))
 
 
+def gravity_band(letter, kind="t"):
+    """`(low, high)` surface gravity in g that the class's own conditions allow (`gravity_g` min and lt), either end `None` when the class names
+    none: where a request for the class aims its draws (`StarSystem.build_planet`, GEN.1333)."""
+    for cls in CLASSES:
+        if cls.letter == letter and cls.kind == kind:
+            low = max((c["min"] for c in cls.when if c["quantity"] == "gravity_g" and "min" in c), default=None)
+            high = min((c["lt"] for c in cls.when if c["quantity"] == "gravity_g" and "lt" in c), default=None)
+            return low, high
+    return None, None
+
+
 def shoulder_width(quantity, edge):
     """The width of the shoulder beyond `edge` of `quantity`, in the quantity's unit."""
     entry = SHOULDERS[quantity]

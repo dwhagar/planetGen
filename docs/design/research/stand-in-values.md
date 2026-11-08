@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1258 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1259 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,10 +42,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 54 | 21 | 3 | 1 | 0 | 79 |
 | T6 | 131 | 91 | 25 | 62 | 0 | 309 |
-| T7 | 33 | 15 | 7 | 17 | 0 | 72 |
+| T7 | 33 | 15 | 7 | 18 | 0 | 73 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 692 | 260 | 59 | 202 | 45 | 1258 |
+| All | 692 | 260 | 59 | 203 | 45 | 1259 |
 
 ## How the labels were given
 
@@ -1800,6 +1800,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.210 Stand-ins of the masses a request for a planet class draws
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RQ1 | P | T7 | L3 | tuning.CLASS_REQUEST_GRAVITY_MASS_EXPONENT 0.46 (a rocky planet's gravity goes as mass to 0.46, from a radius going as mass to 0.27) and CLASS_REQUEST_GRAVITY_WIDEN 2 (the mass window of each gravity edge widened a factor of 2 each way), and CLASS_REQUEST_MAX_ATTEMPTS 80 (the draws of a class request at one place; 40 before) | exponent 0.4 to 0.5; widen 1.5 to 3; draws 40 to 160 | classes that name both ends of a gravity (G, P, M, H, O, R, F), asked for by FORCE_CLASS or a slot | a forced G that stays under 18 in 24 Sun-like systems with the window and the draws right, or a class whose bodies lie outside the window | the mass-radius law of the body the class holds (`bulk_draw`) read at the class's gravity edges | the 0.27 radius law is recalled (Zeng and Sasselov, Earth-like composition), not read; the window is wide because envelope and ice bodies are less dense; a forced G in Sun-like (G2V) systems: 15 of 24 with the gravity window and 40 draws, 18 of 24 with 80 draws (3 of 12 systems at random stars on main before, 7 of 24 with the window); the window width did not matter (1.0: 14, 1.4: 12, 2.0: 15 of 24) | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 
