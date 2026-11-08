@@ -25725,6 +25725,11 @@
       "kind": "paper",
       "label": "Edmund et al. 2022",
       "title": "The Fe-FeSi phase diagram at Mercury’s core conditions"
+    },
+    "R5148": {
+      "kind": "paper",
+      "label": "Iizuka-Oku et al. 2021",
+      "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution"
     }
   }
 }

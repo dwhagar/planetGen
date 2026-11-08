@@ -59,7 +59,7 @@ ALPHA_FLOOR = 0.02
 
 SOLID_TO_LIQUID = {"s": 0.02, "si": 0.67, "o": 0.02, "c": 0.5, "h": 0.3}
 """dict: STAND-IN CX4: the mass concentration of each light element in the solid inner core over that in the liquid it freezes from. Silicon is 1 over 1.5 (a
-liquid/solid partition coefficient of 1.5 +- 0.3, Alfe et al 2002, as used by [R5146], read second-hand); oxygen is highly incompatible in solid iron ([R5146], read, no
+liquid/solid partition coefficient of 1.5 +- 0.3, as used by [R5146], read second-hand); oxygen is highly incompatible in solid iron ([R5146], read, no
 number: 0.02 is a stand-in); sulfur, carbon and hydrogen are recalled (sulfur stays in the liquid, carbon and hydrogen go in partly)."""
 LIQUIDUS_DEPRESSION_K = 3700.0
 """float: STAND-IN CX5: K the freezing point falls at the inner core boundary (5,400 K) for a mole fraction of 1 of light elements left in the liquid;
@@ -134,13 +134,13 @@ _EARTH_CORE_WT_PERCENT = {"ni": 5.06, "s": 1.83, "si": 4.96, "o": 2.66, "c": 0.7
 _EARTH_CORE_FE_WT_PERCENT = 82.8
 _earth_total = _EARTH_CORE_FE_WT_PERCENT + sum(_EARTH_CORE_WT_PERCENT.values())
 EARTH = Mix(**{name: value / _earth_total for name, value in _EARTH_CORE_WT_PERCENT.items()})
-"""Mix: Earth's core, the mean of 15 models ([R4608] Tables 1 and 2, read), the seven elements normalised to 1. It is the
+"""Mix: Earth's core, the mean of 15 models ([R4608: Tables 1 and 2], read), the seven elements normalised to 1. It is the
 reference of the liquidus and of the compositional energy and the mix of a body with no stored split."""
 _MARS_WT_PERCENT = {"ni": 7.4, "s": 6.6, "o": 5.2, "h": 0.9}
 _MARS_FE_WT_PERCENT = 79.5
 _mars_total = _MARS_FE_WT_PERCENT + sum(_MARS_WT_PERCENT.values())
 MARS = Mix(ni=7.4 / _mars_total, s=6.6 / _mars_total, si=0.0, o=5.2 / _mars_total, c=0.0, h=0.9 / _mars_total)
-"""Mix: Mars' core, the model of Yoshizaki and McDonough 2020 Table 8 (read; Co, P, Cu and Zn left out), no silicon or carbon."""
+"""Mix: Mars' core, the model of [R4833: Table 8] (read; Co, P, Cu and Zn left out), no silicon or carbon."""
 MERCURY_SHARES = {"s": 0.08, "si": 0.76, "o": 0.02, "c": 0.12, "h": 0.02}
 """dict: STAND-IN CX7: the shares of Mercury's light elements: silicon the most (5 to 25 wt percent in the favoured reduced models), carbon 1 to 4, sulfur at most
 1.5 to 2 ([R5145], ranges read; there is no consensus)."""

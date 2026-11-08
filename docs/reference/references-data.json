@@ -130904,6 +130904,57 @@
    "volume": "10",
    "year": 2020
   },
+  "10.1038/s41598-021-91801-3": {
+   "authors": [
+    [
+     "Iizuka-Oku",
+     "R."
+    ],
+    [
+     "Gotou",
+     "H."
+    ],
+    [
+     "Shito",
+     "C."
+    ],
+    [
+     "Fukuyama",
+     "K."
+    ],
+    [
+     "Mori",
+     "Y."
+    ],
+    [
+     "Hattori",
+     "T."
+    ],
+    [
+     "Sano-Furukawa",
+     "A."
+    ],
+    [
+     "Funakoshi",
+     "K. I."
+    ],
+    [
+     "Kagi",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41598-021-91801-3",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "12632",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2021
+  },
   "10.1038/s41598-024-67342-w": {
    "authors": [
     [
@@ -280236,7 +280287,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5148,
+ "id_next": 5149,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281917,6 +281968,7 @@
   "10.1038/s41592-019-0686-2": "R4560",
   "10.1038/s41598-017-04910-3": "R4580",
   "10.1038/s41598-020-67751-7": "R3378",
+  "10.1038/s41598-021-91801-3": "R5148",
   "10.1038/s41598-024-67342-w": "R3503",
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
