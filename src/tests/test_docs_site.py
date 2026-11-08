@@ -69,3 +69,20 @@ def test_the_site_has_a_page_for_every_markdown_file_and_every_link_resolves():
 @pytest.mark.globaldocs
 def test_the_site_is_up_to_date():
     assert site.main(["--check"]) == 0
+
+
+def test_the_code_inventories_name_every_table_and_route():
+    spec = importlib.util.spec_from_file_location("build_reference_inventory", os.path.join(ROOT, "scripts", "build_reference_inventory.py"))
+    inventory = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inventory)
+    columns, routes = inventory.database_columns(), inventory.api_routes()
+    assert "## `belt_members`" in columns and "| `member_rank` |" in columns
+    assert "`/api/galaxy/cloud-volume`" in routes and "`/api/admin/settings/update/plan`" in routes
+
+
+@pytest.mark.globaldocs
+def test_the_code_inventories_are_up_to_date():
+    spec = importlib.util.spec_from_file_location("build_reference_inventory", os.path.join(ROOT, "scripts", "build_reference_inventory.py"))
+    inventory = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inventory)
+    assert inventory.main(["--check"]) == 0

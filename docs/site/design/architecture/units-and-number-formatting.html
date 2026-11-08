@@ -56,7 +56,7 @@ and the tests that keep the Python and JavaScript copies identical.</p>
 <p><strong>Update (DOC.70, 2026-10-23): where the units live now.</strong> This note was written before the unit registry existed; its
 ladders and the migration order below are still the display design, but a unit's number is no longer stated here or
 anywhere else a second time. One list of units exists, and everything else reads it
-(design: <code>docs/design/unified-unit-quantity.md</code>):</p>
+(design: <code>docs/design/architecture/unified-unit-quantity.md</code>):</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -89,7 +89,7 @@ anywhere else a second time. One list of units exists, and everything else reads
 <tr>
 <td><strong>The column registry</strong></td>
 <td><code>db/column_units.py</code> (DB.76)</td>
-<td>Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (<code>tests/test_column_units.py</code>). See <code>docs/database-schema.md</code>, &quot;Units of a column&quot;.</td>
+<td>Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (<code>tests/test_column_units.py</code>). See <code>docs/reference/database-schema.md</code>, &quot;Units of a column&quot;.</td>
 </tr>
 <tr>
 <td><strong>The display ladders</strong></td>

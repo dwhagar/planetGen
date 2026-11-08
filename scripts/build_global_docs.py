@@ -11,6 +11,8 @@ The global documents are:
 
 * `docs/generated/architecture-map.html` (`scripts/build_architecture_map.py`): lists every module of the package;
 * `docs/generated/*.html` (`scripts/build_todo_docs.py`; the five plan pages): the plan pages, from `docs/TODO.md` and the notes beside it;
+* `docs/generated/database-columns.md` and `api-routes.md` (`scripts/build_reference_inventory.py`): every table, column and
+  route the code defines;
 * `docs/site/` (`scripts/build_docs_site.py`): every Markdown document as a web page for GitHub Pages;
 * `docs/index.html` (`scripts/build_docs_index.py`): every HTML page under `docs/` with its description, so it is
   built last.
@@ -36,6 +38,7 @@ SCRIPTS = os.path.join(ROOT, "scripts")
 GENERATORS = (
     ("docs/generated/architecture-map.html", "build_architecture_map"),
     ("docs/generated/*.html", "build_todo_docs"),
+    ("docs/generated/*.md", "build_reference_inventory"),
     ("docs/site/**", "build_docs_site"),
     ("docs/index.html", "build_docs_index"),
 )

@@ -49,6 +49,7 @@ main{padding:16px 16px 60px}}
 reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.</p>
+<p><strong>Every table and column the schema creates, in one list built from <code>schema.sql</code>: <a href="../generated/database-columns.html">../generated/database-columns.md</a>.</strong> Use it to find a column this page does not describe.</p>
 <p><strong>Status</strong>: the schema is implemented, with both a write and a read path.
 <a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/store.py"><code>src/planetgen/db/store.py</code></a> (private — leading
 underscore, not part of the package's public generation API) writes
@@ -159,8 +160,8 @@ dropped them (see &quot;The searchable-field principle&quot; below).</p>
 table, the columns of each unit; <code>COLUMNS</code> is the same list by <code>(table, column)</code>. A unit is a key of the unit registry
 (<code>physics/unit_registry.py</code>, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
 <code>LOCAL_UNITS</code> for the few the registry does not hold yet. The registry is the only table of units (see
-<code>docs/design/units-and-number-formatting.md</code>); this page states no factor.</p>
-<p>Rules (Boss's cards Q3 and Q4 of <code>docs/design/unified-unit-quantity.md</code>):</p>
+<code>docs/design/architecture/units-and-number-formatting.md</code>); this page states no factor.</p>
+<p>Rules (Boss's cards Q3 and Q4 of <code>docs/design/architecture/unified-unit-quantity.md</code>):</p>
 <ul>
 <li><strong>The stored unit is chosen for precision, not forced to SI.</strong> A position keeps its frame's unit (galaxy parsec, sector
 milliparsec, system kilometres or AU) because a double's spacing grows with the number.</li>

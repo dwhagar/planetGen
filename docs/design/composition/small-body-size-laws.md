@@ -50,7 +50,7 @@ q 2 to 3 and about 2.5e11 at its stated 2.7.
 
 ### 1.2 Correction found while reading
 
-`docs/design/unified-star-like-objects.md` line 140 states "the real density is about 1e12 per pc^3 (range 1e11 to 1e14)"
+`docs/design/architecture/unified-star-like-objects.md` line 140 states "the real density is about 1e12 per pc^3 (range 1e11 to 1e14)"
 for interstellar objects, marked [S]. The measured 100 m scale density, 0.1 au^-3 [R2159] to 0.2 au^-3
 (Do et al. 2018), is **7e14 to 1.8e15 per pc3**, three orders of magnitude higher. The conclusion of that paragraph (the
 objects cannot be rows and the count below a lowest size is computed) holds with the higher number. TODO files this.

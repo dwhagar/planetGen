@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Generated pages - planetGen docs</title>
-<meta name="description" content="Every page in this folder is built by a script.">
+<meta name="description" content="Every page in this folder is built by a script (the plan pages and the code map are HTML; the two code inventories are Markdown, so the documentation website carries them too).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
 @media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
@@ -44,7 +44,7 @@ main{padding:16px 16px 60px}}
 <nav id="nav" data-root="../" data-here="generated/README.html"><a href="../index.html">Site index</a></nav>
 <main>
 <h1 id="generated-pages">Generated pages</h1><p class="meta">docs/generated/README.md</p>
-<p>Every page in this folder is built by a script. Do not edit them by hand: change the source and run the script.</p>
+<p>Every page in this folder is built by a script (the plan pages and the code map are HTML; the two code inventories are Markdown, so the documentation website carries them too). Do not edit them by hand: change the source and run the script.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -83,6 +83,16 @@ main{padding:16px 16px 60px}}
 <td><a href="../../generated/version-plan.html">version-plan.html</a></td>
 <td><code>scripts/build_todo_docs.py</code></td>
 <td><a href="../TODO.html">../TODO.md</a> and the files in <a href="https://github.com/dwhagar/planetGen/tree/main/docs/plan/releases">../plan/releases/</a></td>
+</tr>
+<tr>
+<td><a href="database-columns.html">database-columns.md</a></td>
+<td><code>scripts/build_reference_inventory.py</code></td>
+<td><code>src/planetgen/db/schema.sql</code>: every table and column with its comment</td>
+</tr>
+<tr>
+<td><a href="api-routes.html">api-routes.md</a></td>
+<td><code>scripts/build_reference_inventory.py</code></td>
+<td>the route decorators under <code>src/planetgen/api/</code>: every HTTP route</td>
 </tr>
 </tbody>
 </table></div>
