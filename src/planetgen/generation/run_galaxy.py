@@ -2488,7 +2488,8 @@ def _plan_random_start(args, edge_pc, progress):
     addresses = [address for address, _position, _args in starts]
     return [SectorsFollower(args, "start", "Starting sector", edge_pc,
                             [(address, position, sector_args, "") for address, position, sector_args in starts],
-                            announce=_log_start),
+                            announce=_log_start,
+                            bar_description="Starting sector" if len(starts) == 1 else "Starting sectors"),
             _neighborhood_follower(args, edge_pc, addresses, count, existed, skipped)]
 
 
