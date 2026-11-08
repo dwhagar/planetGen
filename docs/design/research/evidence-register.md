@@ -28,3 +28,21 @@ The note says what the source saw, so the next reader can check it. A row's owne
 | 6.237:NM5 | observed in a lab | made, survives release at room temperature |
 | 6.237:NM6 | observed in a lab | made in a diamond cell |
 | 6.237:NM7 | observed in a lab | two 2024 syntheses at ambient pressure |
+| 6.238:UC1 | disputed | a solid-phase claim is made and doubted; a comment rebuts the 2020 measurement |
+| 6.238:UC2 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC3 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC4 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC5 | observed in a lab | made and simulated in the laboratory, not shown on Titan |
+| 6.238:UC6 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC7 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC8 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC9 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC10 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC11 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC12 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC13 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC14 | disputed | the detection is claimed and doubted |
+| 6.238:UC15 | disputed | the detection is claimed and doubted |
+| 6.238:UC16 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC17 | predicted only | predicted or computed only; nobody has seen it |
+| 6.238:UC18 | predicted only | predicted or computed only; nobody has seen it |
