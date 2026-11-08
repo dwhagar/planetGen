@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3667] - 2026-11-08
+
+**Headline:** The Galaxy Map drill-down browser test no longer reads the map before a breadcrumb click has taken effect.
+
+### Fixed
+- `test_galaxy_map_drill_down_by_windows` clicked a breadcrumb and waited only for the map to hold still. The camera leaves for the clicked step once its data has loaded, so on a loaded machine the wait returned on the unchanged window and the test read four steps where two were asked for. The wait now also needs the state to move off what it was before the click, as every other step of the test does.
+
+generation-output: unchanged
+
+## [8.0.3666] - 2026-11-08
+
+**Headline:** The System Map look test no longer expects the class letter in a body's look record.
+
+### Fixed
+- GEN.1400 removed the class letter (`cls`) from a body's look record, but `test_planet_attrs_carries_one_look_record_not_loose_colour_attrs` still asserted it and failed with a KeyError. The test now checks the body kind and temperature only.
+
+generation-output: unchanged
+
+## [8.0.3665] - 2026-11-08
+
+**Headline:** The System Map's 3D view keeps the info panel of the body you picked when the page is opened or reloaded on its address.
+
+### Fixed
+- UX.290: the diagram and the 3D view share one info panel (`#sysmap-info`), and the diagram sets itself up after the 3D view may already have picked the body named by `?object=`. When it finished last, it reset the panel to its "Click a star, planet..." hint, so a reload lost the panel (found as a failure of `test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram`, not as a fault of the time buttons: play, faster and now never touched the panel). The diagram now leaves the panel alone while it is hidden. A new browser test holds the diagram's last import back for 4 seconds so the order is the bad one every time.
+
+generation-output: unchanged
+
 ## [8.0.3664] - 2026-11-08
 
 **Headline:** The Generate page's size and time estimate, which runs in the work queue since ADM.141, is on the queue's allowlist, so the worker no longer refuses it.

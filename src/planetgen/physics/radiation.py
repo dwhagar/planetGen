@@ -61,7 +61,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, planet_type, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -466,7 +466,7 @@ def generate_dose(body):
     its distance). A gas giant has no surface (every field `None`). Draws
     the solar modulation, the surface rock and the radon diffusion of the ground (`_ground_dose`) and the ozone column once each."""
     _clear(body)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334), has no surface
         return
     star = body.star
     distance = getattr(body, "_star_distance_au", None)
@@ -521,7 +521,7 @@ def update_ground_dose(body):
     giant, or one saved before it) is left as it is.
     """
     old = getattr(body, "dose_ground_msv_yr", None)
-    if body.body_type == "g" or old is None:
+    if not planet_type.has_ground(body) or old is None:
         return
     ground = _ground_dose(body, getattr(body, "atmospheric_pressure", None) or 0.0)
     body.surface_dose_msv_yr += ground - old

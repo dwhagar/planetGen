@@ -3531,7 +3531,7 @@ NEUTRON_STAR_FIELDS = (
     object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
     object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_solar"), object_rows.attr("radius_km", "radius"), object_rows.attr("spin_period_ms"),
-    object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
+    object_rows.attr("magnetic_field_gauss"), object_rows.attr("magnetic_inclination_deg"), object_rows.attr("pulsar_type"),
     object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
     object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.remnant_values(
@@ -3540,7 +3540,7 @@ NEUTRON_STAR_FIELDS = (
 """tuple: The `Field`s of a `neutron_stars` row."""
 
 _BLACK_HOLE_OWN_COLUMNS = ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk")
-_NEUTRON_STAR_OWN_COLUMNS = ("mass_solar", "spin_period_ms", "magnetic_field_gauss", "pulsar_type",
+_NEUTRON_STAR_OWN_COLUMNS = ("mass_solar", "spin_period_ms", "magnetic_field_gauss", "magnetic_inclination_deg", "pulsar_type",
                              "surface_temperature_k")
 """tuple: The columns of a remnant's satellite row that are not already on its `stars` row."""
 
