@@ -2260,15 +2260,6 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W
 list: A list of planet class codes that are considered habitable.
 """
 
-"""
-dict[str, str]: Maps a habitable planet class code to the highest
-`EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
-is consistent with -- see `evolution.get_evolutionary_state`'s
-`planet_class` parameter, the only reader of this mapping. A class not
-present here is uncapped (full range, up to and including a technological
-civilization).
-"""
-
 HABITABILITY_LIFE_SCORE_MIN = 0.005
 """
 float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) likelihood

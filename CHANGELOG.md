@@ -2,6 +2,107 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3664] - 2026-11-08
+
+**Headline:** The Generate page's size and time estimate, which runs in the work queue since ADM.141, is on the queue's allowlist, so the worker no longer refuses it.
+
+### Changed
+- `planetgen.web.lib.estimatejob:work` is added to `allowlist.API_FUNCTIONS`. ADM.141 moved the estimate into the work queue but left the function off the list, so `api_jobs.execute` refused it and `test_every_function_the_api_queues_is_on_the_list` failed on main.
+
+## [8.0.3663] - 2026-11-08
+
+**Headline:** A run killed while it was cutting the next stage into units now says so, names that stage, and logs what the cut is doing and how much memory it holds; the starting-sector and scatter workers are sized from the full-galaxy run that went over.
+
+### Changed
+- **The opening of a stage is logged and marked (PERF.252).** The unit that completes a stage opens the next one in its own work horse, and the next stage's start line is written only after its cut into units returns, so a slow or killed cut was silent and a kill read as a unit of the stage before it. The cut now logs `Opening stage N: ...` before it starts and after the cluster field, the preparation and the cut, each with the memory the process holds, and the run record names the stage being opened until the cut ends. A kill or a failure then reads `unit 0 of stage X was killed while it was opening stage Y`.
+- **Worker sizes (PERF.252).** `SECTOR_WORKER_MEMORY_MB` 2,600 to 3,050 (the starting sector held 2,762 MB) and `BULK_WORKER_MEMORY_MB` 1,700 to 2,100 (the bright stars held 1,879 MB), each 10 percent over the measure. On a 16 GB host a scatter stage now runs 3 workers, a sector stage 2.
+
+Output unchanged.
+
+## [8.0.3662] - 2026-11-08
+
+**Headline:** The Galaxy Map's on-map Key and help dialog now have a line for globular clusters.
+
+### Fixed
+- MAP.408: the globular cluster layer drew pale-gold balls with no line in the Key, so `test_every_layer_of_the_galaxy_map_has_a_key_line_a_legend_or_a_reason` failed. The Key now has "Pale-gold balls: globular clusters, brightest where the stars crowd" with a pale-gold ball as its swatch, shown while the layer is drawn, and the help dialog's sector line names the balls.
+
+generation-output: unchanged
+
+## [8.0.3661] - 2026-11-08
+
+**Headline:** The map menu test accepts the View menu's group names and the Gravity note as text.
+
+### Fixed
+- **System menu browser test (TEST.696).** The check that every visible word in a map menu is a heading or a control knew only the old heading class. The System Map's View menu now names its groups with `view-menu-group-name` and carries a one-line Gravity note, so the test flagged them. It accepts both and says the element's class and parent when it flags one.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (system menu).
+
+## [8.0.3660] - 2026-11-08
+
+**Headline:** The search browser tests' stand-in for the search answer accepts the sector scope again.
+
+### Fixed
+- **Search table browser tests (TEST.696).** The search page now passes `sector_scope` to the search call, but the stand-in the table tests use for it did not take that argument, so the page answered 500 and five tests failed. The stand-in takes it now; the page was never wrong.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (search tables).
+
+## [8.0.3659] - 2026-11-08
+
+**Headline:** The Chart View and side strip browser tests open the Chart View sub-menu and expect the isometric slant.
+
+### Fixed
+- **Chart View browser tests (TEST.696).** The Chart View and side strip controls now sit in a sub-menu that starts closed, so twelve browser tests waited two minutes for a button that was not visible; they now open it first. The plane view test expected a 62 degree slant where the Chart View is isometric (54.74 degrees), and one test read the plane's height before the grid had been rebuilt; both are corrected.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (plane view and side strip).
+
+## [8.0.3658] - 2026-11-08
+
+**Headline:** The header menu test reads the Help menu's list from the help registry instead of a copy that went stale.
+
+### Fixed
+- **Help menu test (TEST.696).** `test_web_header_menus.py` expected the Help menu to hold a fixed list that no longer matched it (Properties had left, The sky behind a system had joined), so ten of its cases failed. It now reads the expected list from the same registry the menu is built from.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (header menus).
+
+## [8.0.3657] - 2026-11-08
+
+**Headline:** Code that read or picked by a planet class letter before the class is decided is removed; the Hycean box and the trojan room test now read mass, radius and temperature alone.
+
+### Changed
+- **Class-letter leftovers removed (GEN.1400).** `trojan_bodies.classes_allowed` and its two class constants (rows TB1 and TB2) are gone; `fits` and `room_earth` test the mass alone. `hycean_candidate` takes mass, radius and equilibrium temperature and no longer needs the letters T, I or V. The look of a body no longer carries `cls`, the air colour is not handed the class, the habitability world no longer carries `planet_class`, and the orphaned docstring about a removed milestone cap map is deleted. `generation/system.py` `m_count` waits for GEN.688.
+
+TODO items resolved: GEN.1400 (all but `m_count`)
+
+## [8.0.3656] - 2026-11-08
+
+**Headline:** A warm-up that a change started no longer runs while a generation run is live.
+
+### Changed
+- The warm-up a data change starts by itself (`planetgen warm --on-change`) now waits for any live generation run to end before it fetches pages, so it no longer logs failed warm-up requests against data the run is rewriting. It keeps its lock fresh while it waits, and the generation run's own end asks for the warm-up that follows. Output of generation is unchanged.
+
+## [8.0.3655] - 2026-11-08
+
+**Headline:** A database that has no galaxy yet now says so on every page, instead of "no such database".
+
+### Changed
+- **A database that holds only `migrate`'s bookkeeping (or nothing) says there is no galaxy yet (MAP.407).** Every page used to answer 404 "Not found: No such database". The API now marks that case (`noGalaxy`, still a 404) and the pages show "No galaxy yet: There is no galaxy in database ... yet. Plan one from the admin Generate page (or run 'planetgen plan') and the pages fill in." A schema that holds something else (the control database, for one) is still "No such database". The web client's new `NoGalaxyError` is a `NotFoundError`, so every page that handles a missing object handles it as before.
+- **MAP.406 needed no change.** The sector page and `/sector/<id>/gravity` with no galaxy shape were fixed by MAP.405 (the bug hunt ran on a main from before it); all of the item's red tests (the sector pages, profile, Nearby, route fuzz) pass on main.
+
+## [8.0.3654] - 2026-11-08
+
+**Headline:** The generator battery's digest is worked out once after an update and kept, so a fill, a plan or a fingerprint no longer waits half a minute or more for it.
+
+### Changed
+- **The generator battery digest is kept on the server (PERF.250).** It takes 30 to 90 seconds and every process that stores or extends a galaxy asked for it again. It is now kept in the folder of the install's kept star tables (`/var/cache/planetgen/band-tables`, which `update.sh` makes) under a key of every file of the `planetgen` package and of the downloaded datasets (name, size, modification time), the Python, numpy and scipy versions and the platform. A changed generator file, data file, library or machine makes a new key, so a changed generator is never given an old answer; copies of older code are removed after a week. A host without the folder works it out as before. `PLANETGEN_BATTERY_DIGEST_CACHE` still names another folder (set but empty, none).
+
 ## [8.0.3653] - 2026-11-08
 
 **Headline:** Starting a sector fill on a planned galaxy no longer times out: the size and time are worked out in the background and shown as soon as they are ready.
