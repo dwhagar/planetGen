@@ -54461,6 +54461,166 @@
       ],
       "slug": "6-219-stand-ins-of-the-water-and-carbon-a-mantle-stores",
       "title": "Stand-ins of the water and carbon a mantle stores"
+    },
+    {
+      "key": "6.233",
+      "number": "6.233",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic.FALLBACK_FLOOR_BEYOND_GPA 60.0: the water floor of 1900 K measured at 60 GPa [R5171: Abstract] is held at all higher pressures"
+            ],
+            [
+              "The range it moves in",
+              "60 to 190 GPa"
+            ],
+            [
+              "Where it holds",
+              "water at 60 to 400 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a measured floor of water between 60 and 190 GPa that differs by more than 300 K"
+            ],
+            [
+              "What replaces it",
+              "a floor curve measured to 400 GPa"
+            ],
+            [
+              "Evidence",
+              "[R5171: Abstract] gives the floor to 60 GPa (fcc superionic ice is the only phase above it) and [R3081: Abstract] superionic ice XVIII at 100 to 400 GPa, with no floor point between"
+            ]
+          ],
+          "id": "SI1",
+          "key": "6.233:SI1",
+          "kind": "T",
+          "slug": "6-233-si1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "superionic.FALLBACK_FLOOR_BEYOND_GPA 60.0: the water floor of 1900 K measured at 60 GPa [R5171: Abstract] is held at all higher pressures"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic.CEILING_INTERPOLATION_GPA (20.0, 105.0): the ceiling of water is a straight line from the triple point at 20 GPa and 900 K to the point at 105 GPa and 4000 K"
+            ],
+            [
+              "The range it moves in",
+              "the line within 700 K, the spread [R5171: Abstract] gives for the melting line near 50 GPa"
+            ],
+            [
+              "Where it holds",
+              "water at 20 to 105 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a melting line of water measured at 50 GPa that is 700 K off the line"
+            ],
+            [
+              "What replaces it",
+              "the melting line of Table S3 of [R5171] when opened"
+            ],
+            [
+              "Evidence",
+              "the end points are read [R5171: Abstract]; the line between them is interpolated, and the melting-line points of other experiments (up to 700 K apart) are not opened"
+            ]
+          ],
+          "id": "SI2",
+          "key": "6.233:SI2",
+          "kind": "T",
+          "slug": "6-233-si2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "superionic.CEILING_INTERPOLATION_GPA (20.0, 105.0): the ceiling of water is a straight line from the triple point at 20 GPa and 900 K to the point at 105 GPa and 4000 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic.AMMONIA_FLOOR_GPA_K (30.0, 1500.0): ammonia is superionic from 1500 K at 30 GPa upward, and melts on a line to 5500 K at 300 GPa"
+            ],
+            [
+              "The range it moves in",
+              "1000 to 2500 K for the floor"
+            ],
+            [
+              "Where it holds",
+              "ammonia at 30 to 300 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a measured superionic onset of ammonia 1000 K away"
+            ],
+            [
+              "What replaces it",
+              "the phase lines of [R5172] when opened in full"
+            ],
+            [
+              "Evidence",
+              "[R5172: Abstract] gives only the range (30 to 300 GPa, 300 to 7000 K), the superionic phase between the solid and the ionic liquid, and the metallic temperature of 5500 K; the onset of about 60 GPa and 1500 K is recalled, not opened"
+            ]
+          ],
+          "id": "SI3",
+          "key": "6.233:SI3",
+          "kind": "T",
+          "slug": "6-233-si3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "superionic.AMMONIA_FLOOR_GPA_K (30.0, 1500.0): ammonia is superionic from 1500 K at 30 GPa upward, and melts on a line to 5500 K at 300 GPa"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic.FALLBACK_TEMPERATURE_K 2500.0"
+            ],
+            [
+              "The range it moves in",
+              "2000 to 5000 K"
+            ],
+            [
+              "Where it holds",
+              "the deep ice layer of a body whose structure model carries no adiabat"
+            ],
+            [
+              "What would show it wrong",
+              "an ice giant whose adiabat at its mantle bottom is outside 2000 to 5000 K"
+            ],
+            [
+              "What replaces it",
+              "the adiabat of the model, which the body has whenever the hydrogen-helium tables are present"
+            ],
+            [
+              "Evidence",
+              "the planetary isentrope of [R5172: Abstract] runs inside the superionic and ionic fields at 30 to 300 GPa; the number is the middle of that range"
+            ]
+          ],
+          "id": "SI4",
+          "key": "6.233:SI4",
+          "kind": "T",
+          "slug": "6-233-si4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "superionic.FALLBACK_TEMPERATURE_K 2500.0"
+        }
+      ],
+      "slug": "6-233-stand-ins-of-the-superionic-boundaries-of-water-and-ammonia",
+      "title": "Stand-ins of the superionic boundaries of water and ammonia"
     }
   ]
 }

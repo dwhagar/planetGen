@@ -233329,6 +233329,45 @@
    "volume": "281",
    "year": 1998
   },
+  "10.1126/science.283.5398.44": {
+   "authors": [
+    [
+     "Cavazzoni",
+     "C."
+    ],
+    [
+     "Chiarotti",
+     "G. L."
+    ],
+    [
+     "Scandolo",
+     "S."
+    ],
+    [
+     "Tosatti",
+     "E."
+    ],
+    [
+     "Bernasconi",
+     "M."
+    ],
+    [
+     "Parrinello",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.283.5398.44",
+   "editors": [],
+   "journal": "Science",
+   "page": "44",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Superionic and Metallic States of Water and Ammonia at Giant Planet Conditions",
+   "type": "journal-article",
+   "volume": "283",
+   "year": 1999
+  },
   "10.1126/science.284.5417.1146": {
    "authors": [
     [
@@ -274484,6 +274523,36 @@
    "volume": "",
    "year": 2020
   },
+  "arXiv:2007.07715": {
+   "arxiv": "2007.07715",
+   "authors": [
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Holtgrewe",
+     "N."
+    ],
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Goncharov",
+     "A."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Polymorphism of superionic ice",
+   "type": "preprint",
+   "volume": "",
+   "year": 2020
+  },
   "arXiv:2008.09700": {
    "arxiv": "2008.09700",
    "authors": [
@@ -280999,7 +281068,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5171,
+ "id_next": 5173,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285039,6 +285108,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
+  "10.1126/science.283.5398.44": "R5172",
   "10.1126/science.284.5417.1146": "R5114",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
@@ -286829,6 +286899,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
+  "arxiv:2007.07715": "R5171",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",
   "arxiv:2007.11006": "R3797",
