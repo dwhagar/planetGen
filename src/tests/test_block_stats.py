@@ -10,6 +10,7 @@ import random
 import pytest
 
 from planetgen.db import block_stats, edits, query, store
+from tests.chart_support import chart_all
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import DRILL_TOP, STAGE_TOP, drill_chain_of, format_drill_key
 
@@ -46,6 +47,7 @@ def galaxy(mysql_config):
                     "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems,"
                     " actual_stars, mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
                     (shell, band, wedge, 1.5 + n % 3, 1 + n % 4, 2 + n % 5, 1.0 + n % 7, 10.0 * (1 + n % 6)))
+            chart_all(conn)
             block_stats.rebuild(conn)
     finally:
         conn.close()

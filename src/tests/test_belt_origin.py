@@ -43,9 +43,9 @@ SOL_LIKE = [rocky(0.39, 3.3e23), rocky(0.72, 4.87e24), rocky(1.0), rocky(1.52, 6
 
 # --- the cause file -------------------------------------------------------------------------------------------------------------------------
 
-def test_the_cause_file_has_six_formation_causes_and_two_shaping_ones_with_sentences_that_format():
+def test_the_cause_file_has_six_formation_causes_and_three_shaping_ones_with_sentences_that_format():
     assert set(bo.FORMATION_CAUSES) == {"gap", "tail", "snow-line-bump", "outer-disk", "collisional-debris", "destroyed-planet"}
-    assert set(bo.SHAPING_CAUSES) == {"giant-stirring", "instability-depletion"}
+    assert set(bo.SHAPING_CAUSES) == {"giant-stirring", "instability-depletion", "planet-scattering"}
     for code, cause in bo.CAUSES.items():
         assert cause["label"] and cause["text"].format(**{name: 1.5 for name in cause["fields"]}), code
 
@@ -331,6 +331,39 @@ def test_a_belt_a_moving_giant_crossed_loses_the_swept_part_to_the_scatter_and_k
     assert kept.scattered_earth < belt.scattered_earth and "swept away" in belt.sentence
     (far,) = [b for b in build(chain, u=0.0) if b.origin == "outer-disk"]
     assert far.scattered_earth == 0.0
+
+
+def test_giants_that_scattered_each_other_throw_out_part_of_the_disk_past_the_outermost_one():
+    # GEN.1341: the Safronov number of the outermost giant (above 1: ejection) sets the thrown share of the stretch it reaches, scaled by the instability
+    chain = [rocky(1.0), giant(5.2), giant(30.0, 1.0e26, 0.01)]
+    (quiet,) = [b for b in build(chain, instability=0.0) if b.origin == "outer-disk"]
+    (full,) = [b for b in build(chain, instability=1.0) if b.origin == "outer-disk"]
+    (half,) = [b for b in build(chain, instability=0.5) if b.origin == "outer-disk"]
+    assert quiet.scattered_earth == 0.0 and not [e for e in quiet.history if e.cause == "planet-scattering"]
+    assert full.scattered_earth > 0.0 and [e for e in full.history if e.cause == "planet-scattering"] and "threw out" in full.sentence
+    assert half.scattered_earth == pytest.approx(0.5 * full.scattered_earth, rel=1e-9)
+    share, reach, outer = bo.scattering_loss_share(chain, STAR, full.inner_au, 1.0)
+    assert outer is chain[-1] and 0.0 < share < 1.0 and reach == pytest.approx(bo.scattering_reach_au(chain[-1], STAR))
+    assert full.scattered_earth < share * full.primordial_mass_earth, "only the part inside the reach is swept"
+    assert full.mass_earth + full.cleared_earth + full.scattered_earth == pytest.approx(full.primordial_mass_earth, rel=1e-9)
+
+
+def test_one_giant_has_nothing_to_scatter_with_and_a_stretch_past_the_reach_is_untouched():
+    one = [rocky(1.0), giant(5.2)]
+    (disk,) = [b for b in build(one, instability=1.0) if b.origin == "outer-disk"]
+    assert disk.scattered_earth == 0.0 and bo.scattering_loss_share(one, STAR, disk.inner_au, 1.0) is None
+    two = [rocky(1.0), giant(5.2), giant(9.5, 5.7e26)]
+    reach = bo.scattering_reach_au(two[-1], STAR)
+    assert bo.scattering_loss_share(two, STAR, reach * 1.01, 1.0) is None
+    assert bo.scattering_loss_share(two, STAR, 8.0, 1.0) is None, "a stretch inside the outermost giant is the giants' own clearing"
+
+
+def test_a_heavier_outer_giant_has_the_larger_safronov_number_and_throws_out_more_until_it_saturates():
+    shares = []
+    for mass in (0.05 * JUPITER, JUPITER, 5.0 * JUPITER):
+        chain = [giant(5.2), giant(20.0, mass)]
+        shares.append(bo.scattering_loss_share(chain, STAR, 22.0, 1.0)[0])
+    assert shares[0] < shares[1] < shares[2] < 1.0
 
 
 # --- mass is conserved ----------------------------------------------------------------------------------------------------------------------

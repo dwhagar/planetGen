@@ -37,7 +37,7 @@ Use:
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, oddities
 from planetgen.util import draw
 
 MOMENT_OF_INERTIA_FACTOR = 0.225
@@ -179,3 +179,13 @@ def tilt_after_merger_deg(mass_kg, radius_km, initial_tilt_deg):
         return initial_tilt_deg
     turn = draw_tilt_deg(mass_earth, radius_km / constants.EARTH_RADIUS_KM, draw.random(), draw.random(), draw.random())
     return combined_tilt_deg(initial_tilt_deg, turn, math.cos(draw.uniform(0.0, 2.0 * math.pi)))
+
+
+@oddities.register("tipped_by_impact")
+def tipped_by_impact(body, row):
+    """
+    The effect of oddity G1 (GEN.1058): a giant of 5 to 30 Earth masses that the merger of `tilt_after_merger_deg` left tipped 60 degrees or more. The tilt was drawn with the
+    spin, and the rings of the giant lie in its equator by construction (`rings`, `latitude_bands.ring_shade` read the tilt), so nothing on the body changes: the effect lets the
+    table name it, so that the page says why this giant lies on its side.
+    """
+    return None

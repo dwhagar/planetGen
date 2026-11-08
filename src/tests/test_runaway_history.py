@@ -175,3 +175,9 @@ def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(mon
     # its share (0.3, at most the loss), so 5e-4 - 2e-4 + 1.5e-4 = 4.5e-4 lies at the surface; the bulk water is the composition's and stays
     assert layers[0] == pytest.approx(5e-4 - 2e-4 + min(2e-4, tuning.MANTLE_OUTGAS_SHARE * 5e-4))
     assert body.water_mass_fraction == 1e-3
+
+
+def test_the_water_loss_efficiency_is_the_atmosphere_escape_efficiency():
+    """Boss, 2026-11-07: the water-loss history and the atmosphere's escape take the same share of the XUV."""
+    from planetgen.physics import thermosphere
+    assert tuning.ENERGY_LIMITED_EFFICIENCY == thermosphere.ENERGY_LIMITED_EFFICIENCY
