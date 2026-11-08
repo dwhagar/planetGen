@@ -99,3 +99,16 @@ def test_the_materials_the_report_names_are_ordinary_observed_rows():
         assert register[f"6.237:{fill_id}"][0] == "observed in a lab", fill_id
     assert register["6.229:CV1"][0] == "observed in a planet"
     assert register["6.229:CV4"][0] == "predicted only"
+
+
+def test_every_watch_line_names_its_two_percentages_and_why_it_changes_no_number():
+    """GEN.1429: the known gaps of the unseen-compounds report are watch lines with a status, EXISTENCE and PROPERTIES percentages and a reason."""
+    header, rows = TABLES["6.238"]
+    register = builder.evidence_rows(EVIDENCE)
+    assert len(rows) == 18
+    for row in rows:
+        evidence = row[-1]
+        assert "EXISTENCE" in evidence and "PROPERTIES" in evidence and "Changes no number now" in evidence, row[0]
+        assert register[f"6.238:{row[0]}"][0] in ("predicted only", "disputed", "observed in a lab"), row[0]
+    disputed = {row[0] for row in rows if register[f"6.238:{row[0]}"][0] == "disputed"}
+    assert disputed == {"UC1", "UC14", "UC15"}

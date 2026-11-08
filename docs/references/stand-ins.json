@@ -54697,6 +54697,698 @@
       ],
       "slug": "6-237-stand-ins-of-the-materials-seen-since-the-textbooks",
       "title": "Stand-ins of the materials seen since the textbooks"
+    },
+    {
+      "key": "6.238",
+      "number": "6.238",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "solid atomic metallic hydrogen above roughly 0.4 to 0.5 TPa (solid, cold): a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "the pressure of the first solid, 0.4 to 0.5 TPa"
+            ],
+            [
+              "Where it holds",
+              "cold cores of brown-dwarf mass"
+            ],
+            [
+              "What would show it wrong",
+              "a second group's measurement that the solid does not form there"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 90 percent, PROPERTIES 35 percent (the report's judgment, plus or minus 15 points; the idea of a room-temperature superconductor metastable at ambient pressure is about 5 percent). Changes no number now: the giant-planet cores already hold liquid metallic hydrogen, and the solid claim only matters to a cold core of brown-dwarf mass, which has no consumer. READ [R5188: abstract] (a comment rebutting the 2020 claim); the 2017 claim is recalled, not opened"
+            ]
+          ],
+          "id": "UC1",
+          "key": "6.238:UC1",
+          "kind": "T",
+          "slug": "6-238-uc1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "solid atomic metallic hydrogen above roughly 0.4 to 0.5 TPa (solid, cold): a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfide and salt clouds (Na2S, ZnS, KCl, MnS, Cr) on cool brown dwarfs and giants, 400 to 1300 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "T dwarfs and giants of 400 to 1300 K"
+            ],
+            [
+              "What would show it wrong",
+              "a T dwarf spectrum with none of the cloud features these give"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 85 percent, PROPERTIES 60 percent (the report's judgment). Changes no number now: part 06 of the atmosphere docs already names ZnS, Na2S and KCl, so this only marks them predicted. READ [R3165: abstract] (a model comparison against two T dwarfs, not a detection of the minerals)"
+            ]
+          ],
+          "id": "UC2",
+          "key": "6.238:UC2",
+          "kind": "T",
+          "slug": "6-238-uc2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfide and salt clouds (Na2S, ZnS, KCl, MnS, Cr) on cool brown dwarfs and giants, 400 to 1300 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ices beyond ice X (Pbcm, Pbca, Pmc21, P21, P21/c) at 0.1 to 7 TPa and 0 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "water at over 1 TPa"
+            ],
+            [
+              "What would show it wrong",
+              "a metallisation of the ice lower than 7 TPa (other groups put it lower)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 80 percent, PROPERTIES 45 percent (the report's judgment). Changes no number now: only a body with water at over 1 TPa holds them, and the generator makes that only in super-Neptune cores. READ [R5189: abstract] (nonmetallic to 7 TPa, computation only)"
+            ]
+          ],
+          "id": "UC3",
+          "key": "6.238:UC3",
+          "kind": "T",
+          "slug": "6-238-uc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ices beyond ice X (Pbcm, Pbca, Pmc21, P21, P21/c) at 0.1 to 7 TPa and 0 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the volatile sulfur-bearing phase behind the Mercury hollows (MgS, CaS or Na-S, not identified): a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "reduced rocky bodies near a star with an S-rich surface"
+            ],
+            [
+              "What would show it wrong",
+              "a hollows spectrum that names another phase"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 70 percent, PROPERTIES 45 percent (the report's judgment). Changes no number now: at most a surface text line; the repo already holds oldhamite and niningerite. READ [R5190: abstract] (the hollows form by volatile loss; the phase itself is not identified)"
+            ]
+          ],
+          "id": "UC4",
+          "key": "6.238:UC4",
+          "kind": "T",
+          "slug": "6-238-uc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the volatile sulfur-bearing phase behind the Mercury hollows (MgS, CaS or Na-S, not identified): a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "Titan cryominerals, the acetylene-benzene, acetylene-ammonia and acetonitrile-acetylene co-crystals at about 90 to 94 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "surfaces of cold N2 and CH4 worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a surface spectrum of Titan that excludes these"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 70 percent, PROPERTIES 55 percent (the report's judgment). STATUS observed in a lab only: made in the laboratory and simulated, not shown on Titan. Changes no number now: a surface text line for colour and dune material at most. READ [R5191: abstract], [R5192: abstract], [R5193: abstract]"
+            ]
+          ],
+          "id": "UC5",
+          "key": "6.238:UC5",
+          "kind": "T",
+          "slug": "6-238-uc5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "Titan cryominerals, the acetylene-benzene, acetylene-ammonia and acetonitrile-acetylene co-crystals at about 90 to 94 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superionic Fe-H and Fe-O alloys in inner cores, about 330 GPa and over 5000 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "iron cores at inner-core conditions"
+            ],
+            [
+              "What would show it wrong",
+              "a core measurement that excludes a superionic phase"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 45 percent, PROPERTIES 30 percent (the report's judgment). Changes no number now: the generator stores the light elements of a core (core_compositions.csv) but no solid-state phase of it. READ [R5194: abstract], [R5195: abstract], [R5196: abstract] (all computation); a 2022 experiment is recalled, not opened"
+            ]
+          ],
+          "id": "UC6",
+          "key": "6.238:UC6",
+          "kind": "T",
+          "slug": "6-238-uc6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "superionic Fe-H and Fe-O alloys in inner cores, about 330 GPa and over 5000 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the Venus highland heavy-metal frost (PbS, Bi2S3, elemental Te) above about 2.5 to 3 km, cooler by about 25 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a hot dense air over a tall highland"
+            ],
+            [
+              "What would show it wrong",
+              "a highland spectrum or sample that lacks these"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 55 percent, PROPERTIES 40 percent (the report's judgment). Changes no number now: it needs a hot dense atmosphere and a tall highland, and would be a surface text line; galena is already in the ore processes. The paper is recalled, not opened"
+            ]
+          ],
+          "id": "UC7",
+          "key": "6.238:UC7",
+          "kind": "T",
+          "slug": "6-238-uc7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the Venus highland heavy-metal frost (PbS, Bi2S3, elemental Te) above about 2.5 to 3 km, cooler by about 25 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tholin-type haze solids (complex C-H-N polymers, no single formula) on Titan, Pluto and Triton: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "haze layers of cold N2 and CH4 worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a haze sample with a measured composition"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 95 percent for the haze, 25 percent for any single composition, PROPERTIES 25 percent (the report's judgment). Changes no number now: tholin already stands in as the rows IR13 and HZ1, whose numbers do not depend on a composition. Nothing was opened for this row"
+            ]
+          ],
+          "id": "UC8",
+          "key": "6.238:UC8",
+          "kind": "T",
+          "slug": "6-238-uc8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tholin-type haze solids (complex C-H-N polymers, no single formula) on Titan, Pluto and Triton: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bcc iron at inner-core conditions, above about 330 GPa near the melting line: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the inner core"
+            ],
+            [
+              "What would show it wrong",
+              "a core measurement of another structure"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 30 percent, PROPERTIES 30 percent (the report's judgment). Changes no number now: nothing in the generator reads a core structure. The paper is recalled, not opened"
+            ]
+          ],
+          "id": "UC9",
+          "key": "6.238:UC9",
+          "kind": "T",
+          "slug": "6-238-uc9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "bcc iron at inner-core conditions, above about 330 GPa near the melting line: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "Fe-Si-O ternary phases at about 1 TPa (P3 FeSiO4, P3 Fe4Si5O18, P-3 FeSi2O6): a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "super-Earth iron partitioning at 1 TPa"
+            ],
+            [
+              "What would show it wrong",
+              "an experiment at 1 TPa that gives other phases"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 40 percent, PROPERTIES 30 percent (the report's judgment). Changes no number now: nothing in the generator reads iron partitioning at that pressure. READ [R5197: abstract] (computation only)"
+            ]
+          ],
+          "id": "UC10",
+          "key": "6.238:UC10",
+          "kind": "T",
+          "slug": "6-238-uc10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "Fe-Si-O ternary phases at about 1 TPa (P3 FeSiO4, P3 Fe4Si5O18, P-3 FeSi2O6): a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "noble-gas compounds in interiors (XeO, XeO2, XeO3, Xe-silicate, FeO2He) above 83 to 136 GPa: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "interiors above 83 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a core or mantle sample that lacks them"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 25 percent in a planet (the Xe-Fe and Xe-Ni compounds 30, the xenon oxides 10), PROPERTIES 60 percent (the report's judgment). Changes no number now: the generator tracks no noble-gas compounds. READ [R5198: abstract] (the oxides are unstable against metallic iron, the silicates decompose) and [R5185: abstract] (Xe-Fe and Xe-Ni made in a diamond cell, row NM6)"
+            ]
+          ],
+          "id": "UC11",
+          "key": "6.238:UC11",
+          "kind": "T",
+          "slug": "6-238-uc11",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "noble-gas compounds in interiors (XeO, XeO2, XeO3, Xe-silicate, FeO2He) above 83 to 136 GPa: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "doubly superionic ammonia-water compounds (H3NO4 and similar) at about 200 GPa and 3500 K: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "ice-giant mantles"
+            ],
+            [
+              "What would show it wrong",
+              "an experiment at that state that gives another phase"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 55 percent, PROPERTIES 35 percent (the report's judgment). Changes no number now: the superionic water and ammonia boundary table is a separate item, and this is one step beyond it. READ [R5199: abstract] (the state has not been made; a shock-plus-ramp experiment is proposed)"
+            ]
+          ],
+          "id": "UC12",
+          "key": "6.238:UC12",
+          "kind": "T",
+          "slug": "6-238-uc12",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "doubly superionic ammonia-water compounds (H3NO4 and similar) at about 200 GPa and 3500 K: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a post-post-perovskite MgSiO3 above 1 TPa: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "mantles above 1 TPa"
+            ],
+            [
+              "What would show it wrong",
+              "a high-pressure experiment that shows the phase"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 20 percent, PROPERTIES 15 percent (the report's judgment). Changes no number now: MgSiO3 splits into oxides first (the super-Earth mantle splits are a separate item), so this is a footnote to it. READ [R5200: abstract], [R5201: abstract], [R5202: abstract] (analogues of the phase in other compounds)"
+            ]
+          ],
+          "id": "UC13",
+          "key": "6.238:UC13",
+          "kind": "T",
+          "slug": "6-238-uc13",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a post-post-perovskite MgSiO3 above 1 TPa: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphine in the Venus cloud deck: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the Venus cloud deck"
+            ],
+            [
+              "What would show it wrong",
+              "a spectrum that settles the line"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 15 percent, PROPERTIES 10 percent (the report's judgment). STATUS disputed: the detection is claimed and doubted. Changes no number now: the oddity list (weird-worlds and design-flags) already carries it. The 2020 claim is recalled, not opened"
+            ]
+          ],
+          "id": "UC14",
+          "key": "6.238:UC14",
+          "kind": "T",
+          "slug": "6-238-uc14",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "phosphine in the Venus cloud deck: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dimethyl sulfide in a hycean-world atmosphere (K2-18 b): a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "sub-Neptune ocean worlds"
+            ],
+            [
+              "What would show it wrong",
+              "a spectrum that settles the line"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 10 percent, PROPERTIES 10 percent (the report's judgment). STATUS disputed: the detection is claimed and doubted. Changes no number now: the oddity list already carries it. The 2023 claim and the rebuttals are recalled, not opened"
+            ]
+          ],
+          "id": "UC15",
+          "key": "6.238:UC15",
+          "kind": "T",
+          "slug": "6-238-uc15",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dimethyl sulfide in a hycean-world atmosphere (K2-18 b): a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "neutron-star cores"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mass and radius that exclude it"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 35 percent for any exotic core, 5 percent for a pure strange-quark star, PROPERTIES 15 percent (the report's judgment). Changes no number now: at most one text line on the kind of core; there is no equation of state on offer. Recalled, not opened"
+            ]
+          ],
+          "id": "UC16",
+          "key": "6.238:UC16",
+          "kind": "T",
+          "slug": "6-238-uc16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "Titan's liquid methane"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement that the vesicles cannot form there"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 5 percent, PROPERTIES 5 percent (the report's judgment). Changes no number now: PlanetGen has no use for it; later energetics work cast doubt on it. Recalled, not opened"
+            ]
+          ],
+          "id": "UC17",
+          "key": "6.238:UC17",
+          "kind": "T",
+          "slug": "6-238-uc17",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "r-process ejecta and cosmic rays"
+            ],
+            [
+              "What would show it wrong",
+              "a measured superheavy nuclide in nature"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "EXISTENCE 3 percent, PROPERTIES 20 percent (the report's judgment). Changes no number now: PlanetGen has no use for it. Recalled, not opened"
+            ]
+          ],
+          "id": "UC18",
+          "key": "6.238:UC18",
+          "kind": "T",
+          "slug": "6-238-uc18",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number"
+        }
+      ],
+      "slug": "6-238-known-gaps-kept-as-watch-lines",
+      "title": "Known gaps kept as watch lines"
     }
   ]
 }
