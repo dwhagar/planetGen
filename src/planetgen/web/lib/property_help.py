@@ -66,7 +66,7 @@ GROUP_AREA = {
     "Identity": "bodies", "Orbit": "orbits", "Physical": "bodies", "Rotation": "orbits", "Composition": "bodies", "Atmosphere": "atmospheres",
     "Climate": "climate", "Water": "climate", "Magnetic field": "rings-magnetism", "Radiation": "radiation", "Habitability": "life", "Life": "life",
     "Zones and limits": "climate", "Stellar activity": "stars", "Galactic orbit": "galaxy", "Disk": "orbits", "Radiogenic heat": "radiation",
-    "Gas and light": "appearance", "Compact object": "stars", "Activity": "stars", "Ratings": "life",
+    "Gas and light": "appearance", "Compact object": "stars", "Activity": "stars", "Ratings": "life", "Dust": "atmospheres",
 }
 """dict: The area of the method pages (`reference_urls.AREAS`) that holds the rows of each heading of the property sheet (DOC.91)."""
 
