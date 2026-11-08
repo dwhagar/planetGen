@@ -69,6 +69,7 @@ def _update_body(conn, table, body, assignments, key_values):
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
     conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
+    conn.execute(f"DELETE FROM {prefix}_deposit_types WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))

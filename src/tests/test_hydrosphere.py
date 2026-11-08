@@ -164,7 +164,7 @@ def test_ocean_worlds_are_mostly_ice_sealed():
     assert all(world.ocean_fraction == 1.0 for world in worlds)
     sealed = [world for world in worlds if world.ocean_class == "ice-sealed"]
     assert len(sealed) > 50
-    assert all(world.hp_ice_km > 0 and world.phosphorus == "starved" for world in sealed)
+    assert all(world.hp_ice_km > 0 for world in sealed)
 
 
 def test_generated_bodies_store_a_consistent_hydrosphere():
@@ -191,7 +191,6 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                 if liquid:
                     (ph_lo, ph_hi), (aw_lo, aw_hi) = hy.OCEAN_CHEMISTRY[body.ocean_class]
                     assert ph_lo <= body.ocean_ph <= ph_hi and aw_lo <= body.water_activity <= aw_hi
-                    assert body.phosphorus in ("high", "limited", "starved")
     # a runaway-greenhouse vapor world is rare (2 in 590 bodies) and is checked by hand above, so a sample need not hold one
     assert {"ice", "dry"} <= seen
 

@@ -1398,7 +1398,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `mantle_eta0_pa_s`, `mantle_activation_kj_mol` | DOUBLE | nullable | Added in v153 (GEN.699). The two draws of a rocky body's mantle rheology, `eta = eta0 exp(Ea / R T)`: the viscosity prefactor in Pa s and the activation energy in kJ/mol (uniform over the ranges of [R1716]). NULL for a gas giant and a row made before v152. |
 | `internal_heat_flux_w_m2` | DOUBLE | nullable | Added in v153 (GEN.699). The heat flowing out of the interior, radiogenic plus primordial (the cooling of the mantle, `physics/interior_heat.py`), over the body's surface, W/m2, at the star's age when the body was last generated. NULL for a gas giant and a row made before v152. |
 | `lid_regime` | VARCHAR(10) | nullable | Added in v154 (GEN.721). The tectonic regime of a rocky body: `mobile` (plate tectonics) or `stagnant` (one rigid plate), drawn once after the hydrosphere. NULL for a gas giant and for a row made before v154. |
-| `ocean_class`, `ocean_ph`, `water_activity`, `phosphorus` | VARCHAR(16) (CHECK ice-sealed / chloride brine / acid sulfate / soda / neutral), DOUBLE, DOUBLE, VARCHAR(8) (CHECK high / limited / starved) | nullable | Added in v74 (GEN.88). The ocean's chemistry class by rule (section 5.4), its pH and water activity drawn in the class's range, and its phosphorus supply. NULL without liquid water. |
+| `ocean_class`, `ocean_ph`, `water_activity`, `phosphorus` | VARCHAR(16) (CHECK ice-sealed / chloride brine / acid sulfate / soda / neutral), DOUBLE, DOUBLE, VARCHAR(8) (CHECK high / limited / starved) | nullable | Added in v74 (GEN.88). The ocean's chemistry class by rule (section 5.4), its pH and water activity drawn in the class's range, and its phosphorus band, which since v231 (GEN.1367) is the band of `ocean_phosphate_umol_l` (starved under 0.1 umol/L, high from 100). NULL without liquid water. |
 | `surface_dose_msv_yr`, `dose_gcr_msv_yr`, `dose_sep_msv_yr`, `dose_ground_msv_yr`, `dose_helio_mult` | DOUBLE | nullable | Added in v75 (GEN.87). The yearly dose at the surface, mSv, and its parts: `surface_dose_msv_yr` = `dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` + `dose_ground_msv_yr`. Cosmic rays through the air (a log-log curve through the Moon, Mars and a 100 g/cm2 point, then 164 g/cm2 attenuation) cut to 0.6 at most by a dipole; stellar particles (20 mSv/yr x sqrt(N33 / N33 of the Sun) / d_AU^2, stopped by the air and steered by the dipole); crust gamma and radon (0.48 mSv/yr x abundance x radiogenic heat at the star's age against 4.5 Gyr, plus 0.5 mSv/yr x abundance with air and land). `dose_helio_mult` is 1 to 2.5: 1 in open space, raised while a nebula or remnant presses on the star's heliosphere (`refresh_containment` and an edit update it and the total). NULL for a gas giant. |
 | `dose_belt_msv_yr` | DOUBLE | nullable | Added in v187 (GEN.983). The dose, mSv/yr, a moon takes at its orbit from the trapped-particle belts of its parent planet's field, part of `surface_dose_msv_yr`: 0 for a planet or a moon outside the belts, NULL for a giant and on a row made before v187. |
 | `uv_surface_index`, `ozone_loss_flag` | DOUBLE, BOOLEAN | nullable | Added in v75 (GEN.87). DNA-weighted surface UV against Earth's 1 (the star's 200 to 300 nm power against the Sun's, floored at 0.1, times its flux, times the ozone shielding (`ozone_column_du` / 300 DU)^-1.6 up to 1,000 when there is none), and whether ozone is lost: the layer exists but the star's `lethal_event_rate_per_gyr` is over 10 (one per 100 Myr) or particles give 100 mSv/yr at the ozone layer. NULL for a gas giant, and `uv_surface_index` NULL without a star temperature. |
@@ -1460,6 +1460,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` | DOUBLE | nullable | Added in v144 (DB.69, GEN.428). The body's bulk composition as shares of the whole mass: the iron-rich core (light elements included), the rock, every ice other than water, and the hydrogen and helium envelope. With `water_mass_fraction` they add up to 1. NULL on a row saved before v135. Read through `planetgen.physics.bulk_composition.bulk_fractions`. |
 | `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio` | DOUBLE | nullable | Added in v144. FeO and Al2O3 as mass fractions of the rock, and the rock's molar Mg/Si. NULL for a giant's rock-less composition and on a row saved before v135. |
 | `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction` | DOUBLE | nullable | Added in v230 (GEN.1362). Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5 as mass fractions of the rock. NULL for a carbon rock, a giant's rock-less composition and on a row saved before v230. |
+| `crust_p2o5_wt`, `crust_apatite_share`, `crust_merrillite_share`, `crust_schreibersite_share`, `ocean_phosphate_umol_l` | DOUBLE | nullable | Added in v231 (GEN.1367). The crust's P2O5 in weight percent (the mantle's `rock_p2o5_fraction` times the batch melt's enrichment), the shares of the crust's phosphorus in apatite, merrillite and schreibersite (they add to 1; schreibersite where the mantle is reduced, merrillite where the crust is dry), and the ocean's phosphate in umol/L (`physics/phosphorus_budget.py`; the weathering supply over the ocean's volume against the Earth's 2.3). The ocean's phosphate is NULL for a body with no liquid ocean; `phosphorus` is the band of it. NULL on a row saved before v231, and for a giant. |
+| `crust_thickness_km`, `craton_fraction`, `crust_sulfur_index` | DOUBLE | nullable | Added in v232 (GEN.1380). The mean crust thickness (km), the craton share of the crust (0 to 1) and how much sulfur the crust offers a rising mafic magma (0 to 1). NULL for a giant, a belt and a row saved before v228 (`physics/ore_deposits.py`). |
 | `envelope_helium_fraction`, `envelope_z_fraction` | DOUBLE | nullable | Added in v144. Y and the heavy elements as mass fractions of the envelope; NULL for a body without one. |
 | `porosity` | DOUBLE | nullable | Added in v144. The void share of a small icy body's volume; NULL for a body that has none. |
 | `carbon_rock`, `composition_origin` | BOOLEAN, VARCHAR(8) (CHECK drawn / inverse) | nullable | Added in v144. Whether the rock is silicon carbide and graphite (a star of C/O 0.8 or more, or class C), and whether the composition was drawn first (`drawn`) or worked back from a given mass and radius (`inverse`). |
@@ -1485,6 +1487,18 @@ Moon counterpart of `planet_reflection_spectrum` — identical shape,
 ### `planet_interior_layers`
 
 Added in v154 (DB.89, GEN.642). One row per layer of a giant planet's interior, outside in. `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `layer_index` (SMALLINT UNSIGNED, 0 at the top; unique with `planet_id`), `kind` (CHECK molecular_envelope / metallic_envelope / helium_gradient / helium_shell / dilute_core / compact_core / ice_mantle / rock_core), `state` (CHECK molecular_fluid / metallic_fluid / ionic_fluid / superionic / molten), `top_pressure_gpa` and `bottom_pressure_gpa` (GPa), `top_radius_fraction` and `bottom_radius_fraction` (a share of the body's radius), `mass_earth` (the layer's mass) and the mass of each material in it, in Earth masses (`hydrogen`, `helium`, `iron`, `rock`, `water_liquid`, `ice_x`, `nh3_ice`, `ch4_ice`; 0 where the layer has none). The layers add up to the body's mass, and the body's bulk composition columns are their totals ([giant-interiors.md](../design/composition/giant-interiors.md)). A body with no interior has no rows.
+
+### `planet_deposit_types`
+
+Added in v228 (GEN.1380). One row per magmatic ore type a rocky planet was assessed for (three: `ni_cu_pge_sulfide`, `chromitite`, `fe_ti_v_oxide`; later slices of the ore design add rows). `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `deposit_type` (VARCHAR(24), unique with `planet_id`), `status` (VARCHAR(20): `present`, `absent_by_state` where a gate failed or the host's cap fell under the bottom of the grade range, `absent_by_chance` where the gate held and the draw gave no deposit), `endowment_kg` (DOUBLE, the total ore mass, NULL when absent), `grade` (DOUBLE, the mass fraction of the key element or oxide in the ore, NULL when absent), `key_element` (VARCHAR(8): `Ni`, `Cr2O3`, `TiO2`), `age_window_gyr_start` and `age_window_gyr_end` (DOUBLE, when the type formed, NULL when absent), `capped_by_host` (TINYINT, 1 where the grade was held down by what the host supplies). No rows means the body was not assessed (a giant, or a row saved before v228).
+
+### `moon_deposit_types`
+
+Moon counterpart of `planet_deposit_types` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`).
+
+### `rogue_planet_deposit_types`
+
+Rogue planet counterpart of `planet_deposit_types` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
 
 ### `moon_interior_layers`
 
@@ -2283,11 +2297,13 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │             │
                   │             ├──1───* planet_reflection_spectrum
                   │             ├──1───* planet_interior_layers
+                  │             ├──1───* planet_deposit_types
                   │             ├──1───* planet_gases
                   │             └──1───* moons
                   │                       │
                   │                       ├──1───* moon_reflection_spectrum
                   │                       ├──1───* moon_interior_layers
+                  │                       ├──1───* moon_deposit_types
                   │                       └──1───* moon_gases
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition

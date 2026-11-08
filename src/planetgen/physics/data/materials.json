@@ -142,7 +142,6 @@
   "potassium": "element row: the element draws go through physics/elements, not this row",
   "tungsten": "element row: the element draws go through physics/elements, not this row",
   "fesi": "light-element compound of a core: no draw names it",
-  "carbon_diamond": "carbon polymorph: the carbon draws name graphite, black and amorphous carbon only",
   "amorphous_carbon": "carbon form: no draw names it",
   "wustite": "iron oxide: no draw names it",
   "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
@@ -170,23 +169,18 @@
   "sulfuric_acid_tetrahydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
   "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
   "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
-  "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
-  "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "oldhamite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "alabandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "daubreelite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "osbornite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
-  "sinoite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "akaganeite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
-  "cronstedtite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "ferrihydrite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "lepidocrocite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "maghemite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "magnesiochromite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "schwertmannite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
-  "tochilinite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "ulvospinel": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "antigorite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "beidellite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
@@ -199,7 +193,6 @@
   "montmorillonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "nontronite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "palygorskite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
-  "saponite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "sepiolite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "talc": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "cristobalite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
@@ -211,8 +204,6 @@
   "akermanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "gehlenite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "grossmanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
-  "hibonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
-  "melilite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "analcime": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "augite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "epidote": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
@@ -225,37 +216,15 @@
   "amphibole": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
   "ankerite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "aragonite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "dolomite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "hydromagnesite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "magnesite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "nesquehonite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "rhodochrosite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "siderite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "alunite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "anhydrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "bassanite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "bischofite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "burkeite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "carnallite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "epsomite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "glauberite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "hexahydrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "jarosite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "kainite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "kieserite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
   "langbeinite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "mirabilite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "nahcolite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "natrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "polyhalite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "sylvite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "thenardite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "thermonatrite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "trona": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "merrillite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "whitlockite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "mg_perchlorate": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts",
-  "ca_perchlorate": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
+  "polyhalite": "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
  },
  "materials": [
   {
@@ -10830,6 +10799,128 @@
    "note": "",
    "crystal_system": "monoclinic",
    "color": "Colorless, White, Yellowish white, Greenish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "natron",
+   "name": "natron",
+   "family": "carbonate",
+   "formula": "Na2CO3.10H2O",
+   "composition": "Na2CO3.10(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.44,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 1.42 to 1.47; page Natron",
+     "measured_range": [
+      1.42,
+      1.47
+     ]
+    },
+    "mohs": {
+     "value": 1.0,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      1.0,
+      1.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Natron"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "White, Gray, Colorless, Yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "antarcticite",
+   "name": "antarcticite",
+   "family": "evaporite",
+   "formula": "CaCl2.6H2O",
+   "composition": "CaCl2.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.71,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average of 1.705 to 1.725; page Antarcticite",
+     "measured_range": [
+      1.705,
+      1.725
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "1",
+     "source": "webmineral",
+     "code": "H",
+     "measured_range": [
+      2.0,
+      3.0
+     ],
+     "basis": "the middle of the hardness range the page prints; page Antarcticite"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;mohs=H;alb=N",
+   "note": "",
+   "crystal_system": "trigonal",
+   "color": "Colorless",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"

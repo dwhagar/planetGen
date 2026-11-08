@@ -801,6 +801,16 @@
       "name": "Gaia Sky: level-of-detail catalogs",
       "provider": "Gaia Sky project, Heidelberg University",
       "year": ""
+    },
+    {
+      "checked": "2026-11-08",
+      "id": "R5164",
+      "identifier": "",
+      "kind": "web page",
+      "link": "http://www.minsocam.org/ammin/AM52/AM52_171.pdf",
+      "name": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
+      "provider": "Mineralogical Society of America",
+      "year": "1967"
     }
   ]
 }

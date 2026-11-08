@@ -165,7 +165,7 @@ def _earthlike(conn, planet_id, **changes):
     values = {
         "ocean_class": None,
         "body_type": "t", "atmospheric_pressure_pa": 101325.0, "surface_temperature_k": 288.15, "gravity_g": 1.0,
-        "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "phosphorus": "limited",
+        "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "ocean_phosphate_umol_l": 2.3,
         "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "uv_surface_index": 1.0, "mass_kg": 5.97e24,
         "radius_km": 6371.0, "energy_flux_w_m2": 80.0, "flux_variation": 0.0, "life_class": 1, "life_class_variant": "a",
         "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "life_stage": "technological_civilization",
