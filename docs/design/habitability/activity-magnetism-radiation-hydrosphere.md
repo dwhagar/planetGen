@@ -334,7 +334,7 @@ The size of a field was stored; its direction was not. `physics/magnetic_geometr
 | multipolar core (the dipole under half the field) | isotropic | offset | |
 | ice giant (thin conducting shell over a stable core) [R4196] | isotropic | offset | Uranus 59 degrees and 0.3 radii, Neptune 47 and 0.55 |
 
-A neutron star stores `magnetic_inclination_deg`: isotropic at birth, then `tan(alpha)` falls as `exp(-t / 7 Myr)` [R5143]; a recycled millisecond pulsar is isotropic again. A star stores `surface_dipole_field_gauss`, the polar field of its large-scale dipole: a cool dwarf with a convective envelope (below the Kraft break, mass 0.08 to 1.3) has `B = 1.5 G (Ro / 1.76)^-1.40` with a 0.35 dex scatter, capped at 5 kG ([R4544], [R5144]; `Ro = P_rot / tau_conv`, [R4780]); an Ap or Bp dwarf has the polar field `chemically_peculiar` draws for its kind; any other star has none. The stand-ins are DP1 to DP7 (registry 6.212). The Sensor view reads these columns (UX.286).
+A neutron star stores `magnetic_inclination_deg`: isotropic at birth, then `tan(alpha)` falls as `exp(-t / 7 Myr)` [R5143]; a recycled millisecond pulsar is isotropic again. A star stores `surface_dipole_field_gauss`, the polar field of its large-scale dipole: a cool dwarf with a convective envelope (below the Kraft break, mass 0.08 to 1.3) has `B = 1.5 G (Ro / 1.76)^-1.40` with a 0.35 dex scatter, capped at 5 kG ([R4544, R5144]; `Ro = P_rot / tau_conv`, [R4780]); an Ap or Bp dwarf has the polar field `chemically_peculiar` draws for its kind; any other star has none. The stand-ins are DP1 to DP7 (registry 6.212). The Sensor view reads these columns (UX.286).
 
 ## 4. Surface radiation dose (GEN.87)
 
