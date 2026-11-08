@@ -99,7 +99,7 @@
    "value": 10156.0,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The 10156 K of the Ayers pure-acid curve as three open papers print it ([R0976: eq. 16], [R1516: eq. 4a], [R5168: eq. 11]); the primary source ([R2516], Kulmala and Laaksonen 1990, pay only) was not opened"
+   "basis": "The 10156 K of the Ayers pure-acid curve as three open papers print it ([R0976: eq. 16], [R1516: eq. 4a], [R5168: eq. 11]); the primary source ([R2516], pay only) was not opened"
   },
   "pure_acid_reference_k": {
    "value": 360.0,
@@ -117,7 +117,7 @@
    "value": 0.38,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The 0.38 of the heat-capacity term of the Kulmala and Laaksonen (1990) correction, printed in all three papers"
+   "basis": "The 0.38 of the heat-capacity term of the [R2516] correction, printed in all three papers"
   },
   "pure_acid_critical_k": {
    "value": 905.0,
