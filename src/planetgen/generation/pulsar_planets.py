@@ -128,7 +128,7 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         radius_km = min(max_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0))
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
                               mass=_mearth_to_kg(mass_earth), moon_count=0,
-                              formation_distance_au=0.0))
+                              formation_distance_au=0.0, late_core=True))      # the disk is the debris of a disrupted star: no gas disk, so no hydrogen envelope (GEN.1323 gave it one)
     log.choice("Pulsar planets", f"{len(planets)} disk planets",
                f"origin disk, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")
     return planets
