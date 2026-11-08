@@ -321,6 +321,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.209", "6.209 Stand-ins of the nine added star elements",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.212", "6.212 Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.182", "6.182 Stand-ins of where a stored belt member lies",

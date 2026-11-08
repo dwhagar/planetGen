@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1265 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1269 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 166 | 18 | 10 | 1 | 0 | 195 |
-| T2 | 125 | 52 | 1 | 1 | 0 | 179 |
+| T1 | 167 | 18 | 10 | 1 | 0 | 196 |
+| T2 | 126 | 52 | 1 | 1 | 0 | 180 |
 | T3 | 93 | 41 | 7 | 9 | 0 | 150 |
 | T4 | 56 | 7 | 2 | 19 | 10 | 94 |
 | T5 | 54 | 21 | 3 | 1 | 0 | 79 |
-| T6 | 131 | 91 | 25 | 62 | 0 | 309 |
+| T6 | 132 | 92 | 25 | 62 | 0 | 311 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 696 | 262 | 60 | 202 | 45 | 1265 |
+| All | 699 | 263 | 60 | 202 | 45 | 1269 |
 
 ## How the labels were given
 
@@ -1812,6 +1812,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | XE5 | P | T4 | L1 | tuning.STELLAR_XFE_FITS Cu ("linear", 0.0, 0.0) with scatter 0.10 dex | scatter 0.05 to 0.2 | disk dwarfs | a [Cu/Fe] trend with a printed size: [R1062] say the thick disk is higher than the thin between [Fe/H] -0.5 and -0.2, the thin disk rises slightly to +0.1 and steeply above, and print no value (Figs. 10 and 11) | the figures' bin means | the paper was opened for this item: no value is printed, so Cu is solar-scaled; the scatter 0.10 is above the paper's error of 0.05 to 0.08 | - | - |
 | XE6 | P | T4 | L2 | tuning.STELLAR_XFE_FITS Li ("linear", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites | scatter 0.1 to 0.4 | stars at birth | a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled) | a Galactic chemical evolution of lithium | the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex | - | - |
 | XE7 | P | T4 | L0 | tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other | none | the five elements | a sample in which P, Zn, Co or Cu correlates with Mg or Si | the correlation of a sample with those elements | the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O) | - | - |
+
+## 6.212 Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BD1 | P | T1 | L0 | mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal) | none | 1 bar, solar composition | a condensation sequence at 1 bar that puts the titanium or the chromium cloud more than 50 K from these | none | [R2725] (the 1963 K and the 1958 K of perovskite alone) and [R2731: section 1.5.3] were opened for this item; the iron fit of the same code gives 1838 K against the review's 1843 K | - | - |
+| BD2 | P | T6 | L0 | the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, `10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]` | none | 0.1 to 10 bar, [Fe/H] -1 to +1 | a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade | the slopes of the stability fields in the figures of [R2725] and [R2731], read | the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact | - | - |
+| BD3 | P | T6 | L1 | mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (`stellar_abundances.lithium_burning_limit_sol`, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age | 0 to 0.01 | brown dwarfs above 65 Jupiter masses | a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models | the depletion against mass and age from the evolutionary models | the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled) | - | - |
+| BD4 | P | T2 | L0 | species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (`scripts/build_species_thermo.py`, `DERIVED`) | none | 300 to 6000 K, ideal gas, 1 bar standard state | a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K | the NASA Glenn or JANAF fit of the two gases, if one is published | the fits are the polynomial that FastChem ships for the data of [R5139]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

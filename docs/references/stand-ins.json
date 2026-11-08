@@ -41115,6 +41115,166 @@
       "title": "Stand-ins of the nine added star elements"
     },
     {
+      "key": "6.212",
+      "number": "6.212",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "1 bar, solar composition"
+            ],
+            [
+              "What would show it wrong",
+              "a condensation sequence at 1 bar that puts the titanium or the chromium cloud more than 50 K from these"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R2725] (the 1963 K and the 1958 K of perovskite alone) and [R2731: section 1.5.3] were opened for this item; the iron fit of the same code gives 1838 K against the review's 1843 K"
+            ]
+          ],
+          "id": "BD1",
+          "key": "6.212:BD1",
+          "kind": "P",
+          "slug": "6-212-bd1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "0.1 to 10 bar, [Fe/H] -1 to +1"
+            ],
+            [
+              "What would show it wrong",
+              "a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade"
+            ],
+            [
+              "What replaces it",
+              "the slopes of the stability fields in the figures of [R2725] and [R2731], read"
+            ],
+            [
+              "Evidence",
+              "the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact"
+            ]
+          ],
+          "id": "BD2",
+          "key": "6.212:BD2",
+          "kind": "P",
+          "slug": "6-212-bd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "brown dwarfs above 65 Jupiter masses"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models"
+            ],
+            [
+              "What replaces it",
+              "the depletion against mass and age from the evolutionary models"
+            ],
+            [
+              "Evidence",
+              "the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled)"
+            ]
+          ],
+          "id": "BD3",
+          "key": "6.212:BD3",
+          "kind": "P",
+          "slug": "6-212-bd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 6000 K, ideal gas, 1 bar standard state"
+            ],
+            [
+              "What would show it wrong",
+              "a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K"
+            ],
+            [
+              "What replaces it",
+              "the NASA Glenn or JANAF fit of the two gases, if one is published"
+            ],
+            [
+              "Evidence",
+              "the fits are the polynomial that FastChem ships for the data of [R5139]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here"
+            ]
+          ],
+          "id": "BD4",
+          "key": "6.212:BD4",
+          "kind": "P",
+          "slug": "6-212-bd4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+        }
+      ],
+      "slug": "6-212-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
+      "title": "Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
