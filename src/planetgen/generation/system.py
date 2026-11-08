@@ -36,10 +36,10 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, resonant_chains
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -553,6 +553,7 @@ class StarSystem:
         with log.timed_phase("ring pass"):
             for obj in self.all_planets:
                 rings.apply(obj)  # GEN.732, GEN.1057: after the moons and the snow line are final
+                planetPhysics.apply_ring_oddities(obj)  # GEN.1050: W9 names a ring that came from a fallen moon
                 for moon in getattr(obj, "moons", ()):  # a belt has none
                     rings.apply(moon, obj)  # GEN.836
 
@@ -1293,7 +1294,7 @@ class StarSystem:
                         break
                     continue
 
-                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
+                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au, collision_count=max(int(seed.merged) - 1, 0))
                 if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
@@ -1329,6 +1330,7 @@ class StarSystem:
         bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+        belt_birth.hand_on(bodies, star)         # GEN.1308: where the mass the outer disks lost went (the inner belt it was implanted in, the moons, the rogues)
         self._set_debris_disk(bodies, star)
 
     def _set_debris_disk(self, bodies, star):
@@ -2224,6 +2226,10 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
+            resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
+            if self.binary_type == "wide":
+                resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # a belt is not a body
                     continue
@@ -2234,6 +2240,8 @@ class StarSystem:
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
                 if planetPhysics.settle_envelope(obj):
                     log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
+                if planetPhysics.finish_orbit_oddities(obj):
+                    log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
@@ -2338,7 +2346,16 @@ class StarSystem:
         found = []
         for star, architecture in getattr(self, "architectures", ()):
             found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind in ("thrown", "stripped", "sub_minimum") and loss.ejected > 0.0)
+        for bodies, star in self._belt_hosts():
+            found.extend((star, loss) for loss in disk_ejection.disk_losses(bodies, star))     # GEN.1308: the bodies of rogue mass an outer disk's giant threw out
         return found
+
+    def _belt_hosts(self):
+        """`[(bodies, star)]` for each star that holds bodies of its own: the primary's planets, a wide binary's secondary and the member stars' planets (the bodies a belt is among)."""
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        return hosts + [(bodies, star) for star, bodies in self.member_hosts()]
 
     def _strip_by_cluster(self, star, architecture):
         """

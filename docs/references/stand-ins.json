@@ -7701,6 +7701,40 @@
           "tweak": "L0",
           "unread": null,
           "what": "orbit_elements.GIANT_BETA_A, GIANT_BETA_B"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design: the fall of an eccentricity under the tide the heat model gives (GEN.1351) is integrated over a log grid of 24 points four decades below the birth eccentricity (TIDE_GRID_POINTS, TIDE_GRID_DECADES), refined up to 6 times (TIDE_REFINE_PASSES) where the decay time of two neighbours differs by more than a factor of 1.5 (TIDE_JUMP_RATIO), a tide that melts the mantle switching on and off within a few percent of an eccentricity; an interval is taken at the faster of its two ends, so the tide never draws more than the orbit gives up; numerical settings, no physical value"
+            ],
+            [
+              "What it is",
+              "orbit_elements.TIDE_GRID_POINTS"
+            ],
+            [
+              "The range it moves in",
+              "24 points, 4 decades, 6 passes, ratio 1.5, fixed"
+            ],
+            [
+              "Where it holds",
+              "planets and captured moons"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ]
+          ],
+          "id": "OE17",
+          "key": "6.12:OE17",
+          "kind": "P",
+          "slug": "6-12-oe17",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "orbit_elements.TIDE_GRID_POINTS"
         }
       ],
       "slug": "6-12-stand-ins-of-the-orbit-elements",
@@ -25299,6 +25333,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W9 gate rate 1: a planet whose ring origin is a disrupted moon (ring_origin \"disrupted_moon\", GEN.1057) is named for it; no extra draw"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets and giants with a ring"
+            ],
+            [
+              "What would show it wrong",
+              "a ring census whose share of moon-origin rings differs from the history's by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the Cassini end-of-mission ring age and mass"
+            ],
+            [
+              "Evidence",
+              "design note W9; the origin is the history's own (RO1 to RO8)"
+            ]
+          ],
+          "id": "RO19",
+          "key": "6.70:RO19",
+          "kind": "P",
+          "slug": "6-70-ro19",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W9 gate rate 1: a planet whose ring origin is a disrupted moon (ring_origin \"disrupted_moon\", GEN.1057) is named for it; no extra draw"
         }
       ],
       "slug": "6-70-stand-ins-of-the-ring-origin",
@@ -25511,7 +25583,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1047",
+          "unread": null,
           "what": "tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off)"
         },
         {
@@ -25549,7 +25621,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1047",
+          "unread": null,
           "what": "tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named)"
         }
       ],
@@ -25595,7 +25667,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1050",
+          "unread": null,
           "what": "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
         },
         {
@@ -25633,7 +25705,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1050",
+          "unread": null,
           "what": "disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
         },
         {
@@ -25671,7 +25743,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1050",
+          "unread": null,
           "what": "disintegrating_planet.NON_ISOTHERMAL_FACTOR 1/40 and SOLID_ANGLE_SR 1: the full model's maximum rate over the isothermal one, and the wind's solid angle (eq. 27)"
         },
         {
@@ -25709,7 +25781,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1050",
+          "unread": null,
           "what": "disintegrating_planet.DUTY_CYCLE 0.5: the share of the time the planet loses mass at its maximum rate"
         },
         {
@@ -25747,8 +25819,46 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1050",
+          "unread": null,
           "what": "disintegrating_planet.DIVIDING_MASS_EARTH 0.11, MIN_DAYSIDE_TEMPERATURE_K 2000 and MAX_PERIOD_D 1.0: the gate of the oddity"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W14 gate rate 1: every rocky planet with a mass under 0.11 Earth, a period under a day and a dayside over 2,000 K has the wind and is named; one that the wind would already have used up over the star's age (rate times age at least its mass) is declined"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 1"
+            ],
+            [
+              "Where it holds",
+              "ultra-short-period rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "a count of ultra-short-period planets under 0.11 Earth mass with a dayside over 2,000 K whose disintegrating share is far from the generator's (WR5: about 1 in 1,000)"
+            ],
+            [
+              "What replaces it",
+              "the share of those planets that show a tail in a Kepler and K2 sample"
+            ],
+            [
+              "Evidence",
+              "the module's gate (DP5) and design note W14"
+            ]
+          ],
+          "id": "DP6",
+          "key": "6.73:DP6",
+          "kind": "P",
+          "slug": "6-73-dp6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W14 gate rate 1: every rocky planet with a mass under 0.11 Earth, a period under a day and a dayside over 2,000 K has the wind and is named; one that the wind would already have used up over the star's age (rate times age at least its mass) is declined"
         }
       ],
       "slug": "6-73-stand-ins-of-the-disintegrating-rocky-planet",
@@ -25957,7 +26067,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1051",
+          "unread": null,
           "what": "nightside_collapse.FIT_COEFFICIENTS (c1 to c4 for 1 and 10 Earth masses), FIT_FLUX_RANGE_W_M2 273.2 to 4098 and FIT_ALBEDO 0.2"
         },
         {
@@ -26033,7 +26143,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1051",
+          "unread": null,
           "what": "nightside_collapse.KAPPA_M2_KG 5e-5 and COS_ALPHA 0.5 (the grey optical depth of the thin-air night side)"
         },
         {
@@ -26147,8 +26257,84 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1051",
+          "unread": null,
           "what": "nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W19 gate rate 1: every rocky planet takes the collapse model's answer, using the locked estimate of the clouds (cloud_albedo.tidally_locked, the spin is drawn after the air); a world that keeps under half of its main gas has no air (the residual pressure and the night-side cap are not stored)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "locked rocky planets with a CO2, N2 or other air the saturation table knows"
+            ],
+            [
+              "What would show it wrong",
+              "a locked world with a thin air whose measured night side holds a lasting cap that the model says it keeps (or the reverse)"
+            ],
+            [
+              "What replaces it",
+              "the cap stored as a night-side ice cover, and the residue stored"
+            ],
+            [
+              "Evidence",
+              "design note W19; nightside-collapse-model.md section 4"
+            ]
+          ],
+          "id": "NEB7",
+          "key": "6.75:NEB7",
+          "kind": "P",
+          "slug": "6-75-neb7",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W19 gate rate 1: every rocky planet takes the collapse model's answer, using the locked estimate of the clouds (cloud_albedo.tidally_locked, the spin is drawn after the air); a world that keeps under half of its main gas has no air (the residual pressure and the night-side cap are not stored)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8; 10 to 40 K; 0.05 to 0.2; 300 to 360 K"
+            ],
+            [
+              "Where it holds",
+              "water worlds with the ice-albedo feedback"
+            ],
+            [
+              "What would show it wrong",
+              "a census of water worlds whose cold-branch share in the window differs from the 0.5 by more than 0.25 (when exoplanet climates are measured), or a world the second solve calls a branch that is the same climate"
+            ],
+            [
+              "What replaces it",
+              "the branch history of the planet's formation and its flux over time"
+            ],
+            [
+              "Evidence",
+              "design note W20 and climate-branches.md; WR7 gives the window"
+            ]
+          ],
+          "id": "NEB8",
+          "key": "6.75:NEB8",
+          "kind": "P",
+          "slug": "6-75-neb8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_START_K 200, WARM_START_K 320, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the airless start does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
@@ -26841,7 +27027,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.VENUS_STRENGTH 1.9255, the thermal over gravitational tide of Venus in orbital rates (the coefficient of the scaling for every thick-air planet)"
         },
         {
@@ -26879,7 +27065,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.VENUS_DAMPING_TIME_GY 2.3, the e-folding time of Venus's slow-rotation tide"
         },
         {
@@ -26955,7 +27141,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.FULL_TIDE_PRESSURE_BAR 10, the surface pressure from which the thermal tide has its full strength, falling in proportion to the pressure below"
         },
         {
@@ -26993,7 +27179,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.PAPER_MAX_ECCENTRICITY 0.3, the eccentricity the closed forms are valid to; above it the states are computed at it and flagged"
         },
         {
@@ -27031,7 +27217,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.TWO_STATE_SPLIT_DEG 60, the birth tilt above which a planet with two end states reaches the slower"
         },
         {
@@ -27069,7 +27255,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.THREE_STATE_SPLITS_DEG 40 and 100, the birth tilts that divide three end states"
         },
         {
@@ -27107,8 +27293,46 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "venus_spin.VENUS_MASS_KG, VENUS_RADIUS_M and VENUS_DISTANCE_AU, the reference body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W2 gate rate 1.0: every moonless (largest moon under 0.001 of its mass) rocky planet with an air of 10 bar or more takes the module's tide balance, and the effect declines unless the end state is retrograde with a day of 20 d or more; no 25 percent share is drawn"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "thick-air rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of thick-air planets whose retrograde share differs from the census share of the birth-tilt rule by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the spin and tilt flow of the paper's equations 10 and 19 integrated per planet"
+            ],
+            [
+              "Evidence",
+              "design note W2 (25 percent, T4 L3) replaced by the tilt rule, as the paragraph above says; the 0.001 moon ratio and the 20 d day are the design's row-specific limits"
+            ]
+          ],
+          "id": "VS9",
+          "key": "6.90:VS9",
+          "kind": "P",
+          "slug": "6-90-vs9",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W2 gate rate 1.0: every moonless (largest moon under 0.001 of its mass) rocky planet with an air of 10 bar or more takes the module's tide balance, and the effect declines unless the end state is retrograde with a day of 20 d or more; no 25 percent share is drawn"
         }
       ],
       "slug": "6-90-stand-ins-of-the-venus-type-spin",
@@ -27847,6 +28071,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "temperature_coverage.WET_BULB_TOP_C 50 (the wet bulb rule is applied to samples up to 50 C; hotter ones are Red already) and seasonal_swing.CEILING_MARGIN 1.05 (a temperature in the series is held under the fourth root of the largest forcing over the emission, times this, so a hot airless fast spinner does not overflow the fourth power)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W1 gate: a tilt of 60 to 120 degrees (the seasons of a tilt and its supplement are equal) on a rocky planet whose largest moon is under 0.01 of its mass, rate 1 (no extra draw: the tilt is the planet's own, from its giant impacts)"
+            ],
+            [
+              "The range it moves in",
+              "50 to 70 and 110 to 130"
+            ],
+            [
+              "Where it holds",
+              "rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "a census of the planets named whose year is milder than the median planet's by seasonal_swing (the label would then be wrong)"
+            ],
+            [
+              "What replaces it",
+              "the share of planets with a tilt past the split of the Cassini state and a moon too small to steady it, from a secular-resonance model of the tilt"
+            ],
+            [
+              "Evidence",
+              "design note W1: Uranus 98 degrees, Mars's chaotic 0 to 60 degrees, an Earth without its Moon milder than first thought"
+            ]
+          ],
+          "id": "SS20",
+          "key": "6.91:SS20",
+          "kind": "P",
+          "slug": "6-91-ss20",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W1 gate: a tilt of 60 to 120 degrees (the seasons of a tilt and its supplement are equal) on a rocky planet whose largest moon is under 0.01 of its mass, rate 1 (no extra draw: the tilt is the planet's own, from its giant impacts)"
         }
       ],
       "slug": "6-91-stand-ins-of-the-seasonal-swing",
@@ -27891,7 +28153,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1049",
+          "unread": null,
           "what": "resonant_chains.TARGET_RATIOS 2:1, 3:2, 4:3, 5:3, the period ratios a pair is taken to be near"
         },
         {
@@ -27929,7 +28191,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1049",
+          "unread": null,
           "what": "resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target"
         },
         {
@@ -27967,7 +28229,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1049",
+          "unread": null,
           "what": "resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at mu ** (2/3) or more"
         },
         {
@@ -28005,8 +28267,84 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1049",
+          "unread": null,
           "what": "resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W3 gate: an orbit of eccentricity 0.5 or more is named for the page, rate 1 (no extra draw: the eccentricity is orbit_elements.draw_planet_eccentricity worn by the star's tide)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "planets and giants"
+            ],
+            [
+              "What would show it wrong",
+              "a census whose share of giants beyond 1 AU above e 0.5 is outside 0.05 to 0.15 (WR1: about a tenth)"
+            ],
+            [
+              "What replaces it",
+              "the eccentricity law retuned to WR1's Beta(0.867, 3.03) at the census item"
+            ],
+            [
+              "Evidence",
+              "design note W3; WR1"
+            ]
+          ],
+          "id": "RC6",
+          "key": "6.92:RC6",
+          "kind": "P",
+          "slug": "6-92-rc6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W3 gate: an orbit of eccentricity 0.5 or more is named for the page, rate 1 (no extra draw: the eccentricity is orbit_elements.draw_planet_eccentricity worn by the star's tide)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "orbit_oddities.POLAR_PEAK_DEG 80 to 125, the inclination range of a misaligned hot Jupiter's orbit, drawn uniformly"
+            ],
+            [
+              "The range it moves in",
+              "70 to 135"
+            ],
+            [
+              "Where it holds",
+              "close giants at under 10 stellar radii"
+            ],
+            [
+              "What would show it wrong",
+              "a measured set of true spin-orbit angles of misaligned hot Jupiters with more than a fifth outside the range"
+            ],
+            [
+              "What replaces it",
+              "the measured distribution of the true angles"
+            ],
+            [
+              "Evidence",
+              "WR2: 18 of 19 misaligned systems with a measured true angle lie between 80 and 125 degrees"
+            ]
+          ],
+          "id": "RC7",
+          "key": "6.92:RC7",
+          "kind": "P",
+          "slug": "6-92-rc7",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "orbit_oddities.POLAR_PEAK_DEG 80 to 125, the inclination range of a misaligned hot Jupiter's orbit, drawn uniformly"
         }
       ],
       "slug": "6-92-stand-ins-of-the-resonant-chains",
@@ -28281,7 +28619,7 @@
             ],
             [
               "What would show it wrong",
-              "a super-puff older than 1 Gyr or heavier than 10 Earth masses"
+              "a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, inflated by the tides the radius here does not yet carry; the generator's own planets under 0.1 g/cc are all younger than 1.3 Gyr, GEN.1343)"
             ],
             [
               "What replaces it",
@@ -28299,7 +28637,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
         },
         {
@@ -28337,35 +28675,39 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the super-puff start share 0.05 of the 2 to 10 Earth-mass cores inside 100 days and the occurrence share 0.005 were fitted so that the gate passes the 0.84 percent of the sub-Neptunes the Kepler super-puffs make; they go when a survey of the super-puff share by core mass and period is in hand (GEN.1343)"
+          ],
           "fields": [
             [
               "What it is",
-              "super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs"
+              "super_puff.START_SHARE 0.05 (the share of the 2 to 10 Earth-mass sub-Neptune cores inside 100 days that start as a super-puff, GEN.1343) and super_puff.OCCURRENCE_SHARE 0.005 (the share the design table gives, read by the census test): half of the tenth Lee and Chiang bound the planets over 4 Earth radii to"
             ],
             [
               "The range it moves in",
-              "under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent"
+              "0.01 to 0.10 (the gate passes 0.84 percent of the sub-Neptunes inside 100 days at 0.05 and at 0; 3 percent with every core started as a puff)"
             ],
             [
               "Where it holds",
-              "sub-Neptunes"
+              "sub-Neptune cores of 2 to 10 Earth masses inside 100 days"
             ],
             [
               "What would show it wrong",
-              "a survey statistic of planets under 0.1 g/cc"
+              "a survey statistic of planets under 0.1 g/cc among the sub-Neptunes, or of cores that accrete a dust-free outer-disk atmosphere"
             ],
             [
               "What replaces it",
-              "a measured occurrence from Kepler or TESS"
+              "a measured occurrence from Kepler or TESS, or a formation model of the dust-free accretion"
             ],
             [
               "Evidence",
-              "design table; [R2609: Sec. 4] (read). The [R] rate is not confirmed: no occurrence statistic was found"
+              "design table; [R2609: Sec. 4] (read). The rate is not confirmed: no occurrence statistic is in [R3079] or [R2673] (read in full 2026-11-07); [R3079: Sec. 5] finds 5 planets in 3 systems under 0.1 g/cc among the 145 TTV-measured planets of 55 systems (about 3 percent, a sample picked for its masses)"
             ]
           ],
           "id": "PF3",
@@ -28374,9 +28716,9 @@
           "slug": "6-76-pf3",
           "tier": "T8",
           "tier_code": "T8",
-          "tweak": "L1",
-          "unread": "GEN.1048",
-          "what": "super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs"
+          "tweak": "L3",
+          "unread": null,
+          "what": "super_puff.START_SHARE 0.05 (the share of the 2 to 10 Earth-mass sub-Neptune cores inside 100 days that start as a super-puff, GEN.1343) and super_puff.OCCURRENCE_SHARE 0.005 (the share the design table gives, read by the census test): half of the tenth Lee and Chiang bound the planets over 4 Earth radii to"
         },
         {
           "burn_down": null,
@@ -28413,7 +28755,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation"
         }
       ],
@@ -28689,7 +29031,7 @@
             ],
             [
               "Evidence",
-              "[R3149: Sec. 5] and [R2300] (read); the composition of the two tilts is planetGen's; the spin period after the impact is not changed (final_period_h unwired), nor the plane of the moons and rings (GEN.1058)"
+              "[R3149: Sec. 5] and [R2300] (read); the composition of the two tilts is planetGen's; the spin period after the impact is not changed (final_period_h unwired), nor the plane of the moons (a moon's stored inclination is to its parent's equator but is read in the system frame, a gap filed for GEN.1058's follow-up); the rings lie in the equator by construction and G1 (GEN.1058) names a giant tipped 60 degrees or more"
             ]
           ],
           "id": "GT4",
@@ -28859,7 +29201,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L2",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "mantle_stripping.Q_STAR_SCALE 0.6, the factor on the threshold of MS1 for planet-sized bodies"
         },
         {
@@ -28935,7 +29277,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it)"
         },
         {
@@ -28973,8 +29315,50 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey measures the energy ratios of the impacts that stripped rocky planets; the iron shares of the iron-rich planets read (Mercury, Kepler-107 c, [R3545]) lie inside the range, and a population-synthesis distribution of impact speeds and mass ratios would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "mantle_stripping.IMPACT_ENERGY_RATIO_RANGE 0.5 to 1.5, uniform: the energy ratio x = Q_R / Q*_RD of the stripping impact that oddity W10 draws for a rocky planet that had a recorded merger"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 1.8"
+            ],
+            [
+              "Where it holds",
+              "rocky planets under 10 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "iron-rich planets whose iron share implies an energy ratio outside the range, or a distribution of impact speeds and mass ratios from an N-body run that puts most strippings outside it"
+            ],
+            [
+              "What replaces it",
+              "the distribution of x over the impacts of a published pebble-accretion or oligarchic N-body population, through the retention law of MT2 and MT3"
+            ],
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 3; below 0.5 the remnant keeps under 0.41 iron, an Earth-like planet barely changed, and at 1.5 it keeps 0.83, just under MT6)"
+            ]
+          ],
+          "id": "MT8",
+          "key": "6.93:MT8",
+          "kind": "P",
+          "slug": "6-93-mt8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "mantle_stripping.IMPACT_ENERGY_RATIO_RANGE 0.5 to 1.5, uniform: the energy ratio x = Q_R / Q*_RD of the stripping impact that oddity W10 draws for a rocky planet that had a recorded merger"
         }
       ],
       "slug": "6-93-stand-ins-of-the-collisional-mantle-stripping",
@@ -34669,7 +35053,7 @@
           "fields": [
             [
               "What it is",
-              "planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005"
+              "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
             ],
             [
               "The range it moves in",
@@ -34700,7 +35084,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005"
+          "what": "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
         }
       ],
       "slug": "6-150-stand-ins-of-the-shoulders-of-the-best-fit-classes",
@@ -40789,6 +41173,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "sub-Neptune cores inside 100 days"
+            ],
+            [
+              "What would show it wrong",
+              "a super-puff of Kepler-51 b's kind under 2 Earth masses"
+            ],
+            [
+              "What replaces it",
+              "a core mass at which the dust-free accretion works"
+            ],
+            [
+              "Evidence",
+              "[R2609: Sec. 4] (read)"
+            ]
+          ],
+          "id": "EC8",
+          "key": "6.206:EC8",
+          "kind": "B",
+          "slug": "6-206-ec8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
@@ -40839,6 +41261,452 @@
       ],
       "slug": "6-207-stand-in-of-the-bodies-an-asteroid-field-stores",
       "title": "Stand-in of the bodies an asteroid field stores"
+    },
+    {
+      "key": "6.210",
+      "number": "6.210",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_birth.hand_on: the implanted share goes whole to the one inner belt nearest the disk's inner edge, as primordial mass that is ground down with the rest of that belt (AsteroidBelt.receive); a disk with no inner belt to receive it loses it to the star's inner system"
+            ],
+            [
+              "The range it moves in",
+              "the nearest or all inner belts"
+            ],
+            [
+              "Where it holds",
+              "systems with an outer disk swept by a giant and an inner belt"
+            ],
+            [
+              "What would show it wrong",
+              "an inner belt whose mass shows no sign of the implant"
+            ],
+            [
+              "What replaces it",
+              "a split among the inner belts by the width of the gap between them and the giant"
+            ],
+            [
+              "Evidence",
+              "the scatter step's implanted share (SX5)"
+            ]
+          ],
+          "id": "SH1",
+          "key": "6.210:SH1",
+          "kind": "P",
+          "slug": "6-210-sh1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_birth.hand_on: the implanted share goes whole to the one inner belt nearest the disk's inner edge, as primordial mass that is ground down with the rest of that belt (AsteroidBelt.receive); a disk with no inner belt to receive it loses it to the star's inner system"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.take_from_disks: the planets are caught from the captured share of the disks they were swept from first, and the disk's own mass falls only for what they hold above it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose planets hold irregular moons from an outer disk"
+            ],
+            [
+              "What would show it wrong",
+              "irregular moons that hold more mass than the disk lost"
+            ],
+            [
+              "What replaces it",
+              "the capture model of GEN.1082 (the encounter windows) drawn against the share"
+            ],
+            [
+              "Evidence",
+              "the scatter step's captured share (SX5)"
+            ]
+          ],
+          "id": "SH2",
+          "key": "6.210:SH2",
+          "kind": "P",
+          "slug": "6-210-sh2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.take_from_disks: the planets are caught from the captured share of the disks they were swept from first, and the disk's own mass falls only for what they hold above it"
+        }
+      ],
+      "slug": "6-210-stand-ins-of-where-the-mass-an-outer-disk-lost-goes",
+      "title": "Stand-ins of where the mass an outer disk lost goes"
+    },
+    {
+      "key": "6.211",
+      "number": "6.211",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.CHARACTERISTIC_PAIR_EARTH (1, 1): the pair whose collisions are counted and drawn is two Earths; ROGUE_SPEED_MS 40 km/s and ROGUE_DISPERSION_MS 25 km/s are the relative speed and the dispersion of rogues in the thin disk"
+            ],
+            [
+              "The range it moves in",
+              "pair 0.3 to 2 Earth masses; speed 30 to 60 km/s; dispersion 15 to 40 km/s"
+            ],
+            [
+              "Where it holds",
+              "the thin disk"
+            ],
+            [
+              "What would show it wrong",
+              "a collision rate of the rogues' mass spectrum that differs from the pair's by more than a factor of 10"
+            ],
+            [
+              "What replaces it",
+              "a sum over the rogues' mass spectrum (GEN.1287) and the speed distribution of the old disk"
+            ],
+            [
+              "Evidence",
+              "the design's inputs (docs/design/systems/interstellar-asteroid-fields.md section 2.1)"
+            ]
+          ],
+          "id": "CF1",
+          "key": "6.211:CF1",
+          "kind": "P",
+          "slug": "6-211-cf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "collision_field.CHARACTERISTIC_PAIR_EARTH (1, 1): the pair whose collisions are counted and drawn is two Earths; ROGUE_SPEED_MS 40 km/s and ROGUE_DISPERSION_MS 25 km/s are the relative speed and the dispersion of rogues in the thin disk"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the Normal level's rogues per star times the stellar density of the solar neighborhood"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the solar neighborhood"
+            ],
+            [
+              "What would show it wrong",
+              "a microlensing mass function with a different share of Earth-mass rogues"
+            ],
+            [
+              "What replaces it",
+              "the rogue mass function of GEN.1287"
+            ],
+            [
+              "Evidence",
+              "the design's figures from the microlensing work (R3191, R2178)"
+            ]
+          ],
+          "id": "CF2",
+          "key": "6.211:CF2",
+          "kind": "P",
+          "slug": "6-211-cf2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the Normal level's rogues per star times the stellar density of the solar neighborhood"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands)"
+            ],
+            [
+              "The range it moves in",
+              "ice 0 to 0.3; remnant 0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "terrestrial rogues"
+            ],
+            [
+              "What would show it wrong",
+              "a rogue with a very different ice shell"
+            ],
+            [
+              "What replaces it",
+              "the ice share of the rogue builder for the rogues of the pair"
+            ],
+            [
+              "Evidence",
+              "none (chosen)"
+            ]
+          ],
+          "id": "CF3",
+          "key": "6.211:CF3",
+          "kind": "P",
+          "slug": "6-211-cf3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands)"
+        }
+      ],
+      "slug": "6-211-stand-ins-of-the-asteroid-field-two-colliding-rogue-planets-leave",
+      "title": "Stand-ins of the asteroid field two colliding rogue planets leave"
+    },
+    {
+      "key": "6.213",
+      "number": "6.213",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the Sun"
+            ],
+            [
+              "What would show it wrong",
+              "a revised photospheric abundance"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "Asplund and others 2021 Table 2 [R0168], read"
+            ]
+          ],
+          "id": "DSC1",
+          "key": "6.213:DSC1",
+          "kind": "D",
+          "slug": "6-213-dsc1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+            ],
+            [
+              "The range it moves in",
+              "CO2 42 to 52 K or 70 K, CO 18 to 22 K"
+            ],
+            [
+              "Where it holds",
+              "a disc at about 10^-4 bar"
+            ],
+            [
+              "What would show it wrong",
+              "a measured line off these by more than the range"
+            ],
+            [
+              "What replaces it",
+              "a line computed at the disc's own pressure"
+            ],
+            [
+              "Evidence",
+              "[R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix"
+            ]
+          ],
+          "id": "DSC2",
+          "key": "6.213:DSC2",
+          "kind": "D",
+          "slug": "6-213-dsc2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+            ],
+            [
+              "The range it moves in",
+              "share 0.25 to 0.6; CO per CO2 2 to 8"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "a disc with measured grain carbon outside the range"
+            ],
+            [
+              "What replaces it",
+              "a disc chemistry model"
+            ],
+            [
+              "Evidence",
+              "[R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read"
+            ]
+          ],
+          "id": "DSC3",
+          "key": "6.213:DSC3",
+          "kind": "P",
+          "slug": "6-213-dsc3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "the volatile carbon of a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a second comet or a disc measurement of methane"
+            ],
+            [
+              "What replaces it",
+              "the carbon chemistry of a disc"
+            ],
+            [
+              "Evidence",
+              "67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc"
+            ]
+          ],
+          "id": "DSC4",
+          "key": "6.213:DSC4",
+          "kind": "P",
+          "slug": "6-213-dsc4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+            ],
+            [
+              "The range it moves in",
+              "N2 0.4 to 0.9; salts 0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "the nitrogen of a disc"
+            ],
+            [
+              "What would show it wrong",
+              "measured N2 or ammonium in a disc or comet"
+            ],
+            [
+              "What replaces it",
+              "a nitrogen chemistry model"
+            ],
+            [
+              "Evidence",
+              "most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled"
+            ]
+          ],
+          "id": "DSC5",
+          "key": "6.213:DSC5",
+          "kind": "P",
+          "slug": "6-213-dsc5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L3",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "a comet with a different H2S over water"
+            ],
+            [
+              "What replaces it",
+              "a sulfur chemistry model"
+            ],
+            [
+              "Evidence",
+              "67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read"
+            ]
+          ],
+          "id": "DSC6",
+          "key": "6.213:DSC6",
+          "kind": "P",
+          "slug": "6-213-dsc6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+        }
+      ],
+      "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
+      "title": "Stand-ins of the species the disc condenses"
     },
     {
       "key": "6.197",
@@ -43889,7 +44757,7 @@
           "fields": [
             [
               "What it is",
-              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
+              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, co2_partial_pa min 1 kPa and o2_partial_pa 3 to 16 kPa (GEN.1321; were shares of 1 percent and 3 to 16 percent), gravity_g min 0.5"
             ],
             [
               "The range it moves in",
@@ -43920,18 +44788,18 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
+          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, co2_partial_pa min 1 kPa and o2_partial_pa 3 to 16 kPa (GEN.1321; were shares of 1 percent and 3 to 16 percent), gravity_g min 0.5"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, share_o2 lt 0.1 (a thin-air adaptable world; the cold part is class P)"
+              "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, no oxygen cap (the cap share_o2 lt 0.1 was removed by AW4, GEN.1306; a thin-air adaptable world; the cold part is class P)"
             ],
             [
               "The range it moves in",
-              "2 to 5 kPa; 300 to 330 K; 0.05 to 0.2 oxygen"
+              "2 to 5 kPa; 300 to 330 K"
             ],
             [
               "Where it holds",
@@ -43958,7 +44826,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, share_o2 lt 0.1 (a thin-air adaptable world; the cold part is class P)"
+          "what": "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, no oxygen cap (the cap share_o2 lt 0.1 was removed by AW4, GEN.1306; a thin-air adaptable world; the cold part is class P)"
         },
         {
           "burn_down": null,
@@ -44437,7 +45305,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_composition.CORE_LEAK_SHARE 0: the share of the escaping mass that comes from the core while the mantle is still there; each parent gives up the same fraction of its own mass from the surface in (ice shell, then mantle, then core), so at the 11 to 14 percent that leaves, a field holds no iron"
         },
         {
@@ -44475,7 +45343,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_composition.MANTLE_ROWS, CORE_ROW: the silicate mantle written as half forsterite and half enstatite (peridotite as olivine and pyroxene, the split the ring builder uses) and the core as kamacite (4 to 7 percent nickel); the ice shell as water ice"
         },
         {
@@ -48769,6 +49637,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.scattering_reach_au: the giants that scattered each other sweep from the outermost giant out to its apoapsis plus the 3 chaotic half-widths (1.3 a mu^(2/7), row BG8) it stirs, so the survival of a Jupiter, Saturn, Uranus or Neptune at their own radii is 0.35, 0.51, 0.61 and 0.39; the share thrown out is scatter.THETA_EJECT (row SX3) applied to the Safronov number of that giant, times the instability level (GEN.1341)"
+            ],
+            [
+              "The range it moves in",
+              "reach of one to five chaotic half-widths beyond the apoapsis; the instability level 0 to 1"
+            ],
+            [
+              "Where it holds",
+              "a stretch of the disk that starts outside the outermost giant of a system with two or more giants and an instability"
+            ],
+            [
+              "What would show it wrong",
+              "a belt past the giants of a system with an instability whose survival lies outside 0.1 to 0.5 (row BR5), or a debris belt beyond the reach that N-body runs show scattered"
+            ],
+            [
+              "What replaces it",
+              "N-body instability runs of the system's own giants (the Nice type runs of [R5139])"
+            ],
+            [
+              "Evidence",
+              "Safronov number above 1 ends close encounters in ejection, below 1 in collision, and a giant-planet system usually ejects ([R5138], READ); ejection is the main loss channel of scattering systems, 50 to 60 percent of planets after a million years ([R5141], READ); a 15 to 20 Earth mass planetesimal disc is consistent with the Solar System's instability ([R5139], READ); an inferred belt mass of up to 10 Earth masses against 0.1 in large Kuiper belt bodies ([R5140], READ). The reach is a planetGen estimate"
+            ]
+          ],
+          "id": "BG20",
+          "key": "6.97:BG20",
+          "kind": "P",
+          "slug": "6-97-bg20",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "belt_origin.scattering_reach_au: the giants that scattered each other sweep from the outermost giant out to its apoapsis plus the 3 chaotic half-widths (1.3 a mu^(2/7), row BG8) it stirs, so the survival of a Jupiter, Saturn, Uranus or Neptune at their own radii is 0.35, 0.51, 0.61 and 0.39; the share thrown out is scatter.THETA_EJECT (row SX3) applied to the Safronov number of that giant, times the instability level (GEN.1341)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.JUPITER_RADIUS_KM 71492, the radius of a giant that has none stored, for its Safronov number"
+            ],
+            [
+              "The range it moves in",
+              "50000 to 100000"
+            ],
+            [
+              "Where it holds",
+              "a giant with no stored radius"
+            ],
+            [
+              "What would show it wrong",
+              "a giant of the ledger with a radius outside the range"
+            ],
+            [
+              "What replaces it",
+              "the stored radius of every giant"
+            ],
+            [
+              "Evidence",
+              "a giant's radius changes little with its mass beyond a few tenths of a Jupiter mass (inflated hot Jupiters excepted)"
+            ]
+          ],
+          "id": "BG21",
+          "key": "6.97:BG21",
+          "kind": "D",
+          "slug": "6-97-bg21",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.JUPITER_RADIUS_KM 71492, the radius of a giant that has none stored, for its Safronov number"
         }
       ],
       "slug": "6-97-stand-ins-of-the-belt-origins",
@@ -49017,6 +49961,196 @@
           "tweak": "L1",
           "unread": null,
           "what": "comet_species.SIGMA_DEX 0.4 (the width of every species, decades)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio"
+            ],
+            [
+              "The range it moves in",
+              "the ends of each by their quoted errors"
+            ],
+            [
+              "Where it holds",
+              "comets and asteroids of any formation temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a comet measured outside a species' bracket"
+            ],
+            [
+              "What replaces it",
+              "a third comet widens it (GEN.1021 later part)"
+            ],
+            [
+              "Evidence",
+              "the widest range between the comets (two sources in question): N2 per CO of 67P and C/2016 R2 [R0109, R0836]; Ar per water of 67P and Hale-Bopp ([R3835, R4215], a coma, not a nucleus); OCS and SO2 the range of the comets in Table 7 of the 46P paper (A&A 648, A49, no comet named; a compilation, so T3); O2 Halley [R3836] to 67P [R0386]; test_comet_species::test_a_comet_measured_falls_inside_its_species_bracket"
+            ]
+          ],
+          "id": "CB1",
+          "key": "6.59:CB1",
+          "kind": "P",
+          "slug": "6-59-cb1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton)"
+            ],
+            [
+              "The range it moves in",
+              "0.089 +/- 0.021 and 0.269 +/- 0.064"
+            ],
+            [
+              "Where it holds",
+              "comets of any formation temperature"
+            ],
+            [
+              "What would show it wrong",
+              "Kr per Ar or Xe per Kr measured in a second comet outside the errors"
+            ],
+            [
+              "What replaces it",
+              "a second comet's noble gases"
+            ],
+            [
+              "Evidence",
+              "one comet, 67P [R3834]; the laboratory shifts Ar/Kr and Ar/Xe by at most 40 percent (read in the GEN.1021 report), which is the L1 slack; test_comet_species::test_krypton_and_xenon_are_argon_times_the_ratios_of_67p"
+            ]
+          ],
+          "id": "CB2",
+          "key": "6.59:CB2",
+          "kind": "P",
+          "slug": "6-59-cb2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp)"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "comets of the population (row k5)"
+            ],
+            [
+              "What would show it wrong",
+              "a comet at the cold end of its species with CO/H2O outside 0.15 to 0.3"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); the value read when a source opens for Hale-Bopp's CO/H2O"
+            ],
+            [
+              "Evidence",
+              "Hale-Bopp's 'notably high CO' of about 0.2, recalled from the GEN.1021 report and not opened; test_comet_ice_formation::test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_cold_end"
+            ]
+          ],
+          "id": "CY1",
+          "key": "6.59:CY1",
+          "kind": "P",
+          "slug": "6-59-cy1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades)"
+            ],
+            [
+              "The range it moves in",
+              "N2 0.03 to 0.1; Ar 0.2 to 0.8; ties 0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "comets of the population"
+            ],
+            [
+              "What would show it wrong",
+              "the scatter of a species at fixed CO/H2O across comets measured outside the knob"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); a population of comets with the species measured"
+            ],
+            [
+              "Evidence",
+              "the range of N2 per CO in C/2016 R2 (0.06 to 0.09, 0.18 dex) and of argon in 67P over its season (1.4 decades) over the square root of 12, and the laboratory's 40 percent fractionation; test_comet_ice_formation::test_a_residual_moves_only_its_own_species_by_its_width"
+            ]
+          ],
+          "id": "CY2",
+          "key": "6.59:CY2",
+          "kind": "P",
+          "slug": "6-59-cy2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K)"
+            ],
+            [
+              "The range it moves in",
+              "10 to 15 K per decade; anchor +/- 5 K"
+            ],
+            [
+              "Where it holds",
+              "ice formed between 25 and 100 K"
+            ],
+            [
+              "What would show it wrong",
+              "a laboratory law of CO trapping against temperature that departs from log-linear by more than a factor of 3 over 38 to 50 K"
+            ],
+            [
+              "What replaces it",
+              "GEN.1022 (wiring); the table of trapping by temperature, which cannot be read in the open text ([R0802] shows the trapping also depends on deposition rate and partial pressure)"
+            ],
+            [
+              "Evidence",
+              "Bar-Nun: the trapped gas falls six decades from 25 to 100 K and Halley's CO needs 48 +/- 5 K ([R0267], NTRS N90-16610); test_comet_ice_formation::test_the_laboratory_law_gives_halley_its_anchor_and_six_decades_in_75_kelvin"
+            ]
+          ],
+          "id": "CY3",
+          "key": "6.59:CY3",
+          "kind": "P",
+          "slug": "6-59-cy3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1022",
+          "what": "comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K)"
         }
       ],
       "slug": "6-59-stand-ins-of-the-comet-species",

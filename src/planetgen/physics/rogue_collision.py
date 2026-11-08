@@ -22,7 +22,7 @@ this module gives the rate, the speed at which the pair breaks up, what is left 
 
 What the law does not have: melt and vapor (it is a gravity-only N-body fit at speeds of up to a few km/s, used here far outside that range: IF14), and the transition from merging
 to hit-and-run of a grazing impact (a grazing impact below the disruption energy is taken as hit-and-run, IF14). `rubble_speed_window_ms` is the window of a large remnant plus rubble, from `V*` to the speed at which the
-largest remnant falls to a tenth of the mass. Nothing reads the module yet: the field host rule and the columns (GEN.1103 and GEN.1104) wire it.
+largest remnant falls to a tenth of the mass. The collision field generation reads it (`generation/collision_field.py`, GEN.1103).
 """
 
 import math

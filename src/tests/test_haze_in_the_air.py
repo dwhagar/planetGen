@@ -5,6 +5,7 @@ found among the first seeds.
 """
 
 import dataclasses
+import sys
 
 import pytest
 
@@ -21,6 +22,11 @@ def _generate(seed):
 
     def spy(setting, start_temperature_k):
         air = real(setting, start_temperature_k)
+        frame = sys._getframe(1)
+        while frame is not None:
+            if frame.f_code.co_filename.endswith("air_branches.py"):
+                return air          # GEN.1049: the second solve of oddity W20 tries the other branch; the body stores the first air unless that branch is taken
+            frame = frame.f_back
         captured["setting"], captured["start"], captured["air"] = setting, start_temperature_k, air
         return air
 

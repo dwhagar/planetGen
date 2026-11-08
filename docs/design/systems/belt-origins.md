@@ -107,7 +107,13 @@ What it does, once per system, after the architecture, before belts are finalise
 
 The step is a rule over the architecture's own events; it needs no N-body run. A sparse fast check (does a drawn scattered body cross a giant's Hill sphere within the system age) can be a test, not a runtime cost.
 
+**Where the swept mass goes (GEN.1308, built).** `belt_origin` already takes the giant's work out of an outer disk (`cleared_earth`, `scattered_earth`), so the disk's own mass is never lowered a second time. The mass it lost is shared by the two rules above that do not depend on where the swept band lies (the ejected share `1 - exp(-Theta / THETA_EJECT)`, the rest by `SWEPT_SPLIT`; `physics/swept_hand_on.py`) and handed on: the ejected part to the rogue builders (the bodies of it heavy enough to be rogue planets by the disk's size law become one `disk` loss of `StarSystem.ejected_losses`; the rest is interstellar debris, counted and not drawn), the implanted part to the inner belt nearest the disk's inner edge (`AsteroidBelt.receive`: primordial mass that is ground down with the rest of it), and the captured part to the planets, which are caught from it before the disk's own mass is touched (`irregular_moons.take_from_disks`). The scattered disk, the centaurs, the detached bodies and the trojans hold their share in `other`: no object holds it yet (the trojans have their own item). The sum of the parts is the mass the disk lost, which a test checks. Stand-ins: section 6.210 of the gap-filling plan.
+
 **Limits to name:** no direct observation of how many other systems did this. Exoplanet evidence is indirect (debris discs at 7 to 40 AU, Fomalhaut-type narrow rings). We declare the scatter fraction a stand-in (tier educated guess from physics, tweak L1 to L3) and keep it a single registered row.
+
+### 6.1 Built: the loss past the outermost planet (GEN.1341)
+
+`belt_origin` has a shaping cause `planet-scattering`. A system with an instability level above 0 and two giants or more lost belt mass past its outermost giant: the stretch of the disk that starts at or beyond that giant and lies inside its reach (apoapsis plus 3 chaotic half-widths) loses the share `instability x (1 - exp(-Theta / 10))`, where Theta is the Safronov number of the giant (row SX3, the escape-speed-to-orbital-speed ratio squared, [R5138] [R5139] [R5141] [R5140]). No share is tuned to the observed cold share. A system with one giant, or none, or a stretch outside the reach, is untouched. Registry rows BG20 and BG21 in section 6.97 of the stand-in values.
 
 ## 7. TODO items
 
