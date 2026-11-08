@@ -33253,82 +33253,6 @@
       "number": "6.125",
       "rows": [
         {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "every giant"
-            ],
-            [
-              "What would show it wrong",
-              "a change of the class row"
-            ],
-            [
-              "What replaces it",
-              "the class row itself"
-            ],
-            [
-              "Evidence",
-              "planet_classes.json, the class J sentence"
-            ]
-          ],
-          "id": "TB1",
-          "key": "6.125:TB1",
-          "kind": "D",
-          "slug": "6-125-tb1",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": "GEN.1151",
-          "what": "trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from"
-            ],
-            [
-              "The range it moves in",
-              "0.05 to 0.3 low; 5 to 10 high"
-            ],
-            [
-              "Where it holds",
-              "terrestrial worlds"
-            ],
-            [
-              "What would show it wrong",
-              "a generated Class M world outside the range"
-            ],
-            [
-              "What replaces it",
-              "the generated planet's own mass"
-            ],
-            [
-              "Evidence",
-              "planet_classes.json giants from 10 Earth masses; no source for a floor"
-            ]
-          ],
-          "id": "TB2",
-          "key": "6.125:TB2",
-          "kind": "P",
-          "slug": "6-125-tb2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": "GEN.1151",
-          "what": "trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from"
-        },
-        {
           "burn_down": [
             "no data",
             "-",
@@ -42094,10 +42018,10 @@
               "the log eps are read; the follow-iron choice is the default for an element with no opened trend and was not tested against any sample"
             ]
           ],
-          "id": "HC1",
-          "key": "6.217:HC1",
+          "id": "HK1",
+          "key": "6.217:HK1",
           "kind": "P",
-          "slug": "6-217-hc1",
+          "slug": "6-217-hk1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42132,10 +42056,10 @@
               "an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values)"
             ]
           ],
-          "id": "HC2",
-          "key": "6.217:HC2",
+          "id": "HK2",
+          "key": "6.217:HK2",
           "kind": "B",
-          "slug": "6-217-hc2",
+          "slug": "6-217-hk2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -42170,10 +42094,10 @@
               "the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation"
             ]
           ],
-          "id": "HC3",
-          "key": "6.217:HC3",
+          "id": "HK3",
+          "key": "6.217:HK3",
           "kind": "T",
-          "slug": "6-217-hc3",
+          "slug": "6-217-hk3",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -42208,10 +42132,10 @@
               "the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it"
             ]
           ],
-          "id": "HC4",
-          "key": "6.217:HC4",
+          "id": "HK4",
+          "key": "6.217:HK4",
           "kind": "T",
-          "slug": "6-217-hc4",
+          "slug": "6-217-hk4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",

@@ -2,6 +2,7 @@
 {"_age_drawn":2.00000000e+00,
 "_air_choice":null,
 "_air_context":null,
+"_air_light_au":9.98912316e+04,
 "_bare_core":{"fractions":{"envelope_mass_fraction":0.00000000e+00,
 "ice_mass_fraction":1.37699766e-02,
 "metal_mass_fraction":2.57012650e-01,
@@ -91,7 +92,7 @@
 "band7_night_hours":null,
 "band7_state":null,
 "band7_swing_k":null,
-"binding_energy_j":6.97408402e+32,
+"binding_energy_j":5.82744761e+32,
 "body_type":"t",
 "bond_albedo":1.57871264e-01,
 "born_beyond_snow_line":null,
@@ -244,6 +245,7 @@
 "moons":[{"_age_drawn":2.00000000e+00,
 "_air_choice":null,
 "_air_context":null,
+"_air_light_au":9.98912316e+04,
 "_bare_core":null,
 "_birth_distance_au":8.16875364e-04,
 "_birth_spin":[1.86256907e-04,
@@ -791,7 +793,7 @@
 "rock_p2o5_fraction":1.23527845e-03,
 "rock_tio2_fraction":1.66843611e-03,
 "rotation_period_hours":4.25587830e+01,
-"roundness_ratio":null,
+"roundness_ratio":2.24143900e+01,
 "runner_up_class":null,
 "runner_up_match":0.00000000e+00,
 "scale_height":3.91444824e+01,
@@ -924,7 +926,7 @@
 "water_mass_fraction":5.17850973e-02,
 "xuv_exposure_index":4.68221432e-12,
 "xuv_flux_earth":4.83309714e-12,
-"yield_strength_pa":null,
+"yield_strength_pa":3.79326996e+06,
 "zone":"c"}
 
 == nebula-shape ==

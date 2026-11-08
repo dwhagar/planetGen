@@ -202,16 +202,19 @@ def test_changed_selects_and_full_refreshes_the_map():
     assert runner.depmap_options("quick", "", False) == []
 
 
-def test_a_check_with_no_change_to_compare_is_refused_and_says_what_base_to_pass(monkeypatch, capsys):
-    """TEST.294: `full --check` on a checkout that is main compares it with itself, and called a failing test missed."""
+def test_a_check_with_no_change_to_compare_runs_the_full_run_without_the_check_and_says_what_base_to_pass(monkeypatch, capsys):
+    """TEST.294: `full --check` on a checkout that is main compares it with itself, and called a failing test missed. TEST.694: it then runs the full
+    run without the check instead of refusing, so the same command works on main."""
     from tests import depmap
 
     ran = []
-    monkeypatch.setattr(runner, "run_phase", lambda *args, **kwargs: ran.append(args) or (0, {}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, *args, **kwargs: ran.append(command) or (0, {}))
+    monkeypatch.setattr(runner, "run_watched", lambda label, marker, workers, extra, *args, **kwargs: ran.append(extra) or (0, {}, 0))
     monkeypatch.setattr(depmap, "changed_files", lambda base="": set())
-    assert runner.main(["full", "--check"]) == 2
+    runner.main(["full", "--check", "--no-preflight", "--no-rerun", "--no-worker-cap", "-n", "1"])
     said = capsys.readouterr().out
-    assert "--base" in said and "Nothing was run" in said and not ran
+    assert "--base" in said and "without the check" in said and ran
+    assert not any("--deps-check" in " ".join(map(str, item)) for item in ran)
     assert runner.check_without_changes("abc123").startswith("no file differs from abc123")
 
     monkeypatch.setattr(depmap, "changed_files", lambda base="": {"src/planetgen/generation/system.py"})

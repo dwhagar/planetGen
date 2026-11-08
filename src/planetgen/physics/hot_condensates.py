@@ -20,11 +20,11 @@ because the Sun holds less potassium than chlorine (5.07 against 5.31 in log eps
 
 The abundance of an element against hydrogen by number is `10^(log eps - 12 + [X/H])`. The elements of the star's element set take their
 [X/Fe] from the host (`StellarComposition.offsets`); the elements of the table the star does not carry (Rb, Cs, Ge, As, Se) follow iron
-(stand-in, `[X/Fe] = 0`; GEN.725 HC1), and chlorine and fluorine take the [Cl/Fe] and [F/Fe] of the rocky-planet inventory
+(stand-in, `[X/Fe] = 0`; GEN.725 HK1), and chlorine and fluorine take the [Cl/Fe] and [F/Fe] of the rocky-planet inventory
 (`mixture_rocky`).
 
 A trace gas can hold no more of an element than the star has: `gas_ceiling` is the most molecules per hydrogen atom, the least of the host's
-abundances of its elements divided by how many atoms of each the molecule holds (GEN.725 HC2). The real amount of each gas depends on the
+abundances of its elements divided by how many atoms of each the molecule holds (GEN.725 HK2). The real amount of each gas depends on the
 temperature and pressure and the chemistry of the atmosphere (the hot-giant thermochemistry, GEN.994) and is not here.
 
 Use:

@@ -409,7 +409,7 @@ class Generation(_Section):
                                 "fallen moon). 1 is the rate the sources give, 0 turns every oddity off, 2 doubles every chance. It "
                                 "applies to the worlds generated afterwards; a world already made keeps what it has. A run that "
                                 "names its own dial (the generator page, an administrator's force) uses that instead.",
-                                group="generation", ge=0.0, le=10.0, label="Oddity rate",
+                                unit="times the sourced rate", group="generation", ge=0.0, le=10.0, label="Oddity rate",
                                 summary="How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off.")
 
 

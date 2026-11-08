@@ -138,7 +138,8 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off."
+          "x-summary": "How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off.",
+          "x-unit": "times the sourced rate"
         }
       },
       "title": "Generation",

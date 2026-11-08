@@ -23,8 +23,9 @@ from planetgen.admin import recipes
 
 from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
-    ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, FormError, _admin_or_403, _admin_or_redirect, _edge_pc,
-    _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed, finish_status, page_context,
+    ESTIMATE_CONFIRM_FIELD, ESTIMATE_RETRY_SECONDS, GENERATE_ANYWAY_FIELD, EstimatePending, FormError, _admin_or_403,
+    _admin_or_redirect, _edge_pc, _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed,
+    finish_status, page_context,
 )
 from .helpers import crumb, db_name, page_url, render_page
 
@@ -284,6 +285,8 @@ def _review_or_form(admin, task, form, recipe_error=None):
     """The Review step for the draft `form`, or the task's form again with what is wrong."""
     try:
         action, kind, title, steps, estimate = _planned_job(task, form)
+    except EstimatePending as exc:
+        return task_page(admin, task, form=form, error=str(exc), status=202)
     except FormError as exc:
         return task_page(admin, task, form=form, error=str(exc), status=400)
     return review_page(admin, action, kind, title, steps, form, estimate=estimate, recipe_error=recipe_error)
@@ -315,6 +318,8 @@ def generate_size(key):
         abort(404)
     try:
         _action, _kind, _title, _steps, estimate = _planned_job(task, request.args)
+    except EstimatePending as exc:
+        return _no_store(jsonify({"state": "working", "message": str(exc), "retry_seconds": ESTIMATE_RETRY_SECONDS}))
     except FormError as exc:
         return _no_store(jsonify({"state": "invalid", "message": str(exc)}))
     if estimate is None:

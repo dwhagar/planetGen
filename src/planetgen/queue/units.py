@@ -213,7 +213,12 @@ def peak_resident_mb():
     horse measured 1,487 MB resident in the horse and 2,180 MB together.
     """
     resident = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
-    return max(resident, _proportional_mb(os.getpid()) + _proportional_mb(os.getppid()))
+    return max(resident, resident_mb())
+
+
+def resident_mb():
+    """What this process and its parent (the worker beside a work horse) hold now, MB, shared pages counted once (`_proportional_mb`); 0.0 where the system does not say."""
+    return _proportional_mb(os.getpid()) + _proportional_mb(os.getppid())
 
 
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
@@ -342,7 +347,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
         return
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
+                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed{wrapper.opening_note(connection, run_id, stage)}: "
                                f"{exc_type.__name__}: {exc_value}")
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
@@ -361,7 +366,7 @@ def horse_killed(job, retpid, ret_val, _rusage):
     log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(job.connection, run_id, "failed",
-                         error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
+                         error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed{wrapper.opening_note(job.connection, run_id, stage)}: "
                                f"its worker process {retpid} ended with {_ended_with(ret_val)}")
 
 

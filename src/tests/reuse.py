@@ -20,6 +20,7 @@ Each run's header keeps a manifest of the tracked and untracked (not git-ignored
 runs can be compared without git still holding the earlier commit.
 """
 
+import datetime
 import json
 import os
 import subprocess
@@ -28,6 +29,9 @@ from tests import buildid, depmap, progress_log
 
 ENVIRONMENT_PARTS = ("packages", "python", "mysql", "redis", "env", "date")
 """tuple: The parts of a build id (`tests/buildid.py`) that must be the same for an earlier pass to count."""
+DATE_GRACE_HOURS = 24
+"""int: A run that started this recently (or less) is not kept out by `date` alone (TEST.694): a run that crossed midnight UTC lost its passes, 2.7 hours of
+them in the bug hunt. A pass is still counted only when the files it used are unchanged. A run older than this is on another day."""
 
 
 def _git(root, *args):
@@ -105,12 +109,27 @@ def _logs(directory, skip=None):
     return found
 
 
-def environment_differences(then, now):
-    """The environment parts that differ between two runs' build parts."""
-    return [name for name in ENVIRONMENT_PARTS if then.get(name) != now.get(name)]
+def environment_differences(then, now, started="", at=None):
+    """The environment parts that differ between two runs' build parts. A different `date` alone does not count when the earlier run `started`
+    (an ISO time, as the header has it) within `DATE_GRACE_HOURS` of `at` (the current time, by default)."""
+    different = [name for name in ENVIRONMENT_PARTS if then.get(name) != now.get(name)]
+    if "date" in different and _recent(started, at):
+        different.remove("date")
+    return different
 
 
-def reusable(directory, parts, current, skip=None):
+def _recent(started, at=None):
+    try:
+        then = datetime.datetime.fromisoformat(str(started).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if then.tzinfo is None:
+        then = then.replace(tzinfo=datetime.timezone.utc)
+    at = at or datetime.datetime.now(datetime.timezone.utc)
+    return datetime.timedelta(0) <= at - then <= datetime.timedelta(hours=DATE_GRACE_HOURS)
+
+
+def reusable(directory, parts, current, skip=None, at=None):
     """
     The passes of earlier runs that this run may count: `{node id: {"test": its progress line, "deps": its deps
     line, "build": the run's build id, "started": when that run started}}`, the newest run's pass of each test, and
@@ -121,10 +140,11 @@ def reusable(directory, parts, current, skip=None):
         parts (dict): This run's build parts (`buildid.build_parts`).
         current (dict): This run's `manifest`.
         skip (str, optional): A log not to read (this run's own).
+        at (datetime, optional): The current time, for the `DATE_GRACE_HOURS` of a run on the day before (default: now).
     """
     found, looked, blocked = {}, [], []
     for path, header, tests, deps in _logs(directory, skip):
-        different = environment_differences(header["parts"], parts)
+        different = environment_differences(header["parts"], parts, header.get("started", ""), at)
         if different:
             blocked.extend(name for name in different if name not in blocked)
             continue

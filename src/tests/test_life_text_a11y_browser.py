@@ -64,7 +64,10 @@ def browser():
     try:
         yield chromium
     finally:
-        chromium.close()
+        try:
+            chromium.close()
+        finally:
+            playwright.stop()       # TEST.696: left running, its asyncio loop made every later browser fixture in the worker fail to start
 
 
 def _open(browser, theme):

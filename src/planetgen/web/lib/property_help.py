@@ -15,7 +15,7 @@ from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import unit_registry
 from planetgen.web.lib import reference_urls
 
-KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"))
+KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"), ("neutron_star", "Neutron stars"))
 """tuple: The kinds with source lines, in the order the page lists them, and what the page calls them."""
 
 WORDS = "words"
@@ -72,10 +72,10 @@ GROUP_AREA = {
 
 
 def by_area():
-    """`{area: [rows]}` for every area of the method pages: the rows of `rows()` whose sheet heading `GROUP_AREA` puts there (a value only stars have is in `stars`), in the sheet's order."""
+    """`{area: [rows]}` for every area of the method pages: the rows of `rows()` whose sheet heading `GROUP_AREA` puts there (a value only stars or neutron stars have is in `stars`), in the sheet's order."""
     found = {area: [] for area in reference_urls.AREAS}
     for row in rows():
-        found["stars" if row["applies"] == "Stars" else GROUP_AREA[row["group"]]].append(row)
+        found["stars" if row["applies"] in ("Stars", "Neutron stars") else GROUP_AREA[row["group"]]].append(row)
     return found
 
 

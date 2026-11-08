@@ -3167,6 +3167,10 @@ code {
   border-radius: 50%;
   background: radial-gradient(circle, var(--text-muted) 0%, transparent 70%);
 }
+.map-layer-legend-swatch.map-key-globular {
+  border-radius: 50%;
+  background: radial-gradient(circle, #f2d492 0%, rgba(242, 212, 146, 0.45) 45%, transparent 75%);
+}
 .map-layer-legend-swatch.map-key-sphere {
   border-radius: 50%;
   background: none;

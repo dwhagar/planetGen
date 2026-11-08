@@ -317,7 +317,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
         assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
         absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA:
+        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.MAX_SURFACE_TEMPERATURE_K:
             continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
