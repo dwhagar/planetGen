@@ -3239,7 +3239,7 @@ An outer disk that a giant acted on lost mass in the ledger of `belt_origin` (wh
 | DSC5 | P | T3 | L3 | disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled |
 | DSC6 | P | T3 | L2 | disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read |
 
-### 6.225 Stand-ins of the jump of the solids at the snow line (GEN.1396)
+### 6.231 Stand-ins of the jump of the solids at the snow line (GEN.1396)
 
 `disk_condensation.snow_line_solid_jump` replaces the water-only boost of `condensate_shares` in the planet mass law's solid density (docs/design/composition/disk-condensation.md section 4).
 
