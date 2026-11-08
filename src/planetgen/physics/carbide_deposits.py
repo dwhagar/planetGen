@@ -15,7 +15,7 @@ the `carbon` type of `surface_composition`; this module adds the two minerals th
   `CARBON_SATURATED_C_WT / COHENITE_C_WT` of the metal as Fe3C (0.64); the grade is drawn between `COHENITE_GRADE_FLOOR` and that. The count scales with the body's metal mass over the Earth's core share.
 
 Both are `absent_by_state` on a body whose rock is silicate (nothing here is drawn for an oxygen-rich world) and on a body the ore pass did not assess. They use the count law and the record of
-`sedimentary_deposits` (a Poisson count of lognormal sizes, on a stream of the body's own), so adding them moves no other draw. Every constant is a stand-in in section 6.233 of the gap-filling plan (CH1 to CH3).
+`sedimentary_deposits` (a Poisson count of lognormal sizes, on a stream of the body's own), so adding them moves no other draw. Every constant is a stand-in in section 6.235 of the gap-filling plan (CH1 to CH3).
 """
 
 from typing import NamedTuple

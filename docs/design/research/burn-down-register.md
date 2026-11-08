@@ -272,7 +272,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.227:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
 | 6.227:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
 | 6.227:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |
-| 6.233:CH3 | no data | - | the counts, sizes and windows are design choices; no carbon-rich body has a surveyed endowment |
+| 6.235:CH3 | no data | - | the counts, sizes and windows are design choices; no carbon-rich body has a surveyed endowment |
 | 6.224:HT2 | no data | - | the gate numbers are design choices; no source measures where a deposit class stops forming |
 | 6.224:HT3 | no data | - | the ceilings are design choices; only the Earth's counts exist |
 | 6.224:HT6 | no data | - | the windows are design choices; only the Earth's deposits by era exist |

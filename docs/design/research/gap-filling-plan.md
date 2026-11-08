@@ -3448,7 +3448,7 @@ The Venus chemistry set of section 10 of the unseen-compounds report as register
 | PB9 | B | T6 | L3 | phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor | ceiling 300 to 3000; floor 0.001 to 0.1 | oceans | a sealed ocean with a measured phosphate far above the floor | an ice-ocean exchange model for the sealed case | the old class values of `habitability_world` (GEN.654: high 1000, starved 0.01), kept as the two bounds |
 | PB10 | T | T6 | L3 | phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of `phosphorus_class` | starved 0.03 to 0.3; high 30 to 300 | all oceans | a band that a life score does not follow | none; a label for a page, the number drives the score | research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only |
 
-### 6.233 Stand-ins of the carbide deposits of a carbon-rich body (GEN.1423)
+### 6.235 Stand-ins of the carbide deposits of a carbon-rich body (GEN.1423)
 
 `carbide_deposits.py` adds moissanite (the silicon carbide of the carbon rock) and cohenite (Fe3C, in the carbon-saturated metal) to the deposit table of a body whose rock is carbon rock (`carbon_rock`, a star at C/O 0.8 or more). It uses the record and the count law of `sedimentary_deposits`; nothing is drawn for an oxygen-rich body. The grade range of the moissanite is not a stand-in: it is the SiC share of the rock at the two ends of the graphite range the bulk draw takes (`bulk_draw.RANGES["graphite_over_rock"]`).
 

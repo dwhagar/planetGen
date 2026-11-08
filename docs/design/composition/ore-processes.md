@@ -192,5 +192,5 @@ Built: two mineral rows for a carbon-rich body, as rows of the same three child 
 
 - **Moissanite grade.** The SiC share of the SiC-and-graphite rock, `1 / (1 + g)` for the graphite-over-rock `g` the bulk draw takes (0.05 to 0.40): 0.71 to 0.95. The count scales with the surface area and the stored crust thickness over 35 km.
 - **Cohenite grade.** From 0.30 up to the Fe3C share of iron saturated with carbon at the iron-carbon eutectic (4.3 percent carbon over the 6.69 percent of Fe3C, 0.64). The count scales with the metal mass fraction over the Earth's core share.
-- **Stand-ins** CH1 to CH3 in section 6.233 of `gap-filling-plan.md`.
+- **Stand-ins** CH1 to CH3 in section 6.235 of `gap-filling-plan.md`.
 - **Left for later.** TiC (khamrabaevite), CaS and MgS of the carbide-planet suite (report row 15), diamond as a deposit, and the carbon mantle's equation of state (GEN.428's open item).

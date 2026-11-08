@@ -327,7 +327,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.229", "6.229 Stand-ins of the sulfur-cloud chemistry set and its gates",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.233", "6.233 Stand-ins of the carbide deposits of a carbon-rich body",
+    ("6.235", "6.235 Stand-ins of the carbide deposits of a carbon-rich body",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.224", "6.224 Stand-ins of the hydrothermal and uranium deposits",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),

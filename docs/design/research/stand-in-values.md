@@ -1865,7 +1865,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CG1 | P | T9 | L3 | sulfur_cloud_set.json `acid_vapor_share_of_so2` 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat | 1 to 10 percent | airs with an acid cloud | a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide | a photochemistry model of the acid vapor | from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it | - | replace (GEN.1425) |
 | CG2 | P | T9 | L3 | `cloud_water_min_share` 1e-6, `uv_c_min_w_m2` 0.5, `reductant_min_share` 1e-7, `sulfur_aerosol_min_so2_share` 1e-5, `chlorine_min_share` 1e-7: the floors of the gates | each a decade either way | gates 2 to 4 | a sweep that moves any of them | a sweep | STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors | - | no data |
 
-## 6.233 Stand-ins of the carbide deposits of a carbon-rich body
+## 6.235 Stand-ins of the carbide deposits of a carbon-rich body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

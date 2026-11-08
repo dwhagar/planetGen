@@ -42577,8 +42577,8 @@
       "title": "Stand-ins of the sulfur-cloud chemistry set and its gates"
     },
     {
-      "key": "6.233",
-      "number": "6.233",
+      "key": "6.235",
+      "number": "6.235",
       "rows": [
         {
           "burn_down": null,
@@ -42609,9 +42609,9 @@
             ]
           ],
           "id": "CH1",
-          "key": "6.233:CH1",
+          "key": "6.235:CH1",
           "kind": "B",
-          "slug": "6-233-ch1",
+          "slug": "6-235-ch1",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -42647,9 +42647,9 @@
             ]
           ],
           "id": "CH2",
-          "key": "6.233:CH2",
+          "key": "6.235:CH2",
           "kind": "P",
-          "slug": "6-233-ch2",
+          "slug": "6-235-ch2",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L2",
@@ -42689,9 +42689,9 @@
             ]
           ],
           "id": "CH3",
-          "key": "6.233:CH3",
+          "key": "6.235:CH3",
           "kind": "P",
-          "slug": "6-233-ch3",
+          "slug": "6-235-ch3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
@@ -42699,7 +42699,7 @@
           "what": "carbide_deposits.MOISSANITE_DEPOSITS 40 and COHENITE_DEPOSITS 20, medians 1e12 and 1e11 kg of ore, spread 1.5, and WINDOWS (moissanite 0.0 to 1.0, cohenite 0.2 to 1.0 of the age): the deposits of an Earth-size carbon-rich body over the reference window, their size and the share of the age in which each formed"
         }
       ],
-      "slug": "6-233-stand-ins-of-the-carbide-deposits-of-a-carbon-rich-body",
+      "slug": "6-235-stand-ins-of-the-carbide-deposits-of-a-carbon-rich-body",
       "title": "Stand-ins of the carbide deposits of a carbon-rich body"
     },
     {
