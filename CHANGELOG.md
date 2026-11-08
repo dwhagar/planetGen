@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3635] - 2026-11-08
+
+**Headline:** A planet's tide can no longer spend more energy than its orbit has to give: a strong tide wears the eccentricity down as it heats the planet.
+
+### Changed
+
+- **The eccentricity falls at the rate the tide really takes the orbit's energy (GEN.1351).** A planet's eccentricity was worn down by the tide with the body's cold rheology (the mantle at the temperature the star's age gives it with no tide), while the heat it was given was worked out with the mantle the tide itself warms, and in the extreme melts. A 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star kept e = 0.068 over 1.8 Gyr (a cold circularisation time of 18 Gyr) with a tide of 33 W/m2 that would circularise it in 27 Myr, spending 2.4e31 J against an orbital energy of 2.3e31 J when circularising releases about 1e29 J. The orbit now loses the tide's power as its eccentricity falls (`E_orb d(e^2)/dt = -P`, `E_orb = G M m / (2 a)`), with `P` the heat model's tide at that eccentricity (`interior_heat.eccentricity_tide_w`, the box for a rocky body, the shell for an icy one), integrated from the birth eccentricity over the star's age (`orbit_elements.settled_eccentricity`). The sample body now ends at e = 0.019 with a tide of 7e10 W; the energy a tide held at its end power for the whole age spends never passes the orbit's `E_orb (e_birth^2 - e^2)`. A weak tide changes nothing (the heat model's decay time is then the cold one); only planets and captured moons whose tide melts or softens their mantle end on a lower eccentricity, and with it a smaller tidal heat flux. The grid of the integration is registered in GEN.725 (OE16, numerical settings). Generated eccentricities, tidal heat flux and what follows from them (climate, class, life) change for the planets on the tight orbits of small stars; the census of tidal heat flux is re-measured at the lock.
+
+generation-output: changed
+
 ## [8.0.3634] - 2026-11-08
 
 **Headline:** Planets near a cool star now lose their water to the star's early light at the same rate the atmosphere's own escape model uses, so fewer M-dwarf worlds keep their oceans.
