@@ -7,8 +7,8 @@ What a protoplanetary disc condenses at a temperature, species by species (GEN.1
 `condensate_shares` has three ices (water 182 K, ammonia 131 K, methane 41 K) and puts all the carbon in methane. A disc measured by its
 gas and ice is not like that [R3321, R3322]: about half of the carbon is refractory (organic and graphite-like grains that survive to about
 500 K); the rest is mostly CO and CO2, with a little CH4; most of the nitrogen is N2; sulfur is mostly in troilite with some H2S; and the noble gases
-come out as clathrates in the water ice. This module is the budget and the lines of that disc, and nothing draws from it yet (part B wires the
-ice shares of a body to it and part C the C/O of a giant).
+come out as clathrates in the water ice. This module is the budget and the lines of that disc. The jump of the solid density at the snow line reads it (`snow_line_solid_jump`, GEN.1396); part B wires
+the ice shares of a body to it and part C the C/O of a giant.
 
 1. **The budget.** Per 10^4 hydrogen atoms (the unit of [R3322: Table 1]) the Sun has C 2.88, N 0.68, O 4.90, S 0.13, Ar 0.024, Kr 1.3e-5 and Xe 1.7e-6
    ([R0168: Table 2], photospheric log eps; `tuning.STELLAR_SOLAR_LOG_EPS` and `NOBLE_LOG_EPS`). A star's ratios (its element over its rock-forming
@@ -221,3 +221,32 @@ def line_au(species, luminosity_w):
         raise ValueError(f"no line for {species!r}")
     distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / LINES_K[species] ** 2
     return _m_to_au(distance_m)
+
+
+SNOW_LINE_SOLID_JUMP_K = 0.5 * (LINES_K["H2O"] + LINES_K["NH3"])
+"""float: The temperature at which the jump of the solid density at the snow line is read, K: the middle of the water and ammonia lines, where the water is frozen and the ammonia is not."""
+
+
+@finite_domain()
+def snow_line_solid_jump(carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    How many times the rock's surface density the solids make just beyond the water line (GEN.1396): everything condensed at
+    `SNOW_LINE_SOLID_JUMP_K` (the rock, the refractory carbon grains and the water ice, from `masses_percent`) over the rock alone. The divisor is
+    the rock because the density scale of the solids is the rock's: the minimum-mass nebula is built from the rock of the planets ([R1854] puts the
+    jump at 30 / 7), and the planets of the inner disc hold far less carbon than the grains would bring (meteorites and the bulk silicate Earth have
+    a C/Si well under the Sun's, so the grains are destroyed there [R0357]), so the grains are a part of the solids only where they survive.
+    Lodders's equilibrium table gave 2.17 (all the spare oxygen as water); the disc holds part of that oxygen in CO and CO2 gas, which is not frozen
+    here, and the grains add 0.145 percent of the nebula, so the Sun's value is 1.97.
+
+    Args:
+        carbon, oxygen, nitrogen, sulfur, noble (float): The star's ratios of the element over the rock-forming metals, over the Sun's (1 is the Sun).
+
+    Returns:
+        float: The jump, 1.97 for the Sun.
+    """
+    masses = masses_percent(SNOW_LINE_SOLID_JUMP_K, carbon, oxygen, nitrogen, sulfur, noble)
+    return sum(masses.values()) / masses[condensate_shares.ROCK]
+
+
+SNOW_LINE_SOLID_JUMP = snow_line_solid_jump()
+"""float: The jump of the solid surface density at the snow line for the Sun's composition (1.97); `formation.mmsn_surface_density_gcm2` multiplies the disc's solids by it beyond a star's own snow line."""

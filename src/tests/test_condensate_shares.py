@@ -13,7 +13,6 @@ SUN_W = physical_constants.SOLAR_LUMINOSITY
 def test_nothing_but_rock_is_whole_above_the_water_line():
     assert shares.condensed_masses(300.0) == {"rock": 0.489}
     assert shares.water_share_of_solids(300.0) == 0.0
-    assert shares.ice_over_rock(300.0) == 0.0
 
 
 def test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints():
@@ -21,19 +20,15 @@ def test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints():
     assert shares.water_share_of_solids(150.0) == pytest.approx(0.571 / (0.489 + 0.571))
     assert shares.water_share_of_solids(100.0) == pytest.approx(0.571 / (0.489 + 0.571 + 0.097))
     assert shares.water_share_of_solids(30.0) == pytest.approx(0.571 / 1.487)
-    assert shares.ice_over_rock(150.0) == pytest.approx(1.17, abs=0.005)
-    assert shares.ice_over_rock(30.0) == pytest.approx(0.998 / 0.489, abs=0.005)
+    assert shares.condensed_masses(150.0)["H2O"] / shares.condensed_masses(150.0)["rock"] == pytest.approx(1.17, abs=0.005)
+    ices_30 = sum(mass for name, mass in shares.condensed_masses(30.0).items() if name != "rock")
+    assert ices_30 / shares.condensed_masses(30.0)["rock"] == pytest.approx(0.998 / 0.489, abs=0.005)
 
 
 def test_a_line_belongs_to_the_colder_side():
     assert "H2O" not in shares.condensed_masses(182.0)
     assert "H2O" in shares.condensed_masses(181.9)
     assert "NH3" in shares.condensed_masses(130.0) and "NH3" not in shares.condensed_masses(131.0)
-
-
-def test_the_boost_of_the_solids_at_the_snow_line_is_the_water_over_rock_plus_one():
-    assert shares.solid_boost(150.0) == pytest.approx(1.0 + 0.571 / 0.489)
-    assert shares.solid_boost(150.0) < 30.0 / 7.0
 
 
 def test_oxygen_after_the_rock_makes_the_water():

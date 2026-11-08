@@ -21,7 +21,7 @@ its fixed line.
 Limits. The table is for a gas of solar C/O at 10^-4 bar with every carbon atom in methane and every nitrogen atom in ammonia; the
 kinetic models of Lodders's Table 10 (graphite kept, methane and ammonia not formed) are not read here. The ice mass of a comet
 ([R2865], ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. The snow line
-(`formation.snow_line_au`), the ice boost of the surface density (`WATER_ICE_SOLID_BOOST`), the temperature below which a ring is cold
+(`formation.snow_line_au`), the temperature below which a ring is cold
 and the water share an icy body can reach (`bulk_draw`) read it (GEN.950); the star's oxygen over its rock-forming metals is not
 passed on, so the ice masses are those of the Sun's composition.
 """
@@ -91,25 +91,6 @@ def water_share_of_solids(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
     """Water ice over everything that has condensed (rock and the ices) at `temperature_k`; 0 above 182 K."""
     masses = condensed_masses(temperature_k, oxygen, carbon, nitrogen)
     return masses.get("H2O", 0.0) / sum(masses.values())
-
-
-def ice_over_rock(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """The mass of all the ices that have condensed over the rock at `temperature_k` (1.17 for water alone, 2.04 for all three)."""
-    masses = condensed_masses(temperature_k, oxygen, carbon, nitrogen)
-    return (sum(masses.values()) - masses[ROCK]) / masses[ROCK]
-
-
-def solid_boost(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """
-    How many times the rock's surface density the solids make at `temperature_k`: `1 + ice_over_rock`. The jump of the minimum-mass
-    nebula at the snow line ([R1854] puts it at 30 / 7 = 4.3 where Lodders's water alone gives 2.17).
-    """
-    return 1.0 + ice_over_rock(temperature_k, oxygen, carbon, nitrogen)
-
-
-WATER_ICE_SOLID_BOOST = solid_boost(0.5 * (ICE_CONDENSATION_K["H2O"] + ICE_CONDENSATION_K["NH3"]))
-"""float: How many times the rock's surface density the solids make just beyond the water line, between the water and ammonia lines (2.17 for
-the Sun's composition; [R1854] has 30 / 7 = 4.3). The jump of the minimum-mass nebula at the snow line (`formation.mmsn_surface_density_gcm2`)."""
 
 
 @finite_domain()
