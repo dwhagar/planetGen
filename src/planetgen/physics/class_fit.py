@@ -154,6 +154,11 @@ def _found(body):
     return found
 
 
+def found_quantities(body):
+    """The named quantities the classes read, from a planet, moon or stored-column mapping (what a request judges a finished body on, GEN.688)."""
+    return _found(body)
+
+
 def _ranked(found, relax=(), floor=0.0, only=None):
     scored = [(match(cls, found, relax, floor), cls) for cls in CLASSES if passes_gates(cls, found) and (only is None or cls.letter in only)]
     scored.sort(key=lambda pair: (-pair[0], -len(pair[1].when), pair[1].letter))

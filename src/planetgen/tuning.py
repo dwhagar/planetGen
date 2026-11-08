@@ -237,6 +237,11 @@ one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
 # any (10 kPa), and the water a surface ocean.
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
+REQUEST_ECOSPHERE_TEMPERATURE_K = (273.15, 400.0)
+"""tuple: The span of mean surface temperatures, K, a request's temperature range must lie inside for the request to be placed in the ecosphere (GEN.688,
+`condition_request.wants_ecosphere`): from the freezing point of water to the 400 K under which a dense air is still a carbon dioxide or temperate one and not class N
+(`physics/data/planet_class_fit.json`). A request for a surface warmer than that or colder than that keeps the place its slot has. Replaces the list of life-bearing class letters
+the slot used to be snapped by. A planetGen stand-in (tier T9, tweak L1)."""
 REQUEST_MIN_PRESSURE_PA = 10000.0
 REQUEST_HYDROSPHERES = ("surface ocean",)
 REQUEST_PLANET_DRAW_BUDGET = 60
