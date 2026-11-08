@@ -216,7 +216,6 @@ def test_star_system_round_trip_single_star_full_fidelity():
     assert reloaded.belt_count == system.belt_count
     assert reloaded.moon_count == system.moon_count
     assert reloaded.hab_count == system.hab_count
-    assert reloaded.m_count == system.m_count
     assert reloaded.comet_count == system.comet_count
 
     # Orbital order preserved.

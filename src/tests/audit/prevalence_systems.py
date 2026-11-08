@@ -64,7 +64,7 @@ def _record(system):
                                  for stage in stages if stage in MILESTONES)
     belts = sum(1 for planet in system.all_planets if planet.body_type == "a")
     comets = len(system.comets) + len(getattr(system, "secondary_comets", ()))
-    hab_count, _m = system.count_habitable()
+    hab_count = system.count_habitable()
     primary = [planet for planet in system.planets if planet.body_type != "a"]
     orbits = [[round((planet.mass or 0.0) / EARTH_MASS_KG, 4), round(planet.distance, 4), planet.planet_class,
                round((getattr(planet, "radius", 0.0) or 0.0) / EARTH_RADIUS_KM, 4)] for planet in primary]

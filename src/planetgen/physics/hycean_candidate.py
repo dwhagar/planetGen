@@ -10,12 +10,11 @@ liquid surface ocean under air that is more than half hydrogen (`HYCEAN_MIN_H2_S
 `bodylook.py` read it. What was missing is the box itself, as a flag a body can be asked about, so that the bodies the box selects can be counted and compared with the
 bodies that reach the state. The envelope survival the item names is already `envelope_escape` (GEN.822) and the retention module (GEN.355).
 
-The flag is derived from stored quantities, sits on the existing classes T (gas dwarf), I (ice giant) and V (high-gravity world) and moves no class and no stored value.
+The flag is derived from stored quantities (mass, radius, equilibrium temperature and the density they give) alone, with no class letter, and moves no class and no stored value.
 
 Use:
 
-    hycean_candidate(planet_class, mass_earth, radius_earth, teq_k)       # True or False
-    in_box(mass_earth, radius_earth, teq_k)                               # the four ranges, whatever the class
+    hycean_candidate(mass_earth, radius_earth, teq_k)       # True or False: in the four ranges
 """
 
 import math
@@ -36,9 +35,6 @@ HYCEAN_TEMPERATURE_K = (150.0, 500.0)
 HYCEAN_DENSITY_G_CM3 = (1.5, 3.0)
 """tuple: The bulk density, g/cc (row HC1)."""
 
-HYCEAN_CLASS_LETTERS = ("T", "I", "V")
-"""tuple: The classes the flag sits on: the gas dwarf, the ice giant and the high-gravity world (the item)."""
-
 
 def density_g_cm3(mass_earth, radius_earth):
     """The bulk density, g/cc."""
@@ -56,6 +52,6 @@ def in_box(mass_earth, radius_earth, teq_k):
             and _inside(density_g_cm3(mass_earth, radius_earth), HYCEAN_DENSITY_G_CM3))
 
 
-def hycean_candidate(planet_class, mass_earth, radius_earth, teq_k):
-    """Whether a body of class `planet_class` (a letter) is a Hycean candidate: one of `HYCEAN_CLASS_LETTERS` and in the box."""
-    return planet_class in HYCEAN_CLASS_LETTERS and in_box(mass_earth, radius_earth, teq_k)
+def hycean_candidate(mass_earth, radius_earth, teq_k):
+    """Whether a body of this mass, radius and equilibrium temperature is a Hycean candidate: it is in the box (no class letter enters)."""
+    return in_box(mass_earth, radius_earth, teq_k)

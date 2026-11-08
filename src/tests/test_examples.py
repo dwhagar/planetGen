@@ -98,4 +98,4 @@ def test_example_object_counts_are_consistent(path):
     # `len(system.planets)` alone unless this example happened to roll an
     # S-type (wide) binary or a third star (GEN.332).
     assert planet_count + belt_count == len(system.all_planets)
-    assert system.habitable_class_count >= system.m_count >= 0
+    assert system.habitable_class_count >= 0

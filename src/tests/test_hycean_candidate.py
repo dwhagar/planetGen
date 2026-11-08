@@ -15,7 +15,7 @@ def test_the_density_of_known_planets():
 def test_a_sub_neptune_with_a_temperate_envelope_is_a_candidate():
     # 4.8 Earth masses, 2.1 Earth radii, 380 K (the size and temperature of the temperate sub-Neptunes the box was drawn around; density 2.9)
     assert hc.density_g_cm3(4.8, 2.1) < 3.0
-    assert hc.hycean_candidate("T", 4.8, 2.1, 380.0)
+    assert hc.hycean_candidate(4.8, 2.1, 380.0)
 
 
 def test_each_range_excludes():
@@ -29,15 +29,12 @@ def test_each_range_excludes():
     assert not hc.in_box(2.0, 2.6, 300.0)                 # a density of 0.6 g/cc
 
 
-def test_the_flag_sits_on_the_classes_t_i_and_v_only():
-    assert hc.hycean_candidate("V", 3.5, 1.9, 300.0)
-    assert not hc.hycean_candidate("S", 3.5, 1.9, 300.0)
-    assert not hc.hycean_candidate("P", 3.5, 1.9, 300.0)
+def test_the_flag_reads_no_class_letter():
+    assert hc.hycean_candidate(3.5, 1.9, 300.0)
+    assert not hc.hycean_candidate(3.5, 1.9, 700.0)
 
 
-def test_the_flag_agrees_with_the_classes_the_code_has():
-    letters = {row["letter"] for row in planet_classes.DOCUMENT["rows"]}
-    assert set(hc.HYCEAN_CLASS_LETTERS) <= letters
+def test_the_flag_agrees_with_the_hydrosphere_state():
     # a gas dwarf of 5 Earth masses is class T by mass alone: the flag adds nothing to the class
     values = {"body_type": "g", "mass_kg": 5.0 * constants.EARTH_MASS_TO_KG}
     assert planet_classes.classify_values(values).letter == "T"

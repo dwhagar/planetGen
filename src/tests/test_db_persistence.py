@@ -328,7 +328,6 @@ def test_load_star_system_round_trips_single_star_system_exactly(mysql_config):
     assert reloaded.belt_count == system.belt_count
     assert reloaded.moon_count == system.moon_count
     assert reloaded.hab_count == system.hab_count
-    assert reloaded.m_count == system.m_count
     # Shared back-references: the SAME star/system_config instance everywhere.
     for obj in reloaded.planets:
         assert obj.system_config is reloaded.system_config

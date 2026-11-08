@@ -156,7 +156,6 @@ class StarSystem:
         hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
         habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
         habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions, else `"unmet"`.
-        m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
             decided once at generation time (or None if the roll didn't select one).
@@ -593,7 +592,7 @@ class StarSystem:
         self.assign_names()
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
-        self.hab_count, self.m_count = self.count_habitable()
+        self.hab_count = self.count_habitable()
         self.habitable_class_count = self.count_habitable_class_worlds()
         self.habitable_request = self.habitable_request_status()
         self.comet_count = self.count_comets()
@@ -1660,7 +1659,7 @@ class StarSystem:
         every other configuration.
 
         Deliberately omits `planet_count`/`belt_count`/`moon_count`/
-        `hab_count`/`m_count` (bookkeeping recomputed on load via
+        `hab_count` (bookkeeping recomputed on load via
         `count_objects`/`count_habitable`, never trusted from disk) and
         `stars`/`primary_star` (resolvable from `star`/`secondary_star`
         alone -- see `from_dict`).
@@ -1848,7 +1847,7 @@ class StarSystem:
         system.binary_planetary_wobble_z = data.get("binary_planetary_wobble_z", 0.0)
 
         system.planet_count, system.belt_count, system.moon_count = system.count_objects()
-        system.hab_count, system.m_count = system.count_habitable()
+        system.hab_count = system.count_habitable()
         system.habitable_class_count = system.count_habitable_class_worlds()
         system.habitable_request = system.habitable_request_status()
         system.comet_count = system.count_comets()
@@ -2123,28 +2122,24 @@ class StarSystem:
     def count_habitable(self, planets=None):
         """
         Counts the habitable worlds in the system: the planets and moons whose overall PHI-6 score is Blue or Green
-        (`habitability.is_habitable`; Boss, 2026-10-23), and separately the Class M worlds, which are considered the
-        most Earth-like. This is used for the system summary output.
+        (`habitability.is_habitable`; Boss, 2026-10-23). This is used for the system summary output.
 
         Args:
             planets (list, optional): See `count_objects`'s identical
                 parameter -- defaults to both stars' combined lists.
 
         Returns:
-            tuple: A tuple containing the total number of habitable worlds and
-                   the total number of Class M worlds, in that order.
+            int: The total number of habitable worlds.
         """
         if planets is None:
             planets = self.all_planets
-        hab_count, m_count = 0, 0
+        hab_count = 0
         for planet in planets:
             if planet.body_type != 'a':
                 for body in (planet, *planet.moons):
                     if habitability.is_habitable(getattr(body, "phi4", None)):
                         hab_count += 1
-                    if body.planet_class == "M":
-                        m_count += 1
-        return hab_count, m_count
+        return hab_count
 
     def habitable_request_status(self, planets=None):
         """
