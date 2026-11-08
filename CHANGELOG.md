@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3670] - 2026-11-08
+
+**Headline:** The backup page no longer ticks a part that held nothing (the repair file of a site with no galaxy yet), so "Restore the ticked parts" works on those archives.
+
+### Changed
+
+- `GET /api/admin/backups` marks a part `empty` (its dump said `present` false) with the reason in `note`; the archive page shows it unticked and disabled with the reason.
+- Restoring a whole archive leaves an empty part out and lists it in `skipped`, instead of failing with 409 on the part's "empty" refusal.
+- The browser test of back up, compare, restore and import reads the Back up now message for every part the archive holds ("Backed up Settings, Sector repair file in ..."), which fixes its red on train 17.
+
+generation-output: unchanged
+
 ## [8.0.3669] - 2026-11-08
 
 **Headline:** The oxygen and carbon dioxide rules were walked end to end after the move to pressures: the class sentences, the class-fit report, the stand-in rows and the design notes now say kPa where the rules read kPa, and a test keeps it so (GEN.1331).
