@@ -39,9 +39,9 @@ import math
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
-MEAN_LIFE_YR = {"Al26": 1.035e6, "Fe60": 3.78e6}
-"""dict: The mean life of each isotope, years ([R2768: Table 1]: 26Al half-life 0.717 Myr, mean life 1.035; 60Fe 2.62 and 3.78).
-[Stand-in BR1, tier T1, tweak L0.]"""
+MEAN_LIFE_YR = {"Al26": 1.035e6, "Fe60": 3.78e6, "Mn53": 5.40e6, "I129": 22.6e6, "Pu244": 115.0e6}
+"""dict: The mean life of each isotope, years ([R2768: Table 1]: 26Al half-life 0.717 Myr, mean life 1.035; 60Fe 2.62 and 3.78; [R2768: Table 2] 53Mn 3.74 and 5.40, 129I 15.7 and 22.6,
+244Pu 80.0 and 115). [Stand-in BR1, tier T1, tweak L0.]"""
 
 ATOMIC_MASS = {"Al26": 26.0, "Al27": 27.0, "Fe60": 60.0, "Fe56": 56.0}
 """dict: Mass numbers used to turn a mass ratio into a number ratio."""

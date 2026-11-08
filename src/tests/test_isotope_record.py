@@ -118,15 +118,17 @@ def test_a_generated_planet_carries_a_record_that_adds_up_per_element(sun):
     planet = _planet(sun)
     rows = planet.isotopes
     assert rows and all(set(row) == set(ir.ROW_FIELDS) and row["origin"] in ir.ORIGINS for row in rows)
-    assert {row["isotope"] for row in rows if row["initial_ratio"] is not None} == {"K-40", "U-235"}
+    assert {row["isotope"] for row in rows if row["initial_ratio"] is not None and row["origin"] not in (ir.EXTINCT, ir.COSMOGENIC)} == {"K-40", "U-235"}
     by_element = {}
     for row in rows:
+        if row["origin"] in (ir.EXTINCT, ir.COSMOGENIC):
+            continue                                                               # a tracer added on top of the element's shares
         by_element.setdefault(row["element"], []).append(row["fraction"])
     assert set(by_element) == set(ir.elements_held(planet))
     for symbol, fractions in by_element.items():
         assert math.fsum(fractions) == pytest.approx(1.0, abs=1e-9), symbol
         assert all(0.0 <= fraction <= 1.0 for fraction in fractions)
-    names = {row["isotope"] for row in rows if row["element"] == "H"}
+    names = {row["isotope"] for row in rows if row["element"] == "H" and row["origin"] != ir.COSMOGENIC}
     assert names == {"H-1", "H-2"}                                                 # deuterium exists on a body with water
 
 
@@ -198,3 +200,80 @@ def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_sti
         assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
         rows = {row["isotope"]: row for row in ir.record_of(body)}
         assert rows["H-2"]["fraction"] > 0.0
+
+
+def test_the_short_lived_isotopes_are_tracers_with_a_birth_ratio_that_has_decayed_away_by_the_age_of_an_old_star(sun):
+    planet = _planet(sun)
+    rows = {row["isotope"]: row for row in planet.isotopes if row["origin"] == ir.EXTINCT}
+    assert set(rows) == {"Al-26", "Fe-60", "Mn-53", "I-129", "Pu-244"}
+    assert all(row["initial_ratio"] > 0.0 and row["fraction"] < 1.0e-30 for name, row in rows.items() if name != "Pu-244")     # 4.5 Gy is 199 mean lives of 129I at the least: e^-199
+    assert rows["Pu-244"]["fraction"] < 1.0e-15 * rows["Pu-244"]["initial_ratio"]                                             # 4.5 Gy is 39 mean lives of 244Pu: e^-39
+    assert 1e-10 < rows["Fe-60"]["initial_ratio"] < 1e-5 and rows["Pu-244"]["initial_ratio"] < 1.0
+
+
+def test_a_young_star_still_holds_its_short_lived_isotopes_and_every_body_of_a_star_shares_the_ratio():
+    star = _star(0.0, 0.00002)                                                     # 20 000 years old
+    first, second = _body(star=star), _body(star=star)
+    first_rows = {row["isotope"]: row for row in ir.extinct_rows(first, {"Si", "Fe", "Al"}, 0.00002)}
+    second_rows = {row["isotope"]: row for row in ir.extinct_rows(second, {"Si", "Fe", "Al"}, 0.00002)}
+    assert first_rows["Fe-60"]["initial_ratio"] == second_rows["Fe-60"]["initial_ratio"] == ir.birth_ratio(first, "Fe-60")
+    assert first_rows["Fe-60"]["fraction"] == pytest.approx(first_rows["Fe-60"]["initial_ratio"] * ir._natural("Fe")["Fe-56"], rel=0.01)    # nothing has decayed yet
+    assert first_rows["Pu-244"]["fraction"] > 0.0
+
+
+def test_an_element_that_is_not_held_gets_no_tracer_and_a_body_with_no_rock_gets_none():
+    body = _body(star=_star(0.0, 4.5))
+    assert [row["isotope"] for row in ir.extinct_rows(body, {"Si"}, 4.5)] == ["Mn-53", "I-129", "Pu-244"]       # no iron, no 60Fe; no 26Al ratio on a bare body
+    assert ir.extinct_rows(body, {"H", "O"}, 4.5) == []
+
+
+class _Air:
+    """An Earth-like body: the Earth's air, field, size and ocean."""
+    gas_partials_pa = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 28.0}
+    atmospheric_pressure = 101325.0
+    gravity = 1.0
+    magnetic_moment_a_m2 = ir.EARTH_DIPOLE_A_M2
+    radius = 6371.0
+    ocean_fraction = 0.71
+    ocean_depth_km = 3.7
+
+
+def test_the_earths_own_air_gives_back_the_earths_production_and_isotope_ratios():
+    earth = _Air()
+    assert ir.cosmogenic_rate(earth, "C-14") == pytest.approx(1.6, rel=0.02)
+    assert ir.cosmogenic_rate(earth, "H-3") == pytest.approx(0.345, rel=0.02)
+    rows = {row["isotope"]: row for row in ir.cosmogenic_rows(earth)}
+    assert rows["C-14"]["fraction"] == pytest.approx(1.2e-12, rel=0.3)                # 14C/C of the air, a pre-bomb 1.2e-12
+    assert 1e-21 < rows["H-3"]["fraction"] < 1e-19                                     # tritium in the whole ocean
+    assert all(row["origin"] == ir.COSMOGENIC and row["initial_ratio"] is None for row in rows.values())
+
+
+def test_production_falls_with_a_thin_air_a_nitrogen_free_air_and_a_strong_field_and_rises_with_no_field():
+    earth = _Air()
+    base = ir.cosmogenic_rate(earth, "C-14")
+    thin, no_field, strong, no_n = _Air(), _Air(), _Air(), _Air()
+    thin.atmospheric_pressure = 3000.0
+    no_field.magnetic_moment_a_m2 = 0.0
+    strong.magnetic_moment_a_m2 = 10.0 * ir.EARTH_DIPOLE_A_M2
+    no_n.gas_partials_pa = {"CO2": 90000.0}
+    assert ir.cosmogenic_rate(thin, "C-14") == pytest.approx(base * (1.0 - math.exp(-30.6 / 150.0)) / (1.0 - math.exp(-1033.0 / 150.0)), rel=0.01)     # 30 g/cm2 catches a fifth of the cascade
+    assert ir.cosmogenic_rate(no_field, "C-14") == pytest.approx(base * ir.NO_FIELD_FACTOR, rel=1e-6)
+    assert ir.cosmogenic_rate(strong, "C-14") < 0.2 * base
+    assert ir.cosmogenic_rate(no_n, "C-14") == 0.0 and ir.cosmogenic_rate(no_n, "H-3") > 0.0     # radiocarbon needs nitrogen, tritium oxygen or nitrogen
+
+
+def test_a_body_with_no_air_has_no_cosmogenic_rows_and_a_dry_one_keeps_only_its_air_as_the_pool():
+    bare = _Air()
+    bare.gas_partials_pa, bare.atmospheric_pressure = {}, 0.0
+    assert ir.cosmogenic_rows(bare) == [] and ir.cosmogenic_rate(bare, "H-3") == 0.0
+    wet, dry = _Air(), _Air()
+    dry.ocean_fraction = 0.0
+    carbon_wet = {row["isotope"]: row["fraction"] for row in ir.cosmogenic_rows(wet)}["C-14"]
+    carbon_dry = {row["isotope"]: row["fraction"] for row in ir.cosmogenic_rows(dry)}["C-14"]
+    assert carbon_dry == pytest.approx(carbon_wet * ir.OCEAN_CARBON_OVER_AIR, rel=1e-6)
+
+
+def test_a_generated_world_with_air_carries_cosmogenic_rows_inside_the_property_sheet_ratios(sun):
+    planet = _planet(sun)
+    rows = [row for row in planet.isotopes if row["origin"] == ir.COSMOGENIC]
+    assert {row["isotope"] for row in rows} <= {"H-3", "C-14"} and all(0.0 < row["fraction"] < 1e-9 for row in rows)
