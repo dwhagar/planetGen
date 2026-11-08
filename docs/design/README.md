@@ -9,6 +9,8 @@ Every note under `docs/design/`, with what it is about and where it stands. Note
 - **reference**: facts and measurements, not a design.
 - **history**: describes a design that was replaced; kept for the reasons.
 
+**Core design principle (Boss, 2026-11-08): everything in a system affects everything else in the system.** Every body acts on every other body of its system by 3D position, averaged over the orbits; see [system-interactions.md](generation/system-interactions.md). A host-only or pair-only effect needs a reason registered in GEN.725.
+
 A note's own status line, at its top, is the authority; this page only points at it. A test (`src/tests/test_docs_links.py`) fails when a note in a topic folder is missing from this page. A new note goes in the folder of its topic, with a row here. The architecture of the whole program is [architecture.md](architecture/architecture.md); the decisions behind it are in [design-decisions.md](architecture/design-decisions.md).
 
 **Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](research/gap-filling-plan.md) section 6.5.
@@ -127,6 +129,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [mass-backfill.md](generation/mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [reproducible-galaxies.md](generation/reproducible-galaxies.md) | Seeds, version keys and repair | partly built |
 | [generation-determinism.md](generation/generation-determinism.md) | What makes a seed rebuild the same galaxy; fingerprints and epochs | research |
+| [system-interactions.md](generation/system-interactions.md) | The principle that everything in a system affects everything else in it (Boss, 2026-11-08), the rules for new items, and the register of host-only and pair-only code paths with the item that fixes each | plan |
 | [generation-performance-study.md](generation/generation-performance-study.md) | Where generation time goes | research (recommendations built) |
 | [generation-performance.md](generation/generation-performance.md) | Every generation step timed at four galaxy sizes with `planetgen benchmark --suite`, the fixes of the first round and a ranked list of what is left (PERF.146) | reference |
 | [generation-benchmark-report.md](generation/generation-benchmark-report.md) | A measured benchmark of one build box | reference |
