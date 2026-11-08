@@ -161,6 +161,7 @@ def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(mon
         surface_temperature = 288.0
         atmospheric_pressure = 101325.0
         water_mass_fraction = 1e-3
+        rock_mass_fraction = 0.67      # GEN.1365: the most water the mantle stores comes from its mass, radius and rock; an Earth's holds the whole 1e-3, so the buffer decides
         star = None
         _star_distance_au = None
 
