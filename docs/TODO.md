@@ -13434,6 +13434,12 @@ clears each one.
   Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1372. Related: GEN.1372.
 
+- [ ] **UX.291 Phone width: the star-system map card is 338 px high against the half-window limit of 329 px because its three rows wrap (bug)**
+  Lane 03 (as the lane reported, 3:13 AM EST on 2026-11-08), from the TEST.696 browser reds (the map_card test): at phone width (390 by 844) the star-system card is 338 px high where the half-window limit is 329 px, because its three rows wrap; the long row is 'Habitable worlds: 2 habitable worlds, be...'. Do: shorten or restructure the card rows so the card fits within half the window at phone width without hiding information (shorter habitable-worlds wording, or let that row use a second line only when needed), then confirm the map_card browser test passes. No generation change.
+  Owner (proposed by TODO, confirm with TODO before taking; lock-free, one item at a time while waiting): Lane 11.
+  Prerequisites: none. Related: TEST.696.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
