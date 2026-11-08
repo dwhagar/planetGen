@@ -50,11 +50,27 @@ def test_the_supply_gates_are_those_of_the_acid_medium():
     assert not sc.supplied(column(so2=0.5 * acid_medium.number("so2_min_share")))
 
 
-def test_the_base_is_cooler_than_the_base_temperature_and_below_the_top(skin):
-    base = sc.base_pressure_pa(column(), 735.0, skin)
-    assert 1.0e4 < base < VENUS_PRESSURE_PA
+def test_the_base_is_the_warmest_level_where_the_acid_condenses_and_below_the_top(skin):
+    found = sc.window(column(), 735.0, skin)
+    assert found is not None and 345.0 <= found.base_temperature_k <= 372.0, "the published base is 345 to 367 K"
+    assert sc.base_pressure_pa(column(), 735.0, skin) == found.base_pressure_pa
+    assert 0.0 < found.top_pressure_pa < found.base_pressure_pa < VENUS_PRESSURE_PA
     pressure, temperature = aerosols.profile(column(), 735.0, skin_k=skin)
-    assert temperature[pressure >= base][-1] <= sc.number("base_temperature_k") + 1.0
+    assert temperature[pressure >= found.base_pressure_pa][-1] == pytest.approx(found.base_temperature_k, abs=1.0)
+
+
+def test_a_wetter_air_condenses_a_weaker_acid_at_a_warmer_base(skin):
+    wet = sc.window(column(h2o=3.0e-4), 735.0, skin)
+    dry = sc.window(column(h2o=3.0e-6), 735.0, skin)
+    assert wet is not None and dry is not None and wet.base_temperature_k > dry.base_temperature_k
+    assert wet.weight_percent < dry.weight_percent
+
+
+def test_the_infrared_cloud_carries_the_base_and_strength_of_its_window(skin):
+    found = sc.infrared_cloud(column(), 735.0, 0.5, skin)
+    window = sc.window(column(), 735.0, skin)
+    assert found[2] == window.base_temperature_k and found[3] == window.weight_percent and found[0] > 0.0
+    assert sc.infrared_cloud(column(so2=0.0), 735.0, 0.5, skin) is None
 
 
 def test_an_air_that_stays_warm_has_no_base():

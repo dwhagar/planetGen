@@ -11787,11 +11787,11 @@
           "fields": [
             [
               "What it is",
-              "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the water-activity line through the Venus cloud levels (80 percent at activity 3e-3, 0.39 per percent in ln) and the 0.3 reference albedo for the cold top"
+              "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the 0.3 reference albedo for the cold top (the acid strength is the solution model of sulfuric_vapor, GEN.1425 part B, not a fitted line)"
             ],
             [
               "The range it moves in",
-              "the gates a factor of 10 either way; the line slope 0.3 to 0.5; the window edges 10 K"
+              "the gates a factor of 10 either way; the window edges 10 K"
             ],
             [
               "Where it holds",
@@ -11799,7 +11799,7 @@
             ],
             [
               "What would show it wrong",
-              "a measured acid strength against water activity (the [R4877] sulfuric acid model) and the Venus cloud profile of Pioneer Venus and Venus Express"
+              "the Venus cloud profile of Pioneer Venus and Venus Express"
             ],
             [
               "What replaces it",
@@ -11807,7 +11807,7 @@
             ],
             [
               "Evidence",
-              "each number carries its own tier and tweak in the file; the weakest are the gates (design) and the slope outside 75 to 98 percent (the true curve bends)"
+              "each number carries its own tier and tweak in the file; the weakest are the gates (design)"
             ]
           ],
           "id": "LF61",
@@ -11818,7 +11818,7 @@
           "tier_code": "T8",
           "tweak": "L3",
           "unread": null,
-          "what": "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the water-activity line through the Venus cloud levels (80 percent at activity 3e-3, 0.39 per percent in ln) and the 0.3 reference albedo for the cold top"
+          "what": "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the 0.3 reference albedo for the cold top (the acid strength is the solution model of sulfuric_vapor, GEN.1425 part B, not a fitted line)"
         },
         {
           "burn_down": [
@@ -21543,11 +21543,11 @@
           "fields": [
             [
               "What it is",
-              "the acid cloud base temperature 367 K (sulfuric_cloud.json base_temperature_k): the first level up the dry adiabat that cool, the ground when it already is"
+              "the acid cloud base: no fixed temperature; it is the warmest level of the air's dry adiabat where its own acid vapor and water condense by the curves of sulfuric_vapor (sulfuric_cloud.window, GEN.1425 part B), the ground where the ground already is"
             ],
             [
               "The range it moves in",
-              "345 to 367 K; the 38 km level (about 4 bar, temperature not printed)"
+              "the acid vapor share of the sulfur dioxide and the water floor (rows CG1, CG2 of 6.229)"
             ],
             [
               "Where it holds",
@@ -21555,26 +21555,26 @@
             ],
             [
               "What would show it wrong",
-              "a Venus-like air whose cloud base lies at another temperature than the dry adiabat gives"
+              "a Venus-like air whose base lies far from 345 to 367 K, or at a pressure far from 0.98 to 1.39 bar (the dry adiabat of the profile puts a Venus-like 367 K level at about 2.9 bar, so the pressure is not matched)"
             ],
             [
               "What replaces it",
-              "a cloud base from the saturation of sulfuric acid in the weight-percent solution"
+              "a cloud base from the saturation of sulfuric acid in the cloud microphysics"
             ],
             [
               "Evidence",
-              "[R0157: Table 1] read: lower cloud 47.5 to 50.5 km, 367 to 345 K, 1.39 to 0.98 bar"
+              "[R0157: Table 1] read for the check: lower cloud 47.5 to 50.5 km, 367 to 345 K, 1.39 to 0.98 bar"
             ]
           ],
           "id": "SC1",
           "key": "6.62:SC1",
-          "kind": "P",
+          "kind": "T",
           "slug": "6-62-sc1",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
           "unread": null,
-          "what": "the acid cloud base temperature 367 K (sulfuric_cloud.json base_temperature_k): the first level up the dry adiabat that cool, the ground when it already is"
+          "what": "the acid cloud base: no fixed temperature; it is the warmest level of the air's dry adiabat where its own acid vapor and water condense by the curves of sulfuric_vapor (sulfuric_cloud.window, GEN.1425 part B), the ground where the ground already is"
         },
         {
           "burn_down": null,
@@ -21893,7 +21893,7 @@
           "fields": [
             [
               "What it is",
-              "the acid strength read for the optics, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables"
+              "the acid strength read for the optics where the caller gives none, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables; sulfuric_cloud.infrared_cloud gives the strength of the air's own cloud base (GEN.1424)"
             ],
             [
               "The range it moves in",
@@ -21905,11 +21905,11 @@
             ],
             [
               "What would show it wrong",
-              "the strength of the acid drawn from the air's water (acid_medium) differs from 80"
+              "the strength of the acid at the cloud base (sulfuric_cloud.window) is outside the 76 to 81 percent tables by more than 10 percent"
             ],
             [
               "What replaces it",
-              "acid_medium.weight_percent at the cloud level"
+              "the optics tables at the strength of the cloud base"
             ],
             [
               "Evidence",
@@ -21924,7 +21924,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "the acid strength read for the optics, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables"
+          "what": "the acid strength read for the optics where the caller gives none, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables; sulfuric_cloud.infrared_cloud gives the strength of the air's own cloud base (GEN.1424)"
         },
         {
           "burn_down": null,
@@ -42455,7 +42455,7 @@
           "fields": [
             [
               "What it is",
-              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
             ],
             [
               "The range it moves in",
@@ -42486,7 +42486,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
         },
         {
           "burn_down": [
