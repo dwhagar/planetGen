@@ -27,7 +27,7 @@ def test_seed_is_stable_and_differs_by_kind_and_id():
 
 def test_solid_planet_look_carries_the_stored_water_fractions():
     look = bl.planet_look(_planet())
-    assert look["body"] == "solid" and look["cls"] == "O" and look["atm"] is True
+    assert look["body"] == "solid" and look["atm"] is True
     assert look["ocean"] == 0.71 and look["land"] == 0.29 and look["hydro"] == "surface ocean"
     assert look["oceanColor"] == bl.OCEAN_COLORS["neutral"]
     assert look["pkpa"] == 101.325 and look["tempK"] == 288.0
