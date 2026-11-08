@@ -2496,6 +2496,7 @@ def test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parse
     assert math.dist(camera["eye"], (first["x"], first["y"], first["z"])) < gap, (camera["eye"], first)
 
 
+@pytest.mark.names_hidden
 def test_a_click_between_close_stars_offers_the_ones_within_reach(page, dense_site):
     """MAP.122: a click that has several stars inside the pointer's reach (10 px for a mouse) selects the nearest and lists
     the others under its panel; choosing another from the list shows that star instead."""
@@ -2877,6 +2878,7 @@ def _point_colored_spots(page, selector, limit=80):
     return [(box["x"] + x * box["width"] / width, box["y"] + y * box["height"] / height) for x, y in kept]
 
 
+@pytest.mark.names_hidden
 def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_site):
     """MAP.80: black holes, neutron stars and quasars are drawn among the
     stars in their own colors, and a click on one names it and links to
@@ -3215,8 +3217,8 @@ NEBULAE_STATE = ("() => { const g = document.querySelector('#galaxymap3d-canvas'
 
 def test_nebula_regions_are_soft_groups_in_the_family_colour_and_the_menu_switches_each_family(page, map_site):
     """MAP.176: the groups of nebulae the drawn nodes list (`nebula_regions`) are soft sprites at the galactic view, each in the
-    colour of its dominant family with a ring when it holds more than one nebula, a layer of the Menu for each family (on until the
-    visitor says otherwise, `hide=nebulae-emission` in the address), with a legend line each and one that says what a ring is."""
+    colour of its dominant family (MAP.392: with no ring outline, even when it holds more than one nebula), a layer of the Menu for each family (on until the
+    visitor says otherwise, `hide=nebulae-emission` in the address), with a legend line each and one that says groups separate on zooming in."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }",
@@ -3225,7 +3227,8 @@ def test_nebula_regions_are_soft_groups_in_the_family_colour_and_the_menu_switch
     assert state["visible"] and state["count"] >= 1, state
     families = {blob["family"] for blob in state["blobs"]}
     assert families <= {"emission", "reflection", "diffuse"} and len(families) >= 2, families
-    assert any(blob["ring"] for blob in state["blobs"]), "a group of several nebulae has a ring"
+    assert any(blob["count"] > 1 for blob in state["blobs"]), "a group of several nebulae is one blob"
+    assert not any(blob["ring"] for blob in state["blobs"]), "a group has no ring outline (MAP.392)"
     by_family = {}
     for blob in state["blobs"]:
         by_family.setdefault(blob["family"], set()).add(tuple(blob["color"]))
@@ -4126,6 +4129,7 @@ def test_the_step_buttons_and_keys_go_from_an_opened_sector_to_the_sector_beside
         assert _wait_off(page, east) == here
 
 
+@pytest.mark.names_hidden
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
     name under the pointer, and its panel offers Start Here, End Here
@@ -4133,6 +4137,8 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
     names = {point["name"]: point for point in POINT_FIELD}
+    _poi_layers(page)    # a point of interest's mark would take the pointer meant for the point phenomenon under it
+    page.locator("#galaxymap3d-menu > summary").click()
     tip = page.locator("#galaxymap3d-tooltip")
     close = page.locator("#galaxymap3d-info .map-info-close")
     if close.is_visible():   # MAP.256: the panel over the map covers the points until it is closed
@@ -6672,3 +6678,4 @@ def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
     _open_menu(page)
     assert _gravity_toggle(page).is_checked()
     assert page.locator('button[data-gravity-mode="depth"]').get_attribute("aria-pressed") == "true"
+

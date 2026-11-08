@@ -23,7 +23,7 @@ LIST_JS = """(container) => {
   return out;
 }"""
 
-HEADINGS = ("galaxy-kinds-heading", "view-menu-group-name", "gravity-hint")
+HEADINGS = ("galaxy-kinds-heading", "view-menu-group-name", "gravity-hint", "view-menu-count", "gravity-slab")
 """tuple: The classes of the text the menu may show that is not a control: a group heading (the older `galaxy-kinds-heading` and the View menu's
 `view-menu-group-name`, UX.277) and the one-line note the Gravity settings carry (TEST.696)."""
 
