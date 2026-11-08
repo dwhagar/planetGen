@@ -402,3 +402,25 @@ def test_adding_up_the_levels_above_reports_its_progress(lit):
         assert rows == stored
     finally:
         conn.close()
+
+
+def test_the_sectors_a_run_made_leave_out_the_uncharted_placeholder_rows(lit):
+    """PERF.252: the backfill takes `sector_centers_since` for the run's sectors; a placeholder row the block lights stage wrote (no chart ledger cell) is not one."""
+    from planetgen.db import uncharted_index
+
+    config, _stars, _points = lit
+    conn = store.get_connection(config)
+    try:
+        since = conn.execute("SELECT NOW() - INTERVAL 5 SECOND AS now").fetchone()["now"]
+        made = uncharted_index.index(conn)
+        conn.commit()
+        placeholders = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index IS NOT NULL").fetchone()["n"]
+        assert placeholders > 0 and made, "the fixture's objects should give placeholder rows"
+        assert store.sector_centers_since(conn, since) == []
+        conn.execute("INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index)"
+                     " VALUES ('Charted', 4000, 1.0, 2.0, 3.0, 3.7, 31, 3, 5)")
+        conn.execute("INSERT INTO chart_ledger (shell_index, band_index, wedge_index, generator_epoch) VALUES (31, 3, 5, 1)")
+        conn.commit()
+        assert store.sector_centers_since(conn, since) == [(1.0, 2.0, 3.0)]
+    finally:
+        conn.close()
