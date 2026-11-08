@@ -36,8 +36,8 @@ table's natural mix (origin `natural`) and are replaced where a physical value i
 draws; 60Fe is a sum of decayed additions about the gamma-ray mean of the galaxy (`birth_radioisotopes`, the way 26Al is); 53Mn, 129I and 244Pu take the same sampling about a tenth of the early Solar System's ratios
 ([R2768: Table 2]). One stream per star and isotope, so the bodies of a star share them.
 
-**The cosmogenic isotopes** (`cosmogenic`, part 2): tritium and radiocarbon in a body with air. The production is the Earth's [R5180, R5181] times the share of the cascade the air column catches, the targets in a gram of
-the air (tritium from N and O, radiocarbon from N), and the field's shielding (a body with no dipole gets twice the Earth's, [R5181: Table 1]); the steady-state inventory is the production over the decay constant, spread
+**The cosmogenic isotopes** (`cosmogenic`, part 2): tritium and radiocarbon in a body with air. The production is the Earth's [R5203, R5204] times the share of the cascade the air column catches, the targets in a gram of
+the air (tritium from N and O, radiocarbon from N), and the field's shielding (a body with no dipole gets twice the Earth's, [R5204: Table 1]); the steady-state inventory is the production over the decay constant, spread
 over the pool the isotope mixes into (the air, and the surface ocean for hydrogen and, at the Earth's ratio, for carbon). The Earth's own air gives 1.6 and 0.345 atoms per cm2 per second, 14C/C of 1.3e-12 and 3H/H of 1e-20.
 A body with no air has none.
 
@@ -149,26 +149,26 @@ COMET_ICE_K = COLD_ICE_K
 the star's luminosity. [Stand-in ISO17, tier T6, tweak L1.]"""
 
 COSMOGENIC_RATE_EARTH = {"H-3": 0.345, "C-14": 1.6}
-"""dict: The global mean production of each isotope in the Earth's atmosphere, atoms per cm2 per second, at a moderate solar activity (modulation potential 650 MV): tritium 0.345 ([R5181: Sec. 3, Table 1]; 0.32
-in [R5181] for [R5183]), radiocarbon 1.6 ([R5180: Table 1, quoted]; 2.36e26 atoms a year at 802 MV, about 1.5, [R5180: Sec. 3.2]; 1.6 to 2, [R5182: Sec. 2], quoting [R5184]).
+"""dict: The global mean production of each isotope in the Earth's atmosphere, atoms per cm2 per second, at a moderate solar activity (modulation potential 650 MV): tritium 0.345 ([R5204: Sec. 3, Table 1]; 0.32
+in [R5204] for [R5206]), radiocarbon 1.6 ([R5203: Table 1, quoted]; 2.36e26 atoms a year at 802 MV, about 1.5, [R5203: Sec. 3.2]; 1.6 to 2, [R5205: Sec. 2], quoting [R5207]).
 [Stand-in ISO12 (14C, tier T2, tweak L0) and ISO13 (3H, tier T1, tweak L0).]"""
 
 EARTH_COLUMN_G_CM2 = 1033.0
-"""float: The mass of the Earth's air over a square centimeter at sea level, g/cm2 ([R5180: Eq. 6]). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""float: The mass of the Earth's air over a square centimeter at sea level, g/cm2 ([R5203: Eq. 6]). [Stand-in ISO13, tier T1, tweak L0.]"""
 
 ATTENUATION_G_CM2 = 150.0
-"""float: The depth of air in which the nucleon cascade of a cosmic ray is mostly absorbed, g/cm2 (the Regener-Pfotzer maximum of tritium lies at about 40 g/cm2, [R5181: Sec. 3], and the cascade is spent
+"""float: The depth of air in which the nucleon cascade of a cosmic ray is mostly absorbed, g/cm2 (the Regener-Pfotzer maximum of tritium lies at about 40 g/cm2, [R5204: Sec. 3], and the cascade is spent
 within a few hundred); a column of mass X catches the share `1 - exp(-X / 150)` of the cascade, over the Earth's. [Stand-in ISO14, tier T5, tweak L0.]"""
 
 EARTH_TARGETS_PER_G = {"N": 3.22e22, "O": 8.67e21}
-"""dict: Atoms of the two spallation targets in a gram of the Earth's air ([R5181: Eq. 4], kappa_N and kappa_O). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""dict: Atoms of the two spallation targets in a gram of the Earth's air ([R5204: Eq. 4], kappa_N and kappa_O). [Stand-in ISO13, tier T1, tweak L0.]"""
 
 EARTH_DIPOLE_A_M2 = 7.8e22
-"""float: The Earth's dipole moment, A m2 ([R5180: Sec. 3.2]). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""float: The Earth's dipole moment, A m2 ([R5203: Sec. 3.2]). [Stand-in ISO13, tier T1, tweak L0.]"""
 
 NO_FIELD_FACTOR = 0.72 / 0.345
 """float: How many times the Earth's global production a body with no field gets: the polar caps of the Earth (60 to 90 degrees), where no cutoff stops a particle, over the global mean, for tritium at 650 MV
-([R5181: Table 1], 0.72 and 0.345). [Stand-in ISO15, tier T1, tweak L0.]"""
+([R5204: Table 1], 0.72 and 0.345). [Stand-in ISO15, tier T1, tweak L0.]"""
 
 OCEAN_CARBON_OVER_AIR = 54.0
 """float: The carbon of the air and the surface ocean together over that of the air alone, for a body with a surface ocean: the Earth's 41 000 Gt of exchangeable carbon (air, ocean, soil, biosphere) over its 760 Gt

@@ -44275,7 +44275,7 @@
             ],
             [
               "Evidence",
-              "[R5180: Table 1 and Sec. 3.2] (1.47 at 802 MV from 2.36e26 atoms a year), [R5182: Sec. 2] (1.6 to 2)"
+              "[R5203: Table 1 and Sec. 3.2] (1.47 at 802 MV from 2.36e26 atoms a year), [R5205: Sec. 2] (1.6 to 2)"
             ]
           ],
           "id": "ISO12",
@@ -44297,7 +44297,7 @@
             ],
             [
               "The range it moves in",
-              "tritium 0.14 to 0.8 (earlier estimates, 0.32 for [R5183])"
+              "tritium 0.14 to 0.8 (earlier estimates, 0.32 for [R5206])"
             ],
             [
               "Where it holds",
@@ -44313,7 +44313,7 @@
             ],
             [
               "Evidence",
-              "[R5181: Sec. 3, Table 1, Eq. 4]; [R5180: Eq. 6 and Sec. 3.2]"
+              "[R5204: Sec. 3, Table 1, Eq. 4]; [R5203: Eq. 6 and Sec. 3.2]"
             ]
           ],
           "id": "ISO13",
@@ -44351,7 +44351,7 @@
             ],
             [
               "Evidence",
-              "the tritium maximum at about 40 g/cm2 ([R5181: Sec. 3]) bounds it; no paper in hand prints an attenuation length"
+              "the tritium maximum at about 40 g/cm2 ([R5204: Sec. 3]) bounds it; no paper in hand prints an attenuation length"
             ]
           ],
           "id": "ISO14",
@@ -44389,7 +44389,7 @@
             ],
             [
               "Evidence",
-              "the polar and global values of tritium ([R5181: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none"
+              "the polar and global values of tritium ([R5204: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none"
             ]
           ],
           "id": "ISO15",
