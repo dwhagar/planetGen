@@ -228,3 +228,20 @@ def test_the_giant_mixture_is_deterministic_and_sums_to_one():
     assert first.mole_fractions == second.mole_fractions
     assert sum(first.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
     assert all(st.SPECIES and value > 0 for value in first.mole_fractions.values())
+
+
+def test_a_giant_with_a_disc_takes_its_carbon_to_oxygen_from_the_disc_spread_by_the_recipe():
+    from planetgen.physics import disc_condensation
+    subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disc_carbon=1.0, disc_oxygen=1.0)
+    with draw.bound(5):
+        recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
+    disc = disc_condensation.envelope_c_over_o(100.0, recipe.values["f5"])
+    for f7 in (0.57, 0.4, 1.2):
+        shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
+        with draw.bound(6):
+            made = mg.giant_mixture(subject, shifted)
+        assert made.constants["c_over_o"] == pytest.approx(disc * f7 / 0.57, rel=1e-6)
+    bare = dataclasses.replace(recipe, values={**recipe.values, "f7": 0.9})
+    with draw.bound(6):
+        no_disc = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), bare)
+    assert no_disc.constants["c_over_o"] == 0.9          # a giant with no disc keeps the recipe's value

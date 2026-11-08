@@ -79,6 +79,10 @@ SULFUR_AS_H2S = 0.3
 """float: The share of the sulfur that is H2S ice: 67P's H2S is 1.1 percent of the water ([R3835: Table 2]) against 3.5 percent for all the sulfur over the water (S 0.13 over the
 3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DSC6, tier T3, tweak L2.]"""
 
+RECIPE_C_OVER_O_CENTER = 0.57
+"""float: The center of the core of the giant recipe's C/O row `f7` (0.57, the median of LExACoM's 69 retrieved giants, pinned by tests/test_atmosphere_recipes.py); the drawn `f7` over this
+is the spread of a giant's C/O around its disc's value, which the disc alone (one place, one star) does not give (GEN.1363 part C, stand-in DSC7, tier T3, tweak L2)."""
+
 MOLAR_MASS = {"H2O": 18.015, "NH3": 17.031, "NH4": 17.031, "H2S": 34.08, "Xe": 131.29, "Kr": 83.80, "Ar": 39.948, "CO2": 44.009, "CH4": 16.043, "N2": 28.014,
               "CO": 28.010, "C": 12.011}
 """dict: The molar mass (g/mol) of each species ('NH4' is the ammonium salts, taken as one ammonia of nitrogen: the anion's mass is not counted)."""
@@ -221,3 +225,41 @@ def line_au(species, luminosity_w):
         raise ValueError(f"no line for {species!r}")
     distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / LINES_K[species] ** 2
     return _m_to_au(distance_m)
+
+
+def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble):
+    """`(carbon gas, oxygen gas, carbon solid, oxygen solid)` in atoms per 10^4 hydrogen at `temperature_k` (the rock's oxygen is solid at any temperature below its line)."""
+    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
+    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
+    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
+    return held.carbon - carbon_solid, held.oxygen - oxygen_solid, carbon_solid, oxygen_solid
+
+
+@finite_domain()
+def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
+    """
+    The carbon over oxygen atoms of a giant's envelope that formed where the disc was at `temperature_k` and holds `enrichment` times its star's heavy elements (GEN.1363 part C).
+
+    The envelope is the disc's gas plus `sigma` times the solids that froze there, `sigma` being what makes the carbon and oxygen of the envelope `enrichment` times the star's
+    (`sigma` is 1 at enrichment 1: gas and solids in the disc's own proportion, the star's C/O; it is 0, gas alone, when the enrichment is under the gas's share of the star's carbon
+    and oxygen). A cold or inner-disc giant with little enrichment takes the gas C/O of its place ([R3322]: it rises outward past the water line), a heavily enriched one the
+    solids' (oxygen-rich) C/O. `None` when the disc has no oxygen left in the gas and the envelope holds none of the solids' either.
+
+    Args:
+        temperature_k (float): The disc temperature where the giant formed.
+        enrichment (float): The envelope's heavy elements over its star's (`f5` of the giant recipe); zero or more.
+        carbon, oxygen (float): The star's C and O over its rock-forming metals, over the Sun's (`bulk_draw.ice_forming_ratios`).
+    """
+    if not temperature_k > 0.0:
+        raise ValueError("the temperature must be positive")
+    if not enrichment >= 0.0:
+        raise ValueError("the enrichment must be zero or more")
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0)
+    metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
+    metals_solid = carbon_solid + oxygen_solid
+    sigma = max(enrichment * metals_star - (carbon_gas + oxygen_gas), 0.0) / metals_solid if metals_solid > 0.0 else 0.0
+    oxygen_total = oxygen_gas + sigma * oxygen_solid
+    if oxygen_total <= 1e-12:
+        return None
+    return (carbon_gas + sigma * carbon_solid) / oxygen_total

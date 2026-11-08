@@ -118,3 +118,20 @@ def test_a_negative_ratio_or_temperature_is_refused():
         dc.inventory(carbon=-1.0)
     with pytest.raises(ValueError):
         dc.condensed(0.0)
+
+
+def test_the_envelope_of_an_unenriched_giant_is_the_star_and_an_enriched_one_takes_the_oxygen_rich_solids():
+    star = dc.envelope_c_over_o(100.0, 1.0)
+    gas, solid = dc.gas_and_solid_c_over_o(100.0)
+    assert star == pytest.approx(dc.inventory().carbon / dc.inventory().oxygen)       # gas and solids in the disc's own proportion: the star's C/O
+    rich = dc.envelope_c_over_o(100.0, 60.0)
+    assert rich == pytest.approx(solid, rel=0.1) and rich < star
+    assert dc.envelope_c_over_o(100.0, 0.05) == pytest.approx(gas)                   # less than the gas's own share of the metals: gas alone
+
+
+def test_the_envelope_c_over_o_follows_the_star_and_refuses_a_negative_enrichment():
+    assert dc.envelope_c_over_o(100.0, 1.0, carbon=1.2) > dc.envelope_c_over_o(100.0, 1.0) > dc.envelope_c_over_o(100.0, 1.0, carbon=0.8)
+    with pytest.raises(ValueError):
+        dc.envelope_c_over_o(100.0, -1.0)
+    with pytest.raises(ValueError):
+        dc.envelope_c_over_o(0.0, 1.0)

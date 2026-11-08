@@ -41507,7 +41507,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
         },
         {
@@ -41545,7 +41545,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
         },
         {
@@ -41583,7 +41583,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
         },
         {
@@ -41621,7 +41621,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
         },
         {
@@ -41663,7 +41663,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
         },
         {
@@ -41701,8 +41701,46 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": "GEN.1363",
+          "unread": null,
           "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
+            ],
+            [
+              "The range it moves in",
+              "spread of f7 (core 0.15 dex, tail to 1.5)"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc (not a brown dwarf or a rogue)"
+            ],
+            [
+              "What would show it wrong",
+              "a retrieved sample whose C/O spread around the disc value is narrower"
+            ],
+            [
+              "What replaces it",
+              "a model of what a giant swallows after the disc has set the place"
+            ],
+            [
+              "Evidence",
+              "f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center"
+            ]
+          ],
+          "id": "DSC7",
+          "key": "6.213:DSC7",
+          "kind": "P",
+          "slug": "6-213-dsc7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": null,
+          "what": "disc_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
         }
       ],
       "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
