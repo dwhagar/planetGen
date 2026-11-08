@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1311 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1312 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 170 | 19 | 11 | 1 | 0 | 201 |
 | T2 | 126 | 55 | 1 | 1 | 0 | 183 |
-| T3 | 95 | 44 | 8 | 10 | 0 | 157 |
+| T3 | 95 | 44 | 9 | 10 | 0 | 158 |
 | T4 | 58 | 7 | 2 | 19 | 10 | 96 |
 | T5 | 62 | 22 | 3 | 1 | 0 | 88 |
 | T6 | 138 | 97 | 25 | 63 | 0 | 323 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 724 | 275 | 62 | 205 | 45 | 1311 |
+| All | 724 | 275 | 63 | 205 | 45 | 1312 |
 
 ## How the labels were given
 
@@ -1880,12 +1880,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| DSC1 | D | T1 | L0 | disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12) | none | the Sun | a revised photospheric abundance | none needed | Asplund and others 2021 Table 2 [R0168], read | GEN.1363 | - |
-| DSC2 | D | T1 | L0 | disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's | CO2 42 to 52 K or 70 K, CO 18 to 22 K | a disc at about 10^-4 bar | a measured line off these by more than the range | a line computed at the disc's own pressure | [R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix | GEN.1363 | - |
-| DSC3 | P | T2 | L1 | disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1 | share 0.25 to 0.6; CO per CO2 2 to 8 | a Sun-like disc | a disc with measured grain carbon outside the range | a disc chemistry model | [R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read | GEN.1363 | - |
-| DSC4 | P | T3 | L1 | disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P | 0.01 to 0.2 | the volatile carbon of a disc | a second comet or a disc measurement of methane | the carbon chemistry of a disc | 67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc | GEN.1363 | - |
-| DSC5 | P | T3 | L3 | disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled | GEN.1363 | no data |
-| DSC6 | P | T3 | L2 | disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read | GEN.1363 | - |
+| DSC1 | D | T1 | L0 | disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12) | none | the Sun | a revised photospheric abundance | none needed | Asplund and others 2021 Table 2 [R0168], read | - | - |
+| DSC2 | D | T1 | L0 | disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's | CO2 42 to 52 K or 70 K, CO 18 to 22 K | a disc at about 10^-4 bar | a measured line off these by more than the range | a line computed at the disc's own pressure | [R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix | - | - |
+| DSC3 | P | T2 | L1 | disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1 | share 0.25 to 0.6; CO per CO2 2 to 8 | a Sun-like disc | a disc with measured grain carbon outside the range | a disc chemistry model | [R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read | - | - |
+| DSC4 | P | T3 | L1 | disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P | 0.01 to 0.2 | the volatile carbon of a disc | a second comet or a disc measurement of methane | the carbon chemistry of a disc | 67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc | - | - |
+| DSC5 | P | T3 | L3 | disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled | - | no data |
+| DSC6 | P | T3 | L2 | disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read | - | - |
+| DSC7 | P | T3 | L2 | disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn `f7` over 0.57, the center of f7's core | spread of f7 (core 0.15 dex, tail to 1.5) | giants with a disc (not a brown dwarf or a rogue) | a retrieved sample whose C/O spread around the disc value is narrower | a model of what a giant swallows after the disc has set the place | f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

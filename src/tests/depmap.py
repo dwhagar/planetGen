@@ -417,9 +417,38 @@ def pytest_sessionfinish(session, exitstatus):
     collected = {**state.results, **state.workers}
     if config.option.collectonly or not collected:
         return
+    collected = {**_carried(), **collected}      # TEST.694: the passes this run carried over from an earlier one keep their place in the map
     path = config.getoption("--deps-file")
     write_map(path, merge_map(load_map(path), collected, lambda name: os.path.exists(os.path.join(ROOT, name))))
     state.note = f"depmap: recorded {len(collected)} tests into {os.path.relpath(path, ROOT)}"
+
+
+def _carried():
+    """`{node id: (files, opaque, seconds)}` of the passes `scripts/test.py --resume` carried from earlier runs into this run's progress log (their
+    `test` and `deps` lines, TEST.208), so the map written after a resumed run covers them and not only the tests that ran in it (TEST.694)."""
+    path = os.environ.get("PLANETGEN_PROGRESS_LOG")
+    if not path:
+        return {}
+    _header, tests = progress_log.read(path)
+    return {nodeid: (set(line.get("files", [])), bool(line.get("opaque")), float(tests[nodeid].get("seconds", 0.0)))
+            for nodeid, line in reuse_read_deps(path).items() if nodeid in tests and tests[nodeid].get("outcome") == "passed"}
+
+
+def reuse_read_deps(path):
+    """The `deps` lines of a progress log (the last of each test); `tests.reuse` has the same reader, kept here so the plugin needs no import of it."""
+    found = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            for text in f:
+                try:
+                    line = json.loads(text)
+                except ValueError:
+                    continue
+                if line.get("kind") == "deps":
+                    found[line["nodeid"]] = line
+    except OSError:
+        pass
+    return found
 
 
 def pytest_testnodedown(node, error):
