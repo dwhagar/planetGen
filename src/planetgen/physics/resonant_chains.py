@@ -41,7 +41,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, oddities, tidal_heating
+from planetgen.physics import clearance_ledger, constants, oddities, tidal_heating
 
 TARGET_RATIOS = ((2, 1), (3, 2), (4, 3), (5, 3))
 """tuple: The period ratios `p:q` a pair is taken to be near (the design note's list). Source tier T6, tweak level L0."""
@@ -219,6 +219,41 @@ def forcing(host_mass_kg, period_days, planet_mass_kg, eccentricity):
     return tidal_heating.Forcing(host_mass_kg, semi_major_axis_m(period_days, host_mass_kg, planet_mass_kg), eccentricity)
 
 
+def _clear_of_neighbours(bodies, forced, host_mass_kg):
+    """
+    `forced` (one eccentricity for each of `bodies`) cut to what still leaves each planet its spacing from the planets either side of it (the mutual Hill radii of
+    `clearance_ledger.planet_exclusion`, which `validation.space_orbits` enforced when the orbits were placed): a resonance raises an eccentricity after the spacing was
+    made, so an eccentricity that takes the apoapsis into the next planet's exclusion is held where the gap closes. A neighbour is taken at the higher of its own and its
+    forced eccentricity, so two neighbours that both rise still clear each other.
+    """
+    ranked = sorted(range(len(bodies)), key=lambda i: bodies[i].distance)
+    held = list(forced)
+
+    def reach(i):
+        return max(getattr(bodies[i], "eccentricity", None) or 0.0, held[i])
+
+    for _ in range(len(ranked)):
+        moved = False
+        for place, i in enumerate(ranked):
+            if not held[i] > 0.0:
+                continue
+            body, cap = bodies[i], held[i]
+            if place > 0:
+                inner = bodies[ranked[place - 1]]
+                kappa = clearance_ledger.spacing_kappa(inner.mass, body.mass, host_mass_kg)
+                cap = min(cap, 1.0 - kappa / 2.0 - inner.distance / body.distance * (1.0 + reach(ranked[place - 1]) + kappa / 2.0))
+            if place + 1 < len(ranked):
+                outer = bodies[ranked[place + 1]]
+                kappa = clearance_ledger.spacing_kappa(body.mass, outer.mass, host_mass_kg)
+                cap = min(cap, outer.distance / body.distance * (1.0 - reach(ranked[place + 1]) - kappa / 2.0) - 1.0 - kappa / 2.0)
+            cap = max(cap, 0.0)
+            if cap < held[i]:
+                held[i], moved = cap, True
+        if not moved:
+            break
+    return held
+
+
 def give_forced_eccentricities(planets, host_mass_kg):
     """
     Finds the chains among the periods of `planets` (top-level planets of one star, any order) and keeps on each planet of a chain, as the quantity `forced_eccentricity`
@@ -234,7 +269,7 @@ def give_forced_eccentricities(planets, host_mass_kg):
         body.oddity_quantities = quantities
     if len(bodies) < 3 or not host_mass_kg > 0.0:
         return 0
-    forced = forced_eccentricities([p.period * 365.25 for p in bodies], [p.mass for p in bodies], host_mass_kg)
+    forced = _clear_of_neighbours(bodies, forced_eccentricities([p.period * 365.25 for p in bodies], [p.mass for p in bodies], host_mass_kg), host_mass_kg)
     given = 0
     for body, value in zip(bodies, forced):
         if value > 0.0:
