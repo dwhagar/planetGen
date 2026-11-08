@@ -13245,11 +13245,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
   Filed by the TODO thread.
 
-- [ ] **MAP.411 Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed**
-  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Lane 03 thinks these are one map regression, not many stale tests, and will not loosen any test. Do: bisect the first bad commit on the map page, decide per case whether the page or the test is wrong, and split into items if more than one cause is found. Tests: the hover test for the Fixture Maw black hole, point-phenomena hover for the neutron star, the nebula group ring, the close-star choices popup, two info-card size tests (content 132 in a 208 box), the flag drag position, the scale line after the wheel, and galaxy_closed. Done: each passes on main with the cause named. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
-  Filed by the TODO thread.
-
 - [ ] **TEST.706 test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226**
   Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: run python scripts/american_spelling_sweep.py apply and check the test file still tests the same thing (the name is a fake timer's attribute, so change every use together). Done: the test passes. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
@@ -13268,6 +13263,11 @@ clears each one.
 - [ ] **GEN.1440 Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs)**
   Lane 15, 1:32 PM EST on 2026-11-08 (GEN.1425 part B, PR 5734): the Venus chemistry set V8 (PAHs with iron, off by default) needs a per-planet supply of cosmic dust and comet influx, but only the star's debris disk exists, so V8 is not built. Do: decide what a planet's dust and comet influx is from stored properties (the star's debris disk, the belts and comets of its own system, the planet's orbit and gravity), store or derive it with units, and give V8 of GEN.1425 its first caller; stand-ins registered in GEN.725 with tier and tweak level. Done: a sample shows influx varying with the system's belts and debris disk, and V8 reads it. Lock item if a stored value changes.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 or Lane 22 (belts). Prerequisites: none. Related: GEN.1425, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **UX.295 The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting**
+  Lane 11, 1:51 PM EST on 2026-11-08 (GEN.1432, PR 5729): Do: format the Conditions line (condition_words) through the unit-aware formatters so it follows the visitor's unit setting like the rest of the page. Done: with a non-default unit setting the line shows the chosen units. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: GEN.1432.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
@@ -13503,11 +13503,6 @@ clears each one.
 - [ ] **ADM.147 Fictional materials admin page C: show how many bodies hold each material**
   Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Admin page, counts. Do: how many bodies hold each material in this galaxy, with a link to the search filter. Done: counts match `body_rare_material`; zero is shown as "none made here". Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
   Version 8.2. Owner: none yet. Prerequisites: ADM.145, DB.117. Related: GEN.725.
-  Filed by the TODO thread.
-
-- [ ] **TEST.700 test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug)**
-  Lane 02 (as the lane reported, 10:45 AM EST on 2026-11-08), from the Train 18 gate: tests/test_species_limits.py needs 66 minutes alone, so the gate always cuts it at its 25 minute cap and a species limits regression would go unseen; on Lane 12's machine it also hit a setup timeout. Do: pin a generated system known to qualify (a stored seed and address that passes the fixture's check, with a cheap guard that the pin still qualifies) or cache the hunt result, without weakening what the tests check. Note also: tests/test_systems.py runs over 50 minutes and is not in the gate list; PERF.253 covers one forced MOONS case of it and TEST.417 covers whole-sector tests in general. Lock-free, test only. Done: test_species_limits runs in a few minutes and sits in the gate list.
-  Version 8.1. Owner (TODO, 2026-11-08): Lane 12. Prerequisites: none. Related: TEST.417, PERF.253, TEST.261.
   Filed by the TODO thread.
 
 - [ ] **GEN.1377 Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244**
