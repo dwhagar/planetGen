@@ -21,6 +21,7 @@ import pathlib
 import signal
 
 from tests.audit import prevalence as census
+from tests.audit import prevalence_oddities
 
 EXPECTATIONS_PATH = pathlib.Path(__file__).resolve().parent.parent / "data" / "prevalence_systems_expectations.json"
 REPORT_NAME = "system-census-latest.md"
@@ -69,7 +70,7 @@ def _record(system):
                round((getattr(planet, "radius", 0.0) or 0.0) / EARTH_RADIUS_KM, 4)] for planet in primary]
     return {"orbits": orbits, "star_mass": round(system.primary_star.mass / SOLAR_MASS_KG, 4), "hz": [round(edge, 4) for edge in system.primary_star.habitable_zone], "planets": len(planets), "belts": belts, "moons": sum(len(planet.moons) for planet in planets), "comets": comets,
             "binary": system.binary_type is not None, "habitable_class": system.count_habitable_class_worlds() > 0,
-            "blue_green": hab_count > 0, "reached": reached}
+            "blue_green": hab_count > 0, "reached": reached, "oddities": prevalence_oddities.record_of(system)}
 
 
 def draw_type(star_type, count):

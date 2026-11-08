@@ -30,7 +30,7 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape, orbit_elements
+from planetgen.physics import bulk_structure, constants, envelope_escape, orbit_elements, super_puff
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -60,8 +60,13 @@ MASS_EXPONENT = 3.0
 the envelope a core captures grows steeply with its mass (a deeper well holds more of the disk's gas), and the Earth-mass planets of the sample have
 none: at 3 the median start of a 1 Earth-mass planet is 0.2 percent of its mass (a bare rock) and of a 2 Earth-mass planet 1.6 percent."""
 
+PUFF_MIN_MASS_EARTH = 2.0
+"""float: STAND-IN EC8 (T4, L0, registry 6.206): the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses, [R2609]);
+the heaviest is `super_puff.MAX_MASS_EARTH` (row PF1)."""
+
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
+_DAYS_PER_YEAR = 365.25
 
 
 def in_range(mass_earth):
@@ -79,6 +84,32 @@ def draw_start(mass_earth):
     if not in_range(mass_earth):
         return 0.0
     return min(median_start(mass_earth) * math.exp(START_SPREAD * draw.gauss()), MAX_START)
+
+
+def period_days(body):
+    """The orbital period of a bound planet, days (Kepler's third law from its distance and its star's mass)."""
+    mass_solar = _kg_to_msun(body.star.mass)
+    return _DAYS_PER_YEAR * math.sqrt(body.distance ** 3 / mass_solar)
+
+
+def puff_eligible(mass_earth, period_d):
+    """Whether a planet can start as a super-puff: a sub-Neptune of `PUFF_MIN_MASS_EARTH` to `super_puff.MAX_MASS_EARTH` Earth masses with a period inside
+    the outer edge of `super_puff.PERIOD_RANGE_D` (the Kepler sub-Neptunes the occurrence share counts)."""
+    return PUFF_MIN_MASS_EARTH <= mass_earth <= super_puff.MAX_MASS_EARTH and period_d <= super_puff.PERIOD_RANGE_D[1]
+
+
+def draw_puff_start(mass_earth, period_d):
+    """
+    The starting envelope of a planet that is a super-puff, or 0.0 when it is not one (GEN.1343, W15; [R2609]: a dust-free atmosphere accreted in the outer disk,
+    then migration in). An eligible planet (`puff_eligible`) is one with the probability `super_puff.START_SHARE` (row PF3); it then starts with an
+    envelope log-uniform over `super_puff.PUFF_ENVELOPE` (row PF2). Two draws from the stream bound now for an eligible planet, none for any other.
+    """
+    if not puff_eligible(mass_earth, period_d):
+        return 0.0
+    is_puff = draw.random() < super_puff.START_SHARE
+    low, high = super_puff.PUFF_ENVELOPE
+    fraction = math.exp(math.log(low) + draw.random() * (math.log(high) - math.log(low)))
+    return fraction if is_puff else 0.0
 
 
 def kept(body, start):
@@ -101,4 +132,4 @@ def kept(body, start):
         return None
     fraction = left / (mass_earth + left)
     flux = max(insolation, bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0])     # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
-    return fraction, bulk_structure.envelope_radius_earth(mass_earth, fraction, flux, star.age)
+    return fraction, super_puff.radius_earth(mass_earth, fraction, flux, star.age)

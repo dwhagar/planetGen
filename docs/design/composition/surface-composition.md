@@ -49,13 +49,13 @@ Ground albedo with weathering (GEN.462's follow-up reads `band_albedo`), the chi
 
 ## The salts a brine leaves (GEN.1366)
 
-Code: `physics/evaporite_sequence.py`. Tests: `tests/test_evaporite_sequence.py`. Stand-ins: registry section 6.208 (rows EV1 to EV11).
+Code: `physics/evaporite_sequence.py`. Tests: `tests/test_evaporite_sequence.py`. Stand-ins: registry section 6.212 (rows EV1 to EV11).
 
 The evaporite ground used to be four tenths halite, three tenths gypsum and three tenths calcite, and the ocean's salt was halite alone. Both are now the salts of the body's own brine, allocated to rows of the materials table in the order of the chemical divides (Hardie and Eugster):
 
 1. The ions. The crust that weathers is the melt of the body's mantle at its heat flow, with the alkalis put back (the stored rock carries none: sodium at `waterworld_carbon.CRUST_SODIUM_WT`, potassium at the basalt reservoir's K). Each cation dissolves in proportion to its oxide moles times its mobility in the weathering series (`MOBILITY`). The anions are the ocean class's (`ANION_PARAMS`: carbonate per calcium, then chloride against sulfate for the rest of the charge), and the anion charge is the cation charge.
 2. The steps. Acid water: jarosite then alunite. All waters: calcite from calcium and carbonate in equal moles. Carbonate left over is the alkaline (soda) path: magnesium carbonate (hydromagnesite, or magnesite when hot), then sodium carbonate (nahcolite at high carbon dioxide, else trona, thermonatrite or natrite by temperature). Calcium left over is the calcium path: calcium sulfate, then magnesium sulfate, then sodium sulfate, then (calcium still left) calcium chloride. Last, the chlorides: perchlorate (thin oxidizing air only), halite, carnallite, sylvite, bischofite, antarcticite.
-3. The forms. Gypsum or anhydrite is read from the measured equilibrium by temperature and the activity of water [R5138]: a brine saturated with halite (activity 0.75) makes anhydrite above 18 degrees C. Mirabilite or thenardite at 32.4 degrees C, epsomite, hexahydrite or kieserite at 48 and 68 degrees C, and the sodium carbonate hydrates at 32.5 and 109 degrees C are stand-ins (EV4 to EV6).
+3. The forms. Gypsum or anhydrite is read from the measured equilibrium by temperature and the activity of water [R5143]: a brine saturated with halite (activity 0.75) makes anhydrite above 18 degrees C. Mirabilite or thenardite at 32.4 degrees C, epsomite, hexahydrite or kieserite at 48 and 68 degrees C, and the sodium carbonate hydrates at 32.5 and 109 degrees C are stand-ins (EV4 to EV6).
 
 `surface_composition.dried_salts` gives the mass shares for the evaporite ground and `ocean_salts` the ocean's (the same, less the calcite, which is the seafloor's). A body with no silicate rock has volcanic sodium chloride only, halite. The areal mix, the draws and the albedo rows (`ALBEDO_ROWS`, halite, gypsum and calcite) are unchanged; only the stored mass composition moves.
 

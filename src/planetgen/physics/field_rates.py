@@ -20,7 +20,7 @@ made-up per-sector rate. So a sector holds a field when a source of the Galaxy p
 * **Not sources.** A rogue disrupted by a neutron star or black hole (S4) feeds the pulsar-planet disk, an ejected belt (S5) joins the interstellar background, a destroyed planet (S6) is
   bound and already a belt, a disrupted giant (S7) leaves gas. They have no function here.
 
-Stand-ins are IF19 to IF22 of `docs/design/research/gap-filling-plan.md` section 6.106. Nothing reads the module yet: the supernova host rule and the columns (GEN.1103, GEN.1104) wire it.
+Stand-ins are IF19 to IF22 of `docs/design/research/gap-filling-plan.md` section 6.106. The host rule (`generation/field_host.py`, GEN.1104) and the collision field (`generation/collision_field.py`, GEN.1103) read it.
 """
 
 import collections

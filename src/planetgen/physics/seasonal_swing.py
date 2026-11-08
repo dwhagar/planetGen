@@ -9,7 +9,7 @@ The seasonal swing of the temperature at a latitude, from the planet's tilt and 
 tilted planet's seasons are its weather: Uranus-like tilts give a pole in daylight at noon-equator brightness for decades, Mars's eccentric orbit adds a second
 season, and the Earth without its Moon is the middle case ([R4708]:254; [R4709], 2003, Int. J. Astrobiol. 1:61 and
 2:1; [R4171]:596, Icarus; [R0149]:277; recalled, none opened). This module is that
-calculation as a pure function of stored quantities. Nothing calls it yet (GEN.1048 wires it into the regional temperatures).
+calculation as a pure function of stored quantities. The temperatures of every place (GEN.1263, below) read it; oddity W1 (GEN.1048) names the planets whose tilt makes the seasons the main weather.
 
 **The light.** The day's mean insolation at latitude `phi` for the Sun at declination `delta` is the closed form of `regional_temperature._daily_insolation`
 (`Q = (h sin phi sin delta + cos phi cos delta sin h) / pi`, `h` the half day length). The declination follows the planet round its orbit: `sin delta = sin(eps)
@@ -82,7 +82,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from planetgen.physics import climate_branches, constants, habitability, regional_temperature, surface_cycle
+from planetgen.physics import climate_branches, constants, habitability, oddities, regional_temperature, surface_cycle
 from planetgen.util import detmath
 
 STEPS = 96
@@ -581,3 +581,13 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
     temperature = temperature + shift
     return TemperatureSeries(grid, light.time_days, light.step_days, span_days, temperature, temperature.mean(axis=2), albedo, cover, share, light.solar_days,
                              light.orbital_days, float(shift), emission / sigma, passes, converged)
+
+
+@oddities.register("seasons_from_tilt")
+def seasons_from_tilt(body, row):
+    """
+    The effect of oddity W1 (GEN.1048): a planet tilted 60 to 120 degrees, with no moon to steady it, has seasons that are its main weather (a pole in daylight at the
+    equator's noon brightness for a season). The tilt was drawn with the spin and `temperature_series` already reads it, so nothing on the body changes: the effect only
+    lets the table name it, so that the page says why this world's year is so strong.
+    """
+    return None

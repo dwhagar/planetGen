@@ -18413,7 +18413,7 @@
     },
     "R3683": {
       "kind": "paper",
-      "label": "Raymond et al. 2007",
+      "label": "Raymond et al. 2007b",
       "title": "A Decreased Probability of Habitable Planet Formation around Low‐Mass Stars"
     },
     "R3684": {
@@ -25677,6 +25677,31 @@
       "title": "DENSITIES AND ECCENTRICITIES OF 139KEPLERPLANETS FROM TRANSIT TIME VARIATIONS"
     },
     "R5138": {
+      "kind": "paper",
+      "label": "Petit et al. 2025",
+      "title": "Dynamical Evolution of Planetary Systems"
+    },
+    "R5139": {
+      "kind": "paper",
+      "label": "Nesvorný 2018",
+      "title": "Dynamical Evolution of the Early Solar System"
+    },
+    "R5140": {
+      "kind": "paper",
+      "label": "Shannon and Wu 2011",
+      "title": "PLANETESIMALS IN DEBRIS DISKS OF SUN-LIKE STARS"
+    },
+    "R5141": {
+      "kind": "paper",
+      "label": "Jurić and Tremaine 2008",
+      "title": "Dynamical Origin of Extrasolar Planet Eccentricity Distribution"
+    },
+    "R5142": {
+      "kind": "paper",
+      "label": "Raymond et al. 2007a",
+      "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability"
+    },
+    "R5143": {
       "kind": "web",
       "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
       "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"

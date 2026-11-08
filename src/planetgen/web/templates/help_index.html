@@ -10,7 +10,7 @@
   <h3><a href="{{ topic.url }}">{{ topic.label }}</a></h3>
   <p>{{ topic.summary }}</p>
   {%- if topic.children %}
-  <ul>
+  <ul class="inline-links">
     {%- for child in topic.children %}
     <li><a href="{{ child.url }}">{{ child.label }}</a>{% if child.summary %}: {{ child.summary }}{% endif %}</li>
     {%- endfor %}
