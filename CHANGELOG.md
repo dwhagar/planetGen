@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3645] - 2026-11-08
+
+**Headline:** Two class descriptions that ran past 30 words are now two sentences each.
+
+### Changed
+- **Class sentences kept short (GEN.1331).** The descriptions of the temperate world class and of the marginal world class, written in kilopascals by GEN.1331, were one sentence of 34 and 31 words. Each is now two shorter sentences with the same numbers, so the class pages keep the plain-words guide again.
+
+generation-output: unchanged
+
+TODO items resolved: none (red test on main).
+
 ## [8.0.3644] - 2026-11-08
 
 **Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
