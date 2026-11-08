@@ -5,7 +5,7 @@ What a protoplanetary disc condenses at a temperature, species by species (GEN.1
 ==========================================================================================================================================
 
 `condensate_shares` has three ices (water 182 K, ammonia 131 K, methane 41 K) and puts all the carbon in methane. A disc measured by its
-gas and ice is not like that ([R3322], [R3321]): about half of the carbon is refractory (organic and graphite-like grains that survive to about
+gas and ice is not like that [R3321, R3322]: about half of the carbon is refractory (organic and graphite-like grains that survive to about
 500 K); the rest is mostly CO and CO2, with a little CH4; most of the nitrogen is N2; sulfur is mostly in troilite with some H2S; and the noble gases
 come out as clathrates in the water ice. This module is the budget and the lines of that disc, and nothing draws from it yet (part B wires the
 ice shares of a body to it and part C the C/O of a giant).
@@ -22,7 +22,7 @@ ice shares of a body to it and part C the C/O of a giant).
    methane (the equilibrium at 10^-4 bar, [R2726: Table 10]); CO and CO2 are the disc-density values of [R3322: Table 1], N2 and H2S are recalled
    (registered so). Noble-gas clathrate lines are [R2726: Table 8].
 5. **The C/O across a line.** The gas C/O rises outward past each snow line (water takes oxygen first, then CO2, then CO); the solids' C/O is the
-   other half. A giant that gathers gas between the water and CO lines is carbon-rich, one that gathers solids is oxygen-rich ([R3322]).
+   other half. A giant that gathers gas between the water and CO lines is carbon-rich, one that gathers solids is oxygen-rich [R3322].
 
 Limits. Equilibrium supply: every species freezes whole below its line. A body that formed warm and trapped a species in water ice (a comet) keeps a tiny
 share of it (`comet_ice_formation`, `comet_ice_budget.TRAPPED_FRACTION`), and that is for the body, not the disc. The lines do not move as the disc cools. The H2S and the
@@ -95,7 +95,7 @@ any species is its moles times its molar mass over water's times this."""
 
 
 def solar_per_1e4_h(element):
-    """The Sun's atoms of `element` per 10^4 hydrogen ([R0168]); `element` is a symbol in `tuning.STELLAR_SOLAR_LOG_EPS` or `NOBLE_LOG_EPS`."""
+    """The Sun's atoms of `element` per 10^4 hydrogen [R0168]; `element` is a symbol in `tuning.STELLAR_SOLAR_LOG_EPS` or `NOBLE_LOG_EPS`."""
     log_eps = tuning.STELLAR_SOLAR_LOG_EPS.get(element, NOBLE_LOG_EPS.get(element))
     if log_eps is None:
         raise ValueError(f"no solar abundance for {element!r}")

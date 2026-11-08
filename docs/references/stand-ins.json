@@ -41507,7 +41507,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
         },
         {
@@ -41545,7 +41545,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
         },
         {
@@ -41583,7 +41583,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
         },
         {
@@ -41621,11 +41621,15 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand"
+          ],
           "fields": [
             [
               "What it is",
@@ -41659,7 +41663,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
         },
         {
@@ -41697,7 +41701,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": null,
+          "unread": "GEN.1363",
           "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
         }
       ],
