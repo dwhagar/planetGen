@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3731] - 2026-11-08
+
+**Headline:** A test now fails when install.sh or update.sh could miss a library that setup.py requires.
+
+### Changed
+- **`test_install_python_deps.py` checks the one list both scripts use.** install.sh and `update.sh --check` both run `scripts/install-python-deps.sh`; the test fails if either stops doing so, if the list differs from setup.py's requirements, if `psutil` is missing, or if a listed library is not pinned in `requirements.lock` and `requirements-server.lock`.
+
 ## [8.0.3730] - 2026-11-08
 
 **Headline:** The update's library check now installs `psutil`, so the work queue's workers start again after the memory gate (PERF.254).
