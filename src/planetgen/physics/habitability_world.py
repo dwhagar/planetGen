@@ -148,7 +148,6 @@ _GAS_NAMES = {"o2": "O2", "co2": "CO2", "co": "CO", "h2s": "H2S", "so2": "SO2"}
 def values_from_body(body):
     """A planet or moon (in memory) as the column-named dict `compute` reads."""
     values = {
-        "planet_class": getattr(body, "planet_class", None),
         "body_type": getattr(body, "body_type", None),
         "envelope_mass_fraction": getattr(body, "envelope_mass_fraction", None),
         "atmospheric_pressure_pa": getattr(body, "atmospheric_pressure", None),

@@ -58,7 +58,8 @@
     <fieldset>
       <legend>Parts to restore</legend>
       {%- for part in archive.parts %}
-      <p><label><input type="checkbox" name="part" value="{{ part.name }}"{% if part.known %} checked{% else %} disabled{% endif %}> {{ part.label }}</label>
+      <p><label><input type="checkbox" name="part" value="{{ part.name }}"{% if part.known and not part.empty %} checked{% else %} disabled{% endif %}> {{ part.label }}</label>
+        {%- if part.known and part.empty %} <span class="hint">Nothing was copied for this part{% if part.note %} ({{ part.note }}){% endif %}, so there is nothing to restore.</span>{% endif %}
         {%- if not part.known %} <span class="hint">This version of planetGen can't restore this part; it stays in the archive.</span>{% endif %}</p>
       {%- endfor %}
     </fieldset>
