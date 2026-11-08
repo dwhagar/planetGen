@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.296 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1441 |
+| GEN | GEN.1444 |
 | PERF | PERF.256 |
 | DB | DB.121 |
 | API | API.43 |
@@ -2210,6 +2210,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1428 | GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed | none | done, PR #5739 |
 | GEN.1429 | GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report | GEN.1428 | done, PR #5741 |
 | GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) | none | open |
+| GEN.1441 | Sum every star's light into each planet's and moon's mean starlight, and feed that one total into temperature, the air and greenhouse solve, albedo and ice, the runaway greenhouse test and the habitable zone | none | open |
+| GEN.1442 | Add each companion star's UV and flare dose, by distance, to the dose and ozone calculation of a body | GEN.1441 | open |
+| GEN.1443 | Optional second sun in the sky and in the day and night text: daylight and the surface cycle count the other stars as extra suns | GEN.1441 | open |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | open |
 | GEN.1432 | Planet class one-liner and page sentence reconciled into one row: a phrase, and a number-free sentence with the numbers read from planet_class_fit.json through unit-aware formatting | none | done, PR #5729 |
