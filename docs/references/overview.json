@@ -15,19 +15,19 @@
     "by_tier": {
       "T1": 207,
       "T2": 198,
-      "T3": 167,
+      "T3": 168,
       "T4": 117,
       "T5": 94,
       "T6": 363,
       "T7": 94,
       "T8": 6,
-      "T9": 187
+      "T9": 186
     },
     "by_tweak": {
       "L0": 787,
-      "L1": 294,
+      "L1": 295,
       "L2": 71,
-      "L3": 236,
+      "L3": 235,
       "L4": 45
     },
     "rows": 1433
@@ -109,15 +109,15 @@
   "verdict": {
     "chosen_for_the_output": {
       "percent": 13,
-      "rows": 187
+      "rows": 186
     },
     "educated_guess_from_physics": {
       "percent": 39,
       "rows": 557
     },
     "fitted_to_a_result": {
-      "percent": 25,
-      "rows": 352
+      "percent": 24,
+      "rows": 351
     },
     "read_from_a_source": {
       "percent": 28,
@@ -125,7 +125,7 @@
     },
     "unverified": {
       "percent": 20,
-      "rows": 284
+      "rows": 285
     }
   }
 }
