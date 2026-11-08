@@ -122942,6 +122942,90 @@
    "volume": "556",
    "year": 2018
   },
+  "10.1038/nchem.2716": {
+   "arxiv": "1309.3827",
+   "authors": [
+    [
+     "Dong",
+     "X."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ],
+    [
+     "Stavrou",
+     "E."
+    ],
+    [
+     "Lobanov",
+     "S."
+    ],
+    [
+     "Saleh",
+     "G."
+    ],
+    [
+     "Qian",
+     "G. R."
+    ],
+    [
+     "Zhu",
+     "Q."
+    ],
+    [
+     "Gatti",
+     "C."
+    ],
+    [
+     "Deringer",
+     "V. L."
+    ],
+    [
+     "Dronskowski",
+     "R."
+    ],
+    [
+     "Zhou",
+     "X. F."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Konôpková",
+     "Z."
+    ],
+    [
+     "Popov",
+     "I. A."
+    ],
+    [
+     "Boldyrev",
+     "A. I."
+    ],
+    [
+     "Wang",
+     "H. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nchem.2716",
+   "editors": [],
+   "journal": "Nature Chem",
+   "page": "440",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A stable compound of helium and sodium at high pressure",
+   "type": "journal-article",
+   "volume": "9",
+   "year": 2017
+  },
   "10.1038/ncomms11201": {
    "arxiv": "1604.05220",
    "authors": [
@@ -131316,6 +131400,50 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "2",
    "year": 2021
+  },
+  "10.1038/srep13582": {
+   "arxiv": "1502.07381",
+   "authors": [
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Zhu",
+     "Q."
+    ],
+    [
+     "Holtgrewe",
+     "N."
+    ],
+    [
+     "Prescher",
+     "C."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/srep13582",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "13582",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Stable magnesium peroxide at high pressure",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2015
   },
   "10.1039/c1cp21980d": {
    "authors": [
@@ -207034,6 +207162,54 @@
    "volume": "120",
    "year": 2018
   },
+  "10.1103/physrevlett.120.096001": {
+   "arxiv": "1707.07541",
+   "authors": [
+    [
+     "Stavrou",
+     "E."
+    ],
+    [
+     "Yao",
+     "Y."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ],
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Zaug",
+     "J. M."
+    ],
+    [
+     "Liu",
+     "H."
+    ],
+    [
+     "Greenberg",
+     "E."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/physrevlett.120.096001",
+   "editors": [],
+   "journal": "PhRvL",
+   "page": "096001",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Synthesis of Xenon and Iron-Nickel Intermetallic Compounds at Earth’s Core Thermodynamic Conditions",
+   "type": "journal-article",
+   "volume": "120",
+   "year": 2018
+  },
   "10.1103/physrevlett.120.115703": {
    "authors": [
     [
@@ -274484,6 +274660,36 @@
    "volume": "",
    "year": 2020
   },
+  "arXiv:2007.07715": {
+   "arxiv": "2007.07715",
+   "authors": [
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Holtgrewe",
+     "N."
+    ],
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Goncharov",
+     "A."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Polymorphism of superionic ice",
+   "type": "preprint",
+   "volume": "",
+   "year": 2020
+  },
   "arXiv:2008.09700": {
    "arxiv": "2008.09700",
    "authors": [
@@ -276534,6 +276740,60 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2403.05951": {
+   "arxiv": "2403.05951",
+   "authors": [
+    [
+     "Xu",
+     "Y."
+    ],
+    [
+     "Chen",
+     "G."
+    ],
+    [
+     "Du",
+     "F."
+    ],
+    [
+     "Li",
+     "M."
+    ],
+    [
+     "Wu",
+     "L."
+    ],
+    [
+     "Yao",
+     "D."
+    ],
+    [
+     "Ding",
+     "J."
+    ],
+    [
+     "Zeng",
+     "Z."
+    ],
+    [
+     "Lin",
+     "H."
+    ],
+    [
+     "Wang",
+     "X."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Free-standing cubic gauche nitrogen stable at 760 K under ambient pressure",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2403.08870": {
    "arxiv": "2403.08870",
    "authors": [
@@ -276818,6 +277078,52 @@
    "page": "",
    "src": "arxiv",
    "title": "From stars to diverse mantles, melts, crusts and atmospheres of rocky exoplanets",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2405.11810": {
+   "arxiv": "2405.11810",
+   "authors": [
+    [
+     "Takezawa",
+     "H."
+    ],
+    [
+     "Hsu",
+     "H."
+    ],
+    [
+     "Hirose",
+     "K."
+    ],
+    [
+     "Sakai",
+     "F."
+    ],
+    [
+     "Fu",
+     "S."
+    ],
+    [
+     "Gomi",
+     "H."
+    ],
+    [
+     "Miwa",
+     "S."
+    ],
+    [
+     "Sakamoto",
+     "N."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation of Iron-Helium Compounds under High Pressure",
    "type": "preprint",
    "volume": "",
    "year": 2024
@@ -277606,6 +277912,52 @@
    "page": "",
    "src": "arxiv",
    "title": "The Age-velocity Dispersion Relations of the Galactic Disk as Revealed by the LAMOST-Gaia Red Clump Stars",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2412.20944": {
+   "arxiv": "2412.20944",
+   "authors": [
+    [
+     "Chen",
+     "R."
+    ],
+    [
+     "Zhang",
+     "J."
+    ],
+    [
+     "Wang",
+     "Z."
+    ],
+    [
+     "Lu",
+     "K."
+    ],
+    [
+     "Peng",
+     "Y."
+    ],
+    [
+     "Zhao",
+     "J."
+    ],
+    [
+     "Feng",
+     "S."
+    ],
+    [
+     "Jin",
+     "C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "One Pot Synthesis of Cubic Gauche Polymeric Nitrogen",
    "type": "preprint",
    "volume": "",
    "year": 2024
@@ -280304,6 +280656,132 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2611.06045": {
+   "arxiv": "2611.06045",
+   "authors": [
+    [
+     "Sun",
+     "L."
+    ],
+    [
+     "Chen",
+     "B."
+    ],
+    [
+     "He",
+     "Z."
+    ],
+    [
+     "Yang",
+     "P."
+    ],
+    [
+     "Guan",
+     "Z."
+    ],
+    [
+     "Jia",
+     "G."
+    ],
+    [
+     "Zhang",
+     "F."
+    ],
+    [
+     "Yang",
+     "Y."
+    ],
+    [
+     "Xu",
+     "B."
+    ],
+    [
+     "Guo",
+     "P."
+    ],
+    [
+     "Liu",
+     "Y."
+    ],
+    [
+     "Fan",
+     "W."
+    ],
+    [
+     "Xi",
+     "T."
+    ],
+    [
+     "Li",
+     "Y."
+    ],
+    [
+     "Meng",
+     "L."
+    ],
+    [
+     "Kang",
+     "W."
+    ],
+    [
+     "Xie",
+     "Z."
+    ],
+    [
+     "Tu",
+     "Y."
+    ],
+    [
+     "Ji",
+     "C."
+    ],
+    [
+     "Huang",
+     "X."
+    ],
+    [
+     "Chen",
+     "Z."
+    ],
+    [
+     "Yan",
+     "J."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Yang",
+     "W."
+    ],
+    [
+     "Sekine",
+     "T."
+    ],
+    [
+     "Zhao",
+     "Z."
+    ],
+    [
+     "Dai",
+     "J."
+    ],
+    [
+     "Mao",
+     "H. K."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Single-crystal X-ray diffraction of BC8 carbon near terapascal pressures",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:astro-ph/0003384": {
    "arxiv": "astro-ph/0003384",
    "authors": [
@@ -280999,7 +281477,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5171,
+ "id_next": 5188,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282583,6 +283061,7 @@
   "10.1038/nature23276": "R3191",
   "10.1038/nature24625": "R0818",
   "10.1038/nature25029": "R1749",
+  "10.1038/nchem.2716": "R5183",
   "10.1038/ncomms11201": "R2772",
   "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
@@ -282691,6 +283170,7 @@
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
   "10.1038/s43017-021-00203-6": "R1950",
+  "10.1038/srep13582": "R5182",
   "10.1039/c1cp21980d": "R2604",
   "10.1039/c4cp04564e": "R0242",
   "10.1039/c9cp04325j": "R1242",
@@ -284582,6 +285062,7 @@
   "10.1103/physrevlett.120.025701": "R2966",
   "10.1103/physrevlett.120.050405": "R1713",
   "10.1103/physrevlett.120.074502": "R0850",
+  "10.1103/physrevlett.120.096001": "R5185",
   "10.1103/physrevlett.120.115703": "R3973",
   "10.1103/physrevlett.120.132503": "R0042",
   "10.1103/physrevlett.121.161101": "R0013",
@@ -286225,6 +286706,7 @@
   "arxiv:1308.6282": "R1088",
   "arxiv:1308.6325": "R2209",
   "arxiv:1309.2631": "R0349",
+  "arxiv:1309.3827": "R5183",
   "arxiv:1309.4167": "R3346",
   "arxiv:1309.6032": "R4326",
   "arxiv:1309.6324": "R0625",
@@ -286343,6 +286825,7 @@
   "arxiv:1502.03605": "R1146",
   "arxiv:1502.04018": "R4693",
   "arxiv:1502.05449": "R3621",
+  "arxiv:1502.07381": "R5182",
   "arxiv:1502.07401": "R4330",
   "arxiv:1502.07412": "R0803",
   "arxiv:1503.02110": "R1856",
@@ -286549,6 +287032,7 @@
   "arxiv:1707.02609": "R2038",
   "arxiv:1707.06051": "R4413",
   "arxiv:1707.06701": "R3732",
+  "arxiv:1707.07541": "R5185",
   "arxiv:1707.07634": "R3191",
   "arxiv:1707.07986": "R3792",
   "arxiv:1708.00016": "R0932",
@@ -286829,6 +287313,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
+  "arxiv:2007.07715": "R5181",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",
   "arxiv:2007.11006": "R3797",
@@ -287086,6 +287571,7 @@
   "arxiv:2402.13682": "R0273",
   "arxiv:2403.03248": "R3332",
   "arxiv:2403.03325": "R0339",
+  "arxiv:2403.05951": "R5187",
   "arxiv:2403.08870": "R3306",
   "arxiv:2403.09917": "R0418",
   "arxiv:2403.11657": "R1895",
@@ -287104,6 +287590,7 @@
   "arxiv:2405.05476": "R3643",
   "arxiv:2405.11018": "R4662",
   "arxiv:2405.11027": "R4106",
+  "arxiv:2405.11810": "R5184",
   "arxiv:2406.02855": "R0511",
   "arxiv:2406.03815": "R3186",
   "arxiv:2406.04311": "R3430",
@@ -287144,6 +287631,7 @@
   "arxiv:2412.05220": "R0094",
   "arxiv:2412.07089": "R4991",
   "arxiv:2412.11627": "R1176",
+  "arxiv:2412.20944": "R5186",
   "arxiv:2501.06613": "R4493",
   "arxiv:2501.07869": "R1064",
   "arxiv:2501.15930": "R4016",
@@ -287248,6 +287736,7 @@
   "arxiv:2609.21027": "R3937",
   "arxiv:2609.25488": "R0059",
   "arxiv:2609.29996": "R4230",
+  "arxiv:2611.06045": "R5180",
   "arxiv:astro-ph/0001295": "R2055",
   "arxiv:astro-ph/0002232": "R2573",
   "arxiv:astro-ph/0003053": "R3142",

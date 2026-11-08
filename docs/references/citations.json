@@ -3803,7 +3803,7 @@
     },
     "R0761": {
       "kind": "paper",
-      "label": "Chen et al. 2024",
+      "label": "Chen et al. 2024a",
       "title": "Impact of nuclear mass models on r-process nucleosynthesis and heavy element abundances in r-process-enhanced metal-poor stars"
     },
     "R0762": {
@@ -23988,7 +23988,7 @@
     },
     "R4798": {
       "kind": "paper",
-      "label": "Xu et al. 2024",
+      "label": "Xu et al. 2024a",
       "title": "The chemistry of extra-solar materials from white dwarf planetary systems"
     },
     "R4799": {
@@ -25840,6 +25840,46 @@
       "kind": "paper",
       "label": "Mogul et al. 2026",
       "title": "Altered Cosmic Organics as Venus' Ultraviolet Absorbers"
+    },
+    "R5180": {
+      "kind": "paper",
+      "label": "Sun et al. 2026",
+      "title": "Single-crystal X-ray diffraction of BC8 carbon near terapascal pressures"
+    },
+    "R5181": {
+      "kind": "paper",
+      "label": "Prakapenka et al. 2020",
+      "title": "Polymorphism of superionic ice"
+    },
+    "R5182": {
+      "kind": "paper",
+      "label": "Lobanov et al. 2015",
+      "title": "Stable magnesium peroxide at high pressure"
+    },
+    "R5183": {
+      "kind": "paper",
+      "label": "Dong et al. 2017",
+      "title": "A stable compound of helium and sodium at high pressure"
+    },
+    "R5184": {
+      "kind": "paper",
+      "label": "Takezawa et al. 2024",
+      "title": "Formation of Iron-Helium Compounds under High Pressure"
+    },
+    "R5185": {
+      "kind": "paper",
+      "label": "Stavrou et al. 2018",
+      "title": "Synthesis of Xenon and Iron-Nickel Intermetallic Compounds at Earth’s Core Thermodynamic Conditions"
+    },
+    "R5186": {
+      "kind": "paper",
+      "label": "Chen et al. 2024b",
+      "title": "One Pot Synthesis of Cubic Gauche Polymeric Nitrogen"
+    },
+    "R5187": {
+      "kind": "paper",
+      "label": "Xu et al. 2024b",
+      "title": "Free-standing cubic gauche nitrogen stable at 760 K under ambient pressure"
     }
   }
 }
