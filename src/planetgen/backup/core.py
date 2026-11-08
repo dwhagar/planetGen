@@ -592,7 +592,8 @@ def restore(name, parts=None, context=None, directory=None):
 
     Each part to restore is first backed up in a safety archive (`RestoreReport.safety`), then its provider's
     `restore` is given a hash-checked copy of the part's files. A part the archive holds but this build has no
-    provider for is skipped and listed in `skipped`; naming a part the archive doesn't hold is an error.
+    provider for is skipped and listed in `skipped`, and so is a part that held nothing when the archive was taken (its `info` says `present` is false) when the
+    whole archive is asked for; naming a part the archive doesn't hold is an error.
 
     Raises:
         BackupError: The archive is missing or fails `verify`, or a named part isn't in it. Nothing is changed.
@@ -603,12 +604,15 @@ def restore(name, parts=None, context=None, directory=None):
     if not checked.ok:
         raise BackupError(f"{name} is not a sound backup and was not restored: " + "; ".join(checked.problems))
     held = {p["name"]: p for p in checked.manifest["parts"] if isinstance(p, dict)}
-    wanted = list(held) if parts is None else list(dict.fromkeys(parts))
+    empty = [n for n, p in held.items() if isinstance(p.get("info"), dict) and p["info"].get("present") is False]
+    wanted = [n for n in held if n not in empty] if parts is None else list(dict.fromkeys(parts))
     missing = [p for p in wanted if p not in held]
     if missing:
         raise BackupError(f"{name} holds no " + ", ".join(repr(p) for p in missing) + " part.")
     report = RestoreReport(archive=name)
     report.skipped = [p for p in wanted if p not in _PARTS]
+    if parts is None:
+        report.skipped += empty          # a part that held nothing when the archive was taken (its info says present false) is not put back with the rest
     todo = [p for p in wanted if p in _PARTS]
     if not todo:
         return report

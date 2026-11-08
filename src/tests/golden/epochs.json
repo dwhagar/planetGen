@@ -828,8 +828,7 @@
     },
     {
       "epoch": 139,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3671",
       "reason": "Train 17: GEN.1362 mantle oxides, GEN.1350 dipole direction, GEN.1342 classes O and H, GEN.1334 no ground under envelope, GEN.1384b, GEN.1331 partial pressure, weirdness dial",
       "affects": ["plan", "scatter", "fill", "population"]
     }

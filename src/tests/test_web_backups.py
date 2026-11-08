@@ -369,3 +369,27 @@ def test_export_with_no_config_file_is_an_empty_export(site, config):
     config.unlink()
     body = site.get("/api/admin/settings/export").get_json()
     assert body == {"config_version": settings_writer.settings.CONFIG_VERSION}
+
+
+def test_a_part_that_held_nothing_is_not_ticked_and_the_whole_archive_restore_leaves_it(site, config, monkeypatch):
+    """A part whose dump said `present` false (the parity file of a site with no galaxy yet) has nothing to put back: the page does not tick it and a restore
+    of the whole archive skips it instead of failing with 409."""
+    class Nothing(backup_core.Part):
+        name, label = "nothing", "Nothing yet"
+
+        def dump(self, directory):
+            return {"present": False, "reason": "there is nothing yet"}
+
+        def restore(self, directory, context):
+            raise backup_core.BackupError("This archive's part is empty.")
+
+    monkeypatch.setitem(backup_core._PARTS, "nothing", Nothing())
+    name = site.post("/api/admin/backups", json={}).get_json()["name"]
+    shown = site.get(f"/api/admin/backups/{name}").get_json()["archive"]
+    assert {p["name"]: p["empty"] for p in shown["parts"]}["nothing"] is True
+    assert {p["name"]: p["note"] for p in shown["parts"]}["nothing"] == "there is nothing yet"
+    assert {p["name"]: p["empty"] for p in shown["parts"]}["settings"] is False
+    page = site.get(f"/admin/settings/backups/{name}").get_data(as_text=True)
+    assert "Nothing was copied for this part (there is nothing yet)" in page
+    body = site.post(f"/api/admin/backups/{name}/restore", json={"parts": None}).get_json()
+    assert body["restored"] == ["settings"] and body["skipped"] == ["nothing"]
