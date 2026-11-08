@@ -1,4 +1,0 @@
-**Headline:** When the air of a planet cannot settle because a haze or an ocean switches on at one temperature, the planet now keeps the temperature at the switch instead of a value up to 75 K to one side of it.
-
-### Changed
-- GEN.1344: `surface_air.sliding_temperature` reads the last twelve steps of an air whose fixed point did not settle in `MAX_STEPS`; when the answers swing by over 1 K while the iterate itself stays put (a map that jumps down as the temperature rises, so there is no fixed point), the stored temperature is the mean of the answers and `Air.knee` is true, and the stored greenhouse factor is taken from that temperature. The air stays flagged unsettled. 4 to 5 percent of airs do not settle (93 of 1,841 on main, 71 of 1,614 on train 15); the stored error falls from the swing (10 to 75 K) to about the step (0.05 of the residual, under 4 K). Generator output changes for those airs, so it rides a train with an epoch. Stand-in SL1 (section 6.209).
