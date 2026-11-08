@@ -1,0 +1,2212 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part 05: Mixing ratios by body class - planetGen docs</title>
+<meta name="description" content="Research lane 05 for the v9.0 atmosphere composition work.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/05-mixing-ratios-by-class.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/05-mixing-ratios-by-class.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-05-mixing-ratios-by-body-class">Part 05: Mixing ratios by body class</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/05-mixing-ratios-by-class.md</p><details class="toc"><summary>On this page (40 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-how-the-numbers-feed-the-generator">1. Scope and how the numbers feed the generator</a></li><li style="margin-left:0px"><a href="#2-elemental-budget-and-stellar-to-planetary-links">2. Elemental budget and stellar to planetary links</a></li><li style="margin-left:14px"><a href="#21-solar-reference-abundances">2.1 Solar reference abundances</a></li><li style="margin-left:14px"><a href="#22-cool-solar-gas-all-heavy-elements-locked-in-simple-hydrides">2.2 Cool solar gas, all heavy elements locked in simple hydrides</a></li><li style="margin-left:14px"><a href="#23-how-host-star-composition-maps-to-planet-composition">2.3 How host-star composition maps to planet composition</a></li><li style="margin-left:14px"><a href="#24-giant-planet-bulk-metallicity-mass-metallicity-draw-rule">2.4 Giant-planet bulk metallicity: mass-metallicity draw rule</a></li><li style="margin-left:14px"><a href="#25-atmospheric-metallicity-and-co-trends">2.5 Atmospheric metallicity and C/O trends</a></li><li style="margin-left:0px"><a href="#3-outgassed-secondary-atmospheres-of-rocky-planets">3. Outgassed secondary atmospheres of rocky planets</a></li><li style="margin-left:14px"><a href="#31-volatile-inventory">3.1 Volatile inventory</a></li><li style="margin-left:14px"><a href="#32-redox-oxygen-fugacity-buffers">3.2 Redox: oxygen fugacity buffers</a></li><li style="margin-left:14px"><a href="#33-speciation-equations">3.3 Speciation equations</a></li><li style="margin-left:14px"><a href="#34-speciation-results-computed">3.4 Speciation results (COMPUTED)</a></li><li style="margin-left:14px"><a href="#35-generator-recipe-for-rocky-outgassed-atmospheres">3.5 Generator recipe for rocky outgassed atmospheres</a></li><li style="margin-left:14px"><a href="#36-noble-gases-and-radiogenic-argon">3.6 Noble gases and radiogenic argon</a></li><li style="margin-left:14px"><a href="#37-related-outgassing-results-context-rows">3.7 Related outgassing results (context rows)</a></li><li style="margin-left:0px"><a href="#4-lava-worlds-and-silicate-vapour">4. Lava worlds and silicate vapour</a></li><li style="margin-left:0px"><a href="#5-sub-neptunes-super-earths-hycean-and-water-worlds">5. Sub-Neptunes, super-Earths, hycean and water worlds</a></li><li style="margin-left:0px"><a href="#6-evolved-secondary-and-frost-equilibrium-atmospheres-venus--mars--titan--pluto-like-classes">6. Evolved secondary and frost-equilibrium atmospheres (Venus-, Mars-, Titan-, Pluto-like classes)</a></li><li style="margin-left:14px"><a href="#61-recipes">6.1 Recipes</a></li><li style="margin-left:14px"><a href="#62-test-rows-solar-system-calibration-only">6.2 TEST rows (Solar System calibration only)</a></li><li style="margin-left:0px"><a href="#7-gas-giants-and-brown-dwarfs">7. Gas giants and brown dwarfs</a></li><li style="margin-left:14px"><a href="#71-condensation-and-chemistry-sequence-versus-temperature-cloud-free-solar-composition">7.1 Condensation and chemistry sequence versus temperature (cloud-free, solar composition)</a></li><li style="margin-left:14px"><a href="#72-condensation-temperatures-t-in-k-p_t-in-bar-xh-in-dex">7.2 Condensation temperatures (T in K, P_T in bar, [X/H] in dex)</a></li><li style="margin-left:14px"><a href="#73-co--ch4--nh3-equilibrium-and-quench">7.3 CO / CH4 / NH3 equilibrium and quench</a></li><li style="margin-left:14px"><a href="#74-mixing-ratios-by-temperature-regime">7.4 Mixing ratios by temperature regime</a></li><li style="margin-left:14px"><a href="#75-brown-dwarf-spreads">7.5 Brown dwarf spreads</a></li><li style="margin-left:0px"><a href="#8-hot-and-ultra-hot-jupiters">8. Hot and ultra-hot Jupiters</a></li><li style="margin-left:0px"><a href="#9-comets-and-comae">9. Comets and comae</a></li><li style="margin-left:14px"><a href="#91-abundances-relative-to-h2o">9.1 Abundances relative to H2O</a></li><li style="margin-left:14px"><a href="#92-production-rate-scaling-computed">9.2 Production-rate scaling (COMPUTED)</a></li><li style="margin-left:0px"><a href="#10-white-dwarf-and-pulsar-planets">10. White dwarf and pulsar planets</a></li><li style="margin-left:0px"><a href="#11-host-star-and-m-dwarf-dependence">11. Host-star and M-dwarf dependence</a></li><li style="margin-left:0px"><a href="#12-vapour-pressure-and-condensation-relations-that-were-reached">12. Vapour pressure and condensation relations that were reached</a></li><li style="margin-left:14px"><a href="#121-water-ice-computed-from-data">12.1 Water ice (COMPUTED from DATA)</a></li><li style="margin-left:14px"><a href="#122-nh3-and-beta-o2-ices-read-computed-check">12.2 NH3 and beta-O2 ices (READ, COMPUTED check)</a></li><li style="margin-left:14px"><a href="#123-not-reached">12.3 Not reached</a></li><li style="margin-left:0px"><a href="#13-species-by-class-final-table">13. Species by class (final table)</a></li><li style="margin-left:0px"><a href="#14-boss-must-research">14. Boss must research</a></li><li style="margin-left:0px"><a href="#15-recalled--to-verify">15. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#16-cross-links">16. Cross-links</a></li></ul></details>
+<p>Research lane 05 for the v9.0 atmosphere composition work. Status labels follow <code>_worker-rules.md</code>: READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED. Solar System bodies appear only in rows marked TEST (calibration points, never presets). Where sources disagree, both values and the spread are given.</p>
+<p>Scratch files used for COMPUTED rows: thermodynamic data from the cantera 3.2.0 wheel (<code>cantera/data/nasa_gas.yaml</code>, <code>nasa_condensed.yaml</code>, BSD-3, originating from McBride, Gordon and Reno, NASA TM-4513, 1993); small Python scripts for equilibrium constants and a speciation solver (ideal gas, no graphite, no solubility, no S<sub>2</sub>).</p>
+<p>Network note for the coordinator: reachable and used were export.arxiv.org and arxiv.org PDFs, ntrs.nasa.gov API downloads, nature.com PDF, par.nsf.gov PDF, faculty.washington.edu PDF, en.wikipedia.org raw, pypi.org wheels. Failed: the arXiv API (HTTP 429), arxiv.org/search (400), science.org (403), pmc.ncbi.nlm.nih.gov (bot stub), hal-insu.archives-ouvertes.fr (bot check).</p>
+<hr />
+<h2 id="1-scope-and-how-the-numbers-feed-the-generator">1. Scope and how the numbers feed the generator</h2>
+<p>Two generator paths are supported by this part.</p>
+<p><strong>Path A, draw bulk properties first, then fill composition.</strong> Inputs: surface or reference pressure P, temperature T, surface gravity g, body mass, an oxygen fugacity offset dIW (log10 units relative to the iron-wuestite buffer), host spectral type, age, and a class letter. Output: a mole-fraction vector over the species list in section 13, normalised to 1, whose mean molecular weight then fixes scale height and density. Sections 3 to 10 each end with a recipe in pseudo-formulas of the form <code>mixture = f(P, T, g, dIW, star, age)</code>.</p>
+<p><strong>Path B, build up from basics.</strong> Inputs: stellar elemental abundances (section 2), a volatile inventory, mantle redox, accretion zone, and an escape history. Output: the same mole-fraction vector, derived by (i) condensing refractory and ice phases at the formation temperature, (ii) degassing the mantle at the magma ocean stage (section 3), (iii) re-equilibrating at the final T and P, and (iv) removing light species by escape. Path B is the physically honest route; Path A can be fitted to it by sampling Path B offline and storing the result as class templates with the quoted spreads.</p>
+<p>Rules the generator should respect everywhere:</p>
+<ul>
+<li>Number fractions of heavy elements scale together with a metallicity factor m (solar units) while H and He are only weakly changed.</li>
+<li>Scatter should be drawn log-normal around the median, with the log10 range given in each table, because the quoted spreads in the literature are mostly one-sigma in dex.</li>
+<li>Condensation removes species where T is below the condensation temperature at the local partial pressure (section 12 gives the vapour-pressure relations that were reached). The vapour-pressure relations must be applied before mixing ratios are used for optics.</li>
+<li>Redox state (dIW) is a mantle property and is not the same as the atmospheric oxygen fugacity at the surface; the buffer fits in section 3.2 give fO2 at T and P.</li>
+</ul>
+<hr />
+<h2 id="2-elemental-budget-and-stellar-to-planetary-links">2. Elemental budget and stellar to planetary links</h2>
+<h3 id="21-solar-reference-abundances">2.1 Solar reference abundances</h3>
+<p>Number abundances relative to H are 10^(log epsilon - 12), COMPUTED from the READ log epsilon values of [R0168] ([R0168], photosphere column unless noted). [R0169] values are listed where they differ by more than 0.05 dex.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Element</th>
+<th>log eps (A21 photosphere)</th>
+<th>n/nH (COMPUTED)</th>
+<th>Other value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H</td>
+<td>12.00</td>
+<td>1</td>
+<td>CI chondrite 8.22</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>He</td>
+<td>10.914</td>
+<td>0.0821</td>
+<td>10.93 (A09)</td>
+<td>[R0168, R0169] [R0169]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C</td>
+<td>8.46</td>
+<td>2.88e-4</td>
+<td>8.43 (A09), CI 7.39</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N</td>
+<td>7.83</td>
+<td>6.76e-5</td>
+<td>CI 6.26</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>O</td>
+<td>8.69</td>
+<td>4.90e-4</td>
+<td>CI 8.39</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>8.06</td>
+<td>1.15e-4</td>
+<td>7.93 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>6.22</td>
+<td>1.66e-6</td>
+<td>6.24 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>7.55</td>
+<td>3.55e-5</td>
+<td>7.60 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Al</td>
+<td>6.43</td>
+<td>2.69e-6</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Si</td>
+<td>7.51</td>
+<td>3.24e-5</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>P</td>
+<td>5.41</td>
+<td>2.57e-7</td>
+<td>CI 5.43</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>S</td>
+<td>7.12</td>
+<td>1.32e-5</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cl</td>
+<td>5.31</td>
+<td>2.04e-7</td>
+<td>5.50 (A09), CI 5.23</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>6.38</td>
+<td>2.40e-6</td>
+<td>6.40 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>K</td>
+<td>5.07</td>
+<td>1.17e-7</td>
+<td>5.03 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>6.30</td>
+<td>2.00e-6</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ti</td>
+<td>4.97</td>
+<td>9.33e-8</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>7.46</td>
+<td>2.88e-5</td>
+<td>7.50 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ni</td>
+<td>6.20</td>
+<td>1.58e-6</td>
+<td></td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>3.12</td>
+<td>1.32e-9</td>
+<td>3.25 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>2.22</td>
+<td>1.66e-10</td>
+<td>2.24 (A09)</td>
+<td>[R0168]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Derived ratios (COMPUTED): C/O = 0.589, N/O = 0.138, S/O = 0.027, Mg/Si = 1.10, Fe/Si = 0.89, Ar/Ne = 0.021. Photospheric mass fractions X = 0.7438, Y = 0.2423, Z = 0.0139, Z/X = 0.0187 +/- 0.0009 [R0168]; protosolar X = 0.7121, Y = 0.2725, Z = 0.0154 (READ, same). [R0169]: X = 0.7381, Y = 0.2485, Z = 0.0134, Z/X = 0.0181 (READ). [R2733] give Z/X = 0.0191 (READ, [R2733] table). The spread in solar Z is therefore 0.0134 to 0.0154 depending on photospheric versus protosolar and the author. A generator that scales other stars should state which Z_sun it uses.</p>
+<h3 id="22-cool-solar-gas-all-heavy-elements-locked-in-simple-hydrides">2.2 Cool solar gas, all heavy elements locked in simple hydrides</h3>
+<p>COMPUTED from the table above: assume all O in H<sub>2</sub>O (or 80% of O if 20% is held by silicates), all C as CH<sub>4</sub>, N as NH<sub>3</sub>, S as H<sub>2</sub>S, and H closed as H<sub>2</sub>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>x (all O in gas)</th>
+<th>x (80% O in gas)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>0.857</td>
+<td>0.857</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>He</td>
+<td>0.141</td>
+<td>0.141</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>8.4e-4</td>
+<td>6.7e-4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>4.96e-4</td>
+<td>4.96e-4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>1.16e-4</td>
+<td>1.16e-4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>1.97e-4</td>
+<td>1.97e-4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>2.3e-5</td>
+<td>2.3e-5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>4.1e-6</td>
+<td>4.1e-6</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>For comparison, the [R4863] equilibrium transition (section 7) says CH<sub>4</sub> holds the carbon below about 500 K at planet pressures, so this is the correct low-temperature end member.</p>
+<h3 id="23-how-host-star-composition-maps-to-planet-composition">2.3 How host-star composition maps to planet composition</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planetary Mg/Si and Fe/Si track the stellar values; C/O of solids depends only weakly on stellar C/O; rocky planets formed inside the ice line carry very little carbon</td>
+<td>qualitative</td>
+<td>[R4336] abstract and conclusions</td>
+<td>2ND-HAND (abstract read, body not fully read)</td>
+</tr>
+<tr>
+<td>Refractory material is more than 50 wt% of accreted solids, up to 30 wt% refractory organics</td>
+<td>&gt;50 wt%</td>
+<td>[R4335]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>In planet-host dwarfs, C/O &gt; 0.8 in 34% and &lt;= 0.8 in 66%; Mg/Si &lt; 1 in 56%, 1 to 2 in 44%, &gt; 2 in 0%</td>
+<td>34%</td>
+<td>Delgado [R1060]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0535]: carbon-rich dwarfs are under 0.13% and Mg/Si peaks near 1.0 with about 60% between 1 and 2</td>
+<td>&lt;0.13%</td>
+<td>[R0535, R0536]</td>
+<td>SNIPPET (PDF downloaded, abstract only used)</td>
+</tr>
+<tr>
+<td>Disagreement: C/O &gt; 0.8 fraction is 34% (Delgado Mena) versus under 0.13% (Brewer and Fischer). The spread is two orders of magnitude, so a generator should use a small tail (about 0.1 to a few percent) and treat the 34% as an upper bound from a heterogeneous sample</td>
+<td></td>
+<td>both above</td>
+<td>READ and SNIPPET</td>
+</tr>
+<tr>
+<td>Compositions of terrestrial planets range from Earth-like to graphite and SiC dominated for high C/O stars (threshold C/O = 0.8)</td>
+<td></td>
+<td>[R0455]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mg/Si and the oxygen budget set mantle mineralogy</td>
+<td></td>
+<td>[R4470]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe (Path B start): draw stellar [Fe/H], C/O, Mg/Si from the Delgado Mena distribution (sigma roughly 0.2 dex in each), then set planetary Mg/Si and Fe/Si equal to stellar; draw volatile delivery from the accretion zone (section 3.1).</p>
+<h3 id="24-giant-planet-bulk-metallicity-mass-metallicity-draw-rule">2.4 Giant-planet bulk metallicity: mass-metallicity draw rule</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Relation</th>
+<th>Value</th>
+<th>Validity</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Heavy-element mass Mz = (57.9 +/- 7.03) (M/MJ)^(0.61 +/- 0.08) Earth masses; 1 sigma intrinsic scatter factor 1.82 (10^sigma, 0.26 dex)</td>
+<td></td>
+<td>47 transiting giants, roughly 0.1 to 10 MJ</td>
+<td>[R4352]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Zpl/Zstar = (9.7 +/- 1.28) (M/MJ)^(-0.45 +/- 0.09), Zstar = 0.014 x 10^[Fe/H]</td>
+<td></td>
+<td>same</td>
+<td>[R4352]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mz = Mcore + fZ (Mp - Mcore), Mcore = 14.7 (+1.8/-1.6) Earth masses, fZ = 0.09 +/- 0.01, astrophysical scatter 0.66 +/- 0.08 x MZ</td>
+<td></td>
+<td>147 planets</td>
+<td>[R0710]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>No scatter was found for the Zpl/Zstar fit itself; use the 0.26 dex of the Mz relation as the proxy</td>
+<td></td>
+<td></td>
+<td>[R4352]</td>
+<td>NOT REACHED (see Boss list)</td>
+</tr>
+</tbody>
+</table></div>
+<p>COMPUTED comparison, with Z_star = 0.0139 ([R0168] photosphere):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M/MJ</th>
+<th>Mz (Earth masses)</th>
+<th>Z by Mz fit</th>
+<th>Z by ratio fit</th>
+<th>Ratio fit in solar units</th>
+<th>Chachan Mz</th>
+<th>Chachan Z</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.03</td>
+<td>6.8</td>
+<td>0.715</td>
+<td>0.653</td>
+<td>47</td>
+<td>(all mass)</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>14.2</td>
+<td>0.447</td>
+<td>0.380</td>
+<td>27</td>
+<td>16.2</td>
+<td>0.51</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>27.8</td>
+<td>0.291</td>
+<td>0.232</td>
+<td>17</td>
+<td>22.0</td>
+<td>0.23</td>
+</tr>
+<tr>
+<td>1</td>
+<td>57.9</td>
+<td>0.182</td>
+<td>0.135</td>
+<td>9.7</td>
+<td>42.0</td>
+<td>0.13</td>
+</tr>
+<tr>
+<td>3</td>
+<td>113</td>
+<td>0.119</td>
+<td>0.082</td>
+<td>5.9</td>
+<td>99</td>
+<td>0.10</td>
+</tr>
+<tr>
+<td>10</td>
+<td>236</td>
+<td>0.074</td>
+<td>0.048</td>
+<td>3.4</td>
+<td>299</td>
+<td>0.094</td>
+</tr>
+</tbody>
+</table></div>
+<p>The two Thorngren fits differ by about 30% in Z at Jupiter mass and the Chachan fit is lower for sub-Saturns. The bulk Z is not the atmospheric Z: atmospheric retrievals give a spread around bulk values (see 2.5), so the generator should draw atmospheric enrichment as <code>log10(m_atm) = log10(Z_bulk/Z_star) + N(0, 0.3)</code> with the 0.3 dex width RECALLED from the retrieval scatter below, not a sourced number.</p>
+<h3 id="25-atmospheric-metallicity-and-co-trends">2.5 Atmospheric metallicity and C/O trends</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>log(H<sub>2</sub>O/H) relative to host expectation = -1.09 log(M/MJ) - 0.95 across 19 planets (water abundance falls with mass)</td>
+<td>slope -1.09</td>
+<td>[R4663]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Solar-system giants: log(CH<sub>4</sub>/H) = -1.11 log(M/MJ) + 0.38</td>
+<td>slope -1.11</td>
+<td>[R4663]</td>
+<td>READ (this is a TEST relation)</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O in hot giants is sub-stellar while Na and K are stellar to super-stellar; roughly 100x H<sub>2</sub>O depletion is possible from high C/O</td>
+<td></td>
+<td>[R4663]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>A later revisit finds the data cannot distinguish a linear mass relation from independence</td>
+<td></td>
+<td>[R4258]</td>
+<td>2ND-HAND (abstract)</td>
+</tr>
+<tr>
+<td>C/O between 0.5 and 2 changes H<sub>2</sub>O and CH<sub>4</sub> by orders of magnitude; HCN and C<sub>2</sub>H<sub>2</sub> appear at C/O &gt;= 1; TiO and VO are underabundant at C/O &gt;= 1</td>
+<td></td>
+<td>[R2801, R2803], [R2801]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Madhusudhan classes O1, O<sub>2</sub> (C/O &lt; 1), C1, C2 (C/O &gt;= 1, split at Teq near 1200 K)</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: WASP-77Ab [C/H] = -0.46 (+0.17/-0.16), [O/H] = -0.49 (+0.14/-0.12), [(C+O)/H] = -0.48 (+0.15/-0.13), C/O = 0.59 +/- 0.08 (they quote solar C/O as 0.55; [R0168] gives 0.589, a 0.04 spread)</td>
+<td></td>
+<td>Line et al. 2021, [R2701]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: WASP-107b Z = 43 +/- 8 x solar, CH<sub>4</sub> 1.0 +/- 0.5 ppm (4.2 sigma; about 3 orders of magnitude below equilibrium because of vigorous mixing, Kzz = 10^(11.6 +/- 0.1) cm2/s), Tint = 460 +/- 40 K</td>
+<td></td>
+<td>[R4106]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: WASP-39b best-fit models 3 to 10 x solar metallicity with sub-solar to solar C/O; SO<sub>2</sub> is photochemical (below 1e-12 in thermal equilibrium at 10 x solar)</td>
+<td></td>
+<td>[R0064, R4437]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe for giants (any T): <code>m = 10^N(log10 Zratio(M), 0.3)</code>; <code>C/O = 0.55 * 10^N(0, 0.15)</code>, truncated at 0.2 to 1.5, with a 2 to 5% chance of C/O &gt;= 0.8 from section 2.3. These widths are RECALLED design choices bracketed by the Madhusudhan and Line cases above, not published fits.</p>
+<hr />
+<h2 id="3-outgassed-secondary-atmospheres-of-rocky-planets">3. Outgassed secondary atmospheres of rocky planets</h2>
+<h3 id="31-volatile-inventory">3.1 Volatile inventory</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Volatile contents in wt% (delivered, stored in mantle) for Low: H<sub>2</sub>O 0.05, CO<sub>2</sub> 0.01 delivered; 0.015, 0.0022 stored</td>
+<td></td>
+<td>[R3378], Sci. Rep. 10, 10907 (nature.com PDF) Table 1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>High: delivered H<sub>2</sub>O 0.5, CO<sub>2</sub> 0.1; stored 0.045, 0.005</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Dry: delivered H<sub>2</sub>O 0, CO<sub>2</sub> 0.6; stored 0.005, 0.018</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Partition D_H2O = 0.01; extrusive melt fraction 10%; maximum outgassing at 2 to 4 Earth masses</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mantle at 4000 K, 0.05 wt% H<sub>2</sub>O (550 ppm) and 0.01 wt% CO<sub>2</sub> (130 ppm)</td>
+<td></td>
+<td>[R2286]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Example 1 Earth mass planet with XCO2 = 22 ppm and XH2O = 150 ppm</td>
+<td></td>
+<td>[R3378]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Reduced mantles give lower surface pressure and a thicker atmosphere (more H<sub>2</sub>/CO per unit gas mass); CH<sub>4</sub> excluded from their model</td>
+<td></td>
+<td>[R3378]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The spread across Low, High and Dry is a factor of 10 in water and 60 in CO<sub>2</sub>; the generator should draw the delivered volatile fraction log-uniformly between these cases.</p>
+<h3 id="32-redox-oxygen-fugacity-buffers">3.2 Redox: oxygen fugacity buffers</h3>
+<p>[R1989] buffers as quoted in [R2286] (2ND-HAND): <code>log10 fO2 = A - B/T + C (P - 1)/T</code>, T in K, P in bar.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Buffer</th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IW</td>
+<td>6.899</td>
+<td>27714</td>
+<td>0.05</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>QIF</td>
+<td>7.679</td>
+<td>29673</td>
+<td>0.05</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>QFM</td>
+<td>8.555</td>
+<td>24014</td>
+<td>0.092</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>NiNiO</td>
+<td>8.951</td>
+<td>24556</td>
+<td>0.046</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-check: the NASA stoichiometric FeO data (DATA, cantera nasa_condensed.yaml) give log fO2(IW) = -12.20 at 1500 K and -7.74 at 2000 K (COMPUTED). The RECALLED [R1464] fit (-27489/T + 6.702) gives -11.62 and -7.04. Spread between the two thermodynamic routes: 0.6 to 1.2 log units at 1500 to 2000 K; non-stoichiometric wuestite explains part of it. [R3378] labels IW &quot;oxidised&quot; and QFM &quot;reduced&quot; in the running text, which is backwards (IW is the reducing buffer); the generator should follow the physical order IW &lt; QIF &lt; QFM &lt; NiNiO.</p>
+<p>Meteorite-class outgassing redox, [R3944] (ApJ 843:120, Table 2; PDF read, arXiv id not recorded): <code>log10 fO2 = a + b 10^3/T + c 10^6/T^2 + d 10^9/T^3 + f 10^12/T^4</code> at 1 bar, 300 to 2000 K.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Composition</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+<th>f</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CI</td>
+<td>2.4976</td>
+<td>-9.8605</td>
+<td>-17.0701</td>
+<td>7.5220</td>
+<td>-1.0404</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CV</td>
+<td>9.0621</td>
+<td>-31.193</td>
+<td>5.1092</td>
+<td>-1.8475</td>
+<td>0.2000</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H</td>
+<td>5.0743</td>
+<td>-22.906</td>
+<td>-5.6610</td>
+<td>2.0634</td>
+<td>-0.2618</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>EH</td>
+<td>4.9495</td>
+<td>-24.024</td>
+<td>-4.6236</td>
+<td>1.7177</td>
+<td>-0.2332</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Eucrite</td>
+<td>5.4856</td>
+<td>-25.127</td>
+<td>-3.6580</td>
+<td>1.3014</td>
+<td>-0.1650</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Redox ranking is CI &gt; CV &gt; H &gt; EH; EH is about IW-1 and eucrite IW-1.4 to IW-0.8 (READ, same paper). The existing project redox draw (<code>REDOX_EARTH_DELTA_IW = 3.5</code>, slope 2.0 per dex of mass, sigma 1.0) is therefore far more oxidised than meteoritic building blocks (dIW about -1 to 0) and corresponds to a modern Earth-like upper mantle; [R4154] (NOT REACHED, snippet: Fe3+/sumFe 0.037 +/- 0.005, magma ocean near IW+0.5, CO-rich then CO<sub>2</sub>-N2) suggests a magma-ocean stage near IW to IW+1 before oxidation. See Boss list.</p>
+<h3 id="33-speciation-equations">3.3 Speciation equations</h3>
+<p>Fits of log10 K(T) = a + b/T, 600 to 2000 K, bar standard state, from NASA polynomials (DATA) fitted by COMPUTED least squares:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Reaction</th>
+<th>a</th>
+<th>b (K)</th>
+<th>Max residual (log10)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub> + 1/2 O<sub>2</sub> = H<sub>2</sub>O</td>
+<td>-2.913</td>
+<td>12952</td>
+<td>0.04</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO + 1/2 O<sub>2</sub> = CO<sub>2</sub></td>
+<td>-4.514</td>
+<td>14742</td>
+<td>0.03</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO + 3 H<sub>2</sub> = CH<sub>4</sub> + H<sub>2</sub>O</td>
+<td>-13.146</td>
+<td>11697</td>
+<td>0.07</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S + 3/2 O<sub>2</sub> = SO<sub>2</sub> + H<sub>2</sub>O</td>
+<td>-4.166</td>
+<td>27156</td>
+<td>0.01</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub> + 3 H<sub>2</sub> = 2 NH<sub>3</sub></td>
+<td>-12.234</td>
+<td>5732</td>
+<td>0.08</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO + H<sub>2</sub>S = COS + H<sub>2</sub></td>
+<td>-1.477</td>
+<td>4</td>
+<td>0.06</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO + NH<sub>3</sub> = HCN + H<sub>2</sub>O</td>
+<td>0.296</td>
+<td>-2742</td>
+<td>0.02</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-check against [R4863]: K(CH<sub>4</sub> CO) = pCH4 pH2O/(pCO pH2^3) = 5.24e-14 exp(27285/T), atm (READ), versus my fit ln K = -30.27 + 26934/T in bar (COMPUTED); these agree to the stated accuracy once atm versus bar is accounted for.</p>
+<p>Ortenzi's own relations: (H<sub>2</sub>O/H2)^2 = K3 fO2 and CO<sub>2</sub>/CO = K4 fO2^(1/2) (their Eq 16 and 18, READ); carbonate melt fraction X_CO3 = K1 K2 fO2 / (1 + K1 K2 fO2), with log10 K1 = 40.07639 - 2.53932e-2 T + 5.27096e-6 T^2 + 0.0267 (p - 1)/T and log10 K2 = -6.24763 - 282.56/T - 0.119242 (p - 1000)/T (READ; degassing at about 2000 K).</p>
+<h3 id="34-speciation-results-computed">3.4 Speciation results (COMPUTED)</h3>
+<p>Solver inputs: ideal gas, element budget per H atom C = 0.1, N = 0.02, S = 0.02 (a design choice for illustration, not a sourced mantle inventory), species H<sub>2</sub>, H<sub>2</sub>O, CO, CO<sub>2</sub>, CH<sub>4</sub>, N<sub>2</sub>, NH<sub>3</sub>, H<sub>2</sub>S, SO<sub>2</sub>, COS, HCN, no graphite, no solubility.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Result (mole fractions)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1200 K, 1 bar, dIW = 0</td>
+<td>H<sub>2</sub> 0.48, H<sub>2</sub>O 0.30, CO 0.11, CO<sub>2</sub> 0.051, H<sub>2</sub>S 0.033, CH<sub>4</sub> 1.7e-5, SO<sub>2</sub> 1.6e-7</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1200 K, 1 bar, dIW = +4</td>
+<td>H<sub>2</sub>O 0.78, CO<sub>2</sub> 0.16, SO<sub>2</sub> 2.1e-2, H<sub>2</sub>S 1.1e-2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1000 K, 100 bar, dIW &lt;= +1</td>
+<td>CH<sub>4</sub> about 0.24; CO falls to 1e-6 to 1e-3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>800 K, 100 bar</td>
+<td>NH<sub>3</sub> about 1.5e-2 to 2e-2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S/SO2 crossover</td>
+<td>near dIW = +3 at 1200 K</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Direct comparison with the published bulk-silicate-Earth speciation ([R3945: Table 3], READ):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Continental crust composition</th>
+<th>BSE composition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1000 K, 1e-6 bar</td>
+<td>49% H<sub>2</sub>O, 39% CO<sub>2</sub>, 4.5% HF</td>
+<td>61% H<sub>2</sub>O, 20% SO<sub>2</sub>, 12% CO<sub>2</sub></td>
+</tr>
+<tr>
+<td>1000 K, 100 bar</td>
+<td>55% H<sub>2</sub>O, 42% CO<sub>2</sub>, 1.4% HCl</td>
+<td>80% H<sub>2</sub>O, 16% CO<sub>2</sub>, 2.3% H<sub>2</sub></td>
+</tr>
+<tr>
+<td>2000 K, 1e-6 bar</td>
+<td>52% SiO, 25% O, 15% O<sub>2</sub></td>
+<td>28% Mg, 26% O, 24% SiO</td>
+</tr>
+<tr>
+<td>2000 K, 100 bar</td>
+<td>48% H<sub>2</sub>O, 38% CO<sub>2</sub>, 4% HF</td>
+<td>62% H<sub>2</sub>O, 20% SO<sub>2</sub>, 12% CO<sub>2</sub></td>
+</tr>
+</tbody>
+</table></div>
+<p>Further READ points from the same paper: H<sub>2</sub> is never the major H-bearing gas; CO<sub>2</sub> holds about 30% (molar) of the gas up to 1150, 1300, 1550, 1950 and 2300 K at 1e-6, 1e-4, 1e-2, 1 and 100 bar; N<sub>2</sub> dominates at 500 to 700 K; NH<sub>3</sub> appears for the BSE at low T; H<sub>2</sub>S is the main S gas for the BSE at low T. Spread note: my COMPUTED table at dIW = 0 is H<sub>2</sub>-rich, the Schaefer composition (a more oxidised, crust-like or BSE inventory) is H<sub>2</sub>O/CO2-rich; this is the same dIW dependence, not a conflict.</p>
+<h3 id="35-generator-recipe-for-rocky-outgassed-atmospheres">3.5 Generator recipe for rocky outgassed atmospheres</h3>
+<pre><code>inputs: P_surf, T_surf, dIW, delivered volatile class (Low/High/Dry), star
+1. fO2 = 10^(A - B/T + C (P-1)/T)   (Holloway buffers, 3.2) + dIW
+2. H2O/H2 = sqrt(K_H2O fO2) ;  CO2/CO = K_CO2 sqrt(fO2)   (3.3)
+3. If dIW &lt; 0.5 and T &lt; 900 K and P &gt; 10 bar: CH4/CO via K(CH4 CO), N2-&gt;NH3 via K(NH3) (3.3)
+4. S: H2S below dIW about +2.5 (T = 1200 K), SO2 above ~ +3  (3.4)
+5. Ar from 40K decay (3.6); N2 as the remainder after volatile closure
+6. Remove condensates: H2O below T_sat(P), NH3 etc. via section 12
+</code></pre>
+<p>Validity: 600 to 2000 K for K(T); ideal gas holds to about 100 bar for the CO<sub>2</sub>/H2O mixture and fails above that (use fugacity coefficients; NOT REACHED here).</p>
+<h3 id="36-noble-gases-and-radiogenic-argon">3.6 Noble gases and radiogenic argon</h3>
+<p>Decay law for 40Ar: <code>Ar40(t) = f_Ar x K40_now x (exp(lambda t) - 1)</code>, with lambda = ln 2 / 1.248 Gyr = 0.5554 per Gyr (2ND-HAND: half-life 1.248 Gyr from NUBASE2020 via Wikipedia raw), branch fraction f_Ar = lambda_EC/lambda about 0.104 (10.3% plus about 0.1% plus 0.001%, 2ND-HAND from Wikipedia), 40K/K = 117 ppm (2ND-HAND, same). COMPUTED: Ar40 per K40 present is 0.077 at 1 Gyr, 0.212 at 2 Gyr, 1.162 at 4.5 Gyr; the K40 at 4.5 Gyr ago was 12.2 times the present amount.</p>
+<p>TEST check (Earth; inputs RECALLED): BSE K about 240 ppm (McDonough and Sun), mantle mass 4.0e27 g gives about 3.3e18 mol of 40Ar produced in 4.5 Gyr (3.4e-6 mol per gram K, COMPUTED); the atmosphere holds about 1.7e18 mol of 40Ar (0.934% Ar at 99.6% 40Ar in 1.8e20 mol of air, RECALLED); the ratio is 0.5, consistent with the RECALLED 50 to 66% degassed fraction. Status: COMPUTED on RECALLED inputs.</p>
+<p>Generator rule: Ar40_atm (mol) = f_degas x f_Ar x K40_now (mol) x (exp(lambda t) - 1), where K40_now = 117e-6 x total planetary K (mol) and f_degas is drawn between 0.05 and 0.7 depending on tectonic regime (the 0.5 to 0.66 Earth value is RECALLED). This is a design range anchored on one TEST planet; the real distribution for other planets is NOT REACHED. Primordial 36Ar and 38Ar plus Ne, Kr, Xe: solar ratios in section 2.1 apply for captured nebular gas (Ar/Ne = 0.021, Kr and Xe about 1e-9 and 1.7e-10 relative to H). For secondary atmospheres the noble gases are strongly depleted relative to solar; the depletion factor is RECALLED (Earth Ne 18.18 ppm, Kr 1.14 ppm, Xe 0.087 ppm in air, RECALLED TEST values).</p>
+<h3 id="37-related-outgassing-results-context-rows">3.7 Related outgassing results (context rows)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Volcanic CH<sub>4</sub> fluxes comparable to biological ones are unlikely and would come with abundant CO</td>
+<td>[R2490, R4729]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>1 to 10 Earth-mass planets with 10 to 100 day periods keep water-dominated atmospheres; FeO reduction creates H<sub>2</sub>O that is soluble in magma</td>
+<td>[R2383]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> atmospheres suppress H<sub>2</sub>O outgassing; a molten mantle increases radius by about 5%</td>
+<td>[R0502]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Atmodeller: CO-dominated at magma-ocean stage evolving to CO<sub>2</sub>-rich atmospheres of a few hundred bar at 280 K</td>
+<td>[R0503]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Abiotic O<sub>2</sub> build-up near 5 bar per Myr on Earth-mass planets, up to 25 bar per Myr on super-Earths, reaching hundreds to thousands of bar (GJ 667Cc up to about 2000 bar, up to 10 oceans lost)</td>
+<td>[R2769] as quoted in [R2286]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Liggins classes at 800 K: Class O (oxidised: SO<sub>2</sub>, sulfur allotropes), Class I (intermediate: CO<sub>2</sub>, CH<sub>4</sub>, CO, COS), Class R (reduced: H<sub>2</sub>, NH<sub>3</sub>, CH<sub>4</sub>)</td>
+<td>[R2686]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H/C and age set whether the main species is H<sub>2</sub>, H<sub>2</sub>O or CO<sub>2</sub></td>
+<td>[R2686]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Atmospheric class by mantle redox (generator mapping): dIW &lt; 0 gives Class R (H<sub>2</sub>, CH<sub>4</sub>/CO, NH<sub>3</sub>); dIW 0 to +2 Class I; dIW &gt; +2.5 Class O. The 0 and 2.5 cuts are my interpolation of Liggins and the section 3.4 crossovers and are labelled COMPUTED/design, not published numbers.</p>
+<hr />
+<h2 id="4-lava-worlds-and-silicate-vapour">4. Lava worlds and silicate vapour</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dominant gases above the BSE or komatiite melt: Na, O<sub>2</sub>, O, SiO, Fe, Mg</td>
+<td></td>
+<td>[R3059]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Of 193 Kepler candidates studied: 189 Type I, 3 Type II, 1 Type IV</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Type boundaries in the text (Tp in K): I &lt; 2033, II 2033 to 2588, III 2588 to 2890, IV 2890 to 3168, V &gt; 3168</td>
+<td></td>
+<td>same text</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Type boundaries in the figure caption lines: 2096, 2460, 2735, 2974, 3170 K</td>
+<td></td>
+<td>same figure captions</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Spread of the two boundary lists: up to 130 K on the I/II boundary (2033 vs 2096) and 128 K on II/III (2588 vs 2460)</td>
+<td></td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Vapour pressure of BSE melt: log10(Peq) = k1 exp(k2 Ts), 1400 &lt; Ts &lt; 2800 K, k1 = {-34.7, -60.1, -60.2}, k2 = {-0.00112, -0.00122, -0.00101} for small (&lt; 0.01), intermediate (about 0.5), large (&gt; 0.9) vaporised fraction</td>
+<td></td>
+<td>[R2380]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Peq about 2e-4 bar at 2000 K and 8e-3 bar at 2500 K (small fraction)</td>
+<td></td>
+<td>evaluated from Kite eq.</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Atmosphere exchanges quickly when bulk-silicate FeO is low; pools are well mixed below about 2400 K substellar temperature</td>
+<td></td>
+<td>[R2380]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Main species Na, K, Fe, Si, SiO, O, O<sub>2</sub>; SiO UV absorption causes a thermal inversion</td>
+<td></td>
+<td>[R2105]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Tabulated Type I to V vapour compositions and the original silicate-vapour chemistry papers ([R3059, R3943] numeric tables)</td>
+<td></td>
+<td></td>
+<td>NOT REACHED (only figures read; see Boss list)</td>
+</tr>
+<tr>
+<td>TEST: 55 Cnc e has a volatile atmosphere likely rich in CO<sub>2</sub> or CO; best fits are CO<sub>2</sub>-rich, surface pressure 0.01 to 100 bar with CO<sub>2</sub> volume mixing ratio above 1e-5; a CO-only scenario is allowed</td>
+<td></td>
+<td>Hu et al. 2024, [R2023]</td>
+<td>READ (TEST)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe (lava world, Ts = substellar surface temperature, composition BSE):</p>
+<pre><code>logP_eq(Ts) = k1 * exp(k2 * Ts)       ([R2380], 1400-2800 K)
+x_Na  : x_SiO : x_Mg : x_Fe : x_O2 : x_O  ~ taken from the Miguel/Schaefer table by Type (I-V)
+    Type I (Tp &lt; ~2033-2096 K): Na dominant
+    Type II-III: SiO and O2 grow
+    Type IV-V (Tp &gt; ~2890 K): Fe, Mg, Si, SiO dominate
+</code></pre>
+<p>Mole-fraction values by type were not extracted in this lane (figures only); the [R3945] table in 3.4 (2000 K, 1e-6 bar: 28% Mg, 26% O, 24% SiO for the BSE) is the only quantitative anchor. See Boss list for tabulated Type I to V compositions.</p>
+<p>Tracers for optics: SiO, Na, K, Mg, Fe, TiO, VO (the last two follow the Burrows and Sharp sequence in section 7: TiO exists above about 2000 to 2300 K, VO above about 1700 to 1900 K).</p>
+<hr />
+<h2 id="5-sub-neptunes-super-earths-hycean-and-water-worlds">5. Sub-Neptunes, super-Earths, hycean and water worlds</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Four atmosphere classes for thick atmospheres: hydrogen-rich (X_H &gt;= 0.7), water-rich, oxygen-rich, hydrocarbon-rich</td>
+<td></td>
+<td>Hu and [R2025]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water-rich atmospheres require carbon as CO<sub>2</sub> and exist only for C/O well below solar; loss of light elements from a C-rich, O-poor atmosphere leaves C<sub>2</sub>H<sub>2</sub> and C<sub>2</sub>H<sub>4</sub></td>
+<td></td>
+<td>Hu and [R2025]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hot Neptunes with metallicity 10 to 10,000 x solar span H<sub>2</sub>-dominated to CO<sub>2</sub>-, CO-, H<sub>2</sub>O- or O<sub>2</sub>-dominated compositions</td>
+<td></td>
+<td>[R3176]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interior-atmosphere coupling: H about 1 to 2 wt% and O about 10 wt% of the metal core; about 0.1 wt% H in the mantle; more than 93% of H sits in the atmosphere; the envelope is oxidised, mantle and core reduced</td>
+<td></td>
+<td>[R3961]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hycean: H<sub>2</sub> envelope mass fraction &lt;= 0.1%, minimum water mass fraction 10%, ocean-bottom T about 300 to 400 K, pressure at the habitable-surface boundary 1 to 1000 bar, radii up to 2.6 R_Earth at 10 Earth masses</td>
+<td></td>
+<td>[R2804]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water mixing ratio in a hycean photosphere: H<sub>2</sub>O volume mixing ratio of 10% corresponds to the 10% mass fraction case</td>
+<td></td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: K2-18b (HST) H<sub>2</sub>O 0.033% to 8.9% (1 sigma), N<sub>2</sub> &lt; 10.9%, CO &lt; 7.45%, CO<sub>2</sub> &lt; 2.4%, NH<sub>3</sub> &lt; 13.5%, CH<sub>4</sub> &lt; 0.248% (2 sigma)</td>
+<td></td>
+<td>[R0340]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: K2-18b (JWST) CH<sub>4</sub> about 1% and CO<sub>2</sub> about 1% in an H<sub>2</sub>-rich atmosphere (5 sigma and 3 sigma), NH<sub>3</sub> not detected, log X_CH4 = -2.04 (+0.61/-0.72)</td>
+<td></td>
+<td>[R2805]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Spread note: the HST CH<sub>4</sub> upper limit (0.248%) lies below the JWST value (about 1%, log X = -2.04 gives 0.9%), so the two datasets disagree by a factor of about 4 at face value</td>
+<td></td>
+<td>both above</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST: TOI-270 d mean molecular weight 5.47 (+1.25/-1.14), atmospheric metal mass fraction 58 (+8/-12)%, C/O 0.47 (+0.16/-0.19), interior about 90 wt% rock and iron; fully miscible supercritical metal-rich envelope</td>
+<td></td>
+<td>[R0339]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: GJ 9827 d steam world, O/H about 4 by mass, H<sub>2</sub>O volume mixing ratio above 31% as the background gas</td>
+<td></td>
+<td>[R3517]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TEST: GJ 1214b reflective metal-rich atmosphere, metallicity above 100 x solar (models 1 to 3000 x solar considered) with thick haze</td>
+<td></td>
+<td>[R2316]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe (sub-Neptune or water world):</p>
+<pre><code>inputs: M, R (or bulk density), Teq, envelope mass fraction f_env, dIW, star
+1. Draw envelope metal mass fraction Zenv: log-uniform in [0.01, 0.6]
+   (bracketed by GJ 1214b &gt;100 x solar, TOI-270 d 58 wt%, K2-18b near solar to tens of x)
+2. mean molecular weight mu: Zenv = 0.01 -&gt; ~2.4 ; 0.58 -&gt; ~5.5 (TOI-270 d value) ; beyond -&gt; H2O background (GJ 9827 d, &gt;31% H2O)
+3. Oxygen carrier: H2O set by H2 + 1/2 O2 = H2O at the magma/envelope interface fO2 (3.2-3.3)
+   (Schlichting and Young: envelope oxidised even though mantle is reduced)
+4. C: CH4 below ~500-700 K, CO2/CO above; N: N2 (NH3 not seen in K2-18b)
+5. If hycean branch (f_env &lt;= 0.001, ocean mass &gt;= 10%): H2O vapour limited by T_surface sat. pressure (12.2)
+</code></pre>
+<p>The Zenv range is a design bracket from TEST planets, not a fitted distribution; an occurrence-weighted distribution is NOT REACHED (see Boss list).</p>
+<hr />
+<h2 id="6-evolved-secondary-and-frost-equilibrium-atmospheres-venus--mars--titan--pluto-like-classes">6. Evolved secondary and frost-equilibrium atmospheres (Venus-, Mars-, Titan-, Pluto-like classes)</h2>
+<p>These are class recipes. The Solar System bodies are TEST rows only, used to confirm that a recipe can reproduce a known endpoint.</p>
+<h3 id="61-recipes">6.1 Recipes</h3>
+<pre><code>Oxidised terrestrial (CO2-N2 type, Venus/Mars-like):
+   take the outgassed mixture from 3.5 at high dIW (CO2, H2O, N2, SO2) ; remove H2O by escape/condensation ;
+   N2 from nitrogen inventory ; Ar from 3.6 ;   O2 from H2O photolysis + escape (Luger and Barnes: up to ~5 bar/Myr)
+Reduced N2-CH4 (Titan-like, T &lt; ~150 K, N2 dominant):
+   N2 from NH3 photolysis or outgassing ; CH4 mole fraction set by surface-ocean / interior reservoir ; H2 from CH4 photolysis (escape-limited)
+Frost-equilibrium (Pluto/Triton-like): p_i = chi_i * p_sat,i(T_surface)   (ideal solution, Raoult)
+   N2 sets total P ; CH4 and CO ride on top at the ice-mole-fraction scaled ratio
+</code></pre>
+<h3 id="62-test-rows-solar-system-calibration-only">6.2 TEST rows (Solar System calibration only)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TEST body</th>
+<th>Values</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Titan</td>
+<td>stratospheric CH<sub>4</sub> 1.48 +/- 0.09%, near-surface CH<sub>4</sub> 5.65 +/- 0.18%, H<sub>2</sub> (1.01 +/- 0.16)e-3</td>
+<td>[R3289] (NTRS file)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mars</td>
+<td>CO<sub>2</sub> 0.960, Ar 0.0193, N<sub>2</sub> 0.0189, O<sub>2</sub> 1.45e-3, CO below 1e-3</td>
+<td>no source</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mars (later)</td>
+<td>CO<sub>2</sub> 0.951, N<sub>2</sub> 0.0259, Ar 0.0194, O<sub>2</sub> 1.61e-3, CO 5.8e-4</td>
+<td>no source</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Mars spread between the two sets</td>
+<td>N<sub>2</sub> 0.0189 vs 0.0259 (30% apart)</td>
+<td>both above</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Venus</td>
+<td>CO<sub>2</sub> 96.5%, N<sub>2</sub> below 3.5%, SO<sub>2</sub> 150 ppm, Ar 70 ppm, H<sub>2</sub>O 20 ppm, CO 17 ppm</td>
+<td>search summary (Wikipedia-type compilation)</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Pluto</td>
+<td>N<sub>2</sub> above 99%, CH<sub>4</sub> about 0.30%, CO about 0.05% (cited); surface CH<sub>4</sub> (3 to 3.6)e-3 in N<sub>2</sub> ice; near-surface CO/N2 about 4e-3 and CO/CH4 about 1.7e-3 reported by one set of authors</td>
+<td>[R3186] review, [R3186]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Triton</td>
+<td>CO/N2 about 0.015% in the atmosphere (ground-based surface ice gave about 0.1%, predicted atmospheric mixing ratio 1.5e-4); CH<sub>4</sub> partial pressure several times larger than Voyager; CO abundance similar to surface abundance, controlled by a thin CO-rich veneer</td>
+<td>[R2642] (abstract READ); [R3186]</td>
+<td>READ and 2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two values for Pluto CO (about 0.05% atmospheric; CO/N2 about 4e-3 near surface) are not the same quantity and lie a factor of 8 apart; the generator should state whether it means a column-integrated or a near-surface ratio. The vapour-pressure relations for N<sub>2</sub>, CO, CH<sub>4</sub> and CO<sub>2</sub> ices are NOT REACHED ([R1445] not available; see 12.2 and the Boss list), so the frost-equilibrium recipe can only be used with the project's existing two-point table until those relations are obtained.</p>
+<hr />
+<h2 id="7-gas-giants-and-brown-dwarfs">7. Gas giants and brown dwarfs</h2>
+<h3 id="71-condensation-and-chemistry-sequence-versus-temperature-cloud-free-solar-composition">7.1 Condensation and chemistry sequence versus temperature (cloud-free, solar composition)</h3>
+<p>[R0608] (astro-ph/9807055) sequence, READ:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Temperature (K)</th>
+<th>Event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2300 to 2000</td>
+<td>TiO disappears; silicates and Fe appear</td>
+</tr>
+<tr>
+<td>1900</td>
+<td>Mg<sub>2</sub>SiO<sub>4</sub> forms</td>
+</tr>
+<tr>
+<td>1900 to 1700</td>
+<td>VO disappears</td>
+</tr>
+<tr>
+<td>1700</td>
+<td>MgSiO<sub>3</sub> forms</td>
+</tr>
+<tr>
+<td>1400</td>
+<td>CrH disappears; Li goes to LiCl below this</td>
+</tr>
+<tr>
+<td>1500 to 1200</td>
+<td>CO converts to CH<sub>4</sub> (pressure dependent)</td>
+</tr>
+<tr>
+<td>below 1200</td>
+<td>K, Rb, Cs go to chlorides</td>
+</tr>
+<tr>
+<td>1100 to 700</td>
+<td>Sulfide, NaCl and KCl clouds</td>
+</tr>
+<tr>
+<td>about 700 (600 to 800)</td>
+<td>N<sub>2</sub> converts to NH<sub>3</sub></td>
+</tr>
+<tr>
+<td>about 350</td>
+<td>water cloud</td>
+</tr>
+<tr>
+<td>about 200</td>
+<td>NH<sub>3</sub> and NH<sub>4</sub>SH clouds</td>
+</tr>
+</tbody>
+</table></div>
+<p>CH<sub>4</sub> is the main carbon carrier except in the youngest and hottest objects (Teff &gt;= 1300 K) (READ, same paper). The transition temperatures are pressure dependent; the generator must use the equations below at the local P.</p>
+<h3 id="72-condensation-temperatures-t-in-k-p_t-in-bar-xh-in-dex">7.2 Condensation temperatures (T in K, P_T in bar, [X/H] in dex)</h3>
+<p>[R4561] and 2006 (astro-ph/0511136), READ:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Condensate</th>
+<th>Relation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fe</td>
+<td>10^4/T_cond = 5.44 - 0.48 log P_T - 0.48 [Fe/H]</td>
+</tr>
+<tr>
+<td>Mg<sub>2</sub>SiO<sub>4</sub></td>
+<td>10^4/T_cond = 5.89 - 0.37 log P_T - 0.73 [Fe/H]</td>
+</tr>
+<tr>
+<td>MgSiO<sub>3</sub></td>
+<td>10^4/T_cond = 6.26 - 0.35 log P_T - 0.70 [Fe/H]</td>
+</tr>
+<tr>
+<td>MnS</td>
+<td>10^4/T_cond = 7.45 - 0.42 (log P_T + [Mn/H] + [S/H])</td>
+</tr>
+<tr>
+<td>Na<sub>2</sub>S</td>
+<td>10^4/T_cond = 10.05 - 0.72 (log P_T + [Na/H] + 0.5 [S/H])</td>
+</tr>
+<tr>
+<td>ZnS</td>
+<td>10^4/T_cond = 12.52 - 0.63 (log P_T + [Zn/H] + [S/H])</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>SH</td>
+<td>10^4/T_cond = 48.91 - 4.15 (log P_T + 0.5 [N/H] + 0.5 [S/H])</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S (solid)</td>
+<td>10^4/T_cond = 86.49 - 8.54 log P_T - 8.54 [S/H]</td>
+</tr>
+<tr>
+<td>Fe / Fe(OH)<sub>2</sub> boundary</td>
+<td>log P_T = 11.94 - 12088/T - 2 [Fe/H]</td>
+</tr>
+<tr>
+<td>FeH gas</td>
+<td>log X = -6.13 - 1905/T + 0.5 log P_T + [Fe/H]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Quartz forms at about 1550 K and enstatite at about 1600 K (READ). Monatomic Fe, Mg and SiO are the dominant refractory gases above the clouds (READ). Validity: the fits are for solar-like H<sub>2</sub>/He gas at the pressures of brown-dwarf and giant atmospheres (roughly 1e-3 to 1e2 bar); their metallicity range is stated in the paper and is not extrapolated here.</p>
+<h3 id="73-co--ch4--nh3-equilibrium-and-quench">7.3 CO / CH<sub>4</sub> / NH<sub>3</sub> equilibrium and quench</h3>
+<p>[R4863], READ:</p>
+<ul>
+<li>Equilibrium: K(CH<sub>4</sub> CO) = pCH4 pH2O / (pCO pH2^3) = 5.24e-14 exp(27285/T), atm.</li>
+<li>Quench times: t_q1 = 1.5e-6 p^-1 m^-0.7 exp(42000/T) s, t_q2 = 40 p^-2 exp(25000/T) s, 1/t_CO = 1/t_q1 + 1/t_q2, with p in bar and m the metallicity in solar units; the quench level is where t_mix = H^2 / Kzz equals t_CO.</li>
+<li>The CH<sub>4</sub> to CO transition lies near 500 K for planets (up to 600 K with sluggish mixing, 400 K with clouds or strong mixing) and 1100 +/- 100 K for brown dwarfs.</li>
+<li>The NH<sub>3</sub>/N2 ratio is insensitive to mixing in their grid (Teff 500 to 1100 K).</li>
+</ul>
+<h3 id="74-mixing-ratios-by-temperature-regime">7.4 Mixing ratios by temperature regime</h3>
+<p>Median and range columns are COMPUTED from the solar budget in 2.2 scaled by metallicity m (CH<sub>4</sub>, H<sub>2</sub>O, NH<sub>3</sub>, H<sub>2</sub>S scale with m while H<sub>2</sub> and He are weakly changed), then corrected by the condensation relations above; the log10 range column combines m = 0.3 to 30 with the C/O range 0.3 to 1.0 (design brackets from [R2801, R2803] and Line 2021). They are not measured values.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class (Teff or Teq, K)</th>
+<th>H<sub>2</sub></th>
+<th>He</th>
+<th>H<sub>2</sub>O</th>
+<th>CH<sub>4</sub></th>
+<th>CO</th>
+<th>NH<sub>3</sub></th>
+<th>H<sub>2</sub>S</th>
+<th>Na+K</th>
+<th>Controls</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cold giant, ice-giant envelope (Teq &lt; 200)</td>
+<td>0.86</td>
+<td>0.14</td>
+<td>cloud-depleted (0 to 8e-4 m)</td>
+<td>5e-4 m (log range -4.0 to -1.5)</td>
+<td>~0</td>
+<td>cloud-depleted</td>
+<td>cloud-depleted</td>
+<td>~0 (condensed)</td>
+<td>m, cloud depth, interior T</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Warm giant (200 to 700)</td>
+<td>0.86</td>
+<td>0.14</td>
+<td>8e-4 m</td>
+<td>5e-4 m</td>
+<td>quench-set, 1e-9 to 1e-5</td>
+<td>1e-4 m</td>
+<td>2e-5 m</td>
+<td>alkali chlorides/sulfides depleted</td>
+<td>m, C/O, Kzz</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>T dwarf (700 to 1300)</td>
+<td>0.86</td>
+<td>0.14</td>
+<td>8e-4 m</td>
+<td>5e-4 m</td>
+<td>1e-6 to 1e-4 (quench)</td>
+<td>1e-4 m</td>
+<td>2e-5 m</td>
+<td>Na, K present above clouds</td>
+<td>Kzz, gravity</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>L dwarf (1300 to 2200)</td>
+<td>0.86</td>
+<td>0.14</td>
+<td>8e-4 m</td>
+<td>trace</td>
+<td>5e-4 m</td>
+<td>N<sub>2</sub></td>
+<td>2e-5 m</td>
+<td>Na, K strong; FeH, CrH</td>
+<td>silicate and Fe clouds</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Y dwarf (&lt; 500)</td>
+<td>0.86</td>
+<td>0.14</td>
+<td>cloud-depleted</td>
+<td>5e-4 m</td>
+<td>quench-set</td>
+<td>1e-4 m</td>
+<td>cloud-depleted</td>
+<td>~0</td>
+<td>water cloud near 350 K</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe:</p>
+<pre><code>given Teff (or T(P)), g, m, C/O, Kzz:
+   x_H2 = 0.857*(1 - Zscale), x_He = 0.141*(1 - Zscale)   [Zscale = metal mole fraction]
+   O budget = m * 4.9e-4 minus the O taken by silicate/Fe clouds (~20%, [R4561] rock-forming elements)
+   C budget = m * 2.9e-4 * (C/O)/(0.589) ; CH4/CO by K(CH4 CO) with the quench of 7.3
+   N budget: NH3 at T &lt; 700 K (Burrows and Sharp), N2 above ; S budget: H2S [R4562]
+   condense Fe, Mg2SiO4, MgSiO3, Na2S, NH4SH, H2O, H2S by 7.2 and 12.2 before computing gas fractions
+</code></pre>
+<p>The ice-giant interior (above 1 kbar, water-rich) has no sourced mixing ratio in this lane; only the envelope recipe above applies. A mass-radius-consistent water/ammonia/methane interior mixture is NOT REACHED (Boss list). TEST: Jupiter-class retrievals follow log(CH<sub>4</sub>/H) = -1.11 log(M/MJ) + 0.38 (2.5), which the Solar System giants satisfy by construction.</p>
+<h3 id="75-brown-dwarf-spreads">7.5 Brown dwarf spreads</h3>
+<p>Zahnle and Marley give the CH<sub>4</sub> to CO crossover temperature as 1100 +/- 100 K for brown dwarfs and 500 K (400 to 600 K) for planets, a 600 K spread between classes at the same chemistry because of surface gravity and Kzz. The generator should not interpolate between the two numbers; it should evaluate the quench formula in 7.3 with the object's own gravity, metallicity and Kzz.</p>
+<hr />
+<h2 id="8-hot-and-ultra-hot-jupiters">8. Hot and ultra-hot Jupiters</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>For HD 189733b and HD 209458b, CH<sub>4</sub>, NH<sub>3</sub>, HCN and C<sub>2</sub>H<sub>2</sub> are enhanced by quenching and photochemistry; CO, H<sub>2</sub>O, N<sub>2</sub> and CO<sub>2</sub> follow equilibrium except below about 1 microbar</td>
+<td></td>
+<td>[R3177]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Photochemical and kinetic models for hot Jupiters (HD 209458b, HD 189733b)</td>
+<td>not extracted</td>
+<td>[R4527]</td>
+<td>NOT REACHED (PDF downloaded, body not read)</td>
+</tr>
+<tr>
+<td>TiO/VO as thermal-inversion absorbers: cold-trapping depletes them unless Kzz is at least a few times 1e7 cm2/s (0.1 micron grains) up to about 1e11 cm2/s (10 micron grains); VO unlikely to matter</td>
+<td></td>
+<td>[R4172]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ultra-hot dayside (Tday about 2900 K): H- opacity, thermal dissociation of H<sub>2</sub>O and other major molecules, and thermal ionisation of metals must be included; WASP-18b [M/H] = -0.01 +/- 0.35, C/O &lt; 0.85 (3 sigma), inverted temperature profile</td>
+<td></td>
+<td>[R0134]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O in hot giants is sub-stellar while Na and K are stellar to super-stellar</td>
+<td></td>
+<td>[R4663]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C/O &gt;= 1 gives HCN and C<sub>2</sub>H<sub>2</sub>, with TiO and VO underabundant</td>
+<td></td>
+<td>[R2801, R2803]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Teq of TiO survival: Burrows and Sharp: TiO exists above 2000 to 2300 K, VO above 1700 to 1900 K</td>
+<td></td>
+<td>astro-ph/9807055</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe:</p>
+<pre><code>given Teq, Tday, m, C/O, Kzz:
+   Tday &lt; 1500 K : as warm giant (7.4), with CH4/NH3/HCN enhanced by Kzz quench
+   1500 - 2200 K : CO + H2O + H2 ; CO2 rises with m ; TiO/VO only if cold trap leaky (Kzz &gt; 1e8 and a &lt; 1 micron)
+   Tday &gt; 2200 K : thermally dissociate H2O (to OH + H, O) , H2 (to H) ; add H-, Na, K, Fe, Mg, SiO, TiO (Section 4 list)
+Mole-fraction values for dissociation depend on P and T and are not tabulated in this lane (T-P-dependent; use FastChem/GGchem data, NOT REACHED here).
+</code></pre>
+<hr />
+<h2 id="9-comets-and-comae">9. Comets and comae</h2>
+<h3 id="91-abundances-relative-to-h2o">9.1 Abundances relative to H<sub>2</sub>O</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>67P percent of H<sub>2</sub>O (TEST)</th>
+<th>Cross-comet range, percent of H<sub>2</sub>O</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>4.7 +/- 1.4</td>
+<td>median about 12 (25 comets; about half CO<sub>2</sub>-dominated, a third CO-dominated, a tenth comparable)</td>
+<td>[R3835]; Harrington [R3535]</td>
+<td>READ; SNIPPET</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>3.1 +/- 0.9</td>
+<td>0.5 to 23 (Hale-Bopp 23.0, Hyakutake 18.2); median about 3</td>
+<td>[R3835, R4704] (Tables 2 and 3); Harrington [R3535]</td>
+<td>READ; READ; SNIPPET</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>3.1 +/- 1.1</td>
+<td>not tabulated</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>0.34 +/- 0.07</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>0.29 +/- 0.06</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>0.21 +/- 0.06</td>
+<td>0.2 to 2.6</td>
+<td>[R3835, R4704]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>0.32 +/- 0.10</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>0.67 +/- 0.20</td>
+<td>0.1 to 0.73</td>
+<td>[R3835, R4704]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>0.14 +/- 0.04</td>
+<td>0.09 to 0.29</td>
+<td>[R3835, R4704]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>1.10 +/- 0.46</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>0.089 +/- 0.024</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>0.041</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>0.127</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>5.8e-4</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>4.9e-5</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>2.4e-5</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>&lt; 5e-6</td>
+<td>not extracted</td>
+<td>[R3835]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 67P CO<sub>2</sub> value (4.7) and the 25-comet CO<sub>2</sub> median (about 12) differ by a factor 2.6 and the 67P CO (3.1) sits at the cross-comet median (about 3). Spread for CO alone across comets is a factor of 46 (0.5 to 23). Generator rule: draw <code>CO2/H2O</code> log-normal with median 0.12 and sigma about 0.5 dex, and <code>CO/H2O</code> log-normal with median 0.03 and sigma about 0.6 dex (sigma values are COMPUTED by eye from the quoted ranges, not published fits). Per-comet tabulations of [R0048] (NTRS, OCR damaged) and [R3206] / [R0436] are NOT REACHED; a protoplanetary-disk midplane comparison is in [R1234] and an ice-origin review in [R3833] (both downloaded, tables not extracted).</p>
+<h3 id="92-production-rate-scaling-computed">9.2 Production-rate scaling (COMPUTED)</h3>
+<p>Energy balance of a sublimating water-ice surface: <code>Q(r) = (1 - A) S0 pi R^2 / (r^2 L)</code> molecules per second, with L the latent heat per molecule, with S0 = 1361 W/m2 at 1 AU, A = 0.04, L = 51 kJ/mol (RECALLED, to verify), r in AU. This gives a flux limit of 1.54e22 molecules/s/m2 for the subsolar point at 1 AU and 4.8e28 molecules/s for R = 1 km. Values by distance (flux per m2): 6.2e22 at 0.5 AU, 1.5e22 at 1, 3.9e21 at 2, 1.7e21 at 3, 6.2e20 at 5. The r^-2 law holds inside about 2 to 2.5 AU; beyond it radiative loss and the water ice line (about 2.5 AU, RECALLED) matter and activity is driven by CO and CO<sub>2</sub> (RECALLED, consistent with CO and CO<sub>2</sub> dominance in the Harrington Pinto sample above). An empirical production-rate law (Combi, Meech and Svoren family) is NOT REACHED.</p>
+<hr />
+<h2 id="10-white-dwarf-and-pulsar-planets">10. White dwarf and pulsar planets</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debris accreted by polluted white dwarfs is volatile-depleted and rock-forming (O, Mg, Si, Ca, Fe dominated); the best extrapolation from calcium to total heavy-element accretion uses the bulk terrestrial Ca mass fraction A about 0.016</td>
+<td></td>
+<td>[R1325]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Upper limit on the H mass fraction of the debris is 1%, consistent with volatile-depleted parent bodies; carbon is consistent with the terrestrial value, not chondritic</td>
+<td></td>
+<td>[R1325] (citing Hartmann et al.)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Six polluted white dwarfs give fO2 consistent with Earth, Mars and typical asteroids; most oxidised bodies about dIW = -0.6, WD 1536+520 dIW = -1.37; Solar System bodies span about 6 log units in dIW</td>
+<td></td>
+<td>[R1154]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Planets that survive post main sequence evolution and their orbital fates</td>
+<td></td>
+<td>[R4532]</td>
+<td>NOT REACHED (PDF downloaded, body not read)</td>
+</tr>
+<tr>
+<td>Atmospheres of planets around white dwarfs and pulsars (composition, escape)</td>
+<td></td>
+<td>none</td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe: for an exposed rocky body around a white dwarf, composition is bulk-silicate-Earth like (3.4 table, 2000 K row) with dIW drawn from N(-1, 0.5) (spread bracketed by Doyle values), volatiles near zero (H &lt; 1% by mass of debris), so only a thin outgassed or vaporised atmosphere (Na, SiO, Mg, Fe) is expected when heated. For pulsar planets no sourced composition exists; treat as bare rock with vapour only if heated, and flag as a gap.</p>
+<hr />
+<h2 id="11-host-star-and-m-dwarf-dependence">11. Host-star and M-dwarf dependence</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>On Earth-like planets around M dwarfs the biogenic gases CH<sub>4</sub>, N<sub>2</sub>O and CH<sub>3</sub>Cl have substantially longer lifetimes and higher mixing ratios than on Earth (UV spectrum differs from the Sun); active M-star planets still develop an Earth-like ozone layer</td>
+<td>[R3999], astro-ph/0510224</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O builds up to observable concentration around M dwarfs with low UV flux; CH<sub>3</sub>Cl may become detectable; the O<sub>2</sub> 0.76 micron feature is harder to detect for later M dwarfs</td>
+<td>[R3845, R3846], [R3845]</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Abiotic O<sub>3</sub> appears without detectable O<sub>2</sub> in prebiotic-Earth-like atmospheres</td>
+<td>[R1137]</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>A catalytic H<sub>2</sub>O<sub>2</sub> cycle sustains CO<sub>2</sub>; below about 1 ppm H<sub>2</sub>, about 40% of CO<sub>2</sub> converts to CO and O<sub>2</sub> in about 1 Myr; the loss is capped near 50%</td>
+<td>[R1511]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>F and G stars do not accumulate abiotic O<sub>2</sub>; K and especially M stars can</td>
+<td>[R1814]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Extreme water loss in the M dwarf habitable zone gives abiotic O<sub>2</sub> build-up (hundreds to thousands of bar in the cases quoted by [R2286])</td>
+<td>[R2769]</td>
+<td>READ (title); numbers 2ND-HAND via [R2286]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recipe: the host star changes the atmosphere mainly through the FUV/UV to visible ratio and flare history. For an M dwarf host and a rocky planet with an oxidised mantle, move oxygen from the CO<sub>2</sub>/H2O reservoir to O<sub>2</sub> on a timescale set by water loss (up to about 5 bar/Myr on Earth-mass planets, 2ND-HAND), and move CO<sub>2</sub> to CO plus O<sub>2</sub> by the factor in the Gao row (cap 50%) when H<sub>2</sub> is below 1 ppm. Quantitative flare-driven rates and an F/G/K/M tabulation of mixing ratios are NOT REACHED beyond these abstracts.</p>
+<hr />
+<h2 id="12-vapour-pressure-and-condensation-relations-that-were-reached">12. Vapour pressure and condensation relations that were reached</h2>
+<h3 id="121-water-ice-computed-from-data">12.1 Water ice (COMPUTED from DATA)</h3>
+<p>From NASA condensed thermodynamic data for H<sub>2</sub>O(s) and H<sub>2</sub>O gas (cantera 3.2.0 <code>nasa_condensed.yaml</code> and <code>nasa_gas.yaml</code>, range 200 to 273.15 K): <code>log10 p_sat(bar) = 7.5622 - 2670.16/T</code>, maximum fit residual 6e-4 in log10. Check values: 6.118e-3 bar at 273.15 K (triple point 6.117e-3 bar, RECALLED, agrees), 2.73e-4 bar at 240 K, 1.63e-6 bar at 200 K; extrapolated below 200 K to 5.4e-8 bar at 180 K and 6.1e-11 bar at 150 K (outside the data range, flag EXTRAPOLATED).</p>
+<h3 id="122-nh3-and-beta-o2-ices-read-computed-check">12.2 NH<sub>3</sub> and beta-O2 ices (READ, COMPUTED check)</h3>
+<p>[R0418]: <code>ln p_vap(bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>A</th>
+<th>B (K)</th>
+<th>C</th>
+<th>D2 (1/K)</th>
+<th>D3 (1/K^2)</th>
+<th>D4 (1/K^3)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NH<sub>3</sub> ice</td>
+<td>-5.55 +/- 0.45</td>
+<td>3605 +/- 31</td>
+<td>4.82792</td>
+<td>-0.024895</td>
+<td>2.1669e-5</td>
+<td>-2.3575e-8</td>
+</tr>
+<tr>
+<td>beta-O2 ice</td>
+<td>15.29 +/- 0.29</td>
+<td>1166.2 +/- 8.6</td>
+<td>-0.75587</td>
+<td>0.14188</td>
+<td>-1.8665e-3</td>
+<td>7.582e-6</td>
+</tr>
+</tbody>
+</table></div>
+<p>COMPUTED check: NH<sub>3</sub> gives 6.17e-2 bar at 195 K (triple point about 6.1e-2 bar, RECALLED) and 3.7e-2 bar at 190 K, 3.4e-3 bar at 170 K, 1.6e-4 bar at 150 K, 2.5e-7 bar at 120 K; O<sub>2</sub> gives 2.7e-3 bar at 54 K, 4.9e-4 bar at 50 K, 3.7e-5 bar at 45 K, 1.4e-6 bar at 40 K. Their experimental vapour pressures lie below the [R1445] extrapolation by a factor 1.5 for NH<sub>3</sub> and 1.6 for beta-O2 (READ), a direct measure of the spread to carry. The project's two-point table (<code>CONDENSATION_K</code> in <code>atmosphere.py</code>) can be validated against these.</p>
+<h3 id="123-not-reached">12.3 Not reached</h3>
+<p>N<sub>2</sub>, CO, CH<sub>4</sub>, CO<sub>2</sub>, SO<sub>2</sub>, H<sub>2</sub>S and NH<sub>4</sub>SH(s) sublimation relations ([R1445, R1708] updates) are NOT REACHED; only the NH<sub>4</sub>SH and H<sub>2</sub>S condensation relations of 7.2 exist.</p>
+<hr />
+<h2 id="13-species-by-class-final-table">13. Species by class (final table)</h2>
+<p>Entries are mole fractions (gas phase, dry unless noted) with the evidence status of the entry. Column key: RR = reduced rocky outgassing (dIW &lt;= +1, 800 to 1200 K, 1 to 100 bar); RO = oxidised rocky (dIW about +4); LV = lava-world vapour (2000 K or more); SN = H<sub>2</sub>-rich sub-Neptune or hycean; WW = steam or water world; GG = giant 200 to 1300 K; HJ = hot or ultra-hot Jupiter; CM = comet coma (percent of H<sub>2</sub>O, 67P TEST). A dash means negligible by chemistry in that regime; &quot;?&quot; means no sourced number.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>RR</th>
+<th>RO</th>
+<th>LV</th>
+<th>SN</th>
+<th>WW</th>
+<th>GG</th>
+<th>HJ</th>
+<th>CM (%H<sub>2</sub>O)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>0.48</td>
+<td>-</td>
+<td>?</td>
+<td>~0.8</td>
+<td>0.02 to 0.7 (H<sub>2</sub>O background)</td>
+<td>0.86</td>
+<td>~0.9</td>
+<td>-</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>He</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.14</td>
+<td>-</td>
+<td>0.14</td>
+<td>0.14</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>0.01 (1/3 N budget)</td>
+<td>main</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>0.089</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>trace</td>
+<td>0.15 (crust, 2000 K, 1e-6 bar); abiotic build-up possible</td>
+<td>0.15</td>
+<td>-</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>3.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>-</td>
+<td>trace, abiotic possible</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>0.05</td>
+<td>0.16 (COMPUTED), 0.12 to 0.42 (BSE/crust, Schaefer)</td>
+<td>?</td>
+<td>~0.01</td>
+<td>up to dominant</td>
+<td>-</td>
+<td>rises with m</td>
+<td>4.7</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>0.11</td>
+<td>~0</td>
+<td>?</td>
+<td>&lt; 7e-2 (K2-18b limit)</td>
+<td>?</td>
+<td>quench 1e-9 to 1e-4</td>
+<td>5e-4 m</td>
+<td>3.1</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>1.7e-5 (1200 K), 0.24 (1000 K, 100 bar)</td>
+<td>-</td>
+<td>-</td>
+<td>~0.01</td>
+<td>?</td>
+<td>5e-4 m</td>
+<td>quench-enhanced</td>
+<td>0.34</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>0.30</td>
+<td>0.78</td>
+<td>trace</td>
+<td>0.03 to 0.09 (K2-18b bound)</td>
+<td>&gt; 0.31</td>
+<td>8e-4 m (cloud-limited)</td>
+<td>dissociated above ~2200 K</td>
+<td>100</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>1.5e-2 to 2e-2 (800 K, 100 bar)</td>
+<td>-</td>
+<td>-</td>
+<td>not detected</td>
+<td>?</td>
+<td>1.2e-4 m</td>
+<td>quench-enhanced</td>
+<td>0.67</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>0.033</td>
+<td>0.011</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>2.3e-5 m</td>
+<td>?</td>
+<td>1.10</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>1.6e-7</td>
+<td>0.021</td>
+<td>?</td>
+<td>photochemical</td>
+<td>?</td>
+<td>-</td>
+<td>photochemical (WASP-39b TEST)</td>
+<td>0.127</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>40Ar radiogenic, section 3.6</td>
+<td>same</td>
+<td>-</td>
+<td>4.1e-6 (solar)</td>
+<td>?</td>
+<td>4.1e-6</td>
+<td>4.1e-6</td>
+<td>5.8e-4</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>2.0e-4 (solar)</td>
+<td>?</td>
+<td>2.0e-4</td>
+<td>2.0e-4</td>
+<td>&lt; 5e-6</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>1.3e-9 per H (solar)</td>
+<td>?</td>
+<td>same</td>
+<td>same</td>
+<td>4.9e-5</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>1.7e-10 per H (solar)</td>
+<td>?</td>
+<td>same</td>
+<td>same</td>
+<td>2.4e-5</td>
+<td>COMPUTED/READ</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>SH</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>cloud (7.2)</td>
+<td>-</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>via CO + NH<sub>3</sub> (3.3)</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>trace</td>
+<td>quench- and C/O-enhanced</td>
+<td>0.14</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>trace</td>
+<td>?</td>
+<td>0.29</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>trace</td>
+<td>C/O &gt;= 1</td>
+<td>?</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>OCS (COS)</td>
+<td>via CO + H<sub>2</sub>S (3.3)</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>0.041</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>1.4% (crust composition, 1000 K, 100 bar)</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>KCl, NaCl condensates</td>
+<td>?</td>
+<td>?</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>4.5% (crust composition, 1000 K, 1e-6 bar)</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>-</td>
+<td>?</td>
+<td>?</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>-</td>
+<td>abiotic ?</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>-</td>
+<td>lightning-driven, ? [R1813]</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>-</td>
+<td>-</td>
+<td>Type I dominant</td>
+<td>-</td>
+<td>-</td>
+<td>condensed below ~1100 K</td>
+<td>1.7e-6 per H</td>
+<td>-</td>
+<td>READ/COMPUTED</td>
+</tr>
+<tr>
+<td>K</td>
+<td>-</td>
+<td>-</td>
+<td>present</td>
+<td>-</td>
+<td>-</td>
+<td>KCl below ~1200 K</td>
+<td>1.2e-7 per H</td>
+<td>-</td>
+<td>READ/COMPUTED</td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>-</td>
+<td>-</td>
+<td>0.24 (BSE at 2000 K, 1e-6 bar)</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>refractory gas</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>-</td>
+<td>-</td>
+<td>0.28 (BSE at 2000 K, 1e-6 bar)</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>refractory gas</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>-</td>
+<td>-</td>
+<td>present</td>
+<td>-</td>
+<td>-</td>
+<td>cloud (7.2)</td>
+<td>refractory gas</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>cold-trapped unless Kzz large</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>VO</td>
+<td>-</td>
+<td>-</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>same (less likely)</td>
+<td>-</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>disequilibrium</td>
+<td>-</td>
+<td>-</td>
+<td>NOT REACHED (qualitative only)</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.21</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.32</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="14-boss-must-research">14. Boss must research</h2>
+<ol>
+<li>[R1445] (Planet. Space Sci. 57) and [R1708] for N<sub>2</sub>, CO, CH<sub>4</sub>, CO<sub>2</sub>, SO<sub>2</sub>, H<sub>2</sub>S, NH<sub>3</sub> sublimation coefficients: needed for the Pluto/Triton frost-equilibrium recipe and validation of <code>CONDENSATION_K</code>. Not reachable here (journal; no arXiv copy found).</li>
+<li>[R4154] (Sci. Adv.) and [R1491] and 2021: magma-ocean redox and CO to CO<sub>2</sub>-N2 evolution; snippet only. Needed to fix the dIW prior of the generator.</li>
+<li>[R1953] (graphite, C solubility) and carbon solubility in melt: our speciation has no graphite and no solubility, so CH<sub>4</sub>/CO at the surface is biased.</li>
+<li>[R0436, R3206], Dello [R1063], Harrington [R3535] full tables: per-comet abundances of 30 or more species; [R4704] has only ranges. Also [R0048] with usable OCR.</li>
+<li>[R2725] and 2006, [R2726]: brown dwarf chemistry and the original condensation tables; [R3943] for silicate vapour.</li>
+<li>[R3059] numeric tables (Type I to V compositions) for lava worlds; only figures were read.</li>
+<li>The [R4352] scatter on the Zpl/Zstar fit and the width of the atmosphere-to-bulk offset in giants.</li>
+<li>An occurrence-weighted distribution of sub-Neptune envelope metallicity (Zenv) for the generator; used here only as a bracket of TEST planets.</li>
+<li>Hot Jupiter thermochemistry tables (FastChem or GGchem output) for T above 2200 K, and [R4527] / Line 2021 numbers.</li>
+<li>Mass-radius-consistent water, ammonia and methane interior mixture of ice giants (no mixing ratio found).</li>
+<li>Pulsar planet and white-dwarf planet atmospheres: no sourced composition.</li>
+<li>Fugacity coefficients for CO<sub>2</sub>-H2O at above 100 bar (ideal gas fails).</li>
+<li>Combi, Meech and Svoren production-rate law for comets and the CO, CO<sub>2</sub> activity onset distance.</li>
+<li>N<sub>2</sub>O, NO<sub>2</sub>, O<sub>3</sub> abiotic abundances ([R1137, R1813] numeric values), and the Atmospheric Toxicity document item [R1813] (ApJ 866, 56, real).</li>
+</ol>
+<h2 id="15-recalled--to-verify">15. Recalled / to verify</h2>
+<p>All values below are RECALLED and not verified:</p>
+<ul>
+<li>[R1464] iron-wuestite fit log fO2 = -27489/T + 6.702.</li>
+<li>BSE K about 240 ppm (McDonough and Sun); K/U about 12,000 (Arevalo); Earth 40Ar degassed fraction about 50 to 66%.</li>
+<li>Earth air: Ne 18.18 ppm, Kr 1.14 ppm, Xe 0.087 ppm, Ar 0.934%; 40Ar 99.6% of Ar; atmosphere 1.8e20 mol; mantle mass 4.0e27 g.</li>
+<li>Latent heat of water ice sublimation 51 kJ/mol; water ice line near 2.5 AU; triple points of H<sub>2</sub>O (6.117 mbar) and NH<sub>3</sub> (about 61 mbar).</li>
+<li>Marti and Mauersberger ice vapour pressure fit (not used in the tables).</li>
+<li>Design widths 0.3 dex (atmospheric metallicity), C/O 0.55 x 10^N(0, 0.15), CO<sub>2</sub>/H2O and CO/H2O sigma values, dIW prior N(-1, 0.5) for white dwarf debris.</li>
+<li>Mars N<sub>2</sub> 0.0259, Venus compositions (SNIPPET status; keep as TEST only).</li>
+</ul>
+<h2 id="16-cross-links">16. Cross-links</h2>
+<ul>
+<li>Part on thermodynamics and gas tables: use the same K(T) fits (3.3) and vapour pressures (12) for density and scale height.</li>
+<li>Part on clouds and hazes: condensation relations 7.2 and 12; NH<sub>4</sub>SH, Fe, silicate and water clouds.</li>
+<li>Part on photochemistry and escape: SO<sub>2</sub> and O<sub>3</sub> photochemistry (7, 11), abiotic O<sub>2</sub>, H<sub>2</sub> loss, Jeans escape for Ar/Ne/He fractionation.</li>
+<li>Part on radiation and shielding: M-dwarf UV (11).</li>
+<li>Project code: <code>src/planetgen/physics/atmosphere.py</code> <code>SPECIES</code>, <code>CLASS_MIXES</code>, <code>CONDENSATION_K</code>, <code>REDOX_*</code> constants; the report <code>composition-density-link-2026-10-17.md</code> lists the balance-gas and aerosol gaps this part is meant to close. The redox prior (dIW = 3.5 + 2 log10(M/M_Earth)) is more oxidised than the meteoritic and magma-ocean values in 3.2 and should be revisited.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

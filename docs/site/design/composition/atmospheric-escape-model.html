@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmospheric escape: a thermosphere model, Jeans and diffusion-limited loss, and the XUV history (GEN.738) - planetGen docs</title>
+<meta name="description" content="Status: model and module, written on the night of 2026-10-24 (as the lane reported) by the Citations lane.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmospheric-escape-model.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/atmospheric-escape-model.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="atmospheric-escape-a-thermosphere-model-jeans-and-diffusion-limited-loss-and-the-xuv-history-gen738">Atmospheric escape: a thermosphere model, Jeans and diffusion-limited loss, and the XUV history (GEN.738)</h1><p class="meta">docs/design/composition/atmospheric-escape-model.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-answer-in-short">1. The answer in short</a></li><li style="margin-left:0px"><a href="#2-sources-and-what-was-read">2. Sources, and what was read</a></li><li style="margin-left:0px"><a href="#3-the-model">3. The model</a></li><li style="margin-left:0px"><a href="#4-checks">4. Checks</a></li><li style="margin-left:0px"><a href="#5-limits-and-what-is-not-done">5. Limits and what is not done</a></li><li style="margin-left:0px"><a href="#6-registry">6. Registry</a></li></ul></details>
+<p>Status: model and module, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. The module is <code>src/planetgen/physics/thermosphere.py</code>; <code>mixture_escape.apply</code> (GEN.693) now calls it in place of the logistic filter. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes and there is no epoch. The numbers in section 4 are COMPUTED here; they are model results, not measurements, except where a measured value is named.</p>
+<h2 id="1-the-answer-in-short">1. The answer in short</h2>
+<ul>
+<li>What a body loses from its air is fixed by three things: how hot the top of the air is (the exobase temperature), how thin it is there, and how much XUV the star has put out over the body's life. The old filter had none of them: a fixed ratio of the exobase to the equilibrium temperature (1.3 or 4, chosen by a threshold at half CO<sub>2</sub>), a logistic in the Jeans parameter and a rule of thumb for the age. Those three (rows AM19 to AM21) are gone.</li>
+<li>The exobase temperature is the mesopause temperature (0.78 of the equilibrium temperature) plus a rise that goes as the XUV flux to the power 0.96 and falls as the CO<sub>2</sub> of the air grows, <code>1 / (1 + (x_CO2 / 0.0126)^0.70)</code>. The two shapes and four constants are a fit to the 1-D upper-atmosphere model of [R2184]: the exobase temperatures of the modern Earth over a hundred-fold range of CO<sub>2</sub> (1310 K at 4e-6 down to 290 K at 0.4) and the 4,600 K of the young Sun's 4.9 times XUV. A CO<sub>2</sub> air is cold (Venus 274 K, Mars 186 K), an N<sub>2</sub> air is hot (the Earth 1,204 K).</li>
+<li>From that temperature the module finds the exobase (the height where the mean free path equals the scale height) on a temperature profile that rises from the mesopause, the Jeans flux of every species through it, and caps each species lighter than the air by the diffusion-limited flux of [R2050]: a light gas cannot leave faster than the air below can carry it up.</li>
+<li>The history is followed. The star's XUV falls as the star ages (<code>activity.coronal_xuv_at</code>); the flux, the temperature and the flux of every species are recomputed on 48 log-spaced steps from 30 Myr to the body's age, and each species' column is lowered by what leaves. The share of a species that stays is its column at the end over the one at the start. The air that is left is what the next step sees, so a hydrogen-rich air carries the heavier gases only while it still has its hydrogen.</li>
+<li>The checks: the Earth keeps its N<sub>2</sub>, O<sub>2</sub>, Ar and CO<sub>2</sub> and loses H<sub>2</sub> and He; Venus keeps all of its air (its exobase is cold); Mars keeps CO<sub>2</sub> and N<sub>2</sub> and loses H<sub>2</sub>; Titan's diffusion-limited hydrogen flux (1.0e28 per second) is within 15 percent of the 9.2e27 that Cassini measured, and its Jeans flux is a factor of 4.5 under it (section 4).</li>
+<li>The exobase search is bounded (GEN.841): at most <code>MAX_EXOBASE_STEPS</code> (200,000) steps, where the longest search over the whole range of bodies swept (radius 1e6 to 7e7 m, gravity 0.5 to 300 m/s2, mesopause 5 to 400 K, exobase to 5000 K) takes about 15,000, so the bound never acts on a real air; a NaN, infinite or non-positive input is an error and no longer a search that never ends. The binary diffusion parameters and molar masses are cached, which changes no value (the shares of 120 random airs are bit-identical before and after).</li>
+<li>The mass loss of a hydrogen envelope (a sub-Neptune) is the analytic fit of [R2512] to 7,000 hydrodynamic models (<code>hydro_based_mass_loss_g_s</code>); it reproduces the nine planets of its Table 2 to a factor of 2.3 or better (seven of the nine within 5 percent, the other two within the 2.5 of the test). It is not wired into the envelope rows yet (section 5).</li>
+</ul>
+<h2 id="2-sources-and-what-was-read">2. Sources, and what was read</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Read</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R2184], &quot;Upper atmospheres of terrestrial planets: Carbon dioxide cooling and the Earth's thermospheric evolution&quot; [R2184]</td>
+<td>full text and Figures 11, 12 and 13</td>
+<td>the Earth exobase temperature against the CO<sub>2</sub> mixing ratio (Fig. 12: 1310, 1260, 1155, 985, 540 and 290 K, read from the figure), the 4,600 K at 4.9 times the XUV (their model 3 Gyr ago), the exobase altitudes (475 km now, 2,000 to 2,500 km at the hottest), the mesopause of 200 K at 1e-2 mbar, the statement that the Earth model is never hydrodynamic and that its Jeans rates of N and O are orders below that of H</td>
+</tr>
+<tr>
+<td>[R2512], Frontiers in Astronomy and Space Sciences 5, 19, &quot;Overcoming the limitations of the energy-limited approximation for planet atmospheric escape&quot; [R2512]</td>
+<td>Eq. 9 and 10, Table 1, Table 2</td>
+<td>the hydro-based mass loss of a hydrogen envelope and its nine test planets</td>
+</tr>
+<tr>
+<td>[R4887], &quot;Atmospheres of Solar System Moons and Pluto&quot; [R4887]</td>
+<td>the Titan section</td>
+<td>Titan's hydrogen escape (limited by the maximum diffusion rate, about 9.2e27 per second), the exobase at 1,500 to 1,600 km</td>
+</tr>
+<tr>
+<td>[R1282], already read for GEN.813</td>
+<td>the Titan parts</td>
+<td>Titan's surface pressure 1.467 bar</td>
+</tr>
+<tr>
+<td>[R2050] (J. Atmos. Sci. 30, 1481); Chapman and Cowling's hard-sphere diffusion; [R0719, R1280, R2890, R4637]</td>
+<td>not opened</td>
+<td>the diffusion-limited flux, the diffusion coefficient, the energy-limited rate, the exobase condition and cross section, the kinetic diameters, the temperature profile and the H<sub>2</sub> in N<sub>2</sub> diffusion coefficient of the test, as recalled (source tier 3; the registry rows say so)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-model">3. The model</h2>
+<ul>
+<li><strong>Exobase temperature</strong> (<code>exobase_temperature_k</code>): <code>T = 0.78 T_eq + 1095 K (F / F_E)^0.96 / (1 + (x_CO2 / 0.0126)^0.70)</code>, <code>F_E = 4.6e-3 W/m2</code> the Earth's XUV (<code>constants.EARTH_XUV_FLUX_W_M2</code>). <code>F</code> is held to 4.9 Earth units, the top of the range the fit was checked in. The mesopause of a body whose lower air is not in radiative balance with the star (Titan's haze: 150 K) can be given.</li>
+<li><strong>Exobase</strong> (<code>exobase</code>): the air rises from 1 Pa at the mesopause temperature to the exobase temperature on <code>T(z) = T_exo - (T_exo - T_meso) exp(-z / L)</code> with <code>L</code> 2 scale heights of the mesopause (12 km for the Earth), in hydrostatic balance with gravity falling off as the inverse square. The exobase is where <code>n sigma H = 1</code>, <code>sigma = 2e-19 m2</code>. This profile gives 441 km at 1,155 K and 2,160 km at 4,600 K against the 475 and the 2,000 to 2,500 km of Johnstone et al. (an isothermal air from the mesopause, the first try, put the 4,600 K exobase at 14,800 km and made every Earth-mass draw with no CO<sub>2</sub> airless; it is not used). The altitude is above the 1 Pa level, not above the surface or the 1 bar level.</li>
+<li><strong>Jeans flux</strong> (<code>jeans_flux</code>): <code>n v0 (1 + lambda) exp(-lambda) / (2 sqrt(pi))</code> with the density of the species <code>n = f n_exo</code>, <code>v0</code> its most probable speed and <code>lambda = G M m / (k T r)</code> at the exobase.</li>
+<li><strong>Diffusion limit</strong> (<code>diffusion_limited_flux</code>): <code>b f g (m_air - m) / (k T_meso)</code> for a species lighter than the air, with the binary diffusion parameter <code>b = 3 / (8 sigma_ij^2) sqrt(k T / (2 pi mu_ij))</code> (hard spheres, kinetic diameters in <code>KINETIC_DIAMETER_PM</code>, Blanc's law for the mixture). The test checks the H<sub>2</sub>-in-N2 coefficient against 0.68 cm2/s at 273 K within 20 percent.</li>
+<li><strong>Energy limit</strong> (<code>energy_limited_mass_loss_kg_s</code>): the total mass loss of all species is at most <code>0.15 pi F R_exo^3 / (G M)</code>; if the species demand more, all are scaled down together.</li>
+<li><strong>History</strong> (<code>kept_shares</code>): described in section 1. The flux at an age is the present flux times <code>activity.coronal_xuv_at(age) / coronal_xuv_at(now)</code>, held to 4.9 Earth units. The present flux is <code>subject[&quot;xuv_flux_earth&quot;]</code> if the subject has it, else the star's corona over the body's distance (from the luminosity and the insolation), else zero. The loss of the first 30 Myr and of the hotter phases above 4.9 times is not integrated here: it belongs to the retention rows d1 to d5 (GEN.511), which <code>surface_pressure</code> and the fixed point apply, so it is not counted twice.</li>
+<li><strong>What <code>mixture_escape.apply</code> does with it</strong>: the share each species keeps multiplies its mole fraction; a species of which less than 1e-3 is left is gone; what stays is renormalised; if less than 1e-2 of the gas is left the body is airless (both are numerical cutoffs, rows AM22 and AM23). The body's mass, radius (from <code>radius_km</code>, else from the escape speed and the mass), pressure, temperature and age come from the subject; no new required input was added.</li>
+<li><strong>Envelope</strong> (<code>hydro_based_mass_loss_g_s</code>): <code>Mdot = exp(beta) F^alpha1 d^alpha2 R^alpha3 Lambda^(zeta + theta ln d)</code>, <code>Lambda = G M m_H / (k T_eq R)</code>, with the constants of the boil-off branch below <code>exp(Sigma)</code> and of the XUV-driven branch above it (Table 1). The grid of the fit is 1 to 40 Earth masses and 300 to 2,000 K (<code>HYDRO_BASED_MASS_RANGE_EARTH</code>, <code>HYDRO_BASED_TEQ_RANGE_K</code>); outside it the rate is an extrapolation.</li>
+</ul>
+<h2 id="4-checks">4. Checks</h2>
+<p>Tests: <code>src/tests/test_thermosphere.py</code> and <code>src/tests/test_atmosphere_mixture_escape.py</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Body</th>
+<th>Model</th>
+<th>Measured or published</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth exobase temperature, CO<sub>2</sub> 4e-6 to 0.4</td>
+<td>1,290 to 288 K</td>
+<td>1,310 to 290 K (Johnstone Fig. 12)</td>
+<td>within 8 percent at each of six points</td>
+</tr>
+<tr>
+<td>Earth at 4.9 times the XUV</td>
+<td>4,820 K</td>
+<td>4,600 K</td>
+<td>within 6 percent</td>
+</tr>
+<tr>
+<td>Earth exobase altitude</td>
+<td>441 km now, 2,160 km at 4,600 K</td>
+<td>475 km; 2,000 to 2,500 km</td>
+<td>15 percent now; 1,800 to 2,600 km</td>
+</tr>
+<tr>
+<td>Earth air history</td>
+<td>N<sub>2</sub>, O<sub>2</sub>, Ar, CO<sub>2</sub> kept; H<sub>2</sub> and He lost</td>
+<td>the Earth has them and has lost its primordial H<sub>2</sub> and He</td>
+<td>tested</td>
+</tr>
+<tr>
+<td>Venus exobase temperature</td>
+<td>274 K (XUV 1.9 Earth units, CO<sub>2</sub> 0.965)</td>
+<td>dayside about 285 to 300 K, global mean lower</td>
+<td>200 to 320 K; the whole air kept</td>
+</tr>
+<tr>
+<td>Mars exobase temperature</td>
+<td>186 K (XUV 0.43), 11 K per mW/m2 of global-mean EUV</td>
+<td>180 to 260 K, about 9.5 K per mW/m2 of global mean (MAVEN, as recalled, tier 3)</td>
+<td>180 to 260 K; slope 4 to 19</td>
+</tr>
+<tr>
+<td>Mars air history</td>
+<td>CO<sub>2</sub>, N<sub>2</sub> and Ar kept; H<sub>2</sub> lost</td>
+<td>thin CO<sub>2</sub> air</td>
+<td>tested</td>
+</tr>
+<tr>
+<td>Titan exobase temperature</td>
+<td>164 K (mesopause 150 K, XUV 0.011)</td>
+<td>150 to 190 K</td>
+<td>tested</td>
+</tr>
+<tr>
+<td>Titan hydrogen</td>
+<td>diffusion limit 1.0e28 per second; Jeans 1.3e27 per second at the 723 km exobase</td>
+<td>9.2e27 per second, limited by the diffusion rate [R4887]</td>
+<td>within a factor of 5 of each</td>
+</tr>
+<tr>
+<td>Sub-Neptune and hot Jupiters, Table 2 of Kubyshkina et al.</td>
+<td>ratio to the published rate 0.95 to 2.3</td>
+<td>nine planets, 1.9e9 to 4.5e10 g/s</td>
+<td>within a factor of 2.5 for each</td>
+</tr>
+</tbody>
+</table></div>
+<p>A pure N<sub>2</sub>, O<sub>2</sub> and Ar air with no CO<sub>2</sub> on the Earth has a thermosphere of 1,300 K and more; it still keeps its nitrogen (the same finding as Johnstone et al.). A hydrogen-rich draw (40 to 70 percent H<sub>2</sub> on an Earth-mass body) loses the hydrogen first; the first version of the history kept the initial mean mass throughout and made every such draw airless, which is why the history follows the air that is left.</p>
+<h2 id="5-limits-and-what-is-not-done">5. Limits and what is not done</h2>
+<ul>
+<li><strong>Non-thermal escape</strong> (sputtering, photochemical and ion escape) dominates Mars's and Venus's loss of hydrogen and oxygen and is not modelled; the Earth model of Johnstone et al. says the same of the Earth. The thermal loss here is a lower bound for light species.</li>
+<li><strong>Cooling by gases other than CO<sub>2</sub>.</strong> CH<sub>4</sub> and HCN cool Titan's thermosphere, water cools a wet air; only CO<sub>2</sub> is in the cooling term. Titan is therefore checked at the present XUV and with the observed mesopause, and its history is not integrated (the <code>titan</code> family is not filtered). A water- or methane-rich air is hotter in the model than in nature.</li>
+<li><strong>Day and night.</strong> The temperature is the dayside of a fast rotator, as in the Earth model. Venus's night side and a tidally locked body are not separated.</li>
+<li><strong>Magnetic shielding</strong> is GEN.804's (it wires the stored field to the loss).</li>
+<li><strong>Envelope escape is not wired.</strong> <code>hydro_based_mass_loss_g_s</code> is checked and ready, but the sub-Neptune rows (<code>radius_valley</code>, <code>runaway_history</code>) still use the energy-limited rate of GEN.639 with its own efficiency. Wiring it is a follow-up item (GEN.738b, to be filed by TODO); it changes stored radii and needs an epoch.</li>
+<li><strong>The 4.9 times cap.</strong> The flux is held at the top of the range the temperature fit was checked in. A star more active than that for longer (an M dwarf) is a longer time at the cap, not a hotter one.</li>
+<li><strong>Diameters and the cross section</strong> are recalled values (tier 3); the hydrogen check on Titan is the test of the product.</li>
+<li><strong>The surface mixture is the exobase mixture.</strong> The model does not separate the species by diffusion above the homopause and does not cold-trap water.</li>
+</ul>
+<h2 id="6-registry">6. Registry</h2>
+<p>Rows AM63 to AM77 of <code>docs/design/research/gap-filling-plan.md</code> (and the generated <code>stand-in-values.md</code>) list each constant of the module with its source tier and tweak level. Rows AM19 to AM21 are replaced; AM22 and AM23 stay as numerical cutoffs.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

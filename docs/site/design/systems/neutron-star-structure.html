@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neutron star structure: a TOV integration over the 21 equation-of-state tables (GEN.968) - planetGen docs</title>
+<meta name="description" content="Status: built (GEN.968, parent GEN.743) and wired for the radius (GEN.969, rides the star-epoch merge train 3).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/neutron-star-structure.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/neutron-star-structure.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="neutron-star-structure-a-tov-integration-over-the-21-equation-of-state-tables-gen968">Neutron star structure: a TOV integration over the 21 equation-of-state tables (GEN.968)</h1><p class="meta">docs/design/systems/neutron-star-structure.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-does">What it does</a></li><li style="margin-left:0px"><a href="#what-the-21-tables-give-as-built-10-30">What the 21 tables give (as built, 10-30)</a></li><li style="margin-left:0px"><a href="#numerical-choices">Numerical choices</a></li><li style="margin-left:0px"><a href="#stand-ins-registry-632-gen725">Stand-ins (registry 6.32, GEN.725)</a></li><li style="margin-left:0px"><a href="#wired-gen969-physicsneutron_starpy">Wired (GEN.969, physics/neutron_star.py)</a></li></ul></details>
+<p>Status: built (GEN.968, parent GEN.743) and wired for the radius (GEN.969, rides the star-epoch merge train 3). The crust thickness has no consumer yet. Code: <code>physics/neutron_star_structure.py</code>, <code>scripts/build_neutron_star_table.py</code>. Data: <code>datasets/neutron_star_matter.py</code> ([R2834], 21 unified equations of state, GEN.548) and the reduced <code>physics/data/neutron_star_curves.json</code>. Tests: <code>tests/test_neutron_star_structure.py</code> (synthetic polytropes and the committed table against NICER and the pulsar masses; no download) and <code>tests/test_neutron_star_structure_real.py</code> (the table against a fresh integration of the real tables).</p>
+<h2 id="what-it-does">What it does</h2>
+<p>A neutron star is fixed by its equation of state and one number, the pressure at its centre. The module integrates the Tolman-Oppenheimer-Volkoff equations in the logarithm of the pressure, from the centre to the lowest pressure of the table (about 1e4 g/cm^3, the surface), and answers:</p>
+<ul>
+<li><code>structure(eos, central_pressure)</code>: mass, radius, compactness, the radius where the crust begins and where neutron drip is, and the mass of the crust.</li>
+<li><code>mass_radius_curve(eos)</code>, <code>maximum_mass_solar(eos)</code>: the stable branch of one equation of state and the heaviest star it holds.</li>
+<li><code>radius_km(eos, mass)</code>, <code>supporting(mass)</code>, <code>radius_band_km(mass)</code>: the radius of a star of a given mass, the equations of state that hold such a star, and the lowest, median and highest radius across them.</li>
+</ul>
+<h2 id="what-the-21-tables-give-as-built-10-30">What the 21 tables give (as built, 10-30)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>The 21 tables</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maximum mass</td>
+<td>2.01 to 2.75 solar masses (19 of 21 above 2.08)</td>
+<td>PSR J0740+6620, 2.08 +- 0.07 [R1404]</td>
+</tr>
+<tr>
+<td>R(1.4)</td>
+<td>11.8 to 13.8 km, median 12.9</td>
+<td>12.45 +- 0.65 [R3075]</td>
+</tr>
+<tr>
+<td>R(1.34)</td>
+<td>median 12.9</td>
+<td>12.71 +1.14 -1.19 (J0030+0451, [R3766])</td>
+</tr>
+<tr>
+<td>R(2.08)</td>
+<td>11.5 to 14.1 km, median 12.4</td>
+<td>12.35 +- 0.75 [R3075]; 13.7 +2.6 -1.5 (J0740)</td>
+</tr>
+<tr>
+<td>Crust of a 1.4 solar mass star</td>
+<td>0.4 to 2 km thick</td>
+<td>about 1 km</td>
+</tr>
+</tbody>
+</table></div>
+<p>The stiffest tables (EOS 1 to 5) put R(1.4) above the Miller band by up to two of its widths. GEN.969 should draw a star's equation of state with a weight from these constraints (NICER radii, the 2.08 solar mass floor) and not uniformly; the module gives the radius of each table and leaves the weight to the wiring.</p>
+<h2 id="numerical-choices">Numerical choices</h2>
+<ul>
+<li>Units are G = c = 1 in kilometres; 1 MeV fm^-3 is 1.3238e-6 km^-2 and a solar mass is 1.4766 km.</li>
+<li>The equation of state between rows is PCHIP in log e against log P (no overshoot), resampled on 6,000 points for speed.</li>
+<li>DOP853 with a relative tolerance of 1e-6; against 1e-10 the radius and mass of a star change by about 1e-5.</li>
+<li>Checked against the Newtonian n = 1 polytrope (R = sqrt(pi K / 2G) within 0.5%) and the Buchdahl bound (compactness under 4/9).</li>
+<li>Cost: about 1 s a table for its maximum mass and 50-point curve, about 22 s for all 21. Generation does not integrate: <code>scripts/build_neutron_star_table.py</code> writes <code>physics/data/neutron_star_curves.json</code> (25 stars of each table, 28 kB: mass, radius, crust thickness and crust mass), <code>radius_km</code>, <code>crust_thickness_km</code>, <code>maximum_mass_solar</code>, <code>supporting</code> and <code>radius_band_km</code> read that, and the real-data tests hold it to the integration. <code>--check</code> fails if the file is out of date; rebuild it when the integrator or the crust density changes.</li>
+</ul>
+<h2 id="stand-ins-registry-632-gen725">Stand-ins (registry 6.32, GEN.725)</h2>
+<p>The crust-core density 0.08 fm^-3 and the neutron-drip density 2.6e-4 fm^-3 mark the layers; the tables do not. NS1 to NS3.</p>
+<h2 id="wired-gen969-physicsneutron_starpy">Wired (GEN.969, <code>physics/neutron_star.py</code>)</h2>
+<ul>
+<li><code>neutron_star.radius_km(mass, deviation)</code> keeps its signature: the standard-normal <code>deviation</code> the caller draws (one <code>draw.gauss()</code> per star, <code>generation/phenomena/compact_remnant.py</code>) becomes a probability that picks a radius from the weighted radii of the equations of state that hold the star's mass (<code>supporting</code>), interpolated between neighbours. 0 gives the weighted median; the draw count is unchanged. <code>radius_limits_km</code> is the lowest and highest of those radii (the plausibility check reads it).</li>
+<li>The weights (stand-in NS4, tier T2, tweak L1): a normal weight on each table's R(1.4) about 12.45 +- 0.65 km and R(2.08) about 12.35 +- 0.75 km [R3075], and for a table whose heaviest star is under 2.08 solar masses a normal weight on the shortfall in units of 0.07 (PSR J0740+6620). Result at 1.4 solar masses: weighted median 12.8 km, 68% of draws within 12.7 to 13.0 km, limits 11.8 to 13.8 km. The 21 tables are stiffer than the Miller interval's centre (their unweighted median is 12.9 km), so the weighting narrows the draw rather than centring it on 12.45; a star's radius is no longer drawn from a normal band, and its spread is smaller than the old 0.65 km.</li>
+<li><code>tuning.NEUTRON_STAR_RADIUS_ANCHORS</code> and <code>NEUTRON_STAR_RADIUS_CLIP_SIGMA</code> are gone (no backward-compatibility shim).</li>
+<li>The mass range of a neutron star (<code>tuning.NEUTRON_STAR_MASS_RANGE_SOLAR</code>, 1.1 to 2.2) stays; 15 of the 21 tables hold 2.2 solar masses. A mass no table holds raises.</li>
+<li>This moves every neutron star's radius, so it is <code>--affects fill</code> and rides train 3.</li>
+<li>Open: <code>crust_thickness_km</code> (the surface and the thermal model) has no consumer; no body stores a crust yet.</li>
+</ul>
+<p>The helium-core and oxygen-neon white dwarf layers (the other half of GEN.743) are not in this step; they need a white dwarf structure source the Bedard et al. sequences do not hold.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

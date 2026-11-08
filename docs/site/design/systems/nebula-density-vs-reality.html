@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebula density against the real Milky Way, and what to generate versus what to draw - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-10 22:01Z): &quot;review and have a thread look at the cloud density vs the real world and how we can manage that cloud density for making things visible.&quot;">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/nebula-density-vs-reality.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/nebula-density-vs-reality.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="nebula-density-against-the-real-milky-way-and-what-to-generate-versus-what-to-draw">Nebula density against the real Milky Way, and what to generate versus what to draw</h1><p class="meta">docs/design/systems/nebula-density-vs-reality.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-the-generator-makes-now">1. What the generator makes now</a></li><li style="margin-left:0px"><a href="#2-what-the-real-milky-way-has">2. What the real Milky Way has</a></li><li style="margin-left:0px"><a href="#3-ours-against-the-real-one">3. Ours against the real one</a></li><li style="margin-left:0px"><a href="#4-the-options-measured">4. The options, measured</a></li><li style="margin-left:0px"><a href="#5-generate-less-or-draw-less">5. Generate less, or draw less?</a></li><li style="margin-left:0px"><a href="#6-recommended-rates">6. Recommended rates</a></li><li style="margin-left:0px"><a href="#7-a-test-that-keeps-the-rates-honest">7. A test that keeps the rates honest</a></li><li style="margin-left:0px"><a href="#8-costs-and-the-effect-on-existing-galaxies">8. Costs and the effect on existing galaxies</a></li><li style="margin-left:0px"><a href="#9-build-items-phase-and-order">9. Build items (phase and order)</a></li><li style="margin-left:0px"><a href="#10-defaults-and-what-is-flagged">10. Defaults and what is flagged</a></li><li style="margin-left:0px"><a href="#limits-of-this-study">Limits of this study</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li></ul></details>
+<p>Boss (2026-10-10 22:01Z): &quot;review and have a thread look at the cloud density vs the real world and how we can manage that cloud density for making things visible.&quot;</p>
+<p>Follows <a href="../interface/nebula-map-visibility.html">nebula-map-visibility.md</a> (the three-scale map design). Informs GEN.152 (lower the cloud field to about 1%), DB.24 (the <code>nebula_field</code> table), MAP.172 to MAP.178 (aggregates, tile layer, regions, cover, field clouds), GEN.202 (scattered nebulae), MAP.182 (hosted H II for pre-placed stars). Builds on <a href="nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a> (the GEN.47 field and its first rate check).</p>
+<p>Status: partly built (2026-10-15). Built: the lowered field (GEN.152, #1239), the rate audit (TEST.136, #1239), the <code>nebula_field</code> table as recommended, classes M and N only (DB.24, #1317), and the redo of an existing galaxy's field (<code>plan --redo-nebula-field</code>, GEN.205, #1325). The row counts and sizes priced for the old plan (about 700,000 rows and 50 MB) describe what was avoided; the table holds about 163,000 rows. Open: the map-side items (MAP.172 to MAP.174, MAP.176 to MAP.178), scattered nebulae (GEN.202) and hosted H II regions (MAP.182). Evidence tags: [S] seen in the repo or in a cited source, [C] computed or measured in this research, [R] recalled and not re-checked (listed at the end).</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>The field is too dense in counts, about right in packaging, and the whole fix is a handful of constants.</strong> Against the Milky Way, class M (giant molecular clouds) is about 10 times too many (102,000 against 8,107 to 9,710 catalogued), class N (dark clouds) is in range by count (about half the Lynds catalogue's entries within 1 kpc) but its clouds are large, and classes P and Q (Bok globules, cores) are in the right range, and the sphere volume the field fills is 2% / 8% / 19% / 24% where the gas factor is 0.2 / 0.9 / 2.3 / 3.0, against 0.5% to 1% observed for the thin disc and 1% to 2% in arms [C, S]. (This corrects the first rate check, which said 3 / 13 / 35 / 46%: it gave the four classes equal weight, but the field draws them 1:3:2:1.)</li>
+<li><strong>Recommended generation rates, all in the GEN.152 &quot;about 1%&quot; default Boss approved:</strong> keep 9.5% of class M (9,700 galaxy-wide at the default scale), keep 50% of class N (153,000, a volume decision, see section 6), keep P and Q whole (192,000 and 99,000). The field then fills 0.2% / 1.1% / 2.8% / 3.6% of volume (bounding spheres) and holds 454,000 clouds instead of 700,000. Applying it as an acceptance test on the existing draw, so surviving clouds keep their cells and object IDs, costs one hash per cloud.</li>
+<li><strong>Storing the field costs far less if only classes M and N are in the table.</strong> P and Q make 291,000 of the 454,000 clouds, are 0.2 to 1.6 pc across (invisible beyond about 250 pc), and are cheap to derive from the seed when a sector or a near view needs them. <code>nebula_field</code> then holds about 163,000 rows (about 11 MB) instead of 700,000 (about 50 MB).</li>
+<li><strong>Lowering density does not shrink the map's tiles; the budget does.</strong> In a dense 4 kpc sample, regions at 16 px number 3,142 at 8 kpc in the current field and 2,917 after the cut, against a draw budget of 600 (MAP.176). Tile size is set by that budget and by the size law. The cut matters for the database, for how many sectors sit inside a cloud, and for how much sprite overlap the near views carry.</li>
+<li><strong>Draw side: three small rules.</strong> (1) A far sprite is drawn at the cloud's equivalent radius (0.49 of its bounding radius, because the shape fills only 12% of its bounding sphere [C]), with the existing 2 px floor; the bounding radius stays for picking. (2) Region budget 600, ranked by volume. (3) The Nebula cover ramp is re-binned to the realistic density (0, under 0.5%, 0.5 to 1.5%, 1.5 to 3%, 3% and up), because the first draft's 5 / 15 / 30% bins would leave almost every block in the lowest two.</li>
+<li><strong>Two other kinds are also off.</strong> Supernova remnants in the scatter (1e-8 per pc^3) number about 20,000 against about 300 catalogued and about 400 to 3,000 expected from the supernova rate; 1.5e-9 gives about 3,000. Hosted H II regions follow the O-star count (every O star gets one): at 270,000 O stars they would number 270,000 against about 8,000 catalogued; a chance of 0.25 per O star gives the catalogue's ratio. Planetary nebulae (28,000) are inside the published range of 4,000 to 46,000 and stay.</li>
+<li><strong>This changes Boss's generated galaxy, flagged:</strong> a new galaxy takes the new rates from the plan. An existing one keeps its stored clouds until a one-off cleanup removes the 35% of stored field clouds the new rule would not have made; or he re-plans, as he does for timing runs. Details in section 8.</li>
+<li>Eleven build items, with phases, are in section 9. Defaults in section 10.</li>
+</ul>
+<h2 id="1-what-the-generator-makes-now">1. What the generator makes now</h2>
+<p>[S] <code>nebula_field.py</code>, <code>tuning.py</code>; [C] this research.</p>
+<p>The galaxy is cut into 50 pc cells. Each cell draws a Poisson number of dark-family clouds with mean <code>PHENOMENON_DENSITY_PC3[&quot;molecular-cloud&quot;]</code> (5e-6 per pc^3) times the cell volume times the gas factor (the young-star tracer with the gas's own arm contrast, to the power 1.4, capped at 3). Each cloud is a <code>Nebula(nebula_type=&quot;dark&quot;)</code>, whose class is drawn with the <code>NEBULA_CLASSES</code> frequencies 1 : 3 : 2 : 1.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Name</th>
+<th>Share of draws</th>
+<th>Radius, ly (p10 / median / p90)</th>
+<th>Median radius, pc</th>
+<th>Sphere volume, pc^3 (mean)</th>
+<th>Galaxy-wide now [C]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M</td>
+<td>Giant molecular cloud</td>
+<td>14.6%</td>
+<td>35 / 81 / 137</td>
+<td>25</td>
+<td>120,000</td>
+<td>about 102,000</td>
+</tr>
+<tr>
+<td>N</td>
+<td>Dark cloud</td>
+<td>43.8%</td>
+<td>5.5 / 26 / 45</td>
+<td>8</td>
+<td>3,900</td>
+<td>about 307,000</td>
+</tr>
+<tr>
+<td>P</td>
+<td>Bok globule</td>
+<td>27.5%</td>
+<td>0.6 / 1.6 / 2.7</td>
+<td>0.5</td>
+<td>1</td>
+<td>about 192,000</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>Star-forming core</td>
+<td>14.1%</td>
+<td>0.2 / 0.5 / 0.9</td>
+<td>0.2</td>
+<td>0.1</td>
+<td>about 99,000</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Total</td>
+<td>about 700,000</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two properties matter for everything below:</p>
+<ol>
+<li><strong>Only M and N carry volume.</strong> Class M is 14% of the clouds and 91% of the filled volume at equal gas factor; M and N together are above 99.9%.</li>
+<li><strong>The shape fills 12% of the bounding sphere.</strong> <code>radius_ly</code> is the distance to the shape's farthest point. Sampling 500 generated clouds, the metaball shape fills 12.2% of that sphere on average (class M 12.2%, N 12.7%, P 12.9%, Q 12.3%; p10 8%, p90 18%) [C, <code>shape_fill_fraction.json</code>]. So a cloud's true volume is about an eighth of its bounding sphere, and the sphere is what a sprite draws and what the 2 px size law tests.</li>
+</ol>
+<p>Filling by environment (share of volume inside bounding spheres, <code>1 - exp(-sum of n V)</code>) [C, the gas factors are the first rate check's 0.2 / 0.9 / 2.3 / 3.0 at the solar circle]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas factor</th>
+<th>0.2 (between arms)</th>
+<th>0.9 (midway)</th>
+<th>2.3 (arm crest)</th>
+<th>3.0 (cap: inner disc)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Now</td>
+<td>1.8%</td>
+<td>8.0%</td>
+<td>19.2%</td>
+<td>24.2%</td>
+</tr>
+<tr>
+<td>Sampled box 6 kpc from the core (mean over the box)</td>
+<td>11.0%</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The old note's 3 / 13 / 35 / 46% used a mean cloud volume of 3.0e4 pc^3, which weights the four classes equally. The field draws 1 : 3 : 2 : 1, so the mean is 1.7e4 and the figures above are right.</p>
+<h2 id="2-what-the-real-milky-way-has">2. What the real Milky Way has</h2>
+<p>All counts are galaxy-wide unless stated; links are the sources I could confirm in this research [S] unless tagged.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Real count and size</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Giant molecular clouds</td>
+<td>8,107 clouds holding 98% of the CO emission, total H<sub>2</sub> mass about 1.2e9 Msun, most probable radius about 30 pc; the author's later release lists 9,710</td>
+<td>[R3102], <a href="https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57">catalogue page</a></td>
+</tr>
+<tr>
+<td>Massive GMCs</td>
+<td>1,064</td>
+<td>[R3759], quoted in the GEN.47 note [R]</td>
+</tr>
+<tr>
+<td>Molecular gas fraction in bound clouds</td>
+<td>40% of CO mass</td>
+<td>[R1929], via [R2082]</td>
+</tr>
+<tr>
+<td>Cold medium volume filling, thin disc</td>
+<td>under 5% (a simulation cross-check, not a measurement)</td>
+<td>[R1028]</td>
+</tr>
+<tr>
+<td>Molecular volume filling</td>
+<td>about 0.5% inner Galaxy, about 1% thin disc; arms 1% to 2%</td>
+<td>the GEN.47 note [S/C] and <code>GMC_ARM_FILLING_FACTOR</code> = 0.015 in <code>tuning.py</code> [S]</td>
+</tr>
+<tr>
+<td>Dark nebulae (Lynds)</td>
+<td>1,802 entries, mostly within about 1 to 2 kpc [R for the range]</td>
+<td><a href="https://articles.adsabs.harvard.edu/pdf/1962ApJS....7....1L">[R2779]</a>, <a href="https://en.wikipedia.org/wiki/Lynds%27_Catalogue_of_Dark_Nebulae">catalogue</a></td>
+</tr>
+<tr>
+<td>Bok globules</td>
+<td>248 optically selected northern globules catalogued, 169 southern; a Galactic total of 3.2e5 small globules (a secondary citation of [R0823], so [R])</td>
+<td>[R1521]</td>
+</tr>
+<tr>
+<td>Cold clumps (cores)</td>
+<td>13,188 Planck sources, a survey-limited floor</td>
+<td>[R3543] XXVIII, [R3543]</td>
+</tr>
+<tr>
+<td>H II regions</td>
+<td>over 8,000 in the WISE catalogue, about 1,500 confirmed by recombination lines or H-alpha, about 2,500 more with radio continuum; a later census counts about 7,000 with 2,000 confirmed</td>
+<td>[R0108], <a href="https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJS/212/1">catalogue</a></td>
+</tr>
+<tr>
+<td>O stars</td>
+<td>14,000 to 18,000 O systems in a basic model, 30,000 to 50,000 individual O stars allowing for binaries and extinction; 24,706 OB stars within 1 kpc</td>
+<td>[R3637]</td>
+</tr>
+<tr>
+<td>Core-collapse supernova rate</td>
+<td>0.4 to 0.5 per century (Quintana et al.); 3 per century is the older rate used in the CTA planning, [R0015]</td>
+<td></td>
+</tr>
+<tr>
+<td>Supernova remnants</td>
+<td>294 in the revised Green catalogue, 310 on its current page; the count expected from the supernova rate over a remnant life of about 1e5 years is 400 (0.4 per century) to 3,000 (3 per century) [C]</td>
+<td>[R1675], <a href="https://www.mrao.cam.ac.uk/surveys/snrs-2022/">catalogue</a></td>
+</tr>
+<tr>
+<td>Planetary nebulae</td>
+<td>about 3,000 known; estimates of the total run 4,000 to 46,000: 7,200 plus or minus 1,800 (Peimbert), 17,000 plus or minus 3,000 (Bobylev and Bajkova), 46,000 plus or minus 13,000 (Moe and De Marco), about 25,000 typical</td>
+<td>[R0434, R2133]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Counts of clouds are sharper than filling fractions (a filling needs a layer volume and a shape for filamentary gas), so the counts are the anchor and filling is the cross-check.</p>
+<h2 id="3-ours-against-the-real-one">3. Ours against the real one</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Ours, default scale</th>
+<th>Real</th>
+<th>Factor</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Class M</td>
+<td>about 102,000</td>
+<td>8,107 to 9,710</td>
+<td>about 10 to 12</td>
+<td>too many</td>
+</tr>
+<tr>
+<td>Class N</td>
+<td>about 307,000</td>
+<td>no clean total; Lynds 1,802 over the nearby sky. Our N density at gas 0.9 is 2e-6 per pc^3, which puts about 900 N clouds in a 1 kpc radius, 150 pc thick slab round the Sun against Lynds' 1,802 entries, mostly smaller clouds [C, R]</td>
+<td>about 0.5</td>
+<td>count in range or a little low; the clouds are larger (median 8 pc against mostly 0.5 to 5 pc) and add 0.75% of the 1.5% filling at midway</td>
+</tr>
+<tr>
+<td>Class P</td>
+<td>about 192,000</td>
+<td>3.2e5 (secondary citation)</td>
+<td>0.6</td>
+<td>right range</td>
+</tr>
+<tr>
+<td>Class Q</td>
+<td>about 99,000</td>
+<td>13,188 Planck clumps is a floor; dense cores are far more numerous</td>
+<td></td>
+<td>right range, unconstrained</td>
+</tr>
+<tr>
+<td>Sphere volume filled, midway / crest</td>
+<td>8.0% / 19.2%</td>
+<td>0.5% to 1% disc, 1% to 2% arms</td>
+<td>about 8 to 10</td>
+<td>too full</td>
+</tr>
+<tr>
+<td>H II regions (hosted: one per O star, half of B0 to B2)</td>
+<td>about 270,000 O stars at the default scale [R scaling of 4,217 at quarter scale] gives about 270,000 plus B0 to B2 hosts</td>
+<td>about 8,000 catalogued</td>
+<td>about 30</td>
+<td>too many, because it follows the O-star count</td>
+</tr>
+<tr>
+<td>Supernova remnants (scatter)</td>
+<td>about 20,000</td>
+<td>310 catalogued, 400 to 3,000 expected</td>
+<td>7 to 50</td>
+<td>too many</td>
+</tr>
+<tr>
+<td>Planetary nebulae (scatter)</td>
+<td>about 28,000</td>
+<td>4,000 to 46,000</td>
+<td>0.6 to 7</td>
+<td>inside the range</td>
+</tr>
+</tbody>
+</table></div>
+<p>The shape factor is why counts and volume do not agree in the real direction. At the catalogue count of M, a mean true cloud volume of 1.2e5 pc^3 x 0.12 = 1.45e4 pc^3 would fill only 0.13% at gas 0.9 [C], below the observed 0.5% to 1%. Real clouds are therefore either larger than ours at equal count or the observed filling is for a thinner layer. I cannot resolve that from the sources I have, so the recommendation anchors counts (well measured) and the sphere filling the project already targets (GEN.152's &quot;about 1%&quot;), and lists a radius increase as an option, not a default (section 4, option F).</p>
+<h2 id="4-the-options-measured">4. The options, measured</h2>
+<p>A 4 kpc box on the plane centred 6 kpc from the core holds 45,061 clouds (dense: it spans the solar circle and the inner arm; the mean gas factor is about 1.4). Poisson thinning by a per-class keep probability is exactly a Poisson draw at the lower rate, so each option thins that one sample [C, <code>density_options.py</code>].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Keep M / N / P / Q</th>
+<th>Galaxy-wide clouds</th>
+<th>Filling by bounding sphere at gas 0.2 / 0.9 / 2.3 / 3.0</th>
+<th>Sampled box filling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A Now</td>
+<td>1 / 1 / 1 / 1</td>
+<td>700,000</td>
+<td>1.8 / 8.0 / 19.2 / 24.2%</td>
+<td>11.0%</td>
+</tr>
+<tr>
+<td>B Uniform x0.1</td>
+<td>0.1 each</td>
+<td>70,000</td>
+<td>0.2 / 0.8 / 2.1 / 2.7%</td>
+<td>1.2%</td>
+</tr>
+<tr>
+<td>C M to the catalogue</td>
+<td>0.095 / 1 / 1 / 1</td>
+<td>608,000</td>
+<td>0.3 / 1.5 / 3.7 / 4.8%</td>
+<td>2.2%</td>
+</tr>
+<tr>
+<td><strong>D M and N cut (recommended)</strong></td>
+<td><strong>0.095 / 0.5 / 1 / 1</strong></td>
+<td><strong>454,000</strong></td>
+<td><strong>0.2 / 1.1 / 2.8 / 3.6%</strong></td>
+<td><strong>1.7%</strong></td>
+</tr>
+<tr>
+<td>F D plus class M radius x2</td>
+<td>0.095 / 0.5 / 1 / 1</td>
+<td>454,000</td>
+<td>1.4 / 6.0 / 14.5 / 18.5%</td>
+<td>8.6%</td>
+</tr>
+</tbody>
+</table></div>
+<p>What a map draws, for the sample box (individual clouds with a bounding radius of at least 2 px; regions are groups of clouds in one 16 px cell that span at least 2 px; &quot;ink&quot; is summed sprite area over a 900 x 1400 px screen, so above 1 means overlaps; &quot;eq&quot; scales each radius by 0.49) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Camera radius</th>
+<th>A individual / regions / ink</th>
+<th>D individual / regions / ink / eq</th>
+<th>F individual / ink / eq</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15 kpc</td>
+<td>2,425 / 574 / 0.04</td>
+<td>226 / 548 / 0.00 / 0.00</td>
+<td>474 / 0.02 / 0.01</td>
+</tr>
+<tr>
+<td>8 kpc</td>
+<td>4,683 / 3,238 / 0.18</td>
+<td>457 / 2,917 / 0.02 / 0.00</td>
+<td>586 / 0.07 / 0.02</td>
+</tr>
+<tr>
+<td>4 kpc</td>
+<td>15,049 / 10,981 / 0.94</td>
+<td>5,217 / 7,780 / 0.17 / 0.04</td>
+<td>5,246 / 0.39 / 0.09</td>
+</tr>
+<tr>
+<td>2 kpc</td>
+<td>20,700 / 6,122 / 3.91</td>
+<td>7,884 / 2,929 / 0.74 / 0.18</td>
+<td>7,884 / 1.60 / 0.38</td>
+</tr>
+<tr>
+<td>1 kpc</td>
+<td>14,404 / 685 / 9.88</td>
+<td>5,656 / 309 / 1.84 / 0.44</td>
+<td>5,665 / 4.10 / 0.98</td>
+</tr>
+<tr>
+<td>500 pc</td>
+<td>4,416 / 25 / 11.70</td>
+<td>1,781 / 12 / 2.30 / 0.55</td>
+<td>1,787 / 5.47 / 1.31</td>
+</tr>
+<tr>
+<td>250 pc</td>
+<td>1,405 / 1 / 13.01</td>
+<td>704 / 1 / 2.25 / 0.54</td>
+<td>709 / 6.44 / 1.54</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading it:</p>
+<ul>
+<li><strong>A (now) smothers the near and middle views.</strong> At 1 kpc and below a screen carries 10 to 13 layers of cloud sprite; between 4 and 1 kpc the 200 per tile cap leaves 800 to 1,600 of the 14,000 to 21,000 clouds that are above 2 px.</li>
+<li><strong>B is the simplest but cuts P and Q by 90%,</strong> though both are in the real range, and takes N below its catalogue count.</li>
+<li><strong>C leaves the total heavy in arms:</strong> 1.5% at midway but 3.7% at an arm crest, 2.5 times the 1.5% arm target. Class M alone is 1.8% at a crest, so the arm target cannot be met by cutting N: M at the catalogue count is already above it.</li>
+<li><strong>D matches both anchors:</strong> M at the catalogue count, the total near 1% at midway, 2.8% at a crest (spheres; the shape fills an eighth of that).</li>
+<li><strong>F matches the true-volume reading but puts the spheres back at 6% to 18%,</strong> so it undoes the visibility gain; keep it as an option only if Boss wants the true volume at 0.5% to 1%.</li>
+<li><strong>At 15 kpc and above only M reaches 2 px</strong> (226 individual clouds in the 4 kpc box, the larger M). A realistic galaxy view therefore needs the cover shading and the regions to carry the gas; individual sprites cannot, in any option.</li>
+<li><strong>Region counts stay above the 600 budget from 8 kpc to 1 kpc in D</strong> (2,917 to 309 at 16 px), so the budget and the volume rank of MAP.176 are required whatever density is chosen.</li>
+</ul>
+<h2 id="5-generate-less-or-draw-less">5. Generate less, or draw less?</h2>
+<p>Both, on different parts.</p>
+<p><strong>Lower what is generated</strong> where the count is wrong and the object matters in play:</p>
+<ul>
+<li><strong>Class M and N.</strong> A cloud is not decoration: a sector inside one is in a region of 10 to 100 magnitudes of extinction and 10^2 to 10^6 H<sub>2</sub> per cm^3 (the class table). At the current field 13% of arm sectors and 4% of between-arm sectors are inside a bounding sphere [S, GEN.47 note, using the old mean]; the cut lowers the filling to 0.14 of its old value, so those become about 2% and 0.6% [C scaling, not measured per sector]. Cutting M and N at the source is the only lever that changes it.</li>
+<li><strong>Supernova remnants and hosted H II regions.</strong> Both are objects with stars, ages and pages; 20,000 remnants and 270,000 H II regions swamp lists and the Sector Map. They are rate constants (section 6).</li>
+</ul>
+<p><strong>Keep the data realistic and control only the drawing</strong> where the object is small, numerous and not needed as a row:</p>
+<ul>
+<li><strong>Classes P and Q</strong> (291,000 clouds, 0.2 to 1.6 pc across): they stay in the seeded field exactly as now, are not put in the map's index, and are drawn only where they can be seen (near views and the sector view). The index and pyramid then hold M and N only.</li>
+<li><strong>Everything that the 2 px law hides at a given zoom:</strong> that is the size law, unchanged, and the region grouping that follows it.</li>
+</ul>
+<p><strong>What fraction of the picture should look nebular</strong> (D, from the sample box above; Boss asked for &quot;what fraction at each scale&quot;):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scale (camera radius)</th>
+<th>What carries the gas</th>
+<th>Target on screen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Galaxy view, 15 kpc and out</td>
+<td>Nebula cover shading; at most 600 regions</td>
+<td>no individual sprites; cover top bin (3% and up) only on arm crests and the inner disc, so under 10% of the lit disc</td>
+</tr>
+<tr>
+<td>Middle, 8 kpc to 1 kpc</td>
+<td>regions and the biggest clouds</td>
+<td>sprite ink at the equivalent radius 0.00 to 0.44 (a quarter to a half of a layer deep in arms), 300 to 600 regions</td>
+</tr>
+<tr>
+<td>Near, 500 pc and in</td>
+<td>individual clouds, shapes from <code>NEBULA_MESH_MIN_PX</code></td>
+<td>physical: 1% to 3% of volume, ink about 0.5 layers; P and Q appear only below about 250 pc</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-recommended-rates">6. Recommended rates</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Now</th>
+<th>Recommended</th>
+<th>Result at the default scale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keep fraction, class M</td>
+<td>1</td>
+<td>0.095</td>
+<td>9,700 (catalogue 8,107 to 9,710)</td>
+</tr>
+<tr>
+<td>Keep fraction, class N</td>
+<td>1</td>
+<td>0.5</td>
+<td>153,000</td>
+</tr>
+<tr>
+<td>Keep fraction, classes P, Q</td>
+<td>1</td>
+<td>1</td>
+<td>192,000 / 99,000</td>
+</tr>
+<tr>
+<td><code>PHENOMENON_DENSITY_PC3[&quot;supernova-remnant&quot;]</code></td>
+<td>1e-8</td>
+<td>1.5e-9</td>
+<td>about 3,000 (Green 310, rate 400 to 3,000)</td>
+</tr>
+<tr>
+<td><code>PHENOMENON_DENSITY_PC3[&quot;planetary-nebula&quot;]</code></td>
+<td>1.4e-8</td>
+<td>keep</td>
+<td>about 28,000 (range 4,000 to 46,000)</td>
+</tr>
+<tr>
+<td><code>NEBULA_HOST_RULES</code> chance, O stars</td>
+<td>1.0</td>
+<td>0.25</td>
+<td>about 1 H II per 4 O stars; with 30,000 O stars that is 7,500 against 8,000 catalogued</td>
+</tr>
+<tr>
+<td><code>NEBULA_HOST_RULES</code> chance, B0 to B2</td>
+<td>0.5</td>
+<td>0.1</td>
+<td></td>
+</tr>
+<tr>
+<td><code>GMC_ARM_FILLING_FACTOR</code></td>
+<td>0.015, read by nothing</td>
+<td>read by a test (section 7)</td>
+<td>arm crest 2.8% by bounding sphere</td>
+</tr>
+</tbody>
+</table></div>
+<p>How the keep fraction is applied: <code>cell_clouds</code> keeps drawing its full list exactly as now (so each cloud's cell, index and cloud-object-ID rank are untouched), then each cloud is accepted when a hash of <code>(galaxy seed, &quot;nebula-keep&quot;, cell, index)</code> read as a fraction is below its class's keep value. A removed cloud still counts in the ID rank, so every survivor keeps its ID. Poisson thinning by a deterministic hash gives the same distribution as a lower rate. The cost is one hash per cloud (the <code>Nebula()</code> draw is 0.013 ms [C], so dropping the draws instead would save about 35% of a small number); a re-plan can instead cut the density constant directly and give every cloud a new ID, which is simpler code and fine for a galaxy with nothing worth keeping.</p>
+<p>Why 0.5 for N: the Lynds comparison says our N count is in range or a little low, so this cut rests on volume and size, not count. N contributes 0.75% of the 1.5% filling at midway and its median cloud (8 pc) is larger than most Lynds clouds. Keeping N whole leaves the arm crest at 3.7%, halving it at 2.8%, dropping it at 1.8% (class M alone). 0.5 is the middle, with the lowest confidence of the three numbers, and is a constant to retune.</p>
+<h2 id="7-a-test-that-keeps-the-rates-honest">7. A test that keeps the rates honest</h2>
+<p>Rates were set by research and have drifted twice (the first field at 5e-6, the first rate check's equal-weight error). A test should state the bands and fail when a constant moves out of them:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Band</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Expected class M clouds, default galaxy (the integral in <code>field_counts.py</code>)</td>
+<td>5,000 to 20,000</td>
+</tr>
+<tr>
+<td>Bounding-sphere filling of all field clouds at an arm crest (g = 2.3)</td>
+<td>1% to 4%</td>
+</tr>
+<tr>
+<td>Expected planetary nebulae</td>
+<td>4,000 to 46,000</td>
+</tr>
+<tr>
+<td>Expected supernova remnants</td>
+<td>400 to 5,000</td>
+</tr>
+<tr>
+<td>Hosted H II per O star (from <code>NEBULA_HOST_RULES</code>)</td>
+<td>0.1 to 0.5</td>
+</tr>
+<tr>
+<td>P and Q totals</td>
+<td>5e4 to 4e5</td>
+</tr>
+</tbody>
+</table></div>
+<p>It reads only the tuning constants and the gas model, so it runs in seconds. The bands are the real-world column of section 2, widened for the catalogues' incompleteness.</p>
+<h2 id="8-costs-and-the-effect-on-existing-galaxies">8. Costs and the effect on existing galaxies</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Now</th>
+<th>Recommended (D, M and N indexed)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Field clouds, default galaxy</td>
+<td>700,000</td>
+<td>454,000 (35% fewer)</td>
+</tr>
+<tr>
+<td>Rows in <code>nebula_field</code> (DB.24)</td>
+<td>700,000 (about 50 MB at 70 bytes a row [C estimate])</td>
+<td>about 163,000 (about 11 MB)</td>
+</tr>
+<tr>
+<td>Stored <code>nebulae</code> rows per generated sector</td>
+<td>the number of clouds that reach it</td>
+<td>35% fewer; each stored nebula is about 2 KB with its text columns, shape fields, ball rows and seven indexes [C estimate from <code>models.py</code> column widths, not a measured table]</td>
+</tr>
+<tr>
+<td>Sectors inside a cloud, arms / between arms</td>
+<td>about 13% / 4%</td>
+<td>about 2% / 0.6% [C scaling]</td>
+</tr>
+<tr>
+<td>Map tile size</td>
+<td>bounded by the 600-region budget: about 72 KB of JSON or 9 KB packed for 600 regions, 3,300 groups would be about 400 KB of JSON at 8 kpc without it</td>
+<td>the same; the density cut does not change a budgeted tile</td>
+</tr>
+<tr>
+<td>Cover shading signal</td>
+<td>median block cover 11%, p90 17% (256 pc)</td>
+<td>median about 2%, so the ramp is re-binned (0, under 0.5%, 0.5 to 1.5%, 1.5 to 3%, 3%+)</td>
+</tr>
+<tr>
+<td>Aggregates, pyramid</td>
+<td>counts up to 700,000</td>
+<td>M and N only: under 200,000 clouds into the same cell levels</td>
+</tr>
+<tr>
+<td>Generation CPU</td>
+<td><code>Nebula()</code> 0.013 ms a draw; 0.07 to 0.55 ms a 50 pc cell; <code>clouds_reaching</code> for a sector 0 to 3 ms [C]</td>
+<td>unchanged (all clouds are still drawn; one hash more)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Existing galaxies.</strong> Stored dark-family nebulae in a galaxy made before the change came from the old field. With the hash rule, the clouds that pass the new test are the clouds that were always there and keep their IDs, so nothing breaks. About 35% of stored field clouds (14.6% x 0.905 + 43.8% x 0.5, with P and Q kept) would not be in the new field. Options, in order of simplicity:</p>
+<ol>
+<li><strong>Re-plan</strong> the galaxy (Boss re-plans for timing runs; the memory note says he resets manually). Nothing to migrate. Default for a test galaxy.</li>
+<li><strong>A one-off cleanup command</strong> (in the family of <code>planetgen plan --redo-scatters</code>, GEN.196): for each stored field-origin dark nebula whose hash fails the new test and that holds no object of its own (no embedded stars or remnants recorded against it), delete the row, clear the <code>inside_nebula_id</code> pointers (the foreign key is already <code>ON DELETE SET NULL</code>), and refresh containment in the sectors it reached. A dry run prints the counts first. This is the path if he wants to keep a galaxy.</li>
+<li><strong>Do nothing:</strong> stored clouds stay as an over-dense local patch; the map and the field index do not break (the index flags stored rows), but the patch stays too full where he has already generated.</li>
+</ol>
+<p>I recommend 1 for a test galaxy and 2 once there is a galaxy worth keeping; the build items cover both. The hosted H II change and the supernova-remnant change apply to systems and scatter made after them; a <code>Redo scatters</code> run (GEN.196) rebuilds the scatter rows.</p>
+<h2 id="9-build-items-phase-and-order">9. Build items (phase and order)</h2>
+<p>Numbers are placeholders; the TODO thread assigns IDs. GEN.152 and DB.24 already exist and are refined, not duplicated.</p>
+<p><strong>Phase 1: foundations (data, rates, storage)</strong></p>
+<ol>
+<li><strong>GEN.152, concrete numbers.</strong> Per-class keep fractions M 0.095, N 0.5 (lowest confidence), P and Q 1 as an acceptance hash on top of the full draw (object IDs unchanged), in <code>tuning.py</code> as <code>NEBULA_FIELD_KEEP</code>; replaces &quot;lower it to about 1%&quot;. Done when the sample box fills 1.7% and the galaxy holds about 454,000 field clouds. Owner: Foundations lane 1.</li>
+<li><strong>DB.24, index M and N only.</strong> <code>nebula_field</code> holds classes M and N (about 163,000 rows); P and Q stay seeded and are drawn from the field only in near views and in sectors. Update DB.24's size and its equality test (rows equal <code>clouds_reaching</code> for M and N). Owner: Foundations lane 1.</li>
+<li><strong>Nebula-rate audit test.</strong> The bands in section 7 as a unit test, plus a CLI line in <code>planetgen plan</code> output. Owner: Foundations lane 1.</li>
+<li><strong>Supernova remnants at 1.5e-9; keep planetary nebulae at 1.4e-8.</strong> Update the comments in <code>tuning.py</code> with the sources in section 2 (the 20,000 planetary nebulae figure is already there). Takes effect on the next <code>plan</code> or <code>Redo scatters</code>. Owner: Foundations lane 1.</li>
+<li><strong>Hosted H II chance.</strong> <code>NEBULA_HOST_RULES</code>: O stars 0.25, B0 to B2 0.1, later B and A unchanged; a test of the per-O-star ratio. Interacts with the O/B star counts (the mass cut, GEN.185/194): the rule is a ratio, so it stays right when the counts change. Owner: Foundations lane 1.</li>
+<li><strong>Existing-galaxy cleanup.</strong> <code>planetgen plan --redo-nebula-field</code> (or a sibling command): dry run, then delete stored field-origin dark nebulae the new rule rejects and that hold nothing of their own, clear <code>inside_nebula_id</code>, refresh containment. A test on a small galaxy built at the old rate. Owner: Foundations lane 1.</li>
+<li><strong>Correct the GEN.47 note</strong> (2 / 8 / 19 / 24%, the 12% shape fill) in <code>nebula-and-asteroid-field-classes.md</code>; done in this PR as a short pointer.</li>
+</ol>
+<p><strong>Phase 2: the visible feature (draw side)</strong></p>
+<ol start="8">
+<li><strong>Far sprite at the equivalent radius.</strong> A field cloud's far sprite uses 0.49 of its bounding radius, with the existing 2 px floor and the MAP.155 1 to 4 px opacity ramp; the bounding radius stays for picking and for the point where the shape mesh loads. Belongs in MAP.178. Owner: Foundations lane 2.</li>
+<li><strong>Nebula cover ramp at the realistic density.</strong> MAP.177's bins become 0, under 0.5%, 0.5 to 1.5%, 1.5 to 3%, 3% and up (optionally rescaled to the view's own percentiles), with the legend line unchanged. Owner: Foundations lane 2.</li>
+<li><strong>Region budget stress test.</strong> A browser or performance test that draws 3,000 candidate regions and keeps 600 by volume at 60 frames a second on the reference phone (MAP.176). Owner: Foundations lane 2.</li>
+<li><strong>Near-view P and Q.</strong> Draw classes P and Q from the seeded field only below about 250 pc and in the sector view, per-tile cached, with a per-tile cell budget (a 500 pc cube is 1,000 cells, 0.1 to 0.5 s uncached [C]). Default: not built for the first release; the sector view shows stored P and Q already. Owner: Foundations lane 2.</li>
+</ol>
+<h2 id="10-defaults-and-what-is-flagged">10. Defaults and what is flagged</h2>
+<ul>
+<li><strong>Flagged: changes Boss's generated galaxy.</strong> The cut removes about 35% of field clouds (91% of class M, 50% of class N) from every new galaxy; a re-plan or the cleanup command (item 6) applies it to an existing one. GEN.152 already carries Boss's approved default (&quot;lower it to about 1%&quot;), and D is that default made specific; nothing here goes beyond it except the class split and the two scatter and hosting constants.</li>
+<li><strong>Keep fractions M 0.095 / N 0.5 / P 1 / Q 1.</strong> Constants; tune with the audit test.</li>
+<li><strong>Counts are the anchor, not filling.</strong> The true-volume reading (shape fill 12%) says the cut leaves the shape volume below the observed 0.5% to 1% by a factor of 4 to 8; option F (class M radius x2) would match both but returns the bounding spheres to 6% to 18%. Not recommended.</li>
+<li><strong>Index M and N only; P and Q seeded and implicit.</strong></li>
+<li><strong>Regions: 16 px cells, 600 budget</strong> (unchanged from nebula-map-visibility.md).</li>
+<li><strong>Supernova remnants 1.5e-9, planetary nebulae unchanged, hosted H II chance 0.25 (O) and 0.1 (B0 to B2).</strong></li>
+<li><strong>No Boss question needed;</strong> every item has a default.</li>
+</ul>
+<h2 id="limits-of-this-study">Limits of this study</h2>
+<ul>
+<li>Counts come from the in-memory field model and one 4 kpc sample box 6 kpc from the core (a dense case, mean gas factor about 1.4); outer arms and the inner disc differ. Galaxy-wide totals use the first study's 250 pc by 25 pc integral (700,133 clouds) and the class shares of one draw (14.6 / 43.8 / 27.5 / 14.1%).</li>
+<li>Shape fill is the metaball shape's inside test over 6,000 points in the unit sphere for 500 generated clouds; it measures the shape, not whether real clouds are as hollow.</li>
+<li>The real filling of 0.5% to 1% (disc) and 1% to 2% (arms) is from the project's own GEN.47 note and <code>GMC_ARM_FILLING_FACTOR</code>, which I did not re-derive; the search did not return a primary number for molecular volume filling in the Milky Way disc.</li>
+<li>The Lynds comparison (about 900 clouds within 1 kpc) uses a layer of 150 pc and a range of 1 kpc that I recalled, not read.</li>
+<li>The O-star count at default scale (270,000) scales the quarter-scale test galaxy's 4,217 by 64 [R]; the mass cut (14 solar masses, GEN.194) lowers it and the hosting ratio makes the nebula count follow.</li>
+<li>Row and byte sizes are estimates from column widths. The 2 KB figure for a stored nebula was not measured on a populated table.</li>
+<li>Screen &quot;ink&quot; counts overlaps and ignores what a frustum culls, so it overstates real coverage; it compares options, not absolute cover.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<ul>
+<li>[S] <code>galaxy/nebula_field.py</code>, <code>tuning.py</code> (<code>PHENOMENON_DENSITY_PC3</code>, <code>GMC_ARM_FILLING_FACTOR</code>, <code>NEBULA_FIELD_*</code>, <code>NEBULA_CLASSES</code>, <code>NEBULA_HOST_RULES</code>), <code>db/models.py</code> (<code>nebulae</code>), <code>galaxy/nebula_shape.py</code>, TODO items GEN.152, DB.24, MAP.172 to MAP.182, GEN.202; the cited catalogues and papers in section 2.</li>
+<li>[C] scripts and outputs in <code>/mnt/project-files/research/nebula-map-visibility/</code>: <code>scripts/density_options.py</code> and <code>density_options.json</code>, <code>shape_fill_fraction.json</code>, and the first study's <code>field_counts.json</code> and <code>cluster_inner.json</code>.</li>
+<li>[R] [R3759] (1,064 massive GMCs), the secondary [R0823] figure (3.2e5 Bok globules), the 150 pc layer and 1 to 2 kpc range for the Lynds comparison, the 64-times scaling of quarter-scale counts, and the 2 KB per stored nebula.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

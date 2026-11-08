@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interstellar asteroid fields: rogue-planet collisions and the other sources - planetGen docs</title>
+<meta name="description" content="Status: plan (items filed 4:51 PM EDT 2026-10-30; Boss decided 4:54 PM EDT: physics only with no game rate, retire a field past 1 ly, the leftover planet of a collision is its own rogue planet; nothing built).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/interstellar-asteroid-fields.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/interstellar-asteroid-fields.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="interstellar-asteroid-fields-rogue-planet-collisions-and-the-other-sources">Interstellar asteroid fields: rogue-planet collisions and the other sources</h1><p class="meta">docs/design/systems/interstellar-asteroid-fields.md</p><details class="toc"><summary>On this page (25 headings)</summary><ul><li style="margin-left:0px"><a href="#1-short-answers">1. Short answers</a></li><li style="margin-left:0px"><a href="#2-how-often-do-two-rogue-planets-collide">2. How often do two rogue planets collide?</a></li><li style="margin-left:14px"><a href="#21-inputs-repo-unless-marked">2.1 Inputs [REPO unless marked]</a></li><li style="margin-left:14px"><a href="#22-rate-per-rogue-c">2.2 Rate per rogue [C]</a></li><li style="margin-left:14px"><a href="#23-galaxy-total-c">2.3 Galaxy total [C]</a></li><li style="margin-left:14px"><a href="#24-related-tidal-disruption-of-a-rogue-by-an-isolated-neutron-star-or-black-hole-c">2.4 Related: tidal disruption of a rogue by an isolated neutron star or black hole [C]</a></li><li style="margin-left:0px"><a href="#3-what-a-collision-leaves-behind">3. What a collision leaves behind</a></li><li style="margin-left:14px"><a href="#31-energy-and-shock-c">3.1 Energy and shock [C]</a></li><li style="margin-left:14px"><a href="#32-what-is-in-it">3.2 What is in it</a></li><li style="margin-left:0px"><a href="#4-other-plausible-sources">4. Other plausible sources</a></li><li style="margin-left:0px"><a href="#5-how-a-field-disperses-and-ages">5. How a field disperses and ages</a></li><li style="margin-left:14px"><a href="#51-no-central-star-so-no-orbit">5.1 No central star, so no orbit</a></li><li style="margin-left:14px"><a href="#52-age-at-a-given-radius-c">5.2 Age at a given radius [C]</a></li><li style="margin-left:14px"><a href="#53-grinding-freezes-out-within-hours-to-years-c">5.3 Grinding freezes out within hours to years [C]</a></li><li style="margin-left:14px"><a href="#54-density-per-area">5.4 Density per area</a></li><li style="margin-left:0px"><a href="#6-storage-id-and-bodies">6. Storage, ID and bodies</a></li><li style="margin-left:0px"><a href="#7-how-the-existing-rogue-planet-generation-feeds-a-field">7. How the existing rogue-planet generation feeds a field</a></li><li style="margin-left:0px"><a href="#8-rate-calibration">8. Rate calibration</a></li><li style="margin-left:0px"><a href="#9-stand-ins-this-design-registers-gen725">9. Stand-ins this design registers (GEN.725)</a></li><li style="margin-left:0px"><a href="#10-reading-list">10. Reading list</a></li><li style="margin-left:0px"><a href="#11-todo-items">11. TODO items</a></li><li style="margin-left:0px"><a href="#12-decisions-boss-454-pm-edt-2026-10-30">12. Decisions (Boss, 4:54 PM EDT 2026-10-30)</a></li><li style="margin-left:0px"><a href="#13-boss-decision-454-pm-edt-2026-10-30-and-rogue-planet-stand-in-audit">13. Boss decision (4:54 PM EDT 2026-10-30) and rogue-planet stand-in audit</a></li><li style="margin-left:14px"><a href="#131-where-rogue-planet-generation-uses-stand-ins-or-flat-rates-today-repo-read-in-tuningpy-lines-2915-to-3130">13.1 Where rogue-planet generation uses stand-ins or flat rates today [REPO, read in tuning.py lines 2915 to 3130]</a></li><li style="margin-left:14px"><a href="#132-items-from-this-decision">13.2 Items from this decision</a></li></ul></details>
+<p>Status: plan (items filed 4:51 PM EDT 2026-10-30; Boss decided 4:54 PM EDT: physics only with no game rate, retire a field past 1 ly, the leftover planet of a collision is its own rogue planet; nothing built). Written 4:40 PM EDT 2026-10-30 as the lane reported. No generator code changed. Asked for by Boss (4:40 PM EDT 2026-10-30): make asteroid fields the result of two rogue planets colliding, evolve them when a sector is generated, give large bodies ID names, and treat the field like an in-system belt. Builds on <code>belt-evolution-and-body-ledger-2026-10-30.md</code> (the &quot;ledger draft&quot;: mass cut, L1/L2/L3 tiers, status words, <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code> designations) and <code>belt-origins-scatter-and-class-d-2026-10-30.md</code>. Repo today: <code>generation/phenomena/asteroid_field.py</code>, <code>tuning.ASTEROID_FIELD_*</code>, <code>docs/design/systems/interstellar-object-rates.md</code>, <code>nebula-and-asteroid-field-classes.md</code>.</p>
+<p>Evidence tags: [S] a source exists and was found by search this session (title and arXiv number seen, paper body not opened, so the building lane reads it before using a number); [C] computed this session from the stated inputs (script in the scratchpad, formulas below, reproducible); [R] recalled, not opened; [REPO] read in the repo. Every [R] number the build uses goes into GEN.725 with tier and tweak level.</p>
+<h2 id="1-short-answers">1. Short answers</h2>
+<ol>
+<li><strong>Rogue-rogue collisions are real physics but almost never happen.</strong> About <strong>one collision in the whole life of the Galaxy</strong> (range 0.1 to 10) [C]. A field made that way would be unrecognisable within about 60 thousand years, so the standing number in the Galaxy is about 1e-5. A generator that follows the physics makes none. That is what the repo's rate 0 already says, and the reason it gives (fields disperse) is right.</li>
+<li><strong>Even when it happens, it rarely leaves asteroids.</strong> At normal rogue speeds (30 to 60 km/s) two Earth-size rocks hit with peak shock pressure of 1 to 4 TPa, which is mostly melt and vapour that recondenses as droplets and dust. Boulders and 100 km fragments need a slower hit, roughly 15 to 30 km/s, a few percent of collisions [C]. Slower than about 15 km/s the pieces mostly fall back together into one planet.</li>
+<li><strong>A field cannot evolve by grinding.</strong> With no star holding it together the cloud flies apart in a straight line. Collisions stop within hours for big pieces and within years for grit [C]. After that &quot;evolution&quot; is only expansion (a pure function of age), then galactic shear. So bodies are <strong>derived from a seed and an age</strong>, not simulated.</li>
+<li><strong>The best physical sources are not collisions.</strong> The leftover belts of stars that went supernova are unbound by the mass loss: about 100 to 200 fields standing in the Galaxy [C with [R] inputs], roughly 4 orders of magnitude more than collisions, and still about 1 sector in 2e8. They are the right ones to host, because a young supernova remnant already exists in the generator.</li>
+<li><strong>To have any fields at all we need a labelled game rate.</strong> Recommendation in section 8: physical sources hosted where they belong, plus one stand-in &quot;wanderer&quot; rate at tier &quot;from needed output&quot;, tweak L4, default 1 field per 10,000 sectors, registered next to the physical figure so research can replace it.</li>
+<li><strong>Fit with the belt design is good.</strong> A field is a belt with no star: same ledger, same mass cut, same designation rule, same planet-status test. Differences are: it expands, it has a hard lifetime, and its members are drawn once and moved by <code>position = v x age</code>.</li>
+</ol>
+<h2 id="2-how-often-do-two-rogue-planets-collide">2. How often do two rogue planets collide?</h2>
+<h3 id="21-inputs-repo-unless-marked">2.1 Inputs [REPO unless marked]</h3>
+<ul>
+<li>Rogue density: 6.5 rogues per star, so 0.91 per pc3 at the solar neighbourhood, of which terrestrial 0.78 per pc3 (<code>tuning.ROGUE_PLANET_RATE_PER_STAR</code>, <code>PHENOMENON_DENSITY_PC3</code>). The observational root is the microlensing work ([R3191], 2020; [R2178], cited in tuning) [REPO]; the terrestrial number is already an extrapolation.</li>
+<li>Relative speed: rogues share the stellar velocity dispersion, plus the ejection kick. Relative 3-D speeds of 30 to 60 km/s in the old thin disc, 100 km/s and up in the bulge, 2 to 4 km/s inside a young cluster [R]. I carry 20, 40 and 80 km/s.</li>
+<li>Gravitational focusing: cross-section <code>sigma = pi (R1+R2)^2 (1 + v_esc^2 / v^2)</code> with <code>v_esc</code> at touching of the pair (11.2 km/s for two Earths). At 40 km/s focusing is 1.08, so it hardly matters.</li>
+</ul>
+<h3 id="22-rate-per-rogue-c">2.2 Rate per rogue [C]</h3>
+<p><code>Gamma = n sigma v</code>. For two Earth-size rogues at 0.78 per pc3:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Relative speed</th>
+<th>Gamma per rogue per year</th>
+<th>Per 10 Gyr</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10 km/s</td>
+<td>9.6e-24</td>
+<td>1e-13</td>
+</tr>
+<tr>
+<td>20 km/s</td>
+<td>1.1e-23</td>
+<td>1.1e-13</td>
+</tr>
+<tr>
+<td>40 km/s</td>
+<td>1.8e-23</td>
+<td>1.8e-13</td>
+</tr>
+<tr>
+<td>80 km/s</td>
+<td>3.5e-23</td>
+<td>3.5e-13</td>
+</tr>
+</tbody>
+</table></div>
+<p>With the real mass function (most rogues are 0.1 to 0.5 Earth masses, radius 0.5 to 0.7 Earth) the number is 2 to 4 times lower.</p>
+<h3 id="23-galaxy-total-c">2.3 Galaxy total [C]</h3>
+<p><code>events/yr = 0.5 x sigma v x (6.5)^2 x integral(n_star^2 dV)</code>. Exponential disc (scale length 2.6 kpc, height 0.3 kpc, 0.14 stars per pc3 at the Sun, 8.4e10 stars) gives 3.4e10 star^2 per pc3 pc3; a 2e10 star Plummer bulge of 700 pc gives 5.1e10.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Collisions per year, Galaxy</th>
+<th>Over 10 Gyr</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth-size pairs, disc 40 km/s, bulge 120 km/s</td>
+<td>8.9e-11</td>
+<td>0.9</td>
+</tr>
+<tr>
+<td>Mass-function pairs (0.7 Earth radius)</td>
+<td>4.3e-11</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>Young clusters (n* 100 to 2e4 per pc3, 1.5 to 4 km/s, 10 Myr, 1 rogue per star): per rogue 5e-14 to 4e-12, so for 1e11 clustered stars</td>
+<td></td>
+<td>0.01 to 1</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Answer: order one per Galaxy lifetime, about one per 10 Gyr to one per 1 Gyr at most.</strong> Standing fields at any moment: rate x field lifetime (section 5) = 1e-10 x 6e4 yr = <strong>6e-6</strong>. In a 3e10-sector Galaxy, no sector holds one, ever, unless we put it there.</p>
+<p>Cluster collisions are the only ones slow enough to leave real fragments, and they sit inside a cluster where the fragments are dispersed in a few Myr.</p>
+<h3 id="24-related-tidal-disruption-of-a-rogue-by-an-isolated-neutron-star-or-black-hole-c">2.4 Related: tidal disruption of a rogue by an isolated neutron star or black hole [C]</h3>
+<p>Tidal radius for an Earth: 4.9e5 km (1.4 Msun neutron star), 9.5e5 km (10 Msun black hole). Focusing is large (escape speed 870 and 1670 km/s there). Per object 1.7e-18 and 7.8e-17 per year; with the repo's 1e9 neutron stars and 1e8 black holes, 30 percent of them in rogue-rich space, about <strong>5e-10 and 2e-9 events per year</strong>, 1 per 0.5 to 2 Gyr. Debris is thrown at about 100 km/s, so it leaves a 1 ly cloud within about 3 thousand years: standing number 1e-5. The bound half is a disc around the remnant (this is the pulsar-planet origin that already exists). Not a field source. Listed for completeness.</p>
+<h2 id="3-what-a-collision-leaves-behind">3. What a collision leaves behind</h2>
+<h3 id="31-energy-and-shock-c">3.1 Energy and shock [C]</h3>
+<p>Specific impact energy of an equal-mass pair <code>Q_R = v^2 / 8</code>; gravitational binding energy of an Earth <code>3GM/5R = 3.7e7 J/kg</code>; complete vaporisation of silicate is of the order 1e7 J/kg for the heating share [R].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>v km/s</th>
+<th>Q_R (J/kg)</th>
+<th>Peak shock pressure, rock on rock [C, forsterite C 5.5 km/s, s 1.3]</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>3e6</td>
+<td>below 100 GPa</td>
+<td>merger, small ejecta, nothing escapes</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1.3e7</td>
+<td>200 GPa</td>
+<td>partial disruption; mostly re-accretes (hit and run if oblique)</td>
+</tr>
+<tr>
+<td>15</td>
+<td>2.8e7</td>
+<td>400 GPa</td>
+<td>near catastrophic threshold, large remnant plus fragments</td>
+</tr>
+<tr>
+<td>20</td>
+<td>5e7</td>
+<td>600 GPa</td>
+<td>catastrophic: fragments from 10s to 1000s of km, some melt</td>
+</tr>
+<tr>
+<td>30</td>
+<td>1.1e8</td>
+<td>1.2 TPa</td>
+<td>super-catastrophic: melt and vapour dominate, small remnant</td>
+</tr>
+<tr>
+<td>40</td>
+<td>2e8</td>
+<td>2.1 TPa</td>
+<td>mostly vapour and droplets</td>
+</tr>
+<tr>
+<td>60</td>
+<td>4.5e8</td>
+<td>4.4 TPa</td>
+<td>essentially all vapour and melt</td>
+</tr>
+</tbody>
+</table></div>
+<p>Outcome regimes and the largest-remnant law are in [R2633] and 1109.4588 [S, to read]. I used only the threshold idea (disruption when <code>Q_R</code> exceeds <code>Q*_RD</code>, which for planet size is of the order of the binding energy); the building lane replaces my table with their law, <code>M_lr / M_tot</code> as a function of <code>Q_R / Q*_RD</code>, and registers any piece it cannot read as a stand-in.</p>
+<p><strong>The window that makes an asteroid field is 15 to 30 km/s.</strong> Fraction of collisions in it, for a Maxwellian relative speed with 1-D dispersion s [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>s (km/s)</th>
+<th>below 15</th>
+<th>15 to 30</th>
+<th>30 to 60</th>
+<th>above 60</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>25</td>
+<td>3 percent</td>
+<td>17 percent</td>
+<td>60 percent</td>
+<td>20 percent</td>
+</tr>
+<tr>
+<td>50</td>
+<td>0.2 percent</td>
+<td>1.6 percent</td>
+<td>15 percent</td>
+<td>83 percent</td>
+</tr>
+</tbody>
+</table></div>
+<p>So only about 1 to 17 percent of the (already rare) collisions leave rubble. The rest give a vapour and droplet cloud (still a &quot;debris field&quot; but made of mm to m material) or a merged planet.</p>
+<h3 id="32-what-is-in-it">3.2 What is in it</h3>
+<ul>
+<li><strong>Mass:</strong> the unbound part, not the sum. Unbound mass fraction runs from near 0 (merger) to near 1 (super-catastrophic); a remnant planet is a <strong>separate rogue planet</strong> with its own ID, left near the field's centre.</li>
+<li><strong>Composition:</strong> from the two parents. A differentiated rogue has an iron core (about 0.3 of its mass) and a silicate mantle; water-rich rogues (GEN.26 <code>ROGUE_WATER_RICH_CHANCE</code>) add ice shards. The repo's <code>small_body_composition.draw_field(&quot;collisional&quot;)</code> picks one taxon; replace with shards: iron/M-type from the cores, V/A or S-type from the mantles, D/P-type from ice. The ledger draft's rule (differentiated bodies only if the parent was) is automatically met because the parents are differentiated.</li>
+<li><strong>Speed:</strong> ejecta dispersion about 0.3 to 1 times the impact speed above <code>v_esc</code>: stand-in 5 to 15 km/s (L1, nudged inside the physics bracket; to be derived in item F1).</li>
+<li><strong>Sizes:</strong> a steep tail in the catastrophic regime. Largest fragment at 15 to 30 km/s: tens to hundreds of km (stand-in; from LS12 once read). Below a few km the vapour/droplet share dominates. The L1 ledger tier (mass cut rule E, floor 1e19 kg) holds the large pieces.</li>
+<li><strong>Shape:</strong> a sphere is acceptable for a collision. Supernova-unbound belts (section 4) are a thin expanding <strong>annulus/pancake</strong>, not a ball; store the shape flag.</li>
+</ul>
+<h2 id="4-other-plausible-sources">4. Other plausible sources</h2>
+<p>Rates are stand-in orders of magnitude; the same lifetime rule gives the standing number.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Source</th>
+<th>Mechanism</th>
+<th>Numbers</th>
+<th>Standing Galaxy-wide</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>Rogue-rogue collision</td>
+<td>section 2</td>
+<td>0.4 to 1 per Galaxy lifetime [C]</td>
+<td>1e-5</td>
+<td>physics-true, essentially none</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td><strong>Belt unbound by a supernova</strong></td>
+<td>An A to B star keeps a debris belt (A-star 24 micron excess is common at 10 to 100 Myr; Su et al. 2006, [R4247] [S, to read]; stand-in 30 percent keep one). The core collapse removes more than half the mass, the belt (50 AU, orbital speed 13 km/s around 10 Msun, escape speed 7 km/s around the 1.4 Msun remnant) is unbound and leaves in a flat expanding ring.</td>
+<td>core-collapse rate 0.02 per yr [R], belt fraction 0.3 [R, stand-in], leaves 1 ly in 25 to 37 kyr at 8 to 12 km/s [C]</td>
+<td><strong>90 to 220</strong> [C], 6e-10 to 9e-10 per star, 3e-9 to 8e-9 per 4 pc sector</td>
+<td>the best physical source. Hosted by a young SNR (age under about 40 kyr). Shock heating of the belt by the blast: ice lost, rock kept [R].</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>Young-cluster stripped swarms</td>
+<td>Flybys truncate discs at about 0.3 of periastron (Holman and Wiegert style cut already in repo; [R0527] [R]); the cut-off planetesimals fly free. Cluster dispersion 1 to 3 km/s, so the swarm leaves in a few Myr, then joins the interstellar background.</td>
+<td>cluster-limited</td>
+<td>tens of clusters x 1e5-ish swarm members, no coherent field after 10 to 20 Myr</td>
+<td>hook only: a young cluster (age under 20 Myr) may list a swarm. Low priority.</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Rogue disrupted by NS/BH</td>
+<td>section 2.4</td>
+<td>5e-10 and 2e-9 per yr</td>
+<td>1e-5</td>
+<td>not a field source. Feeds the pulsar-planet disc.</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Ejected belt of a disrupted system</td>
+<td>A stellar flyby or instability ejecting a whole belt. A star keeps its belt through a flyby unless the encounter is closer than about 3 times the belt radius; the ejected share is part of the isolated-body background rather than one cloud.</td>
+<td>[R]</td>
+<td>none</td>
+<td>goes to the interstellar-comet background (<code>INTERSTELLAR_DEBRIS_DENSITY_PC3</code> 1e15 per pc3, consistent with Do, [R1124], about 0.1 to 0.2 per AU3 [S]), which is not a field.</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Debris of a destroyed in-system planet</td>
+<td>A giant impact inside a system: debris is <strong>bound</strong> to the star.</td>
+<td>belongs to the belt <code>collisional-debris</code> origin (origins doc, section 3)</td>
+<td>not interstellar</td>
+<td>already a belt, not a field.</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>Disrupted giant</td>
+<td>A gas giant torn up by a star or hole forms a stream of gas, little rock.</td>
+<td>rare</td>
+<td>none</td>
+<td>skip.</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>Hand-made or facility</td>
+<td>admin / future 8.6 edits</td>
+<td></td>
+<td></td>
+<td>keep the type for it.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Source of rogues themselves: planet-planet scattering ejects them with a kick of several km/s [R]; all of them already come from <code>RoguePlanet</code>, which matters for section 7.</p>
+<h2 id="5-how-a-field-disperses-and-ages">5. How a field disperses and ages</h2>
+<h3 id="51-no-central-star-so-no-orbit">5.1 No central star, so no orbit</h3>
+<p>Each body moves in a straight line relative to the field centre at its ejection velocity. Radius <code>R(t) = R0 + sigma_v t</code>. Galactic tidal shear (Oort A 15 km/s per kpc) adds a drift of <code>2 A x t</code> for a body at offset x: for x = 1 pc and t = 10 Myr that is 0.3 pc, small beside <code>sigma_v t</code> until about 100 Myr and 10 pc [C]. So shear is a second-order step for fields that matter.</p>
+<h3 id="52-age-at-a-given-radius-c">5.2 Age at a given radius [C]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>sigma_v (km/s)</th>
+<th>to 63 AU (the smallest field)</th>
+<th>to 1 ly (the largest field)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1 (tidal disruption of one rubble body)</td>
+<td>3 thousand yr</td>
+<td>3 Myr</td>
+</tr>
+<tr>
+<td>1</td>
+<td>300 yr</td>
+<td>300 thousand yr</td>
+</tr>
+<tr>
+<td>5</td>
+<td>60 yr</td>
+<td>60 thousand yr</td>
+</tr>
+<tr>
+<td>10</td>
+<td>30 yr</td>
+<td>30 thousand yr</td>
+</tr>
+<tr>
+<td>15</td>
+<td>20 yr</td>
+<td>20 thousand yr</td>
+</tr>
+</tbody>
+</table></div>
+<p>The repo's field radius range (63 AU to 1 ly, uniform draw) is thus a range of ages up to 20 kyr to 3 Myr. <strong>Radius becomes a result of age</strong>: births are uniform in time, so the age is uniform in <code>[0, t_life]</code> and radius follows. A field larger than 1 ly is no longer a field (spacing between 100 km bodies of an Earth mass cloud at 1 ly is thousands of AU; its column density is far below the interstellar-debris background of 100 m bodies) and is <strong>retired</strong>. This is the first object type whose end is physics rather than a hand-set removal; bring-to-epoch (GEN.1006) must handle it (item L5).</p>
+<h3 id="53-grinding-freezes-out-within-hours-to-years-c">5.3 Grinding freezes out within hours to years [C]</h3>
+<p>Collisions need optical depth above 1: <code>tau = total cross-section / (pi R^2)</code>. For one Earth mass at 5 km/s ejection:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece size</th>
+<th>Radius where tau = 1</th>
+<th>Time to get there</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100 km</td>
+<td>6.5e-4 AU</td>
+<td>5 hours</td>
+</tr>
+<tr>
+<td>1 km</td>
+<td>6.5e-3 AU</td>
+<td>2 days</td>
+</tr>
+<tr>
+<td>1 m</td>
+<td>0.2 AU</td>
+<td>2 months</td>
+</tr>
+<tr>
+<td>1 mm</td>
+<td>6.5 AU</td>
+<td>6 years</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the size distribution of the pieces above a metre is whatever the collision (and the first hours) made; <strong>there is no Dohnanyi grinding in the field, and no Wyatt <code>1/t</code> mass loss.</strong> The ledger's grinding and Yarkovsky steps are switched off for fields (no star, no luminosity), which is a correct simplification, not a hole. Grit and dust persist but contribute nothing to the ledger (L3 tail). Without a star there is no radiation pressure or Poynting-Robertson loss; interstellar gas drag and sputtering are slow [R].</p>
+<h3 id="54-density-per-area">5.4 Density per area</h3>
+<p>Column density <code>Sigma = M_field / (pi R(t)^2)</code>, falling as <code>t^-2</code>. A &quot;dense/typical/sparse&quot; word (the repo's three levels) is derived from it with the same thresholds the belt rule uses. The word changes as the field ages, never stored.</p>
+<h2 id="6-storage-id-and-bodies">6. Storage, ID and bodies</h2>
+<ul>
+<li><strong>Mass rule (GEN.1161, Boss approved 3:14 PM EDT 2026-10-31).</strong> A field holds what the disc stretch it came from has left, by the belts' own rule, and its bodies add up to it: a supernova-unbound belt is the progenitor's belt ground for the progenitor's life (<code>belt_ledger.solve_belt</code>) and then kept; a collision field is the unbound share of the pair (<code>rogue_collision.unbound_fraction</code>); nothing is drawn from a table of typical masses. Built in <code>physics/field_mass.py</code>; <code>mass_total_kg</code> below stores its result.</li>
+<li><strong>One row per field</strong> (the existing <code>asteroid_fields</code> row with its 12-byte <code>uid</code>) gains: <code>mass_total_kg</code>, <code>seed</code>, <code>birth_age_yr</code> (age at the sector's epoch), <code>sigma_v_kms</code>, <code>shape</code> (ball, annulus), <code>origin</code> (S1, S<sub>2</sub>, ...), <code>history</code> text, <code>parent_a</code> and <code>parent_b</code> (mass, class, speed; text), <code>remnant_id</code> (the rogue left behind, if any), <code>size_law</code> (slope, largest-fragment mass). Units go in <code>db/column_units.py</code>.</li>
+<li><strong>Built (GEN.1103, Aux 5, 11-06).</strong> Schema 225 adds <code>rms_speed_kms</code>, <code>birth_age_yr</code>, <code>shape</code>, <code>origin</code>, <code>history</code> and <code>largest_body_kg</code> to <code>asteroid_fields</code> (the rest of the list waits for the items that need them). A field's radius is no longer drawn: <code>asteroid_field.radius_ly_at(age, speed)</code> gives it (<code>field_dispersal.rms_radius_m</code>), for a field made by hand (speed log-uniform over <code>tuning.ASTEROID_FIELD_SPEED_KMS_RANGE</code>, stand-in row AF1 in section 6.203; age uniform from the age of the smallest field to the retirement age, since births are uniform in time) and for a Rogues top-up field (<code>field_topup_build</code> copies the plan's speed, age, shape, origin and largest piece, and writes the history sentence of its apparent origin). The sheet shows them.</li>
+<li><strong>Built, the supernova host rule (GEN.1104, Aux 5, 11-07).</strong> <code>generation/field_host.hosted_field</code> gives every scattered core-collapse remnant (<code>run_sector.add_scattered_phenomena</code>) the field its progenitor's belt left, from the remnant's own seed: a progenitor mass from the IMF over the windows of the remnant's core, <code>field_rates.hosted_belt</code> (the share of progenitors that kept a belt by age, the unbinding, the retirement past a light year), the mass from <code>field_mass.unbound_belt_field</code> with the rocky law, and an <code>AsteroidField</code> with shape <code>annulus</code> (a ring of <code>RING_RADIUS_AU</code>), origin <code>unbound belt</code> and the sentence of where the mass came from. About 13 percent of core-collapse remnants host one in a 2,000-remnant probe (stand-ins HF1 and HF2, section 6.202). The remnant's core is not given a field of its own: the field is placed at the remnant's centre.</li>
+<li><strong>Built (GEN.1107, Aux 5, 11-07).</strong> Bring-to-epoch for fields. The orbit update that moves a field (<code>store.advance_galactic_positions</code>) now also ages it: <code>birth_age_yr</code> is the age at the row's <code>epoch_unix</code>, so a due field gets the years since its epoch added (<code>asteroid_field.aged</code>), its <code>radius_ly</code> follows by <code>radius_ly_at</code> and the size digit of <code>field_class</code> by <code>asteroid_field_class</code> (the letter, from composition and density, does not change). <strong>Retirement (Boss decision 2, &quot;retire it&quot;; the TODO asked Boss to pick between marking and deleting, default retire):</strong> a field whose radius passes 1 ly (<code>RETIREMENT_RADIUS_LY</code>) is retired by <em>marking, not deleting</em>: the row, its Object ID, its members and any facility at it (<code>facilities.asteroid_field_id</code> cascades on delete) stay. Retired is a formula of the row (<code>radius_ly &gt; 1</code>, <code>asteroid_field.is_retired_radius</code> and the same test in SQL, <code>RETIRED_FIELD_SQL</code>), so no column holds it and nothing can disagree with the radius. The map reads (<code>query._placed_phenomenon_rows</code>) and the widest-radius reads (<code>query._widest_placed_phenomenon_radius_ly</code>, <code>obstacles.widest_reach_pc</code>) leave a retired field out; its page stays. (GEN.1073, Aux 5, 11-07: the Phenomena catalog and its counts, the nearby search, the contents of a cloud and the pass-through reach leave retired fields out too; the row, its page and its members stay.) A field is aged only when it is due (its own galactic interval, tens of years), so its radius is the radius at its epoch, as its position is. No schema change, no epoch (the clock step is not generation). Left for later if Boss wants it: a status line on the sheet, and a density word that follows the column density (5.4).</li>
+<li><strong>Position and size at any epoch are formulas of the row</strong>, so the bring-to-epoch step is a pure function, with one exception (retirement, 5.2).</li>
+<li><strong>Bodies are derived.</strong> L1 members (mass cut rule E, floor 1e19 kg, cap 300) come from the seed: rank k has mass from the order-statistic draw, velocity from <code>Normal(0, sigma_v)</code> per component, position <code>x_k = v_k x age</code>. Stable rank by mass drawn once at birth, as the belt draw. L2 (1e15 to 1e19 kg) is drawn on demand; L3 is the tail as total mass.</li>
+<li><strong>Designation:</strong> <code>&lt;field ID&gt;.&lt;rank hex&gt;</code>, the same function as belt members (ledger draft section 9, <code>designation(parent_id, rank)</code>). The field's own ID is its existing uid. The older display name <code>AF C3-FE81000A2B-01</code> stays as the field's label. A remnant planet takes an ordinary rogue-planet ID (kind code 1); a pre-existing rogue is <strong>not</strong> reused as a parent, since the parents are drawn virtually (below).</li>
+<li><strong>Status words</strong> per L1 body: the same <code>body_status.py</code> flags. Field members are on a free orbit, so &quot;cleared&quot; uses Soter mu against the field's own mass and is nearly always &quot;minor body&quot;. The only rounded bodies would be a few big fragments above the roundness mass, which are &quot;dwarf planet&quot; by the repo's word and have no star to orbit (the IAU word needs a star). Store the numbers; the displayed word for free bodies is <code>free dwarf body</code> or <code>minor body</code> (Boss to confirm word in the ledger decision, section 11 of the ledger draft already stores both).</li>
+</ul>
+<h2 id="7-how-the-existing-rogue-planet-generation-feeds-a-field">7. How the existing rogue-planet generation feeds a field</h2>
+<p>A collision cannot use existing rogue rows as the parents. At 0.78 per pc3 the nearest two rogues are about 0.5 pc apart, and one of them is not in the same sector as a rule; there is no event, only the draw. So the field draws <strong>two virtual parents</strong> from the same machinery the rogues use:</p>
+<ul>
+<li>mass: <code>tuning.ROGUE_PLANET_MASS_BINS</code> with the mass function exponent 0.65, terrestrial and sub-Neptune bins only (gas giants leave gas, not rubble);</li>
+<li>class and composition: <code>roguePlanetData.choose_rogue_planet_class</code> (classes C and D for rock and ice; water-rich chance <code>ROGUE_WATER_RICH_CHANCE</code>); core fraction from the existing small-body family composition;</li>
+<li>relative speed: Maxwellian from the sector's local velocity dispersion (<code>galactic_orbit</code>), restricted to the 15 to 30 km/s window for rubble;</li>
+<li>the history sentence: &quot;two rogue planets of 0.8 and 0.3 Earth masses met at 22 km/s about 31 thousand years ago; the 0.5 Earth-mass remnant is 0.1 ly away&quot;.</li>
+</ul>
+<p>Per-sector draw, not a global event list, as everywhere else in the generator.</p>
+<h2 id="8-rate-calibration">8. Rate calibration</h2>
+<p>The generator's rate scale is &quot;per star, times the sector's star count&quot; (<code>phenomenon_rate_per_star</code>). A 4 pc sector holds about 9 stars; the Galaxy has about 3e10 sector-equivalents. Physical sources, per sector [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Standing per sector</th>
+<th>Sectors per field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1 rogue collision</td>
+<td>2e-16</td>
+<td>5e15</td>
+</tr>
+<tr>
+<td>S<sub>2</sub> supernova-unbound belt</td>
+<td>3e-9 to 8e-9</td>
+<td>1.2e8 to 3e8</td>
+</tr>
+<tr>
+<td>S4 tidal disruption</td>
+<td>3e-16</td>
+<td>far fewer</td>
+</tr>
+</tbody>
+</table></div>
+<p>Physics-only means a player never meets one. Three options, with what they mean for a player:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Rule</th>
+<th>Standing in the Galaxy</th>
+<th>Distance to the nearest field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Physics only (S<sub>2</sub> hosted by young SNRs, S1 by hand)</td>
+<td>no free draw</td>
+<td>about 100 to 200</td>
+<td>thousands of pc</td>
+</tr>
+<tr>
+<td>B. A plus a labelled game rate of <strong>1e-4 per sector</strong> (1.6e-6 per pc3, 1.1e-5 per star)</td>
+<td>stand-in, tier &quot;from needed output&quot;, tweak L4</td>
+<td>about 3e6</td>
+<td>about 85 pc</td>
+</tr>
+<tr>
+<td>C. A plus 1e-3 per sector</td>
+<td>same, 10 times higher</td>
+<td>about 3e7</td>
+<td>about 40 pc</td>
+</tr>
+</tbody>
+</table></div>
+<p>Option B means births of about 50 fields per year Galaxy-wide, ten orders of magnitude above the collision rate. That mismatch is the honest price of a visible field, and it is why the stand-in is registered with the physical figures beside it. <strong>Recommendation: B</strong>, because &quot;plausible rather than common&quot; is a field every 10,000 sectors (a bubble about 85 pc across holds one) and because S<sub>2</sub> stays the only physically rooted channel, which shows next to every young supernova remnant. A (nothing generated) is the strictly honest answer and stays the default if Boss wants no stand-in.</p>
+<p>Calibration rule for the dial: <code>lambda_sector = lambda_hosted(S2, S3) + lambda_floor</code>, where <code>lambda_floor = FIELD_STORY_RATE_PER_SECTOR</code> (registered GEN.725 row, L4), scaled by sector star density like the other phenomena, and every drawn floor field carries origin <code>collision (stand-in rate)</code> so it is searchable and removable. A test checks the expected number per 10,000 generated sectors, as a distribution, and that none of them is older than <code>t_life</code>.</p>
+<h2 id="9-stand-ins-this-design-registers-gen725">9. Stand-ins this design registers (GEN.725)</h2>
+<ul>
+<li><code>FIELD_STORY_RATE_PER_SECTOR</code> 1e-4 (tier &quot;from needed output&quot;, L4; physical figure 2e-16 beside it).</li>
+<li>Rubble window 15 to 30 km/s (tier &quot;from physics, educated guess&quot;, L1; to be replaced by the LS12 law).</li>
+<li>Ejecta dispersion 5 to 15 km/s (L1).</li>
+<li>Supernova belt fraction 0.3 (tier &quot;Marginal Unverified&quot;, L1; replace after reading Su 2006 and the Herschel DEBRIS fractions in the origins doc).</li>
+<li>Largest fragment mass in the rubble regime (L1).</li>
+<li><code>t_life</code>: not a constant. It follows from <code>sigma_v</code> and the 1 ly retirement radius.
+All carry the ledger draft's Solar System rule: no Solar System input; test targets only.</li>
+</ul>
+<h2 id="10-reading-list">10. Reading list</h2>
+<p>[R2633] ([R2633], 1109.4588); Su et al. 2006 [R4247] [R] for A-star belts; Do, [R1124] for the interstellar background; [R3191] and 2020, [R2178] (already cited in tuning) for rogue density; Pierazzo and Melosh style shock-vaporisation work for the 400 GPa to 1 TPa vaporisation thresholds [R]; [R0527] for flyby truncation [R]. Boss cannot access some papers: use second-hand where closed.</p>
+<h2 id="11-todo-items">11. TODO items</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner (best guess, can move)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1098</td>
+<td>F5 research read</td>
+<td>Aux 4</td>
+</tr>
+<tr>
+<td>GEN.1099</td>
+<td>F1 rogue_collision.py</td>
+<td>Aux 4</td>
+</tr>
+<tr>
+<td>GEN.1100</td>
+<td>F<sub>2</sub> field_dispersal.py</td>
+<td>Aux 4</td>
+</tr>
+<tr>
+<td>GEN.1101</td>
+<td>F4 field_rates.py</td>
+<td>Aux 4</td>
+</tr>
+<tr>
+<td>GEN.1102</td>
+<td>F3 composition from two parents</td>
+<td>Aux 4 or Sources 1</td>
+</tr>
+<tr>
+<td>GEN.1103</td>
+<td>L1 columns, radius from age (lock)</td>
+<td>Aux 4, train 19</td>
+</tr>
+<tr>
+<td>GEN.1104</td>
+<td>L2 supernova host rule (lock)</td>
+<td>Aux 4, train 19</td>
+</tr>
+<tr>
+<td>GEN.1105</td>
+<td>L3 members, designations, pages (lock)</td>
+<td>Core 2 with Aux 4, train 20</td>
+</tr>
+<tr>
+<td>GEN.1106</td>
+<td>L4 render (lock)</td>
+<td>Core 2, train 20</td>
+</tr>
+<tr>
+<td>GEN.1107</td>
+<td>L5 bring-to-epoch (lock)</td>
+<td>Aux 5, built 11-07</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="12-decisions-boss-454-pm-edt-2026-10-30">12. Decisions (Boss, 4:54 PM EDT 2026-10-30)</h2>
+<ol>
+<li><strong>Rate: option 1, physics only.</strong> Fields come only from physical sources (supernova-unbound belts and the others); no labelled game rate, no floor dial. The same holds for rogue planets (GEN.1109 reviews them).</li>
+<li><strong>A field that outgrows 1 ly: retire it.</strong></li>
+<li><strong>The remnant planet of a collision: its own rogue planet.</strong></li>
+</ol>
+<h2 id="13-boss-decision-454-pm-edt-2026-10-30-and-rogue-planet-stand-in-audit">13. Boss decision (4:54 PM EDT 2026-10-30) and rogue-planet stand-in audit</h2>
+<p><strong>Decided by Boss: physics all the way. Option A of section 8 (no game rate, no <code>FIELD_STORY_RATE_PER_SECTOR</code>), and rogue planets are to be physics-driven as well.</strong> My two small choices are taken as recommended (a field past 1 ly is retired; the collision remnant is its own rogue planet). Consequences for the items: drop the floor dial from F4 and the L4-tier row from section 9; fields are generated only by the hosted physical channels (S<sub>2</sub> supernova-unbound belts, S3 young clusters) and by hand. Section 2's rate stays as the documented physical figure. The rogue-planet rework below is new work for TODO to number.</p>
+<h3 id="131-where-rogue-planet-generation-uses-stand-ins-or-flat-rates-today-repo-read-in-tuningpy-lines-2915-to-3130">13.1 Where rogue-planet generation uses stand-ins or flat rates today [REPO, read in <code>tuning.py</code> lines 2915 to 3130]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>What</th>
+<th>Today</th>
+<th>Kind</th>
+<th>Physics-driven replacement (to research)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rogues per star</td>
+<td><code>ROGUE_PLANET_RATE_PER_STAR</code> 5.8, flat, same in every galaxy region</td>
+<td>flat rate</td>
+<td>Derive from the planet architecture: count planets the architecture scatters out (GEN.728 already moves and ejects giants) per system, by star mass, metallicity and age, plus cluster stripping; the 5.8 becomes a test target against microlensing (Mroz, Johnson et al.)</td>
+</tr>
+<tr>
+<td>Mass function</td>
+<td>one power law <code>dN/dlogM ~ M^-0.65</code>, 0.1 Earth to 13 Jupiter, four bins</td>
+<td>fitted slope, bin edges by hand</td>
+<td>the ejected-population mass function from the architecture's own ejections (light bodies are ejected more easily)</td>
+</tr>
+<tr>
+<td>Terrestrial floor 0.1 Earth</td>
+<td>hard lower edge</td>
+<td>stand-in</td>
+<td>ejection of the oligarch chain below <code>PLANET_MIN_MASS_EARTH</code>, and the debris class below it</td>
+</tr>
+<tr>
+<td>Gas-giant threshold</td>
+<td><code>ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER</code> 0.031 (10 Earth masses, the bound chain's core limit, GEN.1133)</td>
+<td>rule of thumb</td>
+<td>derive from the envelope fraction (core mass and gas capture)</td>
+</tr>
+<tr>
+<td>Age</td>
+<td><code>ROGUE_PLANET_AGE_RANGE_GY</code> 0.1 to 10, uniform</td>
+<td>default</td>
+<td>the age of the ejecting system plus time since ejection, from the galaxy's star formation history</td>
+</tr>
+<tr>
+<td>Hydrogen envelope kept</td>
+<td><code>ROGUE_HYDROGEN_ENVELOPE_CHANCE</code> 0.1 / 0.5; pressure 10 to 1000 bar</td>
+<td>defaults</td>
+<td>the planet's own formation (nebula gas capture, GEN.8 architecture) and loss by photoevaporation before ejection</td>
+</tr>
+<tr>
+<td>Water-rich</td>
+<td><code>ROGUE_WATER_RICH_CHANCE</code> 0.35 / 0.8, share 1e-4 to 0.1 log-uniform</td>
+<td>defaults</td>
+<td>formation zone relative to the stored formation snow line of the ejecting system</td>
+</tr>
+<tr>
+<td>Frozen atmosphere</td>
+<td>mass 0.3 Earth cut</td>
+<td>default</td>
+<td>outgassing and volatile inventory from the body's composition and impact history</td>
+</tr>
+<tr>
+<td>Tidal heating</td>
+<td><code>ROGUE_TIDAL_FLUX_RANGE_W_M2</code> 1e-4 to 1e-2, log-uniform, for rocks that kept a moon</td>
+<td>default</td>
+<td>whether a moon survived ejection (Hill sphere against the ejection encounter) and its orbit (tides work in GEN.842)</td>
+</tr>
+<tr>
+<td>Radiogenic inputs</td>
+<td>thorium/uranium offset sigma 0.22 dex, potassium range, 26Al factor 0.1 to 10</td>
+<td>placeholders</td>
+<td>the ejecting star's stored composition and formation environment (GEN.476)</td>
+</tr>
+<tr>
+<td>Heat law anchors</td>
+<td>Jupiter flux 5.4, Neptune 53 K, cooling <code>t^-1.3</code>, photosphere 0.3 bar, 0.1 bar, T cap 2800 K</td>
+<td>anchored fits</td>
+<td>keep (these are sourced), but the age feeding them must come from the real ejection history</td>
+</tr>
+<tr>
+<td>Escape parameter</td>
+<td><code>ROGUE_MIN_ESCAPE_PARAMETER</code> 15</td>
+<td>rule of thumb</td>
+<td>keep (Jeans criterion)</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>rogue planets take the generic galactic orbit (<code>set_galactic_motion</code>); interstellar comets have a flat <code>INTERSTELLAR_OBJECT_SPEED_KMS_RANGE</code></td>
+<td>no ejection kick</td>
+<td>add the ejection speed from the architecture's encounter (escape speed at the scattering orbit) plus the host's velocity, because the collision rate and the dispersal both depend on it</td>
+</tr>
+<tr>
+<td>Origin</td>
+<td>rogue rows carry no parent</td>
+<td>missing</td>
+<td>record the ejecting system (or &quot;formed free&quot;), so a rogue has a history sentence and a composition that match the architecture</td>
+</tr>
+</tbody>
+</table></div>
+<p>The common thread: a rogue is today drawn from a rate table, not made by a system. The physics-driven version is <strong>ejection as an output of system generation</strong>: every ejection the architecture performs becomes a rogue (mass, composition, moons kept, speed, age, parent star), counted per sector with the sector's stars. The flat rate then becomes a check, not an input. That is a lock item (epoch, <code>--affects</code>) touching the architecture slot loop, so it comes after the planet architecture and clearance ledger items already on the chain.</p>
+<h3 id="132-items-from-this-decision">13.2 Items from this decision</h3>
+<ul>
+<li>R1 = GEN.1109 (research, non-lock): ejection yield per star from the architecture (mass, count, speed, moons kept), checked against microlensing rates; output report and stand-in rows.</li>
+<li>R2 = GEN.1111 (lock): rogue rows created from architecture ejections, with parent system, ejection speed, age and kept moons; the rate table becomes a test target. Epoch, migration.</li>
+<li>R3 = GEN.1112 (non-lock): replace the defaults above one by one with the derivations in the right column, each as its own small physics module.</li>
+<li>R4: the field parents (section 7) are drawn from R2's ejection population, and the collision speed window uses R2's speeds.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mass backfill: four rings of heavier stars around the generated sectors - planetGen docs</title>
+<meta name="description" content="Boss (GitHub issue #952, defaults confirmed 2026-10-10 04:06Z): replace the GEN.30 luminosity tiers with four rings of sectors around what has been generated, each ring taking the stars born above a mass, so the sky of a generated sector...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/mass-backfill.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/mass-backfill.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="mass-backfill-four-rings-of-heavier-stars-around-the-generated-sectors">Mass backfill: four rings of heavier stars around the generated sectors</h1><p class="meta">docs/design/generation/mass-backfill.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#the-rule">The rule</a></li><li style="margin-left:0px"><a href="#what-a-sector-holds">What a sector holds</a></li><li style="margin-left:0px"><a href="#per-sector-state">Per sector state</a></li><li style="margin-left:0px"><a href="#reproducibility">Reproducibility</a></li><li style="margin-left:0px"><a href="#how-big">How big</a></li><li style="margin-left:0px"><a href="#code">Code</a></li></ul></details>
+<p>Boss (GitHub issue #952, defaults confirmed 2026-10-10 04:06Z): replace the GEN.30 luminosity
+tiers with four rings of sectors around what has been generated, each ring taking the stars
+born above a mass, so the sky of a generated sector is full of the stars you could see from it
+and the cost falls off with distance. Items: GEN.187. Builds on GEN.183 and GEN.185 (the
+scatter's mass and luminosity limits) and GEN.44 (a level per sector).</p>
+<p>Status: built (schema v79, <code>sector_stats.bright_mass_sol</code>).</p>
+<h2 id="the-rule">The rule</h2>
+<ul>
+<li>Ring 1 is every sector a face away from a generated sector (the face neighbours of
+<code>galaxy.geometry.neighbor_addresses</code>; no diagonals). Ring 2 is a face away from ring 1, and so on
+to ring 4, each ring counted from the previous ring's outer edge. A cell outside the galaxy's
+outline is left out.</li>
+<li>Ring 1 gets every star born with at least <strong>1</strong> solar mass, ring 2 at least <strong>2</strong>, ring 3 at least
+<strong>5</strong>, ring 4 at least <strong>8</strong> (<code>tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL</code>). The nearest ring has the
+lowest cut. Past ring 4 the scatter's own mass limit (GEN.183) stands, and a ring whose mass is not
+below that limit has nothing to add.</li>
+<li>The generated sectors are the run's own (<code>backfill_after_run</code>: the sectors created since the run
+began) or the one sector an on-demand visit or <code>generate_sector_neighborhood</code> creates. A sector
+already filled is never touched, and one a later run reaches nearer is taken lower and given only
+the bands it lacks.</li>
+<li>The GEN.30 luminosity tiers (100/250/500/750 L_sun out to 10/25/50/100 ly) are gone.</li>
+</ul>
+<h2 id="what-a-sector-holds">What a sector holds</h2>
+<p>The galaxy scatter places two kinds of star: every star born at or above the mass limit M (the mass
+pass, any luminosity), and, of the lighter ones, every star at or above the luminosity floor L (the
+luminosity pass). A mass backfill to m (m below M) adds the rest of the stars born in [m, M): the
+living ones <strong>dimmer than L</strong>, since the brighter ones were placed already. A star the mass pass
+or the backfill leaves out is the sector's own draw at fill time, which now caps initial mass at
+m as well as luminosity at L (<code>FillContext.star_mass_limit_sol</code>, <code>store.bright_star_fill_mass_limit</code>).</p>
+<p>White dwarfs born at 1 solar mass or more count: they are living stars of that mass, and without
+them the sector's fill (which refuses initial masses at or above m) would lose them. A white dwarf
+row stores <code>NULL</code> for its infinite lifespan and phase end, and <code>bright_stars.star_params</code> reads
+<code>NULL</code> back as infinity for class VII.</p>
+<p>At a galaxy with no scatter at all there is no L and no M: the backfill places every star born at or
+above the ring's mass, at any luminosity.</p>
+<h2 id="per-sector-state">Per sector state</h2>
+<p><code>sector_stats.bright_mass_sol</code> (new, <code>NULL</code> = never backfilled by mass) records how far down a
+sector was taken. When a scatter exists the same transaction also sets <code>bright_level_sol</code> to the
+scatter's L, so a staged scatter (<code>planetgen plan --bright-stars-down-to</code>) tops the sector up as it
+does any sector with its own state: from L down to the new floor, among stars born lighter than the
+sector's mass (<code>run_plan._draw_sector_bands</code> takes <code>min(mass limit, bright_mass_sol)</code>). Deleting a
+filled sector puts its level back; the mass stays. <code>clear_bright_stars</code> forgets both.</p>
+<h2 id="reproducibility">Reproducibility</h2>
+<p>Stars are drawn in fixed mass bands between the edges 1, 2, 5, 8 and the galaxy's mass limit
+(<code>bright_stars.canonical_mass_bands</code>). Each band of each sector is drawn whole from its own stream,
+keyed by the galaxy seed, the sector's address and the band's lower mass, so a sector taken down
+in two steps ends with exactly the stars one draw down to the same mass gives, whatever order the
+runs happened in. The band's Poisson mean is the sector's expected count times the band's share of
+living stars (<code>star_population.mass_band_fraction</code>, the same denominator as <code>bright_star_fraction</code>, so
+mass and luminosity shares subtract).</p>
+<h2 id="how-big">How big</h2>
+<p>The share of living stars born at or above each mass, of the whole disk (computed from the
+population model, <code>massive_star_fraction</code>): 1 Msun 9.1%, 2 Msun 3.3%, 5 Msun 0.55%, 8 Msun 0.001% (the
+young disk alone: 9.3, 3.5, 0.70, 0.15%). Ring 1 therefore adds about nine stars in a hundred of what a
+sector will hold, ring 2 three, ring 3 half a star, so the work is a few percent of filling the
+sectors in place and grows with the surface of the run, not its volume. The luminosity shares that
+remain after the scatter's L are nearly all of those (under L = 5000, 1 to 2 Msun: 5.8% of living
+stars, 2 to 5: 2.8%, 5 to 8: 0.55%).</p>
+<h2 id="code">Code</h2>
+<p><code>bright_stars.backfill_mass_cells</code>, <code>star_population.mass_band_fraction</code> and <code>sample_mass_band_stars</code>;
+<code>run_galaxy.backfill_ring_targets</code> (the ring walk) and <code>backfill_bright_stars_around</code>;
+<code>run_plan._draw_sector_masses</code> (chunked under <code>lock_sector_stats</code>, like the luminosity bands);
+<code>store.sector_bright_masses</code>, <code>set_sector_bright_masses</code>, <code>bright_star_fill_mass_limit</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

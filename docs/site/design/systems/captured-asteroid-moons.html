@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Captured asteroid moons (irregular satellites): physics and a generator design - planetGen docs</title>
+<meta name="description" content="Status: plan (Boss said yes 4:27 PM EDT 2026-10-30 and confirmed both recommendations of section 8 at 4:34 PM EDT: capture windows only, and the belt storage rule with a 1e16 kg floor; nothing built).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/captured-asteroid-moons.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/captured-asteroid-moons.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="captured-asteroid-moons-irregular-satellites-physics-and-a-generator-design">Captured asteroid moons (irregular satellites): physics and a generator design</h1><p class="meta">docs/design/systems/captured-asteroid-moons.md</p><details class="toc"><summary>On this page (18 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-short-answer-to-bosss-idea">1. The short answer to Boss's idea</a></li><li style="margin-left:0px"><a href="#2-physics">2. Physics</a></li><li style="margin-left:14px"><a href="#21-where-a-moon-can-stay-the-hill-sphere">2.1 Where a moon can stay: the Hill sphere</a></li><li style="margin-left:14px"><a href="#22-capture-mechanisms-and-when-each-applies">2.2 Capture mechanisms and when each applies</a></li><li style="margin-left:14px"><a href="#23-how-many-the-numbers-a-generator-can-use">2.3 How many (the numbers a generator can use)</a></li><li style="margin-left:14px"><a href="#24-families">2.4 Families</a></li><li style="margin-left:0px"><a href="#3-what-this-means-for-the-existing-generator-repo">3. What this means for the existing generator [REPO]</a></li><li style="margin-left:0px"><a href="#4-proposed-model">4. Proposed model</a></li><li style="margin-left:14px"><a href="#41-reservoirs-and-windows-what-a-planet-can-capture-from">4.1 Reservoirs and windows (what a planet can capture from)</a></li><li style="margin-left:14px"><a href="#42-the-count-three-tiers-like-the-belt-ledger">4.2 The count: three tiers like the belt ledger</a></li><li style="margin-left:14px"><a href="#43-orbit-and-survival">4.3 Orbit and survival</a></li><li style="margin-left:14px"><a href="#44-composition-and-identity">4.4 Composition and identity</a></li><li style="margin-left:14px"><a href="#45-counts-to-expect-generator-targets-a-sun-like-star-an-instability-occurred-gas-giants-then-ice-giants">4.5 Counts to expect (generator targets; a Sun-like star, an instability occurred, gas giants then ice giants)</a></li><li style="margin-left:14px"><a href="#46-what-is-not-modelled-named-so-the-table-above-is-honest">4.6 What is not modelled (named so the table above is honest)</a></li><li style="margin-left:0px"><a href="#5-stand-ins-register-in-gen725-when-built">5. Stand-ins (register in GEN.725 when built)</a></li><li style="margin-left:0px"><a href="#6-storage-where-the-irregulars-go">6. Storage: where the irregulars go</a></li><li style="margin-left:0px"><a href="#7-items-for-todo-numbers-for-todo-to-assign">7. Items for TODO (numbers for TODO to assign)</a></li><li style="margin-left:0px"><a href="#8-decisions-boss-434-pm-edt-2026-10-30">8. Decisions (Boss, 4:34 PM EDT 2026-10-30)</a></li></ul></details>
+<p>Status: plan (Boss said yes 4:27 PM EDT 2026-10-30 and confirmed both recommendations of section 8 at 4:34 PM EDT: capture windows only, and the belt storage rule with a 1e16 kg floor; nothing built). Written 4:40 PM EDT 2026-10-30 as the lane reported. No generator code changed. Asked for by Boss (4:27 PM EDT 2026-10-30): &quot;Jupiter has so many moons because a lot of them are former asteroids from the belt; if gravitational bodies are near a belt, they should pick up asteroidal moons.&quot; Ties to <code>belt-evolution-and-body-ledger-2026-10-30.md</code> (the ledger, member IDs <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code>, the cut rule E) and to the moon code (<code>generation/planets.generate_moons</code>, <code>physics/moon_composition.py</code>, <code>physics/tuning.MOON_*</code>).</p>
+<p>Evidence tags: [S] read this session in the paper text (arXiv or the authors' PDF); [R] recalled, <strong>not opened this session</strong>, the building lane reads it before the number is used; [REPO] read in the repo; [C] computed here. Everything [R] or invented is a stand-in for GEN.725 with tier and tweak level.</p>
+<p>Papers opened this session: [R2158] [S]; [R3264] [S]; [R3147] [S]; [R4041] (JWST, [R4041]) abstract [S]; [R0381] title and authors only.</p>
+<h2 id="1-the-short-answer-to-bosss-idea">1. The short answer to Boss's idea</h2>
+<p>The idea is half right, and the half that is wrong changes the design.</p>
+<p><strong>Right:</strong> most of the &quot;many moons&quot; of the giants are small, captured, irregular bodies, not formed in a disc round the planet. About 100 irregulars were known at the four giants by 2007, and they outnumber the regular moons (53 regular, 159 in all, Table 2 of Jewitt and Haghighipour) [S]. The irregulars are small-body-reservoir material: Jupiter's are spectrally Trojan-like or asteroid-like ([R4041]: Himalia looks like an ammoniated, Ceres-like asteroid; Carme, Sinope and Themisto look like &quot;red&quot; Trojans) [S].</p>
+<p><strong>Wrong, in its simple form:</strong> a planet standing beside a belt does not pick up that belt's bodies. A body that comes into a planet's Hill sphere from outside leaves again unless something takes its energy away, and in a gas-free system nothing does. [R3264] give a capture probability of only (1.3 to 3.6) x 10^-8 per disc particle even in the best (instability) case, so a belt of a few hundred big bodies gives about 1e-5 captures [C]. What actually put the Solar System's irregulars where they are, in the leading model, was the <strong>early instability</strong>: Jupiter and Saturn met an ice giant in close encounters while a massive outer planetesimal disc was still there, and the three-body interaction (planet, ice giant, planetesimal) left some planetesimals bound [S, NVM07 and NDD14]. The source was the outer (transplanetary) disc, not the main belt.</p>
+<p><strong>So the rule that fits both the physics and Boss's picture:</strong> <em>a planet gets irregular moons from the small-body reservoirs it interacted with while it could dissipate energy.</em> The reservoirs are the system's belts and discs <strong>at the time of a capture window</strong>, and the windows are (1) the gas era (gas drag, pull-down), (2) an instability with giant-giant encounters (three-body capture), (3) an exchange with a binary planetesimal, (4) a collision with an existing moon. A belt near a planet matters through its <strong>mass at the window</strong> (a primordial main belt held 100 to 1000 times its present mass [R, [R3681, R4603]], so the belt-evolution design's early-depletion step is exactly the sweep that feeds captures), and through the <strong>composition</strong> it gives the captured bodies. Without a window, a planet beside a belt gets none, and that is also physically right (Earth, Venus, Mercury have none; Mars's Phobos and Deimos are now thought to be impact-disc moons, [R3814] [R]).</p>
+<h2 id="2-physics">2. Physics</h2>
+<h3 id="21-where-a-moon-can-stay-the-hill-sphere">2.1 Where a moon can stay: the Hill sphere</h3>
+<ul>
+<li><code>r_H = a_p (m_p / 3 M_star)^(1/3)</code> [S, JH07 eq. 1]. Giants: 0.35, 0.43, 0.47, 0.77 AU for Jupiter, Saturn, Uranus, Neptune [S, Table 1].</li>
+<li>Stable limits (time-averaged), from numerical orbit surveys: prograde about <strong>0.4 r_H</strong> (the repo's <code>MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895</code> is the [R1771] figure [REPO, R]), retrograde about <strong>0.5 to 0.6 r_H</strong>, depending on the mean eccentricity ([R3263], quoted in VNL08) [S]. Retrograde orbits are stable out to larger distance, so after any loss process retrograde bodies outnumber prograde: <strong>88 retrograde to 19 prograde, 4.5 to 1</strong> [S, JH07 Table 2]. No known observation bias can produce that. Capture itself is symmetric in inclination [S].</li>
+<li><strong>Kozai band:</strong> no irregular is found with inclination 55 to 130 degrees [S]. The Sun drives the eccentricity up on a timescale of 65 to 180 yr at Jupiter and the orbit hits the planet or the regular moons. The repo already encodes the band (<code>KOZAI_FORBIDDEN_DEG = (55, 130)</code>, <code>draw_inclination_deg</code>) [REPO].</li>
+<li><strong>Inner edge:</strong> irregulars with pericentre <code>q = a(1-e)</code> inside the outermost regular moon are removed (collisions): q &gt; 0.013 AU at Jupiter (Callisto), 0.023 at Saturn (Iapetus), 0.004 at Uranus (Oberon) [S, VNL08].</li>
+<li>Median <code>a / r_H</code> of the observed irregulars: <strong>0.44, 0.29, 0.17, 0.19</strong> for Jupiter, Saturn, Uranus, Neptune [S, JH07]; the outer half of the Hill sphere is empty. Captured orbits start at 0.03 to 0.14 AU prograde, 0.03 to 0.2 AU retrograde at Jupiter, eccentricity 0 to 0.7 [S, NDD14].</li>
+<li><strong>Scale for the generator [C]:</strong> an Earth-mass planet at 1 AU has <code>r_H</code> = 1.5 million km, a Mars-like one 1.1 million km, a super-Earth 2.6 million km, Jupiter 53 million km, a hot Jupiter at 0.05 AU only 0.5 million km (7 Jupiter radii, so almost no irregular zone). A giant round a 0.3 solar-mass star at 1.5 AU: 23 million km.</li>
+</ul>
+<h3 id="22-capture-mechanisms-and-when-each-applies">2.2 Capture mechanisms and when each applies</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Needs</th>
+<th>Efficiency</th>
+<th>Applies to</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gas drag</strong> in the planet's extended envelope or circumplanetary disc</td>
+<td>gas giant, young, a dense extended envelope</td>
+<td>high while it lasts, window of Myr</td>
+<td>gas giants only; ends when the gas goes</td>
+<td>[R3560] [R]; JH07 sec. 6 [S]</td>
+</tr>
+<tr>
+<td><strong>Pull-down</strong></td>
+<td>planet mass grows fast (runaway), Hill sphere jumps, bodies in the old Hill sphere are bound</td>
+<td>works for retrograde and prograde</td>
+<td>gas giants only (needs runaway growth)</td>
+<td>[R1913] [R]; JH07 sec. 6.1 [S]</td>
+</tr>
+<tr>
+<td><strong>Three-body capture in planetary encounters</strong></td>
+<td>an instability: two or more planets meeting while a planetesimal disc is present; the closest pass, the geometry</td>
+<td>(1.3 to 3.6) x 10^-8 per disc particle at Jupiter</td>
+<td>every giant; ice giants need it (gas drag and pull-down cannot reach them)</td>
+<td>NVM07 [R], NDD14 [S]</td>
+</tr>
+<tr>
+<td><strong>Exchange / binary dissociation</strong></td>
+<td>a planetesimal binary flying past; one component keeps the energy</td>
+<td>far too low for small irregulars, but the only route found for <strong>Triton</strong> (a binary of two to five Triton masses, early, with the gas still present)</td>
+<td>one massive capture per ice giant at most</td>
+<td>[R0037] [R]; VNL08 [S]</td>
+</tr>
+<tr>
+<td><strong>Collision with a regular moon</strong> or tidal friction</td>
+<td>an existing large moon, a pass through its orbit</td>
+<td>low</td>
+<td>sets the inner edge, destroys more than it makes</td>
+<td>[R0856] [R]; JH07 [S]</td>
+</tr>
+<tr>
+<td><strong>Collisional fragmentation after capture</strong></td>
+<td>a captured body, time</td>
+<td>not a capture, a multiplier: one body becomes a family</td>
+<td>all</td>
+<td>[R0483] [R]; JH07 sec. 5 [S]</td>
+</tr>
+<tr>
+<td><strong>Temporary capture</strong></td>
+<td>a body passes through the Hill sphere at low speed (Earth always holds a metre-size mini-moon)</td>
+<td>the body leaves again after months to years</td>
+<td>every planet, continuous</td>
+<td>[R1666] [R]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Jewitt and Haghighipour's observation that the four giants hold nearly the same irregular populations despite masses of 17 to 310 Earth masses (JH07 sec. 3) points at the mechanism whose efficiency does not depend on the planet's accretion history: three-body capture, helped by the larger Hill spheres of the distant planets [S].</p>
+<h3 id="23-how-many-the-numbers-a-generator-can-use">2.3 How many (the numbers a generator can use)</h3>
+<ul>
+<li>Disc: a transplanetary planetesimal disc of (3 to 4) x 10^7 bodies above R = 40 km (calibrated from the Jupiter Trojans), cumulative size law index <strong>5 above R = 70 km and 1.8 below</strong> [S, NDD14].</li>
+<li>Capture probability per disc particle at Jupiter in three instability histories: <strong>(1.3 to 3.6) x 10^-8</strong>; so about <strong>one irregular above R = 40 km</strong> is expected at Jupiter, against the observed Himalia (R about 85 km) and Elara (43 km) [S, NDD14]. Fraction of captured moons that survive on the orbits 0.05 to 0.1 AU: 0.01 to 0.3 depending on the history [S].</li>
+<li>The same process captured a <strong>much larger population of small bodies</strong> than the known R &lt; 10 km irregulars: either the survey is incomplete, or collisions removed them, or the size law has a wave below 10 km [S, NDD14]. The observed law is differential q = 2 (cumulative index 1) at Jupiter, Saturn and Uranus above about 5 km and steeper (q about 3.5, cumulative 2.5) below 5 km at Jupiter [S, JH07]. A flatter law than the source's q of about 4 means the final population is <strong>not</strong> a direct copy of the source.</li>
+<li>NDD14 confirm NVM07's capture at Saturn, Uranus and Neptune, and find Jupiter's probability 1.5 to 4.2 times that of the one isolated NVM07 case [S]; the per-planet probabilities themselves are in NDD14 Table 1, which the building lane reads (item 1).</li>
+<li>Collision timescales: the irregulars of every giant would be destroyed by mutual collisions within the age of the Solar System if they were at Jupiter-like space density, so &quot;the final distribution is shaped by capture, long-term instability, collisions with regular moons, and collisions among the irregulars&quot; [S, NDD14 sec. 3.2; JH07 sec. 4 and 5]. The invariance of the final populations is, in my reading, the signature of <strong>collisional saturation</strong>: a population ground down as <code>N(t) = N0 / (1 + t / t_c)</code> ends up independent of <code>N0</code> for <code>t &gt;&gt; t_c</code>. That is the same law the repo already has for belts (<code>belt_mass_earth</code>, [R4785], [REPO]). This is an educated guess from physics, tier &quot;Marginal educated guess from physics&quot;, to be tested in item 5 below.</li>
+<li>Rough observed head-counts for calibration [R, not opened]: irregulars with R &gt; 5 km number about 10 at each giant (Jupiter 15, Saturn 9, Uranus 8, Neptune 7 within a factor of two). The calibration set the lane must read first: Jewitt and Haghighipour Table 2 [S: totals 63, 56, 27, 13; irregulars prograde/retrograde 6/49, 8/27, 1/8, 4/4 by 2007], [R4054] and [R4052, R4053]/2006 for the size laws.</li>
+<li>Population of the same capture family that are <strong>not</strong> moons: Jupiter Trojans (the same disc, capture probability about 6e-7 per particle, [C] from the 3 to 4e7 calibration, assuming 25 Trojans above R = 40 km [R]), so Trojans outnumber irregulars about 20 to 50 times above 40 km. Useful as a test target and as the generator's co-orbital population (belt-evolution doc sec. 6, &quot;Trojan swarms&quot;).</li>
+</ul>
+<h3 id="24-families">2.4 Families</h3>
+<p>Irregulars cluster in <code>a/r_H</code> versus inclination (JH07 Fig. 3): Jupiter's major families are Himalia (Himalia, Elara, Lysithea, Leda), Carme, Ananke, Pasiphae, plus loners; Saturn has the Gallic, Inuit and Norse (Phoebe-linked) groups; the four giants hold &quot;a handful of families&quot; each [S, JH07 sec. 3; names recalled from [R4054] [R]]. A family is the debris of one disruptive collision after capture, with a velocity spread of tens to a few hundred m/s [R]. Himalia's group is spectrally non-uniform (Himalia, Elara and Lysithea differ in phyllosilicate content), so the parent was heterogeneous [S, [R4041]]. Sources: [R3263] and 2004 [R]; [R0483] [R].</p>
+<h2 id="3-what-this-means-for-the-existing-generator-repo">3. What this means for the existing generator [REPO]</h2>
+<ul>
+<li><code>generate_moons</code> places moons log-uniformly out to <code>0.4895 r_H</code>, each with a draw from <code>ORIGIN_TABLE</code> whose weights are <strong>open</strong> (the rows a moon supports share the probability equally): for a giant, disk and captured (and ring when a ring is near) get a third each regardless of the moon's mass. That makes a captured moon of 1e20 kg or more (R of 260 km and up) as common as a disc moon, but real captured bodies that large are Triton, Phoebe-size at most; N(&gt; 100 km) is about 0.1 to 0.5 per giant, not one in three [S/C].</li>
+<li><code>MOON_MIN_MASS_KG = 1e20</code> means <strong>none of the real irregulars can exist today</strong>: Himalia is about 7e18 kg [R], everything else less. The existing moon list cannot hold them, so Jupiter always comes out with a few regular and no irregular moons.</li>
+<li><code>draw_inclination_deg(&quot;captured&quot;)</code> and <code>KOZAI_FORBIDDEN_DEG</code> are good and stay; the retrograde excess does not come out of them (inclinations are only half the story), it comes from the stability limit and collisional loss, which the code lacks.</li>
+<li><code>planet_architecture</code> (Planets 1, GEN.728, merged or on its branch as the lane reported) already moves and scatters giants (hot Jupiters clear the inner chain). That <strong>event is exactly the capture window</strong>: a count of giant-giant close encounters is what NDD14 shows decides the yield (Jupiter needs a phase of encounters with an ice giant; &quot;case 2 has the largest number of encounters and the most captures&quot;) [S]. The architecture must emit it.</li>
+</ul>
+<h2 id="4-proposed-model">4. Proposed model</h2>
+<h3 id="41-reservoirs-and-windows-what-a-planet-can-capture-from">4.1 Reservoirs and windows (what a planet can capture from)</h3>
+<p>A <strong>reservoir</strong> is a small-body population with an annulus, a mass at the window, a size law and a composition. Reservoirs come from the belt-evolution design: each belt or disc in the ledger, at its <strong>birth mass</strong> (before the early-depletion multiply) and again at its present mass.</p>
+<p>A <strong>window</strong> is one of:</p>
+<ol>
+<li><code>gas</code>: only a body with a gas envelope (<code>envelope_mass_fraction</code> at or above <code>GIANT_ENVELOPE_FRACTION</code>), while the disc lasted. Stand-in strength 0.1 to 0.3 of the instability channel (JH07 says gas drag and pull-down cannot explain the ice giants; for gas giants they may add) [marginal educated guess].</li>
+<li><code>encounter</code>: the architecture's instability event, with <code>n_enc</code> giant-giant close encounters (one number per system, from the architecture). Efficiency <code>eps_enc</code> = 1e-8 to 4e-8 per reservoir particle that passes within the 3 AU encounter sphere (<code>f_3AU</code> of NDD14), scaled by the planet's Hill volume.</li>
+<li><code>exchange</code>: a binary planetesimal fly-by, only for bodies at least a few hundred km (Triton); probability tiny, one draw per giant against the binary fraction of the reservoir (the belt doc's L3 binary fraction), a massive moon at most.</li>
+<li><code>temporary</code>: no permanent body (a flag only, no object; a hook for a &quot;mini-moon&quot; description later).</li>
+</ol>
+<h3 id="42-the-count-three-tiers-like-the-belt-ledger">4.2 The count: three tiers like the belt ledger</h3>
+<p>For each planet <code>p</code> and window <code>w</code>, the capture pool is an <strong>expected number per size bin</strong>:</p>
+<pre><code>N0(&gt;R) = sum over reservoirs  eps_w * f_geometry(p) * N_src(&gt;R)
+</code></pre>
+<ul>
+<li><code>N_src(&gt;R)</code>: from the belt/disc ledger (size law and top-end order statistic, <code>belt-evolution</code> sec. 3.1). For the outer disc use the 3 to 4e7 above R = 40 km, index 5/1.8 as a stand-in until the Kuiper-type disc of belt item 12 exists.</li>
+<li><code>f_geometry(p) = (r_H(p) / r_H,Jup)^3</code>: the <strong>stable volume</strong> is the capture target, the Hill volume (stand-in, tier educated guess from physics, tweak L1). With this, an Earth-like planet gets 2e-5 of Jupiter's yield [C], which is why terrestrial planets have no irregular moons and Mars has none from this channel.</li>
+<li>After capture, <strong>grind</strong> with the belt law: <code>N(t) = N0 / (1 + t / t_c)</code> with <code>t_c</code> from the mean collision rate of the irregular zone (volume <code>~ r_H^3</code>, speeds from the orbit at <code>~0.4 r_H</code>), so heavy captures flatten onto one saturated population (test: the four Solar System giants must come out at the same order; see 4.5).</li>
+<li>Convert the expected numbers to <strong>integers</strong> with the draw module's order statistics: L1 tier is the top of the size law (at the lane's chosen cut), the remainder is L2 reproducible from the planet's seed and L3 a total, exactly as the belt ledger does. Poisson at the top end: the Jupiter-like case has mean about 1 body above 40 km, so some Jupiters have none and some three.</li>
+</ul>
+<h3 id="43-orbit-and-survival">4.3 Orbit and survival</h3>
+<p>For each body: inclination from isotropic (<code>draw_inclination_deg</code>), a/r_H from a lognormal whose median is the planet's collision-set value (stand-in, interpolating 0.44 at 5 AU to 0.17 to 0.19 at 20 to 30 AU from the observed medians, [S] as data points), eccentricity 0 to 0.7 [S], q greater than the planet's outermost regular moon distance. Then <strong>survival</strong>: prograde bodies beyond <code>0.4 r_H</code> and retrograde beyond <code>0.55 r_H</code> (centre of the 0.5 to 0.6 range) are dropped, Kozai-band inclinations never arise. The retrograde to prograde ratio then falls out of the stability limits; check it against 88:19 as a calibration test rather than forcing it.</p>
+<h3 id="44-composition-and-identity">4.4 Composition and identity</h3>
+<ul>
+<li><strong>Composition</strong> follows the reservoir. A body captured from a belt keeps the belt's taxon share at its source distance (the ledger's gradient; belt item 8), from the outer disc the icy-body rule (<code>draw_icy_body</code>) as now (&quot;captured&quot;: ice lost by U(0, 0.5), unchanged). A heterogeneous breakup (Himalia-style) draws sub-members with different volatile content from the parent [S, [R4041]].</li>
+<li><strong>Identity.</strong> Belt-evolution sec. 9 (decided by Boss): members print <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code>, rank sorted on a mass drawn once at birth. For captured bodies:
+<ul>
+<li>A capture is a <strong>flag and a parent link on the existing object</strong>. A body that was an L1 member of a belt in the same system and is captured keeps its designation <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code>; it gains <code>captured_by = &lt;planet ID&gt;</code> and <code>captured_epoch</code>. Its mass leaves the belt's ledger total (mass conservation). Which members are captured is a pure function of (belt seed, planet ID, window), never of insertion order.</li>
+<li>A body from a reservoir that is not a belt of this system (the outer disc before it is a ledger belt, a passing population) takes <code>&lt;planet ID&gt;.&lt;rank hex&gt;</code>, the same sub-number pattern, 12-bit body field untouched, rank on a mass drawn once. Its source stays recorded as &quot;outer disc&quot;.</li>
+<li>Irregulars take <strong>no names</strong> (same rule as belt members); the moons with names are the regular, big moons and the few massive captures (Triton-class).</li>
+<li>Planetary moons of the big kind keep today's issue (<code>store._UidIssuer</code>). The belt doc's warning that body numbers must be derived, not issued in insertion order, applies the same way: irregulars must not take the next insertion-order body number.</li>
+</ul>
+</li>
+</ul>
+<h3 id="45-counts-to-expect-generator-targets-a-sun-like-star-an-instability-occurred-gas-giants-then-ice-giants">4.5 Counts to expect (generator targets; a Sun-like star, an instability occurred, gas giants then ice giants)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Planet (present orbit)</th>
+<th><code>r_H</code> (million km)</th>
+<th>stable limit pro / retro (million km)</th>
+<th>Irregulars above R = 5 km</th>
+<th>Above R = 40 km</th>
+<th>Largest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jupiter-like, 5.2 AU, 318 Earth masses</td>
+<td>53</td>
+<td>26 / 36 to 29</td>
+<td>about 10 to 20</td>
+<td>about 1</td>
+<td>50 to 150 km</td>
+</tr>
+<tr>
+<td>Saturn-like, 9.6 AU, 95</td>
+<td>66</td>
+<td>32 / 36 to 40</td>
+<td>5 to 15</td>
+<td>0 to 2</td>
+<td>50 to 150 km</td>
+</tr>
+<tr>
+<td>Ice giant, 20 to 30 AU, 15 to 17</td>
+<td>70 to 116</td>
+<td>34 to 57 / 38 to 70</td>
+<td>5 to 12</td>
+<td>0 to 2</td>
+<td>30 to 100 km</td>
+</tr>
+<tr>
+<td>Warm Jupiter, 0.5 AU</td>
+<td>5.1</td>
+<td>2.5 / 3</td>
+<td>0 to 3 (the Hill sphere is small and stellar tide strips the outer zone)</td>
+<td>about 0</td>
+<td>few km</td>
+</tr>
+<tr>
+<td>Hot Jupiter, 0.05 AU</td>
+<td>0.5</td>
+<td>0.25 / 0.3 (about 4 Jupiter radii)</td>
+<td>0</td>
+<td>0</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Earth, Mars, super-Earth at 1 AU</td>
+<td>0.7 to 2.6</td>
+<td>0.5 to 1.3</td>
+<td>0 (expected 1e-4)</td>
+<td>0</td>
+<td>none by this channel</td>
+</tr>
+</tbody>
+</table></div>
+<p>The giant rows are the Solar System's observed head counts, so they are <strong>calibration targets, not an independent prediction</strong> [R]. The new and informative part is the other rows and the dependence on the instability (no instability: gas windows only, a fraction of these counts, and none for ice giants), on the Hill volume, and on the orbit.</p>
+<p>An M-dwarf giant at 1.5 AU (23 million km Hill radius) gets the same scaling with its smaller disc mass: fewer.</p>
+<p>Breakdown by origin for a Jupiter-like row, expected values [C from sec. 2.3]: instability capture dominant; belt-origin share = (mass of the belts inside the encounter region at the window / total reservoir mass), so a system with a heavy primordial belt next to the giant gives a larger asteroidal share, which is Boss's statement as a number.</p>
+<h3 id="46-what-is-not-modelled-named-so-the-table-above-is-honest">4.6 What is not modelled (named so the table above is honest)</h3>
+<p>Temporary captures (flag only); capture at Trojan points (the belt doc's Trojan swarms are separate objects); regular-moon impacts that eject; captured binaries (a binary irregular is possible, the belt doc's L3 binary fraction can be given to it later); a planet that migrates after capture: <strong>the Hill sphere shrinks with a smaller orbit and the moons beyond the new stable limit are lost</strong> (<code>drop_unstable_moons</code> already does that for regular moons; irregulars need the same call with the new limits); a star that loses mass: <code>r_H</code> grows by <code>(M_formation / M_now)^(4/3)</code> for adiabatic widening [C], bodies that were just outside become bound candidates, a weird-world hook only.</p>
+<p><strong>Built, part 2 of GEN.1085 (Aux 5, 11-07).</strong> An inner belt (any belt that is not an outer disk) within <code>ENCOUNTER_REACH_AU</code> (row CD2) of a planet gives it bodies in the encounter window, drawn like the outer disk's but scaled by the belt's primordial mass (row CD3). A body at least as heavy as the belt's lightest stored member is that member (the nearest in mass that no earlier planet of the star has caught): it keeps its rank and designation <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code>, <code>irregular_moons.belt_order</code> and <code>belt_rank</code> name it, the belt's row stays with the status <code>moon</code>, and its mass leaves the belt (<code>take_from_belts</code>). A lighter body of the belt has the order but no rank. The pages of the irregular moons and the designation display wait for the item that shows the moons.</p>
+<h2 id="5-stand-ins-register-in-gen725-when-built">5. Stand-ins (register in GEN.725 when built)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Stand-in</th>
+<th>Tier</th>
+<th>Tweak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Capture probability per reservoir particle</td>
+<td>1.3e-8 to 3.6e-8 (NDD14, Jupiter), scaled by Hill volume to other planets</td>
+<td>Verified for Jupiter; educated guess from physics for scaling</td>
+<td>L0 / L1</td>
+</tr>
+<tr>
+<td>Gas-window strength</td>
+<td>0.1 to 0.3 of the encounter channel</td>
+<td>Marginal educated guess from physics</td>
+<td>L3</td>
+</tr>
+<tr>
+<td>Retrograde stable limit</td>
+<td>0.5 to 0.6 <code>r_H</code>, 0.55 default</td>
+<td>Verified range (VNL08)</td>
+<td>L0</td>
+</tr>
+<tr>
+<td>Median <code>a/r_H</code> versus planet distance</td>
+<td>0.44 at 5 AU falling to 0.17 to 0.19 at 20 to 30 AU</td>
+<td>from needed output (Table of medians)</td>
+<td>L2</td>
+</tr>
+<tr>
+<td>Collisional timescale of the irregular zone</td>
+<td>from Hill volume, orbit speed, grinding law</td>
+<td>Marginal educated guess from physics</td>
+<td>L3</td>
+</tr>
+<tr>
+<td>Disruption probability and family velocity spread</td>
+<td>tens to hundreds of m/s</td>
+<td>Unverified [R]</td>
+<td>L3</td>
+</tr>
+<tr>
+<td>Binary-exchange probability for Triton-class</td>
+<td>tiny; at most one per ice giant</td>
+<td>Unverified</td>
+<td>L4 until a source is read</td>
+</tr>
+<tr>
+<td>Tier cut for irregulars (below)</td>
+<td>see sec. 6</td>
+<td>from needed output</td>
+<td>L1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-storage-where-the-irregulars-go">6. Storage: where the irregulars go</h2>
+<p>Real irregulars are small: Himalia is about 7e18 kg, most are 1e12 to 1e17 kg [R]. The belt design's individual cut (1e19 kg) would store none, and the existing moon floor (1e20 kg) does not allow them. Options for the planet's irregular list (Jupiter-like, counts [C] from sec. 4.5 with the observed size law):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Cut</th>
+<th>Stored per giant</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>all above 1e19 kg (about R = 130 km)</td>
+<td>0 or 1</td>
+<td>too thin; the moons that are the point are missing</td>
+</tr>
+<tr>
+<td>B</td>
+<td>above 1e16 kg (about R = 11 km)</td>
+<td>about 8 to 12</td>
+<td>the named-in-textbooks ones; cheap</td>
+</tr>
+<tr>
+<td>C</td>
+<td>above 1e14 kg (about R = 3 km)</td>
+<td>30 to 80</td>
+<td>the list a reader sees on a real page; paging needed on the system view</td>
+</tr>
+<tr>
+<td>D</td>
+<td>rule: from the top until 90% of the irregular mass is catalogued, cap 100</td>
+<td>8 to 100</td>
+<td>consistent with the belt doc's rule E</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recommended: <strong>D, with floor B</strong> (store every irregular above 1e16 kg; add the next heaviest until 90% of the population mass, up to 100). Smaller ones are L2 (drawn on demand from the planet seed, addressable by <code>&lt;planet ID&gt;.&lt;rank hex&gt;</code>) and L3 (a total mass and a size law on the planet), as the belt design has it. This is the belt doc's open question 3 again, applied to a second kind of reservoir; the decision for belts and irregulars should be the same rule so one function serves both.</p>
+<p>The moon table gains a few columns (DB.70 style, <code>db/column_units.py</code>): <code>captured_by</code>, <code>capture_window</code> (gas, encounter, exchange), <code>source_reservoir</code> (belt ID or disc), <code>family_id</code>; new numeric columns need unit entries.</p>
+<h2 id="7-items-for-todo-numbers-for-todo-to-assign">7. Items for TODO (numbers for TODO to assign)</h2>
+<p>Lock means it touches a lock (epoch, migration, golden, API version or a shared generator path).</p>
+<p><strong>Non-lock (separate branch, one lane in sequence; none waits for a belt-ledger merge, they take simple inputs and later read the ledger):</strong></p>
+<ol>
+<li>Read list and register: [R3263] and NVM07 (capture and stability), [R0037, R1771] and VNL08 (exchange, partly read), [R0483] (collisional history), [R4054] / [R4052, R4053], 2006 (size laws, head counts), [R1666] (temporary capture), [R3814] (Phobos, Deimos). Output: a short report with the head counts per giant read from tables and the register rows of section 5. Boss cannot access some papers; use second-hand citations if a source is closed.</li>
+<li><code>physics/irregular_zone.py</code>: <code>r_H</code>, stable limits (pro/retro), the inner edge from the outermost regular moon, Kozai exclusion (reuses the <code>KOZAI_FORBIDDEN_DEG</code>). Tests: Jupiter, Saturn, Uranus, Neptune values of section 2.1.</li>
+<li><code>physics/irregular_population.py</code>: windows, <code>N0(&gt;R)</code>, grinding, order-statistic draw into L1/L2/L3 tiers. Tests: Jupiter-like gives about one body above 40 km, ten to twenty above 5 km; the four giants come out the same order; terrestrial planets get zero.</li>
+<li><code>physics/irregular_orbits.py</code>: a/r_H, e, i, survival, family drawing (parent breakup with a velocity spread). Tests: retrograde to prograde near 4.5:1 from stability alone, no body in the Kozai band, no q inside the outermost regular moon.</li>
+<li>Collisional-saturation check (the guess of sec. 2.3): reuse <code>belt_mass_earth</code> for the irregular zone and show the invariance across Jupiter, Saturn, Uranus, Neptune, or replace the guess with a fitted scalar per planet and register it L3.</li>
+<li>Composition from the reservoir (waits for or reads the GEN.473 taxon kernel: belt item 8) and the heterogeneous parent.</li>
+<li>Designation for captured bodies: <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code> kept with a parent link, and <code>&lt;planet ID&gt;.&lt;rank hex&gt;</code> for outside-reservoir bodies; a test that both are pure functions and round-trip through <code>parse_id</code> (shares belt item 6).</li>
+<li>Make the captured-origin weight depend on moon mass (<code>ORIGIN_TABLE</code> row <code>captured</code>), so a 1e20 kg or larger moon is rarely captured. Counted as non-lock only if done as a pure helper; its wiring is lock (item 10).</li>
+</ol>
+<p><strong>Lock:</strong>
+9. The architecture must record its capture windows (the instability event and the number of giant-giant close encounters, and the gas-disc lifetime already kept in <code>DiskSystem</code>): a field on the system, one epoch with the GEN.728 wiring (Planets 1).
+10. Wire irregulars into <code>generate_moons</code> as a second tier (above the existing regular moons; <code>MOON_MIN_MASS_KG</code> is left alone for the regular list), and the captured-origin weight. New epoch, <code>--affects</code> plan, golden.
+11. Store the L1 irregulars and the new moon columns (migration, API version), and the stability call for irregulars in <code>drop_unstable_moons</code> and in bring-to-epoch when a planet moves (GEN.1006). Replaces the open weights, no backward-compat shim.
+12. Belt-ledger link: a captured member leaves the belt's mass total (belt items 9 to 11, the ledger storage); until those merge, captured bodies come from the outer-disc reservoir only. Epoch with the belt storage.
+13. System map and pages: irregular orbits (eccentric, inclined, retrograde) on the moon-orbit view (<code>web/maps/moonorbits.py</code>), a body page for an irregular, and the clearance ledger (GEN.1014) taking the irregular zone as occupied space around the planet. Part of 8.2 object pages.</p>
+<p>Order: 1; then 2 to 5 in parallel (2 and 3 first); 6 and 7 after the belt reads; 9 with the architecture train; 10 and 11 as one train; 12 and 13 after.</p>
+<h2 id="8-decisions-boss-434-pm-edt-2026-10-30">8. Decisions (Boss, 4:34 PM EDT 2026-10-30)</h2>
+<ol>
+<li><strong>Source of the asteroidal moons: decided, keep the windows</strong> (gas era, instability, binary exchange); no continuous capture.</li>
+<li><strong>Individual-cut rule: decided, the belt storage rule with a 1e16 kg floor</strong> for irregular moons.</li>
+</ol>
+<p>Items: GEN.1075 to GEN.1086 and TEST.495 (goal #4130).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

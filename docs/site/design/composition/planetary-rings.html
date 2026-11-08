@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planetary rings (GEN.732) - planetGen docs</title>
+<meta name="description" content="Status: built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/planetary-rings.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/planetary-rings.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="planetary-rings-gen732">Planetary rings (GEN.732)</h1><p class="meta">docs/design/composition/planetary-rings.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#what-a-ring-is-here">What a ring is here</a></li><li style="margin-left:0px"><a href="#the-physics-that-fixes-the-numbers">The physics that fixes the numbers</a></li><li style="margin-left:0px"><a href="#what-is-drawn">What is drawn</a></li><li style="margin-left:0px"><a href="#when-it-runs">When it runs</a></li><li style="margin-left:0px"><a href="#left-out">Left out</a></li><li style="margin-left:0px"><a href="#rings-of-small-bodies-at-a-spin-orbit-resonance-gen1056-lock-free-step">Rings of small bodies at a spin-orbit resonance (GEN.1056, lock-free step)</a></li><li style="margin-left:0px"><a href="#ring-origin-from-history-gen1054">Ring origin from history (GEN.1054)</a></li><li style="margin-left:0px"><a href="#built-rings-from-history-gen1057">Built: rings from history (GEN.1057)</a></li></ul></details>
+<p>Status: built. The model is <code>src/planetgen/physics/rings.py</code>; the fields are stored from schema v160 (<code>planets</code> and <code>moons</code>, migration 0160) and v171 (<code>rogue_planets</code>, migration 0171); the painter (MAP.275, <code>web/maps/ringlook.py</code> and <code>static/ringpaint.js</code>) reads them, with the colour by the ice share from GEN.670's research, so neither is here.</p>
+<h2 id="what-a-ring-is-here">What a ring is here</h2>
+<p>One summed ring system per body: a kind, an origin, an inner and an outer radius (km from the planet's centre), a mass (kg), a mean optical depth over the area it covers and a water-ice share. Saturn's seven named rings and its gaps are one <code>broad</code> system from 74 500 to 140 220 km; the gaps are the painter's, from the moons' resonances. A moon draws like a planet of its own kind (GEN.836: <code>rings.apply</code> on each moon, cold when its parent is beyond the snow line, no moons of its own, so a ringed moon is rare, one in a hundred), a rogue planet has none (GEN.1057: its moons and comets are not followed), and a belt has none.</p>
+<h2 id="the-physics-that-fixes-the-numbers">The physics that fixes the numbers</h2>
+<ol>
+<li><strong>The outer edge.</strong> Material inside the Roche limit cannot gather into a moon. For a planet of radius R and mean density rho_p and ring material of density rho_m the fluid limit is 2.456 R (rho_p / rho_m)^(1/3) (Roche 1850; [R3220], recalled). Saturn's A ring ends at 136 775 km against 129 900 km for ice (ratio 1.05), Jupiter's main ring at 129 000 km against 139 000 km for rock (0.93), Neptune's Adams ring at 62 933 km against 71 300 km (0.88) and Uranus's epsilon ring at 51 149 km against 67 500 km (0.76). The outer edge is drawn as 0.75 to 1.1 of the limit, which holds all four, and held inside 0.95 of the innermost moon's distance.</li>
+<li><strong>The inner edge.</strong> 1.1 to 1.7 planet radii (Saturn's D ring 1.11, Jupiter's halo 1.29, Uranus's 6 ring 1.64, Neptune's Galle ring 1.7), held below the outer edge. A planet whose room between the two closes (a moon just outside the planet) has no ring.</li>
+<li><strong>The optical depth is an output.</strong> For particles of radius r and density rho_m, a ring of mass M over the annulus area A with a covered share f has the mean optical depth 3 M / (4 rho_m r A f). With r = 1 m, Saturn's rings (1.5e19 kg) come out at 0.27 and Uranus's (1.5e16 kg over 0.3 percent of the annulus) at 0.55, both inside what the Voyager and Cassini occultations measured.</li>
+<li><strong>The ice.</strong> A broad ring beyond the star's snow line keeps its ice (Saturn's are 90 to 99 percent water ice); a ring inside the snow line, dust, and the dark narrow rings have none or little. The ring's density is the volume-additive mixture of ice (917 kg/m3) and rock (2500).</li>
+</ol>
+<h2 id="what-is-drawn">What is drawn</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Draw</th>
+<th>Rule</th>
+<th>Registry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Whether, from where, and which kind</td>
+<td>from history (GEN.1057): a moon that fell inside the Roche limit or a comet that passed inside it, none inside 0.1 AU; the kind from the ring's mass (<code>dusty</code> under 1e12 kg, <code>narrow</code> under 3e17, else <code>broad</code>)</td>
+<td>BC20, BC22</td>
+</tr>
+<tr>
+<td>Origin</td>
+<td><code>moon_erosion</code> (dust), <code>disrupted_moon</code> (narrow), <code>disrupted_moon</code> or <code>captured_body</code> (broad)</td>
+<td>BC20</td>
+</tr>
+<tr>
+<td>Ice share</td>
+<td>per kind, drawn always, used beyond the snow line</td>
+<td>BC23</td>
+</tr>
+<tr>
+<td>Mass</td>
+<td>log-uniform per kind, at most 1e-4 of the planet's mass</td>
+<td>BC22</td>
+</tr>
+<tr>
+<td>Covered share</td>
+<td>narrow rings 1e-3 to 1e-2 of the annulus</td>
+<td>BC22</td>
+</tr>
+<tr>
+<td>Outer and inner edge</td>
+<td>as above</td>
+<td>BC21</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every number is a labelled stand-in in the registry (<code>gap-filling-plan.md</code> rows BC20 to BC23, listed in <code>stand-in-values.md</code>) with its tier, its tweak level and what replaces it.</p>
+<h2 id="when-it-runs">When it runs</h2>
+<p><code>rings.apply(planet)</code> runs in the system's ring pass, after the moons and the snow line are final (<code>generation/system.py</code>), and again for a planet the validation or an admin edit gives a new class (<code>generation/validation.py</code>); <code>planets.generate_planet_properties</code> clears the old ring when a body is regenerated as another class. The pass draws from the system's stream after the life pass's predecessors, so it moved every later draw: a new generator epoch.</p>
+<h2 id="left-out">Left out</h2>
+<p>Ring colour and albedo (GEN.670), the painter and the gaps (MAP.275), ring shadows and their effect on climate, the lifetime of a ring and the age at which it formed, ring moons (a moon born from a ring, <code>moon_composition.RING_MAX_ROCHE_RATIO</code>, still reads <code>has_ring</code> False: wiring it is a follow-up for GEN.466), rings of small bodies built as a module but not wired (the next section).</p>
+<h2 id="rings-of-small-bodies-at-a-spin-orbit-resonance-gen1056-lock-free-step">Rings of small bodies at a spin-orbit resonance (GEN.1056, lock-free step)</h2>
+<p><code>physics/small_body_rings.py</code> (registry RR1 to RR4, section 6.71) is the R4 row of weird-worlds.md section 9: a small body (under 5e22 kg) whose rotation is slow enough or whose shape pulls hard enough holds a narrow ring where the ring goes round three times for each turn of the body, past the Roche limit of its ice and inside half its Hill radius. The orbit follows from Kepler's third law (<code>resonance_radius_km</code>), 4 200 km for Quaoar (observed 4 057), 2 290 for Haumea (observed 2 287) and 426 for Chariklo (observed 391 and 405, whose mass is uncertain); the chance is a stand-in rate (0.10, no survey behind it). <code>ring_survives</code> is the R9 gate: no ring inside 0.1 AU of a star ([R3957] via the design note, 2ND-HAND). Both are pure functions that nothing calls yet: GEN.1057 wires them with the conditional rings, and the origin there is <code>disrupted_moon</code> (the cause named for Quaoar's ring), so no schema change is needed.</p>
+<p>Ring colour and albedo (GEN.670), the painter and the gaps (MAP.275), ring shadows and their effect on climate, the lifetime of a ring and the age at which it formed, ring moons (a moon born from a ring, <code>moon_composition.RING_MAX_ROCHE_RATIO</code>, still reads <code>has_ring</code> False: wiring it is a follow-up for GEN.466), rings of small bodies (Chariklo, Haumea, Quaoar).</p>
+<h2 id="ring-origin-from-history-gen1054">Ring origin from history (GEN.1054)</h2>
+<p><code>physics/ring_origin.py</code> is the history rule that replaced the chances of <code>rings.draw_ring</code> (GEN.1057 wired it). A ring exists when something came apart inside the Roche limit and has not spread away: a moon that fell (<code>moon_orbits.Fate</code>, <code>time_s</code>; the share <code>RING_RETAINED_FRACTION</code> of its mass stays in orbit) or a comet that passed inside the limit (a Poisson rate scaled from Saturn by the Roche sphere's cross-section with gravitational focusing, <code>COMET_CAPTURE_FRACTION</code> of it stays). Each ring is worn down for the time since it formed by viscous spreading (<code>k M^2</code>, quicker the denser the ring, <code>RING_SPREAD_TIME_YR</code> at Saturn's own mass) and by meteoroid erosion (a constant mass flux on the annulus, <code>METEOROID_FLUX_KG_M2_S</code> at Saturn's rings scaled by distance and gravitational focusing), closed form in <code>ring_origin.spread</code> (GEN.1171): a 1e13 kg ring lasts about 1e5 years, Saturn's about the age of the Solar System, and rocky planets are ringed 2 percent of the time instead of 15. None stays inside 0.1 AU of the star, the sum is held under a ten-thousandth of the planet, and the origin is that of the event holding most of it. A giant with nothing in its past has no ring. The tests are Saturn (a Mimas-sized moon 150 Myr ago leaves 1.5e19 kg to a factor of two) and Phobos. The stand-ins of the module are RO1 to RO13 (plan 6.70). Not modelled: the dust rings of Jupiter, Uranus and Neptune are fed continually by small moons, a steady state a supply term would give (a follow-up).</p>
+<h2 id="built-rings-from-history-gen1057">Built: rings from history (GEN.1057)</h2>
+<p><code>rings.apply(planet, host)</code> no longer draws whether a planet has a ring. <code>moon_history</code> keeps the moons the tide pulled inside the Roche limit as <code>planet.fallen_moons</code> (mass and the year they fell; a moon dragged below the innermost orbit counts at the planet's age), <code>ring_origin.draw_comet_passages</code> draws the comets that passed inside the limit over the star's age, and <code>ring_origin.ring_origin</code> sums their rings, each worn down for the time since by viscous spreading (quicker the denser the ring) and by meteoroid erosion (GEN.1171: a ring of 1e13 kg lasts about 1e5 years, Saturn's about the age of the Solar System), capped at a ten-thousandth of the planet and gone inside 0.1 AU. The ring's origin is the event that holds most of it (<code>disrupted_moon</code> or <code>captured_body</code>; <code>moon_erosion</code> is no longer drawn), its age that event's (<code>ring_age_yr</code>, schema v187, the years since), its kind from its mass (<code>rings.kind_of_mass</code>) and its edges and ice share from the old draws of <code>rings.build_ring</code>. A dwarf planet that orbits a star and has no such ring may hold the narrow ring of its spin-orbit resonance (<code>small_body_rings.resonance_ring</code>, R4); it has no age. A moon has the ring its history made (a moon has no moon to lose and a tiny Roche sphere to catch a comet, so almost never one); a rogue planet has none, because nothing follows its moons or its comets. Ice share and darkness by age and pollution (R6, GEN.1055) and the ring-plane follow-up of the spin (R3, GEN.1058) are not built.</p>
+<p><strong>Brightness and shadow (GEN.1055).</strong> <code>physics/ring_darkening.py</code> is the pure module for how bright a ring is and how much of the sunlight it shades: meteoroid dust darkens the ice at a rate set by the ring's mass per area, and the rings shade the latitudes behind them by <code>exp(-tau/sin(declination))</code> over the lit half of the day. <code>rings.apply</code> calls it (<code>rings.darken</code>) to store the ring's ice share as it is now; <code>latitude_bands.ring_shade</code> reads the shadow (R8): a tilted rocky planet's bands behind its ring are cooler and the others warmer, the world's mean unchanged.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

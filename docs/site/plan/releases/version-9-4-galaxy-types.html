@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 9.4: Galaxy types - planetGen docs</title>
+<meta name="description" content="Filed on 2026-10-16 as a version map (Boss, 8:48 PM EDT: for 9.4, different galactic models for generation based on known galaxy types, as a chain of required items counted back from 9.4).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-9-4-galaxy-types.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-9-4-galaxy-types.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-94-galaxy-types">Version 9.4: Galaxy types</h1><p class="meta">docs/plan/releases/version-9-4-galaxy-types.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-the-draw-and-the-spheroid">Phase 1: The draw and the spheroid</a></li><li style="margin-left:14px"><a href="#type-draw">Type draw</a></li><li style="margin-left:14px"><a href="#spheroid-component">Spheroid component</a></li><li style="margin-left:14px"><a href="#family-outlines">Family outlines</a></li><li style="margin-left:0px"><a href="#phase-2-the-families">Phase 2: The families</a></li><li style="margin-left:14px"><a href="#spiral-family">Spiral family</a></li><li style="margin-left:14px"><a href="#elliptical-family">Elliptical family</a></li><li style="margin-left:14px"><a href="#irregular-and-dwarf-families">Irregular and dwarf families</a></li><li style="margin-left:0px"><a href="#phase-3-lenticular-populations-clusters-and-the-nucleus">Phase 3: Lenticular, populations, clusters and the nucleus</a></li><li style="margin-left:14px"><a href="#lenticular-family">Lenticular family</a></li><li style="margin-left:14px"><a href="#populations">Populations</a></li><li style="margin-left:14px"><a href="#clusters-and-the-nucleus">Clusters and the nucleus</a></li><li style="margin-left:0px"><a href="#phase-4-creation">Phase 4: Creation</a></li><li style="margin-left:14px"><a href="#galaxy-creation">Galaxy creation</a></li><li style="margin-left:0px"><a href="#phase-5-pages-tests-and-docs">Phase 5: Pages, tests and docs</a></li><li style="margin-left:14px"><a href="#generate-page">Generate page</a></li><li style="margin-left:14px"><a href="#galaxy-map">Galaxy Map</a></li><li style="margin-left:14px"><a href="#plausibility-tests">Plausibility tests</a></li><li style="margin-left:14px"><a href="#docs">Docs</a></li><li style="margin-left:0px"><a href="#phase-6-the-headline-closes">Phase 6: The headline closes</a></li><li style="margin-left:14px"><a href="#the-headline-closes">The headline closes</a></li></ul></details>
+<p>Filed on 2026-10-16 as a version map (Boss, 8:48 PM EDT: for 9.4, different galactic models for generation based on known galaxy types, as a chain of required items counted back from 9.4).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 9.4</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>A galaxy is built from one family of a known galaxy type (spiral, lenticular, elliptical, irregular or dwarf): the seed draws the galaxy's stellar mass, then the family from the mass-dependent type fractions, then every shape number from published scaling relations, so no type, size or count is a preset and no named galaxy is copied (Boss, 4:11 and 4:14 PM EDT: no fixed content). The shape, the density model, the potential, the halo, the satellites and the scatters are reused: three steps of the chain come earlier (GEN.378 in 8.1, DB.66 and GEN.379 in 8.3) so that the families only fill in the shape. Design: <a href="../../design/galaxy/galaxy-types.html">docs/design/galaxy/galaxy-types.md</a>. One galaxy per database stays; a second galaxy is the later note.</p>
+<h2 id="phase-1-the-draw-and-the-spheroid">Phase 1: The draw and the spheroid</h2>
+<p>The type draw and the Sérsic spheroid component, which every family reads.</p>
+<h3 id="type-draw">Type draw</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.380</td>
+<td>The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass</td>
+<td></td>
+<td>Step 4 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="spheroid-component">Spheroid component</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.381</td>
+<td>A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass</td>
+<td></td>
+<td>Step 4 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="family-outlines">Family outlines</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h2 id="phase-2-the-families">Phase 2: The families</h2>
+<p>Three independent families.</p>
+<h3 id="spiral-family">Spiral family</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.382</td>
+<td>The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage</td>
+<td>GEN.380</td>
+<td>Step 5 of the galaxy types chain; generalizes the shape row of GEN.368.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="elliptical-family">Elliptical family</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.383</td>
+<td>The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population</td>
+<td>GEN.380, GEN.381</td>
+<td>Step 5 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="irregular-and-dwarf-families">Irregular and dwarf families</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.385</td>
+<td>The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid</td>
+<td>GEN.380, GEN.381</td>
+<td>Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369.</td>
+</tr>
+<tr>
+<td>GEN.619</td>
+<td>A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold</td>
+<td></td>
+<td>Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-lenticular-populations-clusters-and-the-nucleus">Phase 3: Lenticular, populations, clusters and the nucleus</h2>
+<p>What reads the families.</p>
+<h3 id="lenticular-family">Lenticular family</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.384</td>
+<td>The lenticular family: a smooth disk and a large bulge, no arms, old stars and almost no gas</td>
+<td>GEN.382, GEN.383</td>
+<td>Step 6 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="populations">Populations</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.386</td>
+<td>Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read</td>
+<td>GEN.382, GEN.383, GEN.385, GEN.405</td>
+<td>Step 6 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="clusters-and-the-nucleus">Clusters and the nucleus</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.387</td>
+<td>Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo</td>
+<td>GEN.382, GEN.383, GEN.297</td>
+<td>Step 6 of the galaxy types chain.</td>
+</tr>
+<tr>
+<td>GEN.634</td>
+<td>The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline)</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-4-creation">Phase 4: Creation</h2>
+<p>The seed draws the family and the galaxy stores it.</p>
+<h3 id="galaxy-creation">Galaxy creation</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.389</td>
+<td>Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check</td>
+<td>GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383</td>
+<td>Step 7 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-5-pages-tests-and-docs">Phase 5: Pages, tests and docs</h2>
+<h3 id="generate-page">Generate page</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.134</td>
+<td>Generate page: the galaxy type shows what the seed drew and can be pinned</td>
+<td>GEN.389</td>
+<td>Step 8 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="galaxy-map">Galaxy Map</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.242</td>
+<td>The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body</td>
+<td>GEN.389</td>
+<td>Step 8 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="plausibility-tests">Plausibility tests</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.204</td>
+<td>Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges</td>
+<td>GEN.389</td>
+<td>Step 8 of the galaxy types chain.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="docs">Docs</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h2 id="phase-6-the-headline-closes">Phase 6: The headline closes</h2>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="the-headline-closes">The headline closes</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.390</td>
+<td>Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules</td>
+<td>UX.134, MAP.242, TEST.204, GEN.389</td>
+<td>Headline of 9.4.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

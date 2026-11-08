@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebula composition: what every nebula, remnant and cloud is made of - planetGen docs</title>
+<meta name="description" content="Status (2026-11-05): built as the model of GEN.1269 (part a of GEN.1268); the writes are GEN.1276 (nebulae and remnants) and GEN.1277 (field clouds), the planetary-nebula ejecta GEN.1270, the remnants&#x27; ejecta GEN.1271.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/nebula-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/nebula-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="nebula-composition-what-every-nebula-remnant-and-cloud-is-made-of">Nebula composition: what every nebula, remnant and cloud is made of</h1><p class="meta">docs/design/composition/nebula-composition.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-module">1. The module</a></li><li style="margin-left:0px"><a href="#2-where-this-differs-from-the-report">2. Where this differs from the report</a></li><li style="margin-left:0px"><a href="#3-open">3. Open</a></li><li style="margin-left:0px"><a href="#4-what-is-stored-gen1276-gen1277">4. What is stored (GEN.1276, GEN.1277)</a></li><li style="margin-left:0px"><a href="#4-dust-species-gen1376">4. Dust species (GEN.1376)</a></li></ul></details>
+<p><strong>Status (2026-11-05):</strong> built as the model of GEN.1269 (part a of GEN.1268); the writes are GEN.1276 (nebulae and remnants) and GEN.1277 (field clouds), the planetary-nebula ejecta GEN.1270, the remnants' ejecta GEN.1271. The research and the arguments are in <code>reports/gen1268-nebula-composition-2026-11-05.md</code> (sections 2, 3, 4 and 11); this note holds what the code does and where it differs from that report.</p>
+<p><strong>Boss's decisions</strong> (8:49 to 8:55 PM EST on 2026-11-04): the gas has its own metallicity gradient, a separate stand-in; the Magellanic gas takes the widest range of the two published estimates; the dust survivals of report section 11; a Wolf-Rayet ring and a planetary nebula are enriched in helium and nitrogen; each field cloud has its own varied composition keyed on its cell; the composition is stored for nebulae, remnants and field clouds (stars stay derived); the pages show everything.</p>
+<h2 id="1-the-module">1. The module</h2>
+<p><code>physics/nebula_composition.py</code> stores nothing. <code>makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_rayet_subtype=None)</code> returns a <code>NebulaMakeup</code>:</p>
+<ul>
+<li><strong>Composition</strong> of gas and dust together (<code>x</code>, <code>y</code>, <code>z</code>, and the mass fraction of each element), from the thin-disc birth composition (<code>stellar_abundances.composition</code>) whose [O/H] is the place's, so a nebula and a star born in it share one chemistry.</li>
+<li><strong>Dust</strong>: the dust-to-gas ratio of [R5102] (<code>dust_to_gas_law</code>), times the survival of the class and held to what the metals allow; the dust by element; the gas left over; the share of the dust in silicate, iron, carbon, PAH and ice.</li>
+<li><strong>Phases</strong>: the ionized, atomic and molecular shares of the hydrogen (a table by class; for the cold classes F, M, N, P and Q the molecular share of the neutral gas follows the column density and metallicity, [R5104]).</li>
+<li><strong>Abundances</strong> of the gas phase, 12 + log(X/H), of C, N, O, Ne, S, Ar and Fe (<code>nan</code> for a hydrogen-free ejecta).</li>
+<li><code>values()</code> is the dict the composition item stores.</li>
+</ul>
+<p><code>gas_oh(galactic_radius_pc, key, component_fe_h=None)</code> is the place: the gas gradient (0.034 dex per kpc, zero at the reference radius) with 0.14 dex of scatter from the nebula's key, or, in a satellite component, its [Fe/H] plus an offset drawn inside the published ranges of the two Clouds (report section 4). <code>field_cloud_density_cm3(class, key)</code> gives a field cloud its own density inside the class range.</p>
+<h2 id="2-where-this-differs-from-the-report">2. Where this differs from the report</h2>
+<ul>
+<li>The grains are five kinds (magnesium silicate, <strong>iron</strong> as its own grain, carbon, PAH, ice). The report's silicate carried its iron; with a fixed iron content a metal-poor gas ran out of iron first, so the iron is a grain of its own and the dust follows what the gas has. A solar diffuse nebula's dust is 0.83 of the law, the rest not being in the metals; the law value is kept in <code>dust_to_gas_law</code>.</li>
+<li>The caps (<code>MAX_IN_DUST</code>) keep every element's dust under its total, so the dust of a metal-poor nebula is whatever its metals allow.</li>
+<li>Class S uses the sourced shocked-remnant survivals (silicate 0.39, iron 0.60); H II regions and planetary nebulae keep 0.9 of silicate and iron grains and 0.5 of the carbon half. The fresh-ejecta dust of R, T, U and W is a placeholder 0.2 until GEN.1271 writes the ejecta rule of report section 11.</li>
+<li>A Wolf-Rayet ring mixes the host's surface (<code>stellar_composition.wolf_rayet_surface</code>) into the swept-up gas at <code>WIND_SHARE_OF_RING</code> (0.3, argued).</li>
+<li>The stand-ins are rows NBC1 to NBC13 of section 6.179 of the stand-in registry.</li>
+</ul>
+<h2 id="3-open">3. Open</h2>
+<p>Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and its half-molecular column (34 against the 27 of the paper's summary); [R5105] coefficients, the depletion of the Clouds, and the dust of old remnants stay to be read (GEN.1274). The progenitor of planetary nebulae and the ejecta of remnants enter through the <code>ejecta</code> argument (GEN.1270, GEN.1271); without it those classes read as interstellar gas and say so in <code>open_items</code>.</p>
+<h2 id="4-what-is-stored-gen1276-gen1277">4. What is stored (GEN.1276, GEN.1277)</h2>
+<p><strong>Nebulae and remnants</strong> (GEN.1276): <code>physics/nebula_columns.py</code> turns a row into the columns of <code>nebulae</code> and <code>supernova_remnants</code> (DOUBLE, searchable through the API object lists), at insert and in migration 0212. <code>composition</code> and <code>dominant_species</code> are written from the stored numbers.</p>
+<p><strong>Field clouds</strong> (GEN.1277, design note). About 163,000 rows in <code>nebula_field</code> (classes M and N) carry only a cell, a class, a radius and a place, about 70 bytes a row. Two ways to add the composition were weighed:</p>
+<ul>
+<li><em>Stored float columns</em> (chosen): the 28 composition columns of <code>nebulae</code> without the progenitor mass, each FLOAT (4 bytes, 7 digits stored, read back as 6 significant digits by the text protocol, enough for fractions down to 1e-7 and for [O/H] to 1e-6 dex). 112 bytes a row, about 18 MB for 163,000 rows. Each is a plain column a range search or a sort reads, with a unit in <code>column_units</code>, and none needs decoding.</li>
+<li><em>Packed integers</em> (one 16-bit word per value, or all of them in a BINARY blob): 56 bytes a row, about 9 MB. The saving is 9 MB, and the price is that nothing could be searched or sorted in SQL without a generated column per value (which brings the bytes back), and the 16 bits resolve a fraction only to 1.5e-5, which is 15 percent of a sulfur or argon fraction (1e-4). Rejected.</li>
+</ul>
+<p>Table growth: from about 11 MB of data to about 29 MB, and a plan writes it in the same pass that already draws the cloud (no second pass).</p>
+<p>The key of a field cloud is its cell and place (<code>nebula_columns.field_key</code>: the cell index and the centre in milliparsecs), not its object ID, because the row exists at plan time and has none until a sector stores it. The <code>nebulae</code> row the cloud becomes is keyed the same way (a class M or N nebula with a centre, <code>row_key</code>), so the two read one composition; the stored nebula keeps full doubles and the field row the FLOAT of the same number. The cloud's density is the one its <code>Nebula</code> was drawn with (<code>cell_draw</code>), which differs from cloud to cloud inside the class range, so gas, dust and phases differ with it and with the place's gas. <code>field_cloud_density_cm3</code> is kept for a cloud the draw does not give back (a table planned under another seed), in migration 0215 only. No progenitor mass is stored: no class M or N cloud has a progenitor.</p>
+<h2 id="4-dust-species-gen1376">4. Dust species (GEN.1376)</h2>
+<p>The grain kinds of section 2 carried the element budget; the stored columns now name the <strong>species</strong> (<code>SPECIES</code>, <code>species_of</code>), and two kinds gained real content.</p>
+<p><strong>What was read</strong> (arXiv text): the diffuse-medium silicate paper [R5151] fits the 10 micron band of the diffuse medium with 84.9 percent amorphous olivine and 15.1 percent amorphous pyroxene by mass, finds the crystalline share 0.2 +- 0.2 percent, and gives the silicates of stellar ejecta 11 to 18 percent crystalline (section 4.1). The dust review [R5152] (section 5.3, Table 3) puts the silicon in SiC dust under 5 percent of the silicon in silicates, a limit it quotes from an earlier survey, so SiC is &quot;not a major component of the interstellar grain mix&quot;; presolar graphite is 1 ppm of a primitive meteorite against 6 ppm of SiC. The SiC review [R5154] quotes the SiC share of the dust of carbon stars: below 10 percent for 37 of 44 galactic stars (a survey of galactic carbon stars, second-hand), up to 43 percent in the LMC and 11 percent in the SMC as upper limits (a dust-yield model, second-hand). The silicate-graphite-PAH model [R5153] uses graphite for the large carbon grains and PAHs at 4.6 percent of the dust mass; the astrodust paper [R5155] uses one silicate-like material and no graphite. The ice survey [R0461: Table 2], gives the ices as molecules per 100 H<sub>2</sub>O.</p>
+<p><strong>The species.</strong> Silicate splits into amorphous olivine, amorphous pyroxene and crystalline silicate (the mass split above, <code>OLIVINE_SHARE_OF_AMORPHOUS_SILICATE</code>, and the crystalline share of each mix, <code>CRYSTALLINE_SHARE_OF_SILICATE</code>: 0.2 percent in the interstellar mixes, 15 percent in the mixes of stellar ejecta). The split is of the mass only: the element content of the silicate kind (Mg 1.5, Si 1, O 3.5) is unchanged, so the metal caps and the gas left over behave as before. Carbon splits into amorphous carbon and graphite (<code>GRAPHITE_SHARE_OF_CARBON</code>): the two models of the diffuse medium disagree (graphite in one, none in the other), so the diffuse mix takes the middle of the widest range, 0.5; a dense cloud and a carbon star make mostly amorphous carbon. SiC is a grain kind of its own with silicon and carbon in its element budget: half the interstellar limit in the interstellar mixes (0.3 percent of the dust), 10 percent of the dust in the carbon-rich mix, and none in the oxygen-rich and the ejecta mixes. It survives like the silicates (<code>SURVIVES_AS</code>). PAHs and iron are as before.</p>
+<p><strong>The ice mantle.</strong> The ice kind is no longer pure water: <code>ICE_MANTLE_PER_100_H2O</code> (CO 25, CO<sub>2</sub> 26, methanol 8, ammonia 6, methane 4.5 per 100 H<sub>2</sub>O) gives it carbon, oxygen, hydrogen and nitrogen by mass (H<sub>2</sub>O 44 percent, CO<sub>2</sub> 28, CO 17, methanol 6, NH<sub>3</sub> 3, CH<sub>4</sub> 2). The table is one for every class that has ice and is not stored: the pages read it with the stored <code>grain_ice</code> share.</p>
+<p><strong>Stored.</strong> <code>nebulae</code>, <code>supernova_remnants</code> and <code>nebula_field</code> replace <code>grain_silicate</code> and <code>grain_carbon</code> with <code>grain_amorphous_olivine</code>, <code>grain_amorphous_pyroxene</code>, <code>grain_crystalline_silicate</code>, <code>grain_amorphous_carbon</code>, <code>grain_graphite</code> and add <code>grain_sic</code> (schema v229). The migration writes every row's composition again with the model (the element budget changed too), then drops the two old columns.</p>
+<p><strong>Dust by species at [O/H] = 0, in percent of the dust mass</strong> (a nebula of 10 cm-3 and 5 ly; the caps scale a kind whose elements run short, so a row is not the bare mix):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>class</th>
+<th>mix</th>
+<th>amorphous olivine</th>
+<th>amorphous pyroxene</th>
+<th>crystalline silicate</th>
+<th>iron</th>
+<th>amorphous carbon</th>
+<th>graphite</th>
+<th>PAH</th>
+<th>SiC</th>
+<th>ice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>diffuse</td>
+<td>32.9</td>
+<td>5.8</td>
+<td>0.1</td>
+<td>24.0</td>
+<td>15.0</td>
+<td>15.0</td>
+<td>6.8</td>
+<td>0.3</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>F</td>
+<td>reflection</td>
+<td>30.9</td>
+<td>5.5</td>
+<td>0.1</td>
+<td>20.3</td>
+<td>11.9</td>
+<td>11.9</td>
+<td>9.1</td>
+<td>0.3</td>
+<td>10.1</td>
+</tr>
+<tr>
+<td>H</td>
+<td>oxygen-rich</td>
+<td>35.0</td>
+<td>6.2</td>
+<td>7.3</td>
+<td>31.1</td>
+<td>7.5</td>
+<td>7.5</td>
+<td>5.3</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>K</td>
+<td>carbon-rich</td>
+<td>11.7</td>
+<td>2.1</td>
+<td>2.4</td>
+<td>4.1</td>
+<td>43.9</td>
+<td>4.9</td>
+<td>16.3</td>
+<td>14.6</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>M</td>
+<td>dense</td>
+<td>28.4</td>
+<td>5.1</td>
+<td>0.1</td>
+<td>17.7</td>
+<td>15.3</td>
+<td>5.1</td>
+<td>4.2</td>
+<td>0.3</td>
+<td>23.9</td>
+</tr>
+<tr>
+<td>R</td>
+<td>ejecta</td>
+<td>32.5</td>
+<td>5.8</td>
+<td>6.7</td>
+<td>35.0</td>
+<td>14.0</td>
+<td>6.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table></div>
+<p>The stand-ins are rows NBC17 to NBC23 of section 6.179 of the stand-in registry. Not modeled: the Fe and Ni inside the silicates (iron is its own grain here, as in section 2), the carbonates and Al<sub>2</sub>O<sub>3</sub> of planetary-nebula discs, nanodiamond, and the size of the grains.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

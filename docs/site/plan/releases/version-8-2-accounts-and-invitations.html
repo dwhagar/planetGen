@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 8.2: User accounts, bookmarks and API keys, with the foundations for later versions - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-8-2-accounts-and-invitations.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-8-2-accounts-and-invitations.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-82-user-accounts-bookmarks-and-api-keys-with-the-foundations-for-later-versions">Version 8.2: User accounts, bookmarks and API keys, with the foundations for later versions</h1><p class="meta">docs/plan/releases/version-8-2-accounts-and-invitations.md</p><details class="toc"><summary>On this page (20 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-accounts-invitations-and-bookmarks">Phase 1: Accounts, invitations and bookmarks</a></li><li style="margin-left:14px"><a href="#accounts-and-sign-up">Accounts and sign-up</a></li><li style="margin-left:14px"><a href="#bookmarks">Bookmarks</a></li><li style="margin-left:14px"><a href="#robust-tile-caching">Robust tile caching</a></li><li style="margin-left:0px"><a href="#phase-2-what-a-signed-in-user-gets">Phase 2: What a signed-in user gets</a></li><li style="margin-left:14px"><a href="#user-features">User features</a></li><li style="margin-left:14px"><a href="#the-continuous-zoom-headline-boss-628-pm-edt-2026-10-28">The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)</a></li><li style="margin-left:14px"><a href="#halo-mass-research">Halo mass research</a></li><li style="margin-left:14px"><a href="#viewers-and-object-pages">Viewers and object pages</a></li><li style="margin-left:14px"><a href="#search-by-physical-values">Search by physical values</a></li><li style="margin-left:14px"><a href="#generation-records">Generation records</a></li><li style="margin-left:14px"><a href="#gravity-grid-foundations-boss-514-pm-est-on-2026-11-05">Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05)</a></li><li style="margin-left:14px"><a href="#sky-foundations-for-the-view-from-a-planet-boss-544-pm-est-on-2026-11-05-the-views-design-is-approved-it-lands-in-90-so-its-foundations-are-built-back-to-82">Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2)</a></li><li style="margin-left:14px"><a href="#slated-not-numbered-the-rare-and-fictional-materials-boss-526-pm-est-on-2026-11-07">Slated, not numbered: the rare and fictional materials (Boss, 5:26 PM EST on 2026-11-07)</a></li><li style="margin-left:0px"><a href="#phase-3-settlements-foundation">Phase 3: Settlements foundation</a></li><li style="margin-left:14px"><a href="#settlements-and-space-faring-governments">Settlements and space-faring governments</a></li><li style="margin-left:14px"><a href="#resource-locations">Resource locations</a></li><li style="margin-left:14px"><a href="#fictional-materials-boss-2026-11-08">Fictional materials (Boss, 2026-11-08)</a></li><li style="margin-left:14px"><a href="#flavor-text-settings-and-signals-boss-2026-11-08">Flavor text settings and signals (Boss, 2026-11-08)</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 8.2</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>Boss (5:36 PM EST on 2026-11-05): user accounts, bookmarks and API keys are the main features of 8.2; everything else in it is the foundations for later versions (the continuous zoom, tile caching, the settlements design and storage, the gravity grid). The description that follows is the detail of those features.</p>
+<p>Two headlines: the continuous zoom (the Galaxy Map rebuilt so one camera drives every scene, MAP.334 to MAP.338, Boss 6:28 PM EDT 2026-10-28) and user accounts. User accounts, with sign-up by an email invitation that only an admin can send (USR.1): roles, SMTP settings, invitations, password emails and owner transfer first, then what a signed-in user gets: bookmarks in the account, API keys, the one-off system page and a home field.</p>
+<h2 id="phase-1-accounts-invitations-and-bookmarks">Phase 1: Accounts, invitations and bookmarks</h2>
+<p>Roles, the Owner tier of the settings page, SMTP, invitations, password emails, owner transfer and the bookmark manager.</p>
+<h3 id="accounts-and-sign-up">Accounts and sign-up</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>USR.26</td>
+<td>Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI</td>
+<td></td>
+<td>Split from USR.2.</td>
+</tr>
+<tr>
+<td>USR.3</td>
+<td>SMTP settings in the admin config</td>
+<td>USR.26</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.28</td>
+<td>Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links</td>
+<td></td>
+<td>Foundation found in the review.</td>
+</tr>
+<tr>
+<td>USR.5</td>
+<td>Email loop for setting and resetting passwords</td>
+<td>USR.3, USR.28</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.4</td>
+<td>Invite-only sign-up by unique link</td>
+<td>USR.26, USR.3, USR.28, USR.5</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.6</td>
+<td>Owner transfer</td>
+<td>USR.5, USR.28</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bookmarks">Bookmarks</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.46</td>
+<td>Wiping the galaxy wipes the bookmarks</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>UX.179</td>
+<td>Sitemap entries and an Open Graph image for object pages (optional, can wait)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>UX.206</td>
+<td>Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view</td>
+<td>UX.179</td>
+<td></td>
+</tr>
+<tr>
+<td>VIEW.40</td>
+<td>System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>VIEW.39</td>
+<td>System sky S21 (optional): aberration of the observer's motion, default off</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>VIEW.26</td>
+<td>System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>UX.47</td>
+<td>A bookmark manager: list, rename, sort, group and delete</td>
+<td>UX.46</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.48</td>
+<td>Charted regions as bookmarks that frame and outline the region</td>
+<td>UX.47</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.45</td>
+<td>Bookmark management</td>
+<td>UX.46, UX.47, UX.48</td>
+<td>Parent; per browser until accounts (USR.7) move them.</td>
+</tr>
+<tr>
+<td>UX.92</td>
+<td>A Bookmark button for planets, moons and belts</td>
+<td>UX.45</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="robust-tile-caching">Robust tile caching</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PERF.134</td>
+<td>The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions</td>
+<td></td>
+<td>Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2).</td>
+</tr>
+<tr>
+<td>OPS.64</td>
+<td>The version code carries the database schema, generator epoch and API versions as well</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-what-a-signed-in-user-gets">Phase 2: What a signed-in user gets</h2>
+<p>Account bookmarks, user API keys, the one-off system page, the home field and the umbrella.</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="user-features">User features</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API.6</td>
+<td>User-level API keys, owned by the account that created them, that can read but not upload</td>
+<td>USR.26</td>
+<td>Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately.</td>
+</tr>
+<tr>
+<td>USR.7</td>
+<td>A user-level interface with bookmarks</td>
+<td>USR.26</td>
+<td>Bookmarks of any object use NAV.7 references.</td>
+</tr>
+<tr>
+<td>UX.265</td>
+<td>Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu</td>
+<td>USR.7</td>
+<td></td>
+</tr>
+<tr>
+<td>API.36</td>
+<td>Optional: a region_names search table and a &quot;Go to&quot; box, refilled when the naming key changes (regions chain, step 6)</td>
+<td>API.35</td>
+<td>Boss, 2:21 PM EST on 2026-11-07: slated for 8.2.</td>
+</tr>
+<tr>
+<td>ADM.139</td>
+<td>In the admin console, an option to look at and reset manually edited items that were generated</td>
+<td></td>
+<td>Boss, 2:21 PM EST on 2026-11-07, while answering GEN.229.</td>
+</tr>
+<tr>
+<td>MAP.394</td>
+<td>Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>MAP.395</td>
+<td>Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>MAP.396</td>
+<td>Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.629</td>
+<td>Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored</td>
+<td>MAP.394, MAP.395, MAP.396</td>
+<td></td>
+</tr>
+<tr>
+<td>DOC.107</td>
+<td>Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes</td>
+<td>MAP.394, MAP.395, MAP.396</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.273</td>
+<td>Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views</td>
+<td>MAP.394, MAP.395, MAP.396, TEST.629, DOC.107</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.286</td>
+<td>Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>UX.287</td>
+<td>Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>UX.130</td>
+<td>Console design brief: colours, type, panel shapes and iconography, approved by Boss</td>
+<td></td>
+<td>Split from UX.43.</td>
+</tr>
+<tr>
+<td>UX.131</td>
+<td>Console tokens, type and base template in both themes</td>
+<td>UX.130, UX.265</td>
+<td>Split from UX.43.</td>
+</tr>
+<tr>
+<td>USR.27</td>
+<td>Admin Users page: list accounts, promote, demote, disable and delete</td>
+<td>USR.26</td>
+<td>Split from USR.2.</td>
+</tr>
+<tr>
+<td>USR.2</td>
+<td>Accounts with roles: user, moderator, admin and Owner</td>
+<td>USR.26, USR.27</td>
+<td>Control schema; no blockers, placed late by priority.</td>
+</tr>
+<tr>
+<td>USR.1</td>
+<td>User accounts</td>
+<td>USR.2, USR.3, USR.4, USR.5, USR.6, USR.7</td>
+<td>Parent; closes with its subitems.</td>
+</tr>
+<tr>
+<td>USR.8</td>
+<td>Every signed-in user can generate a one-off system</td>
+<td>USR.26</td>
+<td>Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited).</td>
+</tr>
+<tr>
+<td>USR.11</td>
+<td>A &quot;home&quot; field on user accounts: where the Galaxy Map zooms to when it opens</td>
+<td>MAP.189</td>
+<td></td>
+</tr>
+<tr>
+<td>USR.12</td>
+<td>Permission catalogue and one <code>can()</code> check: user, moderator, admin and Owner as data</td>
+<td>USR.2</td>
+<td>Roles from 8.2 (USR.2 already holds the moderator value)</td>
+</tr>
+<tr>
+<td>USR.14</td>
+<td>Move every route, page and command from &quot;is admin&quot; checks to permission checks</td>
+<td>USR.12</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="the-continuous-zoom-headline-boss-628-pm-edt-2026-10-28">The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)</h3>
+<p>Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Lane 12 for the map items, Lane 15 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.141</td>
+<td>Context around the selection: faint neighbours, and the sectors above and below</td>
+<td></td>
+<td>GitHub issues <a href="https://github.com/dwhagar/planetGen/issues/718">#718</a> and <a href="https://github.com/dwhagar/planetGen/issues/716">#716</a>, one context view. The #716 bug label was overruled.</td>
+</tr>
+<tr>
+<td>MAP.156</td>
+<td>View one layer or a range of layers top-down from the galaxy view, as a secondary option</td>
+<td></td>
+<td>Boss 2026-10-09 23:17Z; secondary option, not a main control.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="halo-mass-research">Halo mass research</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="viewers-and-object-pages">Viewers and object pages</h3>
+<p>Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser window, and selecting anything opens the same info box with a View button to a dedicated page for every kind of item, with links to where it is.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="search-by-physical-values">Search by physical values</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="generation-records">Generation records</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="gravity-grid-foundations-boss-514-pm-est-on-2026-11-05">Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="sky-foundations-for-the-view-from-a-planet-boss-544-pm-est-on-2026-11-05-the-views-design-is-approved-it-lands-in-90-so-its-foundations-are-built-back-to-82">Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIEW.4</td>
+<td>Constellation names in the name generator</td>
+<td></td>
+<td>Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time.</td>
+</tr>
+<tr>
+<td>VIEW.6</td>
+<td>Settle the handedness of the generated galaxy before mapping real sky coordinates</td>
+<td></td>
+<td>Research: needed before real sky coordinates.</td>
+</tr>
+<tr>
+<td>VIEW.8</td>
+<td>A dust model for the sky: the galactic extinction law and <code>nebulae.extinction_av</code></td>
+<td></td>
+<td>Research.</td>
+</tr>
+<tr>
+<td>VIEW.11</td>
+<td>Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law</td>
+<td></td>
+<td>Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0).</td>
+</tr>
+<tr>
+<td>VIEW.12</td>
+<td>Sky catalogue: the stars an observer sees, with direction, brightness and light-time</td>
+<td>VIEW.11</td>
+<td>Split from VIEW.2.</td>
+</tr>
+<tr>
+<td>VIEW.13</td>
+<td>Galactic band: the glow of the unresolved stars and dust along each line of sight</td>
+<td>VIEW.11, VIEW.8</td>
+<td>Split from VIEW.2.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="slated-not-numbered-the-rare-and-fictional-materials-boss-526-pm-est-on-2026-11-07">Slated, not numbered: the rare and fictional materials (Boss, 5:26 PM EST on 2026-11-07)</h3>
+<p>Boss deferred the fictional materials and crystals (Kyber, Solar, Aurora, Tritanium, Dilithium, Pergium, Topaline, Kelbonite and Neutronium; Duranium, Trellium and Protomatter are out of scope) until 8.2 is ready to start, to be revisited after 8.1 is done. Nothing is numbered or scheduled. The plan is /mnt/project-files/research/materials-8-2-plan-2026-11-07.md (provisional parts MAT-1 to MAT-12, with 7 and 10 removed, and five open questions for Boss in its section 9). When 8.2 opens, the TODO thread assigns item numbers and places the parts as their own generator-side phase. They read the real rows the 8.1 real-material set builds (GEN.1355 to GEN.1383), and the Solar Crystal's carbon-13 and carbon-14 choices read the isotope record GEN.1377.</p>
+<h2 id="phase-3-settlements-foundation">Phase 3: Settlements foundation</h2>
+<p>The design, storage and draw streams for nation-states, cities and ports on a planet with a technological civilization (Boss, 9:27 PM EDT 2026-10-24: earliest foundation in 8.2, nothing in 8.1). The generation is in 8.4, the editors in 8.6, the dynamic version in 9.2.</p>
+<h3 id="settlements-and-space-faring-governments">Settlements and space-faring governments</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POP.16</td>
+<td>Design: settlements and nation-states on a planet with a technological civilization (the tech gate, nation count and dominance laws, the city size law, the city to nation draw, space ports), with the sources and stand-in tiers</td>
+<td></td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+<tr>
+<td>DB.103</td>
+<td>Storage for nation-states and cities: tables, Object IDs, column units and the migration</td>
+<td>POP.16</td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+<tr>
+<td>GEN.774</td>
+<td>Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows</td>
+<td>POP.16</td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+<tr>
+<td>POP.25</td>
+<td>Option: how many space-faring governments the galaxy has (a number, or natural), on the Generate page, the CLI, the API and the stored plan</td>
+<td>POP.16</td>
+<td>Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2.</td>
+</tr>
+<tr>
+<td>DB.104</td>
+<td>Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic</td>
+<td>POP.16, DB.103</td>
+<td>Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2.</td>
+</tr>
+<tr>
+<td>POP.26</td>
+<td>Generate toward the requested number of space-faring governments by tilting the odds that a species becomes space-faring (nothing forced, nothing cancelled), homeworlds spread apart, and report what came out</td>
+<td>POP.25, DB.104, GEN.774</td>
+<td>Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2.</td>
+</tr>
+<tr>
+<td>POP.27</td>
+<td>Territories of several worlds and sectors: every government's homeworld is inside its territory, a government that really reaches only its own system holds one system and the page says why, and the check is a test</td>
+<td>POP.26</td>
+<td>Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2.</td>
+</tr>
+<tr>
+<td>POP.28</td>
+<td>Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend</td>
+<td>POP.27</td>
+<td>Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2.</td>
+</tr>
+<tr>
+<td>POP.29</td>
+<td>Design: the world population simulation and the trade routes between spaceports (partners, hop runs, the global list, map filters, nearest-route query), with sources and stand-in tiers</td>
+<td>POP.16</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>DB.105</td>
+<td>Storage for world population and the global trade route list: tables, Object IDs, column units and the migration</td>
+<td>POP.29, DB.103</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="resource-locations">Resource locations</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.798</td>
+<td>Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)</td>
+<td></td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+<tr>
+<td>DB.106</td>
+<td>Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration</td>
+<td>GEN.798</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="fictional-materials-boss-2026-11-08">Fictional materials (Boss, 2026-11-08)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1408</td>
+<td>Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)</td>
+<td></td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1409</td>
+<td>Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name)</td>
+<td>GEN.1408</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1410</td>
+<td>Fictional materials part 3: the settings object and its config default (per-material include flag and custom name)</td>
+<td>GEN.1409</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>DB.116</td>
+<td>Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration)</td>
+<td>GEN.1410</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.143</td>
+<td>Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names</td>
+<td>GEN.1410</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>API.42</td>
+<td>Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line</td>
+<td>DB.116</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1411</td>
+<td>Fictional materials part 7: the biomass index (the gate for the three life-gated crystals)</td>
+<td></td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1412</td>
+<td>Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off)</td>
+<td>GEN.1410</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1413</td>
+<td>Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch)</td>
+<td>GEN.1411, GEN.1412</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>DB.117</td>
+<td>Fictional materials part 10: the per-body rare-material table (migration)</td>
+<td>GEN.1413</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1414</td>
+<td>Fictional materials part 11: the crystal rows and their GEN.725 registry rows</td>
+<td>GEN.1408</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1415</td>
+<td>Fictional materials part 12: Tritanium rows and the reduced-body ore law</td>
+<td>GEN.1408</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>UX.293</td>
+<td>Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names</td>
+<td>GEN.1412, DB.117</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.144</td>
+<td>Fictional materials part 17: edit custom names after generation</td>
+<td>DB.116, GEN.1412, ADM.145</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.145</td>
+<td>Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state</td>
+<td>GEN.1410, DB.116, API.42</td>
+<td>Boss, 10:41 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.146</td>
+<td>Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit</td>
+<td>ADM.145, GEN.1410</td>
+<td>Boss, 10:41 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.147</td>
+<td>Fictional materials admin page C: show how many bodies hold each material</td>
+<td>ADM.145, DB.117</td>
+<td>Boss, 10:41 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>TEST.699</td>
+<td>Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it)</td>
+<td>GEN.1413</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.110</td>
+<td>Fictional materials part 20: reference docs and help for the setting</td>
+<td>ADM.143</td>
+<td>Boss, 10:28 AM EST on 2026-11-08.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="flavor-text-settings-and-signals-boss-2026-11-08">Flavor text settings and signals (Boss, 2026-11-08)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1435</td>
+<td>Ancient works setting: tag the derelict, wreck, megastructure and signal lines (57 of 82) and a per-galaxy on/off choice at galaxy planning, on the same screen and storage as the fictional materials setting</td>
+<td>GEN.1430</td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>GEN.1436</td>
+<td>Natural signal resolution: sensor readings for unknown-origin signals that resolve to a cause (pulsars, giants with volcanic moons, masers)</td>
+<td>GEN.1430</td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

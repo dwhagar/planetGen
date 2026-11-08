@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group 6: evolved and frost atmospheres, trace gases, white dwarf and pulsar planets, host-star UV regime - planetGen docs</title>
+<meta name="description" content="Rows: j1 to j5, l1 to l3, m2 to m6, m11, p4, p6 of part 09.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/tunable-gaps-sources/group6-evolved-trace-uv.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/tunable-gaps-sources/group6-evolved-trace-uv.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="group-6-evolved-and-frost-atmospheres-trace-gases-white-dwarf-and-pulsar-planets-host-star-uv-regime">Group 6: evolved and frost atmospheres, trace gases, white dwarf and pulsar planets, host-star UV regime</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group6-evolved-trace-uv.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdicts">1. Summary and verdicts</a></li><li style="margin-left:0px"><a href="#2-per-row-and-per-subgroup-detail">2. Per-row and per-subgroup detail</a></li><li style="margin-left:14px"><a href="#21-j1-to-j5-venus--mars--titan--pluto-like-and-abiotic-o2-atmospheres">2.1 j1 to j5: Venus-, Mars-, Titan-, Pluto-like and abiotic-O2 atmospheres</a></li><li style="margin-left:14px"><a href="#22-l1-to-l3-white-dwarf-and-pulsar-planet-options">2.2 l1 to l3: white dwarf and pulsar planet options</a></li><li style="margin-left:14px"><a href="#23-m2-to-m4-and-m11-abiotic-o3-n2o-ph3-no2-and-ch3cl">2.3 m2 to m4 and m11: abiotic O3, N2O, PH3, NO2 and CH3Cl</a></li><li style="margin-left:14px"><a href="#24-halogens-hcl-and-hf-m5-m6-and-the-derived-budget-question">2.4 Halogens: HCl and HF (m5, m6) and the derived-budget question</a></li><li style="margin-left:14px"><a href="#25-p4-and-p6-m-dwarf-saturation-time-and-the-rotation-track-weights">2.5 p4 and p6: M-dwarf saturation time and the rotation-track weights</a></li><li style="margin-left:0px"><a href="#3-sources-actually-verified-arxiv-pdf-text-extracted-no-licence-statement-found-in-the-extracted-text-unless-noted">3. Sources actually verified (arXiv PDF text extracted; no licence statement found in the extracted text unless noted)</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled--to-verify">5. Recalled / to verify</a></li></ul></details>
+<p>Rows: j1 to j5, l1 to l3, m2 to m6, m11, p4, p6 of part 09. Labels (READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED) are those of <code>_worker-rules.md</code>. READ here means the arXiv PDF text was extracted and read by me (abstract and the passages quoted); where I read only the abstract it says &quot;abstract&quot;.</p>
+<h2 id="1-summary-and-verdicts">1. Summary and verdicts</h2>
+<p>Most rows in this group are not probabilities. j1, j5, m2, l1, l3, m5, m6 and the abiotic part of m3 and m11 are outcomes of inventory (group 2), escape, photochemistry and speciation, so they should be computed, with the volatile inventory as the only random element. j2, j3, j4, m4 and the biotic parts of m3 and m11 have no observational ensemble at all and the only constraint is the Solar System, which breaks the NO FIXED CONTENT rule if used to tune a knob. The two rows that do have real data are p4 (tau_sat; N=55 stars in the early-M bin of [R2118], N=219 volume-complete mid-to-late M dwarfs in [R3017]) and, weakly, l3 and l1 (upper limits on transiting planets around 1148 K2 white dwarfs and 313 polluted white dwarfs, one microlensing and one transiting giant). The single <code>LU[0.162, 2] Gyr</code> for p4 mixes a mass dependence: 0.162 Gyr is the early-M X-ray value (READ), 2 Gyr is the fully convective value (READ, 2.3 +- 1.3 Gyr for 0.1 to 0.2 Msun). p6 can be replaced by a continuous percentile draw using the published [R2183] tracks (MIT-licensed code, integer percentiles 2 to 98, masses 0.1 to 1.25 Msun).</p>
+<p>Verdict key: (a) published ensemble plus bracket suffices for a tunable seeded draw; (b) tunable only to a few stated constraints; (c) needs a source not in the public record. &quot;Derive&quot; means the quantity should be computed by physics, not drawn.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Quantity</th>
+<th>Verdict</th>
+<th>Draw or derive</th>
+<th>Bracket-only seeded draw honest? Widest defensible bracket</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>j1</td>
+<td>Venus-like CO<sub>2</sub>-N2</td>
+<td>(b)</td>
+<td>Derive: runaway gate (Kopparapu, READ) + water loss + inventory</td>
+<td>Yes for the retention residual: [0, 1]; the 0.1 floor has no support (JWST TRAPPIST-1 b and c, N=2, allow bare rock)</td>
+</tr>
+<tr>
+<td>j2</td>
+<td>Mars-like thin CO<sub>2</sub></td>
+<td>(c)</td>
+<td>Derive from inventory + escape (d table)</td>
+<td>Yes: [0, 1]; Solar System only</td>
+</tr>
+<tr>
+<td>j3</td>
+<td>Titan-like N<sub>2</sub>-CH4 moon</td>
+<td>(c)</td>
+<td>Derive: Jeans retention + CH<sub>4</sub> source</td>
+<td>Yes: [0, 1]; Solar System only, no exomoon ensemble</td>
+</tr>
+<tr>
+<td>j4</td>
+<td>Pluto/Triton-like frost</td>
+<td>(c)</td>
+<td>Derive: vapour-pressure equilibrium + retention</td>
+<td>Yes: [0, 1]; Solar System only (KBO retention model gives a physical bracket)</td>
+</tr>
+<tr>
+<td>j5</td>
+<td>Abiotic O<sub>2</sub> world</td>
+<td>(b)</td>
+<td>Derive: water loss, EUV, O<sub>2</sub> sinks</td>
+<td>Yes for the residual: [0, 1] ([R1813] says about 0 for wet HZ planets with trace N<sub>2</sub>; Luger and Barnes says hundreds of bar otherwise)</td>
+</tr>
+<tr>
+<td>l1</td>
+<td>Silicate-vapour exosphere</td>
+<td>(c) for the weight, derivable</td>
+<td>Derive from P_eq vs exosphere criterion; threshold is a design constant</td>
+<td>Threshold 1e-6 bar +- 0.5 dex has no data; Koester fraction is NOT the tuning constraint</td>
+</tr>
+<tr>
+<td>l2</td>
+<td>Airless</td>
+<td>complement of l1</td>
+<td>Consequence</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>l3</td>
+<td>Surviving giant at WD</td>
+<td>(b)</td>
+<td>Derive: engulfment gate [R4532] x giant occurrence</td>
+<td>Yes: [0, 0.5] (upper value is a prediction, 2ND-HAND); c[0, 0.1] is below the published prediction and above the transit upper limit for P &lt; 27 d</td>
+</tr>
+<tr>
+<td>m2</td>
+<td>Abiotic O<sub>3</sub></td>
+<td>(b)</td>
+<td>Derive from photochemistry grid; state-dependent flag</td>
+<td>[0, 1] (conditional: about 0 for wet N<sub>2</sub>-bearing HZ planets, 1 for desiccated CO<sub>2</sub> worlds)</td>
+</tr>
+<tr>
+<td>m3</td>
+<td>N<sub>2</sub>O</td>
+<td>(c)</td>
+<td>Biotic part = design flag; abiotic SEP part = derived, model-only</td>
+<td>[0, 1]; the c[0.05, 0.5] has no support</td>
+</tr>
+<tr>
+<td>m4</td>
+<td>PH<sub>3</sub></td>
+<td>(c)</td>
+<td>Biotic design flag</td>
+<td>[0, 0.05] is defensible; no confirmed detection on any rocky planet</td>
+</tr>
+<tr>
+<td>m5</td>
+<td>HCl</td>
+<td>(b) as a budget, (c) as a probability</td>
+<td>Derive: halogen budget x speciation x solubility</td>
+<td>Not a coin flip; see section 2.4</td>
+</tr>
+<tr>
+<td>m6</td>
+<td>HF</td>
+<td>same as m5</td>
+<td>same</td>
+<td>same</td>
+</tr>
+<tr>
+<td>m11</td>
+<td>NO<sub>2</sub>, CH<sub>3</sub>Cl</td>
+<td>(c)</td>
+<td>CH<sub>3</sub>Cl = design flag; NO<sub>2</sub> = derived from lightning rate</td>
+<td>[0, 1] for CH<sub>3</sub>Cl; lightning rate is Solar-System-anchored</td>
+</tr>
+<tr>
+<td>p4</td>
+<td>M dwarf saturated, tau_sat</td>
+<td>(a) for early M, (b) for mid and late M</td>
+<td>Derive from Rossby saturation + spin-down track, or tabulate tau_sat(M)</td>
+<td>Replace LU[0.162, 2] Gyr with a mass-dependent value (section 2.5)</td>
+</tr>
+<tr>
+<td>p6</td>
+<td>Rotation-track weights</td>
+<td>(a)</td>
+<td>Replace 3 weights by a percentile draw</td>
+<td>Draw u in [0.02, 0.98]; 0.25/0.5/0.25 is defensible only as quartile bins</td>
+</tr>
+</tbody>
+</table></div>
+<p>Places where a verified source overrides a partly verified one (usability rule):</p>
+<ol>
+<li>m2: part 09 says &quot;O3 about 10 % of Earth column ([R1137], 2ND-HAND)&quot;. The paper's Table 3 (READ) gives abiotic O<sub>3</sub> columns of 4.5e15 (Sun), 1.0e15 (K2V), 8.8e15 (M3.5V), 1.8e15 (M4V) and 1.3e18 (F2V) molecules per cm2 against 8.6e18 for present Earth: that is 0.05, 0.01, 0.10, 0.02 and 15 percent. Only the F-star case is near 10 percent. READ wins.</li>
+<li>p4: the project stand-in &quot;2 Gyr&quot; for tau_sat is overridden for early M by [R2118: Table 2] (READ, 162 Myr) and supported for 0.1 to 0.2 Msun by [R3017] (READ).</li>
+<li>m4: &quot;TEST 20 ppb Venus claim ([R1672] READ)&quot; is contradicted by two other READ papers ([R4549] upper limit &lt; 1 ppbv at 3 sigma; [R2696] finds the line forms above 80 km and is fit by mesospheric SO<sub>2</sub>). Both sides are verified; the claim cannot be a calibration point.</li>
+<li>j1: &quot;runaway limit 1.04 to 1.11&quot; is replaced by READ values 1.0512 [R2446], 1.107 at 1 Earth mass, 0.99 at 0.1 and 1.188 at 5 Earth masses [R2447].</li>
+<li>j5: [R1813] (abstract READ from NTRS) conditions its &quot;no false positives&quot; result on the planet lying in the conventional HZ with no irrecoverable water loss, which does not contradict [R2769] (READ) but restricts it. The 2015 arXiv preprint of Harman (1509.07863, READ abstract) has the opposite headline (K and M stars may build O<sub>2</sub>); the 2018 version supersedes it.</li>
+</ol>
+<h2 id="2-per-row-and-per-subgroup-detail">2. Per-row and per-subgroup detail</h2>
+<h3 id="21-j1-to-j5-venus--mars--titan--pluto-like-and-abiotic-o2-atmospheres">2.1 j1 to j5: Venus-, Mars-, Titan-, Pluto-like and abiotic-O2 atmospheres</h3>
+<p><strong>Are they probabilities?</strong> No. Each is the result of (inventory delivered, group 2) x (escape history, tables d and p) x (photochemistry) x (redox, table a). The part 09 weight c[lo,hi] is a mixing weight between overlapping gates, not a measured fraction. The honest model: draw the volatile inventory and redox; compute whether the planet is above the runaway limit, loses its water, keeps CO<sub>2</sub>-N2; the row label is then an output.</p>
+<p><strong>Ensemble (point 1).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Measurement</th>
+<th>N</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Venus Zone planets</td>
+<td>43 Kepler candidates in the Venus Zone; occurrence eta 0.32 (+0.05, -0.07) for M dwarfs and 0.45 (+0.06, -0.09) for GK dwarfs</td>
+<td>43</td>
+<td>READ (abstract)</td>
+<td>[R1137, R2234]</td>
+</tr>
+<tr>
+<td>TRAPPIST-1 b dayside</td>
+<td>T_B = 503 (+ -27) K at 15 um vs Teq 391 to 400 K; &quot;little or no planetary atmosphere&quot;</td>
+<td>1 planet</td>
+<td>READ</td>
+<td>[R1678]</td>
+</tr>
+<tr>
+<td>TRAPPIST-1 c dayside</td>
+<td>f_p/f_star = 421 +- 94 ppm, T_B = 380 +- 31 K; rules out cloud-free O<sub>2</sub>/CO2 with Psurf &gt;= 10 bar (10 ppm CO<sub>2</sub>) and pure CO<sub>2</sub> above 0.1 bar; Venus analogue with H<sub>2</sub>SO<sub>4</sub> clouds disfavoured at 2.6 sigma</td>
+<td>1 planet</td>
+<td>READ</td>
+<td>[R4904]</td>
+</tr>
+<tr>
+<td>Hot Rocks Survey</td>
+<td>LHS 1478 b eclipse 138 +- 53 ppm (2.8 sigma, one visit a non-detection); GJ 3473 b 186 +- 45 ppm; &quot;may not uniquely distinguish bare rock from atmosphere&quot;</td>
+<td>2 so far</td>
+<td>SNIPPET (titles and ids verified: 2410.11048, 2604.02332)</td>
+<td>August 2024; [R1993]</td>
+</tr>
+<tr>
+<td>Rocky Worlds DDT</td>
+<td>GJ 3929 b &quot;likely a bare rock&quot; (Xue et al., ApJL, Dec 2025); first complete data set announced July 2026</td>
+<td>1</td>
+<td>SNIPPET</td>
+<td>search result only; arXiv id not found</td>
+</tr>
+<tr>
+<td>Evolved TRAPPIST-1 climates</td>
+<td>model predictions only; no observation</td>
+<td>7 planets, models</td>
+<td>READ (abstract)</td>
+<td>[R2697]</td>
+</tr>
+</tbody>
+</table></div>
+<p>The JWST data are the only exoplanet observations that bear on j1 and j5: two planets (b, c) with no thick CO<sub>2</sub> or O<sub>2</sub> atmosphere. With N=2, the data allow bare-rock fractions from 0 to 1 for the generator's whole zone-h population; they are an upper-limit check, not a fit. No exoplanet observation exists for Mars-like, Titan-like or Pluto-like atmospheres.</p>
+<p><strong>Physical bracket (point 2).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runaway greenhouse S_eff, Sun, 1-D</td>
+<td>1.0512 (Table 3, 2600 to 7200 K polynomial)</td>
+<td>READ</td>
+<td>[R2446]</td>
+</tr>
+<tr>
+<td>Runaway S_eff vs planet mass</td>
+<td>0.99 (0.1 Me), 1.107 (1 Me), 1.188 (5 Me)</td>
+<td>READ</td>
+<td>[R2447: Table 1]</td>
+</tr>
+<tr>
+<td>Recent Venus 1.776, maximum greenhouse 0.356, early Mars 0.32 (1 Me)</td>
+<td>S_eff, same table</td>
+<td>READ</td>
+<td>[R2447]</td>
+</tr>
+<tr>
+<td>3-D runaway threshold</td>
+<td>about 375 W/m2, &quot;significantly higher than previously thought&quot;</td>
+<td>READ (abstract)</td>
+<td>[R2605]</td>
+</tr>
+<tr>
+<td>3-D threshold in S_eff</td>
+<td>375/340.25 = 1.10 if S0 = 1361 W/m2</td>
+<td>COMPUTED</td>
+<td>inputs: 375 W/m2, S0/4</td>
+</tr>
+<tr>
+<td>Venus Zone inner edge</td>
+<td>atmospheric erosion at about 25 times Earth flux</td>
+<td>READ (text mention)</td>
+<td>[R2234]</td>
+</tr>
+<tr>
+<td>O<sub>2</sub> build-up per terrestrial ocean lost</td>
+<td>120 bar (energy-limited) to 240 bar (diffusion-limited) for Venus with 1 TO; 1800 to 2400 bar for 10 TO; about 5 bar/Myr (Earth mass) to 25 bar/Myr (super-Earths); &quot;inefficient oxygen sinks&quot; required</td>
+<td>READ</td>
+<td>[R2769]</td>
+</tr>
+<tr>
+<td>Water-lost depends on EUV flux, runaway duration, initial water</td>
+<td>stated in abstract</td>
+<td>READ</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Abiotic O<sub>2</sub> for lifeless HZ planets with weak cold trap</td>
+<td>O<sub>2</sub>-dominated if low non-condensable inventory; ~0.15 bar partial pressure example</td>
+<td>READ</td>
+<td>[R4771]</td>
+</tr>
+<tr>
+<td>Desiccated CO<sub>2</sub> worlds, M dwarf</td>
+<td>up to about 40 to 50 % of CO<sub>2</sub> converted; O<sub>2</sub> up to 20 %, O<sub>3</sub> above 1 ppm</td>
+<td>READ</td>
+<td>[R1511]</td>
+</tr>
+<tr>
+<td>GJ 1132 b: more than 5 wt % water needed for a steam atmosphere; magma ocean absorbs at most about 10 % of O<sub>2</sub></td>
+<td></td>
+<td>SNIPPET</td>
+<td>[R3946]</td>
+</tr>
+<tr>
+<td>Mars-like CO<sub>2</sub>-N2-Ar, Titan, Pluto: vapour pressure, Jeans retention</td>
+<td>volatile retention vs size and temperature (&quot;[R3948]&quot;)</td>
+<td>SNIPPET; successors [R0552, R2176] verified by title only</td>
+<td>NOT READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Verdict (point 3).</strong> j1 (b): the gate is derived from READ limits; there is no ensemble for the atmosphere fraction, only the two JWST planets as an upper-limit check and the Venus Zone occurrence of planets (not atmospheres). j5 (b): the physics (Luger and [R3946]) is published and outcome-dependent on the O<sub>2</sub> sink assumption (surface absorption of about 100 bar is assumed by Luger and Barnes, READ). j2, j3, j4 (c): no extrasolar ensemble exists; the only constraint is the Solar System (Mars, Titan, Pluto and Triton).</p>
+<p><strong>Knobs (point 4).</strong> If the generator keeps a draw for the residual after the physics gate: knob w_retain in [0, 1] (log-uniform not appropriate because 0 is allowed; use uniform). For j1 the physical gate parameters are S_eff,runaway(M, Teff) with target 1.05 to 1.19 (READ, Kopparapu) and a 3-D alternative of about 1.10 (Leconte, abstract). The water-loss knob is the EUV exposure (group p) and initial water (group 2). The O<sub>2</sub>-sink knob (fraction of O<sub>2</sub> absorbed by the surface) is unsourced except by assumption in Luger and Barnes; bracket [0, 1]. Over what range the targets hold: Kopparapu 2600 to 7200 K, 0.1 to 5 Me.</p>
+<p><strong>Consistency test (point 5).</strong> Simulated: fraction of zone-h planets with thick CO<sub>2</sub> or O<sub>2</sub> atmospheres at T-1 b and c insolation (Teq 391 to 400 K for b), compared with &quot;no thick atmosphere&quot; for two planets; tolerance is a binomial limit on N=2, so the test is &quot;population must not forbid 0 of 2 with high probability&quot;. A selection model is needed: transit geometry and the JWST target list (nearby M dwarfs, short periods).</p>
+<p><strong>No-fixed-content flags (point 6).</strong> j2 to j4 are Solar System-only constraints (Mars, Titan, Pluto). The 97:3 CO<sub>2</sub>:N<sub>2</sub> split ([R4154], READ in part 08) is a magma-ocean calculation, not a Venus copy, but Venus is the test point. The &quot;[R3945] crust composition&quot; speciation (section 2.4) is Earth-only.</p>
+<p><strong>Group for a builder (point 7).</strong> Builder A: j1, j5, m2 (and the abiotic part of m3) share one model: runaway gate, water loss, O<sub>2</sub> build-up, and a photochemistry look-up of O<sub>3</sub> columns. j2 to j4 form a second small builder (retention and vapour pressure) with no tuning data.</p>
+<h3 id="22-l1-to-l3-white-dwarf-and-pulsar-planet-options">2.2 l1 to l3: white dwarf and pulsar planet options</h3>
+<p><strong>Ensemble (point 1).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Measurement</th>
+<th>N</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metal pollution of DA white dwarfs</td>
+<td>48 of 85 (56 %) show metals; 23 (27 %) must be currently accreting; &quot;at least 27 % ... could be as high as about 50 %&quot;; cooling ages 20 to 200 Myr; Teff &lt; 23000 K; 1 of 14 with Mwd &gt; 0.8 Msun accreting; median progenitor about 2 Msun</td>
+<td>85</td>
+<td>READ</td>
+<td>[R2415]</td>
+</tr>
+<tr>
+<td>Same, volume-limited sample</td>
+<td>45 +- 4 % with atmospheric metals</td>
+<td>volume-limited</td>
+<td>SNIPPET (via a 2025 paper); [R4715] id not verified</td>
+<td>[R4715]</td>
+</tr>
+<tr>
+<td>Same, earlier</td>
+<td>&quot;one quarter to one half&quot; of white dwarfs; accreted mass about that of Vesta or Ceres over 200 Myr</td>
+<td></td>
+<td>READ (abstract)</td>
+<td>[R2387, R4918]</td>
+</tr>
+<tr>
+<td>Transiting planets at WDs, K2</td>
+<td>1148 high-probability white dwarfs; 10 eclipsing objects (1 disintegrating planet, 9 likely stellar); hot Jupiters &lt; 1.5 %; Earth-size HZ planets &lt; 28 %</td>
+<td>1148</td>
+<td>SNIPPET (abstract via search; PDF downloaded, text length 107 kB, not read in detail)</td>
+<td>[R4504, R4511]</td>
+</tr>
+<tr>
+<td>Transiting planets at polluted WDs, TESS</td>
+<td>313 polluted WDs; two known irregular-transit systems recovered, no new; transit fraction 0.8 (+0.6, -0.4) %</td>
+<td>313</td>
+<td>READ (abstract)</td>
+<td>[R3777]</td>
+</tr>
+<tr>
+<td>Transiting giant at a WD</td>
+<td>WD 1856+534 b: P = 1.4 d, Jupiter-sized, M &lt; 13.8 MJ (95 %), &lt; 11.7 MJ if thin disk (age &lt; 10 Gyr); scattered inward without tidal disruption</td>
+<td>1</td>
+<td>READ</td>
+<td>[R4494]</td>
+</tr>
+<tr>
+<td>Microlensing giant at a WD</td>
+<td>MOA-2010-BLG-477Lb: WD 0.53 +- 0.11 Msun, planet 1.4 +- 0.3 MJ, projected separation 2.8 +- 0.5 au (so a &gt; 2.8 au); cites a prediction that over half of WDs have Jovian companions</td>
+<td>1</td>
+<td>READ</td>
+<td>[R0415] (candidate id 2109.07533 was wrong)</td>
+</tr>
+<tr>
+<td>Review of survival</td>
+<td>Jovian planets must start at least 20 percent beyond the maximum stellar radius (2 Msun AGB example); engulfment depends mainly on maximum RGB radius; &quot;fewer than 10 %&quot; of giant-branch planet hosts have planets within 0.5 au</td>
+<td>review</td>
+<td>READ</td>
+<td>[R4532]</td>
+</tr>
+<tr>
+<td>Pulsar planets</td>
+<td>PSR B1257+12 (3 planets), PSR B1620-26 b (2.5 MJ, 23 au, circumbinary around a WD plus MSP), PSR J1719-1438</td>
+<td>few</td>
+<td>READ (Veras text; Patruno text)</td>
+<td>[R3450, R4532]</td>
+</tr>
+<tr>
+<td>Pulsar planet search</td>
+<td>151 young pulsars, no planets; excludes Mercury analogues in one third of the older sample and M &gt; 0.4 Me with Pb &lt; 1 yr in all but 5 %</td>
+<td>151</td>
+<td>READ (abstract)</td>
+<td>[R2331]</td>
+</tr>
+<tr>
+<td>Why pulsar planets are rare</td>
+<td>needs companion destruction; dead zones rare</td>
+<td>theory</td>
+<td>READ (abstract)</td>
+<td>[R2902]</td>
+</tr>
+<tr>
+<td>Pulsar planet atmospheres</td>
+<td>atmospheres can survive X-ray irradiation and pulsar wind if the planet is a super-Earth with a large atmospheric mass fraction (at least 100 Myr) or has a moderately strong magnetosphere (several Gyr); X-ray spectrum of one pulsar</td>
+<td>1 system</td>
+<td>READ</td>
+<td>[R3450]</td>
+</tr>
+<tr>
+<td>[R4751]</td>
+<td>first pulsar planets</td>
+<td></td>
+<td>NOT REACHED</td>
+<td>Nature</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Physical bracket (point 2).</strong>
+l1: P_eq(Ts) of the silicate vapour at the surface temperature (i6 formula from the part 09 table, [R2380] READ in part 09, not re-read here). The exosphere criterion (collision-free above a column) is a physics statement, not a probability. l3: survival requires an initial orbit outside the engulfment radius, with tides and mass loss ([R4532], READ). Pulsar planets: atmosphere survival from the energy-limited escape and wind stripping calculation of Patruno and Kama (READ).</p>
+<p><strong>Verdict (point 3).</strong></p>
+<ul>
+<li><strong>Is the polluted-WD fraction the right tuning constraint for l1? No.</strong> [R2415] measures the fraction of white dwarfs that accrete rocky debris (27 to about 50 percent for 20 to 200 Myr cooling ages, Teff below 23000 K, A-type progenitors). It tunes the upstream gate &quot;this WD hosts rocky bodies that reach it&quot; (and, with debris-disk lifetimes, the number of exposed rocky bodies). It says nothing on whether an exposed body keeps a silicate-vapour exosphere. l1 is a deterministic function of Ts through P_eq, so the draw should be removed or kept only as a width on the threshold (0.5 dex DESIGN), with no data to tune it. Verdict for l1 and l2: (c) as probabilities, derivable from physics.</li>
+<li><strong>l3: (b).</strong> Constraints: one hot giant (WD 1856 b), one cold giant (Blackman), transit upper limits (hot Jupiters &lt; 1.5 % of 1148 K2 WDs; 0.8 percent transit fraction of 313 polluted WDs, both short-period only), and a prediction of more than half of WDs hosting Jovian companions (2ND-HAND). The c[0, 0.1] prior is not supported as a number: the right quantity is P(survive) = P(initial a above the engulfment radius of the progenitor, after tides) x occurrence of giants around 1 to 8 Msun progenitors. This should be derived in the generator from its own giant occurrence (group 1 table f) and Veras' engulfment rule. Bracket-only draw: the widest defensible upper value is the published prediction (&gt; 0.5, 2ND-HAND); the transit limits constrain only P &lt; 27 d.</li>
+<li><strong>Pulsar planets: (c).</strong> No observation of any pulsar planet atmosphere exists; the record has 3 to 5 planetary systems around about 3000 neutron stars (Patruno: roughly 3000 known; 2200 young pulsars, 400 millisecond pulsars, READ). The only physics is Patruno and Kama's survival calculation. A pulsar-planet atmosphere should be derived (escape against X-ray and wind), not drawn.</li>
+</ul>
+<p><strong>Knobs (point 4).</strong> l1: threshold log10 P_eq,0 = -6 (DESIGN), width 0.5 dex (DESIGN); no target statistic. l3: knob = occurrence of giants beyond the engulfment radius; targets: (i) transit fraction &lt; 1.5 % (K2) and 0.8 (+0.6, -0.4) % for hot companions, (ii) one microlensing detection (cannot constrain a fraction without a survey completeness model). Engulfment knob: a_engulf = 1.2 x R_max(M_prog) for Jovian planets (the &quot;20 percent&quot; figure is an example for a 2 Msun AGB star, READ; use Veras' stellar-model-dependent value).</p>
+<p><strong>Consistency test (point 5).</strong> Simulated hot-giant fraction at WDs vs the K2 and TESS upper limits (inject-and-recover with transit probability a_R/R_WD and detection limits is needed). A population test for l1 does not exist.</p>
+<p><strong>No-fixed-content flags (point 6).</strong> Pulsar-planet atmospheres and white-dwarf exospheres have no Solar System anchor either; the only anchors are one pulsar system and one WD 1856 b / Blackman planet each. The existing recipe (dIW ~ N(-1, 0.5) for WD debris) is from six polluted WDs ([R1154], READ in part 05), an extrasolar constraint, so no flag there.</p>
+<p><strong>Group for a builder (point 7).</strong> One builder: l1 to l3 with the WD pollution gate, engulfment rule and pulsar escape. It shares nothing with the other groups except the rocky-body list from table i.</p>
+<h3 id="23-m2-to-m4-and-m11-abiotic-o3-n2o-ph3-no2-and-ch3cl">2.3 m2 to m4 and m11: abiotic O<sub>3</sub>, N<sub>2</sub>O, PH<sub>3</sub>, NO<sub>2</sub> and CH<sub>3</sub>Cl</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Ensemble</th>
+<th>Physics</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m2 abiotic O<sub>3</sub></td>
+<td>none (no exoplanet O<sub>3</sub> detection)</td>
+<td>[R1137: Table 3] (READ): O<sub>3</sub> and O<sub>2</sub> columns in 5 % CO<sub>2</sub> atmospheres with H<sub>2</sub> flux 1e6 and Fe flux 1e10 cm-2 s-1; [R1511] (READ): O<sub>3</sub> &gt; 1 ppm, O<sub>2</sub> up to 20 % for H &lt; 1 ppm; [R1813] (abstract READ): lightning NO removes false positives on HZ planets with trace N<sub>2</sub></td>
+<td>(b), derive</td>
+</tr>
+<tr>
+<td>m3 N<sub>2</sub>O</td>
+<td>none</td>
+<td>biotic: design flag (life exists). Abiotic: SEP-driven N<sub>2</sub>O; [R0052] review (READ passage) says a recent model gives more than 300 times the earlier N<sub>2</sub>O output; present Earth is about 400 ppbv, biological. [R3999] (abstract READ): CH<sub>4</sub>, N<sub>2</sub>O, CH<sub>3</sub>Cl have longer lifetimes on M dwarf planets</td>
+<td>(c); design flag plus derived abiotic part</td>
+</tr>
+<tr>
+<td>m4 PH<sub>3</sub></td>
+<td>Venus claim only (Solar System)</td>
+<td>[R4163] (READ): detectable at surface fluxes 1e10 to 1e14 cm-2 s-1, &quot;no known abiotic false positives on terrestrial planets from any source that could generate the high fluxes required&quot;; PH<sub>3</sub> + OH lifetime 28 h night, 5 h day (READ)</td>
+<td>(c); biotic design flag</td>
+</tr>
+<tr>
+<td>m11 NO<sub>2</sub>, CH<sub>3</sub>Cl</td>
+<td>none</td>
+<td>CH<sub>3</sub>Cl biotic ([R3999], abstract READ); NO<sub>2</sub> from lightning, [R1813] abstract (READ) gives no numbers; lightning rates from [R1967] ([R1967], &quot;guided by Solar System data&quot;, SNIPPET)</td>
+<td>(c); CH<sub>3</sub>Cl design flag; NO<sub>2</sub> derived</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Is any of this an observational probability?</strong> No. There is no measurement of any of these gases on any extrasolar planet, so no ensemble can be built today. m2 is an output of a photochemistry grid (columns vary by four orders of magnitude between stellar types, from 1e15 to 1.3e18 cm-2 at the same CO<sub>2</sub> and volcanic flux); m3, m4, m11 (CH<sub>3</sub>Cl) are mostly biosignature design flags whose probability equals &quot;life exists and produces it&quot;. A bracket-only seeded draw is the honest answer for m3, m4, m11 with the widest defensible bracket [0, 1] (m4 narrowed to [0, 0.05] if kept as a design choice about biology). The part 09 priors c[0.05, 0.5], c[0, 0.05], c[0, 0.3] have no data behind them: they are choices. m2 should not be a presence probability: the generator can look up an O<sub>3</sub> column (Domagal-Goldman Table 3 grid and Gao) as a function of star type, CO<sub>2</sub>, H<sub>2</sub> flux, desiccation and a lightning flag.</p>
+<p><strong>Disputed PH<sub>3</sub> record (all READ).</strong> [R1672] (2009.06593): about 20 ppb, abiotic photochemistry short by more than four orders of magnitude. [R4549] (2010.14305): &lt; 1 ppbv at 3 sigma (0.7 to 1.5 for line-width choices). [R2696] (2101.09837): the line forms above 80 km and fits mesospheric SO<sub>2</sub>. Do not tune m4 to Venus.</p>
+<p><strong>Knobs and test.</strong> None of the proposed draws can be tuned: no target statistic exists. Consistency test: none possible except &quot;no rocky planet in the generator shows PH<sub>3</sub> above 1 ppb unless life flag&quot; if a future observation requires it.</p>
+<p><strong>No-fixed-content flags.</strong> Every constraint on m3 (400 ppbv), m4 (Venus 20 ppb) and m11 (lightning NO flux based on modern Earth; SNIPPET) is Solar System-only. The rule is broken if any knob is tuned to those.</p>
+<p><strong>Group for a builder.</strong> m2 with Builder A (section 2.1). m3, m4, m11 (CH<sub>3</sub>Cl) form a &quot;design flags&quot; group that belongs with the life-chemistry design, not with a fit.</p>
+<h3 id="24-halogens-hcl-and-hf-m5-m6-and-the-derived-budget-question">2.4 Halogens: HCl and HF (m5, m6) and the derived-budget question</h3>
+<p><strong>Can a derived halogen budget replace c[0.1, 0.5]? Yes for the stellar input, only partly for the planet.</strong> HCl and HF are equilibrium species of the Cl and F in the crust or mantle, not a coin flip. [R3945] ([R3945], READ) show that HCl and HF are &quot;the dominant Cl- and F-bearing gases at lower temperatures&quot;, appear at percent level only for the continental-crust composition (Table 2: F 0.053 wt %, Cl 0.047 wt %) and are below the 0.1 % plot threshold for BSE composition (F 0.002 wt %, Cl 0.004 wt %); the part 09 values (HCl 1.4 % at 1000 K 100 bar; HF 4.5 % at 1000 K 1e-6 bar) are crust-composition results. COMPUTED from Table 2: crust over BSE enrichment is 26.5 for F and 11.8 for Cl; molar Cl/F is 0.48 in the crust and 1.07 in the BSE; the solar-photosphere Cl/F number ratio is 10^(5.31 - 4.40) = 8.1 (meteoritic 10^(5.23 - 4.42) = 6.5). So the planet's halogen mixing ratio is set mainly by differentiation (crust enrichment) and volatile depletion, not by the star.</p>
+<p><strong>Stellar side (point 1).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>N</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solar F</td>
+<td>log eps 4.40 +- 0.25 (sunspot HF) and 4.42 +- 0.06 (meteoritic)</td>
+<td>1 star</td>
+<td>READ</td>
+<td>[R0168]</td>
+</tr>
+<tr>
+<td>Solar Cl</td>
+<td>log eps 5.31 +- 0.20 (sunspot HCl) and 5.23 +- 0.06 (meteoritic)</td>
+<td>1 star</td>
+<td>READ</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Cl in other stars</td>
+<td>15 giants plus 1 M dwarf, [35Cl/Fe] = -0.10 +- 0.15 over -0.72 &lt; [Fe/H] &lt; 0.20</td>
+<td>16</td>
+<td>READ (abstract)</td>
+<td>[R2787]</td>
+</tr>
+<tr>
+<td>Cl in M giants</td>
+<td>52 M giants, -0.5 &lt; [Fe/H] &lt; 0.12; [Cl/Ca] about solar; Cl from core-collapse supernovae plus some Type Ia</td>
+<td>52</td>
+<td>READ (abstract)</td>
+<td>[R2786]</td>
+</tr>
+<tr>
+<td>F in K giants</td>
+<td>49 nearby K giants; no evidence for the neutrino process</td>
+<td>49</td>
+<td>READ (abstract)</td>
+<td>[R2190]</td>
+</tr>
+<tr>
+<td>F in bulge giants</td>
+<td>chemical evolution of F in three bulge fields</td>
+<td>few</td>
+<td>READ (abstract)</td>
+<td>[R2189]</td>
+</tr>
+<tr>
+<td>F in disk giants</td>
+<td>12 thin and thick disk giants; larger dispersion than Na</td>
+<td>12</td>
+<td>READ (abstract)</td>
+<td>[R0511]</td>
+</tr>
+</tbody>
+</table></div>
+<p>No F or Cl abundance exists for main-sequence FGK stars from direct lines; both come from molecular lines (HF, HCl) in cool giants or sunspots, so the generator's host F and Cl must be scaled from [Fe/H] and [alpha/Fe] by a chemical-evolution relation. The published scatter (0.15 dex for Cl) is smaller than the planetary processing uncertainty.</p>
+<p><strong>Planet side.</strong> Halogen depletion in terrestrial bodies: [R0818] (Nature 551, 614; SNIPPET only: Cl in chondrites about six times lower than earlier estimates, Br/Cl and I/Cl matching BSE) says most Earth halogens sit in surface reservoirs. Volcanic degassing on Earth: HCl 4.3 +- 1 Tg/a, HF 0.5 +- 0.2 Tg/a, S-Cl and S-F partitioning contrasts of about 9 and 36 (SNIPPET from a search result). Every constraint on the star-to-planet transfer (condensation, depletion, crust enrichment) comes from Earth, chondrites and Venus: a Solar System-only calibration.</p>
+<p><strong>Verdict.</strong> (b) for a derived HCl/HF budget (stellar scaling is data-supported, speciation is published), but the planet-side depletion and crust-enrichment factors have no extrasolar data. As a probability it is (c). Recommend: compute HCl and HF mixing ratios from (a) host [Cl/Fe]-like scaling, (b) a volatility depletion curve vs formation temperature (condensation temperatures are not verified here: RECALLED), (c) a crust-enrichment factor tied to the differentiation draw (table a, groups 2 and 3), (d) Schaefer speciation, (e) removal by an ocean or by condensation as salts (derived from the j and c tables). The only random elements are inventory and differentiation. If a seeded presence draw is kept, the widest defensible bracket is [0, 1] for &quot;above 1 ppm&quot;; c[0.1, 0.5] has no support. Knobs for the derived approach: depletion exponent (unsourced), crust enrichment 11.8 (Cl) and 26.5 (F) (Earth-only, COMPUTED from READ Table 2). Test: the Venus HCl (about 0.5 ppm) and HF (about 5 ppb) values are RECALLED and Solar System-only; no exoplanet test exists.</p>
+<p><strong>Group for a builder.</strong> m5 and m6 alone, plus the speciation call (Schaefer fit exists in part 05).</p>
+<h3 id="25-p4-and-p6-m-dwarf-saturation-time-and-the-rotation-track-weights">2.5 p4 and p6: M-dwarf saturation time and the rotation-track weights</h3>
+<p><strong>Question: do the activity-rotation papers fix tau_sat and the initial rotation spread by mass with enough N?</strong></p>
+<p><strong>Published saturation times (point 1).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>N</th>
+<th>Calibration of age</th>
+<th>Status</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X-ray tau_sat, early M (B-V 1.275 to 1.41)</td>
+<td>log tau_sat = 8.21 +- 0.04 (stat) +- 0.31 (sys) yr, i.e. 162 Myr (stat range 148 to 178; sys range 79 to 332 Myr, COMPUTED)</td>
+<td>55 stars (717 stars in all 7 bins from 13 clusters)</td>
+<td>open clusters 5 to 740 Myr; field stars at assumed 4.5 Gyr shown but not fitted</td>
+<td>READ (Table 2)</td>
+<td>[R2118]</td>
+</tr>
+<tr>
+<td>Other Jackson bins</td>
+<td>log tau_sat 7.84 to 8.35 for 0.29 &lt;= B-V &lt; 1.275; &quot;no obvious trend with colour; scatter around about 100 Myr&quot;</td>
+<td>67 to 220 per bin</td>
+<td>same</td>
+<td>READ</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Saturation level and slope, early M</td>
+<td>log(LX/Lbol)sat = -3.14 +- 0.02 +- 0.35; alpha = 1.18 +- 0.31</td>
+<td>55</td>
+<td>same</td>
+<td>READ</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Rossby saturation</td>
+<td>Ro_sat = 0.13 +- 0.02 (beta = -2) or 0.16 +- 0.03 (beta = -2.7); log(LX/Lbol)sat = -3.13; beta = -2.70 +- 0.13</td>
+<td>824 stars</td>
+<td>Rossby convective times, rotation periods</td>
+<td>READ</td>
+<td>[R4780]</td>
+</tr>
+<tr>
+<td>Fully convective stars</td>
+<td>Ro_sat = 0.14 (+0.08, -0.04); log(LX/Lbol)sat = -3.05 (+0.05, -0.06); unsaturated fully convective stars follow the same relation (beta = -2.3)</td>
+<td>19 new stars plus earlier sample</td>
+<td>MEarth periods, Chandra, ROSAT</td>
+<td>READ</td>
+<td>[R4781]</td>
+</tr>
+<tr>
+<td>Johnstone Ro_sat</td>
+<td>Ro_sat = 0.0605 +- 0.0033 (with convective times); R_X,sat = 5.135e-4 +- 3.3e-5; slopes -0.135 +- 0.030 and -1.889 +- 0.079</td>
+<td>[R4780] sample</td>
+<td>Ro scale depends on tau_c</td>
+<td>READ</td>
+<td>[R2183]</td>
+</tr>
+<tr>
+<td>eROSITA M dwarfs</td>
+<td>704 stars K5 to M7; rotation for 180; saturated regime Prot &lt; 8.5 d adopted; mass dependence of the saturated LX/Lbol examined</td>
+<td>704 (180 with Prot)</td>
+<td>TESS periods</td>
+<td>READ (abstract, passages)</td>
+<td>[R2809]</td>
+</tr>
+<tr>
+<td>Saturated to unsaturated transition, mid-to-late M</td>
+<td>average transition age 2.4 +- 0.3 Gyr (assuming constant thin-disk SFH over 8 Gyr); Prot &lt; 10 d stars 2.0 +- 1.2 Gyr, 10 to 90 d 5.6 +- 2.7 Gyr, &gt; 90 d 12.9 +- 3.5 Gyr; fast rotators 0.6 +- 0.3 Gyr (0.2 to 0.3 Msun), 1.9 +- 0.9 (0.1 to 0.15), 2.7 +- 1.0 (0.15 to 0.2), combined 2.3 +- 1.3 Gyr (0.1 to 0.2 Msun)</td>
+<td>219 single stars within 15 pc, 0.1 to 0.3 Msun</td>
+<td>Galactic kinematics (UVW, vertical velocity dispersion vs age of Lu 2021); 64 % thin disk, 5 % thick, 31 % unassigned</td>
+<td>READ</td>
+<td>[R3017]</td>
+</tr>
+<tr>
+<td>MEarth rotation</td>
+<td>387 rotation periods (0.1 to 140 d); P &lt; 10 d younger than 2 Gyr on average, P &gt; 70 d about 5 Gyr</td>
+<td>387</td>
+<td>kinematics</td>
+<td>READ (abstract)</td>
+<td>[R3279] (candidate &quot;[R3279]&quot; is the H-alpha paper, 1611.03509, SNIPPET)</td>
+</tr>
+<tr>
+<td>H-alpha activity lifetime by spectral type</td>
+<td>M0 0.8, M1 0.4, M2 1.2, M3 2.0, M4 4.5, M5 7.0, M6 7.0, M7 8.0 Gyr (uncertainties 0.4 to 1.0 Gyr)</td>
+<td>38000 low-mass stars</td>
+<td>1-D dynamical heating simulations</td>
+<td>READ (Table 2)</td>
+<td>[R4668]</td>
+</tr>
+<tr>
+<td>UV transition region</td>
+<td>constant level for 240 +- 30 Myr, then declines 2.1 dex to 10 Gyr (M0 to M2.5, 0.3 to 0.6 Msun)</td>
+<td>young groups, Hyades, field</td>
+<td>clusters and field</td>
+<td>READ (abstract)</td>
+<td>[R2756] (HAZMAT VII), [R2756] (not Richey-Yowell lead)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Answer for p4.</strong> For 0.5 to 0.6 Msun (B-V 1.3 to 1.4, K7 to M1) the X-ray tau_sat is measured: 162 Myr, with a 0.31 dex systematic range, from N=55 stars with cluster ages. For 0.2 to 0.3 Msun the activity age of fast rotators is 0.6 +- 0.3 Gyr and for 0.1 to 0.2 Msun it is 2.3 +- 1.3 Gyr, from N=219 stars with kinematic ages that assume constant star formation (a lower limit, Medina says). The overall M-dwarf mean is 2.4 +- 0.3 Gyr. The Halpha activity lifetimes of [R4668] are longer (M4 4.5, M5 to M6 7, M7 8 Gyr) and use different physics (Halpha, not X-ray; heating simulation ages). So a single LU[0.162, 2] Gyr mixes mass: the lower edge is the measured early-M X-ray value, the upper edge is the fully convective value from Medina, and late M can exceed it [R4668]. Mid-M (0.3 to 0.5 Msun) has no direct X-ray tau_sat in the record.</p>
+<p><strong>Recommended replacement.</strong> tau_sat(M) piecewise in log mass: 0.16 Gyr (sys 0.08 to 0.33) at 0.5 to 0.6 Msun, 0.6 +- 0.3 Gyr at 0.2 to 0.3 Msun, 2.3 +- 1.3 Gyr at 0.1 to 0.2 Msun, interpolated; spread drawn as log-normal with the published uncertainty. Or compute it: R_X = R_X,sat for Ro &lt;= Ro_sat on the drawn spin-down track (Mors code, MIT licence; README states a function that returns the age a star stays saturated; masses 0.1 to 1.25 Msun). Caveat: Johnstone says the tracks do not describe fully convective M dwarfs well after about 2 Gyr and that fully convective stars may not spin down much. The Ro_sat constants are convention dependent (0.0605 with times against 0.13 to 0.16 with [R4780] times): never mix them.</p>
+<p><strong>Knobs for p4 and targets.</strong> (i) tau_sat for 0.55 Msun: target log tau_sat = 8.21 +- 0.04 +- 0.31; (ii) tau_sat for 0.25 Msun: 0.6 +- 0.3 Gyr; (iii) tau_sat for 0.15 Msun: 2.3 +- 1.3 Gyr; (iv) R_X,sat: log -3.14 +- 0.02 +- 0.35 (Jackson), -3.05 (+0.05, -0.06) [R4781], 5.135e-4 +- 3.3e-5 (Johnstone), -3.13 [R4780]; (v) post-saturation slope alpha 1.18 +- 0.31 (Jackson) with 1.22 +- 0.10 mean over bins. Validity: clusters 5 to 740 Myr; Medina 15 pc volume-complete 0.1 to 0.3 Msun.</p>
+<p><strong>Consistency test for p4 and p6.</strong> Simulated statistic: fraction of M dwarfs in the saturated regime vs age and mass, compared with (a) Medina's 2.4 +- 0.3 Gyr and mass trend, (b) the age distribution of rapid rotators (Prot &lt; 10 d: 2.0 +- 1.2 Gyr), (c) the fraction of active stars (74 +- 4 %, 19 +- 4 %, 8 +- 3 % in the three period bins), (d) Jackson's 162 Myr. Tolerance: the published uncertainties above. Selection models are needed: volume-complete (Medina and Pass use 15 pc), detection bias in X-ray catalogues (Magaudda includes only X-ray-detected stars) and in rotation catalogues (Johnstone: Kepler misses the slowest rotators). Kinematic age assignments carry thick-disk contamination (5 % thick, 31 % unassigned).</p>
+<p><strong>p6: weights.</strong> Tu 2015 ([R4443], READ) uses the 10th, 50th and 90th percentile tracks of the initial rotation distribution for 0.9 to 1.1 Msun only, with t_sat of 5.7, 23 and 226 Myr as in part 09; the constraints are clusters at 150, 550 and 1000 Myr (230, 134, 36 stars) plus NGC 6530 (28 stars) and h Per (117 stars); the abstract gives saturation lasting &quot;from about 10 Myr to about 300 Myr&quot;. [R1500] ([R1500], READ) use the 25th, 50th and 90th percentiles as slow, median, fast with initial periods of 10, 7 and 1.4 d from 13 cluster distributions. [R2183] (READ) uses the 5th, 50th and 95th percentiles at 150 Myr for four masses, 12 clusters in 7 age bins, and provides tracks at every integer percentile 2 to 98 for masses 0.1 to 1.25 Msun (code MIT-licensed, <code>raw.githubusercontent.com/ColinPhilipJohnstone/Mors/master</code>, README READ; the track data were not downloaded). No paper assigns weights to three tracks. The 0.25/0.5/0.25 weights can be justified (COMPUTED, reasoning only): tracks at the 10th/50th/90th percentile are close to the medians (12.5, 50, 87.5) of quartile bins [0, 0.25], [0.25, 0.75], [0.75, 1], which have probability 0.25, 0.5, 0.25. The best replacement is a uniform percentile u in [0.02, 0.98] mapped onto Johnstone's integer-percentile tracks, which also makes the mass dependence automatic (tracks for 0.1 to 1.25 Msun) and removes the solar-mass restriction of Tu 2015. The 200-fold spread in L_X at 100 Myr (Tu, part 04) is real and must be drawn. Knob: percentile u (no tuning needed: it is the observed 150 Myr distribution); target: the cluster rotation percentiles (READ). Test: reproduce Johnstone's modelled X-ray distributions against cluster data within the published scatter.</p>
+<p><strong>No-fixed-content flags.</strong> Johnstone's tracks are fitted to open clusters and field stars of all masses, not the Sun alone; the Sun appears only as a minor weight in fits. No Solar-System-only knob in p4 or p6.</p>
+<p><strong>Group for a builder.</strong> p4, p6 with p3 and p5 (same Mors tracks and Rossby relation). One worker can replace tau_sat and the track weights together and build the consistency tests against Jackson, Medina, Pass and Wright.</p>
+<h2 id="3-sources-actually-verified-arxiv-pdf-text-extracted-no-licence-statement-found-in-the-extracted-text-unless-noted">3. Sources actually verified (arXiv PDF text extracted; no licence statement found in the extracted text unless noted)</h2>
+<p>Read in the body text (READ): [R2446] (1301.6674), [R2447] (1404.5292), [R2234] (1409.2886, N=43), Luger and Barnes (1411.7412), Wordsworth and Pierrehumbert (1403.2713), Gao (1501.06876), Domagal-Goldman (1407.2622), Greene (2303.14849), Zieba (2306.10150), Jackson (1111.0031, 717 stars), [R4781] (1807.03304), [R3017] (2205.02331, N=219), [R4668] (0712.1590, 38000 stars), Gallet and Bouvier (1306.2130), Tu (1504.04546).07695), Koester (1404.2617, N=85).07282), Blackman (2110.07934), Veras (1601.05419), Patruno and Kama (1705.07688), [R3945] (1108.4660), Asplund (2105.01661).06593).14305), [R2696] (2101.09837).05224), [R3999] (astro-ph/0510224), [R0052] (1905.05093), [R1813] (NTRS 20180007112 abstract), Mors README and LICENSE (github raw, MIT).
+Abstract only (READ abstract): Leconte (1312.3337), [R2697] (1809.07498), [R4780] (1109.4634, N=824), [R3279] (1511.00957, N=387), Pass 2023 (2306.00799, N=123), Magaudda (2106.14548, N=704), [R2756] (2011.10158), Pineda (2102.12485), [R2756] (2305.06561), Zuckerman (1007.2252), Robert (2407.21743, N=313), Martin (1609.06409), Kerr (1507.06982, N=151), [R2787] and 2021 (1609.01626, 2101.11068), Jonsson (1612.04384, 1403.2594), Brady (2406.02855), [R1814] preprint (1509.07863).
+Title and id only: [R1435] (1602.09142), Shkolnik and Barman (1407.1344, 2ND-HAND), van Sluijs and Van Eylen (1711.09691, SNIPPET), Hot Rocks I and V (2410.11048, 2604.02332), [R2176] (1503.05315), [R0552] (1112.2764), [R3014] (1705.07560 and the Proxima paper 1608.08620).</p>
+<p>Candidate corrections: [R2234] is 1409.2886; Blackman is 2110.07934; [R2902] is &quot;Why are pulsar planets rare?&quot;; &quot;[R3279]&quot; is the Halpha paper (1611.03509), the MEarth rotation paper is [R3279]; &quot;[R2189]&quot; is 1403.2594 (bulge), the solar neighbourhood paper is [R2190]; HAZMAT VII is led by Loyd; &quot;[R3381]&quot; not found ([R3382], SNIPPET); [R1813] has no arXiv version (1509.07863 is the 2015 preprint with a different thesis); [R3547, R4845] MUSCLES ids not located; [R1607] has no arXiv version; [R4780] beyond the abstract and [R4714] not checked.</p>
+<h2 id="4-boss-must-supply">4. Boss must supply</h2>
+<ol>
+<li>[R3948], full text or the retention-diagram table (no arXiv, IOP not reachable); [R2176] (1503.05315) and [R0552] (1112.2764) are on arXiv and can be read next.</li>
+<li>[R1813] full text for the lightning NO flux and N<sub>2</sub> threshold (only the abstract was read).</li>
+<li>[R4715] (volume-limited fraction of polluted WDs, 45 +- 4 %) arXiv id for the l3 upper bracket.</li>
+<li>Rocky Worlds DDT and Hot Rocks papers with arXiv ids (GJ 3929 b, LHS 1478 b, GJ 3473 b, others) for a proper N of bare-rock versus atmosphere planets in the generator's zone-h range.</li>
+<li>A F and Cl condensation and depletion source for the halogen budget (volatility of Cl and F in the nebula, [R2726] or [R0818] full text) and the Venus HCl/HF measurements (only for test points).</li>
+<li>Mid-M (0.3 to 0.5 Msun) X-ray saturation time: no paper found; [R2809] full text (Psat, mass dependence) or [R3722] ([R3722], downloaded, not read) would fix it.</li>
+<li>The Mors percentile track data (download from GitHub) to confirm the integer percentiles and the saturation-lifetime function.</li>
+</ol>
+<h2 id="5-recalled--to-verify">5. Recalled / to verify</h2>
+<ul>
+<li>Venus HCl about 0.5 ppm and HF about 5 ppb (RECALLED, not used except as a flagged test point).</li>
+<li>Cl and F 50 percent condensation temperatures (RECALLED).</li>
+<li>[R4715] polluted fraction 45 +- 4 percent (SNIPPET).</li>
+<li>Hot Rocks and Rocky Worlds results (SNIPPET).</li>
+<li>[R1607] numbers (282 and 294 W/m2) (SNIPPET).</li>
+<li>[R0053] N<sub>2</sub>O model and [R1967] lightning rates (SNIPPET); [R0273] summary of the Harman NO flux (SNIPPET).</li>
+<li>[R0818] halogen depletion factors; Earth degassing fluxes HCl 4.3 and HF 0.5 Tg/a (SNIPPET).</li>
+<li>[R3382] arXiv id 2302.03055 (SNIPPET).</li>
+<li>[R2380] P_eq formula for l1 (READ in part 09, not re-read here).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

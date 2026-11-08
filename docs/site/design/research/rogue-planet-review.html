@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rogue planet review: what is physics, what is a stand-in (GEN.1109, R1) - planetGen docs</title>
+<meta name="description" content="Planets 1 lane, 10-30.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/rogue-planet-review.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/rogue-planet-review.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="rogue-planet-review-what-is-physics-what-is-a-stand-in-gen1109-r1">Rogue planet review: what is physics, what is a stand-in (GEN.1109, R1)</h1><p class="meta">docs/design/research/rogue-planet-review.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#result-in-one-paragraph">Result in one paragraph</a></li><li style="margin-left:0px"><a href="#1-what-the-architecture-ejects-today-measured">1. What the architecture ejects today (measured)</a></li><li style="margin-left:0px"><a href="#2-microlensing-checks-test-targets">2. Microlensing checks (test targets)</a></li><li style="margin-left:0px"><a href="#3-every-rogue-quantity-status-and-physical-replacement">3. Every rogue quantity: status and physical replacement</a></li><li style="margin-left:0px"><a href="#4-small-findings-in-code">4. Small findings in code</a></li><li style="margin-left:0px"><a href="#5-items-proposed-for-todo-to-file">5. Items proposed (for TODO to file)</a></li><li style="margin-left:0px"><a href="#6-result-of-gen1119-rp1-the-losses-classed">6. Result of GEN.1119 (RP1): the losses classed</a></li><li style="margin-left:0px"><a href="#7-stand-ins-this-review-registers">7. Stand-ins this review registers</a></li><li style="margin-left:0px"><a href="#8-where-every-row-stands-now-2026-11-07-main-with-train-13">8. Where every row stands now (2026-11-07, main with train 13)</a></li></ul></details>
+<p>Planets 1 lane, 10-30. Boss (4:54 PM EDT 10-30): &quot;physics is the driver for rogue planets&quot;. This reviews every quantity the rogue-planet generator uses, says whether each is physics, a sourced stand-in or a flat rate, names the physical replacement, and checks how many bodies the planet architecture actually ejects against microlensing. It is the R1 item of <a href="../systems/interstellar-asteroid-fields.html">interstellar-asteroid-fields.md</a> section 13; R2 (GEN.1111) builds the ejection-made rogues and R3 (GEN.1112) replaces the defaults. Nothing in the generator changes in this report.</p>
+<p>Source marks: <strong>[read]</strong> a paper whose text was opened for this report or for GEN.1089 and the oddity lanes; <strong>[R]</strong> recalled, to be confirmed by the replacement item before it is relied on.</p>
+<p><strong>Refresh of 2026-11-07 (main with train 13):</strong> sections 1 to 7 are the review as written on 10-30 and stay as the record of what the generator did then. Section 8 gives the state of every row now (all sixteen are built, deleted or turned into a named stand-in) and which of RP1 to RP9 are done. The flat rate, the hand-cut mass bins, the uniform age, the speed with no kick, the envelope, water and heat defaults and the cluster gap are gone; what is left is the top-up dial and its stand-ins.</p>
+<p><strong>Update (GEN.1286, 2026-11-05):</strong> rows 5, 6, 8, 9 and 12 below describe the old defaults. Those constants (<code>ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER</code>, <code>ROGUE_HYDROGEN_ENVELOPE_CHANCE</code>, <code>ROGUE_WATER_RICH_CHANCE</code>, <code>ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH</code>, <code>ROGUE_ACTIVE_HEAT_FLUX_W_M2</code>) and the unread modules <code>rogue_volatiles</code> and <code>rogue_radiogenic</code> are deleted: a rogue is the planet chain against a starless host (<code>starless_host</code>), which gives the giant class from the radius, the water from the formation distance against the snow line, the radiogenic content from the donor's composition and the air from the body's own conditions. One effect is not modelled: the envelope a planet loses to its star's XUV in the time before the ejection (the host has no luminosity).</p>
+<h2 id="result-in-one-paragraph">Result in one paragraph</h2>
+<p>The rogue-planet count is a flat rate (5.8 per star, <code>ROGUE_PLANET_RATE_PER_STAR</code>), not an output of any system. The architecture removes about <strong>0.3 bodies per star</strong> that could count as ejected (about 0.22 thrown by a crowded giant plus about 0.08 swept by a hot Jupiter, together roughly 9 Earth masses per star, nearly all of it gas giants), against a flat rate that gives about 2.7 per star over the range microlensing probes (0.33 to 6,660 Earth masses) and a microlensing central value of 21 per star over that range. So the architecture alone is about nine times short of our own flat rate and about seventy times short of the survey central value over all stars. Section 6 (GEN.1119) refines this: the ejection step is on scale (about 2.5 planets thrown out per giant-hosting star, the figure [R0258] [read] give for stars with a Jupiter and a Saturn analogue), but only 5 to 20 percent of stars host a giant, and the architecture deletes its 125 sub-minimum bodies per star and merges its rocky pairs (losing 10 percent of mass each time) rather than scattering them. Most of Sumi's population is therefore not scattered planets, as [R4533] and Ma et al. 2016 also find. The physical build is a scatter step (GEN.1089) that classes each loss as ejection or collision by the Safronov number (done, GEN.1119), cluster unbinding (GEN.291) and embryo ejection while giants grow; the flat rate then becomes a test target.</p>
+<h2 id="1-what-the-architecture-ejects-today-measured">1. What the architecture ejects today (measured)</h2>
+<p>Method: 1,500 stars drawn from a Kroupa-like mass function (0.1 to 1.5 solar masses), [Fe/H] normal(-0.1, 0.2), snow line 2.7 M^2 AU, disc edge 200 AU, <code>planet_architecture.build</code>, one fixed seed per star; the three loss steps wrapped to count what they remove (throwaway script, not committed; numbers will move with later architecture epochs).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity per star</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Oligarch chain bodies before thinning</td>
+<td>134.7 (26.4 Earth masses of cores)</td>
+</tr>
+<tr>
+<td>After <code>sculpt</code> merges</td>
+<td>130.3 (24.1 Earth masses); loss 2.3 Earth masses, the 10 percent per merge of <code>COLLISION_MASS_RETENTION</code></td>
+</tr>
+<tr>
+<td>Dropped as below <code>PLANET_MIN_MASS_EARTH</code> (0.1 inner, 0.6016 outer)</td>
+<td>about 125 bodies; not tallied as mass or as ejected</td>
+</tr>
+<tr>
+<td>Planets kept</td>
+<td>5.0 (60.8 Earth masses including gas)</td>
+</tr>
+<tr>
+<td>Thrown out by <code>_scatter_crowded_giants</code> (the lighter of a crowded giant pair)</td>
+<td>0.22 bodies, 6.2 Earth masses</td>
+</tr>
+<tr>
+<td>Swept by <code>_clear_around_giants</code> (inside a hot Jupiter or within the clearing spacing of a moved giant)</td>
+<td>about 0.08 bodies, about 3.3 Earth masses (400-star pass)</td>
+</tr>
+<tr>
+<td>Giants per star</td>
+<td>0.045 (0.1 to 0.3 solar masses), 0.11 (0.3 to 0.7), 0.16 (0.7 to 1.5)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading: the architecture does have the right mechanism (giants scatter and sweep) but it only fires on the 5 to 16 percent of stars with a giant, it never records speed or fate, and a lost body is deleted, not ejected, bound to a star, or collided. It has no Safronov-number test: Theta = (M_p / M_star)(a / R_p) is about 0.07 for an Earth at 1 AU and about 10 for Jupiter at 5.2 AU, so a scatterer ejects only above Theta of about 1; below that, scattering circulates the orbit or ends in collision. That test is the physics that splits &quot;ejected&quot; from &quot;merged&quot;.</p>
+<h2 id="2-microlensing-checks-test-targets">2. Microlensing checks (test targets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Result</th>
+<th>Our generator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4254, R4255], [R4254] [read]</td>
+<td>dN/dlogM = 2.18 (+1.0 / -1.4) per dex per star at M/8 Earth masses, slope -0.96; total 21 (+23 / -13) per star for 0.33 to 6,660 Earth masses</td>
+<td>flat bins give about 2.7 per star over the same range (about 8 times below central, near the lower 1 sigma of 8); slope 0.65 against 0.96</td>
+</tr>
+<tr>
+<td>[R3191] [read]</td>
+<td>upper limit 0.25 Jupiter-mass free-floating planets per main-sequence star</td>
+<td>Jupiter bin 0.025 per star, under the limit</td>
+</tr>
+<tr>
+<td>[R3190] [read]</td>
+<td>an Earth-to-Neptune population needs core-accretion ejection of 0.3 to 1 Earth mass bodies</td>
+<td>our terrestrial bin is 4.98 per star over 0.1 to 2 Earth masses</td>
+</tr>
+<tr>
+<td>[R2178] [read]</td>
+<td>Roman rates are forecast assuming the function</td>
+<td>the 5.8 and its bins are Boss's 10-01 research; the code comment says 6.5 (see section 4)</td>
+</tr>
+<tr>
+<td>[R4533] [read]</td>
+<td>planet-planet scattering alone cannot supply the giant free-floating planets</td>
+<td>agrees with a small Jupiter bin</td>
+</tr>
+<tr>
+<td>[R0258] [read]</td>
+<td>about 2.5 terrestrial-mass planets ejected per star when Jupiter and Saturn analogs scatter; about one third of a 5 Earth-mass disc</td>
+<td>the scale the scatter step must reproduce</td>
+</tr>
+<tr>
+<td>Ma et al. 2016, [R2783] [read]</td>
+<td>core accretion gives a free-floating event rate about 1.8e-3 of stellar, about 13 times below [R4252]</td>
+<td>agrees that ejection alone is short</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conclusion for tests: the physical build should land inside Sumi's lower 1 sigma (about 8 per star over 0.33 to 6,660 Earth masses) and under Mroz's Jupiter limit. A yield much below 1 per star means the scatter step is missing small-body ejection; a yield above 40 means it is over-ejecting.</p>
+<h2 id="3-every-rogue-quantity-status-and-physical-replacement">3. Every rogue quantity: status and physical replacement</h2>
+<p>Kinds: <strong>physics</strong> (a law or a sourced fit, keep), <strong>sourced stand-in</strong> (a published number used as a default), <strong>flat rate / default</strong> (nothing behind it), <strong>fitted</strong> (tuned by hand).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Quantity</th>
+<th>Today</th>
+<th>Kind</th>
+<th>Physical replacement</th>
+<th>Test target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Count per star</td>
+<td><code>ROGUE_PLANET_RATE_PER_STAR</code> 5.8, same everywhere</td>
+<td>flat rate</td>
+<td>sum of architecture ejections plus the scatter step (GEN.1089) plus embryo ejection plus cluster unbinding (GEN.291), by star mass, [Fe/H] and age</td>
+<td>[R4254, R4255] total 21 (+23/-13) per star over 0.33 to 6,660 Earth masses</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Count per volume</td>
+<td>rate per star times <code>REFERENCE_STELLAR_DENSITY_PC3</code> 0.14 (<code>PHENOMENON_DENSITY_PC3</code>)</td>
+<td>derived from 1</td>
+<td>per sector, the sum over its stars' donations (storage sector decision open)</td>
+<td>per-pc^3 figure unchanged as a check</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mass function</td>
+<td><code>dN/dlogM ~ M^-0.65</code>, 0.1 Earth to 13 Jupiter</td>
+<td>fitted slope, hand bin edges</td>
+<td>the ejected population's own mass function (light bodies are ejected more easily; Theta of the scatterer sets the mass cut)</td>
+<td>Sumi slope -0.96 (+0.4 / -0.6 range)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Lower mass edge</td>
+<td>0.1 Earth mass</td>
+<td>stand-in</td>
+<td>ejection of the oligarch chain below <code>PLANET_MIN_MASS_EARTH</code>, the debris class below it</td>
+<td>none</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Gas-giant threshold</td>
+<td><code>ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER</code> 0.031 (10 Earth masses, the bound chain's core limit, GEN.1133)</td>
+<td>rule of thumb</td>
+<td>envelope fraction of core mass and gas capture; the ejected body keeps its architecture class</td>
+<td>none</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Ejection survival of air</td>
+<td>hydrogen envelope chance 0.1 (terrestrial) / 0.5 (sub-Neptune); pressure 10 to 1,000 / 100 to 10,000 bar</td>
+<td>default</td>
+<td>the planet's formation outcome (gas_outcome, nebula capture) and loss by photoevaporation before ejection</td>
+<td>Barclay: bodies keep formation atmospheres only if ejected early</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Ejection survival of moons</td>
+<td>rocks &quot;that kept a moon&quot; draw tidal flux 1e-4 to 1e-2 W/m^2 log-uniform</td>
+<td>default</td>
+<td>whether a moon's orbit sat inside the ejection-encounter Hill fraction [R: [R1032, R1998]]; the moon then keeps its architecture orbit</td>
+<td>share of ejected planets keeping a moon</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Water-rich</td>
+<td>chance 0.35 / 0.8, water share 1e-4 to 0.1 log-uniform</td>
+<td>default</td>
+<td>formation zone against the system's stored formation snow line</td>
+<td>none</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Frozen atmosphere</td>
+<td>mass cut <code>ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH</code> 0.3</td>
+<td>default</td>
+<td>outgassing and volatile inventory from composition and impact history</td>
+<td>none</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Age</td>
+<td><code>ROGUE_PLANET_AGE_RANGE_GY</code> 0.1 to 10, uniform</td>
+<td>default</td>
+<td>age of the ejecting system at ejection plus time since, from the galaxy star-formation history</td>
+<td>age distribution follows the host population</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Temperature</td>
+<td>heat law anchors: Jupiter flux 5.4 W/m^2, Neptune 53 K, cooling t^-1.3, photospheres 0.3 and 0.1 bar, cap 2,800 K</td>
+<td>sourced fits</td>
+<td>keep, but feed the real age (row 10)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Internal heat</td>
+<td>radiogenic offsets (sigma 0.22 dex for Th/U, K range, 26Al factor 0.1 to 10) and <code>ROGUE_ACTIVE_HEAT_FLUX_W_M2</code> 0.04</td>
+<td>placeholders</td>
+<td>the ejecting star's stored composition (GEN.476) and the body's own mantle/core split</td>
+<td>none</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Retention test</td>
+<td><code>ROGUE_MIN_ESCAPE_PARAMETER</code> 15</td>
+<td>physics (Jeans)</td>
+<td>keep</td>
+<td>none</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Speed</td>
+<td>generic galactic orbit; no ejection kick</td>
+<td>missing</td>
+<td>ejection speed from the encounter (scatterer escape speed at periapsis) added to the host's velocity (GEN.1111 storage research)</td>
+<td>velocity dispersion of the free-floating population</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Origin / parent</td>
+<td>none</td>
+<td>missing</td>
+<td>record ejecting system and ejection time (or &quot;formed free&quot;) so the page gets a history sentence</td>
+<td>every rogue has a parent id or &quot;formed free&quot;</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Cluster unbinding</td>
+<td>modelled (GEN.1288): a star of a cluster (<code>stars.cluster_id</code>) is built with the cluster's history (<code>cluster_unbinding.history_of</code>); each architecture planet takes a draw, and one the cluster unbinds (<code>unbinding_epoch_myr</code>, soft pieces only) leaves the system and is made again as a rogue whose note says its birth cluster unbound it</td>
+<td>done</td>
+<td>stellar-encounter stripping of wide orbits in the birth cluster, GEN.291</td>
+<td>fraction unbound by cluster age</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-small-findings-in-code">4. Small findings in code</h2>
+<ul>
+<li><code>ROGUE_PLANET_RATE_PER_STAR</code> is 5.8 but the comment on <code>PHENOMENON_DENSITY_PC3</code> (tuning.py near line 3568) and the block comment above it both say 6.5 and the terrestrial share 5.6. The bins sum to 5.8 and give 4.98 terrestrial. The R3 pass fixes the wording when it replaces the rate.</li>
+<li>The terrestrial bin holds 86 percent of rogues by count, so the rate and the lower edge (rows 1 and 4) decide almost everything; a physical replacement of row 4 moves the total the most.</li>
+</ul>
+<h2 id="5-items-proposed-for-todo-to-file">5. Items proposed (for TODO to file)</h2>
+<ul>
+<li><strong>RP1 (GEN.1089 extension, non-lock):</strong> classify every architecture loss (thinning, sub-minimum drop, giant scatter, hot-Jupiter sweep) by Safronov number into ejected, collided or bound, and return an ejection record (mass, composition, orbit, scatterer, age); tests against Barclay's 2.5 terrestrial bodies per star and Theta thresholds.</li>
+<li><strong>RP2 (non-lock):</strong> ejection mass-function module (light-body ejection bias, Theta cut) producing <code>dN/dlogM</code>, test against Sumi slope -0.96.</li>
+<li><strong>RP3 (non-lock):</strong> photoevaporation and volatile loss before ejection (rows 6, 8, 9) from the formation outcome.</li>
+<li><strong>RP4 (non-lock):</strong> moon survival through the ejection encounter (row 7), Hill-fraction criterion.</li>
+<li><strong>RP5 (non-lock):</strong> age and time-since-ejection from star-formation history (row 10) feeding the heat law (row 11).</li>
+<li><strong>RP6 (non-lock):</strong> ejection speed (row 14) from escape speed at periapsis plus host velocity; interstellar-object speed window.</li>
+<li><strong>RP7 (non-lock):</strong> cluster unbinding (GEN.291, row 16), a rate per cluster age and density.</li>
+<li><strong>RP8 (GEN.1111, lock):</strong> create the rogue rows from RP1 to RP6, storage sector per the research decision, parent id and rank in the object id; the flat rate stays only as a test target.</li>
+<li><strong>RP9 (non-lock):</strong> a calibration test of the full yield against [R4254, R4255], [R0258, R3191], run after RP8.</li>
+</ul>
+<p>R3 (GEN.1112) is RP2 to RP7 as the replacement modules; RP1 is the first of them because every other row needs its ejection record.</p>
+<h2 id="6-result-of-gen1119-rp1-the-losses-classed">6. Result of GEN.1119 (RP1): the losses classed</h2>
+<p><code>planet_architecture.losses</code> and <code>ejection_yield</code> (with <code>scatter.loss_fates</code>) now class every loss of the build as ejected, collided or bound by the Safronov number the perturber has at the body's distance (ejection to collision as Theta squared, registry rows EJ1 and EJ2, section 6.127 of the gap filling plan). Nothing is dropped: planets and losses add up to the whole chain (tested). The same 3,000 sun-like stars that gave section 1's counts, measured with the classifier:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ejected planet-mass bodies (0.1 Earth masses or more) per star, all stars (Kroupa-like mass mix)</td>
+<td>about 0.15, 6.4 Earth masses; all of it giants thrown out by a heavier crowding giant</td>
+</tr>
+<tr>
+<td>The same per <strong>giant-hosting</strong> sun-like star ([Fe/H] +0.2, 639 of 3,000)</td>
+<td>about 2.5 planets, 165 Earth masses, of which about 1.8 are lighter than 20 Earth masses</td>
+</tr>
+<tr>
+<td>Chain bodies below the planet minimum (about 125 per star)</td>
+<td>none ejected: no planet reaches them, they stay bound as one record per star</td>
+</tr>
+<tr>
+<td>Merges and core cap</td>
+<td>collided, their lost mass kept as debris (about 2.3 Earth masses per star)</td>
+</tr>
+<tr>
+<td>Hot-Jupiter sweeps</td>
+<td>about 0.002 bodies per star, and with Theta below 0.1 they collide, not leave</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What this changes in the section 1 reading.</strong> [R0258]'s 2.5 terrestrial-mass bodies per star assumes every star has a Jupiter and a Saturn analogue. Our architecture ejects about 2.5 planets per star that has a giant, which is the same scale, so the mechanism is right. Over all stars the yield is the giant-hosting share (5 to 20 percent) of that: about 0.15 to 0.5 per star. So the per-star shortfall against Sumi's 21 per star is not a defect of the ejection step; it says the free-floating population is not mostly scattered planets, in line with [R4533] and Ma et al. 2016. RP9's test target is therefore two numbers: about 2.5 per giant-hosting star (Barclay) and a total that matches the microlensing range once the other sources (embryo ejection while giants grow, cluster unbinding RP7, formation by collapse) are added. The <code>time_yr</code> of a loss is the disc era (<code>DISC_LIFETIME_YR</code>, 3 Myr) for these giant-driven losses; later instability delays are <code>rogue_age</code>'s (RG1, RG2). The ejection record carries the body's Hill radius at the encounter for the moon survival test (RP4).</p>
+<h2 id="7-stand-ins-this-review-registers">7. Stand-ins this review registers</h2>
+<p>GEN.1119 registers EJ1 and EJ2 (section 6.127). The audit itself adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.</p>
+<h2 id="8-where-every-row-stands-now-2026-11-07-main-with-train-13">8. Where every row stands now (2026-11-07, main with train 13)</h2>
+<p>Status words: <strong>built</strong> (a physical module or the planet chain does it), <strong>deleted</strong> (the default was removed and nothing replaces it because the chain now gives the answer), <strong>stand-in</strong> (a registered number remains), <strong>open</strong>. Items and files are those of main; tier and tweak levels are in the registry sections named.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Quantity</th>
+<th>Now</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Count per star</td>
+<td><strong>built + stand-in.</strong> A rogue is a body a generated system threw out (the architecture's loss record), made again by the planet chain against a starless host and stored where it has drifted to; the flat 5.8 per star is gone (GEN.1111 part 8). Each cluster-unbound planet is a rogue too (GEN.1288). Embryos the planets stir leave as rogues (GEN.1299, SM1 to SM3, section 6.193). A sector's shortfall in mass is made up by a top-up never above the Rogues level: None 0, Few 2.5, Normal 4.3, Many 10 per star (<code>ROGUE_LEVEL_CEILINGS</code>, registry 6.86 RT1, T9 L3, the numbers Boss accepted); the levels are dials, not physics</td>
+<td><code>generation/rogue_yield.py</code>, <code>rogue_topup_build.py</code>, <code>physics/rogue_topup.py</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Count per volume</td>
+<td><strong>built.</strong> The per-volume figure is whatever the stars of a sector donate plus the top-up; no density constant is read for planets</td>
+<td><code>rogue_yield</code>, <code>rogue_topup</code> (GEN.1120, GEN.1125)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mass function</td>
+<td><strong>built.</strong> Masses are the ejected spectrum, <code>dN/dlogM ~ M^-0.83</code> from the cascade (q = 3.5), cut at the scatterer's mass; the top-up draws from it (GEN.1287); a donor's rogues take the masses of its loss record. Sumi's 0.96 (+0.47 -0.27) contains it</td>
+<td><code>physics/rogue_mass_function.py</code> (GEN.1112 RP2)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Lower mass edge</td>
+<td><strong>stand-in.</strong> Donor rogues have the architecture's own floor (<code>PLANET_MIN_MASS_EARTH</code>); the top-up's lightest is the lowest bin edge, 0.1 Earth masses (<code>ROGUE_PLANET_MASS_BIN_EDGES_EARTH</code>)</td>
+<td><code>rogue_topup.MIN_MASS_EARTH</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Gas-giant threshold</td>
+<td><strong>deleted.</strong> The giant class comes from the radius in the planet chain (a giant from 10 Earth masses, GEN.1133)</td>
+<td>GEN.1286</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Air kept through ejection</td>
+<td><strong>built, one effect left out.</strong> A body with no starlight keeps its envelope and its own heat warms it (GEN.1111 part 5). The envelope a planet loses to its star's XUV before the ejection is not modelled and measured negligible: under 1 percent for almost every rogue, because the scatterers sit at 1 to 30 AU and the law starts at 1 Gyr (<code>reports/rogue-xuv-envelope-loss-before-ejection-2026-11-05.md</code>; no item filed)</td>
+<td><code>starless_host.py</code>, GEN.1286</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Moons carried out</td>
+<td><strong>built.</strong> A moon stays if its orbit is inside the limit the encounter allows [R2031]; the moon system the rogue keeps follows the ejection record</td>
+<td><code>physics/rogue_moons.py</code> (GEN.1112 RP4, GEN.1111)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Water-rich</td>
+<td><strong>deleted.</strong> Water follows the formation distance against the snow line, in the chain</td>
+<td>GEN.1286</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Frozen atmosphere</td>
+<td><strong>deleted.</strong> The air chain decides from the body's own conditions and inventory</td>
+<td>GEN.1286</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Age</td>
+<td><strong>built + stand-in.</strong> A donor's rogue is as old as its star (the galaxy's age law) and its ejection time comes from the loss record (the disk lifetime, <code>EJECTION_TIME_GY</code>; GEN.1295 RG2, burn-down rows to no data); the time since is the rest. The top-up keeps the uniform 0.1 to 10 Gy (<code>ROGUE_PLANET_AGE_RANGE_GY</code>, <code>DEFAULT_AGE_LAW</code>) because it has no donor</td>
+<td><code>physics/rogue_age.py</code> (GEN.1112 RP5)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Temperature</td>
+<td><strong>built.</strong> A rogue's heat is the chain's, fed the real age. The giant cooling law (t^-1.3, Jupiter 5.4 W/m2, Neptune 53 K, 0.3 bar) stays for the free-floating brown dwarfs only</td>
+<td><code>physics/rogue_surface.py</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>Internal heat</td>
+<td><strong>deleted.</strong> Radiogenic content comes from the donor's composition, the mantle and core from the chain</td>
+<td>GEN.1286</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Retention test</td>
+<td><strong>deleted as a rogue constant.</strong> <code>ROGUE_MIN_ESCAPE_PARAMETER</code> is gone; a rogue keeps or loses its air by the air chain's own rule (not re-measured here)</td>
+<td>GEN.1111</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Speed</td>
+<td><strong>built.</strong> The speed at infinity from the scatterer's mass and orbit ([R2031], 3 km/s scale, lognormal spread), plus the planet's orbital velocity at the ejection, isotropic (Boss, 10-30); the star's galactic velocity is added; the top-up uses the thin disk's dispersion (35, 25 and 20 km/s in U, V and W)</td>
+<td><code>physics/rogue_kick.py</code> (GEN.1113), <code>ejection_events.py</code></td>
+</tr>
+<tr>
+<td>15</td>
+<td>Origin / parent</td>
+<td><strong>built.</strong> An ejected rogue is saved with its donor and carries a note naming the system, how long ago, and a cluster unbinding where it was one; a top-up rogue is marked origin &quot;apparent&quot; and links no donor</td>
+<td><code>rogue_yield.note_of</code>, <code>db/store.save_donor_rogues</code></td>
+</tr>
+<tr>
+<td>16</td>
+<td>Cluster unbinding</td>
+<td><strong>built, first version</strong> (GEN.1288); the full version waits for GEN.359 (moved to 8.1)</td>
+<td><code>physics/cluster_unbinding.py</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>RP1 to RP9.</strong> RP1 done (GEN.1119). RP2 done (GEN.1112, drawn by the top-up since GEN.1287). RP3 done in the chain (GEN.1286), pre-ejection XUV measured negligible. RP4 done (GEN.1111). RP5 done (GEN.1112, GEN.1295). RP6 done (GEN.1113). RP7 first version done (GEN.1288). RP8 done (GEN.1111, parts 1 to 9). RP9 done (TEST.499, <code>tests/test_rogue_yield_calibration.py</code>): the donors alone gave about 0.085 bodies of 0.1 to 10 Earth masses per star against the [R0258] band of 0.8 to 7.5; after GEN.1299 the architecture ejects 1.32 per star in that range (inside the band) and 0.65 per star of 0.33 Earth masses and up, and the 8 to 42 per star of the microlensing band is reached only by the top-up at the Many level (<code>reports/rogue-yield-calibration-2026-11-06.md</code>).</p>
+<p><strong>What is still a dial or open.</strong> The Rogues-level ceilings (RT1) and the top-up's placement share (RT2) are Boss's dials and carry no physics. The microlensing yield (21 per star) is not reproduced by scattering alone and is not expected to be ([R4533], Ma et al. 2016); the remainder is left to the top-up, which labels its rogues &quot;apparent&quot;. The top-up's age (uniform) and lowest mass (0.1 Earth masses) are stand-ins until a donor field supplies them.</p>
+<p><strong>Small findings of section 4.</strong> The 6.5 against 5.8 wording went with the flat rate (<code>ROGUE_PLANET_RATE_PER_STAR</code> no longer exists). <code>PHENOMENON_DENSITY_PC3</code> stays for the brown-dwarf and other phenomena rates, not for planets.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

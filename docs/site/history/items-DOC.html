@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Items: DOC, Documentation - planetGen docs</title>
+<meta name="description" content="The life of every DOC item that a commit title names, from the git history as of 8487fa43b: first and last date, whether it is open in docs/TODO.md now, and its commit titles in order (the pull request numbers are the GitHub pull requests).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/items-DOC.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/items-DOC.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="items-doc-documentation">Items: DOC, Documentation</h1><p class="meta">docs/history/items-DOC.md</p><details class="toc"><summary>On this page (91 headings)</summary><ul><li style="margin-left:0px"><a href="#doc5">DOC.5</a></li><li style="margin-left:0px"><a href="#doc6">DOC.6</a></li><li style="margin-left:0px"><a href="#doc15">DOC.15</a></li><li style="margin-left:0px"><a href="#doc16">DOC.16</a></li><li style="margin-left:0px"><a href="#doc17">DOC.17</a></li><li style="margin-left:0px"><a href="#doc18">DOC.18</a></li><li style="margin-left:0px"><a href="#doc19">DOC.19</a></li><li style="margin-left:0px"><a href="#doc20">DOC.20</a></li><li style="margin-left:0px"><a href="#doc21">DOC.21</a></li><li style="margin-left:0px"><a href="#doc22">DOC.22</a></li><li style="margin-left:0px"><a href="#doc23">DOC.23</a></li><li style="margin-left:0px"><a href="#doc24">DOC.24</a></li><li style="margin-left:0px"><a href="#doc25">DOC.25</a></li><li style="margin-left:0px"><a href="#doc26">DOC.26</a></li><li style="margin-left:0px"><a href="#doc27">DOC.27</a></li><li style="margin-left:0px"><a href="#doc28">DOC.28</a></li><li style="margin-left:0px"><a href="#doc29">DOC.29</a></li><li style="margin-left:0px"><a href="#doc30">DOC.30</a></li><li style="margin-left:0px"><a href="#doc31">DOC.31</a></li><li style="margin-left:0px"><a href="#doc32">DOC.32</a></li><li style="margin-left:0px"><a href="#doc33">DOC.33</a></li><li style="margin-left:0px"><a href="#doc34">DOC.34</a></li><li style="margin-left:0px"><a href="#doc35">DOC.35</a></li><li style="margin-left:0px"><a href="#doc36">DOC.36</a></li><li style="margin-left:0px"><a href="#doc37">DOC.37</a></li><li style="margin-left:0px"><a href="#doc38">DOC.38</a></li><li style="margin-left:0px"><a href="#doc39">DOC.39</a></li><li style="margin-left:0px"><a href="#doc40">DOC.40</a></li><li style="margin-left:0px"><a href="#doc41">DOC.41</a></li><li style="margin-left:0px"><a href="#doc42">DOC.42</a></li><li style="margin-left:0px"><a href="#doc43">DOC.43</a></li><li style="margin-left:0px"><a href="#doc44">DOC.44</a></li><li style="margin-left:0px"><a href="#doc45">DOC.45</a></li><li style="margin-left:0px"><a href="#doc46">DOC.46</a></li><li style="margin-left:0px"><a href="#doc47">DOC.47</a></li><li style="margin-left:0px"><a href="#doc48">DOC.48</a></li><li style="margin-left:0px"><a href="#doc49">DOC.49</a></li><li style="margin-left:0px"><a href="#doc50">DOC.50</a></li><li style="margin-left:0px"><a href="#doc51">DOC.51</a></li><li style="margin-left:0px"><a href="#doc52">DOC.52</a></li><li style="margin-left:0px"><a href="#doc53">DOC.53</a></li><li style="margin-left:0px"><a href="#doc57">DOC.57</a></li><li style="margin-left:0px"><a href="#doc60">DOC.60</a></li><li style="margin-left:0px"><a href="#doc61">DOC.61</a></li><li style="margin-left:0px"><a href="#doc62">DOC.62</a></li><li style="margin-left:0px"><a href="#doc63">DOC.63</a></li><li style="margin-left:0px"><a href="#doc64">DOC.64</a></li><li style="margin-left:0px"><a href="#doc65">DOC.65</a></li><li style="margin-left:0px"><a href="#doc67">DOC.67</a></li><li style="margin-left:0px"><a href="#doc68">DOC.68</a></li><li style="margin-left:0px"><a href="#doc69">DOC.69</a></li><li style="margin-left:0px"><a href="#doc70">DOC.70</a></li><li style="margin-left:0px"><a href="#doc71">DOC.71</a></li><li style="margin-left:0px"><a href="#doc72">DOC.72</a></li><li style="margin-left:0px"><a href="#doc73">DOC.73</a></li><li style="margin-left:0px"><a href="#doc74">DOC.74</a></li><li style="margin-left:0px"><a href="#doc75">DOC.75</a></li><li style="margin-left:0px"><a href="#doc76">DOC.76</a></li><li style="margin-left:0px"><a href="#doc77">DOC.77</a></li><li style="margin-left:0px"><a href="#doc78">DOC.78</a></li><li style="margin-left:0px"><a href="#doc79">DOC.79</a></li><li style="margin-left:0px"><a href="#doc80">DOC.80</a></li><li style="margin-left:0px"><a href="#doc81">DOC.81</a></li><li style="margin-left:0px"><a href="#doc82">DOC.82</a></li><li style="margin-left:0px"><a href="#doc83">DOC.83</a></li><li style="margin-left:0px"><a href="#doc84">DOC.84</a></li><li style="margin-left:0px"><a href="#doc85">DOC.85</a></li><li style="margin-left:0px"><a href="#doc86">DOC.86</a></li><li style="margin-left:0px"><a href="#doc87">DOC.87</a></li><li style="margin-left:0px"><a href="#doc88">DOC.88</a></li><li style="margin-left:0px"><a href="#doc89">DOC.89</a></li><li style="margin-left:0px"><a href="#doc90">DOC.90</a></li><li style="margin-left:0px"><a href="#doc91">DOC.91</a></li><li style="margin-left:0px"><a href="#doc92">DOC.92</a></li><li style="margin-left:0px"><a href="#doc93">DOC.93</a></li><li style="margin-left:0px"><a href="#doc94">DOC.94</a></li><li style="margin-left:0px"><a href="#doc95">DOC.95</a></li><li style="margin-left:0px"><a href="#doc96">DOC.96</a></li><li style="margin-left:0px"><a href="#doc97">DOC.97</a></li><li style="margin-left:0px"><a href="#doc98">DOC.98</a></li><li style="margin-left:0px"><a href="#doc99">DOC.99</a></li><li style="margin-left:0px"><a href="#doc100">DOC.100</a></li><li style="margin-left:0px"><a href="#doc101">DOC.101</a></li><li style="margin-left:0px"><a href="#doc102">DOC.102</a></li><li style="margin-left:0px"><a href="#doc103">DOC.103</a></li><li style="margin-left:0px"><a href="#doc107">DOC.107</a></li><li style="margin-left:0px"><a href="#doc109">DOC.109</a></li><li style="margin-left:0px"><a href="#doc110">DOC.110</a></li><li style="margin-left:0px"><a href="#doc111">DOC.111</a></li><li style="margin-left:0px"><a href="#doc112">DOC.112</a></li><li style="margin-left:0px"><a href="#doc113">DOC.113</a></li></ul></details>
+<p>The life of every DOC item that a commit title names, from the git history as of <code>8487fa43b</code>: first and last date, whether it is open in <a href="../TODO.html">docs/TODO.md</a> now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; <a href="dropped-and-closed.html">dropped-and-closed.md</a> lists the closings.</p>
+<h2 id="doc5">DOC.5</h2>
+<p>2026-10-09 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-09: File the object ID items (GEN.170 to GEN.176, DB.20, API.23, TEST.110, DOC.5) (#874)</li>
+<li>2026-10-10: GEN.172, GEN.176, TEST.110, DOC.5: run-time births, cloud birth sector, ID tests and docs (#1075)</li>
+<li>2026-10-10: Docs: retire GEN.172, GEN.176, TEST.110, DOC.5 (PR #1075); file GEN.197 and DOC.17 (#1076)</li>
+</ul>
+<h2 id="doc6">DOC.6</h2>
+<p>2026-10-09 to 2026-10-31; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: TODO: static help section and per-feature help pages (DOC.6-DOC.16) (#902)</li>
+<li>2026-10-31: Retire DOC.6 and DOC.57 (help registry and auto-linker merged in #4599) (#4651)</li>
+</ul>
+<h2 id="doc15">DOC.15</h2>
+<p>2026-10-30 to 2026-11-04; 2 commits; open.</p>
+<ul>
+<li>2026-10-30: TODO: API.33 CLI half merged, DOC.15 carries the unit requirement (#3960)</li>
+<li>2026-11-04: TODO: retire GEN.1269 and TEST.234; API.33 waits behind DOC.15 (#5005)</li>
+</ul>
+<h2 id="doc16">DOC.16</h2>
+<p>2026-10-09 to 2026-10-09; 1 commits; open.</p>
+<ul>
+<li>2026-10-09: TODO: static help section and per-feature help pages (DOC.6-DOC.16) (#902)</li>
+</ul>
+<h2 id="doc17">DOC.17</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: Docs: retire GEN.172, GEN.176, TEST.110, DOC.5 (PR #1075); file GEN.197 and DOC.17 (#1076)</li>
+<li>2026-10-10: TODO: retire API.23 and DOC.17 (PRs #1119, #1127, #1133) (#1134)</li>
+</ul>
+<h2 id="doc18">DOC.18</h2>
+<p>2026-10-14 to 2026-10-14; 1 commits; open.</p>
+<ul>
+<li>2026-10-14: TODO: documentation sweep filed as DOC.18 to DOC.44; retire MAP.159 (#1305) (#1327)</li>
+</ul>
+<h2 id="doc19">DOC.19</h2>
+<p>2026-10-17 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: UX.102 chain and DOC.19 proposed to Core 5, TEST.220/225 notes corrected, board updated (#2160)</li>
+<li>2026-10-31: DOC.19: document the log output standard once and link it from the CLI, interface and testing references (#4453)</li>
+<li>2026-10-31: Retire UX.224 and DOC.19; GEN.1174 decided by Boss (#4454)</li>
+</ul>
+<h2 id="doc20">DOC.20</h2>
+<p>2026-10-29 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire MAP.344 (#3659), DOC.20 to Aux 4, migration 0174 taken (#3660)</li>
+<li>2026-10-29: DOC.20: the queue and scatter notes and the queue docstrings describe the queue as built (#3661)</li>
+<li>2026-10-29: Docs: retire DOC.20 (#3661) (#3662)</li>
+</ul>
+<h2 id="doc21">DOC.21</h2>
+<p>2026-10-15 to 2026-10-15; 5 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: retire DOC.22 and DOC.23 (#1599), note DOC.21 and DOC.27 progress (#1600)</li>
+<li>2026-10-15: Docstrings: package module lists, queryDb names, create_app location (DOC.21, files outside the spherical switch) (#1602)</li>
+<li>2026-10-15: TODO: record DOC.21 part 1 (#1602) (#1604)</li>
+<li>2026-10-15: Docstrings and comments name the real modules and the shell, band and wedge grid (DOC.21) (#1698)</li>
+<li>2026-10-15: TODO: retire TEST.158 (#1697) and DOC.21 (#1698); Quality findings on GEN.231, TEST.156, DOC.24, DB.33 (#1699)</li>
+</ul>
+<h2 id="doc22">DOC.22</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: design notes say what is built (DOC.22, DOC.23) (#1599)</li>
+<li>2026-10-15: TODO: retire DOC.22 and DOC.23 (#1599), note DOC.21 and DOC.27 progress (#1600)</li>
+</ul>
+<h2 id="doc23">DOC.23</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: design notes say what is built (DOC.22, DOC.23) (#1599)</li>
+<li>2026-10-15: TODO: retire DOC.22 and DOC.23 (#1599), note DOC.21 and DOC.27 progress (#1600)</li>
+</ul>
+<h2 id="doc24">DOC.24</h2>
+<p>2026-10-15 to 2026-10-17; 5 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: Python 3.12 / numba / astropy status in the research notes (DOC.24) (#1592)</li>
+<li>2026-10-15: TODO: record DOC.24 progress (#1592) (#1593)</li>
+<li>2026-10-15: TODO: retire TEST.158 (#1697) and DOC.21 (#1698); Quality findings on GEN.231, TEST.156, DOC.24, DB.33 (#1699)</li>
+<li>2026-10-17: UX.3, DOC.24 leftover, PERF.75 part 1: galaxy-changing banner, no 3.9 workaround, keyset paging (#2086)</li>
+<li>2026-10-17: Docs: retire UX.3 and DOC.24 (#2086); PERF.75 part 1 done; file PERF.112; TEST.172 sighting (#2087)</li>
+</ul>
+<h2 id="doc25">DOC.25</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: status lines in design-decisions.md; venv gunicorn path in the deployment guide (DOC.25, DOC.37) (#1594)</li>
+<li>2026-10-15: TODO: retire DOC.25 and DOC.37 (#1594) (#1595)</li>
+</ul>
+<h2 id="doc26">DOC.26</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: status lines on the design notes, banners on the imported research (DOC.26) (#1596)</li>
+<li>2026-10-15: TODO: retire DOC.26 (#1596) (#1597)</li>
+</ul>
+<h2 id="doc27">DOC.27</h2>
+<p>2026-10-15 to 2026-10-15; 4 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: design-notes index with a test that keeps it complete (DOC.27 index) (#1598)</li>
+<li>2026-10-15: TODO: retire DOC.22 and DOC.23 (#1599), note DOC.21 and DOC.27 progress (#1600)</li>
+<li>2026-10-15: Rewrite the architecture document's code map and flows for the current code (DOC.27, DOC.28) (#1628)</li>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+</ul>
+<h2 id="doc28">DOC.28</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Rewrite the architecture document's code map and flows for the current code (DOC.27, DOC.28) (#1628)</li>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+</ul>
+<h2 id="doc29">DOC.29</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs link check in the test suite; testing and CI docs match the workflow (DOC.29, DOC.40) (#1581)</li>
+<li>2026-10-15: TODO: retire DOC.29 and DOC.40 (#1581) (#1582)</li>
+</ul>
+<h2 id="doc30">DOC.30</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: config.md, gunicorn unit comment, planet class table (DOC.38, DOC.30) (#1586)</li>
+<li>2026-10-15: TODO: retire DOC.30 and DOC.38 (#1586) (#1587)</li>
+</ul>
+<h2 id="doc31">DOC.31</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Sync the database schema, HTML interface and config docs with the code (DOC.31, DOC.32, DOC.33) (#1625)</li>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+</ul>
+<h2 id="doc32">DOC.32</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: Sync the database schema, HTML interface and config docs with the code (DOC.31, DOC.32, DOC.33) (#1625)</li>
+</ul>
+<h2 id="doc33">DOC.33</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: Sync the database schema, HTML interface and config docs with the code (DOC.31, DOC.32, DOC.33) (#1625)</li>
+</ul>
+<h2 id="doc34">DOC.34</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: sync api.md with the routes after the spherical switch (DOC.34) (#1623)</li>
+<li>2026-10-15: TODO: retire DOC.34 (PR #1623) (#1624)</li>
+</ul>
+<h2 id="doc35">DOC.35</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: helper command-line tools in cli.md (DOC.35) (#1588)</li>
+<li>2026-10-15: TODO: retire DOC.35 (#1588) (#1589)</li>
+</ul>
+<h2 id="doc36">DOC.36</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: docs/cli.md: sync with planetgen --help on the spherical grid (DOC.36) (#1616)</li>
+<li>2026-10-15: TODO: retire DOC.36 (#1616) (#1617)</li>
+</ul>
+<h2 id="doc37">DOC.37</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: status lines in design-decisions.md; venv gunicorn path in the deployment guide (DOC.25, DOC.37) (#1594)</li>
+<li>2026-10-15: TODO: retire DOC.25 and DOC.37 (#1594) (#1595)</li>
+</ul>
+<h2 id="doc38">DOC.38</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: config.md, gunicorn unit comment, planet class table (DOC.38, DOC.30) (#1586)</li>
+<li>2026-10-15: TODO: retire DOC.30 and DOC.38 (#1586) (#1587)</li>
+</ul>
+<h2 id="doc39">DOC.39</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: DOC.39, OPS.46 and GEN.201 decided (#1343)</li>
+<li>2026-10-15: README facts and table; Headline line in release notes (DOC.39) (#1590)</li>
+<li>2026-10-15: TODO: retire DOC.39 (#1590) (#1591)</li>
+</ul>
+<h2 id="doc40">DOC.40</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs link check in the test suite; testing and CI docs match the workflow (DOC.29, DOC.40) (#1581)</li>
+<li>2026-10-15: TODO: retire DOC.29 and DOC.40 (#1581) (#1582)</li>
+</ul>
+<h2 id="doc41">DOC.41</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Fail2ban log name; INSTALL and Apache guide match install.sh and update.sh (DOC.41, DOC.42) (#1584)</li>
+<li>2026-10-15: TODO: retire DOC.41 to DOC.44 (#1583, #1584) (#1585)</li>
+</ul>
+<h2 id="doc42">DOC.42</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: Fail2ban log name; INSTALL and Apache guide match install.sh and update.sh (DOC.41, DOC.42) (#1584)</li>
+</ul>
+<h2 id="doc43">DOC.43</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: Redis in every install and deploy guide; stale Python 3.9 and 'unused Redis' text (DOC.44, DOC.43) (#1583)</li>
+</ul>
+<h2 id="doc44">DOC.44</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: documentation sweep filed as DOC.18 to DOC.44; retire MAP.159 (#1305) (#1327)</li>
+<li>2026-10-15: Redis in every install and deploy guide; stale Python 3.9 and 'unused Redis' text (DOC.44, DOC.43) (#1583)</li>
+<li>2026-10-15: TODO: retire DOC.41 to DOC.44 (#1583, #1584) (#1585)</li>
+</ul>
+<h2 id="doc45">DOC.45</h2>
+<p>2026-10-18 to 2026-10-18; 2 commits; not open.</p>
+<ul>
+<li>2026-10-18: Units through the ladders (UX.107), reference docs follow the description layer (DOC.45), kit follows the words (GEN.561) (#2240)</li>
+<li>2026-10-18: TODO: UX.107, DOC.45 and GEN.561 retired (#2240), epoch 26 stamped, epoch notes updated (#2241)</li>
+</ul>
+<h2 id="doc46">DOC.46</h2>
+<p>2026-10-15 to 2026-10-15; 2 commits; not open.</p>
+<ul>
+<li>2026-10-15: Docs: the spherical sector grid (DOC.46) (#1627)</li>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+</ul>
+<h2 id="doc47">DOC.47</h2>
+<p>2026-10-15 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: retire DOC.27, DOC.28, DOC.31-33, DOC.46; file DOC.47 (#1630)</li>
+<li>2026-10-17: DOC.47: rebuild docs/design/architecture.html from the current architecture.md</li>
+<li>2026-10-17: Docs: retire DOC.47 (#2037); file the Gemini batch 1 check and the TEST.213 sighting (#2038)</li>
+</ul>
+<h2 id="doc48">DOC.48</h2>
+<p>2026-10-15 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file the intergalactic and halo items (GEN.233-239, UX.113, MAP.207, DOC.48); GEN.230 layout is 96-bit (#1635)</li>
+<li>2026-10-15: TODO: reconcile the whole-sphere train (GEN.240, GEN.241, API.27, TEST.159; amend GEN.233-239, UX.113, MAP.207, DOC.48) (#1638)</li>
+<li>2026-10-28: DOC.48: the halo, the reach, the profile, the kind factors, the nebula contents and the Wolf-Rayet state in the design notes (#3537)</li>
+<li>2026-10-28: Retire DOC.48; file prevalence suite parts TEST.431-433; rescope MAP.122 (#3538)</li>
+</ul>
+<h2 id="doc49">DOC.49</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file the phenomena catalogue items (GEN.250-GEN.259, TEST.160, TEST.161, DOC.49), rescope GEN.130, split GEN.114 (#1647)</li>
+</ul>
+<h2 id="doc50">DOC.50</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; open.</p>
+<ul>
+<li>2026-10-15: TODO: file the multi-star items (GEN.260-GEN.267, UX.114, TEST.162, DOC.50); plan stage M and the lane queues (#1651)</li>
+</ul>
+<h2 id="doc51">DOC.51</h2>
+<p>2026-10-17 to 2026-10-17; 2 commits; not open.</p>
+<ul>
+<li>2026-10-17: PERF.36, GEN.308, PERF.91, TEST.191, DOC.51, DOC.53, DOC.60, DOC.62: sampled estimates, block-first backfill sampler, bulk draws, quieter plan tests (#2070)</li>
+<li>2026-10-17: Docs: Core 5's #2070 retired (PERF.36, GEN.308, PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, TEST.221); DOC.51 keeps the API sentence; TEST.224 filed (#2071)</li>
+</ul>
+<h2 id="doc52">DOC.52</h2>
+<p>2026-10-15 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: goal issues, issue links on every TODO page, execution plan rebuilt, DOC.52 (#1695)</li>
+<li>2026-10-17: Architecture map, docs index, stored uncharted count, Systems jump box (DOC.67, DOC.52, PERF.112, PERF.75) (#2154)</li>
+<li>2026-10-17: TODO: retire DOC.67, DOC.52, PERF.112, PERF.75 and the PERF.20 umbrella (#2154), file TEST.237 (#2156)</li>
+</ul>
+<h2 id="doc53">DOC.53</h2>
+<p>2026-10-15 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: GEN.158 model slice noted, DB.33 owner is Core 2, TEST.163 sighting, file DOC.53 (#1740)</li>
+<li>2026-10-17: PERF.36, GEN.308, PERF.91, TEST.191, DOC.51, DOC.53, DOC.60, DOC.62: sampled estimates, block-first backfill sampler, bulk draws, quieter plan tests (#2070)</li>
+<li>2026-10-17: Docs: Core 5's #2070 retired (PERF.36, GEN.308, PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, TEST.221); DOC.51 keeps the API sentence; TEST.224 filed (#2071)</li>
+</ul>
+<h2 id="doc57">DOC.57</h2>
+<p>2026-10-31 to 2026-10-31; 1 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.6 and DOC.57 (help registry and auto-linker merged in #4599) (#4651)</li>
+</ul>
+<h2 id="doc60">DOC.60</h2>
+<p>2026-10-16 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: superbubble density chain (GEN.391-395, TEST.206, DOC.60, DOC.61), design note and goal issue #1924 (#1925)</li>
+<li>2026-10-17: PERF.36, GEN.308, PERF.91, TEST.191, DOC.51, DOC.53, DOC.60, DOC.62: sampled estimates, block-first backfill sampler, bulk draws, quieter plan tests (#2070)</li>
+<li>2026-10-17: Docs: Core 5's #2070 retired (PERF.36, GEN.308, PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, TEST.221); DOC.51 keeps the API sentence; TEST.224 filed (#2071)</li>
+</ul>
+<h2 id="doc61">DOC.61</h2>
+<p>2026-10-16 to 2026-10-16; 1 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: superbubble density chain (GEN.391-395, TEST.206, DOC.60, DOC.61), design note and goal issue #1924 (#1925)</li>
+</ul>
+<h2 id="doc62">DOC.62</h2>
+<p>2026-10-16 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: rescatter findings GEN.397, GEN.398, DOC.62 (#1934)</li>
+<li>2026-10-17: PERF.36, GEN.308, PERF.91, TEST.191, DOC.51, DOC.53, DOC.60, DOC.62: sampled estimates, block-first backfill sampler, bulk draws, quieter plan tests (#2070)</li>
+<li>2026-10-17: Docs: Core 5's #2070 retired (PERF.36, GEN.308, PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, TEST.221); DOC.51 keeps the API sentence; TEST.224 filed (#2071)</li>
+</ul>
+<h2 id="doc63">DOC.63</h2>
+<p>2026-10-30 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-30: TODO: Core 3 takes GEN.845 and DOC.63 while waiting for trains (#3899)</li>
+<li>2026-10-30: DOC.63: the atmosphere data model page (#3907)</li>
+<li>2026-10-30: TODO: retire GEN.845 (#3910) and DOC.63 (#3907), file TEST.466, DOC.65 to Core 3 (#3912)</li>
+</ul>
+<h2 id="doc64">DOC.64</h2>
+<p>2026-10-23 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-23: DOC.64 docs: the atmosphere colour, its method and its sources (#2808)</li>
+<li>2026-10-23: Docs: DOC.64 merged (#2808), retired; counts 798 of 1201 (#2809)</li>
+</ul>
+<h2 id="doc65">DOC.65</h2>
+<p>2026-10-30 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-30: TODO: retire GEN.845 (#3910) and DOC.63 (#3907), file TEST.466, DOC.65 to Core 3 (#3912)</li>
+<li>2026-10-30: DOC.65: the bulk composition data model page (#3913)</li>
+<li>2026-10-30: TODO: retire DOC.65 (#3913), GEN.873 to Core 3 (#3914)</li>
+</ul>
+<h2 id="doc67">DOC.67</h2>
+<p>2026-10-17 to 2026-10-17; 4 commits; not open.</p>
+<ul>
+<li>2026-10-17: Docs: file DOC.67, the drill-down architecture map (#2046)</li>
+<li>2026-10-17: Docs: DOC.67 is Core 5's, queued behind the stellar bundle (#2047)</li>
+<li>2026-10-17: Architecture map, docs index, stored uncharted count, Systems jump box (DOC.67, DOC.52, PERF.112, PERF.75) (#2154)</li>
+<li>2026-10-17: TODO: retire DOC.67, DOC.52, PERF.112, PERF.75 and the PERF.20 umbrella (#2154), file TEST.237 (#2156)</li>
+</ul>
+<h2 id="doc68">DOC.68</h2>
+<p>2026-10-17 to 2026-10-17; 2 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: retire TEST.230 (#2128); file DOC.68 (execution plan page generator) (#2129)</li>
+<li>2026-10-17: DOC.68: the execution plan page is generated by build_todo_docs.py from lanes.md, execution-notes.md and the TODO data (#2157)</li>
+</ul>
+<h2 id="doc69">DOC.69</h2>
+<p>2026-10-17 to 2026-10-18; 4 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: file DOC.69 (global documents regenerated only by the TODO thread), rule in the execution notes and board (#2169)</li>
+<li>2026-10-17: TODO: file GEN.561 (gear follows words), DOC.69 build notes, UX.109 global-document note, board: MAP.243 gate started (#2173)</li>
+<li>2026-10-18: DOC.69: only TODO regenerates the global documents; their freshness tests are opt-in (#2172)</li>
+<li>2026-10-18: TODO: DOC.69 retired (#2172), global documents rebuilt with the new step (#2201)</li>
+</ul>
+<h2 id="doc70">DOC.70</h2>
+<p>2026-10-18 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-18: TODO: file the unit plan (GEN.568 to GEN.575, UX.139, UX.140, DB.76, DB.77, DOC.70) and the design note from Boss's six cards (#2181)</li>
+<li>2026-10-23: Giant interiors, hosting gate and the small-body and heavy-element research notes (GEN.641, GEN.642, GEN.579, GEN.566, GEN.580, DOC.70) (#2800)</li>
+</ul>
+<h2 id="doc71">DOC.71</h2>
+<p>2026-10-18 to 2026-10-18; 1 commits; open.</p>
+<ul>
+<li>2026-10-18: TODO: file the System plan (TEST.241, GEN.576 to GEN.580, DB.78, MAP.253, TEST.242, DOC.71), edits to GEN.552/GEN.315/GEN.264, design note from Boss's nine cards (#2185)</li>
+</ul>
+<h2 id="doc72">DOC.72</h2>
+<p>2026-10-21 to 2026-10-30; 6 commits; not open.</p>
+<ul>
+<li>2026-10-21: TODO: Blocker 2 lane and its seven items, DOC.72 external files in the README (#2348)</li>
+<li>2026-10-21: TODO: Boss's explicit-disregard rule for missing data files (GEN.599, GEN.600, GEN.594 rewritten, DOC.72), gap plan decided line (#2349)</li>
+<li>2026-10-22: Docs: GEN.599 retired (#2560), DOC.72 README row recorded (#2564)</li>
+<li>2026-10-30: TODO: retire TEST.200, Aux 3 owns DOC.72 then DOC.73 (#3963)</li>
+<li>2026-10-30: DOC.72: the README lists every external file with its URL and install step, and a test keeps it complete (#3964)</li>
+<li>2026-10-30: TODO: retire DOC.72 and DOC.73, Aux 3 owns TEST.165 (#3966)</li>
+</ul>
+<h2 id="doc73">DOC.73</h2>
+<p>2026-10-22 to 2026-10-30; 4 commits; not open.</p>
+<ul>
+<li>2026-10-22: Retire TEST.265 (#2442) and GEN.607 (#2443); file TEST.268 and DOC.73; Galaxy dials lane finished (#2444)</li>
+<li>2026-10-30: TODO: retire TEST.200, Aux 3 owns DOC.72 then DOC.73 (#3963)</li>
+<li>2026-10-30: DOC.73: INSTALL.md recommends a larger innodb_redo_log_capacity for the full test gate (#3965)</li>
+<li>2026-10-30: TODO: retire DOC.72 and DOC.73, Aux 3 owns TEST.165 (#3966)</li>
+</ul>
+<h2 id="doc74">DOC.74</h2>
+<p>2026-10-22 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-22: Docs: GEN.452 part 1 recorded (#2593); DOC.74 filed and the CO<sub>2</sub>-2 row corrected (#2594)</li>
+<li>2026-10-23: Atmosphere chain: NASA Glenn species thermodynamics and an ideal-gas equilibrium solver (GEN.451, GEN.454, GEN.499 groundwork), DOC.74 notes</li>
+</ul>
+<h2 id="doc75">DOC.75</h2>
+<p>2026-10-23 to 2026-10-24; 8 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: habitability system and the GEN.445 chain move into 8.1 (Boss), lanes A to I, DOC.75 and TEST.300 filed (#2707)</li>
+<li>2026-10-24: DOC.75 part 1: where the habitability symbols appear and the habitable zone on the levels page; formulas written out in the equipment table (#2850)</li>
+<li>2026-10-24: Docs: DOC.75 part 1 merged (#2850), TEST.316 retired; 829 of 1238 (#2851)</li>
+<li>2026-10-24: GEN.658 airborne dust feeds the dust filter; DOC.75 habitability help sections; chips browser test (#2970)</li>
+<li>2026-10-24: Docs: retire GEN.658, note TEST.300, DOC.75 and UX.153 progress (#2972)</li>
+<li>2026-10-24: GEN.445, DOC.75: the Radiation rating names the composition behind each term (#3052)</li>
+<li>2026-10-24: Docs: retire DOC.75, note GEN.445, file TEST.350 (#3053)</li>
+<li>2026-10-24: DOC.75: the habitable zone help text follows GEN.639 (planet-mass edges, early water loss) (#3131)</li>
+</ul>
+<h2 id="doc76">DOC.76</h2>
+<p>2026-10-23 to 2026-10-31; 2 commits; open.</p>
+<ul>
+<li>2026-10-23: Docs: conditions-based planet classes (GEN.645 to GEN.648, DB.90, UX.150, TEST.301, DOC.76), Boss's GEN.644 answer (#2711)</li>
+<li>2026-10-31: File best-fit class items GEN.1205 to GEN.1208; notes on GEN.647, GEN.689, GEN.1144, GEN.1147, GEN.1160, DB.90, TEST.443, DOC.76 (#4464)</li>
+</ul>
+<h2 id="doc77">DOC.77</h2>
+<p>2026-10-23 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: the four life scores (GEN.649, DB.91, UX.151, UX.152, DOC.77), human operability removed (#2713)</li>
+<li>2026-10-24: DOC.77: the habitability help page says what sets each of the four life scores (#3126)</li>
+<li>2026-10-24: docs: retire PERF.187, PERF.189, DOC.80, DOC.77; file PERF.193, TEST.360, TEST.361 (#3125, #3126) (#3127)</li>
+</ul>
+<h2 id="doc78">DOC.78</h2>
+<p>2026-10-23 to 2026-10-23; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: pipeline report gaps (GEN.650 to GEN.652, DOC.78), notes on GEN.464 and GEN.355 (#2715)</li>
+<li>2026-10-23: DOC.78: one end-to-end draw-order table from the star to the PHI-6 (#2813)</li>
+<li>2026-10-23: Docs: UX.100, UX.155, UX.156 (#2784) and DOC.78 (#2813) merged, retired; 803 of 1206 (#2818)</li>
+</ul>
+<h2 id="doc79">DOC.79</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: DOC.79: recompute the x = 0.2 ocean-world rows from the code and pin the table (#3262)</li>
+<li>2026-10-24: Docs: retire DOC.79 (#3262) (#3263)</li>
+</ul>
+<h2 id="doc80">DOC.80</h2>
+<p>2026-10-24 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: file physics fix plan items (GEN.752-755), GEN.411 pieces (GEN.756-758), block light progress (PERF.189, PERF.190, DOC.80); reconcile owners (#3097)</li>
+<li>2026-10-24: PERF.187, PERF.189, DOC.80: bound the block light and nebula block passes of the phenomena scatter, show the block light progress (#3125)</li>
+<li>2026-10-24: docs: retire PERF.187, PERF.189, DOC.80, DOC.77; file PERF.193, TEST.360, TEST.361 (#3125, #3126) (#3127)</li>
+</ul>
+<h2 id="doc81">DOC.81</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: retire TEST.375, drop TEST.374; file the resource locations tree (GEN.798-799, DB.106, MAP.312-313, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34) (#3219)</li>
+</ul>
+<h2 id="doc82">DOC.82</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Docs: retire API.35 (#3396); file TEST.415; DOC.82 unblocked (#3398)</li>
+<li>2026-10-28: DOC.82: named-regions design page and the region-name uniqueness audit check (#3400)</li>
+<li>2026-10-28: Docs: retire DOC.82 (#3400) (#3401)</li>
+</ul>
+<h2 id="doc83">DOC.83</h2>
+<p>2026-10-31 to 2026-10-31; 4 commits; not open.</p>
+<ul>
+<li>2026-10-31: File life readings and text readability items GEN.1210, UX.251 to UX.253, DOC.83, DOC.84; notes on UX.237, GEN.1209 (#4474)</li>
+<li>2026-10-31: DOC.83: the plain-words style guide and a test that holds the site's text to it (#4478)</li>
+<li>2026-10-31: Retire DOC.83 (PR #4478) (#4479)</li>
+<li>2026-10-31: DOC.83: the style guide and its checker require American spelling (#4483)</li>
+</ul>
+<h2 id="doc84">DOC.84</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: File life readings and text readability items GEN.1210, UX.251 to UX.253, DOC.83, DOC.84; notes on UX.237, GEN.1209 (#4474)</li>
+<li>2026-10-31: DOC.84: help pages for life: the kinds of life, the four scales, the stages and each of the nine life classes (#4506)</li>
+<li>2026-10-31: docs: GEN.1227 comet coma store, retire DOC.84, lane notes (#4507)</li>
+</ul>
+<h2 id="doc85">DOC.85</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: File GEN.1211 hot thin-air class (letter waits on Boss) and DOC.85 class table refresh; GEN.1207 note (#4476)</li>
+<li>2026-10-31: DOC.85: refresh the planet class table in the system file guide (#4499)</li>
+<li>2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavour branch head (#4501)</li>
+</ul>
+<h2 id="doc86">DOC.86</h2>
+<p>2026-10-31 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Oxford comma rule (DOC.86), References items (DOC.87 to DOC.95), retire PERF.221-223 and TEST.533, file GEN.1230 and TEST.536 (#4577)</li>
+<li>2026-11-04: DOC.86: the serial (Oxford) comma in all site text, with a checker (#4786)</li>
+<li>2026-11-04: Retire DOC.86; file DOC.102 American spelling sweep (#4787)</li>
+</ul>
+<h2 id="doc87">DOC.87</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Oxford comma rule (DOC.86), References items (DOC.87 to DOC.95), retire PERF.221-223 and TEST.533, file GEN.1230 and TEST.536 (#4577)</li>
+<li>2026-10-31: DOC.87: References links, the out-of-universe word rule and the page crawl (#4602)</li>
+<li>2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)</li>
+</ul>
+<h2 id="doc88">DOC.88</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)</li>
+<li>2026-10-31: DOC.88: References shell: /references, the Out of universe banner, the generator and the update.sh step (#4624)</li>
+<li>2026-10-31: Retire DOC.88 (References pages, #4624); note page contract on DOC.89 to DOC.92 (#4625)</li>
+</ul>
+<h2 id="doc89">DOC.89</h2>
+<p>2026-10-31 to 2026-11-04; 5 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.95 (#4603) and note the citation counts on DOC.89 (#4605)</li>
+<li>2026-10-31: Retire DOC.88 (References pages, #4624); note page contract on DOC.89 to DOC.92 (#4625)</li>
+<li>2026-11-04: DOC.89: References Papers and Data pages (#4824)</li>
+<li>2026-11-04: DOC.89: papers tests read their example source from the registry (#4827)</li>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+</ul>
+<h2 id="doc90">DOC.90</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Note DOC.90 owner moved to the Citations thread (#4816)</li>
+<li>2026-11-04: DOC.90: a page for every stand-in, the stand-in list and the Fitted to a result page (#4821)</li>
+<li>2026-11-04: Retire DOC.90 and GEN.615 (#4830)</li>
+</ul>
+<h2 id="doc91">DOC.91</h2>
+<p>2026-10-31 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)</li>
+<li>2026-11-04: DOC.91: method pages by area, what we have and lack, and the computed scorecard; the properties page moves into them (#4839)</li>
+<li>2026-11-04: Retire DOC.91 (#4840)</li>
+</ul>
+<h2 id="doc92">DOC.92</h2>
+<p>2026-10-31 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.88 (References pages, #4624); note page contract on DOC.89 to DOC.92 (#4625)</li>
+<li>2026-11-04: DOC.92: the speculative chemistry moves from the life pages and the air chart to a References page (#4836)</li>
+<li>2026-11-04: Retire DOC.92, file TEST.570 (#4837)</li>
+</ul>
+<h2 id="doc93">DOC.93</h2>
+<p>2026-10-31 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)</li>
+<li>2026-11-04: DOC.93: leftover pages speak in the story; sheet source lines became links to the method pages (#4870)</li>
+<li>2026-11-04: Retire DOC.93 (#4871)</li>
+</ul>
+<h2 id="doc94">DOC.94</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: DOC.94: lock the References crawl at zero (template scan, page register, no exceptions list) (#4873)</li>
+<li>2026-11-04: Retire DOC.94, TEST.194 (#4874)</li>
+</ul>
+<h2 id="doc95">DOC.95</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Oxford comma rule (DOC.86), References items (DOC.87 to DOC.95), retire PERF.221-223 and TEST.533, file GEN.1230 and TEST.536 (#4577)</li>
+<li>2026-10-31: DOC.95: tie every author-year citation to a paper, label it not a paper, or list it for review (#4603)</li>
+<li>2026-10-31: Retire DOC.95 (#4603) and note the citation counts on DOC.89 (#4605)</li>
+</ul>
+<h2 id="doc96">DOC.96</h2>
+<p>2026-10-31 to 2026-10-31; 4 commits; not open.</p>
+<ul>
+<li>2026-10-31: File DOC.96 (remove references to papers that did not resolve, Boss decision) (#4606)</li>
+<li>2026-10-31: DOC.96: remove references to papers that did not resolve (#4638)</li>
+<li>2026-10-31: DOC.96: rewrite the TODO items that cited papers that did not resolve (#4639)</li>
+<li>2026-10-31: Retire DOC.96 (unverifiable citations removed, #4638 and #4639) (#4640)</li>
+</ul>
+<h2 id="doc97">DOC.97</h2>
+<p>2026-10-31 to 2026-11-01; 5 commits; not open.</p>
+<ul>
+<li>2026-10-31: DOC.97: regenerate the References pages after removing unverified citations from the reports and drafts (#4645)</li>
+<li>2026-10-31: File DOC.97 to DOC.100: the citation system for Help &gt; References (#4646)</li>
+<li>2026-10-31: DOC.97 to DOC.99: Boss's scope and NASA-style in-line citations (#4647)</li>
+<li>2026-10-31: Retire DOC.100 (citation IDs, #4648); note the style on DOC.97 to DOC.99 (#4649)</li>
+<li>2026-11-01: DOC.98, DOC.97, DOC.99: citations only in the registry, links on References pages, lock test (#4682)</li>
+</ul>
+<h2 id="doc98">DOC.98</h2>
+<p>2026-11-01 to 2026-11-01; 3 commits; not open.</p>
+<ul>
+<li>2026-11-01: DOC.98, DOC.97, DOC.99: citations only in the registry, links on References pages, lock test (#4682)</li>
+<li>2026-11-01: DOC.98 part 2: sweep docs/TODO.md and docs/plan, empty TODO_OWNED so the lock covers all text (#4720)</li>
+<li>2026-11-01: DOC.98 follow-up: bibliography lists of the imported notes become source IDs; TEST.520: remove three unused functions and three duplicate register lines (#4738)</li>
+</ul>
+<h2 id="doc99">DOC.99</h2>
+<p>2026-10-31 to 2026-11-04; 4 commits; not open.</p>
+<ul>
+<li>2026-10-31: DOC.97 to DOC.99: Boss's scope and NASA-style in-line citations (#4647)</li>
+<li>2026-10-31: Retire DOC.100 (citation IDs, #4648); note the style on DOC.97 to DOC.99 (#4649)</li>
+<li>2026-11-01: DOC.98, DOC.97, DOC.99: citations only in the registry, links on References pages, lock test (#4682)</li>
+<li>2026-11-04: DOC.101: standards, regulations, documentation and web pages are listed sources; DOC.99: the lock also fails on a name and year the list does not know; TEST.553: retire the harvest-based outcome test (#4744)</li>
+</ul>
+<h2 id="doc100">DOC.100</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: File DOC.97 to DOC.100: the citation system for Help &gt; References (#4646)</li>
+<li>2026-10-31: DOC.100: a stable citation ID (R0123) for every source in the reference list, with the in-line citation style (#4648)</li>
+<li>2026-10-31: Retire DOC.100 (citation IDs, #4648); note the style on DOC.97 to DOC.99 (#4649)</li>
+</ul>
+<h2 id="doc101">DOC.101</h2>
+<p>2026-11-01 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-01: File DOC.101, retire TEST.520 (merged in #4738) (#4739)</li>
+<li>2026-11-04: DOC.101: standards, regulations, documentation and web pages are listed sources; DOC.99: the lock also fails on a name and year the list does not know; TEST.553: retire the harvest-based outcome test (#4744)</li>
+<li>2026-11-04: Retire DOC.101 and TEST.553 (merged in #4744) (#4746)</li>
+</ul>
+<h2 id="doc102">DOC.102</h2>
+<p>2026-11-04 to 2026-11-04; 5 commits; not open.</p>
+<ul>
+<li>2026-11-04: Retire DOC.86; file DOC.102 American spelling sweep (#4787)</li>
+<li>2026-11-04: DOC.102: American spelling in the site and command-line text, a whole-site spelling test, more words in the checker (#4812)</li>
+<li>2026-11-04: File TEST.567 and DOC.103, retire DOC.102 (#4813)</li>
+<li>2026-11-04: TEST: the equipment limits test looks up Armored suit, the label DOC.102 spells now (#4831)</li>
+<li>2026-11-04: DOC.102 follow-through: tests that named the old spellings and the old commas now say what the pages say (#4866)</li>
+</ul>
+<h2 id="doc103">DOC.103</h2>
+<p>2026-11-04 to 2026-11-05; 14 commits; not open.</p>
+<ul>
+<li>2026-11-04: File TEST.567 and DOC.103, retire DOC.102 (#4813)</li>
+<li>2026-11-04: DOC.103: American spelling of stored values, API keys and names (migration, epoch, API version 13)</li>
+<li>2026-11-04: DOC.103: the re-runnable sweep script (apply, check) and its check in the spelling test</li>
+<li>2026-11-04: DOC.103: spelling test reads the tree through the sweep script; cancelling in the word list</li>
+<li>2026-11-04: Retire TEST.576, note on DOC.103 for the stored disc sentence, fix a time stamp the citation lock read as a source (#4897)</li>
+<li>2026-11-04: DOC.103: merge main; belt origin sentences move to disk in the migration; KNOWN of the plain-words test emptied</li>
+<li>...</li>
+<li>2026-11-04: Merge star2-gen1232a (GEN.1232a) into train 10: migration 0210, DOC.103 moves to 0211</li>
+<li>2026-11-05: Train 10: registry rows name the constants by their American spelling (DOC.103 renamed them in code)</li>
+<li>2026-11-05: Train 10: the atmosphere tables doc takes the American spelling its data file got (DOC.103)</li>
+<li>2026-11-05: File TEST.601: two tests expect neighbour after DOC.103 (#5119)</li>
+<li>2026-11-05: Registry rows name the tests by their American spelling again (four cases red on main since DOC.103) (#5241)</li>
+</ul>
+<h2 id="doc107">DOC.107</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; open.</p>
+<ul>
+<li>2026-11-05: TODO: Sensor view items (UX.273 umbrella moved to 8.2; UX.275, UX.276, MAP.394 to MAP.396, TEST.629, DOC.107) (#5228)</li>
+</ul>
+<h2 id="doc109">DOC.109</h2>
+<p>2026-11-06 to 2026-11-06; 3 commits; not open.</p>
+<ul>
+<li>2026-11-06: File DOC.109: INSTALL.md Redis user and password steps (#5449)</li>
+<li>2026-11-06: DOC.109: INSTALL.md walks through giving Redis a user and a password (#5454)</li>
+<li>2026-11-06: Retire DOC.109 (PR 5454); file TEST.665 (#5456)</li>
+</ul>
+<h2 id="doc110">DOC.110</h2>
+<p>2026-11-08 to 2026-11-08; 1 commits; open.</p>
+<ul>
+<li>2026-11-08: Docs: file the twenty fictional materials parts for 8.2 (GEN.1408 to GEN.1419, DB.116/117, ADM.143/144, API.42, UX.293, TEST.699, DOC.110) (#5710)</li>
+</ul>
+<h2 id="doc111">DOC.111</h2>
+<p>2026-11-08 to 2026-11-08; 2 commits; not open.</p>
+<ul>
+<li>2026-11-08: Docs: file Lane 05's red causes as items (UX.294, TEST.701-705, DB.118-120, DOC.111-112, GEN.1439, PERF.255) (#5718)</li>
+<li>2026-11-08: Reds: UX.294, TEST.701, TEST.703, DB.119, DB.120, DOC.111 (#5755)</li>
+</ul>
+<h2 id="doc112">DOC.112</h2>
+<p>2026-11-08 to 2026-11-08; 2 commits; not open.</p>
+<ul>
+<li>2026-11-08: Reds: DB.118, TEST.702, DOC.112 (formulas on the References pages) (#5767)</li>
+<li>2026-11-08: Retire TEST.702, DOC.112 (PR 5767) (#5768)</li>
+</ul>
+<h2 id="doc113">DOC.113</h2>
+<p>2026-11-08 to 2026-11-08; 2 commits; open.</p>
+<ul>
+<li>2026-11-08: File DOC.113 and OPS.122 to OPS.127: break every run into small queued jobs (proposed, build after Boss approves the design note) (#5750)</li>
+<li>2026-11-08: File OPS.130 fair-share task scheduler; fair-share rule in PERF.254, OPS.122, OPS.124, OPS.128, DOC.113 and lanes.md (#5753)</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

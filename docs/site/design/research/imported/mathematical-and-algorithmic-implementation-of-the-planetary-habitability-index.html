@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mathematical and Algorithmic Implementation of the Planetary Habitability Index (PHI-4) - planetGen docs</title>
+<meta name="description" content="To calculate or generate scientifically consistent values across the four core domains of the Planetary Habitability Index (PHI-4)—Pressure, Temperature, Chemistry, and Radiation—a mathematical and physical framework must bridge fundamen...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/habitability-index.html">habitability-index</a>.</p>
+</blockquote>
+<h1 id="mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index-phi-4">Mathematical and Algorithmic Implementation of the Planetary Habitability Index (PHI-4)</h1><p class="meta">docs/design/research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#1-architectural-partitioning-and-pipeline-architecture">1. Architectural Partitioning and Pipeline Architecture</a></li><li style="margin-left:14px"><a href="#11-category-a-primary-stochastic-parameters-randomly-sampled-boundary-conditions">1.1 Category A: Primary Stochastic Parameters (Randomly Sampled Boundary Conditions)</a></li><li style="margin-left:14px"><a href="#12-category-b-external-inputs-contextual-parameters">1.2 Category B: External Inputs (Contextual Parameters)</a></li><li style="margin-left:0px"><a href="#2-mathematical-framework-by-phi-4-domain-deterministically-calculated-outputs">2. Mathematical Framework by PHI-4 Domain (Deterministically Calculated Outputs)</a></li><li style="margin-left:14px"><a href="#21-domain-1-pressure--planetary-structure">2.1 Domain 1: Pressure &amp; Planetary Structure</a></li><li style="margin-left:14px"><a href="#22-domain-2-thermal-dynamics--climate-modeling">2.2 Domain 2: Thermal Dynamics &amp; Climate Modeling</a></li><li style="margin-left:14px"><a href="#23-domain-3-geochemical--atmospheric-chemistry">2.3 Domain 3: Geochemical &amp; Atmospheric Chemistry</a></li><li style="margin-left:14px"><a href="#24-domain-4-ionizing-radiation--particle-physics">2.4 Domain 4: Ionizing Radiation &amp; Particle Physics</a></li><li style="margin-left:0px"><a href="#3-mathematical-synthesis-calculating-the-phi-4-index">3. Mathematical Synthesis: Calculating the PHI-4 Index</a></li><li style="margin-left:0px"><a href="#4-algorithmic-pipeline-integration-pseudocode">4. Algorithmic Pipeline Integration (Pseudocode)</a></li></ul></details>
+<h2 id="1-architectural-partitioning-and-pipeline-architecture">1. Architectural Partitioning and Pipeline Architecture</h2>
+<p>To calculate or generate scientifically consistent values across the four core domains of the Planetary Habitability Index (PHI-4)—Pressure, Temperature, Chemistry, and Radiation—a mathematical and physical framework must bridge fundamental planetary astrophysics with geophysical and biophysical constraints. A computational pipeline must distinguish between stochastic boundary conditions (randomly generated primary cosmological and bulk properties) and deterministic planetary physics (outright calculated properties).</p>
+<h3 id="11-category-a-primary-stochastic-parameters-randomly-sampled-boundary-conditions">1.1 Category A: Primary Stochastic Parameters (Randomly Sampled Boundary Conditions)</h3>
+<p>These parameters cannot be derived from first principles in a 1D pipeline but have well-studied prior distributions:</p>
+<ul>
+<li><strong>Host Star Characteristics:</strong> Stellar mass (<span class="math">\(M_* \in [0.08, 1.4]\,M_\odot\)</span>) is sampled via a Kroupa initial mass function (IMF), along with effective temperature (<span class="math">\(T_*\)</span>), metallicity (<span class="math">\([\text{Fe}/\text{H}]\)</span>), and system age (<span class="math">\(t_{\text{sys}} \in [0.5, 10]\text{ Gyr}\)</span>).</li>
+<li><strong>Orbital Architecture:</strong> The semi-major axis (<span class="math">\(a\)</span>) is drawn from a log-uniform distribution restricted to the broadened habitable zone, and orbital eccentricity (<span class="math">\(e \in [0, 0.4]\)</span>) is sampled.</li>
+<li><strong>Planetary Bulk Endowments:</strong> Planetary mass (<span class="math">\(M_p \in [0.1, 5.0]\,M_\oplus\)</span>), core mass fraction (<span class="math">\(\text{CMF} \in [0.2, 0.7]\)</span>), and total volatile water mass fraction (<span class="math">\(\text{WMF} \in [10^{-5}, 0.1]\)</span>) are assigned using truncated distributions.</li>
+<li><strong>Planetary Rotation Period (<span class="math">\(\Omega\)</span>) and Tidal Locking:</strong> The rotation rate <span class="math">\(\Omega = 2\pi / P_{\text{rot}}\)</span> dictates Coriolis forces, atmospheric circulation regimes, and the geodynamo dipole moment <span class="math">\(\mathcal{M}_p\)</span>. If system age <span class="math">\(t_{\text{sys}} \ge t_{\text{sync}}\)</span>, the planet is tidally locked; otherwise, <span class="math">\(P_{\text{rot}}\)</span> is sampled from a Log-Normal distribution.</li>
+<li><strong>Stellar Activity and Spectra:</strong> Flare kinetic energies follow a cumulative power-law frequency distribution, while Far-UV to Near-UV stellar flux ratios (<span class="math">\(\mathcal{R}_{\text{UV}}\)</span>) are sampled from conditional Normal distributions fitted to empirical observations.</li>
+<li><strong>Surface Hypsometry and Cloud Coverage:</strong> Subaerial land exposure fraction (<span class="math">\(f_{\text{land}}\)</span>) requires modeling crustal elevation probability density $P(z)$ as a bimodal Gaussian mixture. Global cloud fraction <span class="math">\(f_{\text{cloud}}\)</span> is drawn from a Beta distribution to modify Bond albedo dynamically.</li>
+<li><strong>Aqueous Solution Ionic Molalities (<span class="math">\(m_i\)</span>):</strong> Ionic breakdowns are drawn using a Dirichlet distribution anchored by the mantle oxidation state (<span class="math">\(\Delta\text{FMQ}\)</span>) to establish brine compositions.</li>
+</ul>
+<h3 id="12-category-b-external-inputs-contextual-parameters">1.2 Category B: External Inputs (Contextual Parameters)</h3>
+<p>Certain parameters require explicit upstream configuration to prevent arbitrary or mathematically unphysical results:</p>
+<ul>
+<li><strong>Target Organism Biological Profile (<span class="math">\(\vec{\theta}_{\text{bio}}\)</span>):</strong> Boundary values (<span class="math">\(T_{\text{wb}} \le 35^\circ\text{C}\)</span>, <span class="math">\(p_A\text{O}_2 \ge 10\text{ kPa}\)</span>, <span class="math">\(\dot{D}_{\text{surf}} \le 10\text{ Gy yr}^{-1}\)</span>) require explicit organism definition (e.g., complex aerobic endotherms vs. extremophiles) to define the transfer functions.</li>
+<li><strong>Domain Importance Weights (<span class="math">\(\vec{w}\)</span>):</strong> The synthesis vector <span class="math">\(\vec{w} = (w_{\text{Pressure}}, w_{\text{Temperature}}, w_{\text{Chemistry}}, w_{\text{Radiation}})\)</span> is required to configure assessment priorities across domains.</li>
+<li><strong>Planetary Tectonic Regime (<span class="math">\(\Theta_{\text{tect}}\)</span>):</strong> A categorical state flag determines mantle outgassing fluxes and subduction recycling rates over gigayear timescales.</li>
+<li><strong>Primordial Volatile Inventory (<span class="math">\(\vec{N}_{\text{vol}}\)</span>):</strong> Initial molar endowments of <span class="math">\(\text{N}_2\)</span>, <span class="math">\(\text{CO}_2\)</span>, and <span class="math">\(\text{H}_2\text{O}\)</span> are required from upstream accretion models to prevent unrealistic runaway or airless conditions.</li>
+<li><strong>3D Atmospheric Advection Efficiency (<span class="math">\(\epsilon_{\text{adv}}\)</span>):</strong> Essential for heat redistribution on slow-rotating or tidally locked worlds, mapped via interpolated lookup matrices derived from Global Climate Models (GCMs).</li>
+</ul>
+<h2 id="2-mathematical-framework-by-phi-4-domain-deterministically-calculated-outputs">2. Mathematical Framework by PHI-4 Domain (Deterministically Calculated Outputs)</h2>
+<h3 id="21-domain-1-pressure--planetary-structure">2.1 Domain 1: Pressure &amp; Planetary Structure</h3>
+<ul>
+<li><strong>Hydrostatic Equilibrium and Planetary Mass-Radius Equations of State (EOS):</strong> Requires non-linear differential equations and Birch-Murnaghan or Vinet EOS modeling to determine planetary internal density profiles, radius, and surface gravity (<span class="math">\(g = GM/R^2\)</span>), which sets the surface weight of the volatile column. Interior structure models solve radial mass conservation:
+<span class="math display">\[\frac{dM(r)}{dr} = 4\pi r^2 \rho(r), \quad \frac{dP(r)}{dr} = -\frac{G M(r) \rho(r)}{r^2}\]</span></li>
+<li><strong>Atmospheric Column Mass Integration and Barometric Formulations:</strong> Uses the barometric formula and vertical column mass integration (<span class="math">\(X = \int_{0}^{\infty} \rho(z)\,dz = P_0/g\)</span>) to establish surface barometric pressure (<span class="math">\(P_0\)</span>), scale height (<span class="math">\(H = k_B T / \mu g\)</span>), and total column depth for radiation/respiratory modeling.</li>
+<li><strong>Hydrodynamic and Thermal Atmospheric Escape:</strong> Employs Maxwell-Boltzmann velocity distributions, thermal Jeans escape parameter (<span class="math">\(\lambda_{\text{esc}, i}\)</span>), and energy-limited hydrodynamic blow-off equations to model whether an atmosphere thins toward the Armstrong limit (<span class="math">\(6.3\text{ kPa}\)</span>) or retains multi-bar envelopes.
+<span class="math display">\[\dot{M}_{\text{loss}} = \frac{\epsilon \pi R_p R_{\text{XUV}}^2 F_{\text{XUV}}(t)}{G M_p K_{\text{tide}}}\]</span></li>
+<li><strong>Deep Ocean Hydrostatic Pressure Profiles and Phase Transitions:</strong> Uses depth-integrated hydrostatic pressure (<span class="math">\(P(z) = P_0 + \int \rho(z) g\,dz\)</span>) and thermodynamic Clapeyron phase diagrams to calculate whether ocean-floor pressures exceed <span class="math">\(1\text{--}1.2\text{ GPa}\)</span>, precipitating high-pressure ice polymorphs (Ice VI, VII) that mechanically seal the mantle.</li>
+<li><strong>Fluid Dynamics, Compressibility, and Gas Viscosity:</strong> Utilizes Navier-Stokes equations, Reynolds numbers, and fluid density equations (<span class="math">\(\rho = \mu P_0 / R T\)</span>) to calculate airway resistance, establishing the limit where diaphragmatic muscular ventilation collapses around <span class="math">\(10\text{--}12\text{ MPa}\)</span>.</li>
+</ul>
+<h3 id="22-domain-2-thermal-dynamics--climate-modeling">2.2 Domain 2: Thermal Dynamics &amp; Climate Modeling</h3>
+<ul>
+<li><strong>Orbital Mechanics and Insolation Geometry:</strong> Applies Kepler’s laws, orbital eccentricity equations, and geometric inverse-square flux decay (<span class="math">\(S_0 = L_* / 4\pi a_{\text{m}}^2\)</span>) to calculate top-of-atmosphere stellar flux and orbit-averaged insolation.
+<span class="math display">\[\langle S \rangle = \frac{1}{2\pi} \int_0^{2\pi} \frac{L_*}{4\pi r(\theta)^2}\,d\theta = \frac{S_0}{\sqrt{1 - e^2}}\]</span></li>
+<li><strong>Planetary Energy Balance and 1D Radiative-Convective Equilibrium:</strong> Solves the Stefan-Boltzmann radiation law (<span class="math">\(\sigma T_{\text{eq}}^4 = \frac{\langle S \rangle}{4}(1 - A_B)\)</span>) paired with multi-stream radiative transfer equations and dry/moist adiabatic lapse rates to generate surface equilibrium temperatures (<span class="math">\(T_{\text{surf}}\)</span>).</li>
+<li><strong>Greenhouse Radiative Forcing and Collision-Induced Absorption (CIA):</strong> Requires quantum mechanical vibrational-rotational band models and statistical collision mechanics to quantify infrared absorption, scaling quadratically with pressure (<span class="math">\(\tau_{\text{CIA}} \propto P_0^2/g\)</span>), modeling greenhouse warming in dense atmospheres.</li>
+<li><strong>Moist Greenhouse and Runaway Greenhouse Limits:</strong> Solves the Simpson-Nakajima limits on outgoing longwave radiation (<span class="math">\(\text{OLR}_{\text{limit}} \approx 280\text{--}310\text{ W m}^{-2}\)</span>) to establish the exact stellar flux threshold where oceans boil and thermal runaway occurs.</li>
+<li><strong>Psychrometric Equations and Wet-Bulb Thermodynamics:</strong> Employs Antoine and Clausius-Clapeyron equations to model saturation vapor pressure and thermodynamic wet-bulb temperature (<span class="math">\(T_{\text{wb}}\)</span>) equations to compute the critical boundary (<span class="math">\(T_{\text{wb}} \le 31^\circ\text{C}\)</span>) for evaporative cooling and homeostatic heat rejection.</li>
+<li><strong>Cryogenic Eutectic Phase Diagrams and Freezing-Point Depression:</strong> Uses colligative thermodynamics, the Pitzer ion-interaction model, and cryohydric phase equilibria to calculate liquid-brine stability curves (<span class="math">\(T_{\text{eut}}\)</span>) down to <span class="math">\(-50^\circ\text{C}\)</span> to <span class="math">\(-70^\circ\text{C}\)</span>.</li>
+</ul>
+<h3 id="23-domain-3-geochemical--atmospheric-chemistry">2.3 Domain 3: Geochemical &amp; Atmospheric Chemistry</h3>
+<ul>
+<li><strong>Chemical Thermodynamics and Mantle Oxygen Fugacity:</strong> Applies Gibbs free energy minimization (<span class="math">\(\Delta G = \Delta G^\circ + RT \ln Q\)</span>) and chemical equilibrium constants to mineral redox buffers to derive volcanic gas speciation (<span class="math">\(\text{CO}/\text{CO}_2\)</span>, <span class="math">\(\text{H}_2/\text{H}_2\text{O}\)</span>) from silicate melts.</li>
+<li><strong>Atmospheric Photochemical Kinetics and Radical Networks:</strong> Solves systems of non-linear stiff differential equations for atmospheric reaction networks (<span class="math">\(d[X]/dt = P_X - L_X\)</span>) under stellar ultraviolet spectra, predicting photochemical runaway thresholds for toxic species like carbon monoxide.</li>
+<li><strong>Dalton's Law of Partial Pressures and Alveolar Gas Diffusion:</strong> Integrates Dalton’s Law (<span class="math">\(P_{\text{tot}} = \sum p_i\)</span>) and the physiological alveolar gas equation to calculate inspired partial pressures and evaluate hypoxia, hyperoxia, and hypercapnic blood acidosis (<span class="math">\(p\text{CO}_2 &gt; 0.93\text{--}5.0\text{ kPa}\)</span>).
+<span class="math display">\[p_A\text{O}_2 = f_{\text{O}_2}(P_0 - p\text{H}_2\text{O}^*) - \frac{p_A\text{CO}_2}{\text{RER}}\]</span></li>
+<li><strong>Thermodynamics of Solutions:</strong> Calculates water activity (<span class="math">\(a_w = p / p_0\)</span>) using solute activity coefficients and models solution chaotropicity via enthalpy of dissolution to evaluate the mitotic limit (<span class="math">\(a_w \ge 0.605\)</span>) and cellular lysis limits.</li>
+<li><strong>Aqueous Equilibrium Chemistry:</strong> Employs carbonic/sulfuric acid-base dissociation equilibria, carbonate saturation states, and carbonate-silicate weathering kinetics to determine ocean pH, phosphorus solubility, and metal mobilization. <em>(Note: Closed-form negative feedback equations balancing <span class="math">\(\text{CO}_2\)</span> drawdown with surface temperature remain an unmodeled data gap requiring external input).</em></li>
+</ul>
+<h3 id="24-domain-4-ionizing-radiation--particle-physics">2.4 Domain 4: Ionizing Radiation &amp; Particle Physics</h3>
+<ul>
+<li><strong>Relativistic Particle Motion and Magnetospheric Deflection Dynamics:</strong> Uses the Lorentz force equation (<span class="math">\(\mathbf{F} = q(\mathbf{E} + \mathbf{v} \times \mathbf{B})\)</span>) and Størmer theory to calculate magnetic rigidity cutoff thresholds (<span class="math">\(R_c\)</span>) and Chapman-Ferraro magnetopause standoff distances, determining which galactic cosmic rays penetrate planetary magnetic fields.</li>
+<li><strong>Hadronic Air Showers and Nuclear Spallation Cascades:</strong> Applies relativistic collision kinematics, inelastic hadronic cross-sections, and particle decay lifetimes to calculate Pion (<span class="math">\(\pi^0, \pi^\pm\)</span>) production, electromagnetic cascades, and relativistic muon propagation down to the surface.</li>
+<li><strong>Charged Particle Stopping Power and Matter Attenuation:</strong> Implements the Bethe-Bloch formula for continuous ionization energy loss ($dE/dx$) and the Bragg peak, modeling the exponential and ballistic stopping power of atmospheric gas columns, liquid water, and silicate regolith.</li>
+<li><strong>Radiolytic Reaction Kinetics:</strong> Uses radiolytic chemical yield equations (<span class="math">\(G\)</span>-values) and linear energy transfer (LET) physics to calculate the generation rate of radiolytic oxidants and reductants that power the Radiolytic Habitable Zone.</li>
+<li><strong>Statistical Biomacromolecular Degradation:</strong> Applies Manfred Eigen’s quasispecies error threshold formula (<span class="math">\(L_{\max} &lt; \ln \sigma / \mu\)</span>) and Poisson single-hit target theory to quantify the lethal radiation dose rate (<span class="math">\(\dot{D}_{\text{surf}} \ge 10\text{ Gy yr}^{-1}\)</span>) that destabilizes nucleic acid polymerization and collapses informational fidelity.</li>
+</ul>
+<h2 id="3-mathematical-synthesis-calculating-the-phi-4-index">3. Mathematical Synthesis: Calculating the PHI-4 Index</h2>
+<p>Each domain <span class="math">\(k \in \{\text{Pressure}, \text{Temperature}, \text{Chemistry}, \text{Radiation}\}\)</span> maps calculated variables through an asymmetrical, continuous trapezoidal-logistic transfer function <span class="math">\(S_k(x)\)</span> bounded on $[0, 1]$:
+<span class="math display">\[S_k(x) = \left[1 + \exp\left(-\kappa_{L} (x - x_{\min})\right)\right]^{-1} \times \left[1 + \exp\left(\kappa_{R} (x - x_{\max})\right)\right]^{-1}\]</span></p>
+<p>Because biological viability across life support systems is strictly non-compensatory, the final habitability index is synthesized using a weighted geometric mean combined with binary geophysical survival gates (<span class="math">\(\Theta_j\)</span>):
+<span class="math display">\[\text{PHI-4} = \left( \prod_{k=1}^4 S_k^{w_k} \right)^{\frac{1}{\sum w_k}} \times \prod_{j=1}^m \Theta_j\]</span>
+This mathematical construction ensures the habitability score falls continuously to zero if an absolute biophysical limit (e.g., vacuum ebullism, thermal runaway, lethal dose) is breached.</p>
+<h2 id="4-algorithmic-pipeline-integration-pseudocode">4. Algorithmic Pipeline Integration (Pseudocode)</h2>
+<p>The following basic pseudocode demonstrates the execution architecture of the mathematical framework:</p>
+<pre><code class="language-python">def calculate_phi4_index(system_inputs, bio_profile, weights):
+    # --- 1. STOCHASTIC GENERATION &amp; UPSTREAM CONTEXT ---
+    star = generate_star(system_inputs.mass, system_inputs.age)
+    planet = generate_planet_bulk(system_inputs.radius, system_inputs.cmf, system_inputs.wmf)
+    tectonic_state = get_tectonic_regime(planet)
+
+    # --- 2. DETERMINISTIC PHYSICS CALCULATIONS ---
+    # Domain 1: Pressure
+    gravity = G * planet.mass / (planet.radius ** 2)
+    atm_loss = calculate_hydrodynamic_escape(star.xuv_flux, planet)
+    P_0 = max((planet.initial_volatiles - atm_loss) * gravity, 0)
+    seafloor_pressure = calculate_hydrostatic_ocean_depth(P_0, planet.wmf)
+
+    # Domain 2: Temperature
+    insolation = (star.luminosity) / (4 * PI * planet.semi_major_axis ** 2)
+    T_surf = compute_radiative_convective_eq(insolation, P_0, planet.albedo)
+    runaway_gate = check_simpson_nakajima_limit(insolation, T_surf)
+    T_wetbulb = compute_psychrometrics(T_surf, P_0)
+
+    # Domain 3: Chemistry
+    mantle_fugacity = compute_gibbs_free_energy(tectonic_state)
+    pA_O2, pA_CO2 = alveolar_gas_equation(P_0, planet.gas_fractions)
+    water_activity = compute_pitzer_ion_activity(planet.brine_molalities)
+
+    # Domain 4: Radiation
+    magnetopause = compute_lorentz_deflection(planet.rotation, star.wind)
+    surface_dose = compute_hadronic_cascades(magnetopause, P_0)
+
+    # --- 3. TRANSFER FUNCTIONS &amp; SCORING ---
+    S_press = logistic_transfer(P_0, bio_profile.P_min, bio_profile.P_max)
+    S_temp  = logistic_transfer(T_wetbulb, bio_profile.Twb_min, bio_profile.Twb_max)
+    S_chem  = logistic_transfer(pA_O2, bio_profile.O2_min, bio_profile.O2_max) * \
+              logistic_transfer(water_activity, 0.605, 1.0)
+    S_rad   = logistic_transfer(surface_dose, bio_profile.Rad_min, bio_profile.Rad_max)
+
+    # --- 4. GEOMETRIC MEAN SYNTHESIS ---
+    # Apply Absolute Geophysical Survival Gates (Theta_j)
+    if not runaway_gate or seafloor_pressure &gt; 1.2e9:
+        return 0.0
+
+    phi4_score = (S_press**weights.w1 * S_temp**weights.w2 * 
+                  S_chem**weights.w3 * S_rad**weights.w4) ** (1 / sum(weights.values()))
+
+    return phi4_score
+</code></pre>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

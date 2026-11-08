@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The sky behind a system: what the System View draws as its background - planetGen docs</title>
+<meta name="description" content="How the System View&#x27;s background is built: the stars, the glow, the nebulae and remnants that the system itself would see, each star at its true direction and distance and placed where it was when its light left it.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/sky-system-view.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/sky-system-view.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-sky-behind-a-system-what-the-system-view-draws-as-its-background">The sky behind a system: what the System View draws as its background</h1><p class="meta">docs/design/orbits/sky-system-view.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-boss-decided">1. What Boss decided</a></li><li style="margin-left:0px"><a href="#2-where-each-star-appears">2. Where each star appears</a></li><li style="margin-left:0px"><a href="#3-which-stars">3. Which stars</a></li><li style="margin-left:0px"><a href="#4-brightness-and-colour">4. Brightness and colour</a></li><li style="margin-left:0px"><a href="#5-the-glow-band">5. The glow band</a></li><li style="margin-left:0px"><a href="#6-nebulae-remnants-and-compact-objects">6. Nebulae, remnants and compact objects</a></li><li style="margin-left:0px"><a href="#7-how-it-fits-the-page">7. How it fits the page</a></li><li style="margin-left:0px"><a href="#8-what-is-exact-and-what-is-a-stand-in">8. What is exact and what is a stand-in</a></li><li style="margin-left:0px"><a href="#9-left-for-later">9. Left for later</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How the System View's background is built: the stars, the glow, the nebulae and remnants that the system itself would see, each star at its true direction and distance and placed where it was when its light left it. The note holds the numbers the build uses, where each part lives in the code, and what is a stand-in.</p>
+<p>Informs: VIEW.20 to VIEW.38 (goal #4907); VIEW.39 and VIEW.40 are optional and open</p>
+<p>Status: built for stored stars (VIEW.20 to VIEW.37, 2026-11-05). The sky tiers that charting builds (VIEW.25, VIEW.26) and the calibration against a real catalogue (VIEW.30) are open; until they land the sky holds the stars that are stored and says how far it is built.</p>
+<p>Plan and research: <code>reports/system-sky-from-the-system-2026-11-04.md</code>. The wire format is <a href="../interface/system-sky-wire-format.html">system-sky-wire-format.md</a>; the longer, full-chart design for the view from a planet (9.0 phase 2; 9.1 was folded into 9.0) is <a href="sky-view.html">sky-view.md</a>, and its items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 are built in 8.2 as its foundations. Sources are cited as <code>[R0123]</code>; the list is on the References pages.</p>
+<h2 id="1-what-boss-decided">1. What Boss decided</h2>
+<p>Boss, 5:17 PM EST on 2026-11-04: the System View's background is the sky that system sees, each star at its true direction and distance and placed where it was when the light left it, not where it is at the galaxy's present time. Boss, 5:29 PM EST the same day (answers 1.2, 2.1, 3.3):</p>
+<ol>
+<li>A lighter 8.2 backdrop from stored stars and the glow. The items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 are built in 8.2 as foundations of the view from a planet (9.0), and this part is built so they can reuse it.</li>
+<li>The limiting magnitude is a setting. The default is 7.5 and a phone gets a lower one (6.5).</li>
+<li>Missing stars are built when a system is charted, not by a visit. Reading the sky never starts a job.</li>
+</ol>
+<p>Defaults taken without asking: aberration of the observer's motion is off (VIEW.39 would add it); stars fainter than the limit are the glow with a seeded grain, never invented one by one; light travel time is applied to every star; no database migration.</p>
+<h2 id="2-where-each-star-appears">2. Where each star appears</h2>
+<p>Light leaves a star at time <code>t - tau</code> and reaches the observer at <code>t</code>, so the star is seen where it was <code>tau</code> earlier, with <code>tau = |apparent offset| / c</code>. Stars move in straight lines in the stored model (position, velocity, epoch). Per star, with <code>d0</code> the offset from the observer at the star's stored epoch, <code>v_rel</code> its velocity minus the observer's and <code>t</code> the years since that epoch:</p>
+<pre><code>apparent offset = d0 + v_rel t - v_star tau        tau = |apparent offset| / c
+</code></pre>
+<p>It is solved by iteration: two passes, three for a star faster than 1,000 km/s (<code>skysphere.FAST_KMS</code>). Each pass shrinks the error by <code>v/c</code>, about 1e-3 at 300 km/s and 3e-3 at 1,000 km/s. This is the standard light-time correction of astrometry [R5112]. The same arithmetic runs three times: in numpy for the catalogue (<code>physics/light_travel.py</code>, <code>galaxy/sky.py</code>), in the vertex shader that moves the stars every frame (<code>skysphere.js</code>) and in the page's picking (<code>skypick.js</code>), and tests hold the three to one another.</p>
+<p>How much it moves a star, whatever its distance: about <code>v/c</code> radians. That is 20 arcseconds at 30 km/s, 2.5 arcminutes at 220 km/s and 11.5 arcminutes at 1,000 km/s, which on a 60 degree view across 1,000 pixels is 0.1, 0.7 and 3 pixels. The path of a star bends away from a straight line by <code>(v T)^2 / (2 R)</code> over a light time <code>T</code>; for a star at 10 kpc that is 0.003 pc, about 0.01 arcsecond, so no orbit is integrated for the sky.</p>
+<p>Three more effects use the same <code>tau</code>:</p>
+<ul>
+<li><strong>Age.</strong> A star seen at distance <code>d</code> is seen at its age minus <code>tau</code>. If that is negative it had not formed, and it is left out (counted in the report). A star whose phase ended less than <code>tau</code> ago is seen in the phase before; the sky keeps its stored luminosity and temperature and counts it (<code>other_phase</code>). The stellar track at the earlier age is VIEW.12's, in 9.1.</li>
+<li><strong>Remnants.</strong> A supernova remnant younger than the light time has not been seen. <code>physics/light_travel.py</code> carries the rule; the sprite builder marks such a remnant unseen (<code>remnant_seen</code>).</li>
+<li><strong>The galaxy's present.</strong> Every stored position carries its own epoch. The orbit clock (up to 100 years a second) moves the stars, so nearby ones drift across the view and one at 100 pc does not move, which is the true picture. The list stays right across the monthly orbital update, so the cache is not cleared when objects move.</li>
+</ul>
+<p>Not done: aberration (172 arcseconds at 250 km/s, under a pixel) and gravitational lensing. The galactic nucleus is in the glow; a dark black hole is not drawn.</p>
+<h2 id="3-which-stars">3. Which stars</h2>
+<p>The rule of sky-view.md stays: resolved stars come from the real generator and everything fainter is light, and no resolved star is invented for space a later fill could not reproduce.</p>
+<ol>
+<li><strong>Stored stars (exact).</strong> Every star of a charted system, the pre-placed <code>bright_stars</code>, the scattered phenomena (hypervelocity stars with their stored velocity, neutron stars and black holes at their map luminosity, quasars) and cluster members. A close pair fuses to one point. The observer's own system is left out; its stars are bodies.</li>
+<li><strong>Sky tiers.</strong> The stars between the scatter floor and the limit, drawn by the existing deterministic backfill and stored when a system is charted (VIEW.24 is the table, VIEW.25 the build, VIEW.26 the command for sectors charted earlier). Until a system has them, the sky shows what is stored and a status line says &quot;built to X pc, filling in&quot;; the page asks again every 30 seconds, at most 20 times.</li>
+<li><strong>The glow band</strong> of everything fainter than the limit (section 5).</li>
+<li><strong>Extended objects</strong> as sprites (section 6).</li>
+</ol>
+<p>How many: the limit is a magnitude, not a distance. At 7.5 about 25,000 stars are resolved in a real sky, at 6.5 about 9,000 and at 8.5 about 75,000; each magnitude of limit multiplies the count by 2.5 to 3. At 7.5 the density in the galactic plane is a few stars per square degree and a pixel of the view is 0.06 degree, so no two stars blend. The page draws at most 60,000 stars and a phone 15,000 (<code>skysphere.MAX_STARS</code>, <code>MAX_STARS_PHONE</code>), keeping the brightest. A star fades in over the last 1.5 magnitudes before the limit so none pops in when a tier finishes.</p>
+<h2 id="4-brightness-and-colour">4. Brightness and colour</h2>
+<ul>
+<li><strong>Magnitude.</strong> <code>m = M + 5 log10(d / 10 pc) + A_V</code>, with <code>d</code> the retarded distance (<code>physics/sky_photometry.py</code>). The bolometric correction is the one of <code>physics/photometry.py</code>; stars under 4,100 K take the main-sequence table of Pecaut and Mamajek [R3469].</li>
+<li><strong>Dust.</strong> The smooth galactic law: <code>A_V</code> of 1.0 mag per kpc in the plane at the solar circle, scale length 2.26 kpc and height 134 pc [R1158]. The server adds the dust of a star's line of sight into the list's magnitude (the packed column), so the browser does no integral. Reddening by dust is not applied (VIEW.11, 9.1); the law for it would be [R0651].</li>
+<li><strong>Look of a point.</strong> The Galaxy Map's laws (<code>starmagnitude.js</code>, <code>starlight.js</code>) with <code>skylight.js</code> on top: the middle of a star is at full strength at magnitude 4.5 and brighter, its Gaussian width is 0.7 pixel at 4.5 plus 0.45 pixel for every magnitude brighter, a point is drawn 4 sigmas wide and never wider than 12 pixels. The colour is the blackbody of the temperature, blended toward white as the star dims (all of the colour is kept at magnitude 1.5 and brighter, 35% of it at 5.5 and fainter).</li>
+</ul>
+<h2 id="5-the-glow-band">5. The glow band</h2>
+<p>The light of the stars too faint to draw: for a direction <code>u</code> from the observer <code>P</code>, <code>J(u) = integral of j0 density(P + s u) f_faint(s) 10^(-0.4 A_V(s)) ds</code>, in the galaxy's own stellar density (so it follows the model's disc, bulge and arms), 400 steps spaced as the square of a uniform fraction out to 30 kpc. <code>f_faint(s)</code> is the share of a population's V light that comes from stars too faint to reach the limit at distance <code>s</code>, so the band adds to the drawn stars without counting them twice. A lower limit (a phone) draws fewer stars and leaves more light in the glow.</p>
+<p>Surface brightness is <code>SB = -0.19 - 2.5 log10(Omega J)</code> in mag per square arcsecond; a Milky-Way-like galaxy at the Sun runs 21.6 to 23.0, so the band is values of about 0.4 to 1.5 in the image's unit (1 is 22 mag per square arcsecond). The server keeps one image per 50 pc cell of the observer's position (moving 20 ly changes it by at most 0.004 mag), as a cube map of 6 faces of 32 pixels, and sends a 256 by 128 equirectangular image of three half floats a texel (<code>rgb16f</code>). The page samples it by direction in a shader, draws it as <code>0.4 (1 - exp(-0.5 v))</code>, multiplies by a seeded grain of plus or minus 20% over 0.12 degree cells so it does not look like smooth paint, and dithers the 8-bit output by one level. Nebula dust and the full ray-march with the nebulae are VIEW.13 (9.1).</p>
+<h2 id="6-nebulae-remnants-and-compact-objects">6. Nebulae, remnants and compact objects</h2>
+<p>Each stored nebula and supernova remnant becomes a sprite record: direction, angular radius, surface brightness, extinction (<code>galaxy/sky_sprites.py</code>, at most 600, the widest first, none narrower than 0.002 rad or 0.115 degree). The page draws a glow sprite above the limiting surface brightness of 23 mag per square arcsecond (full strength 5 magnitudes brighter) and a dark sprite that dims what is behind it for a cloud with no light of its own. A luminous neutron star, black hole (disc) or quasar is a point at its map luminosity and temperature. Which stars a sprite hides is decided by the depth test, because the sky is far past the bodies: a planet in front of a star hides it.</p>
+<h2 id="7-how-it-fits-the-page">7. How it fits the page</h2>
+<ul>
+<li>Only the standalone System View (<code>systempage3d.js</code>). In the Galaxy Map the real stars are the sky; VIEW.40 (optional, after the continuous zoom) would cross-fade the map's stars into the sky as the camera nears a system.</li>
+<li>One points object, one band sphere and the sprites, all centered on the camera and drawn first (a sky at infinity). Camera moves of tens of AU are ignored: 40 AU shifts a star at 1 pc by 40 arcseconds.</li>
+<li>A system's orbital plane is not tied to the galactic frame in the stored model, so the galactic plane is laid in the scene's reference plane (the galaxy's north pole is the scene's up). A stand-in (SKD5), replaced when a system gets an orientation.</li>
+<li>The preference (on unless the browser remembers off) is on the page; a failed request, or a system with no place in the galaxy, leaves the plain backdrop and says why.</li>
+<li><strong>Picking (VIEW.37).</strong> Hovering a sky star shows what it is (the charted star's name or the kind), its class, distance and magnitude and &quot;seen as it was N years ago&quot;; a click opens a card, and a charted star links to its page. The pick uses the same light-time arithmetic as the card, within 10 pixels of the pointer. Scatter and tier stars have no ID until GEN.1254 and a name until GEN.1255, so they are told but not linked.</li>
+<li>Cost: a sky of 25,000 stars is about 0.65 MB packed (about 0.4 MB gzipped), one draw call and no per-frame upload. The first visit costs a query and a pack; the rest is a cache hit (<code>Cache-Control: no-store</code> on the route, the cache is the server's, cleared from the same admin page as the map tiles). Gaia Sky streams a catalogue by magnitude in the same way the tiers do [R5113].</li>
+</ul>
+<h2 id="8-what-is-exact-and-what-is-a-stand-in">8. What is exact and what is a stand-in</h2>
+<p>Exact: the direction and distance of every stored star (to the 1 mpc rounding of the stored position); the light-time position of a star given its stored velocity; the magnitude given luminosity, temperature, bolometric correction and distance. Everything else below is a stand-in in the GEN.725 registry (<code>docs/design/research/stand-in-values.md</code>), with its tier and tweak level:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Rows</th>
+<th>Section of the plan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Photometry: dust law, cool-star table</td>
+<td>SKP1 to SKP4</td>
+<td>6.171</td>
+</tr>
+<tr>
+<td>The sky catalogue: velocity of an unbuilt star, the star with no epoch</td>
+<td>SKC1, SKC2</td>
+<td>6.175</td>
+</tr>
+<tr>
+<td>The tier table</td>
+<td>SKT1 to SKT6</td>
+<td>6.176</td>
+</tr>
+<tr>
+<td>The glow band: luminosity density, faint-light shares, tint</td>
+<td>SKB1 to SKB3, GLW1</td>
+<td>6.174</td>
+</tr>
+<tr>
+<td>Sprites</td>
+<td>SPR1 to SPR3, SKV2</td>
+<td>6.179 (route)</td>
+</tr>
+<tr>
+<td>The route's limits</td>
+<td>SKV1 to SKV3</td>
+<td>6.179 (route)</td>
+</tr>
+<tr>
+<td>Drawing of band, sprites and plane</td>
+<td>SKD1 to SKD5</td>
+<td>6.180</td>
+</tr>
+<tr>
+<td>The look of a star, the star caps, the page's reach</td>
+<td>SKL1 to SKL8</td>
+<td>6.181</td>
+</tr>
+</tbody>
+</table></div>
+<p>The velocity of an unbuilt scatter or tier star is the circular speed at its place plus a dispersion of (35, 25, 20) km/s drawn from the star's own key, so it is a pure function; a wrong 30 km/s is 20 arcseconds, invisible. GEN.339's seeded dispersion should key on the scatter seed so the fill agrees later.</p>
+<h2 id="9-left-for-later">9. Left for later</h2>
+<ul>
+<li>VIEW.25 and VIEW.26 (charting builds the tiers, and the one-off command), VIEW.30 (calibration against a real catalogue on a developer machine: about 9,000 stars at 6.5).</li>
+<li>VIEW.39 (aberration, off by default) and VIEW.40 (cross-fade).</li>
+<li>GEN.1254 and GEN.1255 (an ID and a name for scatter stars), then the links.</li>
+<li>A system orientation to the galaxy (SKD5).</li>
+<li>In 8.2 (foundations of the 9.0 view): reddening and desaturation (VIEW.11), the nebula dust (VIEW.8), the stellar track at the earlier age (VIEW.12), the full ray-march (VIEW.13), the view from a planet's surface.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<p>[R5112] aberration and light-time corrections; [R5113] streaming a star catalogue by magnitude; [R1158] the dust disc; [R0651] the extinction law that VIEW.11 will use; [R3469] cool main-sequence stars.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

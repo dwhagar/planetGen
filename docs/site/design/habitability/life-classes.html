@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The life class system: what each kind of life eats, drinks, breathes and makes, and how it changes its world - planetGen docs</title>
+<meta name="description" content="Written the evening of 2026-10-28 EDT, after Boss&#x27;s 9:10 to 9:13 PM EDT messages (design thread &quot;Design carbon life class system&quot;).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/life-classes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/life-classes.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-life-class-system-what-each-kind-of-life-eats-drinks-breathes-and-makes-and-how-it-changes-its-world">The life class system: what each kind of life eats, drinks, breathes and makes, and how it changes its world</h1><p class="meta">docs/design/habitability/life-classes.md</p><details class="toc"><summary>On this page (44 headings)</summary><ul><li style="margin-left:0px"><a href="#1-short-answer">1. Short answer</a></li><li style="margin-left:0px"><a href="#2-the-idea-in-plain-words">2. The idea in plain words</a></li><li style="margin-left:0px"><a href="#3-the-classes">3. The classes</a></li><li style="margin-left:14px"><a href="#31-the-table">3.1 The table</a></li><li style="margin-left:14px"><a href="#32-which-stored-values-each-class-reads">3.2 Which stored values each class reads</a></li><li style="margin-left:14px"><a href="#33-considered-and-left-out-with-the-reason">3.3 Considered and left out, with the reason</a></li><li style="margin-left:14px"><a href="#104-the-words-gen892">10.4 The words (GEN.892)</a></li><li style="margin-left:0px"><a href="#4-what-each-class-eats-drinks-breathes-and-excretes-the-ledger">4. What each class eats, drinks, breathes and excretes (the ledger)</a></li><li style="margin-left:14px"><a href="#food-water-and-breath-for-the-captain">Food, water and breath for the captain</a></li><li style="margin-left:0px"><a href="#5-the-stage-ladder-and-how-rare-each-rung-is">5. The stage ladder and how rare each rung is</a></li><li style="margin-left:14px"><a href="#51-the-rungs">5.1 The rungs</a></li><li style="margin-left:14px"><a href="#52-prevalence-targets-boss-913-pm-edt">5.2 Prevalence targets (Boss 9:13 PM EDT)</a></li><li style="margin-left:0px"><a href="#6-how-a-class-changes-the-air-and-the-chart">6. How a class changes the air, and the chart</a></li><li style="margin-left:14px"><a href="#61-what-is-computed">6.1 What is computed</a></li><li style="margin-left:14px"><a href="#62-the-life-and-air-chart-on-the-planet-page">6.2 The "Life and air" chart on the planet page</a></li><li style="margin-left:14px"><a href="#63-what-the-plot-does-not-claim">6.3 What the plot does not claim</a></li><li style="margin-left:14px"><a href="#64-as-built-gen891-gen857-gen858-gen859">6.4 As built (GEN.891, GEN.857, GEN.858, GEN.859)</a></li><li style="margin-left:14px"><a href="#65-as-built-the-air-of-the-whole-mix-of-living-classes-gen1213">6.5 As built: the air of the whole mix of living classes (GEN.1213)</a></li><li style="margin-left:14px"><a href="#66-as-built-several-life-classes-on-one-body-gen1209-boss-10-31-1014-am-edt">6.6 As built: several life classes on one body (GEN.1209, Boss 10-31 10:14 AM EDT)</a></li><li style="margin-left:0px"><a href="#7-how-life-is-limited-without-a-ban">7. How life is limited without a ban</a></li><li style="margin-left:14px"><a href="#71-the-three-limits-every-class-has">7.1 The three limits every class has</a></li><li style="margin-left:14px"><a href="#72-why-strange-solvent-life-ends-up-small">7.2 Why strange-solvent life ends up small</a></li><li style="margin-left:14px"><a href="#73-the-complexity-index-and-animal-grades">7.3 The complexity index and animal grades</a></li><li style="margin-left:14px"><a href="#74-traits-stay-and-move-thresholds">7.4 Traits stay, and move thresholds</a></li><li style="margin-left:0px"><a href="#8-scoring-supply-and-dominance">8. Scoring, supply and dominance</a></li><li style="margin-left:14px"><a href="#81-the-score-of-a-class">8.1 The score of a class</a></li><li style="margin-left:14px"><a href="#82-dominant-class-the-has-side">8.2 Dominant class (the "has" side)</a></li><li style="margin-left:14px"><a href="#83-new-supply-quantities">8.3 New supply quantities</a></li><li style="margin-left:0px"><a href="#9-how-it-ties-to-the-habitability-index-and-the-four-life-scores">9. How it ties to the habitability index and the four life scores</a></li><li style="margin-left:0px"><a href="#10-what-gets-stored-shown-and-filtered-gen863">10. What gets stored, shown and filtered (GEN.863)</a></li><li style="margin-left:14px"><a href="#101-storage">10.1 Storage</a></li><li style="margin-left:14px"><a href="#102-display">10.2 Display</a></li><li style="margin-left:14px"><a href="#103-rule-file-and-code">10.3 Rule file and code</a></li><li style="margin-left:14px"><a href="#105-as-built-generator-epoch-120-schema-175-gen867-to-gen872-gen887-gen889-gen890">10.5 As built (generator epoch 120, schema 175; GEN.867 to GEN.872, GEN.887, GEN.889, GEN.890)</a></li><li style="margin-left:14px"><a href="#106-as-built-the-planet-pages-life-section-ux237-first-part">10.6 As built: the planet page's Life section (UX.237, first part)</a></li><li style="margin-left:0px"><a href="#11-overlap-with-core-1-and-aux-4-and-what-changes-in-their-items">11. Overlap with Core 1 and Aux 4, and what changes in their items</a></li><li style="margin-left:14px"><a href="#111-with-core-1-owns-gen855750-and-gen857-to-gen861-872-873">11.1 With Core 1 (owns GEN.855/750 and GEN.857 to GEN.861, 872, 873)</a></li><li style="margin-left:14px"><a href="#112-with-aux-4-owns-the-life-chemistry-chain-gen867-to-gen884-test436">11.2 With Aux 4 (owns the life chemistry chain GEN.867 to GEN.884, TEST.436)</a></li><li style="margin-left:14px"><a href="#113-sequencing-and-lock-turns">11.3 Sequencing and lock turns</a></li><li style="margin-left:0px"><a href="#12-sub-items-for-todo-to-file">12. Sub-items for TODO to file</a></li><li style="margin-left:0px"><a href="#13-decisions-for-boss-cards">13. Decisions for Boss (cards)</a></li><li style="margin-left:0px"><a href="#14-sources-and-what-was-not-verified">14. Sources and what was not verified</a></li><li style="margin-left:0px"><a href="#life-readings-abundance-trend-and-security-gen1210">Life readings: abundance, trend and security (GEN.1210)</a></li><li style="margin-left:0px"><a href="#the-life-help-pages-doc84">The life help pages (DOC.84)</a></li></ul></details>
+<p>Written the evening of 2026-10-28 EDT, after Boss's 9:10 to 9:13 PM EDT messages (design thread &quot;Design carbon life class system&quot;). Design only: no repo code was changed. It feeds GEN.862 (the design), GEN.863 (the scores) and the sub-items listed in section 12, and it supersedes the scope lines on GEN.874, GEN.875 to GEN.885 where section 11 says so.</p>
+<p>Boss's rulings this design follows (all times EDT 2026-10-28):</p>
+<ul>
+<li>9:10 PM: build in all the life, with what it eats, drinks, breathes and excretes, a class for each kind, &quot;this planet supports Class N life&quot; and &quot;this planet has Class N life at the N stage&quot;, so we can plot how each class changes the air. Moved into 8.1 (GEN.862, GEN.863).</li>
+<li>9:11 PM: &quot;no approvals needed at all, we're building it and a whole new classification system.&quot; 9:12 PM: &quot;I don't want to restrict anymore, so open build, the assumption is that if it's possible life will develop.&quot; So no approval gates and no chemistry is excluded for being unusual. Only chemistries that cannot exist as a stable liquid on a planet are left out, and section 3.3 says why each one is.</li>
+<li>9:13 PM: &quot;sentient should be the most rare kind of life with most life stopping at animal life.&quot; The stage ladder and the prevalence targets in section 5 make sentient the rarest outcome.</li>
+<li>Earlier, still standing: the share of sentient worlds stays as it is (7:38 PM), GEN.750 means 0.5 / 1.5 / 2.5 / 3 / 60 Gyr, scale 1.0 (9:03 PM), sub-ice mats are not food (GEN.871), Retinal's O<sub>2</sub> gate is removed (GEN.861), every constant gets a tier and tweak level (GEN.725, GEN.870), no backward-compat shims, testing mode (new epochs and migrations are fine).</li>
+</ul>
+<p>Tier labels T1 to T9 and tweak levels L0 to L4 are Boss's ladder (docs/design/research/stand-in-values.md). Numbers marked (recalled) come from memory or from the two research reports and are not re-opened here; they must be spot-checked before they become a test limit. Source reports used: reports/life-chemistry-review-2026-10-28.md (called &quot;the review&quot;), reports/non-carbon-life-climates-2026-10-28.md (&quot;the climates report&quot;), reports/non-oxygen-life-byproducts-2026-10-28.md (&quot;the byproducts report&quot;), reports/life-scores-2026-10-23.md.</p>
+<hr />
+<h2 id="1-short-answer">1. Short answer</h2>
+<ol>
+<li>A <strong>life class</strong> is a way of making a living: what the life drinks (its solvent), what it builds itself from (its base), what it eats (its energy), what it breathes (its oxidant) and what it gives off. Nine classes are defined (section 3); numbers 10 to 19 are kept in reserve, the same way planet class letters are.</li>
+<li>Every planet and moon gets two statements, kept apart:
+<ul>
+<li><strong>&quot;Supports Class N life&quot;</strong>: the classes whose needs the world meets right now, each with a score 0 to 9 (the best one is the headline). It reads only the world's conditions. This is the old habitable index with one more dimension: habitable to what kind of life.</li>
+<li><strong>&quot;Has Class N life at the X stage&quot;</strong>: the one class that actually lives there and how far it has got (its dominant life). It reads the star's age and the life timeline. Per Boss's assumption, if a class is supported, that life develops; the stage is how far its clock has run.</li>
+</ul>
+</li>
+<li>A <strong>stage ladder</strong> (section 5) is shared by every class, with class-specific words: no life, origin, producers, complex cells, multicellular life, animals in grades (sessile, small mobile, large active), and sentient life last. Sentient is the rarest outcome by design, and most life worlds stop at microbes, plants or animals.</li>
+<li>Each class has a <strong>gas ledger</strong> (section 4 and 6): what it takes out of the air and puts in, per stage. That is what the stage-aware air (GEN.858) and the biogenic gases (GEN.857) need, and it is what the &quot;Life and air&quot; chart on the planet page plots.</li>
+<li><strong>How life is limited is physics, not a ban</strong> (section 7). Each class has a window (temperature, pressure, solvent), an energy supply and a speed. Strange-solvent life (acid, dense CO<sub>2</sub>, cold methane, ammonia water, silicon in acid) is allowed to develop where its window holds; because its energy and reaction speed are low, most of it ends as microbes or mats and a little reaches simple animals. That is a result of the numbers, which stay tweakable, and not a hard cap.</li>
+<li>The existing six chemistries are folded in: Chlorophyll a, Blue-Optimized and a new far-red pigment become the three <strong>pigments of Class 1</strong>; Bacteriochlorophylls become Class 2; Retinal becomes a light supplement any class can carry; Melanin becomes a radiation-tolerance trait; Zinc-Bacteriochlorophyll becomes an acid-tolerance trait. The pigment a world gets is chosen by physics (the star's light against the pigment's band), which removes the 15 dead star weights (GEN.867) instead of repairing them.</li>
+<li>This design sits on Core 1's life timeline (GEN.855 + GEN.750, still waiting for the lock) and Aux 4's life chemistry chain. Section 11 lists exactly what it takes from each and what it changes in their items.</li>
+<li>Four decisions for Boss are in section 13 (cards in the thread); everything else is a stated design choice he can reverse.</li>
+</ol>
+<hr />
+<h2 id="2-the-idea-in-plain-words">2. The idea in plain words</h2>
+<p>A world can be rated for people (PHI-6: how survivable and how pleasant for a human captain). It can also be rated for life of some kind. Today the code does the second one with a single curve that is really &quot;water and carbon life that looks like Earth's&quot;. The life class system makes the kind of life a dial.</p>
+<p>Each class is defined by six things, in the order a reader wants them:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dial</th>
+<th>Plain meaning</th>
+<th>Stored or derived</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Drinks (solvent)</td>
+<td>The liquid its chemistry happens in: water, concentrated sulfuric acid, liquid or dense CO<sub>2</sub>, liquid methane and ethane, water with ammonia</td>
+<td>derived from hydrosphere, temperature, pressure, composition</td>
+</tr>
+<tr>
+<td>Built from (base)</td>
+<td>Carbon for eight classes, silicon-bearing carbon for one</td>
+<td>the class</td>
+</tr>
+<tr>
+<td>Eats (energy)</td>
+<td>Starlight in a band, hydrogen from rock, sulfur or iron compounds, radiolytic hydrogen, acid chemistry</td>
+<td>derived supply, see 8.3</td>
+</tr>
+<tr>
+<td>Breathes (oxidant)</td>
+<td>Oxygen, nitrate, sulfate, perchlorate, CO<sub>2</sub>, acid, or nothing</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Gives off (waste)</td>
+<td>O<sub>2</sub>, CH<sub>4</sub>, sulfate, SO<sub>2</sub>, silica, water and so on</td>
+<td>the class ledger</td>
+</tr>
+<tr>
+<td>Lives where (window)</td>
+<td>temperature, pressure, radiation, the air's toxins</td>
+<td>stored quantities</td>
+</tr>
+</tbody>
+</table></div>
+<p>&quot;Supports Class N&quot; is computed from those windows and supplies. &quot;Has Class N life&quot; is the draw plus the timeline.</p>
+<hr />
+<h2 id="3-the-classes">3. The classes</h2>
+<h3 id="31-the-table">3.1 The table</h3>
+<p>Class number is the metabolism. A letter after it is the pigment or habitat variant of that metabolism (the thing the old <code>LIFE_CHEMICALS</code> table drew). Tiers are for the claim that the class can exist; tweak levels for the numbers in its window.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Name</th>
+<th>Drinks</th>
+<th>Eats</th>
+<th>Breathes</th>
+<th>Gives off</th>
+<th>Needs (window)</th>
+<th>Reaches</th>
+<th>Tier of the class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td>Oxygenic light-eaters</td>
+<td>water</td>
+<td>light + CO<sub>2</sub> + water, plus N, P, Fe</td>
+<td>O<sub>2</sub> once it exists (aerobes); before that nothing</td>
+<td><strong>O<sub>2</sub></strong> (net, after the sinks fill), buried organic carbon; CH<sub>4</sub> only through a small food web</td>
+<td>Sunlit water (surface ocean, hycean, or surface water on land); mean habitat 255 to 395 K for microbes, up to about 333 K for animals; CO<sub>2</sub> at least about 5 Pa; light in the pigment's band at least 1 percent of Earth's for plants and mats (0.01 percent for deep microbes) (T7, L3)</td>
+<td>Animals</td>
+<td>T1</td>
+</tr>
+<tr>
+<td>1a</td>
+<td>visible pigment (Chlorophyll a)</td>
+<td></td>
+<td>400 to 700 nm</td>
+<td></td>
+<td></td>
+<td>star spectrum rich in 400 to 700 nm: F, G, K and bright early M</td>
+<td></td>
+<td>T1</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>blue and UV adapted (Blue-Optimized, with fluorescence)</td>
+<td></td>
+<td>300 to 500 nm</td>
+<td></td>
+<td></td>
+<td>hot bright stars: late B to F; UV shield from fluorescent proteins</td>
+<td></td>
+<td>T6 to T7</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>far-red (chlorophyll d and f)</td>
+<td></td>
+<td>700 to 760 nm and beyond</td>
+<td></td>
+<td></td>
+<td>K and M stars; efficiency penalty for the lower photon energy</td>
+<td></td>
+<td>T5 (chemistry), T7 (penalty)</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Anoxygenic light-eaters</td>
+<td>water</td>
+<td>near-infrared light (800 to 1050 nm) + CO<sub>2</sub> + a donor: H<sub>2</sub>, Fe2+ or H<sub>2</sub>S</td>
+<td>nothing (anaerobes); free O<sub>2</sub> poisons them</td>
+<td>sulfate, sulfur, Fe(III), organic carbon; CH<sub>4</sub> comes from their food web</td>
+<td>Sunlit water, donor supply, free O<sub>2</sub> below about 3 percent (the existing gate); habitat 255 to 370 K (T7, L3)</td>
+<td>Microbial mats; animals only if another oxidant source exists</td>
+<td>T1</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Hydrogen eaters (chemolithotrophs)</td>
+<td>water</td>
+<td>hydrogen (geochemical or radiolytic) + CO<sub>2</sub></td>
+<td>CO<sub>2</sub> (methanogens, acetogens) or sulfate (3b)</td>
+<td><strong>CH<sub>4</sub></strong>, acetate, sulfide (3b)</td>
+<td>Liquid water in contact with rock that makes H<sub>2</sub>; no light needed; habitat 255 to 395 K</td>
+<td>Microbial</td>
+<td>T1 to T2</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>geochemical H<sub>2</sub> (serpentinisation, vents)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>ultramafic rock plus water plus heat</td>
+<td></td>
+<td>T2</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>radiolytic H<sub>2</sub> and sulfate (deep crust, aquifers)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>radiogenic heat and dose in water-bearing rock</td>
+<td></td>
+<td>T2 ([R0772], read in the review)</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>Sulfur, iron and nitrogen eaters</td>
+<td>water</td>
+<td>H<sub>2</sub>S, Fe2+, NH<sub>4</sub>+ or CH<sub>4</sub></td>
+<td>O<sub>2</sub> (4a), nitrate and N-oxides (4b), chlorate and perchlorate (4c)</td>
+<td>sulfate, Fe(III), N<sub>2</sub>, CO<sub>2</sub></td>
+<td>Reduced fuel and an oxidant meeting, on vents, seeps, redox layers and under an oxygen sea; oxidant delivery limits the size</td>
+<td>Animals (chemosymbiotic tubeworm, clam, mussel and cave-fish style communities)</td>
+<td>T2 (4a, 4b), T8 (4c as animals)</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Acid-world life</td>
+<td>concentrated sulfuric acid (81 to 100 percent)</td>
+<td>reduced sulfur, organic carbon, blue and UV light</td>
+<td>the acid itself (reduced to SO<sub>2</sub> and sulfur); traces of O<sub>2</sub></td>
+<td>SO<sub>2</sub>, sulfur, CO<sub>2</sub>, water (which dilutes the acid and must be shed)</td>
+<td>Very dry world; SO<sub>2</sub> and a photochemical route to H<sub>2</sub>SO<sub>4</sub>; liquid acid 283 to 373 K (cloud layer) or on warm ground; cloud variant needs a temperate layer under 100 C</td>
+<td>Mats and aerial plankton; at most simple colonial or sessile forms</td>
+<td>T6 to T7</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>cloud-deck plankton</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>thick air with a layer at 283 to 373 K and 0.3 to 3 bar</td>
+<td></td>
+<td>T6</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>pool and crust mats</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>warm dry ground, acid pools</td>
+<td></td>
+<td>T6</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Dense-CO2 life</td>
+<td>liquid or supercritical CO<sub>2</sub></td>
+<td>hydrogen (fuel)</td>
+<td>CO<sub>2</sub> (the solvent is the oxidant)</td>
+<td>CH<sub>4</sub>, water (separates out)</td>
+<td>CO<sub>2</sub> air or sea: liquid CO<sub>2</sub> below 304 K above 5.2 bar, supercritical above that and about 73 bar; very dry</td>
+<td>Microbial, at most mats</td>
+<td>T7 to T8</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td>Cold hydrocarbon-sea life</td>
+<td>liquid methane and ethane</td>
+<td>hydrogen and acetylene (hydrogenation)</td>
+<td>nothing</td>
+<td><strong>CH<sub>4</sub></strong></td>
+<td>90 to 190 K; N<sub>2</sub> and CH<sub>4</sub> air around 1.5 bar; methane at saturation (the existing <code>solvent()</code> rule)</td>
+<td>Microbial mats</td>
+<td>T8</td>
+</tr>
+<tr>
+<td><strong>8</strong></td>
+<td>Ammonia-water life</td>
+<td>water with ammonia</td>
+<td>hydrogen and chemical gradients in cold alkaline brine</td>
+<td>CO<sub>2</sub> / carbonate</td>
+<td>CH<sub>4</sub>, N<sub>2</sub></td>
+<td>176 to 273 K water-ammonia oceans (the eutectic is about 176 K, recalled), mostly inside ice moons; ammonia at least 10 percent of the water mass</td>
+<td>Microbial</td>
+<td>T8</td>
+</tr>
+<tr>
+<td><strong>9</strong></td>
+<td>Silicon-bearing life in acid</td>
+<td>concentrated sulfuric acid</td>
+<td>as Class 5, with organosilicon chemistry</td>
+<td>the acid</td>
+<td>SO<sub>2</sub>, <strong>silica (solid SiO<sub>2</sub>)</strong></td>
+<td>The Class 5 window plus a silicon-rich crust; silicones resist 98 percent acid at 90 C (read in the climates report)</td>
+<td>Microbial</td>
+<td>T9 (as a backbone), T7 (as a rare atom)</td>
+</tr>
+<tr>
+<td>10 to 19</td>
+<td>reserved</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading the table: &quot;Reaches&quot; is what the physics allows (section 7), not a rule. The classes are ordered by how common the build expects them to be, not by importance.</p>
+<h3 id="32-which-stored-values-each-class-reads">3.2 Which stored values each class reads</h3>
+<p>All of these exist today except the ones marked NEW, which are the supply quantities of section 8.3.</p>
+<ul>
+<li>Temperature, pressure, hydrosphere (dry, vapour, ice, ice-covered ocean, surface ocean, hycean), <code>ocean_fraction</code>, <code>ocean_ph</code>, water mass fraction, the ten gas shares (<code>o2 co2 co n2 ar h2 h2o ch4 h2s so2</code>), <code>energy_flux_w_m2</code>, gravity, radiation dose.</li>
+<li>The star's spectrum in bands (needed for the pigment band times spectrum multiplier, GEN.878).</li>
+<li>NEW: hydrogen supply (serpentinisation and radiolysis), donor supply (H<sub>2</sub>S, Fe2+), oxidant supply (O<sub>2</sub>, nitrate, radiolytic oxidants), acid medium (is there liquid sulfuric acid, where), ammonia inventory, liquid CO<sub>2</sub> phase. Section 8.3.</li>
+</ul>
+<h3 id="33-considered-and-left-out-with-the-reason">3.3 Considered and left out, with the reason</h3>
+<p>Boss's rule is &quot;if it's possible life will develop&quot;, so an idea is left out only when the climates report finds that its solvent cannot be a stable liquid on a planet, or the chemistry fails on its own terms. Recorded so no one files them again.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Why it is not a class</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Silicon in cryogens (liquid nitrogen, Triton)</td>
+<td>The building blocks do not dissolve (silanes at parts per thousand, glycine-sized molecules under 1 ppm); &quot;no cryosolvents are suitable&quot;</td>
+<td>[R3502], read in the climates report</td>
+</tr>
+<tr>
+<td>Sulfur chains, liquid sulfur</td>
+<td>Liquid only at 115 to 170 C and the viscosity rises more than 10,000 times above 155 C</td>
+<td>climates report 3.1 F</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S, HF, formamide, methanol solvents</td>
+<td>Photolysed far faster than they form, or not stable planetary liquids</td>
+<td>climates report</td>
+</tr>
+<tr>
+<td>Pure ammonia seas</td>
+<td>Needs ammonia ten times as abundant as water and is photolysed to H<sub>2</sub> and N<sub>2</sub>; the water-ammonia ocean (Class 8) is kept instead</td>
+<td>climates report 3.1 D</td>
+</tr>
+<tr>
+<td>Arsenic in place of phosphorus</td>
+<td>The GFAJ-1 claim was refuted</td>
+<td>climates report 4</td>
+</tr>
+<tr>
+<td>Dusty plasma, nuclear or magnetic matter</td>
+<td>No chemistry; fiction</td>
+<td>climates report 4</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each of these can come back as a new class number if a source changes; the reserve numbers exist for that.</p>
+<h3 id="104-the-words-gen892">10.4 The words (GEN.892)</h3>
+<p>Built: <code>src/planetgen/physics/life_class_text.py</code> with <code>physics/data/life_class_text.json</code> gives the name and a sentence for every rung of the ladder (0 to 6, and the animal grades A1 to A3), with words of their own for the rungs each class may reach and generic words for the rest, so a strange-solvent class that does reach a high rung still reads correctly. <code>lines(class)</code> and <code>sentence(class)</code> give &quot;It drinks ..., eats ..., breathes ... and gives off ...&quot; from the rule file. Nothing shows them yet: the planet page, search and API read them when the class switch (GEN.889) lands.</p>
+<hr />
+<h2 id="4-what-each-class-eats-drinks-breathes-and-excretes-the-ledger">4. What each class eats, drinks, breathes and excretes (the ledger)</h2>
+<p>Per mole of carbon fixed, and the effect on a planet. Gas names use the ten stored gases; &quot;haze&quot; and &quot;colour&quot; are outputs of GEN.857 and the rendering lane. Sizes are the byproducts report's unless marked.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Takes from the air or water</th>
+<th>Puts into it</th>
+<th>Net effect on the planet by stage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>CO<sub>2</sub> (1 per C), water, light</td>
+<td><strong>O<sub>2</sub> (1 per C)</strong>; organic carbon, of which about 0.1 percent is buried and becomes the net O<sub>2</sub> source (recalled, T2); CH<sub>4</sub> from the food web, falling as O<sub>2</sub> rises</td>
+<td>Origin: methane and CO<sub>2</sub> air. Producers: sinks (reduced volcanic gas, Fe2+, sulfides) soak the first O<sub>2</sub>; on Earth about 0.3 to 1 Gyr passed before the first rise and about 2 Gyr more before the second (recalled, T2). After the rise: O<sub>2</sub> up, CO<sub>2</sub> and CH<sub>4</sub> down, ozone shield above about 1 percent of today's O<sub>2</sub> (recalled), temperature shifts as CH<sub>4</sub> and CO<sub>2</sub> fall</td>
+</tr>
+<tr>
+<td>2</td>
+<td>CO<sub>2</sub>, a donor (H<sub>2</sub>, Fe2+, H<sub>2</sub>S), near-infrared light</td>
+<td>organic carbon, sulfate, sulfur, Fe(III); no O<sub>2</sub></td>
+<td>Donor drawdown. Food web makes CH<sub>4</sub>: 100 ppmv to 3.5 percent in anoxic air (9 to 67 Tmol per year), with organic haze once CH<sub>4</sub>/CO2 reaches about 0.1 to 0.2. Production is donor limited at 1e-4 to 1e-2 of today's biosphere. Never O<sub>2</sub>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>H<sub>2</sub>, CO<sub>2</sub> (or sulfate for 3b)</td>
+<td>CH<sub>4</sub>, acetate, sulfide</td>
+<td>A methane source on open-ocean worlds, small. Sealed sub-ice and aquifer worlds show nothing in the air. Hydrogen supply caps it</td>
+</tr>
+<tr>
+<td>4</td>
+<td>H<sub>2</sub>S, Fe2+, NH<sub>4</sub>+ or CH<sub>4</sub>; O<sub>2</sub>, nitrate or perchlorate</td>
+<td>sulfate, Fe(III), N<sub>2</sub>, CO<sub>2</sub></td>
+<td>Draws H<sub>2</sub>S down, makes sulfate. Size capped by how fast the oxidant arrives</td>
+</tr>
+<tr>
+<td>5</td>
+<td>reduced sulfur, organics, the acid</td>
+<td>SO<sub>2</sub>, sulfur, CO<sub>2</sub>, water</td>
+<td>Shifts SO<sub>2</sub> against H<sub>2</sub>S, changes cloud acidity and albedo. On a dry hot world it can drive the SO<sub>2</sub> and H<sub>2</sub>SO<sub>4</sub> cycle (the climates report's own bookkeeping, no source gives rates, T6)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>H<sub>2</sub>, CO<sub>2</sub></td>
+<td>CH<sub>4</sub>, water</td>
+<td>Methane source; water separates from the fluid (a waste problem)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>H<sub>2</sub>, acetylene (from haze organics)</td>
+<td>CH<sub>4</sub></td>
+<td>Depletes surface H<sub>2</sub> and C<sub>2</sub>H<sub>2</sub>, adds CH<sub>4</sub>. The Titan hydrogen and acetylene anomalies are a lead, not a detection (recalled)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>H<sub>2</sub>, carbonate, chemical gradients</td>
+<td>CH<sub>4</sub>, N<sub>2</sub></td>
+<td>Ammonia is destroyed faster than life can use it; the net air effect is small</td>
+</tr>
+<tr>
+<td>9</td>
+<td>as Class 5</td>
+<td>SO<sub>2</sub>, silica</td>
+<td>Silica deposits (surface colour, a solid sink); otherwise as Class 5</td>
+</tr>
+</tbody>
+</table></div>
+<p>For each class the ledger row has: gas, amount per unit biomass, a stage multiplier (zero before producers, ramping through the producers stage, steady later) and a sink limit. The sinks and the timing for Class 1 are Core 1's GEN.855 numbers (rows LF49 to LF56 and BO1 to BO9 in the registry); this table does not set them. The byproducts report's table is GEN.857's source for Classes 2 and 3.</p>
+<h3 id="food-water-and-breath-for-the-captain">Food, water and breath for the captain</h3>
+<p>Everything above is also what the planet page can say about a world's life, in plain words (&quot;It drinks hydrocarbons and gives off methane&quot;). It sits in one collapsible section that starts collapsed, per the object page rule.</p>
+<p><strong>Is the life edible to people?</strong> Only water-and-carbon classes (1 to 4) count toward the Suitability food rung, as now (Flora is good food, Fauna is food, Boss 10-23). Strange-solvent life (5 to 9) is never food and never counted. Sub-ice and aphotic mats (Classes 3 and 4 microbes) are not Flora and not food (GEN.871, Boss 10-28).</p>
+<hr />
+<h2 id="5-the-stage-ladder-and-how-rare-each-rung-is">5. The stage ladder and how rare each rung is</h2>
+<h3 id="51-the-rungs">5.1 The rungs</h3>
+<p>The five timeline milestones stay (<code>tuning.LIFE_MILESTONES</code>: abiogenesis, photosynthesis, complex cells, multicellularity, technological civilization), because GEN.750 owns them and the database already stores their ages. The ladder gives them class-specific names and adds animal grades from the complexity index (section 7.3), which needs no new timeline step.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rung</th>
+<th>Milestone behind it</th>
+<th>Plain meaning</th>
+<th>Class words (examples)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 No life</td>
+<td>none</td>
+<td>conditions are met but life has not started, or conditions are not met</td>
+<td>&quot;supports Class N life, none yet&quot;</td>
+</tr>
+<tr>
+<td>1 Origin</td>
+<td>abiogenesis</td>
+<td>chemotroph microbes</td>
+<td>all classes: &quot;microbial origin&quot;</td>
+</tr>
+<tr>
+<td>2 Producers</td>
+<td>the &quot;photosynthesis&quot; milestone, renamed per class</td>
+<td>the class's own food maker is running</td>
+<td>1: oxygenating mats; 2: anoxic mats, methane air; 3 and 4: dark chemosynthetic mats; 5: acid cloud plankton; 6, 7, 8: slow microbial communities</td>
+</tr>
+<tr>
+<td>3 Complex cells</td>
+<td>complex cells</td>
+<td>cells with internal structure</td>
+<td>protists and plankton</td>
+</tr>
+<tr>
+<td>4 Multicellular</td>
+<td>multicellularity</td>
+<td>macroscopic life</td>
+<td>Flora and sponge-grade fauna (Class 1); tube communities (Class 4); colonial mats at best for strange solvents</td>
+</tr>
+<tr>
+<td>5 Animals, by grade</td>
+<td>multicellularity plus the complexity index</td>
+<td>grade A1 sessile or sponge-like; A2 small mobile; A3 large active</td>
+<td>grade comes from the energy and oxidant budget (7.3), so a Class 4 vent world can have A1 or A2 and a Class 1 world with high O<sub>2</sub> can reach A3</td>
+</tr>
+<tr>
+<td>6 Sentient</td>
+<td>technological civilization</td>
+<td>species and civilizations</td>
+<td>9.5 (GEN.864): stays as now in 8.1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Flora is macroscopic photosynthesis or a surface mat route (Classes 1 and 2); Fauna comes from rung 5 on any class. The rule in <code>life_scores.scores</code> that &quot;fauna never exceeds the flora it feeds on&quot; changes to &quot;fauna never exceeds its class's producer base&quot; so chemosymbiotic animals (Class 4) can have Fauna with Flora 0.</p>
+<h3 id="52-prevalence-targets-boss-913-pm-edt">5.2 Prevalence targets (Boss 9:13 PM EDT)</h3>
+<p><strong>A civilization is never forced (Boss, 5:08 PM EDT 2026-10-30).</strong> Adjusting the prevalence, or asking for intelligent life, only tweaks the probabilities: nothing places a civilization, redraws a system until one appears, or squeezes a timeline to make one fit. A request that no draw meets says so plainly.</p>
+<p>Sentient is the rarest outcome and most life ends at microbes, plants or animals. The anchor is Core 1's timing review, which Boss chose at 9:03 PM EDT (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0): for worlds with oxygenic life, G stars give about 21 in 100 animals and 0.6 civilizations, K about 33 and 1.5, M about 23 and 0.7. Animals to civilizations is therefore about 20 to 40 to 1. These are the bands the census (TEST.435, moved into 8.1) should hold. They are stand-ins, T9 and L3, set from Boss's rule and Core 1's model, not from observation.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Target band</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Of all worlds that have any life: stop at origin, producers or complex cells</td>
+<td>the majority (more than half)</td>
+<td>&quot;most life stopping&quot; below sentience; includes every strange-solvent world that cannot get past mats</td>
+</tr>
+<tr>
+<td>Of worlds with oxygenic life: reach animals (any grade)</td>
+<td>about 15 to 35 percent; for Class 1 worlds old enough, about 20 to 35 percent</td>
+<td>Core 1's figures, which describe oxygenic life (GEN.907, Boss 6:04 AM EDT 10-29: per oxygenic world, not per life world)</td>
+</tr>
+<tr>
+<td>Of worlds with oxygenic life: reach sentient</td>
+<td>no more than 1 to 2 percent, and always fewer than one in twenty of the worlds that have animals</td>
+<td>Boss: rarest; share unchanged from today</td>
+</tr>
+</tbody>
+</table></div>
+<p>The census (TEST.435) measures the animal and sentient bands on the oxygenic life worlds of systems made around G2V and K5V stars, because the default galaxy holds almost none (4 in 1,246 life worlds on 10-29, chlorophyll chemistries being listed for G and K stars only). The numbers are re-taken and re-baselined after epoch 120 (GEN.867) lands; none are changed before.</p>
+<p>Several living classes (GEN.1209): the census also takes the share of life worlds on which two or more classes live, with a band of 0.6 to 1.0 (registry row LC1, T9, L3: a guard on the measurement of 0.857 of 727 life worlds at epoch 131, not a researched target), and reports the share of the life worlds each class lives on (3a 83 percent, 4b 77 percent, 3b 12 percent, 4c 9 percent, 1a 3 percent at epoch 131) and the worlds where a class beside the dominant one reached a civilization (none of 727).</p>
+<p>Re-taken at epoch 131 (train 9) on 400 default systems and 150 around each of G2V and K5V: stops before animals 0.725 of 727 life worlds, reaches animals 0.109 of 46 oxygenic life worlds (5; the band stands, the sampling slack covers it), no civilization among them; none of the bands changed.</p>
+<p>Per class, the build thread sets a target band from the class's speed and energy and records it in the registry. Class 1 carries almost all the animals and all the sentient worlds in 8.1. Class 4 animals are chemosymbiotic and small. Classes 5 to 9 are expected to show a low single-digit share of animals at most, and that is an outcome to measure (TEST.435 reports it), not to force.</p>
+<hr />
+<h2 id="6-how-a-class-changes-the-air-and-the-chart">6. How a class changes the air, and the chart</h2>
+<h3 id="61-what-is-computed">6.1 What is computed</h3>
+<p>Core 1's GEN.857 and GEN.858 turn &quot;the kind and stage of life&quot; into a gas change. This design gives them the keys: the ledger rows above are indexed by <strong>class number</strong> (not by the old chemistry text), and the stage by the rungs above. The planet's air at any age is the air before life, plus the sum of ledger rows for its class up to that age, minus the sinks. Class 1 on a standard world follows GEN.855: methane and CO<sub>2</sub> at origin, a delay for the sinks, the rise and the ozone shield.</p>
+<h3 id="62-the-life-and-air-chart-on-the-planet-page">6.2 The &quot;Life and air&quot; chart on the planet page</h3>
+<p>A small line chart under the Life section: x is age (Gyr) from 0 to the system's age; one line per major gas (O<sub>2</sub>, CO<sub>2</sub>, CH<sub>4</sub>, plus H<sub>2</sub>S or SO<sub>2</sub> where the class moves them); stage boundaries are marked as ticks (origin, producers, complex cells, multicellular, animals). It is computed on demand from the stored milestone ages and the class ledger, so it needs no stored column. It answers Boss's &quot;plot how each would change their environment&quot;. A second view, for the census and the galaxy map, compares classes: median O<sub>2</sub>, CH<sub>4</sub> and haze of Class 1, 2 and 3 worlds at a stage (a table in the census report, not a page, in 8.1).</p>
+<h3 id="63-what-the-plot-does-not-claim">6.3 What the plot does not claim</h3>
+<p>Rates for Classes 5 to 9 are the climates report's redox bookkeeping, tier T6 to T8, L3 to L4. The chart marks them &quot;speculative chemistry&quot; with the tier, as the climates report recommended.</p>
+<h3 id="64-as-built-gen891-gen857-gen858-gen859">6.4 As built (GEN.891, GEN.857, GEN.858, GEN.859)</h3>
+<p>The gas ledger of section 4 is <code>physics/data/life_ledger.json</code>, read by <code>physics/life_air.py</code> and applied in the life pass after the oxygen (<code>generation/life.py</code>, <code>_build_air</code>):</p>
+<ul>
+<li><strong>Keyed by class number.</strong> One row per class (1 to 9) with a status. All nine are <code>built</code> (GEN.894 built 4, 5, 7 and 9). Every number and row carries its tier and tweak level, with summary rows LF60 and, for the sulfur and acid rows, the same file.</li>
+<li><strong>Methane.</strong> The flux is the class's fuel supply (Class 1: the organic carbon its photosynthesis buries, half a methane each; Class 2: <code>donor_supply</code> times Earth's 10 Tmol a year; Classes 3, 6, 8: <code>h2_supply</code> times Earth's 2.3 Tmol a year of hydrogen over 4 H<sub>2</sub> per CH<sub>4</sub>) over the world's area. The air holds the flux times the 30,000 year life of methane in an oxygen-free air, at most 3.5 percent of its molecules, and the methane's carbon comes out of the air's own carbon dioxide (10 percent of the carbon stays carbon dioxide), so no world makes methane from carbon it does not have. A gain under 1 Pa (<code>biogenic_oxygen.MINIMUM_PA</code>) leaves the air as it was.</li>
+<li><strong>Hydrogen.</strong> The classes that eat hydrogen (2, 3, 6, 7, 8) draw it down to 1e-4 of the molecules; Class 7 turns each mole it takes into two thirds of a mole of methane (C<sub>2</sub>H<sub>2</sub> + 3 H<sub>2</sub> -&gt; 2 CH<sub>4</sub>; the acetylene itself is not an air gas).</li>
+<li><strong>Hydrogen sulfide (GEN.894).</strong> The sulfur eaters (4) and the acid eaters (5, 9) draw hydrogen sulfide down to 1e-8 of the molecules (a design floor, T9 L4); Class 4 makes sulfate in the water, not a gas, while Classes 5 and 9 give back the same moles as sulfur dioxide, so the air shifts from H<sub>2</sub>S to SO<sub>2</sub>. The caps are taken before the products, so a gas never ends above its cap.</li>
+<li><strong>Stage.</strong> Nothing before the second step of the schedule (the producers) and, for Class 1, nothing once the oxygen has risen or while the air holds free oxygen (more than 0.001 of its molecules): the oxygen has burned the methane (<code>biogenic_oxygen.burn</code>). A world with no life keeps its abiotic air.</li>
+<li><strong>Redone from the new air.</strong> The haze (<code>aerosols</code>), the ultraviolet shield and dose (<code>radiation</code>), the colour and the habitability score are generated again from the air the life left. The stored surface temperature follows the new greenhouse (<code>biogenic_oxygen.store_air</code>).</li>
+<li><strong>Not modelled.</strong> The cooling of the ground by the haze, the hydrosphere of a world the new air moves across the freezing point (its stored state of water stays, as after the oxygen), the sulfate, sulfur and silica the sulfur and acid classes leave in the water and rock, and the acetylene of Class 7.</li>
+</ul>
+<h3 id="65-as-built-the-air-of-the-whole-mix-of-living-classes-gen1213">6.5 As built: the air of the whole mix of living classes (GEN.1213)</h3>
+<p>The air is the sum of the classes that live on a body, not the work of one class. <code>physics/life_air.Living</code> is a class with its share of the body's food production (the shares add up to 1; a body with one class gives it all of it) and the age its producers began. <code>generation/life._living_of</code> lists them (one today; GEN.1209 adds the rest), and <code>apply_gases</code>, <code>oxygen_state</code> and <code>air_history</code> read the list:</p>
+<ul>
+<li><strong>Oxygen.</strong> The source <code>S</code> of <code>biogenic_oxygen</code> goes with the summed share of the oxygenic classes begun. Each class's producers start at their own age, so the surplus <code>S - R</code> that fills the store <code>B</code> is piecewise (<code>biogenic_oxygen.rise_age_gyr</code>): the oxygen rises when the area under the surplus reaches <code>B</code>. One class gives its start plus <code>B / (S - R)</code>, the old delay. After the rise the air holds the balance of the summed source and the sinks.</li>
+<li><strong>The store holds the methane.</strong> The first oxygen goes to the reduced things in the world, and that includes the methane the classes before the rise hold in the oxygen-free air (<code>standing_methane_mol</code>, their summed flux over the life of methane, two moles of oxygen to a mole of methane). This was missing for a single oxygenic class too: its own methane before the rise did not count. At a 30,000 year methane life it is a few parts in 1e4 of the store, so the rise moves by that much for one class; it matters more for several.</li>
+<li><strong>Methane (GEN.1252).</strong> The buried-carbon flux of the oxygenic class goes with its share of the food; a class limited by its own fuel (donor supply, hydrogen supply) makes its fuel's flux whatever its share, and classes on the same fuel count it once. The sum is taken before the air is read, so the carbon they all draw on is counted once and the cap (3.5 percent of the molecules, 10 percent of the carbon left) holds for the sum. A class whose producers have not begun at the star's age adds none.</li>
+<li><strong>Hydrogen and hydrogen sulfide.</strong> The classes draw them down in turn, each meeting the air the ones before it left; the cap is the same.</li>
+<li><strong>The chart.</strong> <code>air_history</code> steps at the age each class begins and at the rise, and the API's <code>life_air</code> has a <code>classes</code> list (<code>life_class</code>, <code>variant</code>, <code>share</code>, <code>producers_gyr</code>).</li>
+<li><strong>Several classes on one body</strong> are built (GEN.1209, section 6.6). Not yet: the produced gases of a class that comes after the rise meet an air that already burns reduced gases (nothing reduced stays).</li>
+</ul>
+<h3 id="66-as-built-several-life-classes-on-one-body-gen1209-boss-10-31-1014-am-edt">6.6 As built: several life classes on one body (GEN.1209, Boss 10-31 10:14 AM EDT)</h3>
+<p>Any classes whose conditions both hold may live on the same body, whatever their solvent; the dominant class (the most net primary production, as before, GEN.915) is the headline in the body's own columns.</p>
+<ul>
+<li><strong>Who takes hold.</strong> Every other class the conditions support (one for each class number, the best-scoring variant) is a candidate. Each draws the five waiting times of its schedule on a stream of its own, keyed by the body's life stream and the class, so the dominant class's draws are the same whether others live beside it or not. A candidate lives only if its first step (abiogenesis) is at or before the star's age and the air that the classes make together does not poison it: the conditions score it above zero on that final air (Boss: &quot;the final air does not poison it&quot;). Nothing is forced; a forced civilization (<code>INTELLIGENT_LIFE</code>) still draws the dominant class's waits only.</li>
+<li><strong>When the dominant class has not begun.</strong> If the class with the most production has its first step after the star's age but another that the conditions support has begun, that class heads the list and the body's columns (GEN.1001 still gives a body no life when none has begun).</li>
+<li><strong>How it settles.</strong> <code>generation/life._settle</code> makes the air from all the candidates on a trial copy of the body (<code>_trial_copy</code>), scores the classes on it, drops the poisoned one with the smallest share and tries again, until the classes that are left all live in the air they make; then the real body gets that air. The air is the summed ledger of section 6.5, with the shares from each class's net primary production over the sum; the wait for complex cells of a class that breathes oxygen starts when the oxygen of all the classes together has risen (<code>life_air.oxygen_rise_gyr</code>), not at its own photosynthesis plus a delay.</li>
+<li><strong>Per class.</strong> Each class gets its own complexity on the final air and its own animal grade, the stage its schedule reached by the star's age, and four kind scores (<code>habitability_world.living_kinds</code>). The body's microbial, flora, fauna and sentient scores are the highest of each over its classes (<code>class_life_scores</code>), so the Suitability food rung reads all the life there. A minor class can reach the sentient kind if its own stage gets there inside the system's age and the final air does not poison it.</li>
+<li><strong>Stored</strong> in <code>life_living</code> on the body and the rows of <code>planet_life</code> / <code>moon_life</code> (the dominant class too): class id, share, stage and ages, grade, complexity, the five schedule ages and the four kind scores. An edit (<code>keep_stored</code>) keeps the minor classes the body has while the conditions still support them and adds none.</li>
+<li><strong>What reads them (GEN.1209 part 2).</strong> The system detail's planets and moons carry <code>life_classes</code> (<code>db/query._life_classes_of</code>: the dominant class first, a body stored before the rows existed lists its one class). The life class filter and its counts, and the map's life reasons, match a body when any class that lives on it is chosen (<code>_life_class_clause</code>, <code>_life_class_facet</code>, <code>interests</code>). The species scan (<code>population/model.scan_life_worlds</code>, GEN.864) takes the class that reached the technological milestone, the first to reach it when several did, and the page's Life section adds an &quot;Also living here&quot; line (<code>planet_layout._alongside</code>). The civilization's species keeps the class id that built it; what each class's civilization is like is not drawn apart from the body's (a later item).</li>
+</ul>
+<hr />
+<h2 id="7-how-life-is-limited-without-a-ban">7. How life is limited without a ban</h2>
+<h3 id="71-the-three-limits-every-class-has">7.1 The three limits every class has</h3>
+<ol>
+<li><strong>Window</strong>: temperature, pressure, solvent stability, radiation and toxins (section 3 and <code>L_*</code> terms in the habitability index).</li>
+<li><strong>Energy supply</strong>: how much usable energy reaches the biosphere. Light classes use the star's flux in the pigment's band (GEN.878). Chemical classes use the supply of fuel and oxidant (section 8.3). A class's energy supply sets its biomass, and its biomass sets how fast it fills a surface and how loud its air signature is.</li>
+<li><strong>Speed</strong>: reaction rate against temperature. The climates report's plain rule is a Q10 of 2 to 3 per 10 degrees ([R3502], read there), with diffusion-limited steps in cryogenic liquids staying fast (relative rate 0.35 to 0.91, [R0231], read there). Core 1's GEN.750 clock does not use that rule: it is a Boltzmann factor (E = 0.30 eV, reference 288 K) clamped to 0.25 to 2.5 (read in Core 1's design doc), so a cold world is at most four times slower, not 1e8 times. This design keeps Core 1's clock for the first rungs and lets the energy supply and the oxidant (7.3) decide the upper rungs.</li>
+</ol>
+<h3 id="72-why-strange-solvent-life-ends-up-small">7.2 Why strange-solvent life ends up small</h3>
+<p>The aerobic yield is about nine times the anaerobic yield (Gale and Wandel, read in the review). Acid, CO<sub>2</sub> and cold-methane biospheres have far lower energy density than oxygen respiration, and Titan's chemistry would run about 1e8 times slower under a plain Q10 rule (the climates report's arithmetic). Under Core 1's clamped clock the slowdown is at most four times, so the speed term alone does not stop a cold class; its small energy supply and lack of an oxidant do. Their upper rungs therefore mostly never arrive. That is the physics doing the ceiling; the tuning knobs stay open (section 13, card 1 and 2).</p>
+<h3 id="73-the-complexity-index-and-animal-grades">7.3 The complexity index and animal grades</h3>
+<p>A class reaches a rung when its <strong>complexity index C</strong> passes a threshold. C is the class's biomass energy (relative to Earth's biosphere = 1) times the oxidant yield factor (1 for aerobic O<sub>2</sub> respiration, about 0.11 for anaerobic) times the temperature-speed factor. Starting thresholds (T9, L3; fitted on a first probe of the chemical classes and to be reset from the census): complex cells 1e-5, multicellular bodies 3e-5, sessile or sponge-grade animals 1e-4, small mobile animals 1e-3, large active animals 1e-1. This is the generalisation of GEN.877 (the animal oxygen floor by grade): for Class 1 the oxidant factor reads the world's own O<sub>2</sub>, with the sponge floor of about 0.1 to 0.8 kPa from [R3084] (recalled), rising with body size by the diffusion argument of [R0691] (recalled). It also gives routes R2 to R5 a home: R2 is Class 4a, R3 is a low-O2 Class 1 world at grade A1, R4 is a rare anoxic animal niche on Class 2 and 3 sulfidic worlds, R5 is Classes 4b and 4c. They are no longer separate items with an approval gate.</p>
+<h3 id="74-traits-stay-and-move-thresholds">7.4 Traits stay, and move thresholds</h3>
+<p>GEN.875 and GEN.876 (adaptation traits: radiation, UV, sulfide, acid, brine, heat or cold, CO<sub>2</sub>, low O<sub>2</sub>, toxins) are unchanged in kind. A trait widens a class's window, never makes a world habitable to people. Retinal (a light supplement for any class that has a carbon fixer) and Melanin (radiation tolerance, dose in its draw, GEN.860 and GEN.881) join the trait list; Zinc-Bacteriochlorophyll becomes the acid tolerance trait. So the <strong>life class is the triple (class, pigment or habitat letter, trait set)</strong>, exactly as the review's section 6.2 predicted.</p>
+<hr />
+<h2 id="8-scoring-supply-and-dominance">8. Scoring, supply and dominance</h2>
+<h3 id="81-the-score-of-a-class">8.1 The score of a class</h3>
+<p>For each class c, the score S_c from 0 to 9 is <code>ceil(9 * L_c)</code> with the same shape as today's PHI_bio: a Liebig blend (minimum weight 0.65, <code>LIEBIG_MIN_WEIGHT</code>) of</p>
+<ul>
+<li><code>L_solv</code>: the class's solvent exists and is stable (liquid water, acid, CO<sub>2</sub>, methane...);</li>
+<li><code>L_temp</code>: the habitat inside the class's temperature window (smooth falloff outside, as now);</li>
+<li><code>L_press</code>: pressure where the class needs it (a floor for liquid water, a range for dense CO<sub>2</sub>, a cloud-layer rule for 5a);</li>
+<li><code>L_ener</code>: the class's own energy supply on the log curve <code>ENERGY_FLUX_MIN</code> to <code>ENERGY_FLUX_REF</code>, with light classes reading the pigment's band times the star's spectrum (GEN.878) and chemical classes reading their fuel supply;</li>
+<li><code>L_redox</code>: oxidant and donor present for the classes that need them (4, 2, 3b, 5), and free O<sub>2</sub> below the class's toxic limit (2, 3);</li>
+<li><code>L_rad</code> and <code>L_chem</code>: dose and toxins against the class's own limits (microbe limits for microbial rungs, animal limits for animal rungs), with traits widening them.</li>
+</ul>
+<p><strong>Class 1a on an Earth-like world is exactly today's PHI_bio</strong>, so the existing habitable index becomes the near-Earth carbon and water case with no change to its values (Boss, 10-28: &quot;the existing single habitable index stays as the near-Earth carbon and water class&quot;).</p>
+<p>Complex-life score per class: <code>S_cpx_c = S_c * T_c(index C)</code>, the generalised <code>t_metazoa</code> of 7.3.</p>
+<h3 id="82-dominant-class-the-has-side">8.2 Dominant class (the &quot;has&quot; side)</h3>
+<p>Every class that scores at least <code>HABITABILITY_LIFE_SCORE_MIN</code> (0.005) develops (Boss: if it is possible, it will develop). The one reported as &quot;has Class N life&quot; is the class with the largest <strong>net primary production</strong> among the supported classes. Net primary production is the energy supply times the class efficiency. Where oxygenic and anoxygenic life both fit a lit ocean, Class 1 wins by orders of magnitude, as on Earth; Class 3 wins under ice because nothing else fits; Class 5 wins on a dry acid world. The other supported classes are listed as &quot;also supports&quot; and keep their scores. The class that lives on a world is always among the classes stored as supported: when its own life has used up what it lived on (the donor or hydrogen it drew down, the air it changed) and the conditions after the air build score it 0, it is stored at the score it was chosen at (TEST.486). A class whose own air takes its solvent (the greenhouse gas it drew down left an ammonia-water sea frozen) does not live there: the world is made again from the body as it was, without that class (GEN.1298). A tie within a factor of 2 is broken by a weighted draw (one of the few draws in this design; the pigment letter within Class 1 uses the same rule).</p>
+<p>This replaces the star-letter weights in <code>LIFE_CHEMICALS</code> and <code>STAR_EVOLUTION</code> (the 15 dead weights of GEN.867). The old weights were T4, L3 guesses; the physics rule is stronger, and it makes the M-dwarf far-red route (1c) automatic.</p>
+<h3 id="83-new-supply-quantities">8.3 New supply quantities</h3>
+<p>New derived and stored numbers are the main build cost of the chemical classes. Each needs a units registry entry and a stand-in row.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Meaning</th>
+<th>Feeds</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>h2_supply</code></td>
+<td>hydrogen from serpentinisation and from radiolysis</td>
+<td>Classes 3, 6, 7, 8</td>
+<td>from rock type (GEN.441 crust composition), water, interior heat and radiogenic heat; tier T6</td>
+</tr>
+<tr>
+<td><code>donor_supply</code></td>
+<td>H<sub>2</sub>S and Fe2+ delivered</td>
+<td>Classes 2, 4</td>
+<td>from volcanism, ocean chemistry and the existing H<sub>2</sub>S and iron stand-ins</td>
+</tr>
+<tr>
+<td><code>oxidant_supply</code></td>
+<td>O<sub>2</sub>, nitrate, radiolytic oxidants, perchlorate</td>
+<td>Class 4 and animals on aphotic worlds</td>
+<td>the cap of GEN.880; no Europa O<sub>2</sub> flux number from second-hand sources</td>
+</tr>
+<tr>
+<td><code>acid_medium</code></td>
+<td>liquid sulfuric acid present: 0 none, 1 a cloud layer, 2 a pool</td>
+<td>Classes 5, 9</td>
+<td>built (GEN.888): <code>physics/acid_medium.py</code>, the supply of sulfur dioxide, an oxidiser and water, the water activity against the acid strength (81 percent and up) and the liquid window of 283 to 373 K; Class 5a reads 1 or more, 5b and 9 a pool (2). Registry row LF61</td>
+</tr>
+<tr>
+<td><code>sulfur_supply</code></td>
+<td>reduced sulfur for the acid eaters</td>
+<td>Classes 5, 9</td>
+<td>the air's sulfur dioxide over Venus's 150 ppm, at most 1 (GEN.894, <code>physics/life_supply.py</code>); needs no water in contact with rock</td>
+</tr>
+<tr>
+<td><code>silicon_rich_crust</code></td>
+<td>the rock's molar Mg/Si at or under 1</td>
+<td>Class 9</td>
+<td><code>physics/strange_solvents.py</code> (GEN.894), registry row LF62</td>
+</tr>
+<tr>
+<td><code>co2_phase</code></td>
+<td>liquid or supercritical CO<sub>2</sub> at the surface</td>
+<td>Class 6</td>
+<td>from temperature and pressure against the CO<sub>2</sub> phase diagram</td>
+</tr>
+<tr>
+<td><code>ammonia_water_mass_fraction</code></td>
+<td>ammonia as a share of the water's mass</td>
+<td>Class 8</td>
+<td>built (GEN.894): a tenth of the non-water ice over the water (<code>physics/strange_solvents.py</code>, registry row LF62); the weakest number of the class</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="9-how-it-ties-to-the-habitability-index-and-the-four-life-scores">9. How it ties to the habitability index and the four life scores</h2>
+<ul>
+<li><strong>PHI-6 stays</strong>, the human rating. Its Habitability dimension (<code>phi_bio</code>, <code>phi_cpx</code> inside it) becomes &quot;the best score over the water-carbon classes 1 to 4 for the life that is on the world&quot;, so nothing about PHI-6 moves for worlds with Class 1 life.</li>
+<li><strong>The four life scores (Microbial, Flora, Fauna, Sentient)</strong> keep their meaning and their 0 to 9 scale (GEN.649). They are read from the world's <strong>actual</strong> class and stage. Microbial from rung 1, Flora from a photic or surface-mat producer (Classes 1 and 2), Fauna from the animal grades of any class, Sentient unchanged in 8.1. Flora under ice and in aquifers is 0 (GEN.871).</li>
+<li><strong>The Suitability food rung</strong> (<code>life_scores.food_stage</code>) counts only Classes 1 to 4 life, and not Class 3 or 4 microbes under ice.</li>
+<li><strong>A planet has up to nine class scores</strong> (one per class), plus the headline &quot;supports Class N&quot; (the best), &quot;also supports&quot; (the others at or above the line) and &quot;has Class N at the X stage&quot;.</li>
+</ul>
+<hr />
+<h2 id="10-what-gets-stored-shown-and-filtered-gen863">10. What gets stored, shown and filtered (GEN.863)</h2>
+<h3 id="101-storage">10.1 Storage</h3>
+<p>Planets and moons each gain:</p>
+<ul>
+<li><code>life_class</code> (the actual class, small integer, NULL for none) and <code>life_class_variant</code> (a short text like <code>1c</code>), replacing <code>life_chemical</code> (no compatibility shim: the old column is dropped in the same migration, as <code>phi_bio</code> and <code>phi_cpx</code> were in migration 0136; Boss's rule). The population, search and map readers move to the new column in the same change;</li>
+<li><code>life_class_best</code> (the headline supported class) and <code>life_class_best_score</code>;</li>
+<li>one table <code>life_class_scores(object_id, life_class, score)</code> for the per-class scores (nine rows at most, only those at or above the line), indexed on class and score so the map filter and the search facet are cheap. The migration also stores units in <code>db/column_units.py</code>.</li>
+</ul>
+<p><code>life_stage</code> stays as the milestone key; the rung and animal grade are derived from it and from the world's complexity index at read time (the grade is also stored as <code>life_animal_grade</code> TINYINT if reading it proves slow; the lane decides).</p>
+<h3 id="102-display">10.2 Display</h3>
+<ul>
+<li>Planet and moon page: a Life section under the at-a-glance block. Lines, in this order: one paragraph (what lives there with its stage and animal grade, each kind of life with a prevalence word, the classes the conditions suit with their suitability), then a collapsible block &quot;What it eats, drinks, breathes and gives off&quot; with the class's lines from the ledger, then the Life and air chart, then the traits (&quot;adapted to: radiation, sulfide&quot;). Absent or zero values are hidden unless absence matters (the page rule).</li>
+<li>API: the same fields as numbers and codes; a small API version bump (testing mode allows it); the API compatibility page (API.4) lists it.</li>
+<li>Map and search: a world filter &quot;supports Class N&quot; and &quot;has Class N&quot; with a minimum score, using the table index; the sector colouring by habitable locations (MAP.143) is unchanged.</li>
+<li>System page and lists: the class number beside the four life icons.</li>
+</ul>
+<h3 id="103-rule-file-and-code">10.3 Rule file and code</h3>
+<p>Mirroring the planet class classifier: a rule file <code>src/planetgen/physics/data/life_classes.json</code> and a pure module <code>physics/life_classes.py</code> with <code>classify_life(values)</code> returning the per-class scores, built on the same <code>holds</code> and <code>quantities</code> machinery as <code>physics/planet_classes.py</code>. A shadow sweep (like <code>class_shadow_cli.py</code>) can run the classifier on generated bodies with no stored change before the draw switches over. Every window number lives in the file with its tier and tweak level; the docs page is generated from the file, as the planet class pages are.</p>
+<hr />
+<h3 id="105-as-built-generator-epoch-120-schema-175-gen867-to-gen872-gen887-gen889-gen890">10.5 As built (generator epoch 120, schema 175; GEN.867 to GEN.872, GEN.887, GEN.889, GEN.890)</h3>
+<p>The draw switched over in one lock turn. What differs from the plan above:</p>
+<ul>
+<li><strong>Storage.</strong> <code>life_class</code> is the class number (TINYINT) with <code>life_class_variant</code> (CHAR(1)), <code>life_class_best</code>, <code>life_class_best_score</code>, <code>life_animal_grade</code> and <code>life_complexity</code> are stored on the body, and the scores are two tables, <code>planet_life_class_scores</code> and <code>moon_life_class_scores</code> (a child table for each body kind, like the gas tables). <code>life_chemical</code> is gone and <code>species.life_chemical</code> became <code>species.life_class</code> (the id). Migration 0175 maps the six old chemistries to a class and works nothing else out; the scores, grade and complexity come when a galaxy is brought to epoch 120.</li>
+<li><strong>The supplies</strong> (section 8.3) are not stored: <code>physics/life_supply.py</code> works the six shares of Earth's (<code>h2_supply</code>, <code>radiolytic_h2_supply</code>, <code>donor_supply</code>, <code>nitrate_supply</code>, <code>perchlorate_supply</code>, <code>hydrogen_acetylene_supply</code>) from the columns the body stores, with every number in <code>physics/data/life_supply.json</code> carrying its tier and tweak. <code>nh3</code> and the acid medium are still GEN.888 and GEN.894.</li>
+<li><strong>Dominance</strong> (8.2) is the supported class with the largest net primary production (<code>tuning.LIFE_NPP</code>); classes within a factor of 2 are tied and an NPP-weighted draw picks among them. The draw is made on a stream of the body's own, seeded by one draw of the run's (GEN.872), so a change to this model no longer moves the names and flavour text of later bodies.</li>
+<li><strong>Complexity</strong> (7.3) is <code>physics/life_complexity.py</code>: C is the class's net primary production times the yield of its oxidant times the temperature rate factor, the thresholds, the oxygen floors for an oxygen breather and the anoxic route R4 are <code>tuning.LIFE_COMPLEXITY</code>, and the highest milestone a body can reach is capped by C. Flora needs a class that eats light (GEN.871); Fauna needs an animal grade and never exceeds its producer base.</li>
+<li><strong>Text</strong> (GEN.869, GEN.892): the life and timeline sentences name the class (&quot;Class 1a life, the oxygenic light-eaters ...&quot;) and use the class's own words for each rung and for the animal grade.</li>
+</ul>
+<h3 id="106-as-built-the-planet-pages-life-section-ux237-first-part">10.6 As built: the planet page's Life section (UX.237, first part)</h3>
+<p>The Life section of a planet's or moon's page (<code>web/item_pages.py</code>, <code>web/lib/planet_layout.life_class_view</code>, <code>item.html</code>) reads the system-detail row (API.37: <code>life_class_id</code>, <code>life_class_scores</code>, <code>life_class_best</code>, <code>life_class_best_score</code>, <code>life_stage</code>, <code>life_animal_grade</code>) and, for a world with a living class, the life readings above (<code>GET /api/planets/&lt;id&gt;/life-readings</code>). At a glance, under the table, is one Life paragraph (<code>life_class_view(...)[&quot;glance&quot;]</code>): the sentence of each kind of life that is there (&quot;Microbes: abundant, stable, secure. Flora: occasional, declining, precarious.&quot;), or &quot;Nothing lives here yet.&quot; when the conditions suit a class and none has appeared, then &quot;Conditions suit Class 1a (oxygenic light-eaters) best, then Class 2 (...) and Class 3a (...).&quot; (the best-suited class and at most two others, then &quot;others&quot;; no scores). A world that could not have life shows no paragraph. The summary no longer lists life scores. Under the &quot;Life&quot; heading the section opens with the lead paragraph (<code>[&quot;paragraph&quot;]</code>): &quot;Life here is Class 1a, at the stage of small mobile animals (animal grade A2).&quot; (the class that lives there, with the stage names of <code>life_class_text</code> and the animal grade only at the multicellular stage; &quot;Nothing lives here yet.&quot; when the conditions suit a class and none has appeared) and &quot;Conditions here suit Class 1a life (oxygenic light-eaters) best, suitability 7 of 9; they also suit Class 2 (...), Class 3a (...).&quot; (the best-suited class, then the others, best first, with the stored scores). Then the table of the kinds (<code>[&quot;readings&quot;]</code>: kind, how much with the score out of 9, trend, security and, when known, how long the conditions last), then the stored facts (<code>[&quot;facts&quot;]</code>: stage, animal grade, pace of evolution, age of the system and the age the stage was reached), then what the life looks like (the description's <code>life</code> prose: its colors in and outside visible light), then the collapsed block &quot;What it eats, drinks, breathes and gives off&quot; (the class's <code>drinks</code>, <code>eats</code>, <code>breathes</code> and <code>gives_off</code> from the rule file; for a world that supports a class but has none, the best-supported one). The description keeps the sentences &quot;Class 1a life, the oxygenic light-eaters, lives on this planet, evolving at a standard pace.&quot; (<code>life-class</code>), &quot;The system is about 4.6 Gyr old.&quot; (<code>timeline</code>) and &quot;Its latest milestone is ...&quot; (<code>milestone</code>) as prose blocks for the text and Markdown forms; the page leaves them out because the paragraph, the table and the facts say them. The stage sentences name the whole class (&quot;Class 3a life has grown ...&quot;, <code>life_class_text.stage</code>). A line with nothing to say is left out, and a body that supports no class and has no life shows none of them. The class number (<code>1a</code>) follows the four life icons in every row that has the icons and a <code>life_class_id</code> (<code>habitability_symbols.life_row</code>: the object page and the system page). A class stored on a body with no life stage (its star is younger than the first step of its schedule, so the world suits the class but no life has started) is not the class that lives there: <code>life_class_id</code>, the class markers on the Galaxy Map, the <code>life</code> filter and its column, the dominant species line and the system map side panel all leave it out (GEN.1001); the description says the conditions suit the class and none has appeared yet. The Life and air chart (UX.237, second part) follows the words block, collapsed: <code>GET /api/planets/&lt;id&gt;/life-air</code> (and <code>moons</code>) gives <code>physics.life_air.air_history</code>, which works the air backwards from the stored one and stores nothing. Before the producers (the second step of the schedule) it is the air as the life found it (the methane's carbon back in the carbon dioxide, a class that splits water without its oxygen); from the producers on it is the air with the class's methane and no oxygen (the ledger's own <code>methane_flux_mol_yr</code> and <code>methane_target_mol</code>); from the oxygen rise on (<code>biogenic_oxygen.Profile.delay_gyr</code> after the producers) it is the air now. A class whose methane does not end at the rise keeps one air from the producers on. The page draws oxygen, carbon dioxide and methane as partial pressures on a log axis (<code>web/lib/life_air_chart.py</code>, an SVG with the stages numbered, the same figures in a table under it); a class whose ledger tweak is L3 or L4 is marked &quot;Speculative chemistry&quot; with its tier and tweak. Not drawn: the sulfur gases, the hydrogen the hydrogen-eaters draw down, the reduced gases the rise burned (an abiotic air's reductants are not stored), and a world the life did not change. Not yet: the adaptation traits (GEN.875 and GEN.876 store no traits yet).</p>
+<h2 id="11-overlap-with-core-1-and-aux-4-and-what-changes-in-their-items">11. Overlap with Core 1 and Aux 4, and what changes in their items</h2>
+<p>Core 1's life timeline design (branch version, unmerged) was copied to /mnt/project-files/design-drafts/life-timeline-and-oxygen-2026-10-28.md at 9:19 PM EDT and I read it, with Core 1's answers to my three questions. GEN.855 + GEN.750 wait for the lock. What I took from it: five hard steps for every chemistry (means 0.5, 1.5, 2.5, 3, 60 Gyr, scale 1.0); a temperature clock clamped 0.25 to 2.5; a first-light scale by metabolism (<code>LIFE_FIRST_LIGHT_SCALE</code>: retinal 0.4, anoxygenic 0.6, radiotrophic 1.0, oxygenic 1.0); oxygen made only by oxygenic life in a sunlit sea (<code>SUNLIT_OCEAN</code>: surface or hycean ocean), none under ice; the only gas ledger today is oxygen, keyed by <code>evolution.releases_oxygen</code>.</p>
+<p><strong>The one real conflict.</strong> In Core 1's timeline, complex cells need free oxygen, so a world whose life is not oxygenic and whose air has no oxygen stops at the producers rung. Under this design that gate must read the <strong>class's oxidant</strong> instead of free O<sub>2</sub>: oxygen for Class 1 and 4a, nitrate or perchlorate for 4b and 4c, sulfate or CO<sub>2</sub> for the anaerobic classes at the low anaerobic yield (about 0.11 of aerobic), so Classes 2 to 9 can pass the producers rung slowly, as Boss's open build and the review's routes R2 to R4 need. This is a change to GEN.750's third step, small in code (swap the oxygen test for a class lookup of the oxidant), and it belongs in L5 or L6 in section 12, after GEN.855/750 merge, not in their change.</p>
+<h3 id="111-with-core-1-owns-gen855750-and-gen857-to-gen861-872-873">11.1 With Core 1 (owns GEN.855/750 and GEN.857 to GEN.861, 872, 873)</h3>
+<ul>
+<li>GEN.855 + GEN.750 merge first, as planned. Nothing in this design changes them. Core 1 confirmed the first-light factor is keyed by the <code>metabolism</code> field and can be re-keyed by class by swapping the lookup.</li>
+<li>GEN.857 and GEN.858 (ledger and stage-aware air): ask Core 1 to key the ledger rows by <strong>life class number</strong> and the stage by the rung, as in section 6.1, instead of by chemistry text. This avoids writing the ledger twice. Core 1 confirmed the only ledger today is oxygen, keyed by <code>releases_oxygen</code>, and that re-keying GEN.857/858 rows by class is a swap of the lookup in two places.</li>
+<li>GEN.861 (chemoautotroph carbon base for Retinal and Melanin worlds) is Class 3 and 4 in this design: a chemotroph base with Retinal as a supplement trait. It is consistent with Boss's Retinal ruling; the content is the same, the home changes.</li>
+<li>GEN.872 (the per-body life sub-stream) is required before the draws of Section 8.2 change. Core 1's call whether it rides the GEN.855 epoch.</li>
+<li>Epochs: the draw switch (8.2) and the new columns (10.1) are one epoch and one migration. The classifier alone (10.3 shadow) is lock-free.</li>
+</ul>
+<h3 id="112-with-aux-4-owns-the-life-chemistry-chain-gen867-to-gen884-test436">11.2 With Aux 4 (owns the life chemistry chain GEN.867 to GEN.884, TEST.436)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What this design does to it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.867 (star lists agree with weights; no chemistry on a non-water solvent)</td>
+<td>Replaced: the weights go away (8.2). The &quot;never a water chemistry on a non-water solvent&quot; guard becomes the class's solvent term. Re-scope to &quot;remove the star weights and star lists; add the solvent term&quot;</td>
+</tr>
+<tr>
+<td>GEN.868 (chemistry only after abiogenesis)</td>
+<td>Kept as is; it becomes &quot;class only after abiogenesis&quot;</td>
+</tr>
+<tr>
+<td>GEN.869 (text and labels)</td>
+<td>Kept; the text moves from chemistry text to class text (stage names, eats, drinks, breathes, gives off)</td>
+</tr>
+<tr>
+<td>GEN.870 (registry rows for every life constant)</td>
+<td>Extended to every class window and the complexity thresholds; the lock-free part (rows for today's constants) goes ahead now</td>
+</tr>
+<tr>
+<td>GEN.871 (sub-ice mats scored as Flora)</td>
+<td>Kept; Class 3 and 4 microbes under ice are not Flora (5.1)</td>
+</tr>
+<tr>
+<td>GEN.873 (standing tests)</td>
+<td>Extended: classes in place of chemistries</td>
+</tr>
+<tr>
+<td>GEN.874 (non-carbon proposal)</td>
+<td><strong>Retire</strong>: superseded by Classes 5 to 9 and the &quot;left out&quot; list (Boss 9:11 PM EDT)</td>
+</tr>
+<tr>
+<td>GEN.875, GEN.876 (adaptation traits)</td>
+<td>Kept; the trait list gains Retinal, Melanin and the acid trait (7.4)</td>
+</tr>
+<tr>
+<td>GEN.877 (animal O<sub>2</sub> floor by grade)</td>
+<td>Generalised to the complexity index (7.3)</td>
+</tr>
+<tr>
+<td>GEN.878 (chemistry-specific energy)</td>
+<td>Kept; it is the pigment band times the spectrum, now the pigment selector of Class 1 and 2</td>
+</tr>
+<tr>
+<td>GEN.879 (far-red oxygenic)</td>
+<td>Kept; it is Class 1c</td>
+</tr>
+<tr>
+<td>GEN.880 (chemolithoautotroph producers)</td>
+<td>Kept; Classes 3 and 4, with the supply quantities of 8.3</td>
+</tr>
+<tr>
+<td>GEN.881 (Retinal and Melanin re-home)</td>
+<td>Kept; section 7.4</td>
+</tr>
+<tr>
+<td>GEN.882, 883, 884 (routes R2 to R4)</td>
+<td>Kept as the animal routes of 7.3 (R2 is 4a, R3 and R4 are Class 1 and 2 low-oxidant cases)</td>
+</tr>
+<tr>
+<td>GEN.885 (R5 proposal)</td>
+<td><strong>Retire</strong>: Classes 4b and 4c, no approval needed</td>
+</tr>
+<tr>
+<td>TEST.436 and TEST.430</td>
+<td>The class census (TEST.435, moved to 8.1) lives in Bug 2's suite</td>
+</tr>
+</tbody>
+</table></div>
+<p>Aux 4's chain order (GEN.870, 869, 875, then the lock bundle 877, 878, 879, 880, 876, 881, 882 to 884) already puts the pieces this design needs in a workable order. The one dependency to add is that Aux 4's Class 1 variants (879) and chemolithotrophs (880) should be written as class-table rows from the start (section 10.3), not as new entries in the old <code>LIFE_CHEMICALS</code> dictionary; otherwise they will be rewritten.</p>
+<h3 id="113-sequencing-and-lock-turns">11.3 Sequencing and lock turns</h3>
+<ol>
+<li>Now, lock-free: this design merged as a docs page (DOC), GEN.870 rows, the shadow classifier and rule file (A in section 12), the text work.</li>
+<li>After GEN.855/750: Core 1's GEN.857 to GEN.861 on the class-keyed ledger.</li>
+<li>One lock turn for the class switch (stored classes, scores, draw replacement, migration), carrying GEN.872 and Aux 4's bundle where they fit.</li>
+<li>A second lock turn for the supply-heavy classes (3 to 9) when their supply quantities exist.</li>
+<li>Display, API, map filter and the Life and air chart are lock-free after the migration.</li>
+</ol>
+<p>Suggested owners (TODO decides): the classifier, rule file, text and display to Aux 4's lane because it already holds the life chemistry chain and does not retire; the ledger and air to Core 1; the census to Bug 2. Note Boss's standing rule that no new Aux or Math work starts, so if Aux 4 retires before this is built, the class work goes to Core 1 after GEN.861.</p>
+<hr />
+<h2 id="12-sub-items-for-todo-to-file">12. Sub-items for TODO to file</h2>
+<p>Numbers are TODO's. &quot;Needs&quot; are prerequisites. All are 8.1.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Lock?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1</td>
+<td>GEN.862 re-scoped: &quot;Design: the life class system, merged as docs/design/habitability/life-classes.md from the design draft&quot; (this note), and change its text to say Boss ruled 9:10 to 9:13 PM EDT that all researched chemistries are in and sentient is the rarest rung</td>
+<td>none</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>The life class rule file and classifier: <code>physics/data/life_classes.json</code>, <code>physics/life_classes.py</code>, the shadow sweep, the generated docs page</td>
+<td>L1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>Supply quantities: <code>h2_supply</code>, <code>donor_supply</code>, <code>oxidant_supply</code>, <code>co2_phase</code>, <code>nh3_inventory</code> and their stand-in rows, with units registry entries (builds on GEN.880 and GEN.441)</td>
+<td>L1</td>
+<td>yes (new stored values)</td>
+</tr>
+<tr>
+<td>L4</td>
+<td>The acid medium model: a sulfuric cloud layer and acid pools from the temperature profile, SO<sub>2</sub> and water shares (nothing models it today); fills the dead <code>solvent()</code> branch</td>
+<td>L1, L3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>L5</td>
+<td>Class switch: <code>life_class</code>, <code>life_class_variant</code>, <code>life_class_best</code>, the <code>life_class_scores</code> table and migration, drop <code>life_chemical</code> and the star weights and lists, dominant class by net primary production (GEN.863 build part 1)</td>
+<td>L2, GEN.872, GEN.855, GEN.750</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>L6</td>
+<td>Complexity index and animal grades per class; the complex-cells gate reads the class's oxidant instead of free O<sub>2</sub> (a change to GEN.750's third step); the Fauna rule for chemosymbiotic life (generalises GEN.877)</td>
+<td>L5, GEN.877</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>L7</td>
+<td>The class ledger and class-keyed stage-aware air (tell Core 1; shares GEN.857 and GEN.858), including Classes 2 to 9</td>
+<td>L5, GEN.857, GEN.858</td>
+<td>yes (in Core 1's second change)</td>
+</tr>
+<tr>
+<td>L8</td>
+<td>Strange-solvent classes 5 to 9: windows, supplies, texts, stand-ins and tiers</td>
+<td>L3, L4, L5</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>L9</td>
+<td>Planet page: Life section, eats-drinks-breathes-gives-off block, Life and air chart, class number on lists</td>
+<td>L5, L7</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L10</td>
+<td>API fields and version bump; map and search filters for &quot;supports Class N&quot; and &quot;has Class N&quot; (GEN.863 build part 2)</td>
+<td>L5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L11</td>
+<td>Class text: stage names and descriptions per class replacing the chemistry text (GEN.869, GEN.881)</td>
+<td>L1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L12</td>
+<td>Census: prevalence per class and stage inside researched ranges, sentient the rarest rung, animals to civilizations at least 20 to 1 (TEST.435 moved from 9.5 to 8.1; Bug 2 owns, extends TEST.430)</td>
+<td>L5</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L13</td>
+<td>Registry rows for every class window, supply and complexity threshold with tier and tweak level (extends GEN.870)</td>
+<td>L2</td>
+<td>no</td>
+</tr>
+<tr>
+<td>L14</td>
+<td>Retire GEN.874 and GEN.885; re-scope GEN.867, GEN.873, GEN.877, GEN.879, GEN.880, GEN.881 as in 11.2</td>
+<td>L1</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<p>GEN.863 itself (&quot;Life class scores... shown on the object page, the API and the map filters&quot;) is L5 + L9 + L10. GEN.864 and GEN.865 stay in 9.5.</p>
+<hr />
+<h2 id="13-decisions-for-boss-cards">13. Decisions for Boss (cards)</h2>
+<p>Answered (EDT 2026-10-28): card 1, option 1, physics decides with no hard cap (9:19 PM); card 2, option 1, origin uses the faster rate (9:19 PM; note Core 1's clamped clock, 7.1, already makes this the default); card 3, option 1, most food production wins (9:20 PM). card 4, option 1, Classes 1 to 4 first and 5 to 9 second, both in 8.1 (9:20 PM). All four cards are answered and the design stands as written; sub-items L1 to L14 (section 12) are final, with L8 (Classes 5 to 9) as the second build.</p>
+<ol>
+<li><strong>How far can strange-solvent life go (acid, dense CO<sub>2</sub>, cold methane, ammonia water, silicon in acid)?</strong> Option 1 (recommended): physics decides. Its energy supply and reaction speed set the ceiling, with no hard cap, so most of it ends as microbes or mats and a few percent reach simple animals. Option 2: hard cap at colonial or sessile animals. Option 3: same ladder as water life.</li>
+<li><strong>Cold methane worlds are about 100 million times slower by the plain temperature rule.</strong> Should life start there at all? Option 1 (recommended): yes, the origin step uses the faster diffusion-limited rate [R0231], later steps stay slow, so they end as microbes. Option 2: plain temperature rule, so they &quot;support&quot; life but stay empty.</li>
+<li><strong>When several kinds of life would fit a world, which is the dominant one?</strong> Option 1 (recommended): the one with the most food production wins and the others are listed as &quot;also supports&quot;. Option 2: a weighted random pick.</li>
+<li><strong>How much of the system goes into 8.1?</strong> Option 1 (recommended): the store, the display and Classes 1 to 4 first, then the strange-solvent classes 5 to 9 in a second build, both inside 8.1. Option 2: all nine classes in one go. Option 3: only Classes 1 to 4 in 8.1, the rest in 9.5.</li>
+</ol>
+<p>One more choice I made without a card, listed so it can be reversed: the pigment a world gets (Class 1a, 1b, 1c) is picked by physics (star light against the pigment's band) instead of the old star-letter weights.</p>
+<hr />
+<h2 id="14-sources-and-what-was-not-verified">14. Sources and what was not verified</h2>
+<p>Read for this note: the three reports named at the top; docs/design/habitability/habitability-index.md section 5 and 12, condition-based-planet-classes.md; <code>tuning.py</code> lines 2174 to 2420 (LIFE_CHEMICALS, STAR_EVOLUTION, EVOLUTIONARY_TIMELINES, LIFE_METABOLISMS); <code>physics/life_scores.py</code>; <code>physics/data/planet_classes.json</code> and the quantity list of <code>physics/planet_classes.py</code>; <code>db/models.py</code> life columns; docs/TODO.md items GEN.855, 750, 857 to 885; docs/plan/releases/version-9-5-life-classes.md; Core 1's and Aux 4's recent thread status; main at b851509d8.</p>
+<p>Core 1's design doc was read (the branch copy of 9:19 PM EDT); its code was not. No probe was run for this design (the review's measurements are quoted, not repeated).</p>
+<p>Recalled, not re-opened: the Class 1 timing for the first and second O<sub>2</sub> rises, the 0.1 percent organic burial, the ozone shield threshold, the water-ammonia eutectic near 176 K, CO<sub>2</sub> critical constants (304 K, 73 bar), the sponge O<sub>2</sub> floor [R3084], the [R0691] size argument, the CO<sub>2</sub> compensation of about 5 Pa and the light compensation thresholds. The proposed complexity thresholds in 7.3 are starting values, not sourced numbers. Spot-check every number before it becomes a test limit, as the review asked.</p>
+<h2 id="life-readings-abundance-trend-and-security-gen1210">Life readings: abundance, trend and security (GEN.1210)</h2>
+<p><code>physics/life_readings.py</code> reads three words for each kind of life (microbes, flora, fauna, sentient life) from a world's stored values, with no new column and no epoch: &quot;Microbes: abundant, stable, secure.&quot; <strong>Abundance</strong> is the kind's stored 0 to 9 score in the ecologists' DAFOR words (Absent 0, Rare 1 to 2, Occasional 3 to 4, Frequent 5 to 6, Abundant 7 to 8, Dominant 9). <strong>Trend</strong> is Growing, Stable or Declining: the living class is scored again with the star half a billion years on (<code>main_sequence</code> brightens, the surface follows the fourth root of the luminosity, the sea is lost past the runaway-greenhouse limit), and a gain or loss of a tenth of its likelihood is a trend; a kind whose milestone (microbes: abiogenesis; flora and fauna: multicellularity; sentient: the technological civilization) came within 0.3 Gyr of the world's age is still Growing. <strong>Security</strong> is how long the class's conditions last, searched in steps of 0.1 Gyr up to 2 Gyr: Dying out (the class scores nothing now, or within 0.1 Gyr), Precarious (within 0.5 Gyr), Marginal (within 2 Gyr, or a score of 2 or less now), Secure. A world with no living class reads Absent for every kind with no trend and no security. The kinds of one world share its living class and so its security; several living classes (GEN.1209) will give one reading per class. The numbers are stand-ins, rows LR1 to LR5 of <code>stand-in-values.md</code>. The page and the API use it (UX.251): <code>GET /api/planets/&lt;id&gt;/life-readings</code> (and <code>moons</code>) works the words out on request from the stored body and its star and stores nothing, and the page shows them in the Life paragraph of At a glance (the kinds that are there, then the classes that suit, no scores) and in a table in the Life section (the words with the score out of 9, and the time the conditions last when it is known).</p>
+<h2 id="the-life-help-pages-doc84">The life help pages (DOC.84)</h2>
+<p><code>/help/life</code> (Help menu, &quot;Life&quot;) and the pages under it explain every word the Life section uses, in the pattern of <code>/help/habitability</code>: <code>web/lib/life_help.py</code> writes the text and <code>templates/life_help.html</code> draws it. They are <code>/help/life</code> (the four kinds of life and what each score needs), <code>/help/life/abundance</code>, <code>/help/life/trend</code>, <code>/help/life/security</code>, <code>/help/life/suitability</code>, <code>/help/life/stages</code> (the seven rungs, the three animal grades, the pace of evolution), <code>/help/life/classes</code> (the nine classes in one table, with the source tier and adjustment level of each class's air chemistry) and <code>/help/life/classes/&lt;number&gt;</code> (one class family: each variant's drinks, eats, breathes and gives off, the liquid, energy, temperature, pressure and supply it needs, how far it can go, its source tier, the words of its stages, and a &quot;Speculative chemistry&quot; note when its air chemistry is at level L3 or L4). Every number on them is read from the code that uses it (<code>life_readings</code>, <code>life_classes</code>, <code>life_ledger.json</code>, <code>tuning</code>), and <code>tests/test_life_help.py</code> holds each sentence to the style guide and each number to the code. The planet page links to them: each class name goes to <code>/help/life/classes/&lt;number&gt;#class-&lt;id&gt;</code>, the Kind, How much, Trend and Security headings carry a &quot;?&quot; link, and the Life section links the stages, suitability and classes. The DOC.57 help framework (a &quot;?&quot; in every page header, a help search, the route-to-help coverage test of DOC.58) is not built yet; these pages are in the Help menu until it is.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

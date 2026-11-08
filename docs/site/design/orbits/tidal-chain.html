@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The tide chain: rheology, spin torques and moon orbits (GEN.842, GEN.954 to GEN.960, GEN.778) - planetGen docs</title>
+<meta name="description" content="Status: partly built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/tidal-chain.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/tidal-chain.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-tide-chain-rheology-spin-torques-and-moon-orbits-gen842-gen954-to-gen960-gen778">The tide chain: rheology, spin torques and moon orbits (GEN.842, GEN.954 to GEN.960, GEN.778)</h1><p class="meta">docs/design/orbits/tidal-chain.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#what-is-built-before-this-chain">What is built before this chain</a></li><li style="margin-left:0px"><a href="#the-stages">The stages</a></li><li style="margin-left:0px"><a href="#gen954-the-rheology-module">GEN.954: the rheology module</a></li><li style="margin-left:0px"><a href="#gen956-the-torque-sum-module">GEN.956: the torque-sum module</a></li><li style="margin-left:0px"><a href="#gen958-the-moon-orbit-module">GEN.958: the moon-orbit module</a></li><li style="margin-left:0px"><a href="#gen978-the-birth-spin-from-the-last-impacts">GEN.978: the birth spin from the last impacts</a></li><li style="margin-left:0px"><a href="#gen979-the-birth-spin-wired-in">GEN.979: the birth spin wired in</a></li><li style="margin-left:0px"><a href="#gen955-stage-1-the-rheology-wired-in">GEN.955 (stage 1): the rheology wired in</a></li><li style="margin-left:0px"><a href="#gen957-stage-2-the-spin-under-the-torque-sum">GEN.957 (stage 2): the spin under the torque sum</a></li><li style="margin-left:0px"><a href="#gen959-stage-3-the-moons-history-on-the-bodies">GEN.959 (stage 3): the moons' history on the bodies</a></li><li style="margin-left:0px"><a href="#gen960-the-tide-in-the-ice-shell">GEN.960: the tide in the ice shell</a></li></ul></details>
+<p>Status: partly built. Stage 1a (the rheology module, GEN.954) stage 2a (the torque-sum module, GEN.956) and stage 3a (the moon-orbit module, GEN.958) and the birth-spin law (GEN.978) are built and called by nothing; every other stage is a plan. Plan and census: <code>/mnt/project-files/reports/gen842-tides-2026-10-29.md</code> (sections 4 and 9) and <code>/mnt/project-files/reports/gen842-spin-down-2026-10-29.md</code>. Owner: Tides 1. Boss, 8:16 PM EDT 2026-10-29: build all of it in 8.1; secondary sources are accepted by default; registered stand-ins are fine (GEN.725).</p>
+<h2 id="what-is-built-before-this-chain">What is built before this chain</h2>
+<p>The tide a star or planet raises in the body that orbits it is built (GEN.737 heat, GEN.731 despin and resonances, GEN.727 circularisation): <code>tidal_heating.response</code> gives each body one <code>k2</code> and one <code>Q</code>, and <code>tidal_spin.evolve</code> slows the spin by the host's tide alone. The chain adds the three things that leave out: a rheology that depends on temperature, melt and tide frequency; the other torques on a planet's spin (its moons', its air's); and the moons' own orbits under the planet's tide.</p>
+<h2 id="the-stages">The stages</h2>
+<p>One branch, a commit per stage, because the stages edit the same functions (<code>tidal_heating.response</code>, <code>tidal_spin.evolve</code>, <code>planets.generate_spin</code>, <code>planet.add_moons</code>). Each physics stage is a lock-free step (a pure module, tests, registry rows; merges freely) and a wiring step (changes generated output; rides train 5, spin and heat, after the star epoch GEN.932 and planet formation train 4).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Lock-free</th>
+<th>Wiring</th>
+<th>What it gives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 rheology</td>
+<td>GEN.954 <code>physics/tidal_rheology.py</code> (built)</td>
+<td>GEN.955, with GEN.778 (fills <code>tidal_flux_w_m2</code>)</td>
+<td>Q and k2 that follow the mantle's temperature and melt; retires the fitted <code>MOLTEN_K2_OVER_Q</code> and the chosen melt state</td>
+</tr>
+<tr>
+<td>2 spin torques</td>
+<td>GEN.956 torque-sum module</td>
+<td>GEN.957 (after the birth-spin retune GEN.953)</td>
+<td>A planet's day from its star's tide, its moons' and its air's thermal tide, with an attractor choice</td>
+</tr>
+<tr>
+<td>3 moon orbits</td>
+<td>GEN.958 moon-orbit module</td>
+<td>GEN.959</td>
+<td>Outward drift, spiral-in of the moons of locked planets, rings from a fallen moon, the moons' tide as planet heat</td>
+</tr>
+<tr>
+<td>ice</td>
+<td>(rides GEN.954)</td>
+<td>GEN.960</td>
+<td>Ice shell rheology for the hydrosphere and the icy branch of <code>tidal_heating</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="gen954-the-rheology-module">GEN.954: the rheology module</h2>
+<p><code>tidal_rheology.response(mass, radius, frequency, temperature, eta0, activation, melt)</code> returns <code>(k2, Q)</code>; <code>rock_response</code> and <code>ice_response</code> are the two ready-made forms. The compliance is Andrade (default) or Maxwell; the Love number is that of a homogeneous sphere with the complex rigidity (the correspondence principle), which reduces to <code>tidal_heating.rigid_k2</code> for a stiff mantle. Viscosity is the body's own drawn <code>eta0 exp(Ea / R T)</code> (<code>interior_heat.Interior</code>), lowered by melt; rigidity falls with melt. The module imports none of <code>tidal_heating</code>, <code>interior_heat</code>, <code>orbit_elements</code> or <code>tidal_spin</code>, which will import it.</p>
+<p>Checked on (<code>src/tests/test_tidal_rheology.py</code>): the Moon (k2 0.022 against 0.0242 observed, Q 61 at 1,450 K against 38 to 60), the solid Earth (semi-diurnal Q a few hundred), Io (k2/Q a few hundredths at the heat-pipe melt share 0.3 with no fitted number, against 0.015 from its orbital acceleration, [R2535]), a magma ocean (k2 to 3/2, no dissipation) and cold ice (Europa's 3e-4 to a factor of 2, a hundred times more near melting).</p>
+<p>Census check (800 systems from seed 1000, 743 with planets, 8,822 rocky planets and moons; screening, the same caveat as the 10-29 report: the mantle temperature is the one the built model stores and the birth spin of a locked planet is taken as 3 h, of a locked moon 20 h; <code>/mnt/project-files/reports/tides1/census-q-of-t-2026-10-30.txt</code>): with Q from the rheology instead of 100, 18.9 percent of free rocky planets and 5.9 percent of free moons would be locked within their age, 0.1 percent of locked ones would stay free, 6.1 percent of planets and 3.4 percent of moons flip between a tide that is at least their own heat and one that is not, and the tide's power changes by more than a factor of 3 for 51 and 57 percent. The median Q comes out 155 (5th to 95th percentile 17 to 1,000). Without the cold ceiling (TR10) a quarter of planets had Q above 6e4 and magma-ocean planets never locked, so the ceiling is a finding as well as a stand-in.</p>
+<p>Stand-ins: registry rows TR1 to TR10 (<code>docs/design/research/gap-filling-plan.md</code> section 6.23). The two numbers the Moon and Io tests do not pin are the Andrade timescale ratio (1) and the rigidity floor of a mush (1e-3).</p>
+<h2 id="gen956-the-torque-sum-module">GEN.956: the torque-sum module</h2>
+<p><code>physics/spin_torques.py</code> sums the torques on a planet's spin and runs the spin under them. A <code>Torques</code> holds the planet, its gravitational <code>Raiser</code>s (the star first, then moons), a <code>k2/Q</code> function (<code>constant_dissipation</code> for today's behaviour, <code>rheology_dissipation</code> for the GEN.954 rheology at the mantle's temperature) and an optional <code>ThermalTide</code>. Gravitational: <code>-F K_g b_g(sigma)</code> with <code>sigma = 2 (omega - n)</code>; thermal: the Debye torque of [R2606], <code>+F K_a q0 x / (1 + x^2)</code>, <code>x = (omega - n) / omega0</code>, with <code>q0</code> and <code>omega0</code> interpolated from that paper's Table 1 (<code>thermal_pressure_amplitude_pa</code>, <code>thermal_relaxation_rate</code>). <code>evolve</code> runs the one-dimensional flow <code>I d omega/dt = N</code> from the birth spin to the first attractor on its way: a resonance whose eccentricity window holds the orbit's, the synchronous state (a raiser's sign flip), a moon's corotation, or an asynchronous balance (<code>equilibria</code>: with constant Q at <code>x = (1 +- sqrt(1 - 4 c^2)) / (2 c)</code>, the outer stable, which is Leconte's equation 13). With one star and constant Q it reproduces <code>tidal_spin.evolve</code> exactly (a test over 60 random bodies).</p>
+<p>Checked on (<code>src/tests/test_spin_torques.py</code>): the Earth-Moon day (2.0 ms per century from the lunar tide alone at k2/Q = 0.3/12 and the standard 3/2), the built rock Q (the Moon changes the Earth's day by under an hour in 4.5 Gy), Venus (thermal and gravitational torques the same size at Q = 100, opposite in sign), Mercury's 3:2 capture, the closed-form asynchronous equilibria, and a moon inside corotation that drags the planet's spin up. Stand-ins: TQ1 to TQ6 (plan section 6.24). One finding for GEN.957: with <code>tidal_rheology</code>'s cold ceiling the gravitational torque goes to a constant floor at low frequency, so the sign jump at synchronism returns for a cold planet and the synchronous state stays stable unless the thermal tide wins at the relaxation frequency, as in the paper's Andrade case.</p>
+<h2 id="gen958-the-moon-orbit-module">GEN.958: the moon-orbit module</h2>
+<p><code>physics/moon_orbits.py</code> integrates the planet's spin and all its moons' distances together (LSODA, time in units of the age, state <code>ln a</code>). Each moon's tide puts the torque <code>N_i</code> of <code>spin_torques</code> on the planet and the opposite on its own orbital angular momentum, <code>d ln a / dt = -2 N_i / L_i</code> (signed <code>L</code>, so a retrograde moon always loses it); the star's tide and the air's thermal tide act on the spin. A moon reaching the fluid Roche limit (<code>rings.roche_limit_km</code>, for its own density) is removed: its mass is <code>ring_mass_kg</code> and its angular momentum goes to the planet's spin; a moon pushed past 0.4 of the Hill radius escapes. <code>planet_heat_j</code> is the energy the moons' tides dissipate in the planet, which GEN.959 reads as a forcing on <code>interior_heat</code>. Angular momentum is conserved to 1e-5 and the heat equals the loss of spin and orbital energy to 2 percent (tests).</p>
+<p>Checked on (<code>src/tests/test_moon_orbit_evolution.py</code>): the Moon's recession (3.7 cm a year at k2/Q = 0.025 against 3.82 measured), Phobos (falls, 3 cm a year against 1.8), Triton (retrograde, falls in some Gy at Q = 1e4), a moon of a star-locked planet inside the synchronous radius (falls; the same moon round a fast Earth drifts out), a close moon of a slowly turning planet (falls into a ring, the spin rises) and several moons together. Stand-ins: TM1 to TM4 (plan section 6.25).</p>
+<h2 id="gen978-the-birth-spin-from-the-last-impacts">GEN.978: the birth spin from the last impacts</h2>
+<p><code>physics/impact_spin.py</code> is [R2431] equation 4 (<code>omega_rms / omega_cr = C g(gamma)</code>, <code>C = 2.75</code>, <code>g = gamma (1 - gamma) [gamma^(1/3) + (1 - gamma)^(1/3)]^(1/2)</code>) and a stand-in for the distribution of <code>gamma</code>, the mass ratio of the last impacts, by planet mass: a giant-impact branch (log-uniform 0.02 to 0.5) with chance <code>1 / (1 + (0.1 M_E / M)^2)</code>, else a planetesimal branch (log-uniform 0.001 to 0.03). The paper's own realistic model (rms 0.71 of breakup) is <code>gamma = 0.28</code>; Mars (0.07 of breakup) is <code>gamma = 0.022</code>. A draw over 0.1 to 5 Earth masses has a median day of 7 hours (the built spin: 2.9), 50 percent of Mars-mass planets turn in 24 hours or slower and 9 percent of Earths, and the 2nd to 98th percentile spans 2.6 to over 100 hours (the widest range of Kokubo and Genda, 2 to 3 hours, and Miguel and Brunini, 10 to 10,000 hours). Stand-ins GS1 to GS7 (plan section 6.26).</p>
+<h2 id="gen979-the-birth-spin-wired-in">GEN.979: the birth spin wired in</h2>
+<p><code>spin.accretion_spin</code> draws the branch and the place in its range (two uniform numbers) and then the three Gaussian components of the width <code>impact_spin.component_sigma_rad_s</code> gives; it replaces the single width of Kokubo and Genda (SP1) and the interim scale and small-planet factor of GEN.953 (SP11, SP12). The tilt is the paper's isotropic law after a giant impact and prograde (z folded positive, [R3959]) for a planet built by planetesimals alone (GS8). A draw over 0.1 to 5 Earth masses has a median free day of about 7 hours, half of the planets of Mars's mass turn as slowly as it does and under a fifth of Earth-mass planets do. The random stream moves (two more draws per rocky planet).</p>
+<h2 id="gen955-stage-1-the-rheology-wired-in">GEN.955 (stage 1): the rheology wired in</h2>
+<p>What changed in the code, and what each number now comes from:</p>
+<ul>
+<li><code>interior_heat.tidal_response(body, frequency)</code> is the <code>k2</code> and <code>Q</code> of a body (it replaces <code>tidal_heating.response</code>): the fixed pairs of a giant and of ice, and for rock <code>tidal_rheology.rock_response</code> of its mass and radius at <code>tide_temperature_k</code> (the box run with no tide, a stagnant lid and a 273 K surface, so the spin, the circularisation and the heat agree without a stored column), its drawn viscosity, the melt that temperature makes between the solidus and the liquidus, and the orbital frequency. <code>orbit_elements.circularisation_time_yr</code> calls it (the despinning did until GEN.957).</li>
+<li>The solidus is a curve of the pressure in the middle of the mantle (<code>tidal_heating.solidus_k</code>, Simon-Glatzel through 1393 K at the surface, 2200 K at 10 GPa and 4180 K at the core-mantle boundary: 1750 K at 3 GPa, Hirschmann's figure, without fitting it), the liquidus 450 K over it (TH6, TH13). The box's own ceiling <code>mantle_ceiling_k</code> is unchanged, so a body with no tide gives the heat it gave.</li>
+<li><code>interior_heat.heat</code> integrates the tide with the cooling: <code>cool(tide)</code> adds <code>peale_power_w(k2/Q at the mantle's temperature)</code> to the radiogenic heat at every stage of the step, with the step limited to 10 K of change. The heat pipe replaces the chosen melt state: when the tide at some temperature up to the heat-pipe temperature (the critical melt fraction of the rheology, TR2) is at least the body's own heat, the mantle cannot be hotter than that temperature, because its melt erupts and carries the heat out; if it makes more heat there than it conducts it holds that temperature (melt-limited) and radiates the radiogenic heat plus the tide there. A weaker tide is a small source in the box. The fitted <code>MOLTEN_K2_OVER_Q</code> (TH5), the chosen melt share (TH7) and the fixed rock Q of 100 (TH3 for rock) are gone.</li>
+<li><code>update_heat</code> stores <code>tidal_flux_w_m2</code> for every rocky and icy body, 0.0 for one on a circle (GEN.778; the sheet's open-gap entry is removed).</li>
+</ul>
+<p>What it gives (the four corners of the drawn viscosity range, each with its own <code>eta0</code> and <code>Ea</code>): the Moon comes out with <code>k2</code> 0.024 (observed 0.0242) and <code>Q</code> of 18 to 29 at its month (37.5 observed), Io is melt-limited at 1,880 K and radiates 9e12 to 5e13 W (observed 0.9 to 1.5e14, so 2 to 3 times above the top of the range; the spread is the uncertainty of the mantle's viscosity, and nothing here is fitted to Io), Mercury and Mars give a tide of 1e5 to 3e9 W. A hot mantle dissipates far more than the constant Q of 100 did, so tidal locking is faster: Mercury reaches 3:2 in 0.3 to 0.5 Gy, Venus locks to the Sun in 1.6 to 6 Gy (the atmospheric tide that holds it away is stage 2, GEN.957) and an Earth spun from five hours loses a third to two thirds of it to the Sun in 4.5 Gy.</p>
+<p>Not done here, by design: the frequency of the heat and Q is the orbital rate, not the semi-diurnal rate of a free spinner (TH11); the spin's Q is one number at birth, not a function of the falling spin (the torque sum of GEN.957 uses <code>rheology_dissipation</code>); ice has its shell's rheology from GEN.960.</p>
+<h2 id="gen957-stage-2-the-spin-under-the-torque-sum">GEN.957 (stage 2): the spin under the torque sum</h2>
+<p><code>physics/body_spin.py</code> fills <code>spin_torques</code> from a body's stored fields and <code>planets.generate_spin</code> runs it for the age of the star (it replaces the constant-Q despinning of <code>tidal_spin</code>, which keeps the moment factors and the resonance windows):</p>
+<ul>
+<li>The first raiser is what the body goes round (the star for a planet, the planet for a moon), on its own orbit. A rocky body's <code>k2/Q</code> is <code>rheology_dissipation</code> at the semi-diurnal frequency, with the mantle temperature of <code>interior_heat.tide_temperature_k</code>, its drawn viscosity and the solidus and liquidus of its mantle pressure, so the torque depends on how fast it turns; a giant keeps a fixed pair and an icy body has its ice shell's (GEN.960).</li>
+<li>A rocky planet with air feels the thermal tide of its star [R2606] from its stored surface pressure and starlight (SP13). Where the two tides cancel away from synchronism the planet keeps that spin: an asynchronous state, retrograde or prograde (tilt 180 or 0, SP14). A flow into a zero of the torque ends within a billionth of the distance, since the approach is exponential (TQ7).</li>
+<li>The state is a synchronous lock, a resonance whose window holds the eccentricity, a corotation, an asynchronous balance, or a spin still free at the age.</li>
+</ul>
+<p>What changes for the maps: warm planets lock sooner than with the constant Q of 100 (Mercury reaches 3:2 within a few Gy), cold small ones are slow to despin, and a thick-air planet near its star can keep a day that is not its year. The moons' torques enter the sum in GEN.959, together with their recession; <code>body_spin.torques_of</code> takes the moons for that. The random stream moves: a body now draws its birth tilt once at birth (<code>planets.draw_birth_spin</code>), where it drew it only when the tide had left it free.</p>
+<h2 id="gen959-stage-3-the-moons-history-on-the-bodies">GEN.959 (stage 3): the moons' history on the bodies</h2>
+<p><code>generate_moons</code> draws each moon's distance as the one it is <em>born</em> at. <code>physics/moon_history.py</code> then runs <code>moon_orbits.evolve</code> from those distances and the planet's birth spin to the age of the star, in the post-pass at the end of <code>Planet.add_moons</code> (and again when <code>planets.generate_spin</code> is called for a planet that has moons, which is how the validation re-run reaches it):</p>
+<ul>
+<li>The planet's spin is the exchange's result, with the star's tide and the thermal tide of the air in the same sum (GEN.957). A planet within a thousandth of its star's orbital rate is locked to it (TM5); the resonance windows are for planets without moons.</li>
+<li>A moon that stays is moved to its new distance (<code>planets.move_orbit</code>: period, Hill sphere, position and speed follow; the plane, shape and place on the orbit do not) and has its spin run again there when it moved by a ten-thousandth or more (TM6). A moon inside its Roche limit is removed, and its mass, <code>fallen_moon_mass_kg</code>, makes the planet's ring (<code>rings.draw_ring</code>): a ring of disrupted moon of up to a ten-thousandth of the planet's mass, whatever the chance of a ring said. A moon pushed past 0.4 of the Hill radius is lost.</li>
+<li>The planet's heat reads the moons that stay: <code>tidal_heating.Forcing</code> carries them and the planet's spin (from its stored day and tilt), and <code>interior_heat</code> adds the power their tides dissipate at the mantle's <code>k2/Q</code> for each tide's frequency (an Earth under the Moon: 2 TW, steeply less at a larger distance and none when the planet turns with the moon).</li>
+<li>It starts from the moons the planet was born with (<code>_born_moons</code>, <code>_birth_distance_au</code>) and its birth spin (<code>_birth_spin</code>) and draws nothing but the spin axis' precession, so the settle pass for the final star age (GEN.961) can call <code>planets.generate_spin(planet, mass, birth=planet._birth_spin)</code> and the whole history is run again at that age.</li>
+</ul>
+<p>What changes for the maps: moons now fall, drift and vanish. Over 40 default systems 66 percent of the moons of planets under 0.3 Earth masses (Mars-like and smaller, slow spinners whose moons lie inside the synchronous distance) had fallen into rings or been lost, against 25 percent of the moons of larger planets, and the surviving moons sit farther out where the planet turned fast. The moon population, the rings and the planets' days move; the prevalence census moves with them. Stand-ins TM5 to TM9 (plan section 6.25).</p>
+<h2 id="gen960-the-tide-in-the-ice-shell">GEN.960: the tide in the ice shell</h2>
+<p><code>physics/icy_tide.py</code> replaces the one <code>k2/Q</code> of 3e-4 tuned to Europa (<code>ICY_K2_OVER_Q</code>, with <code>ICY_K2</code> and <code>ICE_TIDAL_Q</code>, rows TH3 and TH4) with the shell's own rheology:</p>
+<ul>
+<li><strong>The shell</strong> conducts the flux <code>F</code> from its surface temperature to the melting point (<code>k = A / T</code>, the same law as <code>hydrosphere.ice_shell_thickness_km</code>), so the temperature at depth is <code>top exp(F z / A)</code> and the shell is <code>(A / F) ln(base / top)</code> thick. The flux is the body's own (radiogenic) plus its tide's.</li>
+<li><strong>The tide</strong> strains the shell by the tide's amplitude over the radius (<code>3 e h2</code> times the equilibrium bulge for an eccentricity tide, <code>h2 = 1 + k2</code> of a homogeneous ice sphere) and the ice loses <code>(1/2) omega epsilon^2 Im(mu(T))</code> per volume with the Andrade rigidity of <code>tidal_rheology.ICE</code>. The power integrates to <code>4 pi R^2 (1/2) omega epsilon^2 (A / F) I</code>, with <code>I</code> the integral of <code>Im(mu) dT / T</code> over the shell's temperatures, which does not depend on <code>F</code>; so <code>F = F_own + c / F</code> has the closed solution <code>F = (F_own + sqrt(F_own^2 + 4 c)) / 2</code> and a thicker shell (small <code>F</code>) dissipates more, a thinner one less: one equilibrium.</li>
+<li><strong>What reads it.</strong> <code>interior_heat.update_heat</code> stores the tide's flux (<code>tidal_flux_w_m2</code>), and the hydrosphere takes the shell thickness from the same <code>internal + tidal</code> flux, so heat, shell and ocean agree. <code>interior_heat.tidal_response</code> gives an icy body the homogeneous ice sphere's <code>k2</code> and the <code>Q</code> its shell's effective <code>k2/Q</code> makes (the circularisation of its orbit), and <code>body_spin.dissipation_of</code> the same as a function of the tide's frequency (its despinning).</li>
+</ul>
+<p>What it gives with nothing fitted: Europa makes 5e11 W in a 31 km shell (1e11 to 1e12 W and 10 to 30 km observed), Callisto 3e10 W, and Enceladus 1e11 W against its 1.6e10 W radiated, the one body it overshoots. A thin hot shell is held to a <code>k2/Q</code> of 1.5 (a fluid body at Q = 1). Stand-ins IC1 to IC5 (plan section 6.23).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
