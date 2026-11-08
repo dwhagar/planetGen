@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, hydrosphere as hy, tidal_heating, water_layer as wl
+from planetgen.physics import constants, hydrosphere as hy, planet_type, tidal_heating, water_layer as wl
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -176,7 +176,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:
-                if body.body_type == "g":
+                if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
                     assert all(getattr(body, field) is None for field in hy.HYDROSPHERE_FIELDS
                                if field != "water_mass_fraction")
                     continue

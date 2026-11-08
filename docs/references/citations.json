@@ -18413,7 +18413,7 @@
     },
     "R3683": {
       "kind": "paper",
-      "label": "Raymond et al. 2007",
+      "label": "Raymond et al. 2007b",
       "title": "A Decreased Probability of Habitable Planet Formation around Low‐Mass Stars"
     },
     "R3684": {
@@ -25678,35 +25678,75 @@
     },
     "R5138": {
       "kind": "paper",
+      "label": "Petit et al. 2025",
+      "title": "Dynamical Evolution of Planetary Systems"
+    },
+    "R5139": {
+      "kind": "paper",
+      "label": "Nesvorný 2018",
+      "title": "Dynamical Evolution of the Early Solar System"
+    },
+    "R5140": {
+      "kind": "paper",
+      "label": "Shannon and Wu 2011",
+      "title": "PLANETESIMALS IN DEBRIS DISKS OF SUN-LIKE STARS"
+    },
+    "R5141": {
+      "kind": "paper",
+      "label": "Jurić and Tremaine 2008",
+      "title": "Dynamical Origin of Extrasolar Planet Eccentricity Distribution"
+    },
+    "R5142": {
+      "kind": "paper",
+      "label": "Raymond et al. 2007a",
+      "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability"
+    },
+    "R5143": {
+      "kind": "paper",
+      "label": "Tauris and Manchester 1998",
+      "title": "On the Evolution of Pulsar Beams"
+    },
+    "R5144": {
+      "kind": "paper",
+      "label": "Morin et al. 2010",
+      "title": "Large-scale magnetic topologies of late M dwarfs★"
+    },
+    "R5145": {
+      "kind": "paper",
       "label": "Battistini and Bensby 2015",
       "title": "The origin and evolution of the odd-Z iron-peak elements Sc, V, Mn, and Co in the Milky Way stellar disk"
     },
-    "R5139": {
+    "R5146": {
+      "kind": "paper",
+      "label": "Udry et al. 2019",
+      "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury"
+    },
+    "R5147": {
       "kind": "paper",
       "label": "Zhang and Xia 2021",
       "title": "Influence of water on the physical properties of olivine, wadsleyite, and ringwoodite"
     },
-    "R5140": {
+    "R5148": {
       "kind": "paper",
       "label": "Thomas et al. 2015",
       "title": "Quantification of water in hydrous ringwoodite"
     },
-    "R5141": {
+    "R5149": {
       "kind": "paper",
       "label": "Fei 2021",
       "title": "Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle"
     },
-    "R5142": {
+    "R5150": {
       "kind": "paper",
       "label": "Hirschmann 2006",
       "title": "WATER, MELTING, AND THE DEEP EARTH H2O CYCLE"
     },
-    "R5143": {
+    "R5151": {
       "kind": "paper",
       "label": "Fu et al. 2019",
       "title": "Water Concentration in Single‐Crystal (Al,Fe)‐Bearing Bridgmanite Grown From the Hydrous Melt: Implications for Dehydration Melting at the Topmost Lower Mantle"
     },
-    "R5144": {
+    "R5152": {
       "kind": "paper",
       "label": "Pearson et al. 2014",
       "title": "Hydrous mantle transition zone indicated by ringwoodite included within diamond"

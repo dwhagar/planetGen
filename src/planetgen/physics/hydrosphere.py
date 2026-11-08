@@ -56,7 +56,7 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, runaway_history, saturation, water_layer
+from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -309,7 +309,7 @@ def generate_hydrosphere(body, internal_flux_w_m2, surface_w):
     water underground (`aquifers`, GEN.654). `surface_w` is the surface water mass
     fraction (`draw_surface_water`). Call after its atmosphere."""
     _clear(body)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334), has no surface to hold water
         return
     _generate_surface(body, internal_flux_w_m2, surface_w)
     aquifers.generate(body, surface_w, internal_flux_w_m2)

@@ -6,7 +6,7 @@ from tests.test_planet_classes import CASES, body
 
 def records():
     bodies = [(values, False) for values in CASES.values()]
-    bodies.append((body(ocean_fraction=0.97), False))                  # a hole: a wet, mild world between the M and the O boxes
+    bodies.append((body(surface_temperature_k=310.0, ocean_fraction=0.5), False))   # a hole: a half-ocean world past the M box (GEN.1342 closed the wet, mild gap to O)
     bodies.append((body(gravity_g=0.6, mass_earth=0.3), False))        # limited by its gravity: M9 (a light world; M reaches 2 g since GEN.1306)
     return cli.score_bodies(bodies)
 

@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, mantle_oxides, materials, mixture, rock_types, saturation, surface_liquid_world
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -115,7 +115,7 @@ VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 GROUND_TYPES_DERIVED = "ground types derived from the bulk composition and the melting of the mantle"
 
 # The assemblages of Hu et al. 2012 Table 2, on rows of the materials table. Hu's Mg-smectite has no row (kaolinite, the clay row
-# with a measured albedo, stands in), its pyrite none (troilite and kamacite, the sulfide and the metal, stand in), its glass is
+# with a measured albedo, stands in), its pyrite is the `pyrite` row (GEN.1384, Hu's whole metal-rich crust), its glass is
 # the quenched melt (`basalt powder`) and its augite `diopside`; the others are the minerals Hu names.
 GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     "surface-ground-types", 1,
@@ -140,9 +140,8 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
         pt.Row("oxidized", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
-        pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
-               limit="Hu's pyrite has no row; troilite and kamacite stand in", fractions={"troilite": 0.5, "kamacite": 0.5},
-               notes="a mantle stripped to metal and sulfide"),
+        pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], fractions={"pyrite": 1.0},
+               notes="a mantle stripped to metal and sulfide; Hu's metal-rich crust is the pyrite sample alone (Table 2)"),
         pt.Row("carbon", (pt.ANY_CLASS,), 1.0, SOURCES["partE"], state=pt.PARTLY_VERIFIED,
                limit="the carbon-rich crust rule was not reached in part E; graphite and the organics are the rows with albedo",
                fractions={"carbon_graphite": 0.40, "kerogen": 0.30, "anthracite": 0.30}, notes="carbon-rock ground"),
@@ -584,7 +583,7 @@ def generate_surface(body):
     has no ground (every field `None`)."""
     for field in COLUMN_FIELDS:
         setattr(body, field, None)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # GEN.1334: nor has a planet under a deep envelope
         return
     result = draw_surface(inputs_of(body))
     if result is not None:

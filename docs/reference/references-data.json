@@ -78126,6 +78126,38 @@
    "volume": "",
    "year": 2016
   },
+  "10.1007/978-3-319-30648-3_145-2": {
+   "arxiv": "1803.06704",
+   "authors": [
+    [
+     "Petit",
+     "A. C."
+    ],
+    [
+     "Pichierri",
+     "G."
+    ],
+    [
+     "Goldberg",
+     "M."
+    ],
+    [
+     "Morbidelli",
+     "A."
+    ]
+   ],
+   "book": "Handbook of Exoplanets",
+   "doi": "10.1007/978-3-319-30648-3_145-2",
+   "editors": [],
+   "journal": "Handbook of Exoplanets",
+   "page": "1",
+   "publisher": "Springer Nature Switzerland",
+   "src": "crossref",
+   "title": "Dynamical Evolution of Planetary Systems",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2025
+  },
   "10.1007/978-3-319-30648-3_58-1": {
    "authors": [
     [
@@ -90812,6 +90844,7 @@
    "year": 2004
   },
   "10.1016/j.icarus.2003.11.019": {
+   "arxiv": "astro-ph/0308159",
    "authors": [
     [
      "Raymond",
@@ -131456,6 +131489,29 @@
    "volume": "295",
    "year": 1998
   },
+  "10.1046/j.1365-8711.1998.01369.x": {
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "Manchester",
+     "R. N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.1998.01369.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "625",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "On the Evolution of Pulsar Beams",
+   "type": "journal-article",
+   "volume": "298",
+   "year": 1998
+  },
   "10.1046/j.1365-8711.1998.01675.x": {
    "authors": [
     [
@@ -160749,6 +160805,30 @@
    "volume": "684",
    "year": 2008
   },
+  "10.1086/590047": {
+   "arxiv": "astro-ph/0703160",
+   "authors": [
+    [
+     "Jurić",
+     "M."
+    ],
+    [
+     "Tremaine",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/590047",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "603",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Dynamical Origin of Extrasolar Planet Eccentricity Distribution",
+   "type": "journal-article",
+   "volume": "686",
+   "year": 2008
+  },
   "10.1086/590142": {
    "arxiv": "0805.2259",
    "authors": [
@@ -164917,6 +164997,30 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "THE LUMINOSITY PROFILE AND STRUCTURAL PARAMETERS OF THE ANDROMEDA GALAXY",
+   "type": "journal-article",
+   "volume": "739",
+   "year": 2011
+  },
+  "10.1088/0004-637x/739/1/36": {
+   "arxiv": "1103.3209",
+   "authors": [
+    [
+     "Shannon",
+     "A."
+    ],
+    [
+     "Wu",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/739/1/36",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "36",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "PLANETESIMALS IN DEBRIS DISKS OF SUN-LIKE STARS",
    "type": "journal-article",
    "volume": "739",
    "year": 2011
@@ -178724,6 +178828,34 @@
    "publisher": "SAGE Publications",
    "src": "crossref",
    "title": "Biomarker Response to Galactic Cosmic Ray-Induced NO  x  And The Methane Greenhouse Effect in The Atmosphere of An Earth-Like Planet Orbiting An M Dwarf Star",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2007
+  },
+  "10.1089/ast.2006.06-0126": {
+   "arxiv": "astro-ph/0510285",
+   "authors": [
+    [
+     "Raymond",
+     "S. N."
+    ],
+    [
+     "Quinn",
+     "T."
+    ],
+    [
+     "Lunine",
+     "J. I."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2006.06-0126",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "66",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability",
    "type": "journal-article",
    "volume": "7",
    "year": 2007
@@ -219057,6 +219189,45 @@
    "volume": "407",
    "year": 2010
   },
+  "10.1111/j.1365-2966.2010.17101.x": {
+   "authors": [
+    [
+     "Morin",
+     "J."
+    ],
+    [
+     "Donati",
+     "J. F."
+    ],
+    [
+     "Petit",
+     "P."
+    ],
+    [
+     "Delfosse",
+     "X."
+    ],
+    [
+     "Forveille",
+     "T."
+    ],
+    [
+     "Jardine",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2010.17101.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2269",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Large-scale magnetic topologies of late M dwarfs★",
+   "type": "journal-article",
+   "volume": "407",
+   "year": 2010
+  },
   "10.1111/j.1365-2966.2010.17155.x": {
    "authors": [
     [
@@ -224213,6 +224384,65 @@
    "type": "journal-article",
    "volume": "49",
    "year": 2014
+  },
+  "10.1111/maps.13252": {
+   "authors": [
+    [
+     "Udry",
+     "A."
+    ],
+    [
+     "Wilbur",
+     "Z. E."
+    ],
+    [
+     "Rahib",
+     "R. R."
+    ],
+    [
+     "McCubbin",
+     "F. M."
+    ],
+    [
+     "Vander Kaaden",
+     "K. E."
+    ],
+    [
+     "McCoy",
+     "T. J."
+    ],
+    [
+     "Ziegler",
+     "K."
+    ],
+    [
+     "Gross",
+     "J."
+    ],
+    [
+     "DeFelice",
+     "C."
+    ],
+    [
+     "Combs",
+     "L."
+    ],
+    [
+     "Turrin",
+     "B. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/maps.13252",
+   "editors": [],
+   "journal": "M&PS",
+   "page": "785",
+   "publisher": "Wiley",
+   "src": "crossref",
+   "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury",
+   "type": "journal-article",
+   "volume": "54",
+   "year": 2019
   },
   "10.1111/maps.13449": {
    "authors": [
@@ -235067,6 +235297,26 @@
    "publisher": "Annual Reviews",
    "src": "crossref",
    "title": "Rubble Pile Asteroids",
+   "type": "journal-article",
+   "volume": "56",
+   "year": 2018
+  },
+  "10.1146/annurev-astro-081817-052028": {
+   "arxiv": "1807.06647",
+   "authors": [
+    [
+     "Nesvorný",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev-astro-081817-052028",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "137",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Dynamical Evolution of the Early Solar System",
    "type": "journal-article",
    "volume": "56",
    "year": 2018
@@ -280193,7 +280443,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5145,
+ "id_next": 5153,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -280361,6 +280611,7 @@
   "10.1007/978-3-319-13186-3_34": "R2790",
   "10.1007/978-3-319-19336-6_8": "R1352",
   "10.1007/978-3-319-30137-2_4": "R3623",
+  "10.1007/978-3-319-30648-3_145-2": "R5138",
   "10.1007/978-3-319-30648-3_58-1": "R2445",
   "10.1007/978-3-319-30648-3_69-1": "R5089",
   "10.1007/978-3-319-40030-3_41": "R3050",
@@ -281485,7 +281736,7 @@
   "10.1029/2019gc008273": "R2666",
   "10.1029/2019gc008865": "R2987",
   "10.1029/2019gl084206": "R0595",
-  "10.1029/2019gl084630": "R5143",
+  "10.1029/2019gl084630": "R5151",
   "10.1029/2019gl085476": "R3083",
   "10.1029/2019ja026610": "R4571",
   "10.1029/2019ja027114": "R0597",
@@ -281495,7 +281746,7 @@
   "10.1029/2019je006175": "R4416",
   "10.1029/2020gl087266": "R2152",
   "10.1029/2020gl087268": "R0596",
-  "10.1029/2020gl090973": "R5141",
+  "10.1029/2020gl090973": "R5149",
   "10.1029/2020gl091733": "R1559",
   "10.1029/2020ja028927": "R1413",
   "10.1029/2020jb020245": "R1321",
@@ -281753,7 +282004,7 @@
   "10.1038/nature12908": "R1068",
   "10.1038/nature12917": "R3664",
   "10.1038/nature13068": "R2780",
-  "10.1038/nature13080": "R5144",
+  "10.1038/nature13080": "R5152",
   "10.1038/nature13172": "R2132",
   "10.1038/nature13246": "R1337",
   "10.1038/nature13408": "R2042",
@@ -281892,6 +282143,7 @@
   "10.1039/jr9630002853": "R1764",
   "10.1046/j.1365-246x.1998.00521.x": "R3154",
   "10.1046/j.1365-8711.1998.01227.x": "R3107",
+  "10.1046/j.1365-8711.1998.01369.x": "R5143",
   "10.1046/j.1365-8711.1998.01675.x": "R2187",
   "10.1046/j.1365-8711.1998.01947.x": "R2863",
   "10.1046/j.1365-8711.1999.02013.x": "R4193",
@@ -282008,7 +282260,7 @@
   "10.1051/0004-6361/201424896": "R3134",
   "10.1051/0004-6361/201424915": "R1146",
   "10.1051/0004-6361/201425168": "R3912",
-  "10.1051/0004-6361/201425327": "R5138",
+  "10.1051/0004-6361/201425327": "R5145",
   "10.1051/0004-6361/201425451": "R1687",
   "10.1051/0004-6361/201425481": "R0254",
   "10.1051/0004-6361/201425525": "R2109",
@@ -282607,6 +282859,7 @@
   "10.1086/589653": "R3894",
   "10.1086/589833": "R5128",
   "10.1086/589960": "R4982",
+  "10.1086/590047": "R5141",
   "10.1086/590142": "R0214",
   "10.1086/590227": "R0747",
   "10.1086/590552": "R1497",
@@ -282725,6 +282978,7 @@
   "10.1088/0004-637x/737/1/15": "R3177",
   "10.1088/0004-637x/738/2/144": "R1009",
   "10.1088/0004-637x/739/1/20": "R0909",
+  "10.1088/0004-637x/739/1/36": "R5140",
   "10.1088/0004-637x/741/1/28": "R0861",
   "10.1088/0004-637x/741/2/103": "R1328",
   "10.1088/0004-637x/741/2/68": "R2931",
@@ -283002,6 +283256,7 @@
   "10.1089/ast.2006.0127": "R2339",
   "10.1089/ast.2006.0128": "R5015",
   "10.1089/ast.2006.0129": "R1680",
+  "10.1089/ast.2006.06-0126": "R5142",
   "10.1089/ast.2006.6.377": "R3366",
   "10.1089/ast.2007.0128": "R3799",
   "10.1089/ast.2007.0205": "R1361",
@@ -283964,6 +284219,7 @@
   "10.1111/j.1365-2966.2010.16860.x": "R0780",
   "10.1111/j.1365-2966.2010.16969.x": "R1536",
   "10.1111/j.1365-2966.2010.17022.x": "R4099",
+  "10.1111/j.1365-2966.2010.17101.x": "R5144",
   "10.1111/j.1365-2966.2010.17155.x": "R3307",
   "10.1111/j.1365-2966.2010.17178.x": "R3815",
   "10.1111/j.1365-2966.2010.17291.x": "R2853",
@@ -284104,6 +284360,7 @@
   "10.1111/j.2153-3490.1969.tb00466.x": "R0580",
   "10.1111/maps.12095": "R2978",
   "10.1111/maps.12293": "R3895",
+  "10.1111/maps.13252": "R5146",
   "10.1111/maps.13449": "R3552",
   "10.1111/maps.13908": "R4292",
   "10.1111/maps.13994": "R4488",
@@ -284291,6 +284548,7 @@
   "10.1146/annurev-astro-081811-125612": "R3628",
   "10.1146/annurev-astro-081811-125615": "R2798",
   "10.1146/annurev-astro-081817-052013": "R4602",
+  "10.1146/annurev-astro-081817-052028": "R5139",
   "10.1146/annurev-astro-081915-023307": "R2474",
   "10.1146/annurev-astro-081915-023322": "R3396",
   "10.1146/annurev-astro-081915-023441": "R0422",
@@ -284346,7 +284604,7 @@
   "10.1146/annurev.earth.32.101802.120435": "R2125",
   "10.1146/annurev.earth.34.031405.125058": "R0278",
   "10.1146/annurev.earth.34.031405.125154": "R0484",
-  "10.1146/annurev.earth.34.031405.125211": "R5142",
+  "10.1146/annurev.earth.34.031405.125211": "R5150",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
@@ -284521,7 +284779,7 @@
   "10.3357/asem.3485.2014": "R1808",
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
-  "10.3389/feart.2014.00038": "R5140",
+  "10.3389/feart.2014.00038": "R5148",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -284990,7 +285248,7 @@
   "10.5194/bg-4-545-2007": "R0996",
   "10.5194/cpd-10-2011-2014": "R0620",
   "10.5194/egusphere-egu22-11313": "R4153",
-  "10.5194/ejm-33-39-2021": "R5139",
+  "10.5194/ejm-33-39-2021": "R5147",
   "10.5194/epsc2022-506": "R5075",
   "10.5194/epsc2024-501": "R3750",
   "10.5194/essd-5-365-2013": "R2303",
@@ -285240,6 +285498,7 @@
   "arxiv:1102.0550": "R0615",
   "arxiv:1102.2554": "R0230",
   "arxiv:1103.2791": "R0038",
+  "arxiv:1103.3209": "R5140",
   "arxiv:1103.3426": "R4555",
   "arxiv:1103.4651": "R0677",
   "arxiv:1103.5814": "R2403",
@@ -285783,6 +286042,7 @@
   "arxiv:1803.01511": "R2358",
   "arxiv:1803.01706": "R1865",
   "arxiv:1803.03303": "R4720",
+  "arxiv:1803.06704": "R5138",
   "arxiv:1803.07083": "R2300",
   "arxiv:1804.00013": "R4721",
   "arxiv:1804.00763": "R2488",
@@ -285817,6 +286077,7 @@
   "arxiv:1807.03894": "R0627",
   "arxiv:1807.03925": "R3834",
   "arxiv:1807.06209": "R3544",
+  "arxiv:1807.06647": "R5139",
   "arxiv:1807.08593": "R3612",
   "arxiv:1808.00233": "R2768",
   "arxiv:1808.01402": "R0411",
@@ -286447,6 +286708,7 @@
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
   "arxiv:astro-ph/0303456": "R5079",
+  "arxiv:astro-ph/0308159": "R3682",
   "arxiv:astro-ph/0308388": "R1270",
   "arxiv:astro-ph/0308467": "R0362",
   "arxiv:astro-ph/0310667": "R4694",
@@ -286488,6 +286750,7 @@
   "arxiv:astro-ph/0508460": "R4824",
   "arxiv:astro-ph/0510224": "R3999",
   "arxiv:astro-ph/0510255": "R3185",
+  "arxiv:astro-ph/0510285": "R5142",
   "arxiv:astro-ph/0510784": "R4491",
   "arxiv:astro-ph/0511082": "R0921",
   "arxiv:astro-ph/0512334": "R1109",
@@ -286522,6 +286785,7 @@
   "arxiv:astro-ph/0702496": "R2194",
   "arxiv:astro-ph/0702622": "R1680",
   "arxiv:astro-ph/0703059": "R2158",
+  "arxiv:astro-ph/0703160": "R5141",
   "arxiv:astro-ph/0703346": "R1566",
   "arxiv:astro-ph/0703414": "R1447",
   "arxiv:astro-ph/9404028": "R2830",

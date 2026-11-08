@@ -8,10 +8,10 @@ A mantle holds water in its minerals, and how much depends on which minerals the
 `physics/data/mantle_reservoirs.json`; three zones of a mantle, by pressure:
 
 * **the upper mantle**, olivine, pyroxene and garnet, to 13 GPa (the olivine to wadsleyite change; 410 km on Earth): the upper mantle of Earth holds
-  50 to 200 ppm of water [R5142: Abstract] and olivine can hold under 0.9 wt% [R5139: Introduction];
-* **the transition zone**, wadsleyite and ringwoodite, from 13 to 23 GPa (410 to 660 km on Earth): up to about 3 wt% [R5139: Introduction], 1.5 to 2 wt%
-  for ringwoodite [R5140: Abstract], 1.43 wt% in the diamond-hosted ringwoodite [R5144], about 1.0 wt% by several lines of evidence [R5141: Introduction];
-* **the lower mantle**, bridgmanite and ferropericlase, from 23 GPa: at most 0.1 wt% [R5141: Introduction] and under 20 ppm [R5142: Abstract].
+  50 to 200 ppm of water [R5150: Abstract] and olivine can hold under 0.9 wt% [R5147: Introduction];
+* **the transition zone**, wadsleyite and ringwoodite, from 13 to 23 GPa (410 to 660 km on Earth): up to about 3 wt% [R5147: Introduction], 1.5 to 2 wt%
+  for ringwoodite [R5148: Abstract], 1.43 wt% in the diamond-hosted ringwoodite [R5152], about 1.0 wt% by several lines of evidence [R5149: Introduction];
+* **the lower mantle**, bridgmanite and ferropericlase, from 23 GPa: at most 0.1 wt% [R5149: Introduction] and under 20 ppm [R5150: Abstract].
 
 `zone_shares` puts the mantle's mass in those zones from the body's mass, radius and rock fraction: the mass between two pressures is
 `4 pi r^2 dP / g`, the depth of each pressure comes from `bulk_structure.mantle_density` under the surface gravity, and the walk down stops where

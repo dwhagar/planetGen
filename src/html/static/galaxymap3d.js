@@ -4917,6 +4917,7 @@ function initGalaxyMap3d(canvasEl, data) {
     quasar: ["point", "Bright points: quasars"],
     roguePlanet: ["point", "Faint points: rogue planets"],
     interstellarComet: ["point", "Small spheres: interstellar comets"],
+    globularCluster: ["globular", "Pale-gold balls: globular clusters, brightest where the stars crowd"],
     neighbor: ["outline", "Outlines: the neighboring sectors"],
   };
   (function registerKeyLines() {

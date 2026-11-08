@@ -123,24 +123,25 @@ def cell_rows(cells):
     return [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: tuple(item[0]))]
 
 
-def rebuild(conn, on_progress=None, on_skipped=None):
+def rebuild(conn, on_progress=None, on_skipped=None, charted=True):
     """
     Computes every row from `sectors` and `sector_stats` in one pass, a shell at a time, and replaces the table's
     rows with them in one transaction (readers see the old rows until the commit). The sectors' masses are made again first
     (`sector_mass.fill_all`); `on_skipped(addresses)` is called with the sectors that hold a body with no stored mass, which
-    are left out of the sums (DB.108). Returns the rows written.
+    are left out of the sums (DB.108). Uncharted placeholder rows are not generated sectors and add nothing (`charted=False` reads every row:
+    migration 0168 runs this on a schema older than the chart ledger). Returns the rows written.
     """
     skipped = sector_mass.fill_all(conn)
     if skipped and on_skipped is not None:
         on_skipped(skipped)
     shells = [row["shell_index"] for row in conn.execute(
-        "SELECT DISTINCT shell_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY shell_index").fetchall()]
+        f"SELECT DISTINCT shell_index FROM {query.charted_sectors_sql('shell_index IS NOT NULL', charted)} s ORDER BY shell_index").fetchall()]
     cells = {}
     for done, shell in enumerate(shells, start=1):
         rows = conn.execute(
             "SELECT s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg FROM (SELECT * FROM sectors WHERE"
-            " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
+            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg FROM "
+            + query.charted_sectors_sql("shell_index = ?", charted) + " s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
             " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (shell,)).fetchall()
         for r in rows:
             accumulate(cells, (r["shell_index"], r["band_index"], r["wedge_index"]), r["actual_systems"],
@@ -152,6 +153,6 @@ def rebuild(conn, on_progress=None, on_skipped=None):
     rows = cell_rows(cells)
     for start in range(0, len(rows), 1000):
         conn.executemany(INSERT, rows[start:start + 1000])
-    region_stats.rebuild(conn)    # DB.107: the regions are the 9-blocks just stored
+    region_stats.rebuild(conn, charted=charted)    # DB.107: the regions are the 9-blocks just stored
     return len(rows)
 

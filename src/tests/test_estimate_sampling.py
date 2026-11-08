@@ -165,6 +165,35 @@ def test_a_streamed_shell_run_estimates_from_a_sample_and_generates_every_sector
         == [(1, 0, 0), (1, 0, 1), (1, 0, 2)]
 
 
+def test_a_run_that_only_estimates_works_out_no_battery_and_starts_no_run(mysql_config, monkeypatch, capsys):
+    """ADM.141: the battery (half a minute and more) is compared with the galaxy's to warn before a write; an estimate writes nothing, and
+    it was most of the two minutes the Generate page's size line waited. ADM.142: a region that holds no sector is an estimate of nothing,
+    not a run (`--around` used to start a stage that generated 0 sectors and printed no estimate)."""
+    from planetgen.generation import generator_battery
+    _plan_wide_galaxy(mysql_config)
+    worked_out = []
+    monkeypatch.setattr(generator_battery, "running_digest", lambda *a, **k: worked_out.append(1) or pytest.fail("worked out"))
+    _run_cli(FIRST_THREE + ["--estimate-only"] + _mysql_argv(mysql_config))
+    assert worked_out == []
+    assert [m for m in capsys.readouterr().out.splitlines() if m.startswith(run_common.ESTIMATE_PREFIX)]
+    empty = ["--around", "0", "0", "1000000", "--radius-pc", "60", "--estimate-only"]
+    _run_cli(empty + _mysql_argv(mysql_config))
+    out = capsys.readouterr().out
+    lines = [m for m in out.splitlines() if m.startswith(run_common.ESTIMATE_PREFIX)]
+    assert "nothing to generate" in out and "Stage 1" not in out and "sectors are saved" not in out
+    assert __import__("json").loads(lines[0][len(run_common.ESTIMATE_PREFIX):])["sectors"] == 0
+    assert _all_sectors(mysql_config) == []
+
+
+def test_a_run_that_writes_still_compares_the_battery(mysql_config, monkeypatch):
+    seen = []
+    monkeypatch.setattr(run_galaxy, "_plan_check", lambda config, edge_pc, compute_battery=True: seen.append(compute_battery) or (None, None))
+    for estimating in (True, False):
+        monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: mysql_config)
+        run_galaxy._check_plan(SimpleNamespace(estimate_only=estimating), EDGE_PC)
+    assert seen == [False, True]
+
+
 # --- The web limit -------------------------------------------------------------------------------------------------
 
 

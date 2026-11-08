@@ -41,7 +41,7 @@ Use:
 import dataclasses
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import bulk_composition, bulk_draw, constants, oddities
 from planetgen.util import detmath
 
 Q_STAR_SCALE = 0.6
@@ -61,6 +61,10 @@ IMPACT_ANGLE_DEG = 30.0
 
 EARTH_LIKE_CORE_FRACTION = 0.33
 """float: The core fraction of the bodies Marcus simulated (67 percent forsterite, 33 percent iron)."""
+
+IMPACT_ENERGY_RATIO_RANGE = (0.5, 1.5)
+"""tuple: The range the energy ratio `x` of the stripping impact of oddity W10 is drawn from, uniformly (MT8). Below 0.5 the remnant keeps less than 0.41 iron (an Earth-like
+planet barely changed); at 1.5 it keeps 0.83, just under `MAX_CORE_MASS_FRACTION`."""
 
 _IRON_FIT = (0.33, 0.25, 1.65)
 _REFERENCE_DENSITY = 1000.0
@@ -229,3 +233,22 @@ def strip_probability(angle_deg=None):
     """The share of random impacts within `angle_deg` of head-on (default `IMPACT_ANGLE_DEG`): the impact parameter is `sin(angle)` of the
     contact distance and impacts are uniform in area, so the share is `sin^2(angle)`."""
     return math.sin(math.radians(IMPACT_ANGLE_DEG if angle_deg is None else angle_deg)) ** 2
+
+
+@oddities.register("strip_mantle")
+def strip_mantle(body, row):
+    """
+    The effect of oddity W10: a head-on giant impact blew the rock off the body and left it iron rich. The mass the body has is the remnant's
+    (the planet architecture gave it as the planet's mass), so the effect changes what that mass is made of: the impact's energy ratio `x` is drawn
+    from `IMPACT_ENERGY_RATIO_RANGE` on a stream of its own, the iron share of the dry part becomes `core_fraction_after` (held under
+    `row.params["max_fraction"]`), and the volatiles go with the mantle. The radius, the density and the stored composition follow from the new
+    shares at the same mass (`bulk_draw.resettle`).
+    """
+    bulk = bulk_composition.bulk_fractions(body)
+    if bulk is None or bulk.dry_core_fraction is None:
+        raise oddities.OddityError(f"oddity {row.id}: the body has no composition to strip")
+    x = oddities.stream(f"{row.id}:impact", oddities.body_key(body)).uniform(*IMPACT_ENERGY_RATIO_RANGE)
+    ceiling = min(float(row.params.get("max_fraction", MAX_CORE_MASS_FRACTION)), CORE_FRACTION_CEILING)
+    fraction = min(max(core_fraction_after(bulk.dry_core_fraction, x), bulk.dry_core_fraction), ceiling)
+    body_bulk = dataclasses.replace(bulk, metal=fraction, rock=1.0 - fraction, water=0.0, ice=0.0, ice_shares=None)
+    bulk_draw.resettle(body, body_bulk)

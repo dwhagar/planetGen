@@ -146,6 +146,16 @@ class _StoreResult:
     def fetchall(self):
         return [dict(row) for row in self.result.mappings().fetchall()]
 
+    @property
+    def rowcount(self):
+        """The rows the statement changed (MAP.402: a migration that writes rows through `store` code reads it)."""
+        return self.result.rowcount
+
+    @property
+    def lastrowid(self):
+        """The AUTO_INCREMENT id the statement made, as `store.Connection`'s result gives it."""
+        return self.result.lastrowid
+
 
 # --- lock waits -----------------------------------------------------------------------------------------------------
 

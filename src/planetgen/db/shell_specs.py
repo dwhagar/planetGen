@@ -6,6 +6,7 @@ it has, how far out they reach, and how many sectors are charted in each.
 Read from `galaxy_shell` (one row per shell with content; see `schema.sql`).
 """
 
+from planetgen.db.query import charted_sectors_sql
 from planetgen.galaxy import spherical
 
 SHELL_SPEC_ROWS = 41
@@ -32,7 +33,7 @@ def galaxy_shell_specs(conn, edge_pc):
     if not shells:
         return None
     charted = {row["shell_index"]: row["n"] for row in conn.execute(
-        "SELECT shell_index, COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL GROUP BY shell_index"
+        f"SELECT shell_index, COUNT(*) AS n FROM {charted_sectors_sql('center_x_pc IS NOT NULL')} s GROUP BY shell_index"
     ).fetchall()}
     keep = shells
     if len(shells) > SHELL_SPEC_ROWS:

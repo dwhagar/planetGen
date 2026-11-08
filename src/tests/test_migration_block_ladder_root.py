@@ -29,7 +29,7 @@ def _old_galaxy(mysql_config):
                          (f"Sector {n}", shell, band, wedge))
             conn.execute(
                 "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems, actual_stars,"
-                " mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, 2.5, 2, 3, 4.0, 12.5, 0)",
+                " mean_age_gy, total_luminosity_sol, bright_level_sol, filled_at) VALUES (?, ?, ?, 2.5, 2, 3, 4.0, 12.5, 0, CURRENT_TIMESTAMP(3))",    # filled: migration 0201 charts it
                 (shell, band, wedge))
         # A row of the old ladder: made for a block that is another block now.
         conn.execute("INSERT INTO galaxy_block_stats (m, shell_index, band_index, wedge_index, sector_count, systems,"

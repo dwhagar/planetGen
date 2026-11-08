@@ -6,7 +6,7 @@ import types
 import pytest
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import rock_types, surface_composition as sc
+from planetgen.physics import planet_type, rock_types, surface_composition as sc
 from planetgen.util import draw
 
 
@@ -123,6 +123,18 @@ def test_tidal_sulfur():
                                    internal_heat_flux_w_m2=0.01, o2_partial_pa=0.0, mobile_lid=False,
                                    surface_temperature_k=110.0, pressure_pa=0.0))
     assert "sulfur" in result.mix
+
+
+def test_the_metal_ground_is_hus_pyrite_sample_alone():
+    """GEN.1384: Hu et al. 2012 Table 2 gives the metal-rich crust as pyrite; the row exists, so no troilite or kamacite stands in."""
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)
+    draw.set_run_seed(1)
+    result = sc.draw_surface(earth(metal_mass_fraction=0.8, rock_mass_fraction=0.2, **base))
+    assert result.ground_type == "metal"
+    assert sc.GROUND_TYPES.row("metal").normalised_fractions() == {"pyrite": 1.0}
+    assert result.components.get("pyrite", 0.0) > 0.0
+    assert "troilite" not in result.components and "kamacite" not in result.components
+    assert sc.GROUND_TYPES.row("metal").state == sc.pt.VERIFIED
 
 
 def test_dominant_ground_rules():
@@ -256,10 +268,10 @@ def _bodies(count=25):
 
 def test_every_generated_body_has_a_consistent_ground():
     bodies = _bodies()
-    solid = [b for b in bodies if b.body_type != "g"]
+    solid = [b for b in bodies if planet_type.has_ground(b)]
     assert solid and any(b.body_type == "g" for b in bodies)
     for body in bodies:
-        if body.body_type == "g":
+        if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
             assert all(getattr(body, field) is None for field in sc.COLUMN_FIELDS)
             continue
         mix = sc.mix_of(body)

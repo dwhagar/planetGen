@@ -1049,11 +1049,12 @@ Sun's own habitable zone dry-proof (the young Sun was past the runaway limit at 
 RUNAWAY_HISTORY_STEPS = 64
 """int: Log-spaced steps of the water-loss history integral from `RUNAWAY_HISTORY_START_YR` to the star's age."""
 
-ENERGY_LIMITED_EFFICIENCY = 0.01
+ENERGY_LIMITED_EFFICIENCY = 0.15
 """float: The share of the absorbed XUV that drives hydrogen away in the energy-limited escape,
 Mdot = eps pi R^3 F_xuv / (G M) ([R2769, R4637] take 0.1, other estimates run from about 0.01 to
-0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
-2026-10-23; DESIGN stand-in, GEN.639)."""
+0.3). 0.15, the value the atmosphere escape model uses (`thermosphere.ENERGY_LIMITED_EFFICIENCY`, the grid of [R2512]: 0.10 to
+0.20), so the water-loss history and the atmosphere's escape agree (Boss, 2026-11-07, replacing his 7:09 PM EDT 2026-10-23
+choice of 0.01; GEN.639)."""
 
 RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 """float: The Sun's flux at the Earth, W/m2: the unit `orbits.runaway_greenhouse_flux` is in (the planet's starlight over this is its effective flux)."""
@@ -2288,15 +2289,6 @@ table, so a page is written from a world's stored pace and needs no table of age
 HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
 """
 list: A list of planet class codes that are considered habitable.
-"""
-
-"""
-dict[str, str]: Maps a habitable planet class code to the highest
-`EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
-is consistent with -- see `evolution.get_evolutionary_state`'s
-`planet_class` parameter, the only reader of this mapping. A class not
-present here is uncapped (full range, up to and including a technological
-civilization).
 """
 
 HABITABILITY_LIFE_SCORE_MIN = 0.005
@@ -3690,10 +3682,10 @@ PHENOMENON_DENSITY_PC3 = {
     # 0.05 per star). The real population of comets and planetesimals,
     # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
     "comet": 0.007,
-    # Free asteroid fields disperse in 1e6-1e7 years (Raymond et al.
-    # 2020, ApJL 894:L22), so none are generated; the type stays for
-    # hand-made fields and facilities.
-    "asteroid-field": 0.0,
+    # Free asteroid fields spread past a light year in some tens of thousands of years (`field_dispersal`), so the only ones that stand are those a physical source puts
+    # there (GEN.1103; Boss, 4:54 PM EDT 2026-10-30: no game rate). This is the fields two colliding rogue planets leave, `collision_field.standing_density_pc3()`
+    # (tests/test_collision_field.py holds the literal to it); the fields of supernova remnants are hosted by their remnants (`field_host`), not rolled.
+    "asteroid-field": 6.6e-21,
 }
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""

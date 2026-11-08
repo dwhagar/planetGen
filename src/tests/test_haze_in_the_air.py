@@ -5,13 +5,14 @@ found among the first seeds.
 """
 
 import dataclasses
+import sys
 
 import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import aerosols, constants, surface_air as sa
+from planetgen.physics import aerosols, constants, planet_type, surface_air as sa
 from planetgen.util import draw
 
 
@@ -21,6 +22,11 @@ def _generate(seed):
 
     def spy(setting, start_temperature_k):
         air = real(setting, start_temperature_k)
+        frame = sys._getframe(1)
+        while frame is not None:
+            if frame.f_code.co_filename.endswith("air_branches.py"):
+                return air          # GEN.1049: the second solve of oddity W20 tries the other branch; the body stores the first air unless that branch is taken
+            frame = frame.f_back
         captured["setting"], captured["start"], captured["air"] = setting, start_temperature_k, air
         return air
 
@@ -41,7 +47,7 @@ def _generate(seed):
 def hazy():
     for seed in range(60):
         planet, captured = _generate(seed)
-        if planet.tau_haze and planet.tau_haze > 0.0:
+        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):      # GEN.1334: a planet under a deep envelope is solved at its 1 bar level, as a giant is
             return planet, captured
     pytest.fail("no body of the first 60 seeds has a haze")
 

@@ -584,6 +584,14 @@ def _settle(body, bulk, mass_given):
     _store(body, bulk)
 
 
+def resettle(body, bulk):
+    """
+    Puts a new bulk composition on a body whose mass stays what it is (an oddity that changes what the body is made of, `physics/oddities.py`): the radius
+    follows from the mass and the composition, then the stored shares, the composition text and the density.
+    """
+    _settle(body, bulk, True)
+
+
 def _store(body, bulk):
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)

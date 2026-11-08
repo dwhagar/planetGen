@@ -98,7 +98,7 @@ def entries(host_types=HOST_TYPES):
     return tuple(out)
 
 
-SYSTEM_SEEDS = 24
+SYSTEM_SEEDS = 48      # GEN.1334: 24 held 7 letters with a life-capable body once a planet under an envelope was scored for nothing; 36 hold 8 and 48 hold 9
 """int: Whole generated systems added to the sweep: their bodies have been through the history the class-by-class builds skip."""
 
 

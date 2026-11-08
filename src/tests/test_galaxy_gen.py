@@ -1572,9 +1572,9 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 
     assert star_rows, "expected at least some star systems"
     seen_labels = {label for label, _row in phenomenon_rows}
-    # Isolated asteroid fields have a zero research rate (they disperse), so
-    # sector generation never makes one; placement is still checked for the rest.
-    assert seen_labels == {label for _table, label in _CHECKABLE_PHENOMENON_TABLES} - {"asteroid field"}
+    # A sector rolls the asteroid fields two colliding rogue planets leave (GEN.1103, at the physical rate), so with the count forced to one each
+    # of the checkable kinds appears.
+    assert seen_labels == {label for _table, label in _CHECKABLE_PHENOMENON_TABLES}
 
     violations = []
 

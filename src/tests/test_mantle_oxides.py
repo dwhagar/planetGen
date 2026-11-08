@@ -55,11 +55,11 @@ def test_a_hot_zone_loses_the_volatile_oxides_and_a_cool_one_keeps_them():
     assert hot["K2O"] < _earth().oxides["K2O"] < cool["K2O"]
 
 
-def test_a_more_oxidised_mantle_keeps_more_of_its_phosphorus_and_a_reduced_one_less():
+def test_a_more_oxidized_mantle_keeps_more_of_its_phosphorus_and_a_reduced_one_less():
     reduced = bulk_draw.dry_partition(SUN_RATIOS, 0.01, 0.07, False).oxides["P2O5"]
-    oxidised = bulk_draw.dry_partition(SUN_RATIOS, 0.18, 0.07, False).oxides["P2O5"]
-    assert reduced < _earth().oxides["P2O5"] < oxidised
-    assert oxidised / reduced > 20.0
+    oxidized = bulk_draw.dry_partition(SUN_RATIOS, 0.18, 0.07, False).oxides["P2O5"]
+    assert reduced < _earth().oxides["P2O5"] < oxidized
+    assert oxidized / reduced > 20.0
 
 
 def test_titanium_is_lithophile_and_sodium_and_potassium_stay_in_the_mantle():

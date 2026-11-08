@@ -38,7 +38,7 @@ taken at the parent's distance for a moon (the moon's own distance from its plan
 
 import math
 
-from planetgen.physics import constants, day_night, spin
+from planetgen.physics import constants, day_night, planet_type, spin
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -167,7 +167,10 @@ def _spin_axis(body):
     return None if any(value is None for value in axis) else axis
 
 
-def _orbit_normal(body):
+def _orbit_normal(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return spin.moon_orbit_normal(body, planet)
     return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0,
                              getattr(body, "orbital_ascending_node_deg", None) or 0.0)
 
@@ -181,7 +184,7 @@ def compute(body, parent=None):
     rotation = getattr(body, "rotation_period_hours", None)
     star = getattr(body, "star", None)
     host = parent if parent is not None else body
-    solid = getattr(body, "body_type", "t") != "g"
+    solid = planet_type.has_ground(body)      # GEN.1334: a planet under a deep envelope has no surface for a day to fall on
     if not solid:
         out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:
@@ -204,7 +207,7 @@ def compute(body, parent=None):
         out["day_share_equator"] = equator_day_share(tilt, alpha)
         out["solar_day_hours"] = day
     if parent is not None:
-        mutual = spin.obliquity_between(_orbit_normal(body), _orbit_normal(parent))
+        mutual = spin.obliquity_between(_orbit_normal(body, parent), _orbit_normal(parent))
         shadow = parent_shadow_share(body.distance * constants.AU_TO_KM, getattr(parent, "radius", None), mutual)
         out["parent_shadow_share"] = shadow
         out["day_share_mean"] *= 1.0 - shadow
