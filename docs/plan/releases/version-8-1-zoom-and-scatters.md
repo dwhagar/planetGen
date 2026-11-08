@@ -1,5 +1,7 @@
 # Version 8.1: Infinite zoom and the new generate scatters
 
+Core design principle (Boss, 2:58 PM EST on 2026-11-08): everything in a system affects everything else in the system, by 3D position, orbit-averaged. Items GEN.1441 to GEN.1454 build it; the rules and the register of host-only paths are in [system-interactions.md](../../design/generation/system-interactions.md).
+
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
 This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in [notes.md](../notes.md); the headlines and the ideas not yet filed are in [release-roadmap.md](../release-roadmap.md).
