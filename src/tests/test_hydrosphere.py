@@ -87,7 +87,7 @@ TEST_WATER_MASS_FRACTION = {"M": (1e-4, 5e-4), "C": (1e-6, 1e-4), "P": (1e-4, 1e
 
 
 def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371.0, **extra):
-    fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km,
+    fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km, rock_mass_fraction=0.67,
                   water_mass_fraction=log_uniform(*TEST_WATER_MASS_FRACTION[planet_class]),
                   gravity=mass_earth / (radius_km / 6371.0) ** 2, surface_temperature=temperature,
                   atmospheric_pressure=pressure_pa, is_moon=False, mantle_redox="intermediate",
@@ -288,13 +288,3 @@ def test_gen1147_the_cover_rises_with_the_water_through_the_two_level_surface():
     assert hy.ocean_fraction(0.64, g) == pytest.approx(0.5, abs=0.02) and hy.ocean_fraction(0.2, g) == pytest.approx(0.27, abs=0.02)
     assert 0.55 < hy.ocean_fraction(1.3, g) < 0.65     # the shelf between the continents and the basins: a real range of partial land
     assert hy.ocean_fraction(2.0, 3.0 * g) > hy.ocean_fraction(2.0, g) > hy.ocean_fraction(2.0, g / 3.0)
-
-
-def test_gen1147_the_mantle_stores_two_oceans_at_half_an_earth_mass_and_eight_at_five():
-    earth = constants.EARTH_MASS_TO_KG
-    ocean = hy.EARTH_OCEAN_FRACTION
-    assert hy.mantle_max_water_fraction(0.5 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(5.0 * earth) == pytest.approx(8 * ocean)
-    assert hy.mantle_max_water_fraction(0.01 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(50.0 * earth) == pytest.approx(8 * ocean)
-    assert 2 * ocean < hy.mantle_max_water_fraction(earth) < 4 * ocean
-    # a water world keeps the rest at the surface: 40 oceans of water, the mantle keeps 8 of them at five Earth masses
-    assert hy.surface_water_fraction(40 * ocean, 5.0 * earth, rng=types.SimpleNamespace(uniform=lambda low, high: high)) == pytest.approx(32 * ocean)

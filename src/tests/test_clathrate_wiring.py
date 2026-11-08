@@ -55,7 +55,7 @@ def test_a_thin_skin_holds_less_and_the_guests_share_the_cages():
 
 
 def _dry_cold_body(temperature=210.0):
-    return types.SimpleNamespace(body_type="t", planet_class="C", mass=0.3 * EARTH, radius=4000.0, water_mass_fraction=1e-5, gravity=0.5,
+    return types.SimpleNamespace(body_type="t", planet_class="C", mass=0.3 * EARTH, radius=4000.0, rock_mass_fraction=0.67, water_mass_fraction=1e-5, gravity=0.5,
                                  surface_temperature=temperature, atmospheric_pressure=600.0, is_moon=False, mantle_redox="intermediate",
                                  p_co2_kpa=0.6, p_so2_kpa=0.0, p_h2_kpa=0.0)
 

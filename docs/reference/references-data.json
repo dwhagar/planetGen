@@ -112950,6 +112950,65 @@
    "volume": "47",
    "year": 2020
   },
+  "10.1029/2019gl084630": {
+   "authors": [
+    [
+     "Fu",
+     "S."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Karato",
+     "S."
+    ],
+    [
+     "Vasiliev",
+     "A."
+    ],
+    [
+     "Presniakov",
+     "M. Y."
+    ],
+    [
+     "Gavriliuk",
+     "A. G."
+    ],
+    [
+     "Ivanova",
+     "A. G."
+    ],
+    [
+     "Hauri",
+     "E. H."
+    ],
+    [
+     "Okuchi",
+     "T."
+    ],
+    [
+     "Purevjav",
+     "N."
+    ],
+    [
+     "Lin",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2019gl084630",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "10346",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Water Concentration in Single‐Crystal (Al,Fe)‐Bearing Bridgmanite Grown From the Hydrous Melt: Implications for Dehydration Melting at the Topmost Lower Mantle",
+   "type": "journal-article",
+   "volume": "46",
+   "year": 2019
+  },
   "10.1029/2019gl085476": {
    "authors": [
     [
@@ -113396,6 +113455,25 @@
    "type": "journal-article",
    "volume": "47",
    "year": 2020
+  },
+  "10.1029/2020gl090973": {
+   "authors": [
+    [
+     "Fei",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2020gl090973",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "e2020GL090973",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle",
+   "type": "journal-article",
+   "volume": "48",
+   "year": 2021
   },
   "10.1029/2020gl091733": {
    "authors": [
@@ -121613,6 +121691,69 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "506",
+   "year": 2014
+  },
+  "10.1038/nature13080": {
+   "authors": [
+    [
+     "Pearson",
+     "D. G."
+    ],
+    [
+     "Brenker",
+     "F. E."
+    ],
+    [
+     "Nestola",
+     "F."
+    ],
+    [
+     "McNeill",
+     "J."
+    ],
+    [
+     "Nasdala",
+     "L."
+    ],
+    [
+     "Hutchison",
+     "M. T."
+    ],
+    [
+     "Matveev",
+     "S."
+    ],
+    [
+     "Mather",
+     "K."
+    ],
+    [
+     "Silversmit",
+     "G."
+    ],
+    [
+     "Schmitz",
+     "S."
+    ],
+    [
+     "Vekemans",
+     "B."
+    ],
+    [
+     "Vincze",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nature13080",
+   "editors": [],
+   "journal": "Nature",
+   "page": "221",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Hydrous mantle transition zone indicated by ringwoodite included within diamond",
+   "type": "journal-article",
+   "volume": "507",
    "year": 2014
   },
   "10.1038/nature13172": {
@@ -236197,6 +236338,25 @@
    "volume": "34",
    "year": 2006
   },
+  "10.1146/annurev.earth.34.031405.125211": {
+   "authors": [
+    [
+     "Hirschmann",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.earth.34.031405.125211",
+   "editors": [],
+   "journal": "AREPS",
+   "page": "629",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "WATER, MELTING, AND THE DEEP EARTH H2O CYCLE",
+   "type": "journal-article",
+   "volume": "34",
+   "year": 2006
+  },
   "10.1146/annurev.earth.36.031207.124214": {
    "authors": [
     [
@@ -241169,6 +241329,57 @@
    "type": "journal-article",
    "volume": "89",
    "year": 1966
+  },
+  "10.3389/feart.2014.00038": {
+   "authors": [
+    [
+     "Thomas",
+     "S. M."
+    ],
+    [
+     "Jacobsen",
+     "S. D."
+    ],
+    [
+     "Bina",
+     "C. R."
+    ],
+    [
+     "Reichart",
+     "P."
+    ],
+    [
+     "Moser",
+     "M."
+    ],
+    [
+     "Hauri",
+     "E. H."
+    ],
+    [
+     "Koch-MÃ¼ller",
+     "M."
+    ],
+    [
+     "Smyth",
+     "J. R."
+    ],
+    [
+     "Dollinger",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/feart.2014.00038",
+   "editors": [],
+   "journal": "Front. Earth Sci.",
+   "page": "",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "Quantification of water in hydrous ringwoodite",
+   "type": "journal-article",
+   "volume": "2",
+   "year": 2015
   },
   "10.3389/feart.2023.1197363": {
    "authors": [
@@ -270703,6 +270914,29 @@
    "volume": "",
    "year": 2022
   },
+  "10.5194/ejm-33-39-2021": {
+   "authors": [
+    [
+     "Zhang",
+     "B. H."
+    ],
+    [
+     "Xia",
+     "Q. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/ejm-33-39-2021",
+   "editors": [],
+   "journal": "Eur. J. Mineral.",
+   "page": "39",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Influence of water on the physical properties of olivine, wadsleyite, and ringwoodite",
+   "type": "journal-article",
+   "volume": "33",
+   "year": 2021
+  },
   "10.5194/epsc2022-506": {
    "authors": [
     [
@@ -279959,7 +280193,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5139,
+ "id_next": 5145,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281251,6 +281485,7 @@
   "10.1029/2019gc008273": "R2666",
   "10.1029/2019gc008865": "R2987",
   "10.1029/2019gl084206": "R0595",
+  "10.1029/2019gl084630": "R5143",
   "10.1029/2019gl085476": "R3083",
   "10.1029/2019ja026610": "R4571",
   "10.1029/2019ja027114": "R0597",
@@ -281260,6 +281495,7 @@
   "10.1029/2019je006175": "R4416",
   "10.1029/2020gl087266": "R2152",
   "10.1029/2020gl087268": "R0596",
+  "10.1029/2020gl090973": "R5141",
   "10.1029/2020gl091733": "R1559",
   "10.1029/2020ja028927": "R1413",
   "10.1029/2020jb020245": "R1321",
@@ -281517,6 +281753,7 @@
   "10.1038/nature12908": "R1068",
   "10.1038/nature12917": "R3664",
   "10.1038/nature13068": "R2780",
+  "10.1038/nature13080": "R5144",
   "10.1038/nature13172": "R2132",
   "10.1038/nature13246": "R1337",
   "10.1038/nature13408": "R2042",
@@ -284109,6 +284346,7 @@
   "10.1146/annurev.earth.32.101802.120435": "R2125",
   "10.1146/annurev.earth.34.031405.125058": "R0278",
   "10.1146/annurev.earth.34.031405.125154": "R0484",
+  "10.1146/annurev.earth.34.031405.125211": "R5142",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
@@ -284283,6 +284521,7 @@
   "10.3357/asem.3485.2014": "R1808",
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
+  "10.3389/feart.2014.00038": "R5140",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -284751,6 +284990,7 @@
   "10.5194/bg-4-545-2007": "R0996",
   "10.5194/cpd-10-2011-2014": "R0620",
   "10.5194/egusphere-egu22-11313": "R4153",
+  "10.5194/ejm-33-39-2021": "R5139",
   "10.5194/epsc2022-506": "R5075",
   "10.5194/epsc2024-501": "R3750",
   "10.5194/essd-5-365-2013": "R2303",

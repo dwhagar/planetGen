@@ -1,0 +1,18 @@
+{
+ "title": "The water and carbon a rocky mantle stores, by depth zone (GEN.1365)",
+ "sources": {
+  "zones": "wadsleyite 410 to 520 km (13 to 18 GPa) and ringwoodite 520 to 660 km (16 to 23 GPa) [R5139: Introduction] (READ); the 660 km boundary at 23 to 23.5 GPa [R5141: Results] (READ)",
+  "water": "olivine under 0.9 wt% over the whole upper mantle, wadsleyite and ringwoodite up to about 3 wt% [R5139: Introduction] (READ); ringwoodite 1.5 to 2 wt% [R5140: Abstract] (READ); the diamond-hosted ringwoodite 1.43 +- 0.27 wt% [R5144] (READ, by way of the abstract of [R5140]); the transition zone up to about 1.0 wt% by several lines of evidence and the lower mantle at most 0.1 wt% [R5141: Introduction] (READ); the upper mantle 50 to 200 ppm and the lower mantle under 20 ppm [R5142: Abstract] (READ); bridgmanite grown from a hydrous melt 1020 +- 70 ppm [R5143: Abstract] (READ)",
+  "carbon": "diamond or graphite below, and carbonate above, about 3 log units over the iron-wuestite buffer at 15 to 45 GPa (READ in a lecture note, Plinius 38, 2012, which has no DOI and is not in the reference list; the primary papers were not opened: stand-in MR4)"
+ },
+ "boundaries_gpa": {
+  "transition_top": 13.0,
+  "transition_bottom": 23.0
+ },
+ "capacity_wt_percent": {
+  "upper_mantle": 0.02,
+  "transition_zone": 1.5,
+  "lower_mantle": 0.002
+ },
+ "carbon_redox_diw": 3.0
+}

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1273 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1276 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 167 | 18 | 11 | 1 | 0 | 197 |
-| T2 | 125 | 52 | 1 | 1 | 0 | 179 |
+| T2 | 125 | 51 | 1 | 1 | 0 | 178 |
 | T3 | 94 | 42 | 7 | 9 | 0 | 152 |
-| T4 | 57 | 7 | 2 | 19 | 10 | 95 |
+| T4 | 57 | 11 | 2 | 19 | 10 | 99 |
 | T5 | 54 | 22 | 3 | 1 | 0 | 80 |
 | T6 | 132 | 92 | 25 | 62 | 0 | 311 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 700 | 265 | 61 | 202 | 45 | 1273 |
+| All | 700 | 268 | 61 | 202 | 45 | 1276 |
 
 ## How the labels were given
 
@@ -1810,6 +1810,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MO3 | T | T5 | L1 | mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2 | n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+) | rocks of FeO 0.01 to 0.18 | a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close | a pressure and temperature dependent partition of each element (the real law has three more terms) | the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor | - | - |
 | MO4 | B | T3 | L0 | mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent | Ti 0 to 0.05 | any rocky body | a core with a Ti share above 0.05 | a partition of Ti at the pressure of a large body's core | Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite | - | - |
 
+## 6.217 Stand-ins of the water and carbon a mantle stores
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MR1 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper mantle of Earth holds | 50 ppm to 0.9 wt% (the olivine ceiling) | olivine, pyroxene and garnet to 13 GPa | an upper mantle measured above 200 ppm over a large depth | a capacity with temperature and the share of each mineral | [R5142: Abstract] gives the held 50 to 200 ppm and [R5139: Introduction] the olivine ceiling under 0.9 wt%; the saturation of olivine at depth is not printed in the pages read | - | - |
+| MR2 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt% | 1.0 to 3.0 wt% | wadsleyite and ringwoodite, 13 to 23 GPa | a transition zone shown to saturate under 1.0 or over 3 wt% | a capacity as a function of temperature and pressure for each phase | the pages read print "up to about 3 wt%" [R5139: Introduction], ringwoodite 1.5 to 2 wt% [R5140: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5144] and about 1.0 wt% by several lines of evidence [R5141: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed | - | - |
+| MR3 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm) | 20 ppm to 0.1 wt% | bridgmanite and ferropericlase beyond 23 GPa | a lower mantle shown to hold over 0.1 wt% | a capacity of aluminous bridgmanite | [R5142: Abstract] gives under 20 ppm and [R5141: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5143: Abstract], so the lower mantle's cap is the least certain of the three | - | - |
+| MR4 | T | T4 | L1 | mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite) | 2 to 4 | the upper mantle and the transition zone, 15 to 45 GPa | a mantle that holds carbonate at dIW 1 or diamond at dIW 5 | the phase boundary of carbon as a function of pressure and temperature | read in a lecture note (Plinius 38, 2012, no DOI, not in the reference list): diamond and carbonate meet about 3 log units over iron-wuestite at 15 to 45 GPa; the primary papers were not opened | - | - |
+
 ## 6.209 Stand-ins of the nine added star elements
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -2103,7 +2112,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| HY1 | T | T2 | L1 | hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses) | the ends 1 to 4 and 4 to 16 oceans | rocky bodies with a mantle | a measured mantle capacity under 2 oceans at 0.5 Earth masses or far over 8 at 5 | a mantle storage law from the mantle's melt and its pressure | the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's | - | - |
 | HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | an Earth-like world whose measured hypsometric curve is far from two humps, or Earth's 2.7 km layer not covering 0.71 | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age [R5075] | Earth's 0.71 ocean cover; [R0914] (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | - | - |
 
 ## 6.146 Stand-ins of the thick disk's ages
