@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.710 |
 | USR | USR.32 |
-| OPS | OPS.131 |
+| OPS | OPS.133 |
 | DOC | DOC.114 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2267,6 +2267,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
 | OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
 | OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | open |
+| OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it | none | open |
+| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
@@ -3686,7 +3688,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | done, PR #5452 |
 | DOC.109 | Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about | none | done, PR #5456 |
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
-| DOC.111 | The link-neighbors command is in no document | none | open |
+| DOC.111 | The link-neighbors command is in no document | none | done, PR #5755 |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | open |
 | DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
@@ -4381,9 +4383,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.685 | Materials reachability test: every row of the materials table is drawn by some path or tagged vocabulary-only, and an unreferenced row fails the gate | none | done, PR #5603 |
 | TEST.686 | Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row | GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369 | open |
 | TEST.687 | test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows fails on main: the table has 14 class texts and the test expects 11 (bug) | none | done, PR #5620 |
-| TEST.701 | The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt | none | open |
+| TEST.701 | The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt | none | done, PR #5755 |
 | TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j | none | open |
-| TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) | none | open |
+| TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) | none | done, PR #5755 |
 | TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change | none | open |
 | TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change | none | open |
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 | none | open |
@@ -4465,8 +4467,8 @@ Each citation below resolves to one item by its date.
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | open |
 | DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | open |
 | DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) | none | open |
-| DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word | none | open |
-| DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py | none | open |
+| DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word | none | done, PR #5755 |
+| DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py | none | done, PR #5755 |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
@@ -4530,7 +4532,7 @@ Each citation below resolves to one item by its date.
 | UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL | none | done, PR #5688 |
 | UX.286 | Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt | none | open |
 | UX.287 | Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field | none | open |
-| UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js | none | open |
+| UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js | none | done, PR #5755 |
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting | none | open |
 
 ### Code tags `TODO(<area> #N)`
