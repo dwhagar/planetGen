@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3666] - 2026-11-08
+
+**Headline:** The System Map look test no longer expects the class letter in a body's look record.
+
+### Fixed
+- GEN.1400 removed the class letter (`cls`) from a body's look record, but `test_planet_attrs_carries_one_look_record_not_loose_colour_attrs` still asserted it and failed with a KeyError. The test now checks the body kind and temperature only.
+
+generation-output: unchanged
+
 ## [8.0.3665] - 2026-11-08
 
 **Headline:** The System Map's 3D view keeps the info panel of the body you picked when the page is opened or reloaded on its address.
