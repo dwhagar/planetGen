@@ -1099,3 +1099,9 @@ def test_admin_stats_shows_the_seconds_per_object(client, fake):
     assert "<td>binary star</td>" in html and "10.0%" in html and "40 \u00b5s" in html
     fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": []}
     assert "Seconds per object" not in client.get("/admin/stats").get_data(as_text=True)
+
+
+def test_the_generated_page_needs_an_admin(client, fake):
+    """ADM.150: `/admin/generated` sends a visitor to sign in."""
+    response = client.get("/admin/generated")
+    assert response.status_code == 302 and "/login" in response.headers["Location"]

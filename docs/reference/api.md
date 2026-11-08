@@ -181,7 +181,6 @@ connectivity to that specific schema rather than the default one.
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
   and `stars` (UX.239: how many stars a system holds, as in `/api/search`: a count `3`, `3+` for three or more, or `single`, `binary`, `trinary`,
   `quaternary`, `quintenary`; anything else is a 400; the `stars` sort orders by the same count and pages by `offset`),
-  and `since=<Unix seconds>` (ADM.150: only the systems created at or after that time, the start of a run; not a number is a 400),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
   but not its own). `total` counts the systems that pass the filters; where
@@ -245,6 +244,7 @@ connectivity to that specific schema rather than the default one.
   `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
   with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
   `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers), `microquasar` and `x_ray_luminosity_w`: GEN.952, the watts an accreting pair radiates, worked out on read from the stored masses, radii and orbit, `null` for a spider pair and for a tree stored before v184). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+- `GET /api/generated?kind=sectors|systems|planets|moons&since=<Unix seconds>[&limit=<n>&offset=<n>]` — what was made at or after a time, newest first (ADM.150, the admin Generated so far page): `{"kind", "since", "total", "items", "limit", "offset"}`, each item `{kind, id, name}` and the kind's own fields (a system's `sector_id`, `sector_name`, a planet's or moon's `planet_class`, `radius_km`, `star_system_id`, `system_name`; a moon's `planet_name`). Read by the key, so quick on any galaxy; never cached. A planet or moon is as new as its system. `400` for a bad `kind` or `since`.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),

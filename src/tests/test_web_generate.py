@@ -1595,7 +1595,7 @@ def test_systems_url_only_for_a_galaxy_run_that_has_started(client):
     with client.application.test_request_context("/"):
         base = {"created_at": now - 61, "steps": []}
         started = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": False, "started_at": now - 60, **base})
-        assert started["systems_url"] == f"/systems?since={int(now - 60)}"
+        assert started["systems_url"] == f"/admin/generated?kind=systems&since={int(now - 60)}"
         for job in ({"kind": "plan", "started_at": now}, {"kind": "galaxy", "started_at": None}):
             assert generate_page._job_view({"id": "j2", "finished": False, **base, **job})["systems_url"] is None
 

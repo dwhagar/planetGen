@@ -90,6 +90,8 @@ from planetgen.db.query import (
     systems_facets,
     list_sectors,
     list_systems,
+    GENERATED_KINDS,
+    generated_since,
     nav_chart_plan,
     nav_course,
     open_readonly,
@@ -622,7 +624,6 @@ def systems():
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
-    `since=<Unix seconds>` keeps the systems created at or after that time (ADM.150: what a run has made so far).
     """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
@@ -642,10 +643,6 @@ def systems():
     except ValueError as exc:
         raise ApiError(str(exc))
     filters["values"] = values
-    try:
-        filters["since"] = finite_float(request.args["since"]) if request.args.get("since") else None
-    except ValueError:
-        raise ApiError("since must be a number (Unix seconds)")
 
     limit, offset = _paginate(request.args)
     db = get_db()
@@ -670,6 +667,28 @@ def systems():
     }
     if request.args.get("facets") == "1":
         body["facets"] = systems_facets(db, sector_id=sector_id, **filters)
+    return jsonify(body)
+
+
+@bp.route("/generated")
+def generated():
+    """
+    `GET /api/generated?kind=sectors|systems|planets|moons&since=<Unix seconds>` -- what was made at or after a time, newest first (ADM.150:
+    the admin page that follows a generation run). `limit` and `offset` page it. Returns `{"kind", "since", "total", "items", "limit",
+    "offset"}`; every item has `kind` (`sector`, `system`, `planet` or `moon`), `id` and `name`, and the kind's own fields (`db.query.generated_since`).
+    It reads only the rows made since, by the key, so it is quick whatever the galaxy's size. A planet or moon is as new as its system.
+    A missing or bad `kind` or `since` is a 400.
+    """
+    kind = request.args.get("kind", "")
+    if kind not in GENERATED_KINDS:
+        raise ApiError(f"kind must be one of {', '.join(GENERATED_KINDS)}, got {kind!r}")
+    try:
+        since = finite_float(request.args.get("since", ""))
+    except ValueError:
+        raise ApiError("since must be a number (Unix seconds)")
+    limit, offset = _paginate(request.args)
+    body = generated_since(get_db(), kind, since, limit, offset)
+    body.update(since=since, limit=limit, offset=offset)
     return jsonify(body)
 
 

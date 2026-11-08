@@ -1128,7 +1128,7 @@ def _job_view(job):
     # ADM.150: the Systems list limited to what this run has made so far (the list builds as a claimed slow-page job).
     view["systems_url"] = None
     if job.get("kind") in MAKES_SYSTEMS_KINDS and job.get("started_at"):
-        view["systems_url"] = url_for("web.systems", since=int(job["started_at"]))
+        view["systems_url"] = url_for("web.admin_generated", kind="systems", since=int(job["started_at"]))
     # The run's own decaying-average ETA (PERF.7), counted down from when
     # it was written, so the page and the terminal agree.
     eta_s = progress.get("eta_s")

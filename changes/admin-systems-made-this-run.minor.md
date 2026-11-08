@@ -1,4 +1,4 @@
 **Headline:** A running generation job now links to the systems it has made so far.
 
 ### Changed
-- **"Systems made this run" link on the job panel (ADM.150).** It opens the Systems list limited to systems created since the run started (`/systems?since=<Unix seconds>`; the API's `GET /api/systems` takes the same `since`). The list is built by the existing slow-page job (claimed under the memory gate, shared by everyone who asks), so an admin waits on the loading bar and the site is never held up.
+- **New admin page "Generated so far" (ADM.150), `/admin/generated`.** It lists the sectors, systems, planets and moons a generation run has made, newest first, one tab per kind, from a start time (`?since=`, by default the start of the latest galaxy run). The job panel links to it as "Made so far this run", because the Galaxy Map is closed while a run goes. The API has `GET /api/generated` for it; it reads only the rows made since by the key, so it is quick on any galaxy and is never cached.

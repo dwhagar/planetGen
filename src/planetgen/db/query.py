@@ -662,7 +662,7 @@ def _values_key(values):
 
 
 def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None, start=None,
-                           sort="name", descending=False, stars=None, values=None, star_exists=False, since=None):
+                           sort="name", descending=False, stars=None, values=None, star_exists=False):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -671,8 +671,6 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
     With `star_exists` the star type filter is an `EXISTS` on `stars`, not a join (PERF.219): the group walk (`_systems_by_group`) reads
     `star_systems` alone, a system counts once however many of its stars match, and the walk needs no `DISTINCT`.
-
-    `since` (Unix seconds) keeps the systems created at or after that time (ADM.150: the systems a run has made so far).
 
     Returns:
         tuple: `(join_sql, where_sql, params)`, each usable standalone
@@ -710,9 +708,6 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
     value_conditions, value_params = _value_exists_conditions(values)
     conditions.extend(value_conditions)
     params.extend(value_params)
-    if since is not None:
-        conditions.append("ss.created_at >= FROM_UNIXTIME(?)")
-        params.append(since)
     begun = _start_condition(sort, descending, start)
     if begun:
         conditions.append(begun[0])
@@ -723,8 +718,7 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None, stars=None, values=None,
-                 since=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None, stars=None, values=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -753,7 +747,6 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         stars (tuple, optional): Keep only systems with that many stars, `(least, most)` of `parse_star_count` (UX.239).
         values (dict, optional): `{entity: {key: (least, most, unit)}}` (`search_values.ranges_from_args`, UX.228): keep only the systems that hold a
             star, planet or moon whose stored values lie in every range on its kind.
-        since (float, optional): Keep only the systems created at or after this Unix time (ADM.150).
         after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
             ignored; PERF.219: a star type filter is one more condition inside each group). Other sorts, a system that is gone and a list
@@ -784,7 +777,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     join_sql, where_sql, params = _systems_filter_clause(
         star_type_prefix, sector_id, binary, octants, in_sector,
         start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars, values=values,
-        star_exists=walked, since=since)
+        star_exists=walked)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     if after is not None and limit is not None and sort == "name":
@@ -1095,7 +1088,7 @@ def _start_key(sort, descending, start):
 
 
 def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None, start=None,
-                  sort="name", descending=False, stars=None, values=None, since=None):
+                  sort="name", descending=False, stars=None, values=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -1110,13 +1103,12 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
             it on are counted.
         stars (tuple, optional): The stars filter of `list_systems`.
         values (dict, optional): The physical-value ranges of `list_systems` (UX.228).
-        since (float, optional): The creation-time filter of `list_systems` (ADM.150).
 
     Returns:
         int: Total matching system count.
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector,
-                                                         start, sort, descending, stars, values, since=since)
+                                                         start, sort, descending, stars, values)
     # A system matches a star type once however many of its stars do; with no star join every row is its own.
     counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
 
@@ -1130,10 +1122,10 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
                                  f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector,
-                           _start_key(sort, descending, start), None if stars is None else list(stars), _values_key(values), since], exact, estimate)
+                           _start_key(sort, descending, start), None if stars is None else list(stars), _values_key(values)], exact, estimate)
 
 
-def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None, values=None, since=None):
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None, values=None):
     """
     The option counts for the Systems tables' filter menus: where a system is
     (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
@@ -1146,7 +1138,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
     """
     def exact(c):
         def counts(select, **filters):
-            base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, "values": values, "since": since, **filters}
+            base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, "values": values, **filters}
             _join, where, params = _systems_filter_clause(None, sector_id, **base)
             return {row["value"]: row["n"] for row in c.execute(
                 f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
@@ -1161,7 +1153,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
             "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
         }
 
-    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars), _values_key(values), since], exact,
+    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars), _values_key(values)], exact,
                     lambda c: {"placement": [], "binary": [], "octant": []})
 
 
@@ -1191,6 +1183,53 @@ def _class_clause(alias, codes, clauses, params):
         clauses.append(parts[0])
     elif parts:
         clauses.append("(" + " OR ".join(parts) + ")")
+
+
+GENERATED_KINDS = ("sectors", "systems", "planets", "moons")
+"""tuple[str]: What `generated_since` lists (ADM.150)."""
+
+
+def generated_since(conn, kind, since, limit=50, offset=0):
+    """
+    The sectors, systems, planets or moons made at or after `since` (Unix seconds), newest first (ADM.150: what a generation run has
+    made so far, for the admin page that follows a run).
+
+    Ids rise with creation, so the start is found once: the newest system (or sector) made *before* `since`, walking the
+    primary key down from the top, which reads only the rows made since. Everything after that id is the answer, a range of the key, so the
+    read costs the rows made, not the size of the galaxy. A planet or a moon is as new as its system; one with no system (a free planet's
+    moon, a rogue) is not listed.
+
+    Returns:
+        dict: `kind`, `total` and `items` (`limit` of them from `offset`). Every item has `kind`, `id` and `name`; a sector or system has
+            `created` (Unix seconds), a system `sector_id` and `sector_name`, a planet or moon `planet_class`, `radius_km`,
+            `star_system_id` and `system_name`, a moon also `planet_name`.
+    """
+    if kind not in GENERATED_KINDS:
+        raise ValueError(f"unknown kind {kind!r}")
+    table = "sectors" if kind == "sectors" else "star_systems"
+    previous = conn.execute(f"SELECT id FROM {table} WHERE created_at < FROM_UNIXTIME(?) ORDER BY id DESC LIMIT 1", (since,)).fetchone()
+    start = previous["id"] if previous is not None else 0
+    page = [start, int(limit), int(offset)]
+    if kind == "sectors":
+        total = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT id, name, UNIX_TIMESTAMP(created_at) AS created FROM sectors WHERE id > ? "
+                            "ORDER BY id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "systems":
+        total = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT ss.id, ss.name, ss.sector_id, sec.name AS sector_name, UNIX_TIMESTAMP(ss.created_at) AS created "
+                            "FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id WHERE ss.id > ? "
+                            "ORDER BY ss.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "planets":
+        total = conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT p.id, p.name, p.planet_class, p.radius_km, p.star_system_id, ss.name AS system_name "
+                            "FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE p.star_system_id > ? "
+                            "ORDER BY p.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    else:
+        total = conn.execute("SELECT COUNT(*) AS n FROM moons WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT m.id, m.name, m.planet_class, m.radius_km, m.star_system_id, ss.name AS system_name, p.name AS planet_name "
+                            "FROM moons m JOIN star_systems ss ON ss.id = m.star_system_id LEFT JOIN planets p ON p.id = m.planet_id "
+                            "WHERE m.star_system_id > ? ORDER BY m.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    return {"kind": kind, "total": total, "items": [{"kind": kind[:-1], **dict(row)} for row in rows]}
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):

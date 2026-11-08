@@ -34,6 +34,7 @@ ID_PATHS = {
         "phenomena[].nearest[].id": "system",
     },
     "api.systems": {"items[].id": "system"},
+    "api.generated": {"items[].id": "by-kind"},
     "api.system_detail": {
         "id": "system",
         "nearest_neighbors[].id": "system",

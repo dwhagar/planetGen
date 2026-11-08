@@ -489,7 +489,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None, since=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -506,10 +506,9 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             sort) or sector (sector sort) from it on.
         ranges: `{entity: {key: (least, most, unit)}}`, the physical-value ranges (UX.228): only the systems that hold a star, planet or moon in
             them; sent as `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit` (`unit` a unit key or `None`).
-        since: Unix seconds; only the systems created at or after it (ADM.150).
     """
     _require_db(db)
-    params = [("db", db), ("since", since), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
+    params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
               ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
@@ -517,6 +516,14 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
         for key, (least, most, unit) in by_key.items():
             params += [(f"{entity}_min_{key}", least), (f"{entity}_max_{key}", most), (f"{entity}_{key}_unit", unit or None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
+
+
+def get_generated(db, kind, since, limit=None, offset=None):
+    """Returns `GET /api/generated`'s answer (`kind`, `since`, `total`, `items`, `limit`, `offset`): the sectors, systems, planets or
+    moons made at or after `since`, Unix seconds, newest first (ADM.150)."""
+    _require_db(db)
+    params = [("db", db), ("kind", kind), ("since", since), ("limit", limit), ("offset", offset)]
+    return _request("/generated", [(key, value) for key, value in params if value is not None])
 
 
 def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):

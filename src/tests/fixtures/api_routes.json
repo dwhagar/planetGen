@@ -94,6 +94,7 @@
   "/api/galaxy/superbubbles GET",
   "/api/galaxy/uncharted GET",
   "/api/galaxy/window GET",
+  "/api/generated GET",
   "/api/health GET",
   "/api/jobs/<job_id> GET",
   "/api/lookup GET",
