@@ -22,7 +22,7 @@ release is stamped.
 | API | API.43 |
 | ADM | ADM.148 |
 | SEC | SEC.47 |
-| TEST | TEST.700 |
+| TEST | TEST.701 |
 | USR | USR.32 |
 | OPS | OPS.122 |
 | DOC | DOC.111 |
@@ -2235,6 +2235,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | open |
 | TEST.698 | test_systems position-in-plane check stale since GEN.1352: moons are set in the system frame, their inclination and node stay in the equator frame (bug) | none | done, PR #5703 |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | open |
+| TEST.700 | test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug) | none | open |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | done, PR #5688 |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | done, PR #5688 |
 | PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
