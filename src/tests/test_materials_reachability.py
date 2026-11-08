@@ -20,8 +20,8 @@ from planetgen.physics import materials
 
 SOURCE = pathlib.Path(__file__).resolve().parents[1] / "planetgen"
 TABLE_MODULE = pathlib.Path("physics") / "materials.py"
-ALWAYS_SCANNED = (pathlib.Path("tuning.py"),)
-"""tuple: Modules scanned for names though they do not use the table: `tuning.ASTEROID_COMPONENTS` is the vocabulary the table resolves."""
+ALWAYS_SCANNED = (pathlib.Path("tuning.py"), pathlib.Path("physics/rock_types.py"))
+"""tuple: Modules scanned for names though they do not use the table: `tuning.ASTEROID_COMPONENTS` is the vocabulary the table resolves, and the CIPW norm (`rock_types.py`) names the minerals it makes (nepheline, leucite, hypersthene, wollastonite, periclase)."""
 
 VARIANT_SUFFIX = re.compile(r"_(powder|fine|lt\d+um)$")
 """re.Pattern: How a row id says it is a form of another material (a grain size, a powder)."""
@@ -81,7 +81,7 @@ def doubles():
     """The sets of rows that are one material under two names: the same formula where a row is a powder or grain-size variant of the rest."""
     by_formula = {}
     for row in materials.MATERIALS:
-        if row.formula:
+        if row.formula and (VARIANT_SUFFIX.search(row.id) or not row.crystal_system):   # a row with its own crystal system is a polymorph, not a copy
             by_formula.setdefault(row.formula, []).append(row.id)
     return [frozenset(ids) for ids in by_formula.values() if len(ids) > 1 and any(VARIANT_SUFFIX.search(row_id) for row_id in ids)]
 
