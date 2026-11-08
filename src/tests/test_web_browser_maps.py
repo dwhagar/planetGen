@@ -513,13 +513,16 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.
+    # (Given the state before the click: the camera leaves for the step only once its data has loaded, so a wait for the map to hold still
+    # alone returned on the unchanged 27-window on a loaded machine and read four steps where two were asked for.)
+    before = _state(page)
     more = page.locator("#galaxymap3d-crumbs .crumb-menu")
     if more.count():  # the second step is folded into "…" (MAP.93)
         more.locator("summary").click()
         more.locator("button").first.click()
     else:
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
-    _wait_settled(page)
+    _wait_settled(page, before)
     # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
     # block's edge: the 3-ary ladder takes more steps than the old one did, each centered on the cell clicked.
     crumbs = _crumbs(page)
