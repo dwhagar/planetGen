@@ -9,5 +9,5 @@
 - The evaporite ground and the ocean's dissolved salt are read from the sequence (`surface_composition.dried_salts`, `ocean_salts`): the old fixed mix (four tenths halite, three tenths gypsum, three tenths calcite) and the halite-only ocean salt are gone. A body with no silicate rock still gets halite. The areal ground mix, the draws and the albedo rows are unchanged; the stored mass composition changes, so the next epoch is needed.
 - Twenty-one rows of the materials table that GEN.1355 and GEN.1357 tagged vocabulary-only are now read by the sequence and lose the tag (TEST.685).
 
-`generation-output: changed`
-`TODO items resolved: GEN.1366`
+generation-output: changed
+TODO items resolved: GEN.1366
