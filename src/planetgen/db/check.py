@@ -84,6 +84,8 @@ VALUE_RULES = (
     ("moons", "period_years", 0, None, False, None),
     ("moons", "surface_temperature_k", 0, None, False, None),
     ("moons", "orbital_inclination_deg", 0, 180, True, True),
+    ("planets", "dipole_tilt_deg", 0, 90, True, True),
+    ("moons", "dipole_tilt_deg", 0, 90, True, True),
     ("star_systems", "binary_eccentricity", 0, 1, True, False),
     ("star_systems", "binary_mutual_orbital_phase_deg", 0, 360, True, True),
     ("sectors", "galactic_radius_pc", 0, None, True, None),

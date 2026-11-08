@@ -25703,25 +25703,45 @@
     },
     "R5143": {
       "kind": "paper",
+      "label": "Tauris and Manchester 1998",
+      "title": "On the Evolution of Pulsar Beams"
+    },
+    "R5144": {
+      "kind": "paper",
+      "label": "Morin et al. 2010",
+      "title": "Large-scale magnetic topologies of late M dwarfs★"
+    },
+    "R5145": {
+      "kind": "paper",
+      "label": "Battistini and Bensby 2015",
+      "title": "The origin and evolution of the odd-Z iron-peak elements Sc, V, Mn, and Co in the Milky Way stellar disk"
+    },
+    "R5146": {
+      "kind": "paper",
+      "label": "Udry et al. 2019",
+      "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury"
+    },
+    "R5147": {
+      "kind": "paper",
       "label": "Kemper et al. 2004",
       "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium"
     },
-    "R5144": {
+    "R5148": {
       "kind": "paper",
       "label": "Draine 2003",
       "title": "Interstellar Dust Grains"
     },
-    "R5145": {
+    "R5149": {
       "kind": "paper",
       "label": "Draine and Li 2007",
       "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era"
     },
-    "R5146": {
+    "R5150": {
       "kind": "paper",
       "label": "Chen et al. 2021",
       "title": "Where have all the interstellar silicon carbides gone?"
     },
-    "R5147": {
+    "R5151": {
       "kind": "paper",
       "label": "Hensley and Draine 2023",
       "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium"

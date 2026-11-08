@@ -25,7 +25,7 @@ Every number that is not a published value is a stand-in in the gap registry (do
 
 import math
 
-from planetgen.physics import acid_medium, constants, hydrosphere, ice_species, mixture, saturation, strange_solvents, surface_liquids
+from planetgen.physics import acid_medium, constants, hydrosphere, ice_species, mixture, planet_type, saturation, strange_solvents, surface_liquids
 
 LIQUID_FIELDS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
 """tuple: What a body stores of the liquid itself: its id in `surface_liquids` (`None` for none), the share of the surface it covers, and its mean depth over
@@ -154,7 +154,7 @@ def generate(body):
     body saved before the columns."""
     for field in COLUMN_FIELDS:
         setattr(body, field, None)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # GEN.1334: nor does a planet under a deep envelope hold a liquid at a surface
         return
     _main_liquid(body)
     _second_liquid(body)

@@ -17,6 +17,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- the browser and axe fixt
     SCHEMES, VIEWPORTS, _axe_blocking, _overflow, axe_source, browser,
 )
 from planetgen.web import generate_page  # noqa: E402
+from tests.test_web_generate import _estimates_run_in_the_request  # noqa: E402,F401 -- autouse: the estimate runs in the request
 from tests.test_web_settings_browser import _page, config, server  # noqa: E402,F401
 
 ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "seconds": 75.0, "workers": 2,

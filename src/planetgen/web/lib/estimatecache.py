@@ -23,6 +23,13 @@ Two admins asking for the same estimate at once run it once: the first request c
 delivers (`WAIT_SECONDS`). A request that cannot read the versions or reach Redis simply runs the estimate, as
 the page did before.
 
+On the web (ADM.141) the estimate is never worked out inside the request: a big galaxy takes minutes, and Apache
+restarts the whole daemon of a request that outlives `request-timeout` (60 s). `estimate_in_background` answers from
+the cache, or hands the work to the work queue (`web/lib/estimatejob.py`) and raises `Working` at once; the page
+asks again every few seconds and the finished answer (or its failure, kept `FAILURE_SECONDS`) is read from the same
+key. One claim for the question and one for the database keep a second copy of the command from starting while one
+runs, so a form changed or a page reloaded mid-estimate never starts the command again.
+
 The Redis key is `planetgen:estimate:<database>:<digest>`.
 """
 
@@ -37,8 +44,16 @@ from planetgen.web.lib import singleflight
 KEEP_SECONDS = 300
 """int: How long a stored estimate may be served: the disk's free space is in it."""
 
-CLAIM_SECONDS = 180
-"""int: How long a claim lives if its owner dies: longer than the estimate's own limit."""
+CLAIM_SECONDS = 660
+"""int: How long a claim lives if its owner dies: longer than the estimate's own limit (`estimatejob.TIMEOUT_SECONDS`)."""
+
+FAILURE_SECONDS = 30
+"""int: How long the failure of an estimate is kept, so a page that asks again at once reads why instead of
+starting the same failing command again."""
+
+GATE_PREFIX = "gate:"
+"""str: The claim that lets one estimate at a time run for a galaxy database (ADM.141): the command reads the whole
+plan, and a form being typed into would otherwise start one for every value on the way."""
 
 WAIT_SECONDS = 150.0
 """float: The longest a request waits for the claimant of the same estimate."""
@@ -59,8 +74,9 @@ def _client():
     return redisclient.client(timeout=SOCKET_SECONDS, retries=1)
 
 
-def _read(key, versions):
-    """The estimate stored under `key` while it was made under `versions`, else `None`."""
+def _entry(key, versions):
+    """What is stored under `key` while it was made under `versions` (`{"versions", "estimate"}` or `{"versions",
+    "error"}`), else `None`."""
     try:
         raw = _client().get(key)
         entry = json.loads(raw) if raw else None
@@ -68,7 +84,13 @@ def _read(key, versions):
         return None
     if not isinstance(entry, dict) or entry.get("versions") != versions:
         return None
-    return entry.get("estimate")
+    return entry
+
+
+def _read(key, versions):
+    """The estimate stored under `key` while it was made under `versions`, else `None`."""
+    entry = _entry(key, versions)
+    return None if entry is None else entry.get("estimate")
 
 
 def _write(key, versions, estimate):
@@ -77,6 +99,26 @@ def _write(key, versions, estimate):
                       ex=KEEP_SECONDS)
     except (redis.RedisError, OSError):
         pass  # the next request just runs the estimate again
+
+
+def store(key, versions, estimate=None, error=None):
+    """Keeps what the work queue worked out under `key` (the estimate, or `error`: why it could not be made, for
+    `FAILURE_SECONDS`) for `estimate_in_background` to read, and gives up the claims of the work."""
+    if error is None:
+        _write(key, versions, estimate)
+    else:
+        try:
+            _client().set(key, json.dumps({"versions": versions, "error": str(error)}, sort_keys=True),
+                          ex=FAILURE_SECONDS)
+        except (redis.RedisError, OSError):
+            pass
+    singleflight.release([key, _gate_of(key)])
+
+
+def _gate_of(key):
+    """The database-wide claim that goes with the estimate stored under `key`."""
+    database = key[len(_PREFIX):].split(":", 1)[0]
+    return f"{GATE_PREFIX}{database}"
 
 
 def estimate(database, kind, argv, versions, compute):
@@ -115,3 +157,64 @@ def estimate(database, kind, argv, versions, compute):
     finally:
         if owned:
             singleflight.release(owned)
+
+
+class Working(Exception):
+    """The estimate is being worked out in the work queue; ask again in a few seconds."""
+
+
+class Failed(Exception):
+    """The estimate could not be made; the message says why."""
+
+
+def estimate_in_background(database, kind, argv, versions, compute, start):
+    """
+    The estimate for a job without ever waiting for it (ADM.141): from the cache when one made under the current
+    versions is stored, else handed to `start` (the work queue) and `Working` raised, so the request returns at
+    once and the page asks again.
+
+    Args:
+        database (str): The galaxy database.
+        kind (str): The kind of job.
+        argv (list): The job's command line, the estimate's arguments.
+        versions (callable): As in `estimate`.
+        compute (callable): `compute()` -> the estimate dict, run in this request only when nothing can queue it
+            (no Redis server: the page then waits, as it did before the queue); it raises when it cannot.
+        start (callable): `start(key, versions)` -> whether the work was queued. The worker ends by `store`, which
+            also gives up the claims.
+
+    Returns:
+        dict: The estimate, a fresh copy.
+
+    Raises:
+        Working: The estimate is running (queued by this call, or by an earlier one).
+        Failed: The last try at it failed (the message says why).
+    """
+    try:
+        current = json.loads(json.dumps(versions(), sort_keys=True))
+    except Exception:  # noqa: BLE001 -- fail open: no versions, no cache
+        return compute()
+    key = cache_key(database, kind, argv)
+    entry = _entry(key, current)
+    if entry is not None:
+        if "estimate" in entry:
+            return entry["estimate"]
+        raise Failed(entry.get("error") or "the estimate could not be made")
+    gate = _gate_of(key)
+    owned, held = singleflight.claim([key, gate], seconds=CLAIM_SECONDS)
+    if held:
+        singleflight.release(owned)        # the same question is running, or another one is: wait for it
+        raise Working()
+    queued = False
+    try:
+        queued = bool(start(key, current))
+    except Exception:  # noqa: BLE001 -- no queue: the estimate is worked out here
+        queued = False
+    if queued:
+        raise Working()
+    try:
+        result = compute()
+        _write(key, current, result)
+        return result
+    finally:
+        singleflight.release(owned)

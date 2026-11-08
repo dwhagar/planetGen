@@ -1,7 +1,7 @@
 # tests/test_migration_dust_species.py
 
 """
-GEN.1376: migration 0229 gives a v228 galaxy the grain species columns, writes the whole composition of its nebulae, remnants and field clouds again with the model, and drops the two old
+GEN.1376: migration 0231 gives a v230 galaxy the grain species columns, writes the whole composition of its nebulae, remnants and field clouds again with the model, and drops the two old
 grain columns. A second run changes nothing.
 """
 
@@ -21,8 +21,8 @@ def _columns(conn, table):
     return [row["Field"] for row in conn.execute("SHOW COLUMNS FROM " + table).fetchall()]
 
 
-def _v228_galaxy(mysql_config):
-    load_old_schema(mysql_config, 228)
+def _v230_galaxy(mysql_config):
+    load_old_schema(mysql_config, 230)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("nebulae", "supernova_remnants", "nebula_field"):
@@ -47,8 +47,8 @@ def _rows(mysql_config):
         conn.close()
 
 
-def test_a_v228_galaxy_gets_the_species_columns_written_again_and_loses_the_old_ones(mysql_config):
-    _v228_galaxy(mysql_config)
+def test_a_v230_galaxy_gets_the_species_columns_written_again_and_loses_the_old_ones(mysql_config):
+    _v230_galaxy(mysql_config)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     nebula, cloud, columns = _rows(mysql_config)
     for table, names in columns.items():
@@ -66,7 +66,7 @@ def test_a_v228_galaxy_gets_the_species_columns_written_again_and_loses_the_old_
 
 
 def test_a_second_run_changes_nothing(mysql_config):
-    _v228_galaxy(mysql_config)
+    _v230_galaxy(mysql_config)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     first = _rows(mysql_config)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
