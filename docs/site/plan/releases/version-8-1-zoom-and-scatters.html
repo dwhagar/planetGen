@@ -289,10 +289,46 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Boss, 2026-11-08.</td>
 </tr>
 <tr>
-<td>DOC.113</td>
-<td>Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps</td>
+<td>DOC.114</td>
+<td>Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text</td>
 <td></td>
-<td>Boss, 2026-11-08 (proposed).</td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.115</td>
+<td>One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.117</td>
+<td>History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.148</td>
+<td>Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.149</td>
+<td>Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS)</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.150</td>
+<td>The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it)</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.151</td>
+<td>A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress</td>
+<td>ADM.150</td>
+<td>Boss, 2026-11-08.</td>
 </tr>
 <tr>
 <td>DOC.114</td>
@@ -381,12 +417,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <tr>
 <td>OPS.129</td>
 <td>Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook</td>
-<td></td>
-<td>Boss, 2026-11-08 (proposed).</td>
-</tr>
-<tr>
-<td>OPS.130</td>
-<td>Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site</td>
 <td></td>
 <td>Boss, 2026-11-08 (proposed).</td>
 </tr>
