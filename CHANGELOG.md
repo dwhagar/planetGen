@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3641] - 2026-11-08
+
+**Headline:** A world that spins very fast no longer makes the generator split its temperature record into hundreds of millions of empty windows; the numbers do not change (PERF.249).
+
+### Changed
+
+- `temperature_coverage.band_climate` cut the record into one window per solar day, so a planet that turns thousands of times per sample (a hypergiant's) was split into millions of empty windows on every call, costing minutes and gigabytes. The window count is now held at the number of samples (the extra windows were empty and dropped), and the windows are reduced in one pass. The result is bit-identical (tested against the old windowing), so no epoch.
+
 ## [8.0.3640] - 2026-11-08
 
 **Headline:** A system whose planet holds irregular moons now saves to JSON; the flag that tells whether a zone holds temporary captures was a numpy truth value.
