@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3687] - 2026-11-08
+
+**Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
+
+### Changed
+
+- New `physics/disk_condensation.py`: the snow lines (CO 20 K, N2 22, CH4 41, CO2 47, Ar 48, Kr 53, Xe 69, H2S 80, NH3 131, H2O 182), the carbon split (half refractory grains, the rest CO, CO2 and a little CH4), the oxygen taken out of the water by CO and CO2, the nitrogen and sulfur split, the mass each condensate makes in percent of the nebula, and the gas and solid C/O across each line. Stand-ins DSC1 to DSC6 (section 6.213); N2 and H2S lines are recalled, registered as such.
+- Nothing reads it yet: part B wires the ice shares of a body to it and part C the C/O of a giant, so no generated value changes.
+
+generation-output: unchanged
+
 ## [8.0.3686] - 2026-11-08
 
 **Headline:** A progress bar now appears for any step that takes more than 5 seconds, and a random start's first sector has one.
