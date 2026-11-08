@@ -3622,7 +3622,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.5.6 | GEN.20 |
 | GEN.7.1 | GEN.21 |
 | GEN.7.2 | GEN.22 |
-| GEN.1439 | A plan stores no container for each globular cluster | none | open |
+| GEN.1439 | A plan stores no container for each globular cluster | none | done, PR #5775 |
 | MAP.2.1 | MAP.16 |
 | MAP.2.1.1 | MAP.17 |
 | MAP.2.1.2 | MAP.18 |
