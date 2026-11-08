@@ -452,6 +452,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1426 | Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets |  | Boss, 2026-11-08. |
 | GEN.1428 | GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed |  | Boss, 2026-11-08. |
 | GEN.1429 | GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report | GEN.1428 | Boss, 2026-11-08. |
+| GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) |  | Lane 15, 2026-11-08. |
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 |  | Lane 15, 2026-11-08. |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor |  | Lane 15, 2026-11-08. |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold |  | Lane 15, 2026-11-08. |
