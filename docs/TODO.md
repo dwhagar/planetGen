@@ -13594,6 +13594,11 @@ clears each one.
   Version 8.2. Owner: none yet. Prerequisites: ADM.145, DB.117. Related: GEN.725.
   Filed by the TODO thread.
 
+- [ ] **TEST.700 test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug)**
+  Lane 02 (as the lane reported, 10:45 AM EST on 2026-11-08), from the Train 18 gate: tests/test_species_limits.py needs 66 minutes alone, so the gate always cuts it at its 25 minute cap and a species limits regression would go unseen; on Lane 12's machine it also hit a setup timeout. Do: pin a generated system known to qualify (a stored seed and address that passes the fixture's check, with a cheap guard that the pin still qualifies) or cache the hunt result, without weakening what the tests check. Note also: tests/test_systems.py runs over 50 minutes and is not in the gate list; PERF.253 covers one forced MOONS case of it and TEST.417 covers whole-sector tests in general. Lock-free, test only. Done: test_species_limits runs in a few minutes and sits in the gate list.
+  Version 8.1. Owner (TODO, 2026-11-08): Lane 12. Prerequisites: none. Related: TEST.417, PERF.253, TEST.261.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
