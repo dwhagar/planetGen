@@ -169,20 +169,28 @@ class OreState:
 
 
 @functools.lru_cache(maxsize=4096)
-def _sulfur_over_iron_of(fe_h, age_gy, key):
+def _over_iron_of(symbol, fe_h, age_gy, key):
     draws = stellar_composition.key_draws(key)
     branch = stellar_abundances.branch_of(fe_h, age_gy)
     offsets = stellar_abundances.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     ratio = stellar_abundances.number_ratio
-    return ratio(offsets, "S", "Fe") / ratio({}, "S", "Fe")
+    return ratio(offsets, symbol, "Fe") / ratio({}, symbol, "Fe")
+
+
+def over_iron(star, symbol):
+    """
+    The star's `symbol`/Fe by number over the reference Sun-like mix's (1 for a star with no abundances: a compact remnant), from the same draws as its other elements. Only the elements of
+    `stellar_abundances` have a ratio; a metal the set does not hold (gold, lead) follows the iron: 1.
+    """
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    if fe_h is None or symbol not in tuning.STELLAR_SOLAR_LOG_EPS:
+        return 1.0
+    return _over_iron_of(symbol, fe_h, star.age, bulk_draw.star_key(star))
 
 
 def _sulfur_over_iron(star):
-    """The star's S/Fe by number over the reference Sun-like mix's (1 for a star with no abundances: a compact remnant), from the same draws as its other elements."""
-    fe_h = getattr(star, "metallicity_fe_h", None)
-    if fe_h is None:
-        return 1.0
-    return _sulfur_over_iron_of(fe_h, star.age, bulk_draw.star_key(star))
+    """The star's S/Fe by number over the reference Sun-like mix's."""
+    return over_iron(star, "S")
 
 
 def state_of(body):

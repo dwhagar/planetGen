@@ -319,6 +319,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.207", "6.207 Stand-in of the bodies an asteroid field stores",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.218", "6.218 Stand-ins of the hydrothermal and uranium deposits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.217", "6.217 Stand-ins of the sedimentary and biogenic deposits",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.216", "6.216 Stand-ins of the phosphorus budget",

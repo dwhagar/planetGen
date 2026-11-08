@@ -270,6 +270,10 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.215:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
 | 6.215:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
 | 6.215:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |
+| 6.218:HT2 | no data | - | the gate numbers are design choices; no source measures where a deposit class stops forming |
+| 6.218:HT3 | no data | - | the ceilings are design choices; only the Earth's counts exist |
+| 6.218:HT6 | no data | - | the windows are design choices; only the Earth's deposits by era exist |
+| 6.218:HT7 | no data | - | the counts are design choices; only the Earth's deposits exist |
 | 6.217:SD1 | no data | - | no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened |
 | 6.217:SD2 | no data | - | the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists |
 | 6.217:SD3 | no data | - | the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists |

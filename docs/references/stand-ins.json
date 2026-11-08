@@ -41263,14 +41263,304 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.218",
+      "number": "6.218",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+            ],
+            [
+              "The range it moves in",
+              "heat flow 0.08 to 0.09 W/m2"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies with a stored heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mean outside the range"
+            ],
+            [
+              "What replaces it",
+              "the Earth's measured means (the references stay)"
+            ],
+            [
+              "Evidence",
+              "the Earth's global heat flow (about 87 mW/m2), the hypsometry and the air's oxygen share, recalled; not opened"
+            ]
+          ],
+          "id": "HT1",
+          "key": "6.218:HT1",
+          "kind": "B",
+          "slug": "6-218-ht1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the gate numbers are design choices; no source measures where a deposit class stops forming"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.PORPHYRY_MIN_CRUST_KM 20, OROGENIC_MIN_CRUST_KM 25, VMS_MIN_HEAT_RATIO 0.3, SEDEX_MIN_SULFUR 0.3, SEDEX_MIN_AGE_GY 0.5, EPITHERMAL_MIN_MAGMA_RATIO 0.2 and ROLL_FRONT_MIN_O2_PA 1000: the least crust, heat, sulfur, sediment age, volcanism and oxygen at which each type's setting exists"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "wet rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a deposit of a type found in a setting below its threshold"
+            ],
+            [
+              "What replaces it",
+              "the process models of each deposit class (a hydrothermal cell, a metamorphic belt, a basin brine)"
+            ],
+            [
+              "Evidence",
+              "design file section 5 gates in words ('a 1 to 4 km intrusion', 'heat flow above a floor', 'oxidising groundwater'); the numbers are mine"
+            ]
+          ],
+          "id": "HT2",
+          "key": "6.218:HT2",
+          "kind": "T",
+          "slug": "6-218-ht2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.PORPHYRY_MIN_CRUST_KM 20, OROGENIC_MIN_CRUST_KM 25, VMS_MIN_HEAT_RATIO 0.3, SEDEX_MIN_SULFUR 0.3, SEDEX_MIN_AGE_GY 0.5, EPITHERMAL_MIN_MAGMA_RATIO 0.2 and ROLL_FRONT_MIN_O2_PA 1000: the least crust, heat, sulfur, sediment age, volcanism and oxygen at which each type's setting exists"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the ceilings are design choices; only the Earth's counts exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.HEAT_RATIO_CAP 3 and MAGMA_RATIO_CAP 3: the ceilings on the heat-flow and volcanism factors of the count"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "hot and large rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a count that keeps rising with heat past the cap"
+            ],
+            [
+              "What replaces it",
+              "a hydrothermal-cell model of the count against heat flow"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (no ore count is known to rise without bound)"
+            ]
+          ],
+          "id": "HT3",
+          "key": "6.218:HT3",
+          "kind": "T",
+          "slug": "6-218-ht3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.HEAT_RATIO_CAP 3 and MAGMA_RATIO_CAP 3: the ceilings on the heat-flow and volcanism factors of the count"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.CRUST_PPM (Cu 60, Zn 70 ppm, Au 4 ppb) and CONCENTRATION (Cu 140, Zn 750, Au 2300, U 740): the continental crust mean and the factor from it to ore"
+            ],
+            [
+              "The range it moves in",
+              "crust means within 20 percent"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a crust mean or factor outside the published range"
+            ],
+            [
+              "What replaces it",
+              "the crust abundances of the reference compilation (accepted secondary)"
+            ],
+            [
+              "Evidence",
+              "design file section 6: the concentration factors and the crustal abundances it cites; recalled; not opened"
+            ]
+          ],
+          "id": "HT4",
+          "key": "6.218:HT4",
+          "kind": "B",
+          "slug": "6-218-ht4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrothermal_deposits.CRUST_PPM (Cu 60, Zn 70 ppm, Au 4 ppb) and CONCENTRATION (Cu 140, Zn 750, Au 2300, U 740): the continental crust mean and the factor from it to ore"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.U_CRUST_OVER_BULK 80 and U3O8_PER_U 1.1792: the crust's uranium over the bulk silicate's, and the U3O8 per uranium"
+            ],
+            [
+              "The range it moves in",
+              "50 to 120"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored uranium"
+            ],
+            [
+              "What would show it wrong",
+              "a crust mean uranium far from 80 times the bulk silicate's"
+            ],
+            [
+              "What replaces it",
+              "a crust-extraction model of the incompatible elements"
+            ],
+            [
+              "Evidence",
+              "the Earth's 1.7 ppm crust over a 0.02 ppm bulk silicate, recalled; the oxide factor is stoichiometry"
+            ]
+          ],
+          "id": "HT5",
+          "key": "6.218:HT5",
+          "kind": "P",
+          "slug": "6-218-ht5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "hydrothermal_deposits.U_CRUST_OVER_BULK 80 and U3O8_PER_U 1.1792: the crust's uranium over the bulk silicate's, and the U3O8 per uranium"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the windows are design choices; only the Earth's deposits by era exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0)"
+            ],
+            [
+              "The range it moves in",
+              "each edge by 0.2"
+            ],
+            [
+              "Where it holds",
+              "all six types"
+            ],
+            [
+              "What would show it wrong",
+              "a type found outside its window on the Earth's record"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts by era and an erosion model"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (shallow deposits erode away, deep ones survive), recalled from the file's remark"
+            ]
+          ],
+          "id": "HT6",
+          "key": "6.218:HT6",
+          "kind": "P",
+          "slug": "6-218-ht6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the counts are design choices; only the Earth's deposits exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window"
+            ],
+            [
+              "The range it moves in",
+              "deposits 0.3x to 3x"
+            ],
+            [
+              "Where it holds",
+              "wet rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like draw with a total far from the Earth's known endowment of the type"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts and tonnage distributions"
+            ],
+            [
+              "Evidence",
+              "medians inside the file's tonnage ranges (1e8 to 1e10 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t U), recalled; the counts are mine"
+            ]
+          ],
+          "id": "HT7",
+          "key": "6.218:HT7",
+          "kind": "P",
+          "slug": "6-218-ht7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window"
+        }
+      ],
+      "slug": "6-218-stand-ins-of-the-hydrothermal-and-uranium-deposits",
+      "title": "Stand-ins of the hydrothermal and uranium deposits"
+    },
+    {
       "key": "6.217",
       "number": "6.217",
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.1383",
-            "the span of the iron formations follows an ocean-oxygenation model when that item's chemistry exists; the Earth's dates are recalled, not opened"
+            "no data",
+            "-",
+            "no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened"
           ],
           "fields": [
             [

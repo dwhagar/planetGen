@@ -48,7 +48,6 @@ NULL_IN_THIS_GALAXY = {
     # child tables hold nothing.
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
-        ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
         ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
@@ -59,6 +58,10 @@ NULL_IN_THIS_GALAXY = {
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
                            "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index",
                            "yield_strength_pa"))) for column in columns},
+    # GEN.1380, GEN.1378, GEN.1381: a body holds a deposit row for each type it was assessed for, and a type is present only where its setting held and its count drew
+    # at least one deposit, so a small galaxy may hold no row at all for its few rogue planets, or no present row on its moons.
+    **{("rogue_planet_deposit_types", column): CHANCE for column in ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")},
+    **{(table, column): CHANCE for table in ("planet_deposit_types", "moon_deposit_types") for column in ("age_window_gyr_end", "age_window_gyr_start", "endowment_kg", "grade")},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",

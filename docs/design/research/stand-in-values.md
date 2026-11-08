@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1323 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1330 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 166 | 19 | 10 | 1 | 0 | 196 |
 | T2 | 129 | 52 | 1 | 1 | 0 | 183 |
-| T3 | 99 | 43 | 7 | 9 | 0 | 158 |
-| T4 | 59 | 5 | 1 | 19 | 10 | 94 |
+| T3 | 100 | 43 | 7 | 9 | 0 | 159 |
+| T4 | 60 | 5 | 1 | 19 | 10 | 95 |
 | T5 | 61 | 22 | 4 | 1 | 0 | 88 |
-| T6 | 137 | 97 | 26 | 73 | 0 | 333 |
-| T7 | 34 | 15 | 8 | 24 | 0 | 81 |
+| T6 | 137 | 97 | 27 | 73 | 0 | 334 |
+| T7 | 34 | 15 | 8 | 28 | 0 | 85 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 726 | 269 | 62 | 221 | 45 | 1323 |
+| All | 728 | 269 | 63 | 225 | 45 | 1330 |
 
 ## How the labels were given
 
@@ -1811,6 +1811,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.218 Stand-ins of the hydrothermal and uranium deposits
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HT1 | B | T3 | L0 | hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from | heat flow 0.08 to 0.09 W/m2 | all rocky bodies with a stored heat flow | a measured mean outside the range | the Earth's measured means (the references stay) | the Earth's global heat flow (about 87 mW/m2), the hypsometry and the air's oxygen share, recalled; not opened | - | - |
+| HT2 | T | T7 | L3 | hydrothermal_deposits.PORPHYRY_MIN_CRUST_KM 20, OROGENIC_MIN_CRUST_KM 25, VMS_MIN_HEAT_RATIO 0.3, SEDEX_MIN_SULFUR 0.3, SEDEX_MIN_AGE_GY 0.5, EPITHERMAL_MIN_MAGMA_RATIO 0.2 and ROLL_FRONT_MIN_O2_PA 1000: the least crust, heat, sulfur, sediment age, volcanism and oxygen at which each type's setting exists | each within a factor of 2 | wet rocky bodies | a deposit of a type found in a setting below its threshold | the process models of each deposit class (a hydrothermal cell, a metamorphic belt, a basin brine) | design file section 5 gates in words ('a 1 to 4 km intrusion', 'heat flow above a floor', 'oxidising groundwater'); the numbers are mine | - | no data |
+| HT3 | T | T7 | L3 | hydrothermal_deposits.HEAT_RATIO_CAP 3 and MAGMA_RATIO_CAP 3: the ceilings on the heat-flow and volcanism factors of the count | 2 to 5 | hot and large rocky bodies | a count that keeps rising with heat past the cap | a hydrothermal-cell model of the count against heat flow | educated guess from physics (no ore count is known to rise without bound) | - | no data |
+| HT4 | B | T4 | L0 | hydrothermal_deposits.CRUST_PPM (Cu 60, Zn 70 ppm, Au 4 ppb) and CONCENTRATION (Cu 140, Zn 750, Au 2300, U 740): the continental crust mean and the factor from it to ore | crust means within 20 percent | all rocky bodies | a crust mean or factor outside the published range | the crust abundances of the reference compilation (accepted secondary) | design file section 6: the concentration factors and the crustal abundances it cites; recalled; not opened | - | - |
+| HT5 | P | T6 | L2 | hydrothermal_deposits.U_CRUST_OVER_BULK 80 and U3O8_PER_U 1.1792: the crust's uranium over the bulk silicate's, and the U3O8 per uranium | 50 to 120 | rocky bodies with a stored uranium | a crust mean uranium far from 80 times the bulk silicate's | a crust-extraction model of the incompatible elements | the Earth's 1.7 ppm crust over a 0.02 ppm bulk silicate, recalled; the oxide factor is stoichiometry | - | - |
+| HT6 | P | T7 | L3 | hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0) | each edge by 0.2 | all six types | a type found outside its window on the Earth's record | the Earth's deposit counts by era and an erosion model | educated guess from physics (shallow deposits erode away, deep ones survive), recalled from the file's remark | - | no data |
+| HT7 | P | T7 | L3 | hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window | deposits 0.3x to 3x | wet rocky bodies | an Earth-like draw with a total far from the Earth's known endowment of the type | the Earth's deposit counts and tonnage distributions | medians inside the file's tonnage ranges (1e8 to 1e10 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t U), recalled; the counts are mine | - | no data |
 
 ## 6.217 Stand-ins of the sedimentary and biogenic deposits
 
