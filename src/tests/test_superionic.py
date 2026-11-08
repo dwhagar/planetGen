@@ -69,7 +69,7 @@ def test_an_ice_giant_mantle_is_read_from_the_boundary_table_at_its_bottom():
 
 
 def test_the_stand_in_constants_agree_with_the_table():
-    # STAND-INS SI1 to SI3 (section 6.233) name the points of the data file that are not measured
+    # STAND-INS SI1 to SI3 (section 6.234) name the points of the data file that are not measured
     water, ammonia = superionic.table()["water"], superionic.table()["ammonia"]
     assert water["floor"][-1][0] == superionic.FALLBACK_FLOOR_BEYOND_GPA
     assert (water["ceiling"][0][0], water["ceiling"][1][0]) == superionic.CEILING_INTERPOLATION_GPA

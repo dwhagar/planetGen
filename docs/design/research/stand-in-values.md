@@ -2444,7 +2444,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MR3 | T | T4 | L1 | mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm) | 20 ppm to 0.1 wt% | bridgmanite and ferropericlase beyond 23 GPa | a lower mantle shown to hold over 0.1 wt% | a capacity of aluminous bridgmanite | [R5159: Abstract] gives under 20 ppm and [R5158: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5160: Abstract], so the lower mantle's cap is the least certain of the three | - | - |
 | MR4 | T | T4 | L1 | mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite) | 2 to 4 | the upper mantle and the transition zone, 15 to 45 GPa | a mantle that holds carbonate at dIW 1 or diamond at dIW 5 | the phase boundary of carbon as a function of pressure and temperature | read in a lecture note (Plinius 38, 2012, no DOI, not in the reference list): diamond and carbonate meet about 3 log units over iron-wuestite at 15 to 45 GPa; the primary papers were not opened | - | - |
 
-## 6.233 Stand-ins of the superionic boundaries of water and ammonia
+## 6.234 Stand-ins of the superionic boundaries of water and ammonia
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

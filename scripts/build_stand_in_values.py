@@ -441,7 +441,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.219", "6.219 Stand-ins of the water and carbon a mantle stores",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.233", "6.233 Stand-ins of the superionic boundaries of water and ammonia",
+    ("6.234", "6.234 Stand-ins of the superionic boundaries of water and ammonia",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

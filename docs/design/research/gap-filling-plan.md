@@ -3559,7 +3559,7 @@ The Venus chemistry set of section 10 of the unseen-compounds report as register
 | PS2 | P | T2 | L0 | neutron_star_crust.PASTA thickness_m 100.0: the thickness of the layer | 10 to 300 m | neutron stars of 1.4 solar masses | a computed crust with a pasta layer thicker than 300 m or thinner than 10 m | a crust model of each star's mass and radius | the review [R5167] (read): the pasta lies in the bottom layer of the crust, about 100 m thick; one figure, not scaled to the star |
 | PS3 | P | T2 | L0 | neutron_star_crust.PASTA crust_mass_share_at_most 0.5: the largest share of the crust's mass the pasta may hold | 0.1 to 0.5 | neutron stars with a crust | a computed crust whose pasta holds more than half its mass | a crust model of each star | the review [R5167] (read): the pasta may hold half the mass of the crust; an upper limit, shown as "up to" |
 
-### 6.233 Stand-ins of the superionic boundaries of water and ammonia (GEN.1422)
+### 6.234 Stand-ins of the superionic boundaries of water and ammonia (GEN.1422)
 
 `superionic` says whether the water and the ammonia of a deep ice layer are an ice, a superionic solid, an ionic fluid or a metallic fluid at the layer's bottom pressure and the temperature of the model's adiabat there. The floor and the ceiling of each species are tables of points in `physics/data/superionic_boundary.json` with their sources; the measured points are read from [R5171: Abstract] (arXiv text opened) and [R5172: Abstract]. What is not measured is held here. The experiments of [R3081, R5171] disagree on where the phase starts, so the lowest floor is used.
 

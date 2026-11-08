@@ -84,7 +84,7 @@ def load(path=DATA_FILE):
     water, ammonia = table["water"], table["ammonia"]
     if (water["floor"][-1][0] != FALLBACK_FLOOR_BEYOND_GPA or (water["ceiling"][0][0], water["ceiling"][1][0]) != CEILING_INTERPOLATION_GPA
             or ammonia["floor"][0] != AMMONIA_FLOOR_GPA_K):
-        raise DataError("the stand-in points SI1 to SI3 (section 6.233) do not match the table's rows")
+        raise DataError("the stand-in points SI1 to SI3 (section 6.234) do not match the table's rows")
     return table
 
 
