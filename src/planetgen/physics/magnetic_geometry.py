@@ -25,7 +25,7 @@ brings the two axes together (`tan(alpha)` falls as `exp(-t / tau)`, `ALIGNMENT_
 isotropic again. Folded into 0 to 90 degrees.
 
 **Stars (`star_field_gauss`).** The polar field of the large-scale dipole, gauss. A cool dwarf or subdwarf with a convective envelope (below the Kraft break) follows the
-empirical trend of the large-scale field with the Rossby number, `B ~ Ro^-1.40` ([R4544], [R5144] for the fully convective M dwarfs), with `Ro = P_rot / tau_conv` and the
+empirical trend of the large-scale field with the Rossby number, `B ~ Ro^-1.40` ([R4544, R5144] for the fully convective M dwarfs), with `Ro = P_rot / tau_conv` and the
 turnover time of [R4780]; an Ap or Bp dwarf has the polar field `chemically_peculiar` draws for its kind. Any other star has none stored.
 
 Stand-ins are DP1 to DP7 of `docs/design/research/gap-filling-plan.md`.
@@ -110,7 +110,7 @@ def neutron_star_inclination_deg(pulsar_type, age_yr, key):
 
 
 def convective_turnover_days(mass_sol):
-    """The convective turnover time, days, of a dwarf of this mass: `log tau = 1.16 - 1.49 log M - 0.54 (log M)^2` ([R4780])."""
+    """The convective turnover time, days, of a dwarf of this mass: `log tau = 1.16 - 1.49 log M - 0.54 (log M)^2` [R4780]."""
     log_mass = math.log10(mass_sol)
     return 10.0 ** (1.16 - 1.49 * log_mass - 0.54 * log_mass * log_mass)
 
