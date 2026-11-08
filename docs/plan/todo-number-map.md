@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.296 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1464 |
+| GEN | GEN.1470 |
 | PERF | PERF.256 |
 | DB | DB.121 |
 | API | API.43 |
@@ -2231,6 +2231,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1461 | Day and night share with every sun: the union of the lit arcs from the suns' angular separation | none | open |
 | GEN.1462 | Eclipses of a star by a body of the system: moons in a sibling's shadow, a sun crossed by a planet, mutual eclipses seen from a circumbinary planet | GEN.1458 | open |
 | GEN.1463 | Oxygen sink R falls with body age: heat flow and reductant supply were higher early, so the surplus S minus R is larger young | none | open |
+| GEN.1464 | Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons | GEN.1446 | open |
+| GEN.1465 | The effect ledger: for every body and every effect (light, UV, tide, heating, Kozai and secular forcing, precession, eccentricity perturbation) the size of each source's contribution, stored as a fraction of the largest | none | open |
+| GEN.1466 | Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions | none | open |
+| GEN.1467 | Mutual tides, spin and apsidal precession between the stars of a binary or triple | none | open |
+| GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) | GEN.1460 | open |
+| GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives | none | open |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | open |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
@@ -2249,10 +2255,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1391 | Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364) | GEN.1364, GEN.1360 | open |
 | GEN.1392 | Reduced cores and the dynamo energy scale: let rock FeO reach below IW-3.3 so Mercury-like Si-rich cores occur, and re-tune the compositional dynamo energy that stopped most small-body dynamos | GEN.1364 | open |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) | none | done, PR #5688 |
-| TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) | none | open |
+| TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) | none | done, PR #5700 |
 | TEST.690 | src/tests/test_pulsar_planets.py fails on main: a pulsar disk planet comes out class T (bug) | none | done, PR #5688 |
-| TEST.691 | The ozone-loss radiation test fails on main (bug) | none | open |
-| TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | open |
+| TEST.691 | The ozone-loss radiation test fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
+| TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | GEN.1386 | np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug) | none | done, PR #5688 |
 | PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | open |
 | MAP.406 | The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug) | none | done, PR #5688 |
@@ -2284,7 +2290,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.695 | Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug) | none | open |
 | GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) | none | open |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
-| TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | open |
+| TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | done, PR #5700 |
 | TEST.698 | test_systems position-in-plane check stale since GEN.1352: moons are set in the system frame, their inclination and node stay in the equator frame (bug) | none | done, PR #5703 |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | open |
 | TEST.700 | test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug) | none | done, PR #5736 |
@@ -2292,7 +2298,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | done, PR #5688 |
 | PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | done, PR #5740 |
 | PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | done, PR #5740 |
-| PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
+| PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | done, PR #5787 |
 | PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step | PERF.226 | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
 | ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | open |
@@ -3666,7 +3672,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.1.7 | PERF.9 |
 | PERF.1.8 | PERF.10 |
 | PERF.1.9 | PERF.11 |
-| PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | open |
+| PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |

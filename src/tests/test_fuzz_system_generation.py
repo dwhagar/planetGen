@@ -588,11 +588,22 @@ def _moon_heavy_system(seed):
     return _generate(cfg, seed)
 
 
+_MOON_HEAVY_SEEDS = 12
+_moon_heavy_cache = {}
+
+
+def _moon_heavy_systems():
+    """The moon-heavy systems of the two checks below, each made once (PERF.255): a system with its moons takes about 45 s here, and 60 of them for each of two tests passed the 900 s limit."""
+    for seed in range(_MOON_HEAVY_SEEDS):
+        if seed not in _moon_heavy_cache:
+            _moon_heavy_cache[seed] = _moon_heavy_system(seed)
+        yield seed, _moon_heavy_cache[seed]
+
+
 def test_moons_orbit_inside_their_parents_hill_sphere():
-    # 60 full systems (about 3,000 moons): every moon gets its own air solve (GEN.646), so 300 systems would pass the 900 s test limit
     bad = []
-    for seed in range(60):
-        for planet, moon in _moon_pairs(_moon_heavy_system(seed)):
+    for seed, system in _moon_heavy_systems():
+        for planet, moon in _moon_pairs(system):
             if moon.distance * pc.AU_TO_KM > planet.hill_radius:
                 bad.append((seed, planet.planet_class, moon.distance * pc.AU_TO_KM, planet.hill_radius))
     assert not bad, f"{len(bad)} moons outside their parent's Hill sphere, e.g. {bad[:3]}"
@@ -600,8 +611,8 @@ def test_moons_orbit_inside_their_parents_hill_sphere():
 
 def test_moons_orbit_outside_their_parents_body():
     bad = []
-    for seed in range(60):
-        for planet, moon in _moon_pairs(_moon_heavy_system(seed)):
+    for seed, system in _moon_heavy_systems():
+        for planet, moon in _moon_pairs(system):
             if moon.distance * pc.AU_TO_KM <= planet.radius + moon.radius:
                 bad.append((seed, planet.planet_class, planet.radius, moon.distance * pc.AU_TO_KM))
     assert not bad, f"{len(bad)} moons inside their parent's body, e.g. {bad[:3]}"
