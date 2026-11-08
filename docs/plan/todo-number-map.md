@@ -24,8 +24,8 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.709 |
 | USR | USR.32 |
-| OPS | OPS.122 |
-| DOC | DOC.113 |
+| OPS | OPS.128 |
+| DOC | DOC.114 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
 
@@ -2258,6 +2258,12 @@ Parents marked "new parent" had no old number of their own.
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) | none | done, PR #5688 |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | done, PR #5688 |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
+| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | open |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become jobs of their own instead of running inside the last unit's horse | none | open |
+| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | open |
+| OPS.125 | Optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | open |
+| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | open |
+| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
@@ -3679,6 +3685,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
 | DOC.111 | The link-neighbors command is in no document | none | open |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | open |
+| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | done, PR #5468 |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
