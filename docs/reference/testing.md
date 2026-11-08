@@ -214,8 +214,10 @@ while it runs:
   started when they do not answer (the commands `planetgen-env-up` runs, or
   `PLANETGEN_TEST_MYSQL_START` / `PLANETGEN_TEST_REDIS_START`); the MySQL binary
   logs are purged when under 3 GB is free; `argon2-cffi` must be installed and,
-  for the browser tests, `playwright` must be 1.56.0 (the image's Chromium; do
-  not run `playwright install`). What it cannot repair is printed as
+  for the browser tests, `playwright` must be the release whose Chromium the image carries (the
+  check asks Playwright for its executable; 1194 is 1.56.0, 1243 is 1.63.0; do
+  not run `playwright install`). In the browser phase `PLANETGEN_REQUIRE_BROWSER` is set, so a browser
+  that will not start fails the tests instead of skipping them (TEST.693). What it cannot repair is printed as
   `PREFLIGHT FAILED: ...` and nothing runs (exit 2). The same check runs again
   at the start of each phase.
 - **During the run**, a watchdog asks MySQL and Redis every 15 seconds. A server
@@ -500,7 +502,7 @@ corpus (`python -m nltk.downloader words`), MySQL with a user that
 has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis
 (`redis-server --daemonize yes`, then `export PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0`; the tests that
 need it skip without that variable), and a Playwright whose Chromium matches the one on the machine: the image
-carries Chromium 1194, so use `pip install playwright==1.56.0` (a newer
+carries Chromium 1194 (1.56.0) or 1243 (1.63.0), so install the one for the build in /opt/pw-browsers (a different
 Playwright asks for a build the image does not have and every browser test
 skips).
 

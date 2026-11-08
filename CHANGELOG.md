@@ -2,6 +2,50 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3648] - 2026-11-08
+
+**Headline:** The test machine setup now downloads the datasets it needs and says so when it cannot.
+
+### Fixed
+- **Setup fetched nothing and still ended well (OPS.119).** The cloud environment setup ran the dataset download with `python -I`, which also drops `PYTHONPATH`, so `planetgen` could not be imported, the step only warned, and setup finished as if it had worked. It now runs with `-P` (no current directory, `PYTHONPATH` kept), checks the result with `datasets status`, and ends with a SETUP INCOMPLETE line when the data is not all there. The test preflight also fetches every dataset the math check reads (isochrones, spectra, the helium-hydrogen equation of state, HYG and Mamajek, besides the white-dwarf tables), where it fetched only the white-dwarf data and the math check then stopped a fresh machine's run with 16 DataMissing failures.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119.
+
+## [8.0.3647] - 2026-11-08
+
+**Headline:** A browser that will not start now fails the test run instead of skipping 1,500 tests.
+
+### Fixed
+- **Browser tests no longer skip silently (TEST.693).** The test preflight demanded Playwright 1.56.0 whatever Chromium the machine carried, so on an image with Chromium 1243 every browser test skipped with "Executable doesn't exist" and the phase still printed a pass. The preflight now asks the installed Playwright for its own Chromium and, if it is not there, names the Playwright that matches each Chromium build on the machine; the cloud setup script picks the matching release too. In the browser phase of `scripts/test.py` a test that skips because Playwright or Chromium would not start is now a failure.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.693.
+
+## [8.0.3646] - 2026-11-08
+
+**Headline:** Two tests that assumed asteroid fields are rolled in a sector, or stand wider than a light year, now follow the rules that retired both.
+
+### Changed
+- **Tests follow GEN.1103 and GEN.1107.** The research-rate test expected a rate of exactly 0 for an asteroid field; the rate is now the tiny physical one of the fields two colliding rogue planets leave. The dense-core course test made an 8 light-year field and expected the course to go round it; a field wider than a light year is retired and a course ignores it, so the test now makes a field of 0.9 light-years where the straight line and the bent course meet.
+
+generation-output: unchanged
+
+TODO items resolved: none (red tests on main).
+
+## [8.0.3645] - 2026-11-08
+
+**Headline:** Two class descriptions that ran past 30 words are now two sentences each.
+
+### Changed
+- **Class sentences kept short (GEN.1331).** The descriptions of the temperate world class and of the marginal world class, written in kilopascals by GEN.1331, were one sentence of 34 and 31 words. Each is now two shorter sentences with the same numbers, so the class pages keep the plain-words guide again.
+
+generation-output: unchanged
+
+TODO items resolved: none (red test on main).
+
 ## [8.0.3644] - 2026-11-08
 
 **Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).

@@ -193,7 +193,7 @@
       "letter": "L",
       "name": "Marginal thin-air world",
       "kind": "t",
-      "sentence": "A marginal world, Earth-like but hard to breathe without a mask. The air is not toxic: 30 kPa to 3 bar at 273 to 320 K, with at least 1 kPa of carbon dioxide and only 3 to 16 kPa of oxygen.",
+      "sentence": "A marginal world, Earth-like but hard to breathe without a mask. The air is not toxic: 30 kPa to 3 bar at 273 to 320 K. It has at least 1 kPa of carbon dioxide and only 3 to 16 kPa of oxygen.",
       "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
     {
@@ -263,7 +263,7 @@
       "letter": "M",
       "name": "Temperate world",
       "kind": "t",
-      "sentence": "A temperate world, the Earth-like sweet spot: 275 to 305 K, liquid water over 20 to 80 percent of the surface, 16 to 35.5 kPa of oxygen and under 1 kPa of carbon dioxide.",
+      "sentence": "A temperate world, the Earth-like sweet spot: 275 to 305 K, with liquid water over 20 to 80 percent of the surface. The air holds 16 to 35.5 kPa of oxygen and under 1 kPa of carbon dioxide.",
       "basis": "design: the rest of the worlds with air"
     },
     {
