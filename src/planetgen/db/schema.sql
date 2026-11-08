@@ -2579,6 +2579,13 @@ CREATE TABLE IF NOT EXISTS planets (
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
     rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    rock_na2o_fraction          DOUBLE,  -- v227 (GEN.1362): Na2O, a mass fraction of the rock
+    rock_k2o_fraction           DOUBLE,  -- v227 (GEN.1362): K2O, a mass fraction of the rock
+    rock_tio2_fraction          DOUBLE,  -- v227 (GEN.1362): TIO2, a mass fraction of the rock
+    rock_cr2o3_fraction         DOUBLE,  -- v227 (GEN.1362): CR2O3, a mass fraction of the rock
+    rock_mno_fraction           DOUBLE,  -- v227 (GEN.1362): MNO, a mass fraction of the rock
+    rock_nio_fraction           DOUBLE,  -- v227 (GEN.1362): NIO, a mass fraction of the rock
+    rock_p2o5_fraction          DOUBLE,  -- v227 (GEN.1362): P2O5, a mass fraction of the rock
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -3049,6 +3056,13 @@ CREATE TABLE IF NOT EXISTS moons (
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
     rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    rock_na2o_fraction          DOUBLE,  -- v227 (GEN.1362): Na2O, a mass fraction of the rock
+    rock_k2o_fraction           DOUBLE,  -- v227 (GEN.1362): K2O, a mass fraction of the rock
+    rock_tio2_fraction          DOUBLE,  -- v227 (GEN.1362): TIO2, a mass fraction of the rock
+    rock_cr2o3_fraction         DOUBLE,  -- v227 (GEN.1362): CR2O3, a mass fraction of the rock
+    rock_mno_fraction           DOUBLE,  -- v227 (GEN.1362): MNO, a mass fraction of the rock
+    rock_nio_fraction           DOUBLE,  -- v227 (GEN.1362): NIO, a mass fraction of the rock
+    rock_p2o5_fraction          DOUBLE,  -- v227 (GEN.1362): P2O5, a mass fraction of the rock
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -4366,6 +4380,13 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     rock_feo_fraction           DOUBLE,  -- v207 (GEN.1111)
     rock_al2o3_fraction         DOUBLE,  -- v207 (GEN.1111)
     rock_mg_si_ratio            DOUBLE,  -- v207 (GEN.1111)
+    rock_na2o_fraction          DOUBLE,  -- v227 (GEN.1362): Na2O, a mass fraction of the rock
+    rock_k2o_fraction           DOUBLE,  -- v227 (GEN.1362): K2O, a mass fraction of the rock
+    rock_tio2_fraction          DOUBLE,  -- v227 (GEN.1362): TIO2, a mass fraction of the rock
+    rock_cr2o3_fraction         DOUBLE,  -- v227 (GEN.1362): CR2O3, a mass fraction of the rock
+    rock_mno_fraction           DOUBLE,  -- v227 (GEN.1362): MNO, a mass fraction of the rock
+    rock_nio_fraction           DOUBLE,  -- v227 (GEN.1362): NIO, a mass fraction of the rock
+    rock_p2o5_fraction          DOUBLE,  -- v227 (GEN.1362): P2O5, a mass fraction of the rock
     envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
     envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
     porosity                    DOUBLE,  -- v207 (GEN.1111)

@@ -15,7 +15,7 @@ SAMPLE_TARGETS = ["t5-outlier-share", "t5-within-share"]
 
 
 def _ratios():
-    return bd.HostRatios(fe=0.9, si=0.9, al=0.08, ca=0.07, ni=0.05, c_over_o=0.5, y_envelope=0.27, z=0.014)
+    return bd.HostRatios(fe=0.9, si=0.9, al=0.08, ca=0.07, ni=0.05, na=0.0468, k=0.0033, ti=0.0026, cr=0.0117, mn=0.0074, p=0.0072, c_over_o=0.5, y_envelope=0.27, z=0.014)
 
 
 def _body(icy=False, is_moon=False):
