@@ -422,13 +422,13 @@ def _icy_water_range(body):
     the temperature falls as the square root of the distance, from the water condensation temperature at the star's own snow line).
     """
     water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
-    temperature = min(_formation_temperature_k(body), math.nextafter(water_line, 0.0))
+    temperature = min(formation_temperature_k(body), math.nextafter(water_line, 0.0))
     carbon, oxygen = ice_forming_ratios(body.star) or (1.0, 1.0)
     top = disk_condensation.water_share_of_solids(temperature, carbon, oxygen)
     return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
 
 
-def _formation_temperature_k(body):
+def formation_temperature_k(body):
     """The disk temperature at the body's formation distance: the water condensation temperature at the star's snow line, falling as the square root of the distance."""
     distance = getattr(body, "formation_distance_au", None)
     if distance is None:
@@ -463,7 +463,7 @@ def _with_nitrogen_ice(body, percent):
     The comet volatiles with nitrogen ice added where the ice formed colder than N2 condenses (`nitrogen_ice`, GEN.1218a): the solar ceiling times a trapping efficiency drawn
     log-uniform. A warmer zone draws nothing and its volatiles are returned as they are.
     """
-    if not nitrogen_ice.zone_is_cold(_formation_temperature_k(body)):
+    if not nitrogen_ice.zone_is_cold(formation_temperature_k(body)):
         return percent
     return {**percent, "N2": nitrogen_ice.percent_of_water(log_uniform(*nitrogen_ice.TRAPPING_EFFICIENCY_RANGE))}
 

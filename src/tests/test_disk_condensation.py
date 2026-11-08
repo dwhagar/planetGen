@@ -183,3 +183,27 @@ def test_the_stars_nitrogen_sulfur_and_noble_ratios_scale_the_split_not_the_fact
         dc.envelope_enrichments(0.0, 1.0)
     with pytest.raises(ValueError):
         dc.envelope_enrichments(100.0, -1.0)
+
+
+def test_the_jump_of_the_solids_at_the_snow_line_is_the_solids_over_the_rock_alone():
+    """GEN.1396: rock + grains + water over the rock, read between the water and ammonia lines: 1.97 for the Sun, under the
+    equilibrium table's 2.17 (CO and CO2 hold some of the oxygen) and under the classical nebula's 30 / 7."""
+    masses = dc.masses_percent(dc.SNOW_LINE_SOLID_JUMP_K)
+    assert set(masses) == {"rock", "C", "H2O"}
+    assert dc.SNOW_LINE_SOLID_JUMP == pytest.approx((masses["rock"] + masses["C"] + masses["H2O"]) / masses["rock"])
+    assert dc.SNOW_LINE_SOLID_JUMP == pytest.approx(1.967, abs=0.001)
+    assert dc.SNOW_LINE_SOLID_JUMP < 1.0 + 0.571 / 0.489 < 30.0 / 7.0
+    assert dc.SNOW_LINE_SOLID_JUMP > 1.0 + masses["H2O"] / (masses["rock"] + masses["C"])    # the divisor is not the rock plus the grains
+
+
+def test_a_star_with_more_oxygen_has_a_bigger_jump_and_one_with_no_spare_oxygen_only_the_grains():
+    assert dc.snow_line_solid_jump(oxygen=1.5) > dc.SNOW_LINE_SOLID_JUMP > dc.snow_line_solid_jump(oxygen=0.6)
+    dry = dc.snow_line_solid_jump(oxygen=condensate_shares.ROCK_OXYGEN_SHARE)
+    masses = dc.masses_percent(dc.SNOW_LINE_SOLID_JUMP_K, oxygen=condensate_shares.ROCK_OXYGEN_SHARE)
+    assert "H2O" not in masses and dry == pytest.approx((masses["rock"] + masses["C"]) / masses["rock"])
+
+
+def test_the_mass_law_reads_the_jump_beyond_the_snow_line_only():
+    from planetgen.physics import formation
+    inside = formation.mmsn_surface_density_gcm2(1.0, 2.0)
+    assert formation.mmsn_surface_density_gcm2(1.0, 0.5) == pytest.approx(inside * dc.SNOW_LINE_SOLID_JUMP)

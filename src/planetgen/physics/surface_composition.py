@@ -147,7 +147,7 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
                limit="the carbon-rich crust rule was not reached in part E; graphite and the organics are the rows with albedo",
                fractions={"carbon_graphite": 0.40, "kerogen": 0.30, "anthracite": 0.30}, notes="carbon-rock ground"),
         pt.Row("evaporite", (pt.ANY_CLASS,), 1.0, SOURCES["evaporite"], fractions={"halite": 1.0}, state=pt.PARTLY_VERIFIED,
-               limit="the salts a drawn body's basins hold are the sequence of its own brine (`evaporite_sequence`, GEN.1366); this recipe, halite alone, is only what a body "
+               limit="the salts a drawn body's basins hold are the sequence of its own brine (`evaporite_sequence`); this recipe, halite alone, is only what a body "
                      "with no silicate rock to weather has (volcanic sodium chloride)",
                notes="dried basins"),
         pt.Row("sulfur", (pt.ANY_CLASS,), 1.0, SOURCES["partE"], fractions={"sulfur": 1.0},

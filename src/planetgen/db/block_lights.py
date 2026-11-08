@@ -259,11 +259,26 @@ def _unit_rows(conn, shells):
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
 
-def _above_unit(conn):
-    """Writes the levels above `UNIT_LEVEL` from the stored rows of that level. Returns the rows written."""
+ABOVE_ROLL_SHARE = 0.8
+"""float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""
+
+ABOVE_REPORT_ROWS = 20000
+"""int: Rows of the unit level added up between two reports of `_above_unit`."""
+
+
+def _above_unit(conn, on_progress=None):
+    """
+    Writes the levels above `UNIT_LEVEL` from the stored rows of that level. Returns the rows written.
+
+    Args:
+        conn (Connection): A writable connection.
+        on_progress (callable, optional): `on_progress(fraction)` from 0 to 1 while the rows are added up and written, so the long
+            roll-up of a full galaxy shows on a bar (PERF.251).
+    """
     cells = {}
-    for row in conn.execute(f"SELECT m, shell_index, band_index, wedge_index, {', '.join(SUMS)} FROM"
-                            " galaxy_block_lights WHERE m = ?", (UNIT_LEVEL,)).fetchall():
+    rows_in = conn.execute(f"SELECT m, shell_index, band_index, wedge_index, {', '.join(SUMS)} FROM"
+                           " galaxy_block_lights WHERE m = ?", (UNIT_LEVEL,)).fetchall()
+    for done, row in enumerate(rows_in, start=1):
         block = DrillBlock(UNIT_LEVEL, row["shell_index"], row["band_index"], row["wedge_index"])
         sums = [row[name] for name in SUMS]
         parent = drill_parent(block)
@@ -272,18 +287,24 @@ def _above_unit(conn):
             for index, value in enumerate(sums):
                 into[index] += value
             parent = drill_parent(parent)
+        if on_progress is not None and done % ABOVE_REPORT_ROWS == 0:
+            on_progress(ABOVE_ROLL_SHARE * done / len(rows_in))
     rows = [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: _order(item[0]))]
-    _write_rows(conn, rows)
+    for start in range(0, len(rows), _WRITE_ROWS):
+        _write_rows(conn, rows[start:start + _WRITE_ROWS])
+        if on_progress is not None:
+            on_progress(ABOVE_ROLL_SHARE + (1 - ABOVE_ROLL_SHARE) * min(1.0, (start + _WRITE_ROWS) / len(rows)))
     return len(rows)
 
 
-def rebuild(conn, on_progress=None, on_phase=None):
+def rebuild(conn, on_progress=None, on_phase=None, on_above=None):
     """
     Computes every row from `bright_stars` and `phenomenon_scatter`, replacing the table's rows: the sector shells in
     units (those of one level-`UNIT_LEVEL` block shell), each unit's rows written and committed together so a stopped
     run keeps what it did and a second run replaces it, then the levels above the unit added up from the stored rows.
     `on_progress(done, total)` is called after each unit, and `on_phase(text)` before the shell scan, after it and
-    before the levels above the units (PERF.189), so a long rebuild never goes quiet. Returns the rows written.
+    before the levels above the units (PERF.189), so a long rebuild never goes quiet. `on_above(fraction)` is called
+    from 0 to 1 while the levels above the units are added up and written (`_above_unit`, PERF.251). Returns the rows written.
     """
     if on_phase is not None:
         on_phase("Looking for the sector shells that hold pre-placed objects...")
@@ -305,6 +326,6 @@ def rebuild(conn, on_progress=None, on_phase=None):
             on_progress(done, len(units))
     if on_phase is not None:
         on_phase("Adding up the levels above the units...")
-    written += _above_unit(conn)
+    written += _above_unit(conn, on_above)
     conn.commit()
     return written

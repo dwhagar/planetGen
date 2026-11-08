@@ -14,6 +14,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { retardedOffset, KMS_TO_PC_PER_YEAR } = await import(`./skysphere.js${VERSION_QUERY}`);
 const { apparentMagnitude } = await import(`./starmagnitude.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // How near (CSS pixels) the pointer must be to a star to pick it.
 export const REACH_PX = 10;
@@ -37,7 +38,7 @@ export function agoText(years) {
   if (!(years >= 0)) return "";
   if (years < 1) return "seen as it was less than a year ago";
   const whole = Math.round(years);
-  return "seen as it was " + whole.toLocaleString("en-US") + (whole === 1 ? " year ago" : " years ago");
+  return "seen as it was " + formatNumber(whole) + (whole === 1 ? " year ago" : " years ago");
 }
 
 // The star of `sky` (skypack.js `unpackSky`, or skysphere.js `keepBrightest`) nearest the pointer, or null. `years` is the sky's own time after the list's
@@ -117,11 +118,11 @@ export function describeSkyStar(pick, charted, starUrl) {
   const lines = [];
   const bits = [];
   if (letter) bits.push("class " + letter);
-  if (Number.isFinite(pick.temperatureK)) bits.push("about " + (Math.round(pick.temperatureK / 100) * 100).toLocaleString("en-US") + " K");
+  if (Number.isFinite(pick.temperatureK)) bits.push("about " + formatNumber(Math.round(pick.temperatureK / 100) * 100) + " K");
   if (name) bits.push(KIND_LABELS[pick.kind].toLowerCase());
   if (bits.length) lines.push(bits.join(", "));
   const ly = pick.distancePc * PC_TO_LY;
-  lines.push(ly.toLocaleString("en-US", { maximumFractionDigits: ly < 10 ? 2 : 0 }) + " light-years away (" + pick.distancePc.toLocaleString("en-US", { maximumFractionDigits: pick.distancePc < 10 ? 2 : 0 }) + " pc)");
+  lines.push(formatNumber(ly, ly < 10 ? 2 : 0, 0) + " light-years away (" + formatNumber(pick.distancePc, pick.distancePc < 10 ? 2 : 0, 0) + " pc)");
   lines.push("apparent magnitude " + pick.magnitude.toFixed(1));
   lines.push(agoText(pick.tauYears));
   const fields = [];

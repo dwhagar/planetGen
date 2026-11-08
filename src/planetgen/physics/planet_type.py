@@ -47,11 +47,11 @@ def type_of(envelope_fraction, body_type=None):
 
 def planet_type(body):
     """The type of a planet or moon (an object, or a column-named mapping). A transitional planet of a star that passes the gate of `super_puff.is_super_puff`
-    (GEN.1343, W15) is a super-puff: a low-mass planet of under 0.1 g/cc in the period range of the Kepler super-puffs, young."""
+    (GEN.1343, W15) is a super-puff: a low-mass planet of under 0.1 g/cc in the period range of the Kepler super-puffs, at any age (GEN.1347)."""
     get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
     kind = type_of(get("envelope_mass_fraction"), get("body_type"))[0]
     if kind == TRANSITIONAL and not hasattr(body, "get") and not getattr(body, "is_moon", False) and getattr(body, "star", None) is not None:
-        if super_puff.is_super_puff(body.mass / constants.EARTH_MASS_TO_KG, body.radius / constants.EARTH_RADIUS_KM, body.star.age, envelope_capture.period_days(body)):
+        if super_puff.is_super_puff(body.mass / constants.EARTH_MASS_TO_KG, body.radius / constants.EARTH_RADIUS_KM, envelope_capture.period_days(body)):
             return SUPER_PUFF
     return kind
 

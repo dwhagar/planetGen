@@ -117,3 +117,4 @@ Commit each file came from:
 - v231: train 18 after GEN.1364's migration 0231 (core composition), before GEN.1376 dust species (0232)
 - v232: train 18 after GEN.1376's migration 0232 (dust species), before GEN.1367 phosphorus budget columns (0233)
 - v233: train 18 after GEN.1367's migration 0233 (phosphorus budget columns), before GEN.1380 ore deposit tables (0234)
+- v234: train 18 after GEN.1380's migration 0234 (ore deposit tables), before GEN.1377 and GEN.1420 isotope record tables (0235)
