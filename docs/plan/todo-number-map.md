@@ -16,11 +16,11 @@ release is stamped.
 | UX | UX.294 |
 | MAP | MAP.409 |
 | NAV | NAV.78 |
-| GEN | GEN.1420 |
+| GEN | GEN.1422 |
 | PERF | PERF.254 |
 | DB | DB.118 |
 | API | API.43 |
-| ADM | ADM.145 |
+| ADM | ADM.148 |
 | SEC | SEC.47 |
 | TEST | TEST.700 |
 | USR | USR.32 |
@@ -2187,7 +2187,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | open |
 | GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | open |
 | GEN.1407 | K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light | none | open |
-| GEN.1408 | Fictional materials part 1: the fiction table (each fictional material, its kind, default inclusion and default name) | none | open |
+| GEN.1408 | Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name) | none | open |
 | GEN.1409 | Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name) | GEN.1408 | open |
 | GEN.1410 | Fictional materials part 3: the settings object and its config default (per-material include flag and custom name) | GEN.1409 | open |
 | GEN.1411 | Fictional materials part 7: the biomass index (the gate for the three life-gated crystals) | none | open |
@@ -2195,10 +2195,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1413 | Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch) | GEN.1411, GEN.1412 | open |
 | GEN.1414 | Fictional materials part 11: the crystal rows and their GEN.725 registry rows | GEN.1408 | open |
 | GEN.1415 | Fictional materials part 12: Tritanium rows and the reduced-body ore law | GEN.1408 | open |
-| GEN.1416 | Fictional materials part 13: the Dilithium row and the felsic-crust law | GEN.1408 | open |
-| GEN.1417 | Fictional materials part 14: aliases for Pergium, Topaline, Kelbonite and Deuterium over existing rows | GEN.1412 | open |
-| GEN.1418 | Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists) | GEN.1408 | open |
-| GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy (only if Boss says yes) | GEN.1413 | open |
+| GEN.1416 | Fictional materials part 13: the Dilithium row and the felsic-crust law | GEN.1408 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
+| GEN.1417 | Fictional materials part 14: aliases for Pergium, Topaline and Kelbonite over existing rows | GEN.1412 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
+| GEN.1418 | Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists) | GEN.1408 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
+| GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy  | GEN.1413 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
+| GEN.1420 | Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top | GEN.1363 | open |
+| GEN.1421 | Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water | GEN.1420 | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | done, PR #5688 |
@@ -2240,7 +2242,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
 | ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | open |
-| ADM.144 | Fictional materials part 17: edit custom names after generation (only if Boss says yes) | DB.116 | open |
+| ADM.144 | Fictional materials part 17: edit custom names after generation | DB.116, GEN.1412, ADM.145 | open |
+| ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | open |
+| ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | open |
+| ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |

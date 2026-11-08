@@ -457,6 +457,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1374 | Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition |  | |
 | GEN.1376 | Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles |  | |
 | GEN.1377 | Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244 | GEN.1363 | |
+| GEN.1420 | Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top | GEN.1363 | Boss, 2026-11-08. |
+| GEN.1421 | Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water | GEN.1420 | Boss, 2026-11-08. |
 | GEN.1378 | Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen | GEN.1366, GEN.1367 | |
 | GEN.1380 | Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body |  | |
 | GEN.1381 | Ore processes build, hydrothermal and sedimentary-hosted deposits | GEN.1380, GEN.1378 | |

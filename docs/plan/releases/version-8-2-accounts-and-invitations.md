@@ -165,7 +165,7 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1408 | Fictional materials part 1: the fiction table (each fictional material, its kind, default inclusion and default name) |  | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1408 | Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name) |  | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1409 | Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name) | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1410 | Fictional materials part 3: the settings object and its config default (per-material include flag and custom name) | GEN.1409 | Boss, 10:28 AM EST on 2026-11-08. |
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
@@ -177,11 +177,10 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1414 | Fictional materials part 11: the crystal rows and their GEN.725 registry rows | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
 | GEN.1415 | Fictional materials part 12: Tritanium rows and the reduced-body ore law | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
-| GEN.1416 | Fictional materials part 13: the Dilithium row and the felsic-crust law | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
-| GEN.1417 | Fictional materials part 14: aliases for Pergium, Topaline, Kelbonite and Deuterium over existing rows | GEN.1412 | Boss, 10:28 AM EST on 2026-11-08. |
 | UX.293 | Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names | GEN.1412, DB.117 | Boss, 10:28 AM EST on 2026-11-08. |
-| GEN.1418 | Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists) | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
-| ADM.144 | Fictional materials part 17: edit custom names after generation (only if Boss says yes) | DB.116 | Boss, 10:28 AM EST on 2026-11-08. |
-| GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy (only if Boss says yes) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
+| ADM.144 | Fictional materials part 17: edit custom names after generation | DB.116, GEN.1412, ADM.145 | Boss, 10:28 AM EST on 2026-11-08. |
+| ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | Boss, 10:41 AM EST on 2026-11-08. |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | Boss, 10:28 AM EST on 2026-11-08. |
