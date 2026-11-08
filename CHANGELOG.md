@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3648] - 2026-11-08
+
+**Headline:** The test machine setup now downloads the datasets it needs and says so when it cannot.
+
+### Fixed
+- **Setup fetched nothing and still ended well (OPS.119).** The cloud environment setup ran the dataset download with `python -I`, which also drops `PYTHONPATH`, so `planetgen` could not be imported, the step only warned, and setup finished as if it had worked. It now runs with `-P` (no current directory, `PYTHONPATH` kept), checks the result with `datasets status`, and ends with a SETUP INCOMPLETE line when the data is not all there. The test preflight also fetches every dataset the math check reads (isochrones, spectra, the helium-hydrogen equation of state, HYG and Mamajek, besides the white-dwarf tables), where it fetched only the white-dwarf data and the math check then stopped a fresh machine's run with 16 DataMissing failures.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119.
+
 ## [8.0.3647] - 2026-11-08
 
 **Headline:** A browser that will not start now fails the test run instead of skipping 1,500 tests.
