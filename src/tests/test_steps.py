@@ -1,6 +1,6 @@
 # tests/test_steps.py
 
-"""PERF.51: the shared progress step: a bar drawn only for work predicted to pass 15 seconds."""
+"""PERF.51, UX.289: the shared progress step: a bar drawn only for work predicted to pass 5 seconds (`tuning.PROGRESS_BAR_SECONDS`)."""
 
 import queue
 import threading
@@ -8,6 +8,7 @@ import time
 
 import pytest
 
+from planetgen import tuning
 from planetgen.generation import run_common, steps
 from planetgen.generation.stats import Bucket, GenerationStats
 
@@ -164,3 +165,62 @@ def test_a_step_that_never_ticks_still_replaces_the_finished_one_in_the_progress
         with steps.Step("Building the indexes", "index", 10, stats=GenerationStats(), progress=display):
             body = json.loads(path.read_text())
             assert body["description"] == "Building the indexes" and body["completed"] == 0
+
+
+def test_the_bar_threshold_is_five_seconds():
+    assert tuning.PROGRESS_BAR_SECONDS == 5.0
+    assert steps.Step("x", "link", 1, stats=GenerationStats()).threshold == 5.0
+
+
+def test_a_step_predicted_just_under_five_seconds_waits_and_just_over_draws_at_once(progress):
+    under = _stats_with("link", 1, 0.049)         # 100 units = 4.9 s
+    over = _stats_with("link", 1, 0.051)          # 100 units = 5.1 s
+    with steps.Step("Neighbours", "link", 100, stats=under, progress=progress) as bar:
+        assert not bar.shown
+    with steps.Step("Neighbours", "link", 100, stats=over, progress=progress) as bar:
+        assert bar.shown
+
+
+def test_a_step_that_runs_past_five_seconds_gets_its_counted_bar_at_that_moment(progress, monkeypatch):
+    """The timer a quick step arms fires at the threshold: the bar then appears at the work done so far, and the rest is counted."""
+    timers = []
+
+    class FakeTimer:
+        def __init__(self, interval, function):
+            self.interval, self.function, self.daemon = interval, function, False
+            timers.append(self)
+
+        def start(self):
+            pass
+
+        def cancel(self):
+            self.cancelled = True
+
+    monkeypatch.setattr(steps.threading, "Timer", FakeTimer)
+    with steps.Step("Neighbours", "link", 100, stats=_stats_with("link", 1, 0.0001), progress=progress) as bar:
+        bar.update(advance=30)
+        assert not bar.shown and [timer.interval for timer in timers] == [5.0]
+        timers[0].function()                                  # five seconds have passed
+        assert bar.shown and progress.tasks[0].completed == 30 and progress.tasks[0].total == 100
+        bar.update(advance=20)
+        assert progress.tasks[0].completed == 50
+
+
+def test_a_quick_step_leaves_no_bar_and_cancels_its_timer(progress, monkeypatch):
+    timers = []
+
+    class FakeTimer:
+        def __init__(self, interval, function):
+            self.interval, self.function, self.daemon, self.cancelled = interval, function, False, False
+            timers.append(self)
+
+        def start(self):
+            pass
+
+        def cancel(self):
+            self.cancelled = True
+
+    monkeypatch.setattr(steps.threading, "Timer", FakeTimer)
+    with steps.Step("Neighbours", "link", 100, stats=_stats_with("link", 1, 0.0001), progress=progress) as bar:
+        bar.update(advance=100)
+    assert not bar.shown and not progress.tasks and timers[0].cancelled

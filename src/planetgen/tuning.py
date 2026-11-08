@@ -3948,13 +3948,15 @@ not-yet-generated sector this close to their center. Boss (GEN.23,
 its bright stars (`BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`).
 """
 
-PROGRESS_BAR_SECONDS = 15.0
+PROGRESS_BAR_SECONDS = 5.0
 """
 float: A step of a generation or maintenance run draws its own progress bar
 when it is predicted to take longer than this (Boss, 2026-10-09: "a progress
 bar on all substeps that automatically activates on the start of that
-sub-item if it's predicted to take longer than 15 seconds"), and the moment
-it runs past it if it was not (`planetgen.generation.steps`).
+sub-item if it's predicted to take longer than 15 seconds"; Boss, 12:13 AM EST
+2026-11-08, UX.289: anything that takes more than 5 seconds gets a bar at the 5
+second mark), and the moment it runs past it if it was not
+(`planetgen.generation.steps`).
 """
 
 PROGRESS_LOG_SECONDS = 30.0
