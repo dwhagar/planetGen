@@ -103,7 +103,7 @@ def test_research_rates_per_star():
     # solar metallicity: 1.2e-3; with no metals 0.235 of them do, 1.65e-3, the most any place can roll.
     assert 0.0002 < _rate("black-hole") < 0.0017          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
-    assert _rate("asteroid-field") == 0.0
+    assert _rate("asteroid-field") == pytest.approx(6.6e-21 / 0.14)       # only the fields two colliding rogue planets leave stand, at their physical rate (GEN.1103), too few to meet in a sector
     assert _rate("runaway-star") == pytest.approx(0.015)
 
 
