@@ -48,12 +48,19 @@ def test_the_bar_does_not_touch_a_system_that_does_not_bar_habitable_worlds():
     assert not hasattr(system, "barred_world_dropped")
 
 
+SAMPLE_CHUNKS = 6
+SAMPLE_FIRST, SAMPLE_COUNT = 100, 300
+
+
 @pytest.mark.slow
-def test_over_300_sampled_systems_none_breaks_the_bar():
-    """The census guard (GEN.1250): 300 systems of seeds 100 to 399."""
+@pytest.mark.parametrize("chunk", range(SAMPLE_CHUNKS))
+def test_over_300_sampled_systems_none_breaks_the_bar(chunk):
+    """The census guard (GEN.1250): 300 systems of seeds 100 to 399, in six runs of 50 so that each stays inside the 900 s test limit (PERF.255)."""
+    size = SAMPLE_COUNT // SAMPLE_CHUNKS
+    first = SAMPLE_FIRST + chunk * size
     broken = {}
-    for seed in range(100, 400):
+    for seed in range(first, first + size):
         found = bodies_that_meet(barred_system(seed))
         if found:
             broken[seed] = found
-    assert not broken, f"{len(broken)} of 300 systems hold a world that meets the request: {broken}"
+    assert not broken, f"{len(broken)} of {size} systems (seeds {first} to {first + size - 1}) hold a world that meets the request: {broken}"
