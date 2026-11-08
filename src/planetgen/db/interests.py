@@ -34,13 +34,12 @@ BODY_TABLES = {"planets": ("planets", "p"), "moons": ("moons", "m"), "belts": ("
 
 # id -> {"planets"/"moons"/"belts": SQL test on `p`/`m`/`b` or None, "score": column of planets and moons or None, "params": values for
 # the tests' `?`}. The reason's source, in one place each: a reason that reads a stored class instead (GEN.646) changes its entry here.
-_CLASSES = ", ".join(f"'{letter}'" for letter in tuning.HABITABLE_PLANET_CLASSES)
 
 
 def _inhabited_test(alias, host_column):
     """The test of a world that is inhabited the way the system page decides it (`query._with_life_fields`): its timeline reached a
-    technological civilization (a habitable class only), or a colony stands on it (a terrestrial colony facility)."""
-    return (f"(({alias}.life_stage = 'technological_civilization' AND {alias}.planet_class IN ({_CLASSES}))"
+    technological civilization (only a world with life has one), or a colony stands on it (a terrestrial colony facility)."""
+    return (f"(({alias}.life_stage = 'technological_civilization')"
             f" OR EXISTS (SELECT 1 FROM facilities f WHERE f.{host_column} = {alias}.id AND f.kind = 'colony' AND f.placement = 'terrestrial'))")
 
 
@@ -68,8 +67,8 @@ REASONS = {
     # reason with no score keeps `best_score` NULL: the map's tier colour is the habitability score's, not a life score's. The civilization
     # reason's score is the technology level of its most advanced species (MAP.344, in `TECH_REASONS`), NULL for a world with none yet.
     CIVILIZATION: {
-        "planets": f"p.life_stage = 'technological_civilization' AND p.planet_class IN ({_CLASSES})",
-        "moons": f"m.life_stage = 'technological_civilization' AND m.planet_class IN ({_CLASSES})", "score": _tech_of, "params": (),
+        "planets": f"p.life_stage = 'technological_civilization'",
+        "moons": f"m.life_stage = 'technological_civilization'", "score": _tech_of, "params": (),
     },
     SENTIENT: {
         "planets": _life_test("p", ("life_sentient",)), "moons": _life_test("m", ("life_sentient",)), "score": None, "params": (),

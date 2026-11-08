@@ -1084,7 +1084,7 @@
 --   `ice_shell_km` (the ice lid), `hp_ice_km` (high-pressure ice under the
 --   deepest possible liquid), `ocean_class` ('ice-sealed', 'chloride
 --   brine', 'acid sulfate', 'soda', 'neutral'), `ocean_ph`,
---   `water_activity` and `phosphorus` ('high', 'limited', 'starved'). All
+--   `water_activity` and `phosphorus` ('high', 'limited', 'starved', the band of `ocean_phosphate_umol_l`, GEN.1367). All
 --   NULL for a gas giant; the ocean fields NULL without liquid water.
 --   `rogue_planets` gains `hp_ice_km`, and its `surface_regime` may be
 --   'hycean'. NULL on a row generated before v74. Draws:
@@ -1541,15 +1541,17 @@
 -- v209 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v209 has none until the galaxy is regenerated.
 -- v210 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
 --   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v210, nothing is backfilled.
--- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
+-- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (v229, GEN.1376: `grain_amorphous_olivine`, `_amorphous_pyroxene`, `_crystalline_silicate`, `_iron`, `_amorphous_carbon`, `_graphite`, `_pah`, `_sic`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
+-- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
+-- v232 (GEN.1376): the dust grains of a nebula, a remnant and a field cloud are stored by species: `grain_silicate` is split into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`, `grain_carbon` into `grain_amorphous_carbon` and `grain_graphite`, and `grain_sic` (silicon carbide) is new (`physics/nebula_columns.py`, `physics/nebula_composition.py`). The migration adds the six columns, writes the whole composition of every row again with the model, and drops the two old columns.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -2590,9 +2592,24 @@ CREATE TABLE IF NOT EXISTS planets (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    core_ni_fraction            DOUBLE,  -- v231 (GEN.1364): Ni, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_light_fraction         DOUBLE,  -- v231 (GEN.1364): the light elements together (S, Si, O, C, H), a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_s_fraction             DOUBLE,  -- v231 (GEN.1364): S, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_si_fraction            DOUBLE,  -- v231 (GEN.1364): Si, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_o_fraction             DOUBLE,  -- v231 (GEN.1364): O, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_c_fraction             DOUBLE,  -- v231 (GEN.1364): C, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_h_fraction             DOUBLE,  -- v231 (GEN.1364): H, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
@@ -2700,6 +2717,24 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     CONSTRAINT fk_planet_reflection_spectrum_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
     KEY idx_planet_reflection_spectrum_planet_id (planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky planet was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS planet_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_planet_deposit_types (planet_id, deposit_type),
+    CONSTRAINT fk_planet_deposit_types_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the planet, in Earth masses per material.
@@ -3069,9 +3104,24 @@ CREATE TABLE IF NOT EXISTS moons (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    core_ni_fraction            DOUBLE,  -- v231 (GEN.1364): Ni, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_light_fraction         DOUBLE,  -- v231 (GEN.1364): the light elements together (S, Si, O, C, H), a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_s_fraction             DOUBLE,  -- v231 (GEN.1364): S, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_si_fraction            DOUBLE,  -- v231 (GEN.1364): Si, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_o_fraction             DOUBLE,  -- v231 (GEN.1364): O, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_c_fraction             DOUBLE,  -- v231 (GEN.1364): C, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_h_fraction             DOUBLE,  -- v231 (GEN.1364): H, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
@@ -3182,6 +3232,24 @@ CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
     CONSTRAINT fk_moon_reflection_spectrum_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     KEY idx_moon_reflection_spectrum_moon_id (moon_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky moon was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS moon_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_moon_deposit_types (moon_id, deposit_type),
+    CONSTRAINT fk_moon_deposit_types_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the moon, in Earth masses per material.
@@ -3866,10 +3934,14 @@ CREATE TABLE IF NOT EXISTS nebulae (
     molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
     dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
     dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
-    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_amorphous_olivine      DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous olivine grains
+    grain_amorphous_pyroxene     DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous pyroxene grains
+    grain_crystalline_silicate   DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in crystalline silicate grains
     grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
-    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_amorphous_carbon       DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous carbon grains
+    grain_graphite               DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in graphite grains
     grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_sic                    DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in silicon carbide grains
     grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
     progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
 
@@ -4004,10 +4076,14 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
     dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
     dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
-    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_amorphous_olivine      DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous olivine grains
+    grain_amorphous_pyroxene     DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous pyroxene grains
+    grain_crystalline_silicate   DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in crystalline silicate grains
     grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
-    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_amorphous_carbon       DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous carbon grains
+    grain_graphite               DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in graphite grains
     grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_sic                    DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in silicon carbide grains
     grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
     progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
     ejecta_mass_sol              DOUBLE NULL,  -- v214 (GEN.1276): mass thrown out by the explosion, solar masses
@@ -4396,9 +4472,24 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     rock_mno_fraction           DOUBLE,  -- v230 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v230 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v230 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v233 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v233 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v233 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v233 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v233 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v234 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v234 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v234 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
     envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
     porosity                    DOUBLE,  -- v207 (GEN.1111)
+    core_ni_fraction            DOUBLE,  -- v231 (GEN.1364): Ni, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_light_fraction         DOUBLE,  -- v231 (GEN.1364): the light elements together (S, Si, O, C, H), a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_s_fraction             DOUBLE,  -- v231 (GEN.1364): S, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_si_fraction            DOUBLE,  -- v231 (GEN.1364): Si, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_o_fraction             DOUBLE,  -- v231 (GEN.1364): O, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_c_fraction             DOUBLE,  -- v231 (GEN.1364): C, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
+    core_h_fraction             DOUBLE,  -- v231 (GEN.1364): H, a mass fraction of the core, NULL for a body with no metal and for a row made before v230
     carbon_rock                 BOOLEAN,  -- v207 (GEN.1111)
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v207 (GEN.1111)
     ground_type                 VARCHAR(16),  -- v207 (GEN.1111)
@@ -4521,6 +4612,24 @@ CREATE TABLE IF NOT EXISTS rogue_planet_reflection_spectrum (
     CONSTRAINT fk_rogue_planet_reflection_spectrum_rogue_planet
         FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
     KEY idx_rogue_planet_reflection_spectrum_rogue_planet_id (rogue_planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky rogue planet was assessed for (v234, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS rogue_planet_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_rogue_planet_deposit_types (rogue_planet_id, deposit_type),
+    CONSTRAINT fk_rogue_planet_deposit_types_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS rogue_planet_interior_layers (
@@ -5423,10 +5532,14 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     molecular_share              FLOAT NULL,  -- v215 (GEN.1277): molecular_share of the cloud, as on `nebulae` but single precision
     dust_to_gas                  FLOAT NULL,  -- v215 (GEN.1277): dust_to_gas of the cloud, as on `nebulae` but single precision
     dust_to_metals               FLOAT NULL,  -- v215 (GEN.1277): dust_to_metals of the cloud, as on `nebulae` but single precision
-    grain_silicate               FLOAT NULL,  -- v215 (GEN.1277): grain_silicate of the cloud, as on `nebulae` but single precision
+    grain_amorphous_olivine      FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_olivine of the cloud, as on `nebulae` but single precision
+    grain_amorphous_pyroxene     FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_pyroxene of the cloud, as on `nebulae` but single precision
+    grain_crystalline_silicate   FLOAT NULL,  -- v232 (GEN.1376): grain_crystalline_silicate of the cloud, as on `nebulae` but single precision
     grain_iron                   FLOAT NULL,  -- v215 (GEN.1277): grain_iron of the cloud, as on `nebulae` but single precision
-    grain_carbon                 FLOAT NULL,  -- v215 (GEN.1277): grain_carbon of the cloud, as on `nebulae` but single precision
+    grain_amorphous_carbon       FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_carbon of the cloud, as on `nebulae` but single precision
+    grain_graphite               FLOAT NULL,  -- v232 (GEN.1376): grain_graphite of the cloud, as on `nebulae` but single precision
     grain_pah                    FLOAT NULL,  -- v215 (GEN.1277): grain_pah of the cloud, as on `nebulae` but single precision
+    grain_sic                    FLOAT NULL,  -- v232 (GEN.1376): grain_sic of the cloud, as on `nebulae` but single precision
     grain_ice                    FLOAT NULL,  -- v215 (GEN.1277): grain_ice of the cloud, as on `nebulae` but single precision
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)

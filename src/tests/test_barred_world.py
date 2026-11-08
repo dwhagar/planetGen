@@ -2,13 +2,13 @@
 The bar on habitable worlds (GEN.1250): with `HABITABLE_WORLD` False no finished planet or moon has the conditions a request for a habitable
 world asks for (`habitable_request.meets`: temperate, an air of at least the minimum pressure, a surface ocean).
 
-The first draw of a planet is judged before the star's final age, the light of every star and the oxygen of a life are in, so
-`StarSystem._bar_habitable_worlds` judges the finished bodies and draws a body that meets the conditions again.
+A planet is never drawn again for the bar (GEN.1397): the finished bodies are judged on their conditions, after the star's final age, the light of every
+star and the oxygen of a life are in, and a body that meets the conditions or is rated habitable is dropped from the system
+(`StarSystem._drop_barred_bodies`, counted in `barred_world_dropped`).
 """
 
 import pytest
 
-from planetgen import tuning
 from planetgen.generation import habitable_request
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -37,7 +37,7 @@ def bodies_that_meet(system):
 def test_a_system_that_bars_habitable_worlds_has_none_that_met_the_request_before(seed):
     system = barred_system(seed)
     assert bodies_that_meet(system) == []
-    assert system.barred_world_limit == 0
+    assert system.barred_world_dropped >= 0
 
 
 def test_the_bar_does_not_touch_a_system_that_does_not_bar_habitable_worlds():
@@ -45,11 +45,7 @@ def test_the_bar_does_not_touch_a_system_that_does_not_bar_habitable_worlds():
     config = SystemConfig()
     config.PLANETS = True
     system = StarSystem(system_config=config, galactic_center_dist_ly=GALACTIC_DISTANCE_LY)
-    assert not hasattr(system, "barred_world_limit")
-
-
-def test_the_redraw_limit_is_a_positive_number_of_tries():
-    assert tuning.BARRED_CLASS_MAX_ATTEMPTS > 0
+    assert not hasattr(system, "barred_world_dropped")
 
 
 @pytest.mark.slow

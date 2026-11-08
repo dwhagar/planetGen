@@ -251,10 +251,6 @@ REQUEST_ODDS = 10.0
 planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
-# How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
-# from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
-BARRED_CLASS_MAX_ATTEMPTS = 30
-
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies
 # (belts, comets), not planets. Tier "from needed output", level L1.
@@ -2286,9 +2282,13 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
 """
-list: A list of planet class codes that are considered habitable.
+dict[str, str]: Maps a habitable planet class code to the highest
+`EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
+is consistent with -- see `evolution.get_evolutionary_state`'s
+`planet_class` parameter, the only reader of this mapping. A class not
+present here is uncapped (full range, up to and including a technological
+civilization).
 """
 
 HABITABILITY_LIFE_SCORE_MIN = 0.005
@@ -3326,13 +3326,13 @@ SYSTEM_COMET_CHANCE = 0.3
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
 # it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
 # 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
-# large_star 0.056, planets 0.822). A sector or galaxy run's
+# large_star 0.056, planets 0.822); habitable_world alone remeasured 2026-11-08 over 240 systems, seeds 900 to 1139, after GEN.1397 took away the list of life classes it counted: 0.025). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "habitable_world": 0.025,   # a planet or moon that meets the habitable request or is rated habitable, Blue or Green (GEN.1397: no list of class letters; see above)
     "asteroid_belt": 0.653,     # an asteroid belt
     "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.822,           # at least one planet or belt
@@ -3340,10 +3340,10 @@ PREVALENCE_BASE_SHARES = {
 
 # The share of systems that have the feature among those `prevalence.resolve` forces it on (GEN.1322). A belt, a large star and planets are made as asked
 # (1.0). A habitable world is only asked for (GEN.1130: the odds of the conditions are multiplied by REQUEST_ODDS and the request never forces), and the
-# test counts a planet or moon of a class that can carry life, so a forced system has one in 0.747 of cases and a run cannot reach a higher share
-# than that. Measured over 300 systems with `HABITABLE_WORLD` True (224 had one; run seeds 801 to 803, 2026-11-07), the way the base shares are; remeasure with them (tests/test_prevalence.py).
+# test counts a planet or moon that meets the request or is rated habitable (GEN.1397), so a forced system has one in 0.069 of cases and a run cannot reach a higher share
+# than that. Measured over 160 systems with `HABITABLE_WORLD` True (11 had one; run seeds 800 to 959, 2026-11-08), the way the base shares are; remeasure with them (tests/test_prevalence.py).
 PREVALENCE_FORCED_HIT_RATES = {
-    "habitable_world": 0.747,
+    "habitable_world": 0.069,
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate

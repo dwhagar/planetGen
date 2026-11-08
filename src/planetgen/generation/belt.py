@@ -185,7 +185,7 @@ class AsteroidBelt:
             self.scatter_fates = scatter_fates
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
-        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, star_al26_ratio(system_config, star))
+        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 

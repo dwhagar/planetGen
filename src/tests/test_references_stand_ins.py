@@ -50,7 +50,7 @@ def test_two_tables_with_one_section_number_are_each_read_once_under_their_own_t
     assert len(tables) == len(registry.SECTIONS) == len({key for key, *_rest in registry.sections()})
     giant, ocean = (tables[key][1] for key in ("6.134 Stand-ins of the structure of a giant",
                                                "6.134 Stand-ins of the ocean cover law and the mantle's water store"))
-    assert {"GS2", "GS8"} <= {row[0] for row in giant} and {"HY1", "HY2"} <= {row[0] for row in ocean}
+    assert {"GS2", "GS8"} <= {row[0] for row in giant} and "HY2" in {row[0] for row in ocean} and "HY1" not in {row[0] for row in ocean}
     assert not {row[0] for row in giant} & {row[0] for row in ocean}
     high_gravity = tables["6.127 Stand-ins of the high-gravity class line"][1]
     assert "GV1" in {row[0] for row in high_gravity}

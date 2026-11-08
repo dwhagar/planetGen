@@ -26,7 +26,8 @@ import math
 from planetgen import tuning
 from planetgen.generation import habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import ore_deposits
+from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -226,6 +227,7 @@ class Planet(PlanetaryObject):
         *climate_draws.CLIMATE_FIELDS,
         *magnetism.BODY_FIELDS,
         *hydrosphere.HYDROSPHERE_FIELDS,
+        *phosphorus_budget.COLUMN_FIELDS,
         *radiogenic.BODY_FIELDS,
         *interior_heat.BODY_FIELDS,
         *interior_heat.OUTPUT_FIELDS,
@@ -233,8 +235,11 @@ class Planet(PlanetaryObject):
         *daylight.FIELDS,
         *ocean_tides.FIELDS,
         *bulk_composition.NEW_FIELDS,
+        *core_composition.BODY_FIELDS,
         *giant_interior.BODY_FIELDS,
         giant_interior.LAYERS_ATTRIBUTE,
+        *ore_deposits.COLUMN_FIELDS,
+        ore_deposits.ATTRIBUTE,
         *surface_composition.COLUMN_FIELDS,
         *moon_composition.BODY_FIELDS,
         *rings.BODY_FIELDS,
@@ -434,7 +439,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -448,8 +453,8 @@ class Planet(PlanetaryObject):
         # sphere (set inside generate_planet_properties) uses it (GEN.138).
         primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
         self.primary_mass_kg = primary_mass_kg
-        # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds from its ecosphere
-        # (`HABITABLE_WORLD` False) draws the body again where the finished body would have the conditions a habitable request asks for (GEN.916).
+        # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
+        # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
         given_mass, given_radius = self.mass, self.radius
         self._deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
@@ -457,14 +462,10 @@ class Planet(PlanetaryObject):
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             self._deferred_climate = (moon_count, distance_override)
             return
-        for _attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
-            self.mass, self.radius = given_mass, given_radius
-            self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
-            planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-            planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
-                break
-            draw.redrawn("planet.barred_world")
+        self.mass, self.radius = given_mass, given_radius
+        self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
+        planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+        planetPhysics.apply_class(self)
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
 
     def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):

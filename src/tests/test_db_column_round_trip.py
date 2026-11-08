@@ -57,6 +57,10 @@ NULL_IN_THIS_GALAXY = {
                            "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
                            "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
+    # GEN.1380, GEN.1378, GEN.1381: a body holds a deposit row for each type it was assessed for, and a type is present only where its setting held and its count drew
+    # at least one deposit, so a small galaxy may hold no row at all for its few rogue planets, or no present row on its moons.
+    **{("rogue_planet_deposit_types", column): CHANCE for column in ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")},
+    **{(table, column): CHANCE for table in ("planet_deposit_types", "moon_deposit_types") for column in ("age_window_gyr_end", "age_window_gyr_start", "endowment_kg", "grade")},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
@@ -101,7 +105,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, "life_traits"): CHANCE for table in ("planets", "moons")},      # GEN.876: only a world whose life drew a trait has one
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
-       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
+       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "ocean_phosphate_umol_l", "water_activity", "tidal_flux_w_m2")},
     # A moon with a gas envelope (a class I, J or T moon) is rare: the envelope split is stored for every body that has one.
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
@@ -230,6 +234,7 @@ NEVER_READ = {
                                           "kind", "layer_index", "mass_earth", "nh3_ice", "rock", "rogue_planet_id", "state", "top_pressure_gpa",
                                           "top_radius_fraction", "water_liquid")),
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
@@ -239,13 +244,13 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
+        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
-        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
+        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
