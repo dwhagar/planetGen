@@ -316,7 +316,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: HYG database v4.1 (Hipparcos, Yale Bright Star and Gliese catalogs), CC BY-SA 4.0, astronexus.
 - Download: 1 file, 33.9 MB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch hyg_stars`.
-- Replaces: nothing: the real sky the generated sky is checked against in a test (VIEW.30).
+- Replaces: nothing: the real sky the generated sky is checked against in a test.
 - Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://raw.githubusercontent.com/astronexus/HYG-Database/master/hyg/CURRENT/hygdata_v41.csv> as `hygdata_v41.csv`
