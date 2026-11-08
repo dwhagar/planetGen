@@ -89,5 +89,38 @@ def test_a_planet_that_passes_the_gate_is_typed_a_super_puff(young_sun):
     body.radius = 3.0 * constants.EARTH_RADIUS_KM                       # a dense sub-Neptune
     assert planet_type.planet_type(body) == planet_type.TRANSITIONAL
     body.radius, young_sun.age = 9.0 * constants.EARTH_RADIUS_KM, 8.0
-    assert planet_type.planet_type(body) == planet_type.TRANSITIONAL    # past the age of the gate
+    assert planet_type.planet_type(body) == planet_type.SUPER_PUFF      # no age in the gate (GEN.1347): the obliquity tide keeps an old one inflated
     assert planet_type.planet_type({"envelope_mass_fraction": 0.4, "body_type": "t"}) == planet_type.TRANSITIONAL    # a stored row has no star to judge by
+
+
+def _tilted(mass_earth, distance_au, star, tilt):
+    body = _body(mass_earth, distance_au, star)
+    body.axial_tilt_deg = tilt
+    return body
+
+
+def test_the_obliquity_tide_inflates_a_hot_tilted_planet_and_not_an_upright_or_untilted_one(young_sun):
+    plain = envelope_capture.kept(_body(5.0, 0.08, young_sun), 0.41)
+    assert plain is not None and plain[0] > 0.2
+    assert envelope_capture.kept(_body(5.0, 0.08, young_sun), 0.41, tides=True)[1] == pytest.approx(plain[1])        # no tilt yet
+    assert envelope_capture.kept(_tilted(5.0, 0.08, young_sun, 0.0), 0.41, tides=True)[1] == pytest.approx(plain[1])    # upright
+    tilted = envelope_capture.kept(_tilted(5.0, 0.08, young_sun, 60.0), 0.41, tides=True)
+    assert tilted[0] == pytest.approx(plain[0])
+    assert 1.02 * plain[1] < tilted[1] <= super_puff.TIDAL_MAX_RATIO * plain[1] * (1 + 1e-9)
+
+
+def test_a_cold_planet_has_no_obliquity_tide_whatever_its_tilt(young_sun):
+    cold = _tilted(5.0, 0.8, young_sun, 60.0)          # about 1.5 Earth fluxes
+    assert envelope_capture.kept(cold, 0.41, tides=True)[1] == pytest.approx(envelope_capture.kept(cold, 0.41)[1])
+
+
+def test_the_tidal_quality_is_the_planets_own_and_in_the_range(young_sun):
+    body = _body(5.0, 0.12, young_sun)
+    value = envelope_capture.tidal_q_prime(body)
+    assert super_puff.TIDAL_Q_PRIME_RANGE[0] <= value <= super_puff.TIDAL_Q_PRIME_RANGE[1]
+    assert envelope_capture.tidal_q_prime(body) == value
+    with draw.bound("super-puff-branch:q"):
+        first = draw.random()
+        envelope_capture.tidal_q_prime(body)
+    with draw.bound("super-puff-branch:q"):
+        assert draw.random() == first          # the run's stream does not move
