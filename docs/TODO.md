@@ -13860,6 +13860,96 @@ clears each one.
   Prerequisites: none. Related: TEST.237, GEN.1385.
   Filed by the TODO thread.
 
+- [ ] **GEN.1386 np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. High. In irregular_population.py holds_temporary_captures returns a numpy bool, so the temporary field of irregulars cannot be dumped to JSON for Yerkes class II and III systems. Do: wrap in bool(), check the lost and above_floor fields of the same dataclass, add a test that dumps such a system. Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **PERF.249 A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. High. A K00 hypergiant system: reconcile_moved_planet re-runs band_climate, which calls array_split about 152 million times. Same family: 900 s timeouts in seasonal_swing._anderson and detmath.matmul for a forced belt plus habitable world, test_barred_world, and the census and prevalence files. Do: find the loop, cache or vectorize it, keep the output bit-identical (or say it changes and ride an epoch), and make a test that bounds the time of a hypergiant system. Owner (proposed by TODO): Lane 15. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **MAP.406 The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. routes.py around line 2904 leaves a 409 unhandled. About 40 red tests. Do: answer with a plain message and the right status, and fix the tests that expect it. Owner (proposed by TODO): Lane 13. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **TEST.693 One failing browser test leaves an asyncio loop and about 1,500 browser tests skip silently while the phase prints a pass; Playwright is pinned to 1.56.0 but the image has chromium 1243 (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. High for the gate. Do: make the phase fail when tests skip because of a dead loop, isolate the loop per test, and fix the Playwright pin to match the installed browser (or the install to match the pin) in the setup script and the lane machine notes. Owner (proposed by TODO): Lane 03. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **OPS.119 The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. On a fresh machine the math check fails 16 checks. Do: make the fetch run with the path it needs, make the setup script exit non-zero when a fetch fails, and make the test preflight fetch every dataset the tests read. Owner (proposed by TODO): Lane 03. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **TEST.694 scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. Five faults in the test runner, each small. The dependency map from the hunt is /mnt/project-files/reports/release-bughunt-8.1/pytest-deps.json (copy to the repo root as .pytest-deps.json). Do: fix each with a test, and keep the generated reports out of tracked files. Owner (proposed by TODO): Lane 03. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **OPS.120 deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. Line 767 of deploy-common.sh. Do: replace with a portable upper-casing, and fix the test so log_info is defined where it runs. Owner (proposed by TODO): Lane 03. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **UX.288 planetgen system --output <bad path> prints a Python traceback (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. run_system.py line 359. Do: catch the error and print a one-line message with a non-zero exit, with a test. Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. Do: find why the redraw rate is that high (a draw that almost always fails its own check), fix the draw or the check, keep the ceiling test, and say if generated output changes (it then rides an epoch). Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1388 RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. Do: decide whether a rogue planet should carry the field (a rogue is the same generator as an in-system planet, only without a star) or the test is out of date; fix and keep the test. Same family as TEST.688 and TEST.690. Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1389 Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. The determinism rule bans these calls because results differ across machines. Do: replace with the repo's deterministic math (detmath), prove the output is unchanged (or ride an epoch if not). Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **TEST.695 Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. Each is a red row in known-red.csv. Do: for each, decide whether the code or the test is wrong, fix, and keep the test; the owner may split this into smaller items and tell TODO the new numbers. TEST.689 covers property_sheet and may close it first. Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1390 Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. Each is a red row in known-red.csv. Several are likely one cause (the class T family: TEST.688, TEST.690, TEST.692). Do: group by cause, fix each, keep the tests; the owner may split this and tell TODO the new numbers. Owner (proposed by TODO): Lane 04. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **TEST.696 Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. From the hunt's serial browser run, after TEST.693 makes the phase honest. Do: fix each, keep the tests; the owner may split this and tell TODO the new numbers. Owner (proposed by TODO): Lane 03. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
+- [ ] **MAP.407 A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low)**
+  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size S; lock-free unless the owner finds a generated value changes. Do: answer with a plain 'there is no galaxy yet' page and the right status. Same family as MAP.406. Owner (proposed by TODO): Lane 13. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.237.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Lane 14 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
