@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3731] - 2026-11-08
+
+**Headline:** A test now fails when install.sh or update.sh could miss a library that setup.py requires.
+
+### Changed
+- **`test_install_python_deps.py` checks the one list both scripts use.** install.sh and `update.sh --check` both run `scripts/install-python-deps.sh`; the test fails if either stops doing so, if the list differs from setup.py's requirements, if `psutil` is missing, or if a listed library is not pinned in `requirements.lock` and `requirements-server.lock`.
+
+## [8.0.3730] - 2026-11-08
+
+**Headline:** The update's library check now installs `psutil`, so the work queue's workers start again after the memory gate (PERF.254).
+
+### Changed
+- **`psutil` is on update.sh's list of required libraries (`scripts/install-python-deps.sh`).** PERF.254 added `psutil` to `setup.py` and the lock files but not to the script's list, so an existing install never got it and every worker died at its start on `import psutil` (exit status 1), which stopped the math check at stage 4 of the update. `--check` now sees it missing and installs it from the lock.
+
 ## [8.0.3729] - 2026-11-08
 
 **Headline:** The class and systems censuses are re-tagged after trains 15 to 18: 18 new flags are tagged with their reasons, 51 stale tags are removed, and the life census passes without a flag.
