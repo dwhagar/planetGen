@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3697] - 2026-11-08
+
+**Headline:** Nebulae, supernova remnants and the field clouds now say which dust species they hold (amorphous olivine and pyroxene, crystalline silicate, iron, amorphous carbon, graphite, PAHs, silicon carbide and ice), and the nebula page and its Properties sheet show the composition.
+
+### Changed
+
+- GEN.1376: the nine stored `grain_*` columns of `nebulae`, `supernova_remnants` and `nebula_field` name dust species instead of five kinds (`grain_silicate` splits into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`; `grain_carbon` into `grain_amorphous_carbon` and `grain_graphite`; `grain_sic` is new). The silicate split is the diffuse-ISM split (84.9 percent olivine, 15.1 percent pyroxene by mass, 0.2 percent crystalline in the ISM and 10 to 20 percent in stellar ejecta), silicon carbide takes under 5 percent of the silicon of a diffuse cloud and up to 10 percent of the dust of a carbon-rich shell, and the ice mantle of a dense cloud is a mix of water, CO, CO2, methanol, ammonia and methane ([R0461: Table 2]), so it carries carbon and nitrogen as well as hydrogen and oxygen. Seven new stand-ins are in GEN.725 (NBC17 to NBC23), five new papers are in the registry (R5151 to R5155), and the design is `docs/design/composition/nebula-composition.md` section 4. Migration 0232 adds the six columns, fills them from the galaxy's seed and drops the two old ones; the stored mass fractions and abundances of existing rows are re-filled because the ice and silicon carbide budgets moved a little.
+- GEN.1272 (GEN.1268 parts d and e): the nebula page's describe sheet and the Properties sheet of a nebula or a supernova remnant show the stored composition in a gas group (mass fractions of hydrogen, helium and metals, the seven shown elements, the phase shares, 12 + log abundances) and a new Dust group (dust-to-gas, dust-to-metals and the nine species shares). The composition columns are declared in `frac`, not a bare ratio, so the sheet prints them as fractions.
+- A leftover TODO code in a sheet string (`(GEN.1047)`) that made `test_no_todo_codes_shown` fail on main is gone.
+
+generation-output: unchanged
+
 ## [8.0.3696] - 2026-11-08
 
 **Headline:** Cool giants and brown dwarfs now lose their titanium and vanadium oxides before their iron, keep iron and chromium hydrides in between, and carry lithium and chlorine (GEN.1374).
