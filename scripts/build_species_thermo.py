@@ -57,7 +57,7 @@ WANTED = {
     "Si": "g", "SiO": "g", "SiO2": "g", "SiH4": "g", "SiS": "g",
     "Ti": "g", "TiO": "g", "TiO2": "g", "V": "g", "VO": "g", "Cr": "g", "Ca": "g", "CaO": "g", "CaOH": "g",
     "Li": "g", "LiOH": "g", "Mn": "g",
-    # GEN.1374: the lithium and alkali chlorides of the brown dwarf air (Lodders and Fegley 2006, sections 1.5.4 and 1.5.5: Li to LiCl below 1520 K at 1 bar, K to KCl
+    # GEN.1374: the lithium and alkali chlorides of the brown dwarf air ([R2731]: Li to LiCl below 1520 K at 1 bar, K to KCl
     # below about 980 K, Na to NaCl) and lithium hydride ("LiCL", "NaCL" and "KCL" are the file's spellings)
     "LiH": "g", "LiCL": "g", "NaCL": "g", "KCL": "g",
     # Condensed phases (the rainout of part 05 section 7.2 and 12, the melt oxides of the lava worlds)
@@ -68,9 +68,9 @@ WANTED = {
     "Na2O(L)": "c", "K2O(L)": "c", "AL2O3(L)": "c",     # the melt's alkali oxides (the Na and K vapor over a lava world, part 05 section 4)
 }
 
-# GEN.1374: the two metal hydrides the thermo.inp lacks (the oxide to hydride transition of the L dwarfs, Lodders and Fegley 2006 section 1.5.3), made from atoms: the natural
+# GEN.1374: the two metal hydrides the thermo.inp lacks (the oxide to hydride transition of the L dwarfs, [R2731] section 1.5.3), made from atoms: the natural
 # logarithm of the equilibrium constant of M + H = MH (1 bar standard state) as the fit `ln K = c1/T + c2 ln T + c3 + c4 T + c5 T^2` that FastChem ships
-# (github.com/exoclime/FastChem, input/logK/logK.dat) for the data of Barklem and Collet 2016 (A&A 588, A96), valid 300 to 6000 K. The fit is a sum with the atoms' own
+# (github.com/exoclime/FastChem, input/logK/logK.dat) for the data of [R5139], valid 300 to 6000 K. The fit is a sum with the atoms' own
 # NASA coefficients (the free energy is linear in the coefficients), so the species is an ordinary entry of the file; the check against NASA's FeO (JANAF in the same
 # file) is within 0.02 in ln K at 500 to 3000 K, which pins the convention (natural logarithm, atoms as the reference, bar).
 DERIVED = {

@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5020 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5021 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -293,6 +293,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0259"></a>**R0259** Bardyn, A., et al. 2017, Carbon-rich dust in comet 67P/Churyumov-Gerasimenko measured by COSIMA/Rosetta, MNRAS, 469, S712, doi:10.1093/mnras/stx2640. [paper](https://doi.org/10.1093/mnras/stx2640) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stx2640/abstract)
 - <a id="paper-r0260"></a>**R0260** Barker, M. K., et al. 2010, The star formation history in the far outer disc of M33, MNRAS, 410, 504, doi:10.1111/j.1365-2966.2010.17458.x, arXiv:1008.0760. [paper](https://doi.org/10.1111/j.1365-2966.2010.17458.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2010.17458.x/abstract)
 - <a id="paper-r0261"></a>**R0261** Barker, M. K., Ferguson, A. M. N., Irwin, M. J., Arimoto, N., & Jablonka, P. 2011, Quantifying the faint structure of galaxies: the late-type spiral NGC 2403★†, MNRAS, 419, 1489, doi:10.1111/j.1365-2966.2011.19814.x. [paper](https://doi.org/10.1111/j.1365-2966.2011.19814.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2011.19814.x/abstract)
+- <a id="paper-r5139"></a>**R5139** Barklem, P. S. & Collet, R. 2016, Partition functions and equilibrium constants for diatomic molecules and atoms of astrophysical interest, A&A, 588, A96, doi:10.1051/0004-6361/201526961, arXiv:1602.03304. [paper](https://doi.org/10.1051/0004-6361/201526961) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201526961/abstract)
 - <a id="paper-r0262"></a>**R0262** Barnabè, M., et al. 2012, The SWELLS survey - IV. Precision measurements of the stellar and dark matter distributions in a spiral lens galaxy, MNRAS, 423, 1073, doi:10.1111/j.1365-2966.2012.20934.x. [paper](https://doi.org/10.1111/j.1365-2966.2012.20934.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2012.20934.x/abstract)
 - <a id="paper-r0263"></a>**R0263** Barnes, K. L., van Zee, L., Côté, S., & Schade, D. 2012, STAR FORMATION IN THE OUTER DISK OF SPIRAL GALAXIES, ApJ, 757, 64, doi:10.1088/0004-637x/757/1/64. [paper](https://doi.org/10.1088/0004-637x/757/1/64) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/757/1/64/abstract)
 - <a id="paper-r0264"></a>**R0264** Barnes, R. 2017, Tidal locking of habitable exoplanets, CeMDA, 129, 509, doi:10.1007/s10569-017-9783-7. [paper](https://doi.org/10.1007/s10569-017-9783-7) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/s10569-017-9783-7/abstract)
