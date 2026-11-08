@@ -484,8 +484,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |
-| TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j |  | Lane 05, 2026-11-08. |
-| DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out |  | Lane 05, 2026-11-08. |
 | GEN.1439 | A plan stores no container for each globular cluster |  | Lane 05, 2026-11-08. |
 | TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change |  | Lane 05, 2026-11-08. |
 | TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change |  | Lane 05, 2026-11-08. |
