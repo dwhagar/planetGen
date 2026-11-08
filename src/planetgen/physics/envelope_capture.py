@@ -128,7 +128,8 @@ def kept(body, start):
     luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
     insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
-    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age)
+    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, distance_au=distance_au if radiation_field.companions_of(star) else None,
+                                               emitters=radiation_field.xuv_emitters(star, distance_au))      # GEN.1442: the other stars' XUV too
     if left <= 0.0:
         return None
     fraction = left / (mass_earth + left)

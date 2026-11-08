@@ -55587,6 +55587,166 @@
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
       "title": "Stand-ins of the radiation field of a system"
+    },
+    {
+      "key": "6.240",
+      "number": "6.240",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the ozone column is drawn from the host's temperature alone (ozone.draw_column_du); a companion's ultraviolet makes ozone as the host's colour would"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions of the host's own colour or fainter in the ultraviolet"
+            ],
+            [
+              "What would show it wrong",
+              "a companion of much hotter or cooler colour that gives most of the ultraviolet at the body"
+            ],
+            [
+              "What replaces it",
+              "the ozone fit through the field's ultraviolet-weighted colour"
+            ],
+            [
+              "Evidence",
+              "derived: the fit has no flux axis, only the star's temperature; the DNA dose still adds each star's own spectrum through the one ozone column"
+            ]
+          ],
+          "id": "DS1",
+          "key": "6.240:DS1",
+          "kind": "T",
+          "slug": "6-240-ds1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the ozone column is drawn from the host's temperature alone (ozone.draw_column_du); a companion's ultraviolet makes ozone as the host's colour would"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the free-space particle dose of each source is FREE_MSV_YR * sqrt(N33 w) / d^2 added over sources (each with its own flare rate and size slope); doses add and the sources do not shield one another"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "stars with a stored flare rate"
+            ],
+            [
+              "What would show it wrong",
+              "a measured flare rate of a close pair that is not the sum of the two"
+            ],
+            [
+              "What replaces it",
+              "a fitted pair rate"
+            ],
+            [
+              "Evidence",
+              "derived: the host's law applied to each source at its time-averaged distance"
+            ]
+          ],
+          "id": "DS2",
+          "key": "6.240:DS2",
+          "kind": "P",
+          "slug": "6-240-ds2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the free-space particle dose of each source is FREE_MSV_YR * sqrt(N33 w) / d^2 added over sources (each with its own flare rate and size slope); doses add and the sources do not shield one another"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a companion's XUV history follows the same decay law as a host of its mass and luminosity (activity.coronal_xuv_at, its stored log_lx_lbol where it has one), starting from the system's age"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "main-sequence and giant companions"
+            ],
+            [
+              "What would show it wrong",
+              "a companion much younger or older than the host, or a remnant with a stored XUV history of its own"
+            ],
+            [
+              "What replaces it",
+              "the companion's own stored age and spin history"
+            ],
+            [
+              "Evidence",
+              "derived: the host's law; remnants without a stored XUV power give none (RF5)"
+            ]
+          ],
+          "id": "DS3",
+          "key": "6.240:DS3",
+          "kind": "T",
+          "slug": "6-240-ds3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a companion's XUV history follows the same decay law as a host of its mass and luminosity (activity.coronal_xuv_at, its stored log_lx_lbol where it has one), starting from the system's age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "clear-sky doses"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose air cuts the stars' light differently by incidence angle"
+            ],
+            [
+              "What replaces it",
+              "a per-star zenith angle"
+            ],
+            [
+              "Evidence",
+              "derived: the kernel is run once per star with the same column and the sums of its linear outputs (DNA dose, UV index) are taken"
+            ]
+          ],
+          "id": "DS4",
+          "key": "6.240:DS4",
+          "kind": "P",
+          "slug": "6-240-ds4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux"
+        }
+      ],
+      "slug": "6-240-stand-ins-of-the-dose-from-the-radiation-field",
+      "title": "Stand-ins of the dose from the radiation field"
     }
   ]
 }

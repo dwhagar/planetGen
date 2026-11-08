@@ -842,7 +842,7 @@
       "epoch": 141,
       "first_release": null,
       "pending": true,
-      "reason": "GEN.1441: every star of a system lights every planet and moon by position (the radiation field), into temperature, air and greenhouse, albedo and ice, runaway test, giants, envelope, spin, haze, energy flux and the zone letter",
+      "reason": "GEN.1441 and GEN.1442: every star of a system lights every planet and moon by position (the radiation field), into temperature, air and greenhouse, albedo and ice, runaway test, giants, envelope, spin, haze, energy flux and the zone letter, and into the XUV, flare, particle, far-ultraviolet and DNA doses and the loss of air and envelope",
       "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
