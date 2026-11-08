@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1265 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1269 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 125 | 52 | 1 | 1 | 0 | 179 |
 | T3 | 93 | 41 | 7 | 9 | 0 | 150 |
 | T4 | 56 | 7 | 2 | 19 | 10 | 94 |
-| T5 | 54 | 21 | 3 | 1 | 0 | 79 |
-| T6 | 131 | 91 | 25 | 62 | 0 | 309 |
+| T5 | 55 | 21 | 3 | 1 | 0 | 80 |
+| T6 | 134 | 91 | 25 | 62 | 0 | 312 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 696 | 262 | 60 | 202 | 45 | 1265 |
+| All | 700 | 262 | 60 | 202 | 45 | 1269 |
 
 ## How the labels were given
 
@@ -1812,6 +1812,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | XE5 | P | T4 | L1 | tuning.STELLAR_XFE_FITS Cu ("linear", 0.0, 0.0) with scatter 0.10 dex | scatter 0.05 to 0.2 | disk dwarfs | a [Cu/Fe] trend with a printed size: [R1062] say the thick disk is higher than the thin between [Fe/H] -0.5 and -0.2, the thin disk rises slightly to +0.1 and steeply above, and print no value (Figs. 10 and 11) | the figures' bin means | the paper was opened for this item: no value is printed, so Cu is solar-scaled; the scatter 0.10 is above the paper's error of 0.05 to 0.08 | - | - |
 | XE6 | P | T4 | L2 | tuning.STELLAR_XFE_FITS Li ("linear", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites | scatter 0.1 to 0.4 | stars at birth | a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled) | a Galactic chemical evolution of lithium | the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex | - | - |
 | XE7 | P | T4 | L0 | tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other | none | the five elements | a sample in which P, Zn, Co or Cu correlates with Mg or Si | the correlation of a sample with those elements | the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O) | - | - |
+
+## 6.210 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HC1 | P | T6 | L0 | hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron) | none | disk dwarfs, where no trend of these elements with [Fe/H] has been opened | a sample that gives a trend of Rb, Cs, Ge, As or Se with [Fe/H] | the star element set (GEN.1360's way) when a sample with a trend is opened | the log eps are read; the follow-iron choice is the default for an element with no opened trend and was not tested against any sample | GEN.994 | - |
+| HC2 | B | T6 | L0 | hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds | none | any atmosphere of hydrogen-rich gas | a measured abundance above the ceiling (then the star's element is wrong) | the thermochemistry of the hot-giant regimes (GEN.994), which gives the amount, not its ceiling | an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values) | GEN.994 | - |
+| HC3 | T | T5 | L0 | hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486 | none | the pressures 1e-4 to 100 bar of the fit | a fit of the chromium cloud in which the coefficient of [Cr/H] differs from that of [Fe/H] | a Gibbs minimisation (FastChem, GGchem) | the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation | GEN.994 | - |
+| HC4 | T | T6 | L0 | hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used) | none | a host whose [Cl/K] is above -0.24 dex of the Sun's | a host with a chlorine abundance below potassium's | the same Gibbs minimisation | the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it | GEN.994 | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

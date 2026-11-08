@@ -321,6 +321,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.209", "6.209 Stand-ins of the nine added star elements",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.210", "6.210 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.182", "6.182 Stand-ins of where a stored belt member lies",

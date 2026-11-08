@@ -273,3 +273,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.class_fit.best_class | by design | the public scorer of the best-fit classifier: the generator reads `fit` and the class sweep, the class-fit command line and the tests read this one-call form |
 | function | planetgen.physics.class_fit.domain_scores | by design | the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined `fit` |
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
+| module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
+| data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
+| row | 6.210:HC1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |
+| row | 6.210:HC2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
+| row | 6.210:HC3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
+| row | 6.210:HC4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
