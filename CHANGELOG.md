@@ -2,6 +2,57 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3657] - 2026-11-08
+
+**Headline:** Code that read or picked by a planet class letter before the class is decided is removed; the Hycean box and the trojan room test now read mass, radius and temperature alone.
+
+### Changed
+- **Class-letter leftovers removed (GEN.1400).** `trojan_bodies.classes_allowed` and its two class constants (rows TB1 and TB2) are gone; `fits` and `room_earth` test the mass alone. `hycean_candidate` takes mass, radius and equilibrium temperature and no longer needs the letters T, I or V. The look of a body no longer carries `cls`, the air colour is not handed the class, the habitability world no longer carries `planet_class`, and the orphaned docstring about a removed milestone cap map is deleted. `generation/system.py` `m_count` waits for GEN.688.
+
+TODO items resolved: GEN.1400 (all but `m_count`)
+
+## [8.0.3656] - 2026-11-08
+
+**Headline:** A warm-up that a change started no longer runs while a generation run is live.
+
+### Changed
+- The warm-up a data change starts by itself (`planetgen warm --on-change`) now waits for any live generation run to end before it fetches pages, so it no longer logs failed warm-up requests against data the run is rewriting. It keeps its lock fresh while it waits, and the generation run's own end asks for the warm-up that follows. Output of generation is unchanged.
+
+## [8.0.3655] - 2026-11-08
+
+**Headline:** A database that has no galaxy yet now says so on every page, instead of "no such database".
+
+### Changed
+- **A database that holds only `migrate`'s bookkeeping (or nothing) says there is no galaxy yet (MAP.407).** Every page used to answer 404 "Not found: No such database". The API now marks that case (`noGalaxy`, still a 404) and the pages show "No galaxy yet: There is no galaxy in database ... yet. Plan one from the admin Generate page (or run 'planetgen plan') and the pages fill in." A schema that holds something else (the control database, for one) is still "No such database". The web client's new `NoGalaxyError` is a `NotFoundError`, so every page that handles a missing object handles it as before.
+- **MAP.406 needed no change.** The sector page and `/sector/<id>/gravity` with no galaxy shape were fixed by MAP.405 (the bug hunt ran on a main from before it); all of the item's red tests (the sector pages, profile, Nearby, route fuzz) pass on main.
+
+## [8.0.3654] - 2026-11-08
+
+**Headline:** The generator battery's digest is worked out once after an update and kept, so a fill, a plan or a fingerprint no longer waits half a minute or more for it.
+
+### Changed
+- **The generator battery digest is kept on the server (PERF.250).** It takes 30 to 90 seconds and every process that stores or extends a galaxy asked for it again. It is now kept in the folder of the install's kept star tables (`/var/cache/planetgen/band-tables`, which `update.sh` makes) under a key of every file of the `planetgen` package and of the downloaded datasets (name, size, modification time), the Python, numpy and scipy versions and the platform. A changed generator file, data file, library or machine makes a new key, so a changed generator is never given an old answer; copies of older code are removed after a week. A host without the folder works it out as before. `PLANETGEN_BATTERY_DIGEST_CACHE` still names another folder (set but empty, none).
+
+## [8.0.3653] - 2026-11-08
+
+**Headline:** Starting a sector fill on a planned galaxy no longer times out: the size and time are worked out in the background and shown as soon as they are ready.
+
+### Fixed
+- **The Generate page's size and time took two minutes, outlived the web server's 60 second limit and restarted it (ADM.141).** Every `planetgen sectors` run, even one that only estimates, first worked out the generator battery (30 seconds on a free machine, 90 under load) to warn about a version mismatch before a write. An estimate writes nothing, so it now skips that: the estimate of a planned galaxy takes about five seconds instead of two minutes.
+- **The size line started the estimate again on every change and every reload.** The estimate now runs in the work queue: the page answers "working out how big this would be" at once and asks again every few seconds (the size line, the Review step and the command palette), one estimate runs at a time for a galaxy, and a form changed or a page reloaded while it runs no longer starts the command again. A failure is shown on the form instead of a timeout.
+- **A region with no sector in it started a run when only its estimate was asked for (ADM.142).** `planetgen sectors --around X Y Z --estimate-only` (and any mode whose plan holds nothing) went on to start a stage that generated 0 sectors and printed no estimate; it now prints the estimate of nothing and starts nothing.
+
+## [8.0.3652] - 2026-11-08
+
+**Headline:** One browser test file that never stopped Playwright no longer breaks the 1,500 browser tests after it.
+
+### Fixed
+- **The browser phase no longer collapses after one file (TEST.696).** `test_life_text_a11y_browser.py` started Playwright for its tests and never stopped it. Playwright's event loop then stayed alive in that test worker, and the next browser file to start Playwright there failed with "Sync API inside the asyncio loop", which in a full run took about 1,550 browser tests with it. The fixture now stops Playwright, and a test checks that every file that starts Playwright stops it.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (the loop; the remaining browser failures follow in their own notes).
+
 ## [8.0.3651] - 2026-11-08
 
 **Headline:** A test now stops bash 4 syntax from reaching the install scripts macOS runs.

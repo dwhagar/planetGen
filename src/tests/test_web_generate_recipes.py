@@ -18,7 +18,7 @@ from planetgen.web import csrf, generate_page
 from planetgen.web.app import create_app
 
 from tests.test_web_generate import (  # noqa: F401 -- fixtures
-    _ESTIMATE, _uncached_estimates, jobs_root, no_spawn, site,
+    _ESTIMATE, _estimates_run_in_the_request, _uncached_estimates, jobs_root, no_spawn, site,
 )
 
 

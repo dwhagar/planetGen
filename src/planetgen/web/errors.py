@@ -42,6 +42,9 @@ _TITLES = {
     504: "Took too long",
 }
 
+NO_GALAXY_TITLE = "No galaxy yet"
+"""str: The title of the 404 page of a database that holds no galaxy yet (MAP.407)."""
+
 TIMEOUT_MESSAGE = ("The database is busy (a charting run may be using it) and could not answer this page in "
                    "time, so it was stopped. The page asks again by itself in a few seconds; a narrower search "
                    "or a smaller page is quicker.")
@@ -118,6 +121,11 @@ def register(bp):
     def _gone(exc):
         log.debug(f"Gone: {exc}")
         return render_error(410, str(exc) or "This object was deleted.")
+
+    @bp.app_errorhandler(apiclient.NoGalaxyError)
+    def _no_galaxy(exc):
+        log.debug(f"No galaxy yet on {request.path}: {exc}")
+        return render_page("error.html", title=NO_GALAXY_TITLE, message=str(exc), status=404)
 
     @bp.app_errorhandler(apiclient.NotFoundError)
     def _not_found(exc):

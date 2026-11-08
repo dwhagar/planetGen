@@ -63,7 +63,7 @@ from planetgen.admin import cachebuild
 from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runline, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
-from planetgen.web.lib import apiclient, estimatecache
+from planetgen.web.lib import apiclient, estimatecache, estimatejob
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log, updateguard
@@ -180,7 +180,15 @@ there, before the reset or anything else is written."""
 
 
 ESTIMATE_TIMEOUT_S = 120
-"""int: How long the page waits for `planetgen sectors --estimate-only`."""
+"""int: How long a request that has to work the estimate out itself (no work queue) waits for
+`planetgen sectors --estimate-only`; with the queue the estimate runs there (`estimatejob.TIMEOUT_SECONDS`)."""
+
+ESTIMATE_RETRY_SECONDS = 3
+"""int: How long the live size line waits before asking again while the estimate is being worked out (ADM.141)."""
+
+ESTIMATE_PENDING_MESSAGE = ("Working out how big this would be. It takes a while on a big galaxy: the size line fills in by "
+                            "itself when it is ready, and then Review answers at once.")
+"""str: What a page says while the estimate runs in the work queue."""
 
 ESTIMATE_PREFIX = "ESTIMATE "
 """str: `generate.ESTIMATE_PREFIX`: the line the estimate is read from."""
@@ -219,19 +227,10 @@ def run_estimate(argv, env):
     """
     done = api_jobs.command_and_wait(argv + ["--estimate-only"], {**os.environ, **env}, jobs.REPO_DIR,
                                      ESTIMATE_TIMEOUT_S)
-    if done["timed_out"]:
-        raise FormError("Working out the size and time took too long. Nothing was generated.")
-    if done["error"]:
-        raise FormError(f"The size and time couldn't be worked out: {done['error']}")
-    for line in reversed(done["stdout"].splitlines()):
-        if line.startswith(ESTIMATE_PREFIX):
-            try:
-                return json.loads(line[len(ESTIMATE_PREFIX):])
-            except ValueError:
-                break
-    tail = [line.strip() for line in (done["stderr"] + "\n" + done["stdout"]).splitlines() if line.strip()]
-    message = " ".join(tail[-3:]) if tail else f"the generator exited with {done['returncode']}"
-    raise FormError(f"Nothing was generated: {message}")
+    try:
+        return estimatejob.read(done)
+    except estimatejob.EstimateError as exc:
+        raise FormError(str(exc)) from exc
 
 
 def _estimate_versions(database):
@@ -1512,6 +1511,8 @@ def generate():
         # PERF.3: show the size and time first; the admin confirms (or the disk refuses it) before the job starts.
         try:
             estimate = estimate_for(kind, steps, database, env)
+        except EstimatePending as exc:
+            return refuse(str(exc), 202)
         except FormError as exc:
             return refuse(str(exc), 400)
         if wants_json:
@@ -1558,18 +1559,30 @@ def estimate_needed(kind, form):
     return kind in ("galaxy", "check_db") and (kind == "galaxy" or bool(form.get("deep")))
 
 
+class EstimatePending(Exception):
+    """The estimate is being worked out in the work queue (ADM.141); the page asks again in a few seconds."""
+
+
 def estimate_for(kind, steps, database, env):
     """The size and time of the job's `planetgen sectors` step, or its last step when it has none (`run_estimate`,
-    cached by `estimatecache`).
+    cached by `estimatecache`). A request never waits for it (ADM.141): a missing estimate is queued
+    (`estimatejob`) and `EstimatePending` raised.
 
     Raises:
         FormError: The estimate refused the arguments.
+        EstimatePending: The estimate is being worked out; ask again.
     """
     first = 1 + len(jobs.GENERATE_COMMAND)
     sectors = [step for step in steps if step["argv"][first:first + 1] == ["sectors"]]
     argv = (sectors[0] if sectors else steps[-1])["argv"]
-    return estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
-                                  lambda: run_estimate(argv, env))
+    try:
+        return estimatecache.estimate_in_background(
+            database, kind, argv, lambda: _estimate_versions(database), lambda: run_estimate(argv, env),
+            lambda key, versions: estimatejob.start(key, versions, argv, env, jobs.REPO_DIR))
+    except estimatecache.Working as exc:
+        raise EstimatePending(ESTIMATE_PENDING_MESSAGE) from exc
+    except estimatecache.Failed as exc:
+        raise FormError(str(exc)) from exc
 
 
 def _estimate_view(estimate):
