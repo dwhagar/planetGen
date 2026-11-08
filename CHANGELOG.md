@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3680] - 2026-11-08
+
+**Headline:** A giant whose radius stayed when its star grew older now radiates the energy flux of that older age.
+
+### Changed
+- **A giant's energy flux follows the star's final age.** The age of a star rises once, after its planets are in, and a giant sized from the radius tables is made again only when the tables move its radius by more than the tolerance. A giant whose radius stayed kept the flux it was given at the younger age, although its own heat falls with age (on a hot giant at 0.19 AU the stored flux was 21.17 W/m2 against 21.07 at the final age). Such a giant now has its flux made again at the final age.
+
+generation-output: changed
+
 ## [8.0.3679] - 2026-11-08
 
 **Headline:** The enstatite-rich asteroid class now carries the sulfides of aubrites, a little troilite and niningerite, instead of five percent troilite alone.
