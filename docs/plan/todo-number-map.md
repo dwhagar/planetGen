@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.709 |
 | USR | USR.32 |
-| OPS | OPS.128 |
+| OPS | OPS.130 |
 | DOC | DOC.114 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2259,11 +2259,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | done, PR #5688 |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
 | OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | open |
-| OPS.123 | Stage opening (the cut), conclude and finish hooks become jobs of their own instead of running inside the last unit's horse | none | open |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | open |
 | OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | open |
-| OPS.125 | Optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | open |
+| OPS.125 | DROPPED (revive only if Boss asks): optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | open |
 | OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | open |
 | OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
+| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
+| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
