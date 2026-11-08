@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3650] - 2026-11-08
+
+**Headline:** When the setup cannot download a dataset it now prints the download address of each missing file.
+
+### Changed
+- **The setup warning names the download URL (OPS.119 follow-up).** A failed dataset download stays non-fatal, as before. The warning now lists each file that did not download with its address, so it can be fetched by hand and placed in the dataset folder.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119 (follow-up).
+
 ## [8.0.3649] - 2026-11-08
 
 **Headline:** The test runner survives crashed workers, resumes across midnight, keeps its dependency map whole after a resume, leaves the tree clean and runs `full --check` on main.
