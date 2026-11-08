@@ -25995,6 +25995,11 @@
       "kind": "paper",
       "label": "Umemoto and Wentzcovitch 2021",
       "title": "Ab initio prediction of an order-disorder transition in    Mg 2  Ge  O 4    : Implication for the nature of super-Earth's mantles"
+    },
+    "R5203": {
+      "kind": "paper",
+      "label": "Umemoto et al. 2017",
+      "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles"
     }
   }
 }

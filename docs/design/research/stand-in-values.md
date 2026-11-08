@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1433 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1437 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1407 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1411 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 175 | 20 | 11 | 1 | 0 | 207 |
+| T1 | 178 | 20 | 11 | 1 | 0 | 210 |
 | T2 | 137 | 59 | 1 | 1 | 0 | 198 |
 | T3 | 102 | 47 | 9 | 10 | 0 | 168 |
-| T4 | 72 | 11 | 3 | 21 | 10 | 117 |
+| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
 | T5 | 64 | 23 | 6 | 1 | 0 | 94 |
 | T6 | 159 | 102 | 27 | 75 | 0 | 363 |
 | T7 | 37 | 17 | 9 | 31 | 0 | 94 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 787 | 295 | 71 | 235 | 45 | 1433 |
+| All | 791 | 295 | 71 | 235 | 45 | 1437 |
 
 ## How the labels were given
 
@@ -2521,3 +2521,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | UC16 | T | T6 | L0 | a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number | none | neutron-star cores | a measured mass and radius that exclude it | none | EXISTENCE 35 percent for any exotic core, 5 percent for a pure strange-quark star, PROPERTIES 15 percent (the report's judgment). Changes no number now: at most one text line on the kind of core; there is no equation of state on offer. Recalled, not opened | predicted only | - | - |
 | UC17 | T | T4 | L0 | azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number | none | Titan's liquid methane | a measurement that the vesicles cannot form there | none | EXISTENCE 5 percent, PROPERTIES 5 percent (the report's judgment). Changes no number now: PlanetGen has no use for it; later energetics work cast doubt on it. Recalled, not opened | predicted only | - | - |
 | UC18 | T | T4 | L0 | superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number | none | r-process ejecta and cosmic rays | a measured superheavy nuclide in nature | none | EXISTENCE 3 percent, PROPERTIES 20 percent (the report's judgment). Changes no number now: PlanetGen has no use for it. Recalled, not opened | predicted only | - | - |
+
+## 6.240 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SE1 | T | T1 | L0 | MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step | the pressure: 0.75 TPa; Clapeyron slope -10 MPa/K at 5,000 K; the sequence holds to 10,000 K, while another study predicts a different sequence above about 6,000 K | mantles of rocky planets with a central pressure over 0.75 TPa (about 5 Earth masses and more) | a measurement or a second calculation that puts the first dissociation outside 0.6 to 0.9 TPa | a table of the density of the products at each step | PREDICTED. READ [R5203: Section 3.1] | predicted only | - | - |
+| SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5203: Section 3.1] | predicted only | - | - |
+| SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5203: Section 3.1, Section 5] | predicted only | - | - |
+| SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |
