@@ -6,7 +6,7 @@ bottom; this module says whether they are there
 
 * an ice (or a molecular fluid) under the floor,
 * **superionic** between the floor and the ceiling: a solid of oxygen (or nitrogen) atoms whose hydrogen ions move freely (bcc, then fcc superionic ice,
-  [R5171]; the phase of Millot's ice XVIII, [R3081]; the superionic ammonia of [R5172]),
+  [R5181]; the phase of Millot's ice XVIII, [R3081]; the superionic ammonia of [R5172]),
 * an **ionic fluid** above the ceiling (the melt line), and
 * a **metallic fluid** above the temperature where the fluid turns metallic (7000 K for water, 5500 K for ammonia, [R5172]).
 
@@ -38,10 +38,10 @@ STATES = ("solid_or_molecular", "superionic", "ionic_fluid", "metallic_fluid")
 """tuple: What `state` answers."""
 
 FALLBACK_FLOOR_BEYOND_GPA = 60.0
-"""float: STAND-IN SI1 (T6, L0): the water floor measured up to this pressure (1900 K, [R5171]) is held at all higher pressures (the table's last floor point)."""
+"""float: STAND-IN SI1 (T6, L0): the water floor measured up to this pressure (1900 K, [R5181]) is held at all higher pressures (the table's last floor point)."""
 
 CEILING_INTERPOLATION_GPA = (20.0, 105.0)
-"""tuple: STAND-IN SI2 (T6, L1): the water ceiling is the straight line between its table points at these pressures (the triple point at 20 GPa and the point at 105 GPa, [R5171])."""
+"""tuple: STAND-IN SI2 (T6, L1): the water ceiling is the straight line between its table points at these pressures (the triple point at 20 GPa and the point at 105 GPa, [R5181])."""
 
 AMMONIA_FLOOR_GPA_K = (30.0, 1500.0)
 """tuple: STAND-IN SI3 (T7, L1): ammonia is superionic from this pressure and temperature upward (recalled, not opened: [R5172] gives the range only)."""
