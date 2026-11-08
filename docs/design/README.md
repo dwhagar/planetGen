@@ -9,6 +9,8 @@ Every note under `docs/design/`, with what it is about and where it stands. Note
 - **reference**: facts and measurements, not a design.
 - **history**: describes a design that was replaced; kept for the reasons.
 
+**Core design principle (Boss, 2026-11-08): everything in a system affects everything else in the system.** Every body acts on every other body of its system by 3D position, averaged over the orbits; see [system-interactions.md](generation/system-interactions.md). A host-only or pair-only effect needs a reason registered in GEN.725.
+
 A note's own status line, at its top, is the authority; this page only points at it. A test (`src/tests/test_docs_links.py`) fails when a note in a topic folder is missing from this page. A new note goes in the folder of its topic, with a row here. The architecture of the whole program is [architecture.md](architecture/architecture.md); the decisions behind it are in [design-decisions.md](architecture/design-decisions.md).
 
 **Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](research/gap-filling-plan.md) section 6.5.
@@ -127,6 +129,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [mass-backfill.md](generation/mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [reproducible-galaxies.md](generation/reproducible-galaxies.md) | Seeds, version keys and repair | partly built |
 | [generation-determinism.md](generation/generation-determinism.md) | What makes a seed rebuild the same galaxy; fingerprints and epochs | research |
+| [system-interactions.md](generation/system-interactions.md) | The principle that everything in a system affects everything else in it (Boss, 2026-11-08), the rules for new items, and the register of host-only and pair-only code paths with the item that fixes each | plan |
 | [generation-performance-study.md](generation/generation-performance-study.md) | Where generation time goes | research (recommendations built) |
 | [generation-performance.md](generation/generation-performance.md) | Every generation step timed at four galaxy sizes with `planetgen benchmark --suite`, the fixes of the first round and a ranked list of what is left (PERF.146) | reference |
 | [generation-benchmark-report.md](generation/generation-benchmark-report.md) | A measured benchmark of one build box | reference |
@@ -151,6 +154,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [composition-spine-contracts.md](composition/composition-spine-contracts.md) | The interfaces of the composition spine: the bulk composition and mixture accessors, the structure kernels, the bulk draw, the boundaries with the other lanes | contracts of lane I, kept in step with the code (GEN.428, GEN.429, GEN.411) |
 | [giant-interiors.md](composition/giant-interiors.md) | The interior of a giant planet, an ice giant and a brown dwarf (GEN.641, GEN.642): the layers, metallic hydrogen and helium rain, dilute and compact cores, with the state of every source |
 | [mantle-oxides.md](composition/mantle-oxides.md) | The seven oxides a rock mantle stores beyond SiO2, MgO, CaO, Al2O3 and FeO (Na2O, K2O, TiO2, Cr2O3, MnO, NiO, P2O5) and the norm minerals they give (GEN.1362). |
+| [isotope-record.md](composition/isotope-record.md) | The isotope shares of every element a body holds: the natural mix, the laws of D/H, 13C, 15N and 40Ar, and the decaying parents at the body's age (GEN.1377, GEN.1420) |
 | [giant-heavy-element-law.md](composition/giant-heavy-element-law.md) | The heavy-element mass of a giant: [R0710] read from the paper, against [R4352] (GEN.460's input) |
 | [small-body-size-laws.md](composition/small-body-size-laws.md) | The size-frequency law of small bodies and the binary and satellite fraction by size (GEN.566, GEN.580), and the hosting gate's inputs |
 | [small-bodies-composition.md](composition/small-bodies-composition.md) | The composition of belts, fields, comets, icy bodies and moons (GEN.457): which kinds draw composition first, the mixing rule and the compaction law with its hand-over finding, the taxon, comet, icy-body and moon-origin tables, what is stored, the parametrisations, a worked example and the test targets | plan, awaiting Boss's approval |
@@ -303,6 +307,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [wiring-register.md](research/wiring-register.md) | The wiring register of the guard GEN.754: every lock-free module, dataset reader, data file and registry row nothing reads yet, with the open TODO item that will wire it; `python scripts/wiring_guard.py --check` fails when one is missing | research |
 | [burn-down-register.md](research/burn-down-register.md) | GEN.946 step 1: a disposition (replace with a derivation, source, keep as registered stand-in) for each L3 and L4 row of the stand-in registry, with the item that does it | research |
 | [stand-in-values.md](research/stand-in-values.md) | Every stand-in value with its source tier (T1 to T9) and tweak level (L0 to L4), generated from the registry of the gap-filling plan (GEN.725) | generated (reference) |
+| [evidence-register.md](research/evidence-register.md) | GEN.1428: the evidence status of each stand-in row (observed in a planet, observed in a lab, predicted only, or disputed), with a note of what the source saw | research |
 | [papers-to-fetch.md](research/papers-to-fetch.md) | The papers behind refused publishers that Boss downloads himself, and the arXiv papers a research thread reads instead, with Crossref citations (gap-filling plan section 8, GEN.531) | reference |
 | [vizier-courteau-comeron.md](research/vizier-courteau-comeron.md) | The VizieR search for the [R0908] scatter (GR5) and the Comeron thick-disc tables (GR3): the [R0865] fit, the raw Vc/sigma0 scatter and the corrected references | research |
 | [gemini-batch1-check.md](research/gemini-batch1-check.md) | The claim-by-claim check of Gemini batch 1 (51 claims) against read sources, the figures that can be used and the requests it answers | research |

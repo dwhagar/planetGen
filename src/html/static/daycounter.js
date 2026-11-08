@@ -12,6 +12,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 export const MS_PER_HOUR = 3600000;
 
@@ -38,14 +39,14 @@ export function spanText(hours) {
   const h = Math.floor(convert(total, "s", "h"));
   const m = Math.floor(convert(total - convert(h, "h", "s"), "s", "min"));
   const s = total % 60;
-  return `${h.toLocaleString("en-US")} h ${String(m).padStart(2, "0")} min ${String(s).padStart(2, "0")} s`;
+  return `${formatNumber(h)} h ${String(m).padStart(2, "0")} min ${String(s).padStart(2, "0")} s`;
 }
 
 // The sentences of the clock for one reading, or null for a body with no usable day.
 export function sentences(reading, dayHours, nightHours) {
   if (!reading) return null;
   const parts = {
-    day: `Day ${(reading.day + 1).toLocaleString("en-US")} since the count began`,
+    day: `Day ${formatNumber(reading.day + 1)} since the count began`,
     inDay: `${spanText(reading.hoursIn)} into a day of ${spanText(dayHours)}`,
   };
   if (nightHours === 0) {

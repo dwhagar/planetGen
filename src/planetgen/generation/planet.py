@@ -26,7 +26,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import ore_deposits
+from planetgen.physics import isotope_record, ore_deposits
 from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
@@ -240,6 +240,7 @@ class Planet(PlanetaryObject):
         giant_interior.LAYERS_ATTRIBUTE,
         *ore_deposits.COLUMN_FIELDS,
         ore_deposits.ATTRIBUTE,
+        isotope_record.ATTRIBUTE,
         *surface_composition.COLUMN_FIELDS,
         *moon_composition.BODY_FIELDS,
         *rings.BODY_FIELDS,

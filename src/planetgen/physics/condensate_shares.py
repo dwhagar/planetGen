@@ -4,8 +4,7 @@
 What has condensed at a disk temperature, by Lodders's equilibrium table (GEN.950, part 1).
 
 The water share of the solids an icy body can reach is no longer read from here: GEN.1363 part B takes it from `disk_condensation.water_share_of_solids`, which holds back the oxygen
-that CO and CO2 carry (0.34 for the Sun, 0.54 here). What stays here is the line temperatures, the ice mass over the rock that sets the snow line's jump of the surface density
-(`WATER_ICE_SOLID_BOOST`, left on this table until the disk's solids are weighed against the minimum-mass nebula) and the disk temperature law.
+that CO and CO2 carry (0.34 for the Sun, 0.54 here). What stays here is the line temperatures and the disk temperature law; the snow line's jump of the solid surface density is `disk_condensation.SNOW_LINE_SOLID_JUMP` (GEN.1396).
 
 [R2726] computes the equilibrium condensation of a gas of solar composition at 10^-4 bar. Table 10 gives the
 temperatures at which the ices come out (water at 182 K, ammonia hydrate at 131 K, methane at 41 K) and Table 11 the mass that
@@ -25,7 +24,7 @@ its fixed line.
 Limits. The table is for a gas of solar C/O at 10^-4 bar with every carbon atom in methane and every nitrogen atom in ammonia; the
 kinetic models of Lodders's Table 10 (graphite kept, methane and ammonia not formed) are not read here. The ice mass of a comet
 ([R2865], ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. The snow line
-(`formation.snow_line_au`), the ice boost of the surface density (`WATER_ICE_SOLID_BOOST`), the temperature below which a ring is cold
+(`formation.snow_line_au`), the temperature below which a ring is cold
 read it (GEN.950); the star's oxygen over its rock-forming metals is not
 passed on, so the ice masses are those of the Sun's composition.
 """
@@ -89,25 +88,6 @@ def condensed_masses(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
         if temperature_k < line:
             masses[ice] = table[ice] * scale[ice]
     return masses
-
-
-def ice_over_rock(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """The mass of all the ices that have condensed over the rock at `temperature_k` (1.17 for water alone, 2.04 for all three)."""
-    masses = condensed_masses(temperature_k, oxygen, carbon, nitrogen)
-    return (sum(masses.values()) - masses[ROCK]) / masses[ROCK]
-
-
-def solid_boost(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """
-    How many times the rock's surface density the solids make at `temperature_k`: `1 + ice_over_rock`. The jump of the minimum-mass
-    nebula at the snow line ([R1854] puts it at 30 / 7 = 4.3 where Lodders's water alone gives 2.17).
-    """
-    return 1.0 + ice_over_rock(temperature_k, oxygen, carbon, nitrogen)
-
-
-WATER_ICE_SOLID_BOOST = solid_boost(0.5 * (ICE_CONDENSATION_K["H2O"] + ICE_CONDENSATION_K["NH3"]))
-"""float: How many times the rock's surface density the solids make just beyond the water line, between the water and ammonia lines (2.17 for
-the Sun's composition; [R1854] has 30 / 7 = 4.3). The jump of the minimum-mass nebula at the snow line (`formation.mmsn_surface_density_gcm2`)."""
 
 
 @finite_domain()

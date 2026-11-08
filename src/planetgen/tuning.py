@@ -66,13 +66,14 @@ GIANT_MAX_STAR_MASS_RATIO = 0.01
 # mutual Hill radii wide, in a disk scattered by `DISK_SOLIDS_SCATTER_DEX`. Each value is a planetGen stand-in (registry section 6.36),
 # tuned against the observed occurrence (`physics/data/planet_occurrence.json`).
 # A core that reaches this many Earth masses before the gas disk is gone can run away into a gas giant (core accretion:
-# [R3565, R3645] give 5 to 20 Earth masses, recalled).
-GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
+# [R3565, R3645] give 5 to 20 Earth masses, recalled). Nudged from 10 to 9 inside that range with the lower jump of the solids at the
+# snow line (GEN.1396, 1.967 for 2.17), which a higher `GIANT_GAS_SURVIVAL_SHARE` alone could not make up (stand-in PM5).
+GIANT_CORE_CRITICAL_MASS_EARTH = 9.0
 # The share of runaway-capable cores that still find gas left in the disk around a star of the disk's metallicity (scaled for [Fe/H] by
 # `metallicity.giant_occurrence_factor` and `GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT`); the rest stay ice giants. Tuned (tier T6, tweak L3)
 # to the giants at 2 to 8 AU round a Sun-like star ([R1479], read: 0.14), their fall with the star's mass
 # ([R2172], read) and the fall of the hot Jupiters round M dwarfs ([R1504], read).
-GIANT_GAS_SURVIVAL_SHARE = 0.766
+GIANT_GAS_SURVIVAL_SHARE = 0.79
 # Beyond this distance the share falls as the square of the ratio: the cores of the outer disk grow slowly, so few reach
 # the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
 GIANT_GAS_SURVIVAL_CUT_AU = 9.022
@@ -2133,7 +2134,7 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 # --- Planet Classification Data ---
 
 # The composition text of each class, and its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
-# in `physics/data/planet_class_text.json` (GEN.1212). A class is derived from a finished body's
+# in `physics/data/planet_classes.json` (the phrase of each row) (GEN.1212). A class is derived from a finished body's
 # conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
 # looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {

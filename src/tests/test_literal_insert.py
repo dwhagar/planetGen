@@ -15,7 +15,7 @@ def _row(number):
     return (number % 7, number % 5, number, number * 1000, -number * 1000 + 1, 17,
             "young" if number % 2 else "old", "G2" if number % 3 else "B", "V", 2e30 + number, 7e5 + 0.125 * number,
             5772.0, 3.828e26 * (1 + number), 4.6 + number / 1e6, 10.0, 1.0 + number / 7, None if number % 4 else 12.5,
-            number, None if number % 2 else -0.15, 24.0 + number / 100, None if number % 3 else 3.5)
+            number, None if number % 2 else -0.15, 24.0 + number / 100, None if number % 3 else 3.5, None)     # ... rotation, nuclear arrival age, cluster
 
 
 @pytest.fixture

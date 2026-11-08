@@ -198,7 +198,8 @@ def _listed(names):
 
 @functools.lru_cache(maxsize=2)
 def _keys_of(stamp):
-    return frozenset(row["key"] for _part, row in rows_of(load("stand-ins.json")))
+    data = load("stand-ins.json")
+    return frozenset() if data is None else frozenset(row["key"] for _part, row in rows_of(data))
 
 
 def _stand_in_keys():

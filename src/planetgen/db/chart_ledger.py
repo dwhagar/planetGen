@@ -34,9 +34,9 @@ def record(conn, address, run_id, epoch):
     conn.execute(
         "INSERT INTO chart_ledger (shell_index, band_index, wedge_index, run_id, generator_epoch, charted_at, topped_up_at)"
         " VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), NULL)"
-        " ON DUPLICATE KEY UPDATE run_id = VALUES(run_id), generator_epoch = VALUES(generator_epoch),"
+        " ON DUPLICATE KEY UPDATE run_id = ?, generator_epoch = ?,"
         " charted_at = CURRENT_TIMESTAMP(3), topped_up_at = NULL",
-        (*address, run_id, epoch))
+        (*address, run_id, epoch, run_id, epoch))
 
 
 def forget(conn, address):

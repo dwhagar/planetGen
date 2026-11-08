@@ -2,6 +2,8 @@
 
 """GEN.855: `physics.biogenic_oxygen`, the oxygen oxygenic life puts in the air, and its wiring in `generation.life`."""
 
+from types import SimpleNamespace
+
 import pytest
 
 from planetgen import tuning
@@ -234,3 +236,76 @@ def test_an_oxygenic_world_past_its_rise_holds_oxygen_and_one_before_it_holds_no
             assert not took and o2 < 0.2, (world.name, o2, rise, world.star.age)
             before += 1
     assert past + before >= 1
+
+
+class _Sink:
+    """A carbon sink that holds more CO2 the colder the surface (the weathering rate falls with the temperature): 0.001 bar at 300 K, doubling every 10 K colder."""
+
+    supply_bar = 1.0
+    solved_bar = 0.001
+    solved_temperature_k = 300.0
+
+    @staticmethod
+    def kept_at(temperature_k):
+        return 0.001 * 2.0 ** ((300.0 - temperature_k) / 10.0)
+
+
+def _fake_air(monkeypatch, body, partials, greenhouse_k_per_kpa=None):
+    """Patches the air reads and the store of `bo` to a body that keeps its partials in `body.air` and has a temperature that falls by `greenhouse_k_per_kpa` per kPa of CO2 less than 1 kPa."""
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+
+    def store(b, air):
+        b.air = dict(air)
+        if greenhouse_k_per_kpa is not None:
+            b.surface_temperature = 280.0 + greenhouse_k_per_kpa * air.get("CO2", 0.0) / 1000.0
+    monkeypatch.setattr(bo, "store_air", store)
+
+
+def test_a_world_with_no_carbon_sink_is_left_as_it_is(monkeypatch):
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=285.0, _co2_sink=None)
+    _fake_air(monkeypatch, body, body.air)
+    assert bo.rebalance_co2(body) is False and body.air["CO2"] == 100.0
+
+
+def test_the_co2_follows_the_sink_to_the_temperature_the_oxygen_rise_left(monkeypatch):
+    """The air was solved at 300 K with 100 Pa of CO2; the rise left it at 280 K, where the sink holds four times as much. With no greenhouse from the CO2 the
+    fixed point is the sink's answer at 280 K: 100 + (400 - 100) Pa."""
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air)
+    assert bo.rebalance_co2(body) is True
+    assert body.air["CO2"] == pytest.approx(400.0, rel=0.03)
+    assert body.air["N2"] == 80000.0 and body.air["O2"] == 20000.0
+
+
+def test_the_co2_and_the_temperature_settle_against_each_other(monkeypatch):
+    """With a greenhouse (20 K per kPa of CO2) the warmer air holds less: the pair settles where the CO2 is what the sink holds at the temperature that CO2 gives."""
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air, greenhouse_k_per_kpa=20.0)
+    bo.rebalance_co2(body)
+    held = _Sink.kept_at(body.surface_temperature) * 1.0e5 - _Sink.solved_bar * 1.0e5 + 100.0
+    assert body.air["CO2"] == pytest.approx(held, rel=0.1)
+    assert body.air["CO2"] > 100.0
+
+
+def test_a_warmer_air_drives_the_co2_down_to_nothing_not_below(monkeypatch):
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=340.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air)
+    bo.rebalance_co2(body)
+    assert 0.0 <= body.air.get("CO2", 0.0) < 100.0
+
+
+def test_the_sink_of_a_generated_world_gives_the_pressure_it_solved_at_the_temperature_it_solved_at(worlds):
+    sinks = [planet._co2_sink for planet in worlds if getattr(planet, "_co2_sink", None) is not None]
+    assert sinks, "no generated world kept a carbon sink"
+    for sink in sinks:
+        assert sink.kept_at(sink.solved_temperature_k) == pytest.approx(sink.solved_bar, rel=1e-9)
+
+
+def test_the_carbon_dioxide_takes_only_the_room_the_retention_cap_leaves(monkeypatch):
+    """A 10 kPa cap on an air of 6.5 kPa of oxygen and nitrogen: the sink asks for far more CO2, but the oxygen is not squeezed out; the CO2 stops at the cap."""
+    body = SimpleNamespace(air={"N2": 1000.0, "O2": 6500.0, "CO2": 100.0}, surface_temperature=250.0, _co2_sink=_Sink(), _retention_cap_pa=10000.0)
+    _fake_air(monkeypatch, body, body.air)
+    bo.rebalance_co2(body)
+    assert body.air["O2"] == 6500.0 and body.air["N2"] == 1000.0
+    assert sum(body.air.values()) <= 10000.0 + 1e-9
+    assert body.air["CO2"] > 100.0

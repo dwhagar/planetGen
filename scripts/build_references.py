@@ -242,7 +242,7 @@ def fetch_arxiv(ids):
     out = {}
     for i in range(0, len(ids), 60):
         chunk = ids[i:i + 60]
-        data = http_get("http://export.arxiv.org/api/query?max_results=%d&id_list=%s" % (len(chunk), ",".join(chunk)))
+        data = http_get("https://export.arxiv.org/api/query?max_results=%d&id_list=%s" % (len(chunk), ",".join(chunk)))
         time.sleep(3)
         if not data:
             continue

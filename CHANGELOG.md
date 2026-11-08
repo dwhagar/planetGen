@@ -2,6 +2,243 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3728] - 2026-11-08
+
+**Headline:** A warm-up or another bulk command can no longer block the site: waiting jobs are now ordered by a fair-share scheduler, with places kept for the site.
+
+### Added
+- **A fair-share scheduler on the memory gate (OPS.130, `queue/scheduler.py`).** A job waiting for room is a ticket, ordered by its class (interactive 100, node prefetch 90, long 80, a run's units 40, the maintenance lane 30), plus a rise for each second it waited, less a penalty for the share of recent system time its kind has used. A job that has waited 600 s outranks a new job of any class, so nothing starves. A lower job goes ahead of a higher one that has no room (the host is not left idle), unless the higher one has waited 120 s, when the room is kept for it. The scheduler reads the same load and memory as the gate.
+- **Cores are kept for the site's places** (half a core a place, at most a quarter of the host) against the bulk and maintenance lanes, as memory already was.
+
+### Changed
+- Every worker and `memorygate.hold` use the scheduler. `PLANETGEN_MEMORY_GATE=0` still turns the gate off.
+- Generated output is unchanged.
+
+## [8.0.3727] - 2026-11-08
+
+**Headline:** The block light totals are now the last stage of a galaxy run, and their bar moves through all three parts.
+
+### Changed
+- **Block lights last (PERF.251).** `galaxy_stages` puts "Make the block light totals" after the settling and the run blocks instead of after the nebula field. The totals add up only stars and phenomena that are not built yet, so they were redone for nothing as the backfill, population and settling built them; made last they are made once from what is left. The stage list, `run_galaxy`'s followers, `commands`' stage numbers and the design docs (`redis-and-the-work-queue.md`, `command-inventory.md`) follow the new order.
+- **The uncharted placeholder rows come after the backfill (PERF.252).** The totals stage writes the uncharted sector rows, which the bright-star backfill used to count as sectors the run had just made: on a small galaxy (3e7 solar masses, radius 6 pc) it planned 573,713 backfill targets and 34,707 sky cells from 19 real sectors and drew 16,471 bright stars where the run's own sectors give 1,037; on a big galaxy that is millions of rows, the 900 s job limit and an out-of-memory kill. With the totals last the backfill opens on the run's real sectors only, and `store.sector_centers_since` now counts charted sectors only (a cell with no chart ledger row is a placeholder), so a placeholder can never be taken for a run sector again.
+generation-output: changed
+- **The bar moves all the way.** "Making the block light totals" counts 100 steps in three parts (the units 70, the levels above the units 15, the uncharted rows the rest) and says the share done in its log line, so it no longer sits at one value through the longest part.
+- **Tests.** `test_stages.py` has the new stage numbers and a test that the block lights stage is last; `test_block_lights.py` checks that the bar moves in all three parts.
+
+## [8.0.3726] - 2026-11-08
+
+**Headline:** A carbon-rich rocky world (a star with C/O of 0.8 or more) now carries moissanite (silicon carbide) and cohenite (iron carbide) deposits; oxygen-rich worlds never do.
+
+### Added
+- **Two carbide deposit types (GEN.1423, `physics/carbide_deposits.py`).** After the ore pass each rocky planet, moon and rogue planet is assessed for `moissanite_crust` (the SiC of the carbon rock, grade 0.71 to 0.95, the share the bulk draw's graphite range leaves) and `cohenite_metal` (Fe3C in the carbon-saturated metal, grade 0.30 to 0.64). Both are rows of the existing deposit tables (no column, no migration); a body with silicate rock has both rows `absent_by_state`. Stand-ins CH1 to CH3 in section 6.235.
+
+### Changed
+- The stored deposits of every rocky body gain two rows, so the next epoch is a new one.
+
+generation-output: changed
+TODO items resolved: GEN.1423
+
+## [8.0.3725] - 2026-11-08
+
+**Headline:** The deep ice layer of an ice giant is superionic, an ionic fluid or an ice by a measured table of pressure and temperature, not by a single pressure.
+
+### Changed
+- **Superionic water and ammonia come from a boundary table (GEN.1422).** `physics/superionic.py` reads `physics/data/superionic_boundary.json` (floors and ceilings of water from the diamond-cell work [R5181] and the shock work [R3081], ammonia and the metallic limits from [R5172]). The ice mantle of an ice giant takes its state, and its water becomes superionic ice, from the pressure and the temperature of the structure model's adiabat at its bottom; the single 100 GPa line is gone, and the weird-worlds line G4 is built for the superionic part. Stand-ins SI1 to SI4 are in section 6.234. This changes ice-giant layer states and materials, so it takes a generator epoch (the Train Manager assigns it).
+
+## [8.0.3724] - 2026-11-08
+
+**Headline:** The solid material beyond a star's snow line is now set by the disk's own condensation budget (a jump of 1.97 times the rock instead of 2.17), with the gas-giant tuning moved so giants stay as common as the surveys find them.
+
+### Changed
+
+- GEN.1396: the jump of the solid surface density at the snow line, which sets the core mass of every planet beyond it (the isolation mass goes as the density to the 3/2), is `disk_condensation.SNOW_LINE_SOLID_JUMP` (1.967 for the Sun: the rock, the water, ammonia and other ices, and the refractory carbon grains standing at the middle of the water and ammonia lines, over the rock). It replaces the water-only boost of 2.17 in `condensate_shares` (`WATER_ICE_SOLID_BOOST`, `ice_over_rock` and `solid_boost` are gone). The divisor is the rock alone because the minimum-mass nebula's 7.0 g/cm^2 counts only the silicates and metal; the 1.52 that rock plus grains would give is kept in the notes (stand-ins SSJ1 and SSJ2 in section 6.233). The icy dwarf planets of the Kuiper belt hold about 0.7 rock by mass, above the 0.51 the jump leaves, which is the direction a body that loses ice and cannot gain it should differ.
+- Because the cores beyond the snow line are lighter, `GIANT_GAS_SURVIVAL_SHARE` goes from 0.766 to 0.79 and `GIANT_CORE_CRITICAL_MASS_EARTH` from 10 to 9 (inside the 5 to 20 Earth masses the core accretion papers give); over 20,000 Sun-like stars the giants at 2 to 8 AU stay at 0.1065, the hot Jupiters of Sun-like stars go from 0.0058 to 0.0067 and those of M dwarfs from 0.0032 to 0.0034 (the bands are 0.0062 and 0.0027).
+- Generated systems change: every planet beyond its star's snow line has a different core mass (about 0.86 times the old at the same draws), and a few more or fewer giants and ice giants form.
+
+generation-output: changed
+
+## [8.0.3723] - 2026-11-08
+
+**Headline:** Every planet, moon and rogue planet now carries an isotope record: the shares of each isotope of each element it holds, with deuterium, carbon-13, nitrogen-15, argon-40 and the decaying potassium and uranium following physical laws, and the record shown on the property sheet (GEN.1377, GEN.1420 part 1).
+
+### Changed
+
+- New `physics/isotope_record.py` builds the record from the body's stored composition on its own streams: the table's natural mix by default and, for hydrogen, carbon, nitrogen and argon, a law of the star's metals and age and of the temperature the ice formed at (D/H from the primordial value less the deuterium star formation burned, enriched in ice as the temperature falls, fitted to the ocean and comet 67P; 12C/13C and 14N/15N from the galactic gradients; 36Ar/38Ar from the solar wind; 40Ar from the potassium that decayed and the interior let out). Potassium and uranium isotopes are those of the body's age.
+- Schema v235 (migration 0235): the child tables `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes`. A body saved before it has no record and nothing is backfilled.
+- The property sheet of a planet or moon lists the ratios the record moves and the count of isotopes. `bulk_draw.formation_temperature_k` is now public.
+- Stand-in section 6.236 (ISO1 to ISO9) in the registry, design note `composition/isotope-record.md`, citations R5173 to R5179.
+- The short-lived isotopes and the cosmogenic ones (GEN.1377, GEN.1421) are the second part.
+
+generation-output: changed
+
+## [8.0.3722] - 2026-11-08
+
+**Headline:** A tilted close-in planet with a thick hydrogen envelope is now puffed up by its obliquity tides, so super-puffs can stay inflated past 1 Gyr.
+
+### Changed
+
+- A planet with an envelope, light above 20 Earth fluxes, a tilt of 0.01 degrees or more and enough tidal power against its starlight has its radius multiplied by the obliquity-tide inflation of [R3079] (up to a factor of 2), from its own tilt and a tidal quality drawn per planet (1e3 to 1e5, log-uniform). A planet the tides have brought to an upright or synchronous state has no tilt to speak of and is not inflated. The planet's tilt is only known after its spin is made, so the inflation is applied in the settle pass.
+- A super-puff is typed by mass, period and density (under 0.1 g/cc) at any age; the age of 1 Gyr is gone from the gate.
+- Stand-in PF5 (the tidal quality range) is registered (GEN.725), PF1 and PF4 are updated.
+
+generation-output: changed
+
+## [8.0.3721] - 2026-11-08
+
+**Headline:** The carbon dioxide of a world whose life makes oxygen is balanced again at the temperature the oxygen leaves it at.
+
+### Changed
+
+- The sink that holds a world's carbon dioxide (continental weathering, seafloor weathering, or a sealed ocean's chemistry) was solved once, at the temperature of the air before life. When oxygenic life burned the air's methane and hydrogen, the air cooled by 7 to 67 K in the worlds measured, and the carbon dioxide stayed as it was, plus the burnt methane. The sink is now asked again at the new temperature, and the carbon dioxide and the temperature are worked against each other until they settle. On 800 systems asked for a habitable world (2,704 bodies) 8 bodies change; one sea world with 35.5 kPa of oxygen goes from 8.4 to 0.8 kPa of carbon dioxide and one body becomes class O.
+- Nothing changes for a world without oxygen, without a carbon sink, or whose air the oddity rows replaced.
+
+generation-output: changed
+
+## [8.0.3720] - 2026-11-08
+
+**Headline:** Every job of the work queue now takes a claim on the host's memory and load before it starts, so a generation run no longer takes the machine down.
+
+### Added
+- **One memory and load gate for all jobs (PERF.254, `queue/memorygate.py`, `queue/claims.py`).** A worker takes a claim (memory in MB, cores, lane) for each job before it prepares it and waits, with its heartbeat going, until the host has room: the free memory from the kernel's MemAvailable (and a cgroup limit when there is one), less a reserve for MySQL, Redis and the web server, less the places kept for the interactive and long lanes, less the part of every other claim not yet in memory (read from the proportional memory of each worker and its horse, `psutil` 7.2.2, a new dependency in both lock files). Cores are claimed the same way and an ordinary job waits while the one-minute load per core is over 1.25. The wait is bounded (300 s) and then the old table cap decides, so a wrong gate cannot stall a run. Every kind of job has a claim (a run's units, the API's and the pages' jobs, the Generate page's, the node prefetch, the cut of a stage) and `tests/test_memory_gate.py` fails for a kind that has none. The test runner takes a claim for each phase.
+- **Claims are learned.** The worker's heartbeat samples what the job's processes hold; the largest peak seen for a kind is claimed, with 10 percent on top, in place of the table's figure when it is larger.
+- **A job killed for memory is retried once with a larger claim,** then the run stops with the unit (or the opening) named and what it claimed and held.
+
+### Changed
+- **The cut of a stage is a job of its own** (`units.open_stage`, claimed alone on the bulk lane) and no longer runs inside the work horse of the last unit of the stage before; a failure or a kill there is filed under its own stage. Cancel, Clear and the update guard know the job.
+- `scripts/test.py` runs each phase under a claim on the gate when a Redis server answers.
+- Generated output is unchanged.
+
+## [8.0.3719] - 2026-11-08
+
+**Headline:** The life and air history API test draws the same systems every run, so it no longer fails now and then.
+
+### Changed
+- **The life and air history test is seeded (TEST.709).** Its helper drew up to forty unseeded systems to find an airy rocky planet, and about one run in five came out with a planet whose air history has no methane row. Each attempt now draws on a stream of its own, so every run reads the same planet. Only test code changes; it passed 50 runs in a row.
+
+generation-output: unchanged
+
+## [8.0.3718] - 2026-11-08
+
+**Headline:** a script that measures how far each class quantity moves when one stand-in is moved across its registered range.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py` (GEN.1311, part one of the class fudge table): reads the registry's constant and knobs cells, overrides one module constant at a time (low end, high end) on a fixed sample of systems, and records how far gravity, mean temperature, pressure, gas shares, ocean cover, the regional, day and night temperatures and the wet bulb move. `rows` lists which registry rows can be overridden and why the others cannot; `screen` runs the pass and writes a report. Nothing it does changes a generated world.
+
+## [8.0.3717] - 2026-11-08
+
+**Headline:** The registry now keeps eighteen known gaps from the unseen-compounds report as watch lines, each with its status, its chance of existing, its chance that the predicted properties are right, and why it changes no generated number yet.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` section 6.238 lists the watch lines: solid metallic hydrogen, sulfide and salt clouds, ices beyond ice X, the Mercury hollows phase, Titan cryominerals, superionic iron alloys, Venus heavy-metal frost, tholins, bcc iron, Fe-Si-O phases, noble-gas compounds, doubly superionic ammonia-water, post-post-perovskite, phosphine on Venus, dimethyl sulfide on K2-18 b, quark cores, azotosomes and superheavy nuclides.
+- Each line has a status in `evidence-register.md`: predicted only, disputed (solid metallic hydrogen, phosphine, dimethyl sulfide) or observed in a lab (the Titan co-crystals). Fifteen papers join the references.
+
+generation-output: unchanged
+
+## [8.0.3716] - 2026-11-08
+
+**Headline:** The list of stand-in values now says for every row whether the thing it stands for has been seen: in a planet, in a laboratory, predicted only, or disputed. Seven materials that were once only predicted are now ordinary seen rows.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` has an evidence-status column, filled from `docs/design/research/evidence-register.md`; a row with no line there reads `predicted only`, and a test fails if any row has no status. A short note beside the tier explains the four statuses.
+- The Venus cloud and air rows (6.228, 6.229) are the first rows with a status: the acid droplets, sulfur dioxide and the trace gases are seen in the planet, and disulfur monoxide stays predicted only.
+- New section 6.237 records BC8 carbon, superionic water ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, and ambient-pressure cubic gauche nitrogen as seen in the laboratory, each with its paper in the references. No number the generator computes changes.
+
+generation-output: unchanged
+
+## [8.0.3715] - 2026-11-08
+
+**Headline:** The list of stand-in values now says for every row whether the thing it stands for has been seen: in a planet, in a laboratory, predicted only, or disputed. Seven materials that were once only predicted are now ordinary seen rows.
+
+### Added
+
+- `docs/design/research/stand-in-values.md` has an evidence-status column, filled from `docs/design/research/evidence-register.md`; a row with no line there reads `predicted only`, and a test fails if any row has no status. A short note beside the tier explains the four statuses.
+- The Venus cloud and air rows (6.228, 6.229) are the first rows with a status: the acid droplets, sulfur dioxide and the trace gases are seen in the planet, and disulfur monoxide stays predicted only.
+- New section 6.237 records BC8 carbon, superionic water ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, and ambient-pressure cubic gauche nitrogen as seen in the laboratory, each with its paper in the references. No number the generator computes changes.
+
+generation-output: unchanged
+
+## [8.0.3714] - 2026-11-08
+
+**Headline:** The tests that need a system with a technological civilization start from four pinned candidate numbers instead of hunting for one, so test_species_limits takes about nine minutes and not over an hour.
+
+### Changed
+
+- `tests/data/civilized_pins.json` names four candidate numbers whose generated system holds a civilization; `python -m tests.civilized_pins refresh --hunt 4` writes them again after a change that alters generation, and `test_the_pinned_civilized_seeds_still_qualify` says when they are old.
+
+generation-output: unchanged
+
+## [8.0.3713] - 2026-11-08
+
+**Headline:** The chemistry the one measured acid cloud holds is now a registered set that the generator can give to any air with the supplies for it.
+
+### Added
+- **The sulfur-cloud chemistry set V1 to V10 and its six gates (GEN.1425, part A).** `physics/sulfur_cloud_set.py` and `physics/data/sulfur_cloud_set.json` hold the acid droplets, the sulfur gases, the lower sulfur oxides, sulfur aerosol, the chlorine and iron compounds and the measured ultraviolet-absorber band as stand-ins with tier, tweak and evidence status, and `chemistry(values)` says which of them an air gets: sulfur in an oxidising air, an acid cloud by the vapor curve of GEN.1424, reduced sulfur from the star's ultraviolet-C, chlorine, and iron and carbon supply. A hot volcanic carbon-dioxide world under a bright star gets V1 to V5 (and V6, V7 and V10 where chlorine and exposed iron are present), a cold sulfur-poor world gets none, and V8 and V9 are off by default. Nothing is stored yet; the cloud step reads it in part B.
+
+## [8.0.3712] - 2026-11-08
+
+**Headline:** The one-line description of a planet class and its class-page sentence now live in one row, with no number typed by hand and no Solar System feature stated as a fact of the class.
+
+### Changed
+
+- GEN.1432: each row of `planet_classes.json` now holds the class's `phrase` (what a planet or moon page says after "It is") beside its page `sentence`; `planet_class_text.json` is gone and `planet_class_text.py` reads the phrase from the class rows. The two had disagreed for about ten of the 25 letters (class A said "small, barren" though it asks for sulfur dioxide in the air; class F said "volcanic with shallow seas" though it asks for an air with almost no oxygen). The phrases are reconciled to what each class's conditions say.
+- The class-page sentences hold no digits: the temperatures, pressures and masses they typed by hand are gone, and the page's Conditions line (read from `planet_class_fit.json`) carries the numbers. The loader refuses a row whose sentence has a digit or whose phrase is empty or starts in capitals.
+- Class J no longer says every gas giant has rings, class I no longer says every ice giant has a tilted magnetic field, and classes N and U no longer say "Venus-like" and "Titan-like". A test checks that no class text names a Solar System feature.
+- Nothing stored changes: the phrase is read when a page is built.
+
+generation-output: unchanged
+
+## [8.0.3711] - 2026-11-08
+
+**Headline:** The vapor pressure of sulfuric acid and water over aqueous sulfuric acid, and the window a sulfuric acid cloud condenses in, are now computed from published thermodynamics.
+
+### Changed
+- **The curve that decides where sulfuric acid and water condense together (GEN.1424).** A new `physics/sulfuric_vapor.py` and `physics/data/sulfuric_vapor.json` give the activities of acid and water in the solution at any strength from 200 to 350 K (Zeleznik 1991, checked against its Table 7), the pure acid curve (Ayers with the Kulmala and Laaksonen correction, read from three open papers) and the water curve of Tabazadeh and others 1997, and `condensation_temperature_k` and `window` for the cloud base. A Venus-like air (30 ppm water, 3 to 10 ppm acid vapor, 1.3 bar) condenses at 356 to 370 K as a 97 to 99 percent solution and the strength falls to the 80s at the cloud top. Nothing stored changes: the cloud step of GEN.1425 will read it.
+
+## [8.0.3710] - 2026-11-08
+
+**Headline:** The map menu test accepts the layer counts and the gravity slab label as text.
+
+### Fixed
+- **Galaxy and sector menu browser test (TEST.696).** The check that every visible word in a map menu is a heading or a control flagged the "8 of 9 on" counts beside the layer groups and the "slab 9 of 16" label of the Gravity settings. Both are readouts that belong to the menu, so the test now lets them through, as it already does for the group headings and the gravity note.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (galaxy and sector menus).
+
+## [8.0.3709] - 2026-11-08
+
+**Headline:** A neutron star's page now shows the nuclear pasta layer at the bottom of its crust, the five shapes the nuclei are predicted to take, marked as predicted and never observed.
+
+### Changed
+
+- GEN.1427: `neutron_star_crust.PASTA` (data in `neutron_star_crust.json`, block `pasta`) holds the layer below the inner crust: from 0.2 of the normal nuclear density (0.165 nucleons per fm^3) to the bottom of the crust table, about 100 m thick, holding up to half the crust's mass, with the shapes in order of rising density (gnocchi, spaghetti, lasagna, anti-spaghetti, anti-gnocchi). The loader refuses a block with fewer than three shapes, a start above the crust-core boundary or a mass share above 1. The neutron star page's Crust table has a new row, "Nuclear pasta", that says it is predicted, not observed. Stand-ins PS1 to PS3 in section 6.232; sources [R5165, R5166, R5167].
+- Nothing stored changes: the layer is a described fact read when the page is built, so the generated systems are the same as before.
+
+generation-output: unchanged
+
+## [8.0.3708] - 2026-11-08
+
+**Headline:** The block light totals stage is now held to the workers the host's memory holds, and a stage's cut into units runs with the other workers gone, so a full-galaxy run is less likely to be killed for memory at the end of the block lights.
+
+### Changed
+- **The block lights have a worker memory (PERF.226).** `refresh-block-lights` is exempt from the unit-length ceiling (`whole`) but is cut into one unit per run of shells (90 on the full galaxy), and it had no figure in `workers.STAGE_WORKER_MEMORY_MB`, so the run's 15 workers were all kept (15,128 MB of a 15,992 MB host when the run of 2026-11-08 was killed). It now has the lean figure (700 MB), 11 workers on that host.
+- **The workers beside the opener leave before a stage is cut (PERF.226).** The unit that completes a stage cuts the next one in its own work horse; the other workers only waited, each holding what its last unit left. The cut now asks them to finish and exit first (`workers.shed_bulk`), and the run's `ensure` does not start workers while a cut is in progress; it starts the next stage's workers once the cut is done.
+
+Output unchanged.
+
+## [8.0.3707] - 2026-11-08
+
+**Headline:** A written class code such as F2 now works in the class filters and the class page address: a letter alone still matches every digit, a letter and a digit match that one position.
+
+### Changed
+
+- GEN.1208: `class_code.parse_code` is read where a class code is typed or linked: the planet and moon class filters of the database queries and of the search page (`F` matches F, F1 to F4 as before; `F2` matches digit 2 of the family only, `M0` the ideal), and the class page address (`/classes/planet/F2` goes to the page of class F, the digit being a position of the family; an unknown code is still a 404). No stored value changes, and nothing that was matched before is matched differently.
+
+generation-output: unchanged
+
 ## [8.0.3706] - 2026-11-08
 
 **Headline:** `physics.hydrosphere`, `bulk_draw` and the other modules on the same import chain now import on their own, and two item codes that showed in text are cut (GEN.1401).

@@ -132,19 +132,30 @@ def _expand(conn, run_id, index):
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
     step comes from the run record, so any process can do this.
 
-    The cut is the *opening* of the stage (PERF.252): it runs in the work horse of the last unit of the stage before, so the run
-    record names the stage being opened (`runrecord.begin_opening`) while it lasts, for a kill or a failure to say so, and the log
-    says that it is opening and how much memory the process holds after each step, since the stage's own start line is written
-    only when the cut is done.
+    The cut is the *opening* of the stage (PERF.252). Since PERF.254 it is a job of its own (`units.open_stage`), claimed on the memory
+    gate; the run record names the stage being opened (`runrecord.begin_opening`) while it lasts, and the log says that it is opening and
+    how much memory the process holds after each step, since the stage's own start line is written only when the cut is done.
 
     Returns:
         int: How many units the stage queued.
     """
     runrecord.begin_opening(conn, run_id, index)
+    _clear_the_floor_for_the_opening(conn, run_id)
     try:
         return _open(conn, run_id, index)
     finally:
         runrecord.end_opening(conn, run_id)
+
+
+def _clear_the_floor_for_the_opening(conn, run_id):
+    """
+    PERF.226: asks every bulk worker but the one that opens the stage to finish and exit, so the cut has the host's memory to itself.
+    The stage before is complete, so the others only wait, each holding what its last unit left (up to 2,100 MB with the star tables):
+    the run of 2026-11-08 held 15 workers at 15,128 MB of 15,992 when the cut of the stage after the block lights was killed. The
+    run's `ensure` starts the next stage's workers again once the cut is done (`_await_plan` holds it back until then).
+    """
+    if queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))) == redisqueue.BULK_QUEUE:
+        workers.shed_bulk(conn, 1)
 
 
 def _say_opening(conn, run_id, index, text, held):
@@ -402,18 +413,6 @@ def stage_name(conn, run_id, index):
     return label or str(index)
 
 
-def opening_note(conn, run_id, stage):
-    """
-    What a failure message adds when the process that failed was opening a stage (PERF.252): `" while it was opening stage <label>"`,
-    or `""`. The opening of a stage runs in the work horse of the last unit of the stage before it, so that unit is named by the job
-    and the stage being opened is not.
-    """
-    opened = runrecord.opening(conn, run_id)
-    if opened is None or opened == stage:
-        return ""
-    return f" while it was opening stage {stage_name(conn, run_id, opened)}"
-
-
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
@@ -584,7 +583,7 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         if state not in runrecord.LIVE_STATES:
             error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
             raise units.RunStopped(error or f"the run {state} before stage {index} was queued")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS:
+        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and runrecord.opening(conn, run_id) is None:
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)

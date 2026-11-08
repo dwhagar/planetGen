@@ -76,8 +76,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| function | planetgen.physics.super_puff.tidal_inflation_ratio | GEN.1347 | the obliquity-tide inflation of a super-puff's radius ([R3079] eq. 14); `envelope_capture.kept` multiplies it in once the planet has a drawn obliquity and tidal quality (the spin step draws the tilt after the envelope) |
-| function | planetgen.physics.super_puff.tidal_luminosity_ratio | GEN.1347 | the tidal power over the starlight that gates `tidal_inflation_ratio` (1e-5), read with it |
 | module | planetgen.physics.helium_fractionation | GEN.1047 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
@@ -122,7 +120,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ice_types | GEN.1201 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
 | function | planetgen.physics.roundness.is_round | GEN.1201 | whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it |
 | row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
-| function | planetgen.physics.class_code.parse_code | GEN.1208 | reads a written class code (M, F2) into its letter and digit; the search filter and the class pages take it with the best-fit classifier, which is the first to write a digit above 0 |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
 | column | dynamical_state | GEN.291 | `planets` and `moons`: every body is `bound`; the unbind and capture test of GEN.291 is what sets `unbound` |
@@ -249,3 +246,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
 | row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
+| module | planetgen.physics.sulfuric_vapor | GEN.1425 | the vapor pressure of sulfuric acid and water over aqueous sulfuric acid and the window the liquid condenses in (GEN.1424); the cloud step of the Venus chemistry set reads `condensation_temperature_k` and `window` for the cloud base and top |
+| data | sulfuric_vapor.json | GEN.1425 | read by `physics/sulfuric_vapor.py` only |
+| module | planetgen.physics.sulfur_cloud_set | GEN.1425 | the sulfur-cloud chemistry set and its six gates (part A of GEN.1425); the cloud step (the acid cloud base and strength from the window of `sulfuric_vapor`, the colour band V10 of `absorber_depth`) is part B and reads `chemistry` |
+| data | sulfur_cloud_set.json | GEN.1425 | read by `physics/sulfur_cloud_set.py` only |

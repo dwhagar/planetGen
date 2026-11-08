@@ -1500,6 +1500,18 @@ Moon counterpart of `planet_deposit_types` — identical shape, `moon_id` FK -> 
 
 Rogue planet counterpart of `planet_deposit_types` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
 
+### `planet_isotopes`
+
+Added in v235 (GEN.1377, GEN.1420). The isotope record of a planet: one row per isotope of each element it holds. `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `element` (VARCHAR(3), the symbol), `isotope` (VARCHAR(8), `H-2`; unique with `planet_id`), `fraction` (DOUBLE, CHECK 0 to 1: the atom fraction of the element, the rows of one element add up to 1), `initial_ratio` (DOUBLE, nullable: the atom ratio of a radioactive isotope to its stable reference isotope at the body's formation; NULL where it is not followed) and `origin` (VARCHAR(12): `natural` the table's mix, `physical` a law of the star's metals and age and the temperature the ice formed at, `decay` a radioactive isotope at the body's age, `radiogenic` a daughter of the body's own decays; `extinct` and `cosmogenic` in the second part). No row means no record (a row saved before v235, a body with no stored composition). `physics/isotope_record.py`, [isotope-record.md](../design/composition/isotope-record.md).
+
+### `moon_isotopes`
+
+Moon counterpart of `planet_isotopes` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`).
+
+### `rogue_planet_isotopes`
+
+Rogue planet counterpart of `planet_isotopes` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
+
 ### `moon_interior_layers`
 
 Moon counterpart of `planet_interior_layers` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
@@ -2298,12 +2310,14 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │             ├──1───* planet_reflection_spectrum
                   │             ├──1───* planet_interior_layers
                   │             ├──1───* planet_deposit_types
+                  │             ├──1───* planet_isotopes
                   │             ├──1───* planet_gases
                   │             └──1───* moons
                   │                       │
                   │                       ├──1───* moon_reflection_spectrum
                   │                       ├──1───* moon_interior_layers
                   │                       ├──1───* moon_deposit_types
+                  │                       ├──1───* moon_isotopes
                   │                       └──1───* moon_gases
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
@@ -2376,7 +2390,7 @@ Migration 0192 adds `ring_age_yr` (DOUBLE, NULL) to `planets`, `moons` and `rogu
 Migration 0191 adds three nullable columns at the end of `planets` and `moons`, derived by `physics/ocean_tides.py` from the stored mass, radius, spin axis and rotation period, orbits, moons and hydrosphere: `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres: the equilibrium high-to-low range with every tide-raiser in line, and with the largest against the rest; `0` for an ice-covered ocean, NULL for a body without a free sea, that is any other hydrosphere, a gas giant, or a body with no spin on record) and `ocean_liquid` (VARCHAR(40): the liquid of that sea, `water` until the surface liquid inventory of GEN.1035 names others). They are the value a deep ocean would have if it followed the tidal potential freely; the range on a coast depends on the shape and depth of the basin and on its resonance and can exceed it many times. A row made before v187 keeps NULL; nothing is backfilled; a stopped run can be started again (a column already there is skipped).
 ### v208 (GEN.1212): a body keeps no description text
 
-Migration 0208 drops `description` from `planets` and `moons`. It held the sentence of the body's class, copied from `tuning.PLANET_CLASSES`; the words are now read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`, `description(letter, moon=False)`; `description(None)` for the Asteroid type), so a change to the wording reaches every stored body without a regeneration. A column already gone is skipped.
+Migration 0208 drops `description` from `planets` and `moons`. It held the sentence of the body's class, copied from `tuning.PLANET_CLASSES`; the words are now read at view time from `physics/data/planet_classes.json` (`physics/planet_class_text.py`, `description(letter, moon=False)`; `description(None)` for the Asteroid type), so a change to the wording reaches every stored body without a regeneration. A column already gone is skipped.
 
 ### v210 (GEN.1232): the history of a belt
 

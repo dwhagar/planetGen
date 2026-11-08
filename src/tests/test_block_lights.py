@@ -363,3 +363,64 @@ def test_refreshing_the_block_lights_logs_its_phases(lit, caplog):
     assert "Making the block light totals" in text
     assert "Looking for the sector shells" in text
     assert f"Made {written:,} block light totals." in text
+
+
+def test_the_block_lights_stage_has_one_bar_that_moves_in_all_three_parts_and_ends_only_at_the_end(lit):
+    """PERF.251: the units of shells, the levels above them and the uncharted index share one bar; it never stands at its end before the index is done."""
+    from planetgen.generation import run_plan
+
+    config, stars, points = lit
+    conn = store.get_connection(config)
+    try:
+        reports, phases = [], []
+        written, made = run_plan.make_block_lights(conn, lambda done, total: reports.append((done, total)), phases.append)
+        assert written > 0
+        done = [value for value, _total in reports]
+        assert {total for _value, total in reports} == {run_plan.BLOCK_LIGHTS_BAR_TOTAL}
+        assert done == sorted(done) and done[-1] == run_plan.BLOCK_LIGHTS_BAR_TOTAL
+        assert done.index(run_plan.BLOCK_LIGHTS_BAR_TOTAL) >= len(done) - 2      # only the index's last shell and the stage's own end
+        units_end = run_plan.BLOCK_LIGHTS_UNITS_SHARE
+        roll_end = units_end + run_plan.BLOCK_LIGHTS_ROLL_SHARE
+        assert any(0 < value <= units_end for value in done) and any(units_end < value <= roll_end for value in done)
+        assert any(roll_end < value < run_plan.BLOCK_LIGHTS_BAR_TOTAL for value in done) or made == 0
+        assert any("levels above" in text for text in phases) and any("uncharted" in text.lower() or "waiting objects" in text for text in phases)
+    finally:
+        conn.close()
+
+
+def test_adding_up_the_levels_above_reports_its_progress(lit):
+    config, stars, points = lit
+    conn = store.get_connection(config)
+    try:
+        block_lights.rebuild(conn)
+        conn.execute("DELETE FROM galaxy_block_lights WHERE m > ?", (block_lights.UNIT_LEVEL,))
+        conn.commit()
+        fractions = []
+        rows = block_lights._above_unit(conn, fractions.append)
+        assert rows > 0 and fractions and fractions == sorted(fractions) and fractions[-1] == 1.0 and all(0 <= f <= 1 for f in fractions)
+        stored = conn.execute("SELECT COUNT(*) AS n FROM galaxy_block_lights WHERE m > ?", (block_lights.UNIT_LEVEL,)).fetchone()["n"]
+        assert rows == stored
+    finally:
+        conn.close()
+
+
+def test_the_sectors_a_run_made_leave_out_the_uncharted_placeholder_rows(lit):
+    """PERF.252: the backfill takes `sector_centers_since` for the run's sectors; a placeholder row the block lights stage wrote (no chart ledger cell) is not one."""
+    from planetgen.db import uncharted_index
+
+    config, _stars, _points = lit
+    conn = store.get_connection(config)
+    try:
+        since = conn.execute("SELECT NOW() - INTERVAL 5 SECOND AS now").fetchone()["now"]
+        made = uncharted_index.index(conn)
+        conn.commit()
+        placeholders = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index IS NOT NULL").fetchone()["n"]
+        assert placeholders > 0 and made, "the fixture's objects should give placeholder rows"
+        assert store.sector_centers_since(conn, since) == []
+        conn.execute("INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index)"
+                     " VALUES ('Charted', 4000, 1.0, 2.0, 3.0, 3.7, 31, 3, 5)")
+        conn.execute("INSERT INTO chart_ledger (shell_index, band_index, wedge_index, generator_epoch) VALUES (31, 3, 5, 1)")
+        conn.commit()
+        assert store.sector_centers_since(conn, since) == [(1.0, 2.0, 3.0)]
+    finally:
+        conn.close()

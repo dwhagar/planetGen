@@ -46,7 +46,7 @@ from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, 
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world, life_classes, life_scores, score_filters
+from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
@@ -1157,6 +1157,34 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
                     lambda c: {"placement": [], "binary": [], "octant": []})
 
 
+def _class_clause(alias, codes, clauses, params):
+    """
+    Appends the filter on `alias.planet_class` for the written class `codes` (a set of tags such as `{"M", "F2"}`). A letter alone matches all its digits
+    ("Searching or filtering by a letter matches all its digits", `physics/class_code.py`); a letter and a digit (`class_code.parse_code`, GEN.1208) matches that
+    position of the family only, a stored digit of NULL being digit 0. A tag that is not a class code matches nothing, as it did.
+    """
+    letters, coded = [], []
+    for code in sorted(codes):
+        if code[-1:].isdigit():
+            try:
+                coded.append(class_code.parse_code(code))
+                continue
+            except class_code.ClassCodeError:
+                pass
+        letters.append(code)
+    parts = []
+    if letters:
+        parts.append(f"{alias}.planet_class IN ({','.join('?' * len(letters))})")
+        params.extend(letters)
+    for letter, digit in coded:
+        parts.append(f"({alias}.planet_class = ? AND COALESCE({alias}.class_variant, 0) = ?)")
+        params.extend((letter, digit))
+    if len(parts) == 1:
+        clauses.append(parts[0])
+    elif parts:
+        clauses.append("(" + " OR ".join(parts) + ")")
+
+
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
     """
     Builds the shared `WHERE`/params fragment `list_planets` and
@@ -1183,8 +1211,7 @@ def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km,
     clauses = []
     params = []
     if planet_class is not None:
-        clauses.append(f"{table_alias}.planet_class = ?")
-        params.append(planet_class)
+        _class_clause(table_alias, {planet_class}, clauses, params)
     size_range = None
     if min_radius_km is not None or max_radius_km is not None:
         size_range = (min_radius_km, max_radius_km)
@@ -7571,8 +7598,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _equipment_clause("p", equipment_tags, clauses, params)
     _score_clauses("p", tags or {}, "", clauses)
     if class_tags:
-        clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("p", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))
@@ -7604,8 +7630,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _equipment_clause("m", equipment_tags, clauses, params)
     _score_clauses("m", tags or {}, "moon_", clauses)
     if class_tags:
-        clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("m", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))

@@ -185,3 +185,12 @@ Built: rows 1 to 5 and 15 (porphyry, VMS, SEDEX and MVT, orogenic gold, epitherm
 - **Grade.** Held to the concentration factor times the crustal mean. Copper and zinc scale with the star's Cu/Fe and Zn/Fe over the reference mix's (`ore_deposits.over_iron`); gold and lead are not in the star set and follow the iron until GEN.1371 lands. Uranium comes from the body's own `c_u0_ppm` times the crust's 80-fold enrichment. VMS and SEDEX are graded on zinc, the key metal of their ranges.
 - **Left for later.** Lead, silver, molybdenum and the by-product metals of each type (one key element each, as the magmatic slice has); the abiotic route to the oxidising groundwater of the uranium type; the platinum-group co-products. Stagnant-lid bodies get no arc types, as the design says; the SEDEX type does not need the lid.
 
+
+## 14. Build notes: GEN.1423 (carbide slice, `physics/carbide_deposits.py`)
+
+Built: two mineral rows for a carbon-rich body, as rows of the same three child tables (no column, no migration): `moissanite_crust` (the SiC of the carbon rock) and `cohenite_metal` (Fe3C in the carbon-saturated metal). They are assessed after the ore pass and before the life pass's deposits, on streams of their own, and only when the body's rock is carbon rock (a star at C/O 0.8 or more, [R0455]); a silicate body has both `absent_by_state`.
+
+- **Moissanite grade.** The SiC share of the SiC-and-graphite rock, `1 / (1 + g)` for the graphite-over-rock `g` the bulk draw takes (0.05 to 0.40): 0.71 to 0.95. The count scales with the surface area and the stored crust thickness over 35 km.
+- **Cohenite grade.** From 0.30 up to the Fe3C share of iron saturated with carbon at the iron-carbon eutectic (4.3 percent carbon over the 6.69 percent of Fe3C, 0.64). The count scales with the metal mass fraction over the Earth's core share.
+- **Stand-ins** CH1 to CH3 in section 6.235 of `gap-filling-plan.md`.
+- **Left for later.** TiC (khamrabaevite), CaS and MgS of the carbide-planet suite (report row 15), diamond as a deposit, and the carbon mantle's equation of state (GEN.428's open item).

@@ -290,7 +290,19 @@ def _crust_block():
         fact("crust_outer", "Outer crust", "single nuclei in a lattice, each down to the density shown: ", *outer[:-1]),
         fact("crust_drip", "Neutron drip", "neutrons run free from ", _density(neutron_star_crust.NEUTRON_DRIP_G_CM3)),
         fact("crust_inner", "Inner crust", "clusters in a gas of free neutrons: ", *inner[:-1]),
+        fact("crust_pasta", "Nuclear pasta", *_pasta_text()),
     ])
+
+
+def _pasta_text():
+    """The nuclear pasta layer at the bottom of the crust (GEN.1427): predicted by calculation, not observed; the shapes the nuclei take with rising density."""
+    pasta = neutron_star_crust.PASTA
+    shapes = []
+    for item in pasta.shapes:
+        shapes += [f"{item.name} ({item.shape})", ", "]
+    return ["predicted, not observed: from ", _density(pasta.lower_g_cm3), " to ", _density(pasta.upper_g_cm3), " at the core, a layer about ",
+            qty("length", pasta.thickness_m, "m"), " thick that may hold up to ", qty("fraction", pasta.crust_mass_share_at_most, "frac"),
+            " of the crust's mass; with rising density the nuclei are predicted to take these shapes in turn: ", *shapes[:-1]]
 
 
 def _star_section(star, children=()):
