@@ -843,13 +843,6 @@
       "first_release": "8.0.3721",
       "reason": "Train 19: snow line solid jump with retuned giants, superionic water and ammonia boundaries, moissanite and cohenite deposits, carbon sink after the oxygen rise, isotope record part 1, GEN.1347, block lights last",
       "affects": ["plan", "scatter", "fill", "population"]
-    },
-    {
-      "epoch": 142,
-      "first_release": null,
-      "pending": true,
-      "reason": "GEN.1425 part B: the sulfuric acid cloud in the aerosols with its base and strength from the sulfuric acid curves (GEN.1424, GEN.1019), the acid-medium strength from the same model (GEN.888), the cloud's ultraviolet absorber in the sky colour (V10)",
-      "affects": ["fill"]
     }
   ]
 }
