@@ -59,7 +59,6 @@ NEEDS_NO_ROW = {
     "habitability_world.BALANCE_MOLAR_KG": "the molar mass of the balance gas: a standard molar mass",
     "habitability_world.CARBON_KG_MOL": "the molar mass of carbon",
     "habitability_world.NITROGEN_KG_MOL": "the molar mass of nitrogen",
-    "tuning.HABITABLE_PLANET_CLASSES": "a legacy list of class codes, retired by the class cut-over (GEN.646)",
 }
 """dict: The names of the life code that carry no stand-in value, and why."""
 

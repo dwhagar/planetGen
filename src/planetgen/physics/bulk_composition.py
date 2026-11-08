@@ -58,6 +58,8 @@ DETAIL_ATTRIBUTES = {
     "envelope_helium": "envelope_helium_fraction",
     "envelope_z": "envelope_z_fraction",
     "porosity": "porosity",
+    "core_ni": "core_ni_fraction",
+    "core_light": "core_light_fraction",
 }
 """dict: The optional descriptors and their attributes. `None` where the body has none (a rock fraction of an
 envelope-only giant, a porosity of a planet)."""
@@ -95,6 +97,8 @@ class BulkFractions:
         envelope_helium (float or None): Y, a mass fraction of the envelope.
         envelope_z (float or None): Heavy elements, a mass fraction of the envelope.
         porosity (float or None): Void share of a small body's volume.
+        core_ni (float or None): Ni as a mass fraction of the metal (GEN.1364).
+        core_light (float or None): The light elements (S, Si, O, C, H) together, as a mass fraction of the metal; `core_composition` splits them.
         carbon_rock (bool): The rock is silicon carbide and graphite, not silicate.
         origin (str): One of `ORIGINS`.
         ice_shares (dict or None): The non-water ice by species as shares of `ice` (`ice_species.SPECIES` and `OTHER`), adding up to 1; `None`
@@ -112,6 +116,8 @@ class BulkFractions:
     envelope_helium: float | None = None
     envelope_z: float | None = None
     porosity: float | None = None
+    core_ni: float | None = None
+    core_light: float | None = None
     carbon_rock: bool = False
     origin: str = "drawn"
     ice_shares: dict | None = None

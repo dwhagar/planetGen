@@ -59,7 +59,7 @@ def test_every_row_of_the_plan_carries_a_composition_that_adds_up_and_the_clouds
         assert all(row[column] is not None for column in nc.FIELD_COLUMNS), row
         assert row["mass_fraction_h"] + row["mass_fraction_he"] + row["mass_fraction_z"] == pytest.approx(1.0, abs=1e-5)
         assert row["ionized_share"] + row["atomic_share"] + row["molecular_share"] == pytest.approx(1.0, abs=1e-5)
-        grains = row["grain_silicate"] + row["grain_iron"] + row["grain_carbon"] + row["grain_pah"] + row["grain_ice"]
+        grains = sum(row[column] for column in nc.GRAIN_COLUMNS.values())
         assert grains == pytest.approx(1.0, abs=1e-5) or row["dust_to_gas"] == 0.0
     assert len({round(row["gas_oh_dex"], 4) for row in rows}) > len(rows) // 2          # each cloud has its own gas, keyed on its place
     assert len({round(row["mass_fraction_z"], 5) for row in rows}) > 10

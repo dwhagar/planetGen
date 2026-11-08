@@ -16,6 +16,7 @@ import pytest
 from planetgen.describe import build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
+from planetgen.generation.system import StarSystem
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 from planetgen.physics import constants, gases, planet_classes, surface_air
@@ -182,13 +183,16 @@ def test_the_flavor_line_is_stored_as_a_key_and_read_back_from_it(host_star, mon
     assert planetLife.flavor_line(None) is None
 
 
-def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star):
+def test_habitable_world_false_bars_a_planet_that_meets_the_request_instead_of_drawing_it_again(host_star):
+    """GEN.1397: a planet is drawn once; the bar is on the conditions of a habitable world, not a class letter, and a planet that meets them is what
+    a barred body is dropped for (`_drop_barred_bodies`), never drawn again."""
     cfg = SystemConfig()
     cfg.HABITABLE_WORLD = False
     distance = distance_for_zone(host_star, 'e')
     for seed in range(15):
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
-        assert not habitable_request.meets(planet)         # GEN.916: the bar is on the conditions of a habitable world, not a class letter
+        if habitable_request.meets(planet):
+            assert StarSystem._barred(planet)
 
 
 @pytest.mark.parametrize("zone", list(ZONE_CHARS))
@@ -200,8 +204,6 @@ def test_fully_random_planet_respects_zone_and_habitable_world(host_star, zone, 
     for seed in range(6):
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
         assert planet.zone == zone
-        if habitable_world is False and zone == 'e':  # the bar is on the ecosphere; a hot or cold body's conditions are its own
-            assert not habitable_request.meets(planet)
 
 
 def test_a_moon_keeps_its_orbit_around_its_parent(host_star):

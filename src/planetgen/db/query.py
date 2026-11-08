@@ -87,7 +87,7 @@ from planetgen.galaxy.navigation import (
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
-    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
+    DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
@@ -4339,9 +4339,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
-    `StarSystem.count_habitable` uses), `habitable_class` (its class is one of `tuning.HABITABLE_PLANET_CLASSES`),
-    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column, kept
-    for a habitable class only) and
+    `StarSystem.count_habitable` uses), `habitable_class` (its conditions support a life class, or one lives on it, GEN.1387: no list of class letters),
+    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column) and
     `inhabited` (reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -4354,9 +4353,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["life_classes"] = _life_classes_of(body, living)
-    body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["habitable_class"] = body["life_class_id"] is not None or bool(body["life_class_scores"])      # GEN.1387: the conditions support a life class, or one lives here
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
-    body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
     body["compact_host"] = compact_host
     body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
