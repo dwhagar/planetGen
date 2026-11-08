@@ -55587,6 +55587,166 @@
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
       "title": "Stand-ins of the radiation field of a system"
+    },
+    {
+      "key": "6.240",
+      "number": "6.240",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the pressures of the winds of the host and of each companion add as scalars (momentum flux per area, each falling as the time-averaged 1/d^2 of the companion's orbit round the host); the standoff is taken against the sum, the upper bound where winds meet from opposite sides"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a body well inside its host's window"
+            ],
+            [
+              "What would show it wrong",
+              "a magnetohydrodynamic run of two winds that puts the standoff of a planet between two stars outside the sum's by over 20 percent"
+            ],
+            [
+              "What replaces it",
+              "a vector sum with the stars' directions at each phase"
+            ],
+            [
+              "Evidence",
+              "the wind is a momentum flux that falls as the inverse square of the distance, as the host's does in wind_pressure_pa; same geometry as RF1 to RF3"
+            ]
+          ],
+          "id": "WN1",
+          "key": "6.240:WN1",
+          "kind": "P",
+          "slug": "6-240-wn1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the pressures of the winds of the host and of each companion add as scalars (momentum flux per area, each falling as the time-averaged 1/d^2 of the companion's orbit round the host); the standoff is taken against the sum, the upper bound where winds meet from opposite sides"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose companion is a remnant or a brown dwarf with partial data"
+            ],
+            [
+              "What would show it wrong",
+              "a stored wind of such a companion"
+            ],
+            [
+              "What replaces it",
+              "a wind law for remnants and brown dwarfs"
+            ],
+            [
+              "Evidence",
+              "the same rule as RF5: no stored value gives none of that band"
+            ]
+          ],
+          "id": "WN2",
+          "key": "6.240:WN2",
+          "kind": "P",
+          "slug": "6-240-wn2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetosphere_pressure_pa: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's B^2 / (2 mu0) at the moon's orbit, in place of the wind"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an airless moon or one with a thin air inside a planet's field"
+            ],
+            [
+              "What would show it wrong",
+              "a measured standoff of a moon inside a planet's field that differs from this pressure's by over a factor of 1.5 in radius"
+            ],
+            [
+              "What replaces it",
+              "a plasma model of the planet's magnetosphere (the plasma pressure adds to the field's)"
+            ],
+            [
+              "Evidence",
+              "Ganymede in Jupiter's field comes out at 2.4 radii against the Galileo flybys' about 2 (read from memory, not from the paper)"
+            ]
+          ],
+          "id": "WN3",
+          "key": "6.240:WN3",
+          "kind": "T",
+          "slug": "6-240-wn3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "magnetosphere_pressure_pa: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's B^2 / (2 mu0) at the moon's orbit, in place of the wind"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets with a field"
+            ],
+            [
+              "What would show it wrong",
+              "a moon known to sit outside the parent's magnetopause that the test counts inside"
+            ],
+            [
+              "What replaces it",
+              "the standoff along the moon's local time (the magnetopause is farther on the day side)"
+            ],
+            [
+              "Evidence",
+              "the standoff of the wind's balance is the nose; the tail is farther, the flanks about the same"
+            ]
+          ],
+          "id": "WN4",
+          "key": "6.240:WN4",
+          "kind": "T",
+          "slug": "6-240-wn4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+        }
+      ],
+      "slug": "6-240-stand-ins-of-the-stellar-wind-of-a-system-and-a-moon-in-its-parent-s-field",
+      "title": "Stand-ins of the stellar wind of a system and a moon in its parent's field"
     }
   ]
 }

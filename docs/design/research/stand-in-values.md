@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1421 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1425 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1395 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1399 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 137 | 59 | 1 | 1 | 0 | 198 |
 | T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 71 | 11 | 2 | 19 | 10 | 113 |
-| T5 | 64 | 22 | 4 | 1 | 0 | 91 |
+| T5 | 67 | 22 | 4 | 1 | 0 | 94 |
 | T6 | 159 | 100 | 27 | 75 | 0 | 361 |
-| T7 | 38 | 16 | 9 | 30 | 0 | 93 |
+| T7 | 38 | 17 | 9 | 30 | 0 | 94 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 786 | 289 | 68 | 233 | 45 | 1421 |
+| All | 789 | 290 | 68 | 233 | 45 | 1425 |
 
 ## How the labels were given
 
@@ -2499,3 +2499,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RF3 | P | T7 | L0 | the source's orbit is averaged on `ORBIT_SAMPLES` = 96 points uniform in mean anomaly | 48 to 400 points | eccentricities under 0.9 | a result that moves by over 1e-4 between 96 and 400 points | an analytic average | numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits | predicted only | - | - |
 | RF4 | T | T6 | L0 | a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (`radiation_field.light_ratio`), against the host's habitable-zone edges | none | companions whose spectrum is like the host's | a companion of very different temperature, whose light the zone edges of the host do not describe | edges made from the combined spectrum | derived: the edges are fixed by the light a lone star gives at a distance | predicted only | - | - |
 | RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |
+
+## 6.240 Stand-ins of the stellar wind of a system and a moon in its parent's field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WN1 | P | T5 | L0 | the pressures of the winds of the host and of each companion add as scalars (momentum flux per area, each falling as the time-averaged `1/d^2` of the companion's orbit round the host); the standoff is taken against the sum, the upper bound where winds meet from opposite sides | none | a body well inside its host's window | a magnetohydrodynamic run of two winds that puts the standoff of a planet between two stars outside the sum's by over 20 percent | a vector sum with the stars' directions at each phase | the wind is a momentum flux that falls as the inverse square of the distance, as the host's does in `wind_pressure_pa`; same geometry as RF1 to RF3 | predicted only | - | - |
+| WN2 | P | T7 | L1 | a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance | none | systems whose companion is a remnant or a brown dwarf with partial data | a stored wind of such a companion | a wind law for remnants and brown dwarfs | the same rule as RF5: no stored value gives none of that band | predicted only | - | - |
+| WN3 | T | T5 | L0 | `magnetosphere_pressure_pa`: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's `B^2 / (2 mu0)` at the moon's orbit, in place of the wind | none | an airless moon or one with a thin air inside a planet's field | a measured standoff of a moon inside a planet's field that differs from this pressure's by over a factor of 1.5 in radius | a plasma model of the planet's magnetosphere (the plasma pressure adds to the field's) | Ganymede in Jupiter's field comes out at 2.4 radii against the Galileo flybys' about 2 (read from memory, not from the paper) | predicted only | - | - |
+| WN4 | T | T5 | L0 | a moon is inside its parent's magnetosphere when its orbit is closer than the parent's `magnetopause_rp` radii | none | planets with a field | a moon known to sit outside the parent's magnetopause that the test counts inside | the standoff along the moon's local time (the magnetopause is farther on the day side) | the standoff of the wind's balance is the nose; the tail is farther, the flanks about the same | predicted only | - | - |
