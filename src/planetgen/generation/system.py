@@ -565,8 +565,6 @@ class StarSystem:
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
-            if self.system_config.HABITABLE_WORLD is False:
-                self._bar_habitable_worlds()
             for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
                 if obj.body_type == 'a':
                     continue
@@ -1867,17 +1865,13 @@ class StarSystem:
                               "planet_class"/"moons" keys (see `SystemConfig.SLOTS`).
             estimated_distance (float): The orbital distance (in AU) computed
                                         for this slot by the generation loop.
-            planets (list, optional): Objects already placed earlier in this
-                same loop, passed through to `calculate_distance_for_class`
-                so an explicit class request doesn't land inside an
-                already-placed belt (see `_distance_avoiding_belts`).
+            planets (list, optional): Objects already placed earlier in this same loop.
 
         Returns:
             Planet or AsteroidBelt: The generated object for this slot.
 
         Raises:
-            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt", or a planet slot names an unknown class or a class that
-                can carry life while `HABITABLE_WORLD` is False.
+            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt", or a planet slot names an unknown class.
         """
         slot_type = slot_spec.get("type", "planet")
 
@@ -1888,34 +1882,10 @@ class StarSystem:
 
         if slot_type == "planet":
             planet_class = slot_spec.get("planet_class")
-            distance = self.calculate_distance_for_class(planet_class, estimated_distance, planets=planets)
-            return self.build_planet(self.star, self.star.habitable_zone, distance, planet_class=planet_class,
+            return self.build_planet(self.star, self.star.habitable_zone, estimated_distance, planet_class=planet_class,
                                      moon_count=slot_spec.get("moons"))
 
         raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
-
-    def calculate_distance_for_class(self, planet_class, estimated_distance, planets=None):
-        """
-        Adjusts an orbital distance for a requested `planet_class` (GEN.688). A class is derived from a finished body's conditions,
-        so no zone is named by it; the one request that has a place is a class that can carry life (`HABITABLE_PLANET_CLASSES`),
-        which only a world in the ecosphere can be, so it is snapped into the ecosphere (the same way the forced habitable world
-        is). Any other class keeps `estimated_distance`, and the body is drawn there (`build_planet`).
-
-        Args:
-            planet_class (str or None): The requested planet class, or None if the slot doesn't specify one.
-            estimated_distance (float): The orbital distance (in AU) computed for this slot by the generation loop.
-            planets (list, optional): Objects already placed earlier in this same loop -- passed through to
-                `_distance_within_zone_with_margin` so the adjusted distance doesn't land inside an already-placed belt.
-
-        Returns:
-            float: `estimated_distance`, or a distance (in AU) in the ecosphere for a class that can carry life.
-        """
-        if planet_class not in tuning.HABITABLE_PLANET_CLASSES:
-            return estimated_distance
-        inner, outer = self.star.habitable_zone
-        if inner < estimated_distance < outer:
-            return estimated_distance
-        return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
     def build_planet(self, star, habitable_zone, distance, planet_class=None, moon_count=None, planned_objects=None):
         """
@@ -1937,8 +1907,6 @@ class StarSystem:
         """
         if planet_class is not None and planet_class not in tuning.PLANET_CLASSES:
             raise ValueError(f"Unknown planet class {planet_class!r}; expected one of {''.join(sorted(tuning.PLANET_CLASSES))}.")
-        if planet_class in tuning.HABITABLE_PLANET_CLASSES and self.system_config.HABITABLE_WORLD is False:
-            raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
         if planet_class is None:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
         for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
@@ -1989,7 +1957,7 @@ class StarSystem:
 
         A planet deliberately placed right at a zone boundary (by the
         forced-habitable-world logic, via `_forced_habitable_distance`, or
-        an explicit slot request via `calculate_distance_for_class`) could
+        an explicit slot request) could
         otherwise get pushed across that boundary later, when
         `validate_system` enforces minimum separation from a neighboring
         asteroid belt -- which `physics.planets.reconcile_zone`
@@ -2031,8 +1999,7 @@ class StarSystem:
         """
         Draws a distance uniformly within `[lo, hi]`, excluding any
         already-placed `AsteroidBelt`'s own `[lower_limit, upper_limit]`
-        span -- the belt-awareness `_distance_within_zone_with_margin` and
-        `calculate_distance_for_class` need so a zone-forced planet
+        span -- the belt-awareness `_distance_within_zone_with_margin` needs so a zone-forced planet
         placement can't land inside a belt that already occupies part of
         that zone (see `docs/TODO.md`'s "generated system had two
         overlapping asteroid belts, and a planet orbit inside a belt"
@@ -2180,40 +2147,9 @@ class StarSystem:
 
     @staticmethod
     def _barred(body):
-        """Whether a finished planet or moon is what a system that bars habitable worlds keeps out: it meets the request's conditions or its class can carry life (GEN.1250, GEN.1275)."""
-        return habitable_request.meets(body) or planetPhysics.is_life_class(body)
-
-    def _bar_habitable_worlds(self):
-        """
-        Keeps a system that bars habitable worlds (`HABITABLE_WORLD` False) free of them in its finished bodies (GEN.1250). The first draw of a planet
-        (`Planet.__init__`) is judged before the star's final age, the star's light from every star, and the oxygen a life has built into the air
-        are in, and each can bring a body to the request's conditions (`habitable_request.meets`) or to a class that can carry life
-        (`planets.is_life_class`, GEN.1275: no body of any such class anywhere in the system); so the finished bodies are judged here, and a body
-        that is either has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
-        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still is either after that keeps its last draw:
-        the honest limit, counted in `StarSystem.barred_world_limit`; one of a class that can carry life is then left out of the system
-        (`_drop_barred_bodies`).
-        """
-        self.barred_world_limit = 0
-        for obj in self.all_planets:
-            if obj.body_type == 'a':
-                continue
-            for body in (obj, *list(obj.moons)):
-                if not self._barred(body):
-                    continue
-                for attempt in range(1, tuning.BARRED_CLASS_MAX_ATTEMPTS + 1):
-                    draw.redrawn("planet.barred_world_final")
-                    planetPhysics.remake_end_stages(body, obj, attempt)
-                    if body.is_moon:
-                        self._finish_moon(body, obj)
-                    else:
-                        self._finish_planet(obj)
-                        for moon in obj.moons:
-                            self._finish_moon(moon, obj)
-                    if not self._barred(body):
-                        break
-                else:
-                    self.barred_world_limit += 1
+        """Whether a finished planet or moon is what a system that bars habitable worlds keeps out: it meets the request's conditions or its rating is habitable,
+        Blue or Green (GEN.1250, GEN.1275, GEN.1387: a rating from the conditions, never a list of class letters; life on a world a human cannot live on is not barred)."""
+        return habitable_request.meets(body) or habitability.is_habitable(getattr(body, "phi4", None))
 
     def _settle_to_final_age(self):
         """
@@ -2276,9 +2212,10 @@ class StarSystem:
 
     def _drop_barred_bodies(self):
         """
-        GEN.1275: in a system that bars habitable worlds (`HABITABLE_WORLD` False) a planet or moon whose final class still can carry life, after the attempts to make
-        it again (`_bar_habitable_worlds`) and after the life pass (which can change an air), is not in the system: a moon leaves its planet's list, and a planet leaves the
-        system's with its moons. Returns whether any went.
+        GEN.1275, GEN.1397: in a system that bars habitable worlds (`HABITABLE_WORLD` False) a planet or moon that is what the bar keeps out (`_barred`: it
+        meets the request's conditions, or its rating is habitable) is not in the system, judged on the finished body, after the life pass and the final age:
+        a moon leaves its planet's list, and a planet leaves the system's with its moons. Nothing is drawn again. `barred_world_dropped` counts them.
+        Returns whether any went.
         """
         if self.system_config.HABITABLE_WORLD is not False:
             return False
@@ -2287,33 +2224,35 @@ class StarSystem:
             for planet in list(planets):
                 if planet.body_type == "a":
                     continue
-                if planetPhysics.is_life_class(planet):
+                if self._barred(planet):
                     planets.remove(planet)
                     dropped += 1
                     continue
                 for moon in list(planet.moons):
-                    if planetPhysics.is_life_class(moon):
+                    if self._barred(moon):
                         planet.moons.remove(moon)
                         dropped += 1
+        self.barred_world_dropped = dropped
         if dropped:
-            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them")
+            log.debug(f"{dropped} habitable bodies left a system that bars them")
         return dropped > 0
 
     def count_habitable_class_worlds(self, planets=None):
         """
-        Counts the planets and moons whose class can carry life (`tuning.HABITABLE_PLANET_CLASSES`). A report column only: a request
-        for a habitable world steers by conditions (GEN.916, `habitable_request.count`), and `count_habitable` says how a body scored.
+        Counts the planets and moons with life on them (`habitable_request.carries_life`, GEN.1387: life comes from the conditions of the finished body,
+        never from its class letter). A report column only: a request for a habitable world steers by conditions (GEN.916, `habitable_request.count`),
+        and `count_habitable` says how a body scored.
 
         Args:
             planets (list, optional): See `count_objects`'s identical parameter.
 
         Returns:
-            int: The number of planets and moons of a life class.
+            int: The number of planets and moons with life.
         """
         if planets is None:
             planets = self.all_planets
         return sum(1 for planet in planets if planet.body_type != 'a'
-                   for body in (planet, *planet.moons) if body.planet_class in tuning.HABITABLE_PLANET_CLASSES)
+                   for body in (planet, *planet.moons) if habitable_request.carries_life(body))
 
     def count_comets(self, comets=None):
         """

@@ -251,10 +251,6 @@ REQUEST_ODDS = 10.0
 planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
-# How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
-# from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
-BARRED_CLASS_MAX_ATTEMPTS = 30
-
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies
 # (belts, comets), not planets. Tier "from needed output", level L1.
@@ -2255,11 +2251,6 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
-"""
-list: A list of planet class codes that are considered habitable.
-"""
-
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text

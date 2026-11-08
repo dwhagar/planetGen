@@ -65,10 +65,8 @@ recommendation. Informs: GEN.83 to GEN.92.
   star system has these. A terrestrial rogue is scored from its surface too (`rogue_habitability.py`, [rogue-planet-surface.md](../systems/rogue-planet-surface.md)).
 - **Nebulae**: a system's `surrounding_cloud` is set only when it is
   loaded from the database, so generation can't see it.
-- **Life** is decided by class (`HABITABLE_PLANET_CLASSES`), and the life
-  chemical by the star's spectral letter. Classes N and Q carry a life
-  chemical and a stored timeline but are not in the habitable list, so the
-  page hides the timeline.
+- **Life** is decided by the conditions of the finished body (the life classes of `physics/life_classes.py`), never by its class letter: the list
+  `HABITABLE_PLANET_CLASSES` is gone (GEN.1387), and the page shows the timeline of any body that has one.
 
 ## 2. The scores (settled, GEN.84)
 

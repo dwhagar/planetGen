@@ -14,7 +14,6 @@ from planetgen.web.lib import classref  # noqa: E402
 
 def test_class_s_is_a_rocky_class_with_no_life():
     assert tuning.PLANET_CLASSES["S"]["type"] == "t" and "life_class" not in tuning.PLANET_CLASSES["S"]
-    assert "S" not in tuning.HABITABLE_PLANET_CLASSES
 
 
 def test_the_rule_gives_s_to_a_heavy_airless_rock():
