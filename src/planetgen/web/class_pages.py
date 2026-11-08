@@ -14,7 +14,7 @@ An unknown type or code is a 404. `class_url` is what the system,
 phenomenon and other pages use to link a class label here.
 """
 
-from flask import abort
+from flask import abort, redirect
 from markupsafe import Markup
 
 from planetgen.web.lib import habitability_ref, help_registry, life_help, sky_help  # noqa: F401  (each registers its help page)
@@ -195,6 +195,9 @@ def class_page(type_slug, code):
     entry = class_type(type_slug)
     item = class_entry(type_slug, code)
     if item is None:
+        parts = class_url_parts(type_slug, code) if type_slug in ("planet", "rogue-planet") else None      # GEN.1208: a written class code ("F2") goes to the page of its letter
+        if parts is not None and parts[1] != code:
+            return redirect(page_url("class_page", type_slug=parts[0], code=parts[1]), code=301)
         abort(404)
     # A letter reads well after its label ("Planet class M"); a word code
     # ("jupiter_family") is shown by its name instead.
