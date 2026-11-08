@@ -20,7 +20,10 @@ radius is that of a Neptune or a Saturn. Three papers say what makes one and wha
 
 The fade is the sum of two things the repository already has: the age term of the envelope law (`(age / 5 Gyr)^-0.18`, a puffy young planet
 contracts) and the loss of the envelope to the star's XUV (`envelope_escape.envelope_left_earth`, which starts at 1 Gyr). The paper gives no
-fading law of its own, so there is none here.
+fading law of its own, so there is none here. What keeps a super-puff inflated past 1 Gyr (Kepler-79 d, 1.9 to 3.4 Gyr; Kepler-27 b and 31 c, 4.7 Gyr) is the obliquity
+tide: `envelope_capture.kept` multiplies the radius by `tidal_inflation_ratio` for a planet of the settle pass, whose tilt and tidal quality are known (GEN.1347). A planet with
+no tilt (the first pass, before its spin) gets no tide. The tilt is the planet's own: a planet the tides of its star have brought to a synchronous or upright state has a tilt
+near zero and no obliquity tide, so the old super-puffs are the ones that kept a tilt.
 
 Use:
 
@@ -36,9 +39,6 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 
 MAX_MASS_EARTH = 10.0
 """float: A super-puff weighs under this (the design table; Lee and Chiang's class is 2 to 6 Earth masses, row PF1)."""
-
-MAX_AGE_GY = 1.0
-"""float: A planet is a super-puff while it is young (the design table: under 1 Gyr, row PF1). Older ones have contracted and are Neptunes."""
 
 PERIOD_RANGE_D = (10.0, 100.0)
 """tuple: The orbital periods a super-puff has, days (the design table, row PF1; Lee and Chiang have it under 50 days)."""
@@ -71,6 +71,13 @@ TIDAL_MIN_LUMINOSITY_RATIO = 1.0e-5
 
 TIDAL_MAX_RATIO = 2.0
 """float: The largest inflation: "it caps at about 2" (Sec. 4.1, row PF4)."""
+
+TIDAL_Q_PRIME_RANGE = (1.0e3, 1.0e5)
+"""tuple: The tidal quality factor `Q'` a sub-Neptune draws, log-uniform (STAND-IN PF5, T6, L1): the range of the planets of [R3079]'s tables (about 1e3 to 1e5; Neptune's own is
+1e4 to 1e5). It is drawn per planet by `envelope_capture.tidal_q_prime`; the obliquity is the planet's own (the spin step)."""
+
+MIN_OBLIQUITY_DEG = 0.01
+"""float: Under this tilt, degrees, a planet has no obliquity tide (`Q` runs to infinity as the sine falls; the Cassini-state tilts of the generator's synchronous planets are 0.01 to 1 degree)."""
 
 _TIDAL_FIT = (0.29, -0.90, 0.91, 3.11, -0.88)
 """tuple: [R3079] equation 14: `R(tides) / R(no tides) = 1 + a (M / 10 Me)^b (f_env / 0.05)^c (F / 100 F_earth)^d (Q / 1e5)^e`, with
@@ -125,8 +132,17 @@ def radius_earth(mass_earth, envelope, flux_earth, age_gy, tidal_ratio=1.0):
     return giant_radius.radius_km(mass_earth, mass_earth * (1.0 - envelope), flux_earth, age_gy) / constants.EARTH_RADIUS_KM
 
 
-def is_super_puff(mass_earth, radius_earth_, age_gy, period_d):
-    """Whether a planet is a super-puff: under `MAX_MASS_EARTH`, younger than `MAX_AGE_GY`, in `PERIOD_RANGE_D` and of a density under the top of
-    `DENSITY_RANGE_G_CM3`."""
-    return (mass_earth <= MAX_MASS_EARTH and age_gy <= MAX_AGE_GY and PERIOD_RANGE_D[0] <= period_d <= PERIOD_RANGE_D[1]
+def is_super_puff(mass_earth, radius_earth_, period_d):
+    """Whether a planet is a super-puff: under `MAX_MASS_EARTH`, in `PERIOD_RANGE_D` and of a density under the top of `DENSITY_RANGE_G_CM3`, at any age (GEN.1347: the
+    obliquity tide keeps one inflated, and Kepler-79 d is 1.9 to 3.4 Gyr old)."""
+    return (mass_earth <= MAX_MASS_EARTH and PERIOD_RANGE_D[0] <= period_d <= PERIOD_RANGE_D[1]
             and density_g_cm3(mass_earth, radius_earth_) <= DENSITY_RANGE_G_CM3[1])
+
+
+def q_term(q_prime, obliquity_deg):
+    """The `Q` of [R3079]: `Q' (1 + cos^2 eps) / sin^2 eps`, or `math.inf` for a planet whose obliquity is under `MIN_OBLIQUITY_DEG` (no obliquity tide)."""
+    epsilon = math.radians(obliquity_deg)
+    sine = math.sin(epsilon)
+    if abs(sine) < math.sin(math.radians(MIN_OBLIQUITY_DEG)):
+        return math.inf
+    return q_prime * (1.0 + math.cos(epsilon) ** 2) / sine ** 2

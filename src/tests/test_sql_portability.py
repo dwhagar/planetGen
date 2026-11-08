@@ -236,6 +236,8 @@ def _alter_item(tokens, j, found):
         j = _skip_if_exists(tokens, j)
         if j >= len(tokens):
             return
+        if action in ("DROP", "ALTER") and tokens[j].is_word("CHECK") and j + 1 < len(tokens) and tokens[j + 1].kind == "word":
+            return    # `DROP CHECK name` and `ALTER CHECK name ENFORCED`: CHECK is the constraint's kind here, not a column
         if action in ("ADD", "DROP") and tokens[j].is_word(*_NOT_COLUMN):
             if action == "ADD":
                 _table_element(tokens, j, found)
@@ -288,7 +290,7 @@ def _identifier_positions(tokens):
                 and not nxt.is_word(*_AFTER_AS_SYNTAX) and not (parens and parens[-1] in ("CAST", "CONVERT")):
             found.add(i + 1)
         # A table name.
-        if tok.upper in _TABLE_KEYWORDS and not (
+        if tok.upper in _TABLE_KEYWORDS and not (prev is not None and prev.text == ":") and not (
             tok.upper == "UPDATE" and prev is not None and prev.is_word("KEY", "ON", "FOR")
         ):
             j = i + 1

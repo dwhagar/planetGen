@@ -42,7 +42,7 @@ def inline_queue(monkeypatch=None):
     import redis
     import rq
 
-    from planetgen.queue import allowlist, redisqueue, runrecord, workers
+    from planetgen.queue import allowlist, memorygate, redisqueue, runrecord, workers
 
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
@@ -63,6 +63,7 @@ def inline_queue(monkeypatch=None):
         with contextlib.ExitStack() as stack:
             patch = monkeypatch or stack.enter_context(pytest.MonkeyPatch.context())
             patch.setattr(runrecord, "PREFIX", prefix)
+            patch.setattr(memorygate, "PREFIX", f"{prefix}:gate")
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
             patch.setattr(redisqueue, "MAINTENANCE_QUEUE", maintenance_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)

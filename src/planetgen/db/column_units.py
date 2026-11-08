@@ -474,6 +474,11 @@ TABLES = {
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
     },
+    "moon_isotopes": {
+        "id": ("id", "moon_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
+    },
     "moon_interior_layers": {
         "id": ("id", "moon_id"),
         "index": ("layer_index",),
@@ -753,6 +758,11 @@ TABLES = {
         "frac": ("grade",),
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
+    },
+    "planet_isotopes": {
+        "id": ("id", "planet_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "planet_interior_layers": {
         "id": ("id", "planet_id"),
@@ -1172,6 +1182,11 @@ ROGUE_BODY_UNITS = {
         "frac": ("grade",),
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
+    },
+    "rogue_planet_isotopes": {
+        "id": ("id", "rogue_planet_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "rogue_planet_interior_layers": {
         "GPa": ("bottom_pressure_gpa", "top_pressure_gpa",),
