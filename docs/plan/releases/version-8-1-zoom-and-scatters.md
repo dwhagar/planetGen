@@ -455,6 +455,19 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1427 | Neutron-star nuclear pasta: the inner crust layer between the outer crust and the core, in the neutron star interior and radius model |  | Boss, 2026-11-08. |
 | GEN.1428 | GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed |  | Boss, 2026-11-08. |
 | GEN.1429 | GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report | GEN.1428 | Boss, 2026-11-08. |
+| UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js |  | Lane 05, 2026-11-08. |
+| TEST.701 | The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt |  | Lane 05, 2026-11-08. |
+| DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) |  | Lane 05, 2026-11-08. |
+| TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j |  | Lane 05, 2026-11-08. |
+| TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) |  | Lane 05, 2026-11-08. |
+| DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word |  | Lane 05, 2026-11-08. |
+| DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py |  | Lane 05, 2026-11-08. |
+| DOC.111 | The link-neighbors command is in no document |  | Lane 05, 2026-11-08. |
+| DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out |  | Lane 05, 2026-11-08. |
+| GEN.1439 | A plan stores no container for each globular cluster |  | Lane 05, 2026-11-08. |
+| TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change |  | Lane 05, 2026-11-08. |
+| TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change |  | Lane 05, 2026-11-08. |
+| PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world |  | Lane 05, 2026-11-08. |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) |  | Boss, 2026-11-08. |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | Boss, 2026-11-08. |
 | GEN.1432 | Planet class one-liner and page sentence reconciled into one row: a phrase, and a number-free sentence with the numbers read from planet_class_fit.json through unit-aware formatting |  | Boss, 2026-11-08. |

@@ -13250,6 +13250,71 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
   Filed by the TODO thread.
 
+- [ ] **UX.294 Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 1; test_no_raw_measurement_formatting fails for daycounter.js, galaxyplane.js, galaxystrip.js, skypick.js, skysphere.js, systemgravity.js and systemsky.js. Do: route each number through the shared formatters. Done: the test passes and the pages show the same text. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.701 The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 2; test_web_old_urls_errors fails 4 cases (head/options, admin/anonymous). Do: add a belt reference value to the test's route table. Done: all four cases pass. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.118 Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug)**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 3; 2 cases fail on MySQL. Do: find the column added without its literal-insert row, fix the insert path, and check no other table drifted. Done: the test passes and the cause is named in the change note. Lock-free unless a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.702 Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 4; test_db_boundary_values fails 2 cases. Do: decide with the check owner whether the extreme values are valid input; make the test and util/checks agree. Done: both pass. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.703 Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest)**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 5; test_multistar_standin_registry fails 2 cases. Do: point the rows at the test that now covers the same behaviour (or restore it). Done: the registry test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.119 SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 6; test_sql_portability fails 2 cases. Do: rewrite with the portable form and quote the word. Done: the test passes on MySQL and the portable path. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.120 The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 7; test_point_columns fails. Do: add it to the right list with its reason. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DOC.111 The link-neighbors command is in no document**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 8; test_command_rules[link-neighbors] fails. Do: add the command to the command docs. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DOC.112 The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 9; test_web_formulas fails. Do: write the formula next to each name. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1439 A plan stores no container for each globular cluster**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 10; test_container_plan fails. Do: store the container for each globular cluster in the plan, or correct the test if the design says otherwise (ask TODO). Done: the test passes. Lock item if a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.704 test_class_sample[P] finds no class P planet in 24 tries after the class-last change**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 11. Do: make the sample draw conditions that give class P (or raise the tries with a stated reason), without reading the class letter in generation. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.705 test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 12; test_fuzz_system_generation. Do: decide whether the unknown-class check still belongs in generation or the test changes to match class-last; keep the invalid slot type check. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **PERF.255 Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 13, the same family as PERF.253. Do: profile the three, find the shared slow call and cache or shrink it. Done: each finishes under the timeout in the gate. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
