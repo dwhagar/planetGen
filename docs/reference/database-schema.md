@@ -1460,6 +1460,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` | DOUBLE | nullable | Added in v144 (DB.69, GEN.428). The body's bulk composition as shares of the whole mass: the iron-rich core (light elements included), the rock, every ice other than water, and the hydrogen and helium envelope. With `water_mass_fraction` they add up to 1. NULL on a row saved before v135. Read through `planetgen.physics.bulk_composition.bulk_fractions`. |
 | `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio` | DOUBLE | nullable | Added in v144. FeO and Al2O3 as mass fractions of the rock, and the rock's molar Mg/Si. NULL for a giant's rock-less composition and on a row saved before v135. |
 | `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction` | DOUBLE | nullable | Added in v227 (GEN.1362). Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5 as mass fractions of the rock. NULL for a carbon rock, a giant's rock-less composition and on a row saved before v227. |
+| `crust_thickness_km`, `craton_fraction`, `crust_sulfur_index` | DOUBLE | nullable | Added in v228 (GEN.1380). The mean crust thickness (km), the craton share of the crust (0 to 1) and how much sulfur the crust offers a rising mafic magma (0 to 1). NULL for a giant, a belt and a row saved before v228 (`physics/ore_deposits.py`). |
 | `envelope_helium_fraction`, `envelope_z_fraction` | DOUBLE | nullable | Added in v144. Y and the heavy elements as mass fractions of the envelope; NULL for a body without one. |
 | `porosity` | DOUBLE | nullable | Added in v144. The void share of a small icy body's volume; NULL for a body that has none. |
 | `carbon_rock`, `composition_origin` | BOOLEAN, VARCHAR(8) (CHECK drawn / inverse) | nullable | Added in v144. Whether the rock is silicon carbide and graphite (a star of C/O 0.8 or more, or class C), and whether the composition was drawn first (`drawn`) or worked back from a given mass and radius (`inverse`). |
@@ -1485,6 +1486,18 @@ Moon counterpart of `planet_reflection_spectrum` — identical shape,
 ### `planet_interior_layers`
 
 Added in v154 (DB.89, GEN.642). One row per layer of a giant planet's interior, outside in. `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `layer_index` (SMALLINT UNSIGNED, 0 at the top; unique with `planet_id`), `kind` (CHECK molecular_envelope / metallic_envelope / helium_gradient / helium_shell / dilute_core / compact_core / ice_mantle / rock_core), `state` (CHECK molecular_fluid / metallic_fluid / ionic_fluid / superionic / molten), `top_pressure_gpa` and `bottom_pressure_gpa` (GPa), `top_radius_fraction` and `bottom_radius_fraction` (a share of the body's radius), `mass_earth` (the layer's mass) and the mass of each material in it, in Earth masses (`hydrogen`, `helium`, `iron`, `rock`, `water_liquid`, `ice_x`, `nh3_ice`, `ch4_ice`; 0 where the layer has none). The layers add up to the body's mass, and the body's bulk composition columns are their totals ([giant-interiors.md](../design/composition/giant-interiors.md)). A body with no interior has no rows.
+
+### `planet_deposit_types`
+
+Added in v228 (GEN.1380). One row per magmatic ore type a rocky planet was assessed for (three: `ni_cu_pge_sulfide`, `chromitite`, `fe_ti_v_oxide`; later slices of the ore design add rows). `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `deposit_type` (VARCHAR(24), unique with `planet_id`), `status` (VARCHAR(20): `present`, `absent_by_state` where a gate failed or the host's cap fell under the bottom of the grade range, `absent_by_chance` where the gate held and the draw gave no deposit), `endowment_kg` (DOUBLE, the total ore mass, NULL when absent), `grade` (DOUBLE, the mass fraction of the key element or oxide in the ore, NULL when absent), `key_element` (VARCHAR(8): `Ni`, `Cr2O3`, `TiO2`), `age_window_gyr_start` and `age_window_gyr_end` (DOUBLE, when the type formed, NULL when absent), `capped_by_host` (TINYINT, 1 where the grade was held down by what the host supplies). No rows means the body was not assessed (a giant, or a row saved before v228).
+
+### `moon_deposit_types`
+
+Moon counterpart of `planet_deposit_types` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`).
+
+### `rogue_planet_deposit_types`
+
+Rogue planet counterpart of `planet_deposit_types` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
 
 ### `moon_interior_layers`
 
@@ -2283,11 +2296,13 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │             │
                   │             ├──1───* planet_reflection_spectrum
                   │             ├──1───* planet_interior_layers
+                  │             ├──1───* planet_deposit_types
                   │             ├──1───* planet_gases
                   │             └──1───* moons
                   │                       │
                   │                       ├──1───* moon_reflection_spectrum
                   │                       ├──1───* moon_interior_layers
+                  │                       ├──1───* moon_deposit_types
                   │                       └──1───* moon_gases
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition

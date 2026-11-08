@@ -23,6 +23,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import ore_deposits
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -684,6 +685,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     interior_heat.update_heat(planet)
     # GEN.441: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature, the air and the water.
     surface_composition.generate_surface(planet)
+    # GEN.1380: the crust's thickness, craton and sulfur, and the magmatic ore types the body admits (own streams, no draw of the run's)
+    ore_deposits.generate(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
@@ -723,6 +726,7 @@ def refresh_at_final_age(body):
     with draw.bound(draw.Stream(seed)):
         hydrosphere.generate_hydrosphere(body, flux, surface_w)
         surface_composition.generate_surface(body)
+        ore_deposits.generate(body)         # GEN.1380: the heat, the water and the ground moved
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
     envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air
