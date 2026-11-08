@@ -2989,3 +2989,5 @@ Baseline: PR #1817.
 | GEN.1309 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.665 | 8.1 | The headline closes |
 | GEN.1405 | 8.1 | Bugs and flaky tests |
+| TEST.697 | 8.1 | Bugs and flaky tests |
+| TEST.689 | 8.1 | Bugs and flaky tests |
