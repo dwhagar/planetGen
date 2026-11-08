@@ -44,8 +44,8 @@ planets (`physics.rogue_surface`) use the functions here.
    chloride brine (surface water under 2e-5 of the mass); acid sulfate
    (oxidized mantle and SO2 over 1 percent of SO2 + CO2); soda (reduced
    or intermediate mantle, CO2 over 10 kPa, ocean over 90 percent of the
-   surface); neutral. Each draws its pH and water activity; phosphorus is
-   `high` in soda, `starved` when ice-sealed, else `limited`.
+   surface); neutral. Each draws its pH and water activity; the ocean's phosphate
+   is `phosphorus_budget`'s (GEN.1367), made after the ground.
 6. **Hycean** (section 5.5): a liquid surface ocean under air that is
    mostly hydrogen.
 
@@ -64,7 +64,7 @@ _kg_to_mearth = unit_registry.converter("kg", "Mearth")
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
     "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
-    "ocean_class", "ocean_ph", "water_activity", "phosphorus", *aquifers.AQUIFER_FIELDS,
+    "ocean_class", "ocean_ph", "water_activity", *aquifers.AQUIFER_FIELDS,
 )
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
 `planets` and `moons` (the aquifer layer on a world with no liquid at its surface)."""
@@ -385,5 +385,4 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     body.water_activity = draw.uniform(aw_lo, aw_hi)
     if kind == "chloride brine" and salt is not None and clathrate_brine.water_activity(salt) is not None:
         body.water_activity = clathrate_brine.water_activity(salt)  # GEN.762: the drawn salt's own figure
-    body.phosphorus = "high" if kind == "soda" else "starved" if kind == "ice-sealed" else "limited"
     return surface_w

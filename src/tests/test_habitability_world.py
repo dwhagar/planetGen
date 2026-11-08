@@ -33,7 +33,7 @@ def _earth(**changes):
         "surface_temperature_k": 288.0, "gravity_g": 1.0, "radius_km": 6371.0, "mass_kg": 5.972e24,
         "p_o2_kpa": 21.2, "p_n2_kpa": 78.0, "p_ar_kpa": 0.9, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.2,
         "hydrosphere": "surface ocean", "ocean_class": "neutral", "ocean_ph": 8.1, "water_activity": 0.98,
-        "phosphorus": "limited", "water_mass_fraction": 2.34e-4, "surface_dose_msv_yr": 2.4,
+        "ocean_phosphate_umol_l": 2.3, "water_mass_fraction": 2.34e-4, "surface_dose_msv_yr": 2.4,
         "dose_ground_msv_yr": 0.5, "energy_flux_w_m2": 82.0, "native_life": "biosphere",
         "life_class": 1, "life_class_variant": "a", "star_teff_k": 5772.0,
     }

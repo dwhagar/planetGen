@@ -102,7 +102,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, "life_traits"): CHANCE for table in ("planets", "moons")},      # GEN.876: only a world whose life drew a trait has one
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
-       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
+       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "ocean_phosphate_umol_l", "water_activity", "tidal_flux_w_m2")},
     # A moon with a gas envelope (a class I, J or T moon) is rare: the envelope split is stored for every body that has one.
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.

@@ -1084,7 +1084,7 @@
 --   `ice_shell_km` (the ice lid), `hp_ice_km` (high-pressure ice under the
 --   deepest possible liquid), `ocean_class` ('ice-sealed', 'chloride
 --   brine', 'acid sulfate', 'soda', 'neutral'), `ocean_ph`,
---   `water_activity` and `phosphorus` ('high', 'limited', 'starved'). All
+--   `water_activity` and `phosphorus` ('high', 'limited', 'starved', the band of `ocean_phosphate_umol_l`, GEN.1367). All
 --   NULL for a gas giant; the ocean fields NULL without liquid water.
 --   `rogue_planets` gains `hp_ice_km`, and its `surface_regime` may be
 --   'hycean'. NULL on a row generated before v74. Draws:
@@ -2586,6 +2586,11 @@ CREATE TABLE IF NOT EXISTS planets (
     rock_mno_fraction           DOUBLE,  -- v229 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v229 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v229 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v230 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v230 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -3063,6 +3068,11 @@ CREATE TABLE IF NOT EXISTS moons (
     rock_mno_fraction           DOUBLE,  -- v229 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v229 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v229 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v230 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v230 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -4387,6 +4397,11 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     rock_mno_fraction           DOUBLE,  -- v229 (GEN.1362): MNO, a mass fraction of the rock
     rock_nio_fraction           DOUBLE,  -- v229 (GEN.1362): NIO, a mass fraction of the rock
     rock_p2o5_fraction          DOUBLE,  -- v229 (GEN.1362): P2O5, a mass fraction of the rock
+    crust_p2o5_wt               DOUBLE,  -- v230 (GEN.1367): The crust's P2O5, weight percent
+    crust_apatite_share         DOUBLE,  -- v230 (GEN.1367): Share of the crust's phosphorus in apatite
+    crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
+    crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
+    ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
     envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
     envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
     porosity                    DOUBLE,  -- v207 (GEN.1111)

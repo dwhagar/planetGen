@@ -105,7 +105,7 @@ STARLIGHT_FIELDS = frozenset({"magnetopause_rp", "uv_surface_index"})
 """The stored quantities that need a star: the stellar wind that holds off a planet's field, and the ultraviolet a star gives the surface."""
 
 LIQUID_SURFACE_FIELDS = frozenset({
-    "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
+    "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
     "ocean_liquid"})
 """The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star."""
 

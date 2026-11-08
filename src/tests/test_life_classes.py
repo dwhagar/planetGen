@@ -14,7 +14,7 @@ from planetgen.physics import atmosphere, habitability, habitability_world, life
 EARTH = {
     "body_type": "t", "planet_class": "M", "atmospheric_pressure_pa": 101325.0, "surface_temperature_k": 288.0, "gravity_g": 1.0,
     "radius_km": 6371.0, "mass_kg": 5.972e24, "hydrosphere": "surface ocean", "ocean_class": "ocean", "ocean_ph": 8.1,
-    "water_activity": 0.98, "phosphorus": "limited", "water_mass_fraction": 2.3e-4, "surface_dose_msv_yr": 2.4,
+    "water_activity": 0.98, "ocean_phosphate_umol_l": 2.3, "water_mass_fraction": 2.3e-4, "surface_dose_msv_yr": 2.4,
     "dose_ground_msv_yr": 2.4, "uv_surface_index": 5.0, "energy_flux_w_m2": 80.0, "internal_heat_flux_w_m2": 0.09,
     "tidal_flux_w_m2": None, "star_teff_k": 5772.0, "star_luminosity_w": 3.828e26, "star_distance_au": 1.0,
     atmosphere.GAS_FIELD: {"O2": 21278.0, "N2": 78084.0, "CO2": 40.0, "Ar": 934.0, "H2O": 1000.0},

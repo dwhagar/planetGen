@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1293 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1303 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 166 | 19 | 10 | 1 | 0 | 196 |
 | T2 | 129 | 52 | 1 | 1 | 0 | 183 |
-| T3 | 95 | 43 | 7 | 9 | 0 | 154 |
+| T3 | 97 | 43 | 7 | 9 | 0 | 156 |
 | T4 | 59 | 5 | 1 | 19 | 10 | 94 |
 | T5 | 61 | 22 | 3 | 1 | 0 | 87 |
-| T6 | 135 | 93 | 25 | 63 | 0 | 316 |
+| T6 | 135 | 97 | 25 | 67 | 0 | 324 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 720 | 265 | 59 | 204 | 45 | 1293 |
+| All | 722 | 269 | 59 | 208 | 45 | 1303 |
 
 ## How the labels were given
 
@@ -1811,6 +1811,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.216 Stand-ins of the phosphorus budget
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PB1 | B | T3 | L0 | phosphorus_budget.EARTH_CRUST_P2O5_WT 0.14 weight percent: the Earth's crust, the anchor of the supply ratio | 0.13 to 0.15 | all rocky bodies with a stored mantle P2O5 | a measured crust mean outside 0.10 to 0.20 percent | the crust means of Rudnick and Gao 2014 and Gale et al. 2013 when opened | research data file part 4: continental crust 0.13, MORB 0.15 percent P2O5, RECALLED; not opened | - | - |
+| PB2 | B | T3 | L0 | phosphorus_budget.EARTH_OCEAN_UMOL_L 2.3 umol/L, with the Earth's land share 0.29, ocean volume 1.335e18 m3: the one calibration of the chain | 2 to 3 umol/L | bodies with a liquid ocean | a measured deep-ocean phosphate outside 1.5 to 3.5 umol/L | the ocean-phosphate compilation of the World Ocean Atlas when opened | research data file part 4: 'modern deep ocean about 2 micromolar', RECALLED; 2.3 is the value `habitability_world` already used for the Earth's `limited` class (GEN.654); the land share and volume are the Earth's | - | - |
+| PB3 | P | T6 | L1 | phosphorus_budget.PHOSPHIDE_MIDPOINT_DIW -3.0 and PHOSPHIDE_SCALE_DIW 0.6: the crust's P in schreibersite is 1/(1+exp((dIW+3)/0.6)) | midpoint -4 to -2; scale 0.4 to 1 | rocky bodies with a stored mantle redox | a crust with phosphide above dIW -1, or without it below dIW -5 | a metal-silicate partition law for P with oxygen fugacity, D(metal/silicate) from the experiments | research data file part 4: P siderophile when reduced, D of 10 to 1000 over IW-1 to IW-4, RECALLED; the logistic and its midpoint are the design's | - | - |
+| PB4 | P | T6 | L1 | phosphorus_budget.APATITE_WET_SHARE 1.0 and APATITE_DRY_SHARE 0.2: of the crust's phosphate, apatite where liquid water stands in the crust's reach, 0.2 where dry, merrillite the rest | dry share 0.05 to 0.5 | rocky bodies | a wet body whose crust holds merrillite beside apatite, or a dry one with no apatite at all | a volatile budget of the crust (water, F, Cl) that sets apatite against merrillite | research data file part 4: apatite family and merrillite as hosts, READ; apatite needs the volatiles, merrillite is the anhydrous phase of dry rock, qualitative; the shares are the design's | - | - |
+| PB5 | P | T6 | L1 | phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite | merrillite 1.5 to 10; schreibersite 0.01 to 0.2 | bodies with a stored crust | a measured dissolution rate of merrillite below apatite's, or of schreibersite above it | the dissolution rates of the three hosts when the experiments are opened | research data file part 4: meteoritic schreibersite corrodes to phosphite and phosphate (Pasek and Lauretta 2005, 2008), apatite weathering is the long-run supply, RECALLED; merrillite dissolves faster than apatite, qualitative, not opened | - | - |
+| PB6 | T | T6 | L3 | phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one | 0.05 to 0.5 | rocky bodies with a stored lid regime | a stagnant-lid body whose measured weathering supply is the Earth's | an erosion law of the lid (uplift, rain, relief) | design choice; a mobile lid uplifts and strips its crust, a stagnant one is a slow plain, qualitative | - | - |
+| PB7 | T | T6 | L3 | phosphorus_budget.SEAFLOOR_AREA_FRACTION 0.05: the share of the surface whose rock reaches the water with no land above it (an ocean under ice, or a flooded world) | 0.01 to 0.2 | bodies with a liquid ocean and little land | a world with no land that makes as much phosphate as the Earth | a model of sea-floor weathering and hydrothermal leaching | design choice, qualitative | - | - |
+| PB8 | P | T6 | L1 | phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L | 100 to 1000 | oceans of the soda class | a soda lake whose phosphate stays near the neutral ocean's | a carbonate-apatite equilibrium of the lake's own pH and calcium | Toner and Catling 2020 (carbonate-rich lakes of the Archean, up to millimolar phosphate for want of free calcium), RECALLED; the factor is set so that the old `high` class (1000 umol/L) is the Earth-like soda value | - | - |
+| PB9 | B | T6 | L3 | phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor | ceiling 300 to 3000; floor 0.001 to 0.1 | oceans | a sealed ocean with a measured phosphate far above the floor | an ice-ocean exchange model for the sealed case | the old class values of `habitability_world` (GEN.654: high 1000, starved 0.01), kept as the two bounds | - | - |
+| PB10 | T | T6 | L3 | phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of `phosphorus_class` | starved 0.03 to 0.3; high 30 to 300 | all oceans | a band that a life score does not follow | none; a label for a page, the number drives the score | research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only | - | - |
 
 ## 6.210 Stand-ins of where the mass an outer disk lost goes
 

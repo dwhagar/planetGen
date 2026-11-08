@@ -41263,6 +41263,394 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.216",
+      "number": "6.216",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.EARTH_CRUST_P2O5_WT 0.14 weight percent: the Earth's crust, the anchor of the supply ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.13 to 0.15"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies with a stored mantle P2O5"
+            ],
+            [
+              "What would show it wrong",
+              "a measured crust mean outside 0.10 to 0.20 percent"
+            ],
+            [
+              "What replaces it",
+              "the crust means of Rudnick and Gao 2014 and Gale et al. 2013 when opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: continental crust 0.13, MORB 0.15 percent P2O5, RECALLED; not opened"
+            ]
+          ],
+          "id": "PB1",
+          "key": "6.216:PB1",
+          "kind": "B",
+          "slug": "6-216-pb1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "phosphorus_budget.EARTH_CRUST_P2O5_WT 0.14 weight percent: the Earth's crust, the anchor of the supply ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.EARTH_OCEAN_UMOL_L 2.3 umol/L, with the Earth's land share 0.29, ocean volume 1.335e18 m3: the one calibration of the chain"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 umol/L"
+            ],
+            [
+              "Where it holds",
+              "bodies with a liquid ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured deep-ocean phosphate outside 1.5 to 3.5 umol/L"
+            ],
+            [
+              "What replaces it",
+              "the ocean-phosphate compilation of the World Ocean Atlas when opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: 'modern deep ocean about 2 micromolar', RECALLED; 2.3 is the value habitability_world already used for the Earth's limited class (GEN.654); the land share and volume are the Earth's"
+            ]
+          ],
+          "id": "PB2",
+          "key": "6.216:PB2",
+          "kind": "B",
+          "slug": "6-216-pb2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "phosphorus_budget.EARTH_OCEAN_UMOL_L 2.3 umol/L, with the Earth's land share 0.29, ocean volume 1.335e18 m3: the one calibration of the chain"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.PHOSPHIDE_MIDPOINT_DIW -3.0 and PHOSPHIDE_SCALE_DIW 0.6: the crust's P in schreibersite is 1/(1+exp((dIW+3)/0.6))"
+            ],
+            [
+              "The range it moves in",
+              "midpoint -4 to -2; scale 0.4 to 1"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored mantle redox"
+            ],
+            [
+              "What would show it wrong",
+              "a crust with phosphide above dIW -1, or without it below dIW -5"
+            ],
+            [
+              "What replaces it",
+              "a metal-silicate partition law for P with oxygen fugacity, D(metal/silicate) from the experiments"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: P siderophile when reduced, D of 10 to 1000 over IW-1 to IW-4, RECALLED; the logistic and its midpoint are the design's"
+            ]
+          ],
+          "id": "PB3",
+          "key": "6.216:PB3",
+          "kind": "P",
+          "slug": "6-216-pb3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.PHOSPHIDE_MIDPOINT_DIW -3.0 and PHOSPHIDE_SCALE_DIW 0.6: the crust's P in schreibersite is 1/(1+exp((dIW+3)/0.6))"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.APATITE_WET_SHARE 1.0 and APATITE_DRY_SHARE 0.2: of the crust's phosphate, apatite where liquid water stands in the crust's reach, 0.2 where dry, merrillite the rest"
+            ],
+            [
+              "The range it moves in",
+              "dry share 0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a wet body whose crust holds merrillite beside apatite, or a dry one with no apatite at all"
+            ],
+            [
+              "What replaces it",
+              "a volatile budget of the crust (water, F, Cl) that sets apatite against merrillite"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: apatite family and merrillite as hosts, READ; apatite needs the volatiles, merrillite is the anhydrous phase of dry rock, qualitative; the shares are the design's"
+            ]
+          ],
+          "id": "PB4",
+          "key": "6.216:PB4",
+          "kind": "P",
+          "slug": "6-216-pb4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.APATITE_WET_SHARE 1.0 and APATITE_DRY_SHARE 0.2: of the crust's phosphate, apatite where liquid water stands in the crust's reach, 0.2 where dry, merrillite the rest"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite"
+            ],
+            [
+              "The range it moves in",
+              "merrillite 1.5 to 10; schreibersite 0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "bodies with a stored crust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dissolution rate of merrillite below apatite's, or of schreibersite above it"
+            ],
+            [
+              "What replaces it",
+              "the dissolution rates of the three hosts when the experiments are opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: meteoritic schreibersite corrodes to phosphite and phosphate (Pasek and Lauretta 2005, 2008), apatite weathering is the long-run supply, RECALLED; merrillite dissolves faster than apatite, qualitative, not opened"
+            ]
+          ],
+          "id": "PB5",
+          "key": "6.216:PB5",
+          "kind": "P",
+          "slug": "6-216-pb5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored lid regime"
+            ],
+            [
+              "What would show it wrong",
+              "a stagnant-lid body whose measured weathering supply is the Earth's"
+            ],
+            [
+              "What replaces it",
+              "an erosion law of the lid (uplift, rain, relief)"
+            ],
+            [
+              "Evidence",
+              "design choice; a mobile lid uplifts and strips its crust, a stagnant one is a slow plain, qualitative"
+            ]
+          ],
+          "id": "PB6",
+          "key": "6.216:PB6",
+          "kind": "T",
+          "slug": "6-216-pb6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.SEAFLOOR_AREA_FRACTION 0.05: the share of the surface whose rock reaches the water with no land above it (an ocean under ice, or a flooded world)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "bodies with a liquid ocean and little land"
+            ],
+            [
+              "What would show it wrong",
+              "a world with no land that makes as much phosphate as the Earth"
+            ],
+            [
+              "What replaces it",
+              "a model of sea-floor weathering and hydrothermal leaching"
+            ],
+            [
+              "Evidence",
+              "design choice, qualitative"
+            ]
+          ],
+          "id": "PB7",
+          "key": "6.216:PB7",
+          "kind": "T",
+          "slug": "6-216-pb7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.SEAFLOOR_AREA_FRACTION 0.05: the share of the surface whose rock reaches the water with no land above it (an ocean under ice, or a flooded world)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L"
+            ],
+            [
+              "The range it moves in",
+              "100 to 1000"
+            ],
+            [
+              "Where it holds",
+              "oceans of the soda class"
+            ],
+            [
+              "What would show it wrong",
+              "a soda lake whose phosphate stays near the neutral ocean's"
+            ],
+            [
+              "What replaces it",
+              "a carbonate-apatite equilibrium of the lake's own pH and calcium"
+            ],
+            [
+              "Evidence",
+              "Toner and Catling 2020 (carbonate-rich lakes of the Archean, up to millimolar phosphate for want of free calcium), RECALLED; the factor is set so that the old high class (1000 umol/L) is the Earth-like soda value"
+            ]
+          ],
+          "id": "PB8",
+          "key": "6.216:PB8",
+          "kind": "P",
+          "slug": "6-216-pb8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor"
+            ],
+            [
+              "The range it moves in",
+              "ceiling 300 to 3000; floor 0.001 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "oceans"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed ocean with a measured phosphate far above the floor"
+            ],
+            [
+              "What replaces it",
+              "an ice-ocean exchange model for the sealed case"
+            ],
+            [
+              "Evidence",
+              "the old class values of habitability_world (GEN.654: high 1000, starved 0.01), kept as the two bounds"
+            ]
+          ],
+          "id": "PB9",
+          "key": "6.216:PB9",
+          "kind": "B",
+          "slug": "6-216-pb9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of phosphorus_class"
+            ],
+            [
+              "The range it moves in",
+              "starved 0.03 to 0.3; high 30 to 300"
+            ],
+            [
+              "Where it holds",
+              "all oceans"
+            ],
+            [
+              "What would show it wrong",
+              "a band that a life score does not follow"
+            ],
+            [
+              "What replaces it",
+              "none; a label for a page, the number drives the score"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only"
+            ]
+          ],
+          "id": "PB10",
+          "key": "6.216:PB10",
+          "kind": "T",
+          "slug": "6-216-pb10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of phosphorus_class"
+        }
+      ],
+      "slug": "6-216-stand-ins-of-the-phosphorus-budget",
+      "title": "Stand-ins of the phosphorus budget"
+    },
+    {
       "key": "6.210 Stand-ins of where the mass an outer disk lost goes",
       "number": "6.210",
       "rows": [
