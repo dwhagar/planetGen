@@ -24,6 +24,9 @@
 // camera-relative arithmetic stays exact at the scales a few parsecs across (the MAP.240 class: a single-precision position
 // 8 kpc out is good to a thousandth of a parsec). No DOM at import; three.js comes in as a parameter.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
+
 export const WEDGE_DEG = 60;
 // Rings aim to be this many to a view's width, and no more than this many are drawn.
 const RINGS_ACROSS = 4;
@@ -54,9 +57,8 @@ export function roundStep(value) {
 
 // "500 pc", "1 kpc", "2.5 kpc", "50 AU" is not needed: the grid lives at parsec scale and above.
 export function distanceLabel(pc) {
-  if (pc >= 1000) return `${Number((pc / 1000).toPrecision(3))} kpc`;
-  if (pc >= 1) return `${Number(pc.toPrecision(3))} pc`;
-  return `${Number(pc.toPrecision(3))} pc`;
+  if (pc >= 1000) return `${threeFigures(pc / 1000)} kpc`;
+  return `${threeFigures(pc)} pc`;
 }
 
 // MAP.373: the spherical coordinates of `point` about `origin` in the galaxy frame: the distance (pc), the longitude (degrees from +x,
