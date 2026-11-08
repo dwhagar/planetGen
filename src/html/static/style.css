@@ -3700,11 +3700,23 @@ code {
   flex: none;
 }
 
-/* MAP.347: what is behind Expand scrolls inside the card, so the name and the buttons stay in view. */
+/* MAP.347: what is behind Expand scrolls inside the card, so the name and the buttons stay in view. UX.292: an expanded card keeps a
+   region of at least 4 rem for it, and the three values of the first view give up the room (they scroll inside their own box) when a
+   small window and long values leave none, so the card itself never scrolls. */
 .starmap-info[data-overlay] > .map-info-rest {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+}
+
+.starmap-info[data-overlay][data-expanded] > .map-info-rest {
+  min-height: 4rem;
+}
+
+.starmap-info[data-overlay][data-expanded] > dl {
+  flex: 0 1 auto;
+  min-height: 3.5rem;
+  overflow-y: auto;
 }
 
 .starmap-info[data-overlay] dl {
