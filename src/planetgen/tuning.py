@@ -3292,13 +3292,13 @@ SYSTEM_COMET_CHANCE = 0.3
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
 # it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
 # 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
-# large_star 0.056, planets 0.822). A sector or galaxy run's
+# large_star 0.056, planets 0.822); habitable_world alone remeasured 2026-11-08 over 240 systems, seeds 900 to 1139, after GEN.1397 took away the list of life classes it counted: 0.025). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "habitable_world": 0.025,   # a planet or moon that meets the habitable request or is rated habitable, Blue or Green (GEN.1397: no list of class letters; see above)
     "asteroid_belt": 0.653,     # an asteroid belt
     "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.822,           # at least one planet or belt
@@ -3306,10 +3306,10 @@ PREVALENCE_BASE_SHARES = {
 
 # The share of systems that have the feature among those `prevalence.resolve` forces it on (GEN.1322). A belt, a large star and planets are made as asked
 # (1.0). A habitable world is only asked for (GEN.1130: the odds of the conditions are multiplied by REQUEST_ODDS and the request never forces), and the
-# test counts a planet or moon of a class that can carry life, so a forced system has one in 0.747 of cases and a run cannot reach a higher share
-# than that. Measured over 300 systems with `HABITABLE_WORLD` True (224 had one; run seeds 801 to 803, 2026-11-07), the way the base shares are; remeasure with them (tests/test_prevalence.py).
+# test counts a planet or moon that meets the request or is rated habitable (GEN.1397), so a forced system has one in 0.069 of cases and a run cannot reach a higher share
+# than that. Measured over 160 systems with `HABITABLE_WORLD` True (11 had one; run seeds 800 to 959, 2026-11-08), the way the base shares are; remeasure with them (tests/test_prevalence.py).
 PREVALENCE_FORCED_HIT_RATES = {
-    "habitable_world": 0.747,
+    "habitable_world": 0.069,
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
