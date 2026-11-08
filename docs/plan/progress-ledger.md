@@ -2957,3 +2957,4 @@ Baseline: PR #1817.
 | PERF.226 | 8.1 | Queue, caches and performance |
 | GEN.1427 | 8.1 | Stand-in replacements |
 | GEN.1424 | 8.1 | Stand-in replacements |
+| GEN.1432 | 8.1 | Stand-in replacements |
