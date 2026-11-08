@@ -1,6 +1,6 @@
 {
   "plan": "088b57d7e70b02e9d67bbe5b24bc7642b9b765f3f0b6ef3bdf2beb6d7f1d0ac9",
-  "region": "446c41bb749279c36d8a24717c0c6cfe34a03778091e0b75b55e7d330f074da6",
+  "region": "c5246aec60849de6e1f6ea1fd5aa0fe6b29083562562bc84ab2fd5c70baa3331",
   "sectors": {
     "0 0 0": {
       "digest": "073b554795c8d395ba1744ad29f51f3b51d29f73439e1b5b159624016bcab08a",
@@ -127,7 +127,7 @@
       }
     },
     "1 0 11": {
-      "digest": "e1c096889ffa238b296dc3e042fe5ed82bcd1c40f6ac2b2288709b026d05c585",
+      "digest": "9c47d570ba498e64b9c2daa89afe2373df74b38a01e7767e4376c2148b172a93",
       "sections": {
         "belt": [
           "6d225b3821c3d0b392e96adacdbd41641d75605f7ba2ba572486fb107da2d1f7",
@@ -142,15 +142,15 @@
           "efd2198a91c24686104e2c2fc337d31cd9363ec18e6dc3fd63e6881ca2c6a267"
         ],
         "planet": [
-          "f49cc7f3c14c4916a638f9a0fbf5fd2e726069bc49fc5b8a36d1bbc75dcb889d",
-          "7d87509f4d24bdb3ecb8e2aefd35e4a1ce80cd31c7f19c1d0798e6f22992e62f"
+          "34b094a2adf72692678fed96403684953f406bd8b8cffb37956d514f52e2fda8",
+          "53c33c9a63e432bfc63bd4e584b7ef6ca482b5cd2b0381530264f5df7a2b0809"
         ],
         "sector": [
           "2509d184217cefa765e4a6a36b8c7cdda3fd522a2600a18b5fad341e389262c2",
           "5dc424e2a94420588efa33955675bb5c36f2cf303638e2ce0ebdbae201cbd8f7"
         ],
         "star": [
-          "710bf1c80b47b7a899a67e5bf8ddd86c2e48c629795ac5fe4cb0ec9b580024fd",
+          "ec5565107341984bd66b156cb3b36a7b10c3eda51a34ff43a4f736f2820938a8",
           "75b4a6e7503f649008601f31e1cf8b0921e694acbc52b471c464449bb4463753"
         ],
         "system": [
@@ -313,7 +313,7 @@
       }
     },
     "1 0 7": {
-      "digest": "12a43802bcc7caa960be8370f75f5f76272f6def4d6e41af6a5579d022b400e9",
+      "digest": "c7aadb8c39e9ceac63a7675c0485551588df660c9b629466c9a8dc09c5b49ac5",
       "sections": {
         "belt": [
           "4992b965a34bcc316a59d6f823a83a0943462f091382ba8aa5daeae759e40e20",
@@ -324,15 +324,15 @@
           "a066cf6f6ab3639cf6b5c48f22ddf82836d08c5c961447df3a9ee08215762895"
         ],
         "planet": [
-          "347080fc1fda9c9e1efe475b906cb999919ed54fec89c912c7cdd3584932b683",
-          "c32d0b64e3ff1e36b3888f5757d3fa4bc28632b2982d028dce53a01d249783f2"
+          "a2cbdddabc7ae435da22455b5bc3c93d8c3723cf4bb1d7c686f277a36f23071f",
+          "cbd72a953c56eee5fe0cf69ebd97c0019fa2ea39b68ab0b88ae00327220ae176"
         ],
         "sector": [
           "baa30e1be065acba5d701e9ef102197154ac3b9fb3393907e31f872249a91131",
           "ebeea219663d47b93906b4d229e7735cb88aced21ae5c0285d5d6d54108bf3b4"
         ],
         "star": [
-          "37a2cdb1dd6b1535cae76be6d761eadf4b5fa4216448efd3de11db1e94d4ab2a",
+          "9791610ccf6287a35829bff51ce2105935695165789c222c1af1b7e3af55547c",
           "40e114a0e86b542804072d4c0a7e53674d57105d289b47ce076ba210765617ae"
         ],
         "system": [
