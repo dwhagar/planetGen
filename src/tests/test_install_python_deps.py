@@ -353,3 +353,20 @@ def test_every_library_the_code_imports_is_in_the_lock():
                     if owners and not any(lock_pins.normalize(owner) in locked for owner in owners):
                         missing.setdefault(module, os.path.relpath(path, ROOT))
     assert not missing, f"imported but not in requirements-server.lock: {missing}"
+
+
+def test_the_scripts_macos_runs_use_no_bash_4_syntax():
+    """OPS.120: `deploy-common.sh` and the scripts that source it also run under macOS's bash 3.2, which has no `${var^^}` or `${var,,}` case change, no
+    associative arrays, no `mapfile`/`readarray` and no `|&`; the first of them in `deploy-common.sh` made three install tests die on `log_info: command not found`."""
+    import pathlib
+    import re
+
+    root = pathlib.Path(__file__).resolve().parents[2]
+    bash4 = re.compile(r"\$\{[A-Za-z_]\w*(\^\^|,,|\^|,)\}|\b(declare|local|typeset)\s+-[a-zA-Z]*A\b|\bmapfile\b|\breadarray\b|\|&|&>>|\bcoproc\b")
+    found = []
+    for name in ("scripts/deploy-common.sh", "scripts/install-python-deps.sh", "update.sh", "install.sh"):
+        for number, text in enumerate((root / name).read_text(encoding="utf-8").splitlines(), 1):
+            code = text.split("#", 1)[0] if not re.search(r"['\"]", text.split("#", 1)[0]) else text
+            if bash4.search(code) and not text.lstrip().startswith("#"):
+                found.append(f"{name}:{number}: {text.strip()}")
+    assert not found, "bash 4 syntax in a script macOS runs:\n" + "\n".join(found)

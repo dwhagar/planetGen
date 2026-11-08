@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3651] - 2026-11-08
+
+**Headline:** A test now stops bash 4 syntax from reaching the install scripts macOS runs.
+
+### Fixed
+- **No bash 4 in the scripts macOS runs (OPS.120).** `deploy-common.sh` used `${var^^}`, which macOS's bash 3.2 cannot parse, and three install tests died on `log_info: command not found`. The line is already gone from main; a new test scans `deploy-common.sh`, `install-python-deps.sh`, `update.sh` and `install.sh` for case-change expansions, associative arrays, `mapfile`, `readarray`, `|&` and `coproc`, so it cannot return. `enable-swap.sh` keeps `${SIZE^^}`: it runs only on Linux, where it needs `numfmt` and `df --output`.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.120.
+
+## [8.0.3650] - 2026-11-08
+
+**Headline:** When the setup cannot download a dataset it now prints the download address of each missing file.
+
+### Changed
+- **The setup warning names the download URL (OPS.119 follow-up).** A failed dataset download stays non-fatal, as before. The warning now lists each file that did not download with its address, so it can be fetched by hand and placed in the dataset folder.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119 (follow-up).
+
+## [8.0.3649] - 2026-11-08
+
+**Headline:** The test runner survives crashed workers, resumes across midnight, keeps its dependency map whole after a resume, leaves the tree clean and runs `full --check` on main.
+
+### Fixed
+- **Five faults in `scripts/test.py` (TEST.694).** (1) xdist replaced only four times the workers' number of crashed workers, so after memory kills the tail ran on two workers for hours; it now replaces up to 1,000. (2) A run that crossed midnight UTC lost every pass because the date was part of the environment; a run that started within 24 hours now keeps its passes (a changed file still runs its tests again). (3) After `--resume` the dependency map `.pytest-deps.json` held only the tests that ran in that invocation; the passes carried from earlier runs are now written into it too. (4) The census and sweep tests wrote `*-latest.md` into the tracked `.test-reports/`, leaving the tree dirty after a run; the runner now sends them to `.test-progress/reports`. (5) `full --check` on main refused to run; it now runs the full run without the check and says so.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.694.
+
 ## [8.0.3648] - 2026-11-08
 
 **Headline:** The test machine setup now downloads the datasets it needs and says so when it cannot.
