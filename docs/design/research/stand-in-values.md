@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1407 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1408 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 62 | 11 | 2 | 21 | 10 | 106 |
 | T5 | 64 | 23 | 6 | 1 | 0 | 94 |
-| T6 | 150 | 101 | 27 | 76 | 0 | 354 |
+| T6 | 150 | 102 | 27 | 76 | 0 | 355 |
 | T7 | 37 | 15 | 9 | 30 | 0 | 91 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 767 | 289 | 70 | 236 | 45 | 1407 |
+| All | 767 | 290 | 70 | 236 | 45 | 1408 |
 
 ## How the labels were given
 
@@ -1926,6 +1926,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | ISO14 | T | T5 | L0 | isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's | 100 to 200 g/cm2 | air columns from a few to many thousand g/cm2 | a yield-function profile whose column integral differs from this law by over 30 percent for a 100 g/cm2 air | the altitudinal yield functions of a thin-air model | the tritium maximum at about 40 g/cm2 ([R5181: Sec. 3]) bounds it; no paper in hand prints an attenuation length | - | - |
 | ISO15 | T | T1 | L0 | isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's | m of 0 to 10 | rocky bodies with air | a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent | the geomagnetic cutoff integrated over the body (`R_c` from the dipole) | the polar and global values of tritium ([R5181: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none | - | - |
 | ISO16 | T | T6 | L3 | isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean | 10 to 100 | bodies with a surface ocean | an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54 | the body's own dissolved inorganic carbon | the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet | - | no data |
+| ISO17 | T | T6 | L1 | isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point) | 25 to 40 K | comets of any star | a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity | the comet's own formation distance and the disk model | comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174] | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

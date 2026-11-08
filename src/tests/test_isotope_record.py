@@ -277,3 +277,18 @@ def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_sti
         assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
         rows = {row["isotope"]: row for row in ir.record_of(body)}
         assert rows["H-2"]["fraction"] > 0.0
+
+
+def test_a_comets_ices_are_the_cold_anchor_and_a_belts_follow_the_distance_from_the_snow_line():
+    comet = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a"))
+    assert 0.5 * ir.COMET_D_H < comet["isotope_ice_d_h"] < 2.0 * ir.COMET_D_H                # comet 67P's 5.3e-4, scattered by the draw (sigma 0.3 in ln)
+    assert 1.0 / comet["isotope_ice_n15"] == pytest.approx(140.0, rel=0.05)
+    near = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 2.7 * 1.496e8, 2.7, "b"))
+    far = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 80.0 * 1.496e8, 2.7, "b"))
+    assert far["isotope_ice_d_h"] > 2.0 * near["isotope_ice_d_h"] and far["isotope_ice_n15"] > near["isotope_ice_n15"]     # colder, more enriched (same scatter: one seed)
+    assert ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a") == ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a")
+
+
+def test_a_body_with_no_ice_or_no_host_shows_no_ice_lines():
+    assert ir.ice_sheet_rows("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") == [] and ir.ice_sheet_rows("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") == []
+    assert ir.ice_sheet_rows("comet", None, 4.5, 0.4, None, None, "a") == [] and ir.ice_sheet_rows("comet", 0.0, None, 0.4, None, None, "a") == []

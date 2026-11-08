@@ -44279,6 +44279,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
+            ],
+            [
+              "The range it moves in",
+              "25 to 40 K"
+            ],
+            [
+              "Where it holds",
+              "comets of any star"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity"
+            ],
+            [
+              "What replaces it",
+              "the comet's own formation distance and the disk model"
+            ],
+            [
+              "Evidence",
+              "comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174]"
+            ]
+          ],
+          "id": "ISO17",
+          "key": "6.236:ISO17",
+          "kind": "T",
+          "slug": "6-236-iso17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",

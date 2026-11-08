@@ -46,10 +46,11 @@ from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the 
 """
 
 import math
+from types import SimpleNamespace
 
 from planetgen import tuning
 from planetgen.galaxy import shape_draw
-from planetgen.physics import birth_radioisotopes, bulk_draw, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -142,6 +143,10 @@ EXTINCT_MEAN_OVER_ESS = 0.1
 """float: The mean ratio of a short-lived isotope in the gas of a star's galaxy over the early Solar System's, for 53Mn, 129I and 244Pu, which no gamma-ray line measures. The interstellar 26Al/27Al is 3 to 25 times
 under the Solar System's ([R2768: Sec. 3.2]) and the birth-ratio sampling of `birth_radioisotopes` puts the Solar System's value in the upper tail of the draw for a mean a tenth of it; the same tenth is taken
 for the others, whose draw then spreads by the recurrence of the events that make them. [Stand-in ISO11, tier T6, tweak L1.]"""
+
+COMET_ICE_K = COLD_ICE_K
+"""float: The temperature a comet's ice formed at, K: comets form at the same distance in units of the star's snow line for every star, so at the temperature the cold calibration point has (comet 67P's, 30 K) whatever
+the star's luminosity. [Stand-in ISO17, tier T6, tweak L1.]"""
 
 COSMOGENIC_RATE_EARTH = {"H-3": 0.345, "C-14": 1.6}
 """dict: The global mean production of each isotope in the Earth's atmosphere, atoms per cm2 per second, at a moderate solar activity (modulation potential 650 MV): tritium 0.345 ([R5181: Sec. 3, Table 1]; 0.32
@@ -526,6 +531,38 @@ def cosmogenic_rows(body):
         made = rate * _area_cm2(body) / elements.isotope(isotope).decay_constant
         rows.append({"element": element, "isotope": isotope, "fraction": made / (pool + made), "initial_ratio": None, "origin": COSMOGENIC})
     return rows
+
+
+ICE_SHEET_ROWS = (("isotope_ice_d_h", "Deuterium over hydrogen of the ices"), ("isotope_ice_n15", "Nitrogen-15 over nitrogen-14 of the ices"))
+"""tuple: The two derived lines a belt's or a comet's property sheet shows for its ices, `(key, label)`."""
+
+
+def ice_ratios(star, temperature_k, stream):
+    """`(D/H, 15N/14N)` of ices formed at `temperature_k` around `star` (`metallicity_fe_h`, `age`): the star's gas ratios raised by the ice laws, with one log-normal scatter on D/H."""
+    scatter = math.exp(D_H_SCATTER_LN * stream.gauss())
+    d_h = gas_d_h(star) * ice_factor(temperature_k, D_H_ENRICHMENT_REFERENCE, D_H_T0_K) * scatter
+    n15 = gas_n15_over_n14(star) * ice_factor(temperature_k, NITROGEN_ENRICHMENT_REFERENCE, N_T0_K)
+    return d_h, n15
+
+
+def ice_sheet_rows(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed):
+    """
+    The derived sheet lines for the ices of a belt or a comet, worked out from stored values, `[(key, label, text, ratio)]`; empty for a body with no ice or no star. A belt's ice formed at its
+    distance (`condensate_shares.ICE_CONDENSATION_K` water at the snow line, falling as the square root of the distance, held inside the ice law's range; the snow line when the belt stores none), a comet's at
+    `COMET_ICE_K`. The scatter is drawn on a stream named by `seed`, so one body always shows the same line.
+    """
+    if not ice_mass_fraction or ice_mass_fraction <= 0.0 or metallicity_fe_h is None or age_gy is None:
+        return []
+    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=float(age_gy))
+    if kind == "comet":
+        temperature = COMET_ICE_K
+    elif snow_line_au and distance_km and distance_km > 0.0:
+        temperature = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(float(snow_line_au) * constants.AU_TO_KM / float(distance_km))
+        temperature = min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
+    else:
+        temperature = ICE_REFERENCE_K
+    d_h, n15 = ice_ratios(star, temperature, draw.Stream(f"isotopes:ice:{kind}:{seed}"))
+    return [(ICE_SHEET_ROWS[0][0], ICE_SHEET_ROWS[0][1], f"D/H {d_h:.4g}", d_h), (ICE_SHEET_ROWS[1][0], ICE_SHEET_ROWS[1][1], f"15N/14N {n15:.4g}", n15)]
 
 
 def record_of(body):
