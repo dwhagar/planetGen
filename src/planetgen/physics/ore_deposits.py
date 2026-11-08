@@ -242,7 +242,7 @@ def grade_cap(kind, state):
     return min(1.0, kind.concentration * state.oxides[kind.oxide] * kind.element_per_oxide * kind.crust_over_bulk)
 
 
-def _poisson(stream, mean):
+def poisson(stream, mean):
     """A Poisson draw: inversion for a small mean, the normal approximation above 30."""
     if mean <= 0.0:
         return 0
@@ -255,11 +255,11 @@ def _poisson(stream, mean):
     return count
 
 
-def _endowment_kg(kind, count, stream):
-    """The summed ore mass of `count` deposits of lognormal size (the mean of the law past 200 deposits, which the sum would only approach)."""
+def lognormal_sum(median_kg, sigma, count, stream):
+    """The summed ore mass of `count` deposits of lognormal size, the median and the natural-log spread given (the mean of the law past 200 deposits, which the sum would only approach)."""
     if count > 200:
-        return count * kind.median_ore_kg * math.exp(0.5 * kind.sigma ** 2)
-    return math.fsum(kind.median_ore_kg * math.exp(kind.sigma * stream.gauss()) for _ in range(count))
+        return count * median_kg * math.exp(0.5 * sigma ** 2)
+    return math.fsum(median_kg * math.exp(sigma * stream.gauss()) for _ in range(count))
 
 
 def assess(kind, state, sulfur_index, stream):
@@ -278,12 +278,12 @@ def assess(kind, state, sulfur_index, stream):
     if cap < low:
         return row
     window = kind.window[1] - kind.window[0]
-    count = _poisson(stream, kind.deposits * state.magma_ratio * (sulfur_index if kind.id == NICKEL_COPPER_PGE else 1.0) * window)
+    count = poisson(stream, kind.deposits * state.magma_ratio * (sulfur_index if kind.id == NICKEL_COPPER_PGE else 1.0) * window)
     drawn = stream.uniform(low, high)
     if count == 0:
         row["status"] = ABSENT_BY_CHANCE
         return row
-    row.update(status=PRESENT, grade=min(drawn, cap), endowment_kg=_endowment_kg(kind, count, stream), capped_by_host=int(drawn > cap),
+    row.update(status=PRESENT, grade=min(drawn, cap), endowment_kg=lognormal_sum(kind.median_ore_kg, kind.sigma, count, stream), capped_by_host=int(drawn > cap),
                age_window_gyr_start=kind.window[0] * state.age_gy, age_window_gyr_end=kind.window[1] * state.age_gy)
     return row
 

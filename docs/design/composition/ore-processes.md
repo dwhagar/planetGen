@@ -158,3 +158,21 @@ Built: rows 6, 7 and 8, the three derived fields and the table of section 7, as 
 - **Grade.** A cap under the bottom of the grade range is `absent_by_state`, not chance: the body has the element dispersed and no ore. A generated Earth-mass body at 4.5 Gyr makes Fe-Ti-V oxide ore in about two thirds of draws, chromitite in a tenth (the generator's bulk-silicate chromium is below the Earth's), and the sulfide only on wet bodies with a sulfur-rich enough crust that are not icy.
 - **Left for later.** The platinum-group grade of the sulfide type (GEN.1371 gives the star's PGE), vanadium, the impact-melt route (the collision record is not stored), and moons' tidal magma beyond what `interior_heat` already counts in the released heat. `craton_fraction` is stored and unread until GEN.1383 (register line GEN.799).
 
+
+## 12. Build notes: GEN.1378 (sedimentary and biogenic slice, `physics/sedimentary_deposits.py`)
+
+Built: rows 9, 16 and 17 (banded iron formation, phosphorite, evaporite) and four biogenic rocks the item names, added to the same table as rows 20 to 23: limestone, chert, coal and kerogen. They are assessed after the life pass (`generation.life.apply_life_data`), not with the magmatic types, because five of them read the life timeline; a body whose life never reached the stage a type needs has the type `absent_by_state`. The module replaces its own seven rows each time the life pass runs (an edit, a body made again) and leaves the magmatic ones.
+
+| # | Type | Gate on the generator state | Window | Slice |
+|---|---|---|---|---|
+| 9 | Banded iron formation | neutral ocean (liquid, lit), `life_age_photosynthesis_gyr` set, the rock's FeO high enough to cap the Fe grade over 25 percent | from the first photosynthesis for 1.2 Gyr, cut at the body's age | GEN.1378 |
+| 16 | Phosphorite | open surface ocean, life from the first photosynthesis plus 0.5 Gyr, ocean phosphate of 1 umol/L or more (GEN.1367), the crust's P2O5 times 200 over 18 percent | from the lag to the body's age | GEN.1378 |
+| 17 | Evaporite | open surface ocean, land, mean temperature at or above 270 K, a non-empty salt sequence (GEN.1366) | 0.2 to 1.0 of the body's age | GEN.1378 |
+| 20 | Limestone | neutral wet ocean, 1 Pa or more of carbon dioxide; doubled once complex cells exist | 0.1 of the age to the age | GEN.1378 |
+| 21 | Chert | wet ocean, `life_age_complex_cells_gyr` set | from complex cells | GEN.1378 |
+| 22 | Coal | open ocean with land, `life_age_multicellularity_gyr` set, `life_flora` of 3 or more | from multicellular life | GEN.1378 |
+| 23 | Kerogen | wet ocean, life from the first photosynthesis plus 0.3 Gyr | from the lag | GEN.1378 |
+
+- **Open point 1 (decided).** The abiotic oxygen route is not a gate for the iron formation: ultraviolet oxidation of Fe(II) and hydrogen-escape oxygen make too little oxidised iron to lay a formation, and the oxygen of escape goes to the air, not the deep ocean. The oxygen source is the first photosynthesis of the body's own timeline.
+- **Evaporite key.** `key_element` is `salt` and `grade` is the dominant salt's share of the dried salts (the column is 8 characters; the salt itself is `surface_composition.dried_salts` of the body). A page that names the salt reads that function.
+- **Left for later.** The abiotic Precambrian chert (it rides with the iron formation), biogenic oxygen's feedback on the iron supply, the sulfidic-ocean exclusion beyond the ocean class (an acid sulfate ocean has none), and economic enrichment of the iron formation to 55 to 65 percent (the stored grade is the protore's).

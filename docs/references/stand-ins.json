@@ -41263,6 +41263,392 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.217",
+      "number": "6.217",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1383",
+            "the span of the iron formations follows an ocean-oxygenation model when that item's chemistry exists; the Earth's dates are recalled, not opened"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.BIF_SPAN_GY 1.2 Gyr: the iron formations are laid from the first oxygenic photosynthesis until the deep ocean is oxic"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 2.0 Gyr"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like body whose iron formations outlast the span or end long before it"
+            ],
+            [
+              "What replaces it",
+              "an ocean-oxygenation model (the oxygen supply against the iron and sulfur sinks)"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 9: 'a rising oxygen source, age window'; the Earth laid them from about 3.0 to 1.85 Ga after photosynthesis, recalled; not opened"
+            ]
+          ],
+          "id": "SD1",
+          "key": "6.217:SD1",
+          "kind": "T",
+          "slug": "6-217-sd1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.BIF_SPAN_GY 1.2 Gyr: the iron formations are laid from the first oxygenic photosynthesis until the deep ocean is oxic"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.BIF_DEPOSITS 12, BIF_FE_PER_FEO 0.7773, BIF_CRUST_OVER_BULK 0.9, BIF_CONCENTRATION 11, median ore 1e13 kg, spread 1.0: the formations of an Earth-like ocean and the cap on their Fe grade"
+            ],
+            [
+              "The range it moves in",
+              "deposits 4 to 40; the cap's factors within 30 percent"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like endowment more than a factor of 10 from the known iron-formation total"
+            ],
+            [
+              "What replaces it",
+              "the Earth's iron-formation tonnages when the data file's sources are opened"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 9 (Fe 25 to 35 percent, 1e9 to 1e11 t per deposit) and section 6 (the Fe concentration factor 11), recalled; the count and the crust-over-bulk share are the design's"
+            ]
+          ],
+          "id": "SD2",
+          "key": "6.217:SD2",
+          "kind": "P",
+          "slug": "6-217-sd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.BIF_DEPOSITS 12, BIF_FE_PER_FEO 0.7773, BIF_CRUST_OVER_BULK 0.9, BIF_CONCENTRATION 11, median ore 1e13 kg, spread 1.0: the formations of an Earth-like ocean and the cap on their Fe grade"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.PHOSPHORITE_LAG_GY 0.5, PHOSPHORITE_MIN_UMOL_L 1.0, PHOSPHORITE_DEPOSITS 25, PHOSPHORITE_CONCENTRATION 200, median ore 1e12 kg, spread 1.5: productive upwelling begins a lag after the first photosynthesis; the count scales with the ocean's phosphate; the grade cap is 200 times the crust's P2O5"
+            ],
+            [
+              "The range it moves in",
+              "lag 0.2 to 1.5 Gyr; minimum 0.3 to 2 umol/L; deposits 8 to 80; factor 100 to 400"
+            ],
+            [
+              "Where it holds",
+              "surface oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "a phosphorite on an ocean with under 0.3 umol/L, or none on one with 5"
+            ],
+            [
+              "What replaces it",
+              "the phosphorus budget's ocean phosphate against a measured phosphorite supply"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 16 (P2O5 18 to 35 percent, 1e8 to 1e10 t), recalled; the lag, the minimum and the factor are the design's"
+            ]
+          ],
+          "id": "SD3",
+          "key": "6.217:SD3",
+          "kind": "P",
+          "slug": "6-217-sd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.PHOSPHORITE_LAG_GY 0.5, PHOSPHORITE_MIN_UMOL_L 1.0, PHOSPHORITE_DEPOSITS 25, PHOSPHORITE_CONCENTRATION 200, median ore 1e12 kg, spread 1.5: productive upwelling begins a lag after the first photosynthesis; the count scales with the ocean's phosphate; the grade cap is 200 times the crust's P2O5"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the basin count and the drying temperature are set by the design; only the Earth's evaporite totals exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.EVAPORITE_DEPOSITS 40, EVAPORITE_MIN_TEMPERATURE_K 270, EVAPORITE_WINDOW (0.2, 1.0), median ore 1e12 kg, spread 2.0: evaporite basins of an Earth-like land, dry above 270 K, laid from a fifth of the body's age"
+            ],
+            [
+              "The range it moves in",
+              "deposits 10 to 100; the temperature 260 to 285 K"
+            ],
+            [
+              "Where it holds",
+              "open oceans with land"
+            ],
+            [
+              "What would show it wrong",
+              "a salt bed on a body too cold for its brine to dry, or none on a warm ocean world with land"
+            ],
+            [
+              "What replaces it",
+              "a climate model of aridity by basin"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 17 (halite, potash and gypsum beds, 1e8 to 1e12 t), recalled; the salts are the sequence of GEN.1366 (section 6.212)"
+            ]
+          ],
+          "id": "SD4",
+          "key": "6.217:SD4",
+          "kind": "P",
+          "slug": "6-217-sd4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.EVAPORITE_DEPOSITS 40, EVAPORITE_MIN_TEMPERATURE_K 270, EVAPORITE_WINDOW (0.2, 1.0), median ore 1e12 kg, spread 2.0: evaporite basins of an Earth-like land, dry above 270 K, laid from a fifth of the body's age"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many carbonate platforms a planet with an ocean has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.LIMESTONE_DEPOSITS 120, LIMESTONE_MIN_CO2_PA 1.0, LIMESTONE_BIOTIC_BOOST 2.0, median ore 1e13 kg, spread 1.5: shelf limestones of an Earth-like ocean, doubled once complex cells exist"
+            ],
+            [
+              "The range it moves in",
+              "deposits 30 to 300; the boost 1 to 4"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with carbon dioxide in the air"
+            ],
+            [
+              "What would show it wrong",
+              "a carbonate platform on a body with no carbon dioxide"
+            ],
+            [
+              "What replaces it",
+              "a carbonate saturation model of the ocean"
+            ],
+            [
+              "Evidence",
+              "the item's title names limestone; the design file has no row for it, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD5",
+          "key": "6.217:SD5",
+          "kind": "P",
+          "slug": "6-217-sd5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.LIMESTONE_DEPOSITS 120, LIMESTONE_MIN_CO2_PA 1.0, LIMESTONE_BIOTIC_BOOST 2.0, median ore 1e13 kg, spread 1.5: shelf limestones of an Earth-like ocean, doubled once complex cells exist"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many chert beds a planet with complex life has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.CHERT_DEPOSITS 60, median ore 1e12 kg, spread 1.5: biogenic chert from the first complex cells"
+            ],
+            [
+              "The range it moves in",
+              "deposits 15 to 150"
+            ],
+            [
+              "Where it holds",
+              "oceans with complex life"
+            ],
+            [
+              "What would show it wrong",
+              "a biogenic chert on a body with no complex cells"
+            ],
+            [
+              "What replaces it",
+              "a silica budget of the ocean and its secretors"
+            ],
+            [
+              "Evidence",
+              "the item's title names chert; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD6",
+          "key": "6.217:SD6",
+          "kind": "P",
+          "slug": "6-217-sd6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.CHERT_DEPOSITS 60, median ore 1e12 kg, spread 1.5: biogenic chert from the first complex cells"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many coal fields a planet with forests has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.COAL_MIN_FLORA 3, COAL_DEPOSITS 80, median ore 3e12 kg, spread 1.5: coal from the time of multicellular life where the flora scores 3 or more on a wet land"
+            ],
+            [
+              "The range it moves in",
+              "flora 2 to 5; deposits 20 to 200"
+            ],
+            [
+              "Where it holds",
+              "open oceans with land and flora"
+            ],
+            [
+              "What would show it wrong",
+              "coal on a body with no flora, or none on one with forests"
+            ],
+            [
+              "What replaces it",
+              "a land-plant timeline and a peat-burial model"
+            ],
+            [
+              "Evidence",
+              "the item's title names coal; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD7",
+          "key": "6.217:SD7",
+          "kind": "P",
+          "slug": "6-217-sd7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.COAL_MIN_FLORA 3, COAL_DEPOSITS 80, median ore 3e12 kg, spread 1.5: coal from the time of multicellular life where the flora scores 3 or more on a wet land"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis"
+            ],
+            [
+              "The range it moves in",
+              "lag 0.1 to 1 Gyr; deposits 15 to 150"
+            ],
+            [
+              "Where it holds",
+              "surface and ice-covered oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "kerogen on a lifeless ocean"
+            ],
+            [
+              "What replaces it",
+              "an ocean productivity and anoxia model"
+            ],
+            [
+              "Evidence",
+              "the item's title names kerogen; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD8",
+          "key": "6.217:SD8",
+          "kind": "P",
+          "slug": "6-217-sd8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the reference window is a design choice; only the Earth's deposits by era exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4 Gyr"
+            ],
+            [
+              "Where it holds",
+              "all seven types"
+            ],
+            [
+              "What would show it wrong",
+              "a type whose count does not follow its window"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts by era"
+            ],
+            [
+              "Evidence",
+              "design file section 6: 'the share of the body's life during which the setting existed'; the 2 Gyr reference is the design's"
+            ]
+          ],
+          "id": "SD9",
+          "key": "6.217:SD9",
+          "kind": "T",
+          "slug": "6-217-sd9",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down"
+        }
+      ],
+      "slug": "6-217-stand-ins-of-the-sedimentary-and-biogenic-deposits",
+      "title": "Stand-ins of the sedimentary and biogenic deposits"
+    },
+    {
       "key": "6.216",
       "number": "6.216",
       "rows": [

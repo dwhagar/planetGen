@@ -119,9 +119,9 @@ def test_a_type_has_its_own_stream():
 def test_the_poisson_draw_has_the_mean_it_is_given():
     stream = draw.Stream("poisson")
     for mean in (0.5, 4.0, 60.0):
-        values = [od._poisson(stream, mean) for _ in range(4000)]
+        values = [od.poisson(stream, mean) for _ in range(4000)]
         assert sum(values) / len(values) == pytest.approx(mean, rel=0.08)
-    assert od._poisson(stream, 0.0) == 0
+    assert od.poisson(stream, 0.0) == 0
 
 
 # --- a generated body --------------------------------------------------------------------------------------------------

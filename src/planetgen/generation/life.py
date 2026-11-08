@@ -33,6 +33,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.generation import evolution
 from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
+from planetgen.physics import sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -68,6 +69,7 @@ def apply_life_data(planet, keep_stored=False):
             barred.add(frozen)
             vars(planet).clear()
             vars(planet).update(vars(_trial_copy(before)))
+    sedimentary_deposits.generate(planet)        # GEN.1378: the deposits that read the life timeline, on streams of their own (no draw of the run's)
 
 
 @dataclass

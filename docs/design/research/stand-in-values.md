@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1314 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1323 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 99 | 43 | 7 | 9 | 0 | 158 |
 | T4 | 59 | 5 | 1 | 19 | 10 | 94 |
 | T5 | 61 | 22 | 4 | 1 | 0 | 88 |
-| T6 | 137 | 97 | 26 | 69 | 0 | 329 |
-| T7 | 34 | 15 | 8 | 19 | 0 | 76 |
+| T6 | 137 | 97 | 26 | 73 | 0 | 333 |
+| T7 | 34 | 15 | 8 | 24 | 0 | 81 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 726 | 269 | 62 | 212 | 45 | 1314 |
+| All | 726 | 269 | 62 | 221 | 45 | 1323 |
 
 ## How the labels were given
 
@@ -1811,6 +1811,20 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.217 Stand-ins of the sedimentary and biogenic deposits
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SD1 | T | T6 | L3 | sedimentary_deposits.BIF_SPAN_GY 1.2 Gyr: the iron formations are laid from the first oxygenic photosynthesis until the deep ocean is oxic | 0.6 to 2.0 Gyr | neutral oceans with life | an Earth-like body whose iron formations outlast the span or end long before it | an ocean-oxygenation model (the oxygen supply against the iron and sulfur sinks) | design file section 5 row 9: 'a rising oxygen source, age window'; the Earth laid them from about 3.0 to 1.85 Ga after photosynthesis, recalled; not opened | - | no data |
+| SD2 | P | T6 | L3 | sedimentary_deposits.BIF_DEPOSITS 12, BIF_FE_PER_FEO 0.7773, BIF_CRUST_OVER_BULK 0.9, BIF_CONCENTRATION 11, median ore 1e13 kg, spread 1.0: the formations of an Earth-like ocean and the cap on their Fe grade | deposits 4 to 40; the cap's factors within 30 percent | neutral oceans with life | an Earth-like endowment more than a factor of 10 from the known iron-formation total | the Earth's iron-formation tonnages when the data file's sources are opened | design file section 5 row 9 (Fe 25 to 35 percent, 1e9 to 1e11 t per deposit) and section 6 (the Fe concentration factor 11), recalled; the count and the crust-over-bulk share are the design's | - | no data |
+| SD3 | P | T6 | L3 | sedimentary_deposits.PHOSPHORITE_LAG_GY 0.5, PHOSPHORITE_MIN_UMOL_L 1.0, PHOSPHORITE_DEPOSITS 25, PHOSPHORITE_CONCENTRATION 200, median ore 1e12 kg, spread 1.5: productive upwelling begins a lag after the first photosynthesis; the count scales with the ocean's phosphate; the grade cap is 200 times the crust's P2O5 | lag 0.2 to 1.5 Gyr; minimum 0.3 to 2 umol/L; deposits 8 to 80; factor 100 to 400 | surface oceans with life | a phosphorite on an ocean with under 0.3 umol/L, or none on one with 5 | the phosphorus budget's ocean phosphate against a measured phosphorite supply | design file section 5 row 16 (P2O5 18 to 35 percent, 1e8 to 1e10 t), recalled; the lag, the minimum and the factor are the design's | - | no data |
+| SD4 | P | T6 | L3 | sedimentary_deposits.EVAPORITE_DEPOSITS 40, EVAPORITE_MIN_TEMPERATURE_K 270, EVAPORITE_WINDOW (0.2, 1.0), median ore 1e12 kg, spread 2.0: evaporite basins of an Earth-like land, dry above 270 K, laid from a fifth of the body's age | deposits 10 to 100; the temperature 260 to 285 K | open oceans with land | a salt bed on a body too cold for its brine to dry, or none on a warm ocean world with land | a climate model of aridity by basin | design file section 5 row 17 (halite, potash and gypsum beds, 1e8 to 1e12 t), recalled; the salts are the sequence of GEN.1366 (section 6.212) | - | no data |
+| SD5 | P | T7 | L3 | sedimentary_deposits.LIMESTONE_DEPOSITS 120, LIMESTONE_MIN_CO2_PA 1.0, LIMESTONE_BIOTIC_BOOST 2.0, median ore 1e13 kg, spread 1.5: shelf limestones of an Earth-like ocean, doubled once complex cells exist | deposits 30 to 300; the boost 1 to 4 | neutral oceans with carbon dioxide in the air | a carbonate platform on a body with no carbon dioxide | a carbonate saturation model of the ocean | the item's title names limestone; the design file has no row for it, the numbers are the design's own | - | no data |
+| SD6 | P | T7 | L3 | sedimentary_deposits.CHERT_DEPOSITS 60, median ore 1e12 kg, spread 1.5: biogenic chert from the first complex cells | deposits 15 to 150 | oceans with complex life | a biogenic chert on a body with no complex cells | a silica budget of the ocean and its secretors | the item's title names chert; no design row, the numbers are the design's own | - | no data |
+| SD7 | P | T7 | L3 | sedimentary_deposits.COAL_MIN_FLORA 3, COAL_DEPOSITS 80, median ore 3e12 kg, spread 1.5: coal from the time of multicellular life where the flora scores 3 or more on a wet land | flora 2 to 5; deposits 20 to 200 | open oceans with land and flora | coal on a body with no flora, or none on one with forests | a land-plant timeline and a peat-burial model | the item's title names coal; no design row, the numbers are the design's own | - | no data |
+| SD8 | P | T7 | L3 | sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis | lag 0.1 to 1 Gyr; deposits 15 to 150 | surface and ice-covered oceans with life | kerogen on a lifeless ocean | an ocean productivity and anoxia model | the item's title names kerogen; no design row, the numbers are the design's own | - | no data |
+| SD9 | T | T7 | L3 | sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down | 1 to 4 Gyr | all seven types | a type whose count does not follow its window | the Earth's deposit counts by era | design file section 6: 'the share of the body's life during which the setting existed'; the 2 Gyr reference is the design's | - | no data |
 
 ## 6.216 Stand-ins of the phosphorus budget
 
