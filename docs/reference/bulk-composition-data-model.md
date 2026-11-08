@@ -42,6 +42,7 @@ back as `None`):
 | `envelope_mass_fraction` | share | Hydrogen and helium gas |
 | `rock_feo_fraction`, `rock_al2o3_fraction` | share of the rock | FeO and Al2O3 |
 | `rock_mg_si_ratio` | molar ratio | The rock's Mg/Si |
+| `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction` | share of the rock | The seven minor oxides (GEN.1362, [mantle-oxides.md](../design/composition/mantle-oxides.md)); NULL for a carbon rock |
 | `envelope_helium_fraction`, `envelope_z_fraction` | share of the envelope | Helium (Y) and heavy elements (Z) |
 | `porosity` | share of volume | The void share of a small body (`NULL` where the structure solver decides) |
 | `carbon_rock` | flag | The rock is silicon carbide and graphite |

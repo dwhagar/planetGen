@@ -621,7 +621,7 @@
         },
         {
           "quantity": "temperature_k",
-          "min": 298.0
+          "min": 275.0
         },
         {
           "quantity": "temperature_k",
@@ -633,11 +633,7 @@
         },
         {
           "quantity": "coldest_region_k",
-          "min": 285.0
-        },
-        {
-          "quantity": "wet_bulb_c",
-          "min": 28.0
+          "min": 250.0
         },
         {
           "quantity": "wet_bulb_c",
@@ -652,7 +648,7 @@
           "equals": 1.0
         }
       ],
-      "note": "M's too wet (GEN.1221): mean 298 to 312 K, equator at most 315 K, poles at least 285 K, wet bulb 28 to 31 C, water over 80 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
+      "note": "M's too wet (GEN.1221, GEN.1342): mean 275 to 312 K (M's floor to the old ceiling), equator at most 315 K, poles at least 250 K, wet bulb under 31 C, water over 80 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "H",
@@ -702,7 +698,7 @@
         },
         {
           "quantity": "temperature_k",
-          "min": 295.0
+          "min": 275.0
         },
         {
           "quantity": "temperature_k",
@@ -714,7 +710,7 @@
         },
         {
           "quantity": "coldest_region_k",
-          "min": 270.0
+          "min": 250.0
         },
         {
           "quantity": "wet_bulb_c",
@@ -733,7 +729,7 @@
           "equals": 1.0
         }
       ],
-      "note": "M's too dry (GEN.1221): mean 295 to 315 K, hottest region at most 330 K, poles at least 270 K, wet bulb under 25 C, water under 20 percent of the surface with groundwater; up to 2 g (GEN.1306, registry AW3)"
+      "note": "M's too dry (GEN.1221, GEN.1342): mean 275 to 315 K (M's floor to the old ceiling), hottest region at most 330 K, poles at least 250 K, wet bulb under 25 C, some water (groundwater present) but under 20 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "M",

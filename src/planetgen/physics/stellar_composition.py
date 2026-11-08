@@ -105,8 +105,8 @@ class StarDraws:
     A star's draws, in the fixed order they are consumed in; every one is always drawn.
 
     Attributes:
-        normals (tuple): Five standard normals for the C, O, Mg, Si and Ca residuals (the calcium one is drawn last of all, so no earlier draw moved
-            when calcium gained its scatter, GEN.988).
+        normals (tuple): One standard normal per element of `stellar_abundances.RESIDUAL_ELEMENTS` (C, O, Mg, Si, Ca, Ti, V, Cr, Mn, P, Zn, Co, Cu, Li) for its
+            residual; the calcium one is drawn after the others and the nine of GEN.1360 after it, so no earlier draw moved when either gained its scatter.
         u_enhanced (float): Decides a carbon-enhanced metal-poor star.
         u_carbon (float): The size of its carbon excess.
         eu_normal (float): The [Eu/Fe] residual in units of its scatter.
@@ -156,7 +156,10 @@ def key_draws(key):
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
     rest = (stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
             stream.random(), stream.random(), stream.random(), stream.random())
-    return StarDraws(normals + (stream.gauss(0.0, 1.0),), *rest)
+    calcium = (stream.gauss(0.0, 1.0),)
+    # GEN.1360: Ti, V, Cr, Mn, P, Zn, Co, Cu and Li come last of all, so no earlier draw moved
+    later = tuple(stream.gauss(0.0, 1.0) for _ in range(len(sa.RESIDUAL_ELEMENTS) - 5))
+    return StarDraws(normals + calcium + later, *rest)
 
 
 def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):

@@ -11959,7 +11959,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_CORE_CRITICAL_MASS_EARTH 10 (the core that can run away into a gas giant)"
+              "tuning.GIANT_CORE_CRITICAL_MASS_EARTH 9 (the core that can run away into a gas giant)"
             ],
             [
               "The range it moves in",
@@ -11979,7 +11979,7 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R3565, R3645]: 5 to 20 Earth masses)"
+              "RECALLED ([R3565, R3645]: 5 to 20 Earth masses); nudged from 10 to 9 inside that range with GEN.1396, because the solids beyond the snow line fell by the lower jump (1.967 for 2.17) and the share of cores that reach the runaway mass fell with them; the survival share alone could not give the giants back (PA2)"
             ]
           ],
           "id": "PM5",
@@ -11988,9 +11988,9 @@
           "slug": "6-20-pm5",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "tuning.GIANT_CORE_CRITICAL_MASS_EARTH 10 (the core that can run away into a gas giant)"
+          "what": "tuning.GIANT_CORE_CRITICAL_MASS_EARTH 9 (the core that can run away into a gas giant)"
         },
         {
           "burn_down": null,
@@ -16527,7 +16527,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
             ],
             [
               "The range it moves in",
@@ -16543,11 +16543,11 @@
             ],
             [
               "What replaces it",
-              "a disc-evolution and pebble-flux model of the outer solids (GEN.509)"
+              "a disk-evolution and pebble-flux model of the outer solids (GEN.509)"
             ],
             [
               "Evidence",
-              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17 (the mass law's own PM1 is retired into this row)"
+              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed)"
             ]
           ],
           "id": "PA1",
@@ -16558,7 +16558,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disk against the minimum-mass nebula; where the outer disk's growth falls behind and how fast)"
         },
         {
           "burn_down": [
@@ -16569,7 +16569,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
+              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.79, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
             ],
             [
               "The range it moves in",
@@ -16585,11 +16585,11 @@
             ],
             [
               "What replaces it",
-              "a disc-lifetime model (GEN.510)"
+              "a disk-lifetime model (GEN.510)"
             ],
             [
               "Evidence",
-              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row); the star-mass exponent is [R2172]'s linear law (3.5 percent of 0.5 solar mass stars against about 7 percent of Suns) and gives the M-dwarf hot Jupiter rate of 0.32 percent over 12 seeds against [R1504]'s 0.27 percent"
+              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row); the star-mass exponent is [R2172]'s linear law (3.5 percent of 0.5 solar mass stars against about 7 percent of Suns) and gives the M-dwarf hot Jupiter rate of 0.32 percent over 12 seeds against [R1504]'s 0.27 percent; GEN.1396 (jump 1.967) raised the share from 0.766 to 0.79 with the critical core 10 to 9 (PM5): over 20,000 stars the giants at 2 to 8 AU of a Sun-like star are 0.1065 as before, the hot Jupiters 0.0067 of Suns and 0.0034 of M dwarfs against 0.0058 and 0.0032 (the share alone gives only 0.100 even at 0.95, since a star needs one giant, not every core)"
             ]
           ],
           "id": "PA2",
@@ -16600,7 +16600,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
+          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.79, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
         },
         {
           "burn_down": [
@@ -41393,6 +41393,760 @@
       "title": "Stand-ins of the asteroid field two colliding rogue planets leave"
     },
     {
+      "key": "6.214",
+      "number": "6.214",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of data/volatile_depletion.json (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K"
+            ],
+            [
+              "The range it moves in",
+              "slope 0.0016 to 0.0017; cut 1310 to 1330 K"
+            ],
+            [
+              "Where it holds",
+              "moderately volatile and refractory elements of a rocky body, T50 500 K and up"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth whose Na, K or Zn sit more than 0.2 dex off the line (the table's largest residual is under 0.25 dex)"
+            ],
+            [
+              "What replaces it",
+              "a fit that carries the Earth's mass-dependent core partitioning and the elements' host phases, not T50 alone"
+            ],
+            [
+              "Evidence",
+              "the table: Earth over CI for S 0.0734, Zn 0.094, F 0.142, Cl 0.145, Na 0.28, K 0.263, Cu 0.333, Mn 0.592, P 0.626, Li 0.703, refractories at 1.0 to 1.2; the test refits the hinge from the table"
+            ]
+          ],
+          "id": "VD1",
+          "key": "6.214:VD1",
+          "kind": "D",
+          "slug": "6-214-vd1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": null,
+          "what": "volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of data/volatile_depletion.json (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.cut_temperature_k: the cut of a body scales with the blackbody temperature of its formation distance, CUT_K * T(d, L) / REFERENCE_BLACKBODY_K with T the blackbody temperature (the d^-1/2 L^1/4 law)"
+            ],
+            [
+              "The range it moves in",
+              "the exponent 0.5 to 1 on the distance"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies formed anywhere a blackbody zone of 100 K and up"
+            ],
+            [
+              "What would show it wrong",
+              "a measured K/U, Na or Zn of Mercury or Mars outside the lever: Mercury's K/U 14,311 against the Earth's 9,704 [R1003] says it kept more potassium than the Earth, where the lever predicts a twentieth of the Earth law's; Mars's sodium is about twice the Earth law's (research note, not opened) against 2.6 here"
+            ],
+            [
+              "What replaces it",
+              "a cut from the accretion temperature history of the feeding zone of the body"
+            ],
+            [
+              "Evidence",
+              "the direction (a colder zone keeps more) is the standard picture of volatile loss; the size is a stand-in, one test point (Mars) agrees and one (Mercury) disagrees; the Earth law (no cut passed) is the central case"
+            ]
+          ],
+          "id": "VD2",
+          "key": "6.214:VD2",
+          "kind": "T",
+          "slug": "6-214-vd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "volatile_depletion.cut_temperature_k: the cut of a body scales with the blackbody temperature of its formation distance, CUT_K * T(d, L) / REFERENCE_BLACKBODY_K with T the blackbody temperature (the d^-1/2 L^1/4 law)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, data/volatile_depletion.json reference)"
+            ],
+            [
+              "The range it moves in",
+              "the zone of the bulk Earth's accretion, 0.7 to 1.3 AU"
+            ],
+            [
+              "Where it holds",
+              "the lever of VD2"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth formed from a zone that was not near 1 AU"
+            ],
+            [
+              "What replaces it",
+              "the zone read from the formation history of the body"
+            ],
+            [
+              "Evidence",
+              "the Earth's own orbit; a convention that makes the cut of a body at the Earth's blackbody temperature the Earth's"
+            ]
+          ],
+          "id": "VD3",
+          "key": "6.214:VD3",
+          "kind": "D",
+          "slug": "6-214-vd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, data/volatile_depletion.json reference)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50"
+            ],
+            [
+              "The range it moves in",
+              "400 to 664 K"
+            ],
+            [
+              "Where it holds",
+              "elements with T50 of 500 K and up (the coolest fitted element, sulfur, is 664 K; indium, iodine, thallium and bromine, 532 to 546 K, are inside)"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth value for an element of 500 to 660 K that the line misses by more than 0.3 dex"
+            ],
+            [
+              "What replaces it",
+              "the ice, noble gas and carbon items of N4, which give the elements under 500 K their own condensation"
+            ],
+            [
+              "Evidence",
+              "the research note's validity of 500 to 1324 K; no fitted point under 664 K"
+            ]
+          ],
+          "id": "VD4",
+          "key": "6.214:VD4",
+          "kind": "B",
+          "slug": "6-214-vd4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50"
+        }
+      ],
+      "slug": "6-214-stand-ins-of-the-volatility-depletion-of-a-rocky-body",
+      "title": "Stand-ins of the volatility depletion of a rocky body"
+    },
+    {
+      "key": "6.215",
+      "number": "6.215",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_SIGMA Ti 0.038/0.075, V 0.066/0.066, Cr 0.024/0.022, Mn 0.055/0.053 (thin/high-alpha, dex): the robust spread (p84 less p16, halved) of the residuals about the branch line, weighted by the branch's probability"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "dwarfs of [Fe/H] -0.9 to +0.5 (thin) and -1.6 to +0.1 (high-alpha)"
+            ],
+            [
+              "What would show it wrong",
+              "a spread of a sample with smaller measurement error that is under half or over twice this"
+            ],
+            [
+              "What replaces it",
+              "the table's measurement error is in the spread, and the spread changes by up to 1.6 between its [Fe/H] bins (Ti is 0.62 of the table's at -0.4 to -0.2 and 1.62 at 0.2 to 0.4): a spread that depends on [Fe/H] replaces the constant"
+            ],
+            [
+              "Evidence",
+              "the generated scatter is within a factor of two of the table's in every bin (test_stellar_xfe_brewer_fischer.py); the high-alpha lines rest on 40 stars' weight"
+            ]
+          ],
+          "id": "XE1",
+          "key": "6.215:XE1",
+          "kind": "P",
+          "slug": "6-215-xe1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_SIGMA Ti 0.038/0.075, V 0.066/0.066, Cr 0.024/0.022, Mn 0.055/0.053 (thin/high-alpha, dex): the robust spread (p84 less p16, halved) of the residuals about the branch line, weighted by the branch's probability"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS P (\"linear\", 0.03, -0.35) over [Fe/H] -0.5 to +0.3 for both branches, with scatter 0.10 dex"
+            ],
+            [
+              "The range it moves in",
+              "the P bins [P/Fe] +0.18, +0.14, +0.03, -0.01 at [Fe/H] -0.5, -0.3, 0 and +0.3; scatter 0.06 to 0.13"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs of [Fe/H] -0.5 to +0.3"
+            ],
+            [
+              "What would show it wrong",
+              "a phosphorus sample that departs from the line by more than the scatter, or a thick-disk offset"
+            ],
+            [
+              "What replaces it",
+              "a phosphorus sample with the two branches told apart"
+            ],
+            [
+              "Evidence",
+              "the bins are read by the research lane from Table 4 of [R2785] (the research note calls its source a 2017 paper; the repository lists the Hyades and Galactic disk paper under 2019, not checked to be the same table) and the line is derived from them; the paper was not opened again here"
+            ]
+          ],
+          "id": "XE2",
+          "key": "6.215:XE2",
+          "kind": "P",
+          "slug": "6-215-xe2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS P (\"linear\", 0.03, -0.35) over [Fe/H] -0.5 to +0.3 for both branches, with scatter 0.10 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Zn (\"linear\", 0.0, -0.10) over [Fe/H] -1 to 0 for both branches, with scatter 0.08 dex"
+            ],
+            [
+              "The range it moves in",
+              "+0.1 at [Fe/H] -1 and below, 0 at and above 0 [R0349]"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs of [Fe/H] -1 to +0.5"
+            ],
+            [
+              "What would show it wrong",
+              "a zinc sample whose [Zn/Fe] differs from the line by more than the scatter"
+            ],
+            [
+              "What replaces it",
+              "the thick-disk offset (visible in the paper, not tabulated) and a read scatter"
+            ],
+            [
+              "Evidence",
+              "the trend is read by the research lane from the text of [R0349]; the scatter 0.08 is the size of the paper's abundance error and not a measured spread"
+            ]
+          ],
+          "id": "XE3",
+          "key": "6.215:XE3",
+          "kind": "P",
+          "slug": "6-215-xe3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Zn (\"linear\", 0.0, -0.10) over [Fe/H] -1 to 0 for both branches, with scatter 0.08 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Co (\"linear\", 0.0, 0.0) with scatter 0.07 dex"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.07 (the paper's mean abundance error, Table 3) up to 0.2"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a [Co/Fe] trend with a printed size: [R5145] (A&A 577, A9) say it is flat above [Fe/H] -0.4 and rises below, thin and thick indistinguishable, and print no number (the curve is in their Fig. 4)"
+            ],
+            [
+              "What replaces it",
+              "the figure's running median or a table of [Co/Fe] against [Fe/H]"
+            ],
+            [
+              "Evidence",
+              "the paper was opened for this item (the ar5iv text): no value is printed, so the rise below -0.4 is not modelled and Co is solar-scaled"
+            ]
+          ],
+          "id": "XE4",
+          "key": "6.215:XE4",
+          "kind": "P",
+          "slug": "6-215-xe4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Co (\"linear\", 0.0, 0.0) with scatter 0.07 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Cu (\"linear\", 0.0, 0.0) with scatter 0.10 dex"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a [Cu/Fe] trend with a printed size: [R1062] say the thick disk is higher than the thin between [Fe/H] -0.5 and -0.2, the thin disk rises slightly to +0.1 and steeply above, and print no value (Figs. 10 and 11)"
+            ],
+            [
+              "What replaces it",
+              "the figures' bin means"
+            ],
+            [
+              "Evidence",
+              "the paper was opened for this item: no value is printed, so Cu is solar-scaled; the scatter 0.10 is above the paper's error of 0.05 to 0.08"
+            ]
+          ],
+          "id": "XE5",
+          "key": "6.215:XE5",
+          "kind": "P",
+          "slug": "6-215-xe5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Cu (\"linear\", 0.0, 0.0) with scatter 0.10 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Li (\"linear\", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "stars at birth"
+            ],
+            [
+              "What would show it wrong",
+              "a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled)"
+            ],
+            [
+              "What replaces it",
+              "a Galactic chemical evolution of lithium"
+            ],
+            [
+              "Evidence",
+              "the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex"
+            ]
+          ],
+          "id": "XE6",
+          "key": "6.215:XE6",
+          "kind": "P",
+          "slug": "6-215-xe6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Li (\"linear\", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the five elements"
+            ],
+            [
+              "What would show it wrong",
+              "a sample in which P, Zn, Co or Cu correlates with Mg or Si"
+            ],
+            [
+              "What replaces it",
+              "the correlation of a sample with those elements"
+            ],
+            [
+              "Evidence",
+              "the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O)"
+            ]
+          ],
+          "id": "XE7",
+          "key": "6.215:XE7",
+          "kind": "P",
+          "slug": "6-215-xe7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other"
+        }
+      ],
+      "slug": "6-215-stand-ins-of-the-nine-added-star-elements",
+      "title": "Stand-ins of the nine added star elements"
+    },
+    {
+      "key": "6.216",
+      "number": "6.216",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+            ],
+            [
+              "The range it moves in",
+              "the core ppm of the concordance (Cr 6590, Mn 3257, Ni 50600, P 2774; bulk 3883, 1760, 17700, 957)"
+            ],
+            [
+              "Where it holds",
+              "the Earth, and any body by the scaling of D"
+            ],
+            [
+              "What would show it wrong",
+              "a core ppm of the same elements from a later compilation that differs by more than the table's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "an interior model that fixes the partition from pressure, temperature and fO2 for each element"
+            ],
+            [
+              "Evidence",
+              "the numbers are read from the table of [R4608] by the research lane (bulk_earth_pm_core_and_depletion.csv, \"read\"); the core mass fraction 0.325 is the same paper's"
+            ]
+          ],
+          "id": "MO1",
+          "key": "6.216:MO1",
+          "kind": "D",
+          "slug": "6-216-mo1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.30 (the same table has 0.20 and 0.30 from one model)"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a measured share of K or Na outside 0 to 0.1 (a K-bearing core would change the heat budget)"
+            ],
+            [
+              "What replaces it",
+              "a partition of the alkalis from sulfur-rich metal and pressure"
+            ],
+            [
+              "Evidence",
+              "the research note (real-material-data-2, section 1) caps the model's 0.20 and 0.30 at 0.05 as the old model's; the cap is the research lane's choice, not a measurement; the mantle Na2O and K2O reach 0.88 and 1.4 times the Earth's"
+            ]
+          ],
+          "id": "MO2",
+          "key": "6.216:MO2",
+          "kind": "P",
+          "slug": "6-216-mo2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+            ],
+            [
+              "The range it moves in",
+              "n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+)"
+            ],
+            [
+              "Where it holds",
+              "rocks of FeO 0.01 to 0.18"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close"
+            ],
+            [
+              "What replaces it",
+              "a pressure and temperature dependent partition of each element (the real law has three more terms)"
+            ],
+            [
+              "Evidence",
+              "the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor"
+            ]
+          ],
+          "id": "MO3",
+          "key": "6.216:MO3",
+          "kind": "T",
+          "slug": "6-216-mo3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+            ],
+            [
+              "The range it moves in",
+              "Ti 0 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a Ti share above 0.05"
+            ],
+            [
+              "What replaces it",
+              "a partition of Ti at the pressure of a large body's core"
+            ],
+            [
+              "Evidence",
+              "Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite"
+            ]
+          ],
+          "id": "MO4",
+          "key": "6.216:MO4",
+          "kind": "B",
+          "slug": "6-216-mo4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+        }
+      ],
+      "slug": "6-216-stand-ins-of-the-minor-oxides-of-a-rocky-body-s-rock",
+      "title": "Stand-ins of the minor oxides of a rocky body's rock"
+    },
+    {
+      "key": "6.217",
+      "number": "6.217",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs, where no trend of these elements with [Fe/H] has been opened"
+            ],
+            [
+              "What would show it wrong",
+              "a sample that gives a trend of Rb, Cs, Ge, As or Se with [Fe/H]"
+            ],
+            [
+              "What replaces it",
+              "the star element set (GEN.1360's way) when a sample with a trend is opened"
+            ],
+            [
+              "Evidence",
+              "the log eps are read; the follow-iron choice is the default for an element with no opened trend and was not tested against any sample"
+            ]
+          ],
+          "id": "HK1",
+          "key": "6.217:HK1",
+          "kind": "P",
+          "slug": "6-217-hk1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any atmosphere of hydrogen-rich gas"
+            ],
+            [
+              "What would show it wrong",
+              "a measured abundance above the ceiling (then the star's element is wrong)"
+            ],
+            [
+              "What replaces it",
+              "the thermochemistry of the hot-giant regimes (GEN.994), which gives the amount, not its ceiling"
+            ],
+            [
+              "Evidence",
+              "an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values)"
+            ]
+          ],
+          "id": "HK2",
+          "key": "6.217:HK2",
+          "kind": "B",
+          "slug": "6-217-hk2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the pressures 1e-4 to 100 bar of the fit"
+            ],
+            [
+              "What would show it wrong",
+              "a fit of the chromium cloud in which the coefficient of [Cr/H] differs from that of [Fe/H]"
+            ],
+            [
+              "What replaces it",
+              "a Gibbs minimisation (FastChem, GGchem)"
+            ],
+            [
+              "Evidence",
+              "the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation"
+            ]
+          ],
+          "id": "HK3",
+          "key": "6.217:HK3",
+          "kind": "T",
+          "slug": "6-217-hk3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a host whose [Cl/K] is above -0.24 dex of the Sun's"
+            ],
+            [
+              "What would show it wrong",
+              "a host with a chlorine abundance below potassium's"
+            ],
+            [
+              "What replaces it",
+              "the same Gibbs minimisation"
+            ],
+            [
+              "Evidence",
+              "the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it"
+            ]
+          ],
+          "id": "HK4",
+          "key": "6.217:HK4",
+          "kind": "T",
+          "slug": "6-217-hk4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used)"
+        }
+      ],
+      "slug": "6-217-stand-ins-of-the-host-scaled-cloud-temperatures-and-the-hot-atmosphere-trace-gases",
+      "title": "Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases"
+    },
+    {
       "key": "6.213",
       "number": "6.213",
       "rows": [
@@ -41401,7 +42155,7 @@
           "fields": [
             [
               "What it is",
-              "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+              "disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
             ],
             [
               "The range it moves in",
@@ -41431,15 +42185,15 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+          "unread": null,
+          "what": "disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+              "disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
             ],
             [
               "The range it moves in",
@@ -41469,15 +42223,15 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+          "unread": null,
+          "what": "disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+              "disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
             ],
             [
               "The range it moves in",
@@ -41507,15 +42261,15 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+          "unread": null,
+          "what": "disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+              "disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
             ],
             [
               "The range it moves in",
@@ -41545,8 +42299,8 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+          "unread": null,
+          "what": "disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
         },
         {
           "burn_down": [
@@ -41557,7 +42311,7 @@
           "fields": [
             [
               "What it is",
-              "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+              "disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
             ],
             [
               "The range it moves in",
@@ -41587,15 +42341,15 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+          "unread": null,
+          "what": "disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+              "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
             ],
             [
               "The range it moves in",
@@ -41625,12 +42379,12 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": "GEN.1363",
-          "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+          "unread": null,
+          "what": "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
         }
       ],
-      "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
-      "title": "Stand-ins of the species the disc condenses"
+      "slug": "6-213-stand-ins-of-the-species-the-disk-condenses",
+      "title": "Stand-ins of the species the disk condenses"
     },
     {
       "key": "6.197",

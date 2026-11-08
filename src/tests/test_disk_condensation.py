@@ -1,8 +1,8 @@
-"""The species-by-species disc condensation (GEN.1363 part A, physics/disc_condensation.py)."""
+"""The species-by-species disk condensation (GEN.1363 part A, physics/disk_condensation.py)."""
 
 import pytest
 
-from planetgen.physics import condensate_shares, disc_condensation as dc
+from planetgen.physics import condensate_shares, disk_condensation as dc
 
 SUN_L = 3.828e26
 
@@ -72,7 +72,7 @@ def test_masses_are_percent_of_the_nebula_on_the_water_of_table_11():
     assert full["C"] == pytest.approx(dc.inventory().refractory_carbon * 12.011 / 18.015 * dc.PERCENT_PER_H2O_MOLE)
 
 
-def test_the_ammonia_of_a_solar_disc_is_near_table_11_less_the_nitrogen_that_is_n2():
+def test_the_ammonia_of_a_solar_disk_is_near_table_11_less_the_nitrogen_that_is_n2():
     ammonia = dc.masses_percent(100.0)["NH3"]
     assert ammonia == pytest.approx(condensate_shares.TABLE_11_MASS_PERCENT["NH3"] * (1.0 - dc.NITROGEN_AS_N2 - dc.NITROGEN_AS_SALTS), rel=0.05)
 

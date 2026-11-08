@@ -195,7 +195,7 @@ def test_the_draw_repeats_and_counts_life_worlds_by_rung():
 
 
 def test_a_broken_band_trips_the_live_flag(expectations):
-    result = life.draw_life([0, 1, 2, 3, 4, 5])
+    result = life.draw_life([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])      # GEN.1334: a planet under an envelope holds no life, so 6 systems held one living world
     broken = copy.deepcopy(expectations)
     broken["measures"]["stops_before_animals"].update(min=0.0, max=0.0)
     for bounds in broken["measures"].values():
