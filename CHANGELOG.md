@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3727] - 2026-11-08
+
+**Headline:** The block light totals are now the last stage of a galaxy run, and their bar moves through all three parts.
+
+### Changed
+- **Block lights last (PERF.251).** `galaxy_stages` puts "Make the block light totals" after the settling and the run blocks instead of after the nebula field. The totals add up only stars and phenomena that are not built yet, so they were redone for nothing as the backfill, population and settling built them; made last they are made once from what is left. The stage list, `run_galaxy`'s followers, `commands`' stage numbers and the design docs (`redis-and-the-work-queue.md`, `command-inventory.md`) follow the new order.
+- **The uncharted placeholder rows come after the backfill (PERF.252).** The totals stage writes the uncharted sector rows, which the bright-star backfill used to count as sectors the run had just made: on a small galaxy (3e7 solar masses, radius 6 pc) it planned 573,713 backfill targets and 34,707 sky cells from 19 real sectors and drew 16,471 bright stars where the run's own sectors give 1,037; on a big galaxy that is millions of rows, the 900 s job limit and an out-of-memory kill. With the totals last the backfill opens on the run's real sectors only, and `store.sector_centers_since` now counts charted sectors only (a cell with no chart ledger row is a placeholder), so a placeholder can never be taken for a run sector again.
+generation-output: changed
+- **The bar moves all the way.** "Making the block light totals" counts 100 steps in three parts (the units 70, the levels above the units 15, the uncharted rows the rest) and says the share done in its log line, so it no longer sits at one value through the longest part.
+- **Tests.** `test_stages.py` has the new stage numbers and a test that the block lights stage is last; `test_block_lights.py` checks that the bar moves in all three parts.
+
 ## [8.0.3726] - 2026-11-08
 
 **Headline:** A carbon-rich rocky world (a star with C/O of 0.8 or more) now carries moissanite (silicon carbide) and cohenite (iron carbide) deposits; oxygen-rich worlds never do.
