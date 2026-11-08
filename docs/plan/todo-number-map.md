@@ -2137,7 +2137,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead | none | done, PR #5620 |
 | GEN.1345 | Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it | none | done, PR #5563 |
 | GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured | none | done, PR #5620 |
-| GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr | none | open |
+| GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr | none | done, PR #5740 |
 | GEN.1348 | Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans | none | done, PR #5565 |
 | GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals | none | open |
 | GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) | none | done, PR #5620 |
@@ -2201,7 +2201,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy  | GEN.1413 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
 | GEN.1420 | Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top | GEN.1363 | open |
 | GEN.1421 | Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water | GEN.1420 | open |
-| GEN.1422 | Superionic water and ammonia boundary table: the deep-layer boundary of ice giants and water worlds from the observed superionic phases, replacing the weird-worlds G4 text line | none | open |
+| GEN.1422 | Superionic water and ammonia boundary table: the deep-layer boundary of ice giants and water worlds from the observed superionic phases, replacing the weird-worlds G4 text line | none | done, PR #5740 |
 | GEN.1423 | Silicon carbide (moissanite) and cohenite (Fe3C) mineral rows for carbon-rich worlds | none | open |
 | GEN.1424 | The H2SO4-H2O vapour-pressure curve and the sulfuric acid cloud condensation window (the missing prerequisite of the Venus chemistry set) | none | done, PR #5728 |
 | GEN.1425 | Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it | GEN.1424 | open |
@@ -2240,7 +2240,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1437 | Design notes for the chaotic triple-star zone and the dimming star (debris stream or disintegrating planet with irregular transits) | none | open |
 | GEN.1438 | Flavor tree tests: classless gates, quantities exist, every line reachable, coverage per life class and scope, order independence, plain words, settings pruning | GEN.1430 | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
-| GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
+| GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | done, PR #5740 |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | done, PR #5688 |
 | GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) | none | done, PR #5697 |
 | GEN.1391 | Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364) | GEN.1364, GEN.1360 | open |
@@ -2287,8 +2287,8 @@ Parents marked "new parent" had no old number of their own.
 | TEST.700 | test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug) | none | done, PR #5736 |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | done, PR #5688 |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | done, PR #5688 |
-| PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
-| PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | open |
+| PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | done, PR #5740 |
+| PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | done, PR #5740 |
 | PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
 | PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step | PERF.226 | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
