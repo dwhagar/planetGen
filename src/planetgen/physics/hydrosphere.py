@@ -76,7 +76,7 @@ that ask for a `surface ocean` (a sunlit sea for life, the plate tectonics of a 
 HYDROSPHERE_STATES = ("dry", "vapor", "ice", "ice-covered ocean", "surface ocean", BRINE_SEEP, "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
-WATER_MELTING_K = 273.15
+WATER_MELTING_K = aquifers.WATER_MELTING_K
 FROZEN_COVER_STATES = ("ice", "ice-covered ocean")
 """tuple: The hydrosphere states whose surface is ice (GEN.833: their cover is the water layer the body holds, `frozen_cover`)."""
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
