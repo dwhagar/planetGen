@@ -267,7 +267,7 @@ _BODY_GROUPS = (
            ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
            ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
-           ("dipole_tilt_deg", "Dipole tilt from the spin axis"), ("dipole_offset_class", "Dipole centring", TEXT),
+           ("dipole_tilt_deg", "Dipole tilt from the spin axis"), ("dipole_offset_class", "Dipole centering", TEXT),
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
@@ -961,7 +961,7 @@ _BODY_RULES = [
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
      "a world with no magnetic field has no magnetopause"),
     (("dipole_tilt_deg", "dipole_offset_class"), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
-     "a world with no magnetic field has no dipole to point or to centre"),
+     "a world with no magnetic field has no dipole to point or to center"),
     (_DISK_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _DISK_COLUMNS),
      "only a giant planet whose moons formed in a disk keeps that disk; a rocky body, a moon and a giant with no disk-born moons store none"),
 ]

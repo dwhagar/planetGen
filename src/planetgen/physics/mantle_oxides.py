@@ -17,9 +17,9 @@ For one magnesium atom of the body, an element X with star ratio r (atoms of X p
    mass (`core_fraction`) and `D` the coefficient that gives the Earth's own share at the Earth's own core (`EARTH_CORE_SHARE` at c = `EARTH_CORE_FRACTION`;
    Wang, Lineweaver and Ireland 2018, the core ppm over the bulk ppm times the core mass fraction): Cr 0.55, Mn 0.60, Ni 0.93, P 0.94. A bigger core takes
    a bigger share of each, and Ti, which is lithophile, takes none. Na and K carry the 5 percent the research note caps them at (the Earth's concordance
-   table has 20 and 30 percent from one old model). D moves with how oxidised the mantle is: the element goes into the metal as a neutral atom and out of the
+   table has 20 and 30 percent from one old model). D moves with how oxidized the mantle is: the element goes into the metal as a neutral atom and out of the
    silicate as an oxide of valence n, so D scales as the mantle's FeO to the power minus n/2 (`VALENCE`; Ni, Cr and Mn 2, P 5), set to the Earth's D at the Earth's
-   FeO (`EARTH_ROCK_FEO`). A reduced body (Mercury) puts nearly all its P in the metal and a more oxidised one (Mars, FeO 0.147) keeps four times the Earth's P
+   FeO (`EARTH_ROCK_FEO`). A reduced body (Mercury) puts nearly all its P in the metal and a more oxidized one (Mars, FeO 0.147) keeps four times the Earth's P
    in the mantle, which is how the model reaches Mars's phosphorus. The law is the leading term only: it leaves out the pressure, the temperature and the sulfur
    of the real metal, which is why Mars's NiO (0.046 percent against the model's 0.3) is not reached.
 3. **The mantle.** What is not in the core is the rock's oxide, `n (1 - s) M(oxide) / (atoms of X in the oxide)` grams per Mg atom.

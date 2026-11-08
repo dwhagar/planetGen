@@ -114,7 +114,7 @@ RELATIONS = (
     Relation("[P/Fe] and [Zn/Fe] trends", "[R2785: Table 4] bins (P) and [R0349] text (Zn), read by the research lane "
              "(real-material-data-1 section 1.2); one trend for both branches", PARTLY_VERIFIED,
              "P only over [Fe/H] -0.5 to +0.3 and Zn over -1 to 0; Zn's thick-disk offset is visible in the paper but not tabulated; the scatters are stand-ins"),
-    Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5138] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
+    Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5145] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
              "thin and thick indistinguishable), [R1062] prints no Cu value (thick disk higher by a few hundredths between -0.5 and -0.2), "
              "and Li's trend is recalled", STAND_IN,
              "the rises are not modelled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),

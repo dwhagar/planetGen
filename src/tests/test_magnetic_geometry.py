@@ -40,7 +40,7 @@ def test_a_multipolar_dipole_and_an_ice_giants_point_any_way(kind):
 
 def test_the_offset_class_follows_the_kind_of_dynamo():
     assert {mg.of_body(kind, "k")[1] for kind in ("ice-giant", "multipolar", "mercury")} == {"offset"}
-    assert mg.of_body("axial", "k")[1] == "centred"
+    assert mg.of_body("axial", "k")[1] == "centered"
 
 
 def test_a_body_gets_the_same_dipole_every_time_and_no_other_body_shares_it():
@@ -127,7 +127,7 @@ def test_every_generated_body_with_a_dipole_has_a_direction_and_one_without_has_
             for body in (planet, *planet.moons):
                 if (body.magnetic_moment_a_m2 or 0.0) > 0.0:
                     seen += 1
-                    assert 0.0 <= body.dipole_tilt_deg <= 90.0 and body.dipole_offset_class in ("centred", "offset")
+                    assert 0.0 <= body.dipole_tilt_deg <= 90.0 and body.dipole_offset_class in ("centered", "offset")
                 else:
                     assert body.dipole_tilt_deg is None and body.dipole_offset_class is None
         for star in system.stars:
