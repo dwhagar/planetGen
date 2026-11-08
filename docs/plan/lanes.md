@@ -129,6 +129,8 @@ Rules: no lane is told to stop; every lane finishes its current item and the new
 
 ## Standing process rules (Boss, 2:21 PM EDT 2026-10-24: all twelve efficiency suggestions applied; reports/efficiency-scan-2026-10-24.md)
 
+- Reuse before building (Boss, 6:18 PM EST on 2026-11-08): there are many moving parts, so before building any new feature or function, review what is already built (physics, generation and galaxy modules, the stand-in registry, the design notes, the existing helpers and tests) and reuse it wherever possible; do not redo anything. Every PR description names what it reused (modules, functions, tables) and, if it wrote something new that looks like existing code, why the existing code could not serve. Every build brief carries this rule; TODO checks it when it merges.
+
 - Physics grounding (Boss asked 4:07 PM EDT 2026-10-24 how firmly the generator rests on real physics; reports/physics-grounding-assessment-2026-10-24.md, items and owners in reports/physics-contradictions-items-2026-10-24.md): GEN.652 (main-sequence brightening with age) goes to the front of Lane A's queue, and GEN.726 (surface pressure supply law) is first for Lane I after step 4b, before step 4c.
 
 - Browser gate errors at setup (Bug Hunt, #3068, 4:15 PM EDT 2026-10-24 as the lane reported): TEST.349 is fixed on main. A lane whose browser phase errored at setup (KeyError planets in test_web_a11y.py) rebases on main and reruns that phase. Also noted in /mnt/project-files/status/README.md.
