@@ -86,7 +86,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 ### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
 
-Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Core 2 for the map items, Core 5 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.
+Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Lane 12 for the map items, Lane 15 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
@@ -130,6 +130,10 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law |  | Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0). |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11 | Split from VIEW.2. |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
+
+### Slated, not numbered: the rare and fictional materials (Boss, 5:26 PM EST on 2026-11-07)
+
+Boss deferred the fictional materials and crystals (Kyber, Solar, Aurora, Tritanium, Dilithium, Pergium, Topaline, Kelbonite and Neutronium; Duranium, Trellium and Protomatter are out of scope) until 8.2 is ready to start, to be revisited after 8.1 is done. Nothing is numbered or scheduled. The plan is /mnt/project-files/research/materials-8-2-plan-2026-11-07.md (provisional parts MAT-1 to MAT-12, with 7 and 10 removed, and five open questions for Boss in its section 9). When 8.2 opens, the TODO thread assigns item numbers and places the parts as their own generator-side phase. They read the real rows the 8.1 real-material set builds (GEN.1355 to GEN.1383), and the Solar Crystal's carbon-13 and carbon-14 choices read the isotope record GEN.1377.
 
 ## Phase 3: Settlements foundation
 

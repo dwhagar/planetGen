@@ -2241,7 +2241,7 @@ class StarSystem:
                 if planetPhysics.settle_envelope(obj):
                     log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
                 if planetPhysics.finish_orbit_oddities(obj):
-                    log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbours")
+                    log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbors")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")

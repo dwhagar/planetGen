@@ -1,6 +1,6 @@
 {
   "plan": "088b57d7e70b02e9d67bbe5b24bc7642b9b765f3f0b6ef3bdf2beb6d7f1d0ac9",
-  "region": "47b9f809abe2423873be39bd68f313eaf2b9d52f4abcb34469ede493bd8f02e5",
+  "region": "aec648b1dd517303ee5a216a9c9260aecb08e79159d4474bf727f29fc2397b78",
   "sectors": {
     "0 0 0": {
       "digest": "44c3bc7df76b03fae4921c7556da210ef6bfe7a9996f1a6e1f83becc29fe8a82",
@@ -65,7 +65,7 @@
       }
     },
     "1 0 1": {
-      "digest": "81e132e8fb40c3d6689ba97560b468ea2b0899871c327d67f2690808e165d500",
+      "digest": "fb7cbc55b40277e29079332052704375aba69a50c29f7255e4b3e2906b49914d",
       "sections": {
         "belt": [
           "acea51e0474e70c736bbdcc00e5226d4e0dc00f0631438e1abd507ce18d074ce",
@@ -76,8 +76,8 @@
           "d3331bd28d3f1bc27f5a7b8c91c1414db9d88ca154483a70e41545ae66c2e06b"
         ],
         "moon": [
-          "f2aae1115157c1609db41f798e85084f79220cee3fa10829277c2e939ca203d2",
-          "3b5f3319754a30e5d4557b7a6f2f88616fc9d5f932fb31288b225e36aba36212"
+          "c4513d462caf06ec227db730c35642d072548c6176b7c7e2596636dac1ce22a5",
+          "b7f8c37aece2ddfa4b1c039ccb90bcbdca3f6aacb2794e35d52783933869967c"
         ],
         "planet": [
           "f03a9011b0a6d152ae0725a6201f4d4ecbf8cbcea6f6707b2fe653e29ba02de4",

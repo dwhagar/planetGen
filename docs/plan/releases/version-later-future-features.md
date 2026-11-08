@@ -49,7 +49,7 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Core 5 found it. |
+| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Lane 15 found it. |
 
 ## Phase 3: Speed-ups that change generated values
 

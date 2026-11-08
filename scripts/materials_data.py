@@ -85,6 +85,37 @@ MINERAL_DENSITY = {
     "samarskite": (5.69, 5.6, 5.8, WEBMINERAL, "the listed average (samarskite-(Y))"),
     "fergusonite": (5.05, 4.3, 5.8, WEBMINERAL, "the listed average (fergusonite-(Y))"),
     "euxenite": (4.84, 4.7, 5.0, WEBMINERAL, "the listed average (euxenite-(Y))"),
+    # GEN.1356: the Handbook of Mineralogy pages of the sulfides, nitrides and carbides, read 2026-11-07.
+    "pyrite": (5.013, 5.018, 5.018, HANDBOOK, "D(calc.)"),
+    "pyrrhotite": (4.69, 4.58, 4.65, HANDBOOK, "D(calc.) of the Fe7S8 cell (a 6.865, b 11.9, c 22.72 A, 8 formula units)"),
+    "pentlandite": (4.956, 4.6, 5.0, HANDBOOK, "D(calc.) as printed; the cell (a 9.928 A, Z 4) and a 1:1 iron-nickel formula give about 5.2"),
+    "chalcopyrite": (4.283, 4.1, 4.3, HANDBOOK, "D(calc.)"),
+    "oldhamite": (2.589, 2.58, 2.58, HANDBOOK, "D(calc.)"),
+    "niningerite": (3.40, 3.21, 3.59, HANDBOOK, "middle of D(calc.) 3.21 to 3.59 (no measurement; the range is the composition range)"),
+    "alabandite": (4.053, 3.95, 4.04, HANDBOOK, "D(calc.)"),
+    "daubreelite": (3.842, 3.81, 3.81, HANDBOOK, "D(calc.)"),
+    "osbornite": (5.38, None, None, HANDBOOK, "D(calc.) printed in brackets (synthetic TiN, a 4.24173 A, Z 4); no measurement"),
+    "khamrabaevite": (4.97, None, None, HANDBOOK,
+                      "COMPUTED from the Handbook's cell (rock salt, a 4.319 A, Z 4) and analysis (metal mass 48.23 g/mol, one carbon per metal); "
+                      "the page prints D(calc.) 10.01, the same cell counted with Z 8"),
+    "sinoite": (2.84, 2.80, 2.85, HANDBOOK, "D(calc.)"),
+}
+
+# GEN.1356 and the mineral rows after it: id -> (crystal system, Mohs middle, Mohs low, Mohs high, color). The Mohs numbers are the
+# Handbook's printed hardness range (its middle is the value); None where the page prints none (n.d.). Colors in the page's words.
+MINERAL_FIELDS = {
+    "pyrite": ("cubic", 6.25, 6.0, 6.5, "pale brass-yellow, tarnishes darker and iridescent"),
+    "pyrrhotite": ("monoclinic", 4.0, 3.5, 4.5, "bronze-yellow to pinchbeck-brown"),
+    "pentlandite": ("cubic", 3.75, 3.5, 4.0, "pale bronze-yellow"),
+    "chalcopyrite": ("tetragonal", 3.75, 3.5, 4.0, "brass-yellow"),
+    "oldhamite": ("cubic", 4.0, 4.0, 4.0, "pale chestnut-brown"),
+    "niningerite": ("cubic", None, None, None, "gray in reflected light"),
+    "alabandite": ("cubic", 3.75, 3.5, 4.0, "iron-black, tarnishing brown"),
+    "daubreelite": ("cubic", 5.0, 5.0, 5.0, "black"),
+    "osbornite": ("cubic", None, None, None, "golden yellow"),
+    "khamrabaevite": ("cubic", 9.5, 9.0, 10.0, "dark gray"),
+    "sinoite": ("orthorhombic", None, None, None, "colorless in thin section, light gray in reflected light"),
+    "troilite": ("hexagonal", 4.0, 3.5, 4.5, "pale grayish brown, tarnishes rapidly"),
 }
 
 # The pure elements: density in g/cm3 at room temperature of the common form, from the CRC-based "use" row of the Wikipedia
@@ -217,7 +248,173 @@ CLASS_COMPOSITIONS = {
     "rock, ice, methane, and ammonia": ["rock", "ice", "methane", "ammonia"],
     "hydrogen and helium": ["hydrogen", "helium"],
     "silicon, iron, magnesium, and ice": ["silicon", "iron", "magnesium", "ice"],
+    "silicon, iron, magnesium, ice, and hydrocarbons": ["silicon", "iron", "magnesium", "ice", "hydrocarbons"],
+    "silicon, iron, magnesium, water ice, and ammonia": ["silicon", "iron", "magnesium", "water ice", "ammonia"],
+    "silicon, iron, magnesium, and sulfur": ["silicon", "iron", "magnesium", "sulfur"],
     "silicate rock over a large iron core": ["silicate rock", "iron"],
     "hydrogen, helium, and hydrocarbons": ["hydrogen", "helium", "hydrocarbons"],
     "iron, iridium, tungsten, and nickel": ["iron", "iridium", "tungsten", "nickel"],
 }
+
+# GEN.1355: the silicates and oxides the ground recipes and the norm name, read from the Webmineral data page of each mineral on 2026-11-07 (the research files
+# real-material-data/minerals_missing_from_table.csv and part 3 section 1 carry the same values; the pages were opened again for this table).
+# id: (formula the table reads or None, family, aliases, the formula as the page prints it, crystal system, Mohs (middle, low, high) or None, density g/cm3,
+#      how the density was taken, measured range or None, color as listed, the page read)
+# A formula of None is a solid solution, a clay of variable water and charge, or a mixture the table cannot give one molar mass: the page's formula is the composition.
+# Where the table reads a formula it is the end member the page names. Wollastonite and hornblende were recalled in the research file: the page of
+# Wollastonite-1A lists an average of 2.84 (not 2.9) and webmineral redirects hornblende to magnesiohornblende, whose page is read for the series.
+PART1_MINERALS = {
+    'akaganeite': (None, 'oxidized', [], 'Fe+++(O,OH,Cl)', 'monoclinic', None, 3.0, 'meas', None, 'Brown, Rusty brown', 'Akaganeite'),
+    'cronstedtite': (None, 'clay', [], 'Fe++2Fe+++(SiFe+++)O5(OH)4', 'trigonal', (3.5, 3.5, 3.5), 3.34, 'meas avg', (3.34, 3.35), 'Brownish black, Greenish black, Dark brown, Black', 'Cronstedtite'),
+    'ferrihydrite': (None, 'oxidized', [], 'Fe+++2O3.0.5(H2O)', 'trigonal', None, 3.8, 'meas', None, 'Yellow brown, Dark brown', 'Ferrihydrite'),
+    'lepidocrocite': ('FeO(OH)', 'oxidized', [], 'FeO(OH)', 'orthorhombic', (5.0, 5.0, 5.0), 4.0, 'listed value (read; the research file had it recalled)', None, 'Red, Yellowish brown, Blackish brown', 'Lepidocrocite'),
+    'maghemite': ('Fe2O3', 'oxidized', [], 'gamma-Fe+++2O3', 'cubic', (6.0, 6.0, 6.0), 4.9, 'meas', None, 'Dark brown', 'Maghemite'),
+    'magnesiochromite': ('MgCr2O4', 'oxide', [], 'MgCr2O4', 'cubic', (5.5, 5.5, 5.5), 4.2, 'meas', None, 'Black', 'Magnesiochromite'),
+    'schwertmannite': ('Fe16O16(OH)12(SO4)2', 'oxidized', [], 'Fe+++16O16(OH)12(SO4)2', 'tetragonal', (3.0, 2.5, 3.5), 3.88, 'meas avg', (3.77, 3.99), 'Brownish yellow', 'Schwertmannite'),
+    'tochilinite': (None, 'sulfide', [], '6Fe0.9S.5(Mg,Fe++)(OH)2', 'monoclinic', (1.25, 1.0, 1.5), 2.97, 'meas avg', (2.96, 2.99), 'Bronze black', 'Tochilinite'),
+    'ulvospinel': ('Fe2TiO4', 'oxide', [], 'TiFe++2O4', 'cubic', (5.75, 5.5, 6.0), 4.91, 'calc', None, 'Black', 'Ulvospinel'),
+    'antigorite': ('Mg3Si2O5(OH)4', 'clay', [], '(Mg,Fe++)3Si2O5(OH)4', 'monoclinic', (3.75, 3.5, 4.0), 2.54, 'meas avg', (2.5, 2.6), 'Green, Gray, Bluish gray, Brown, Black', 'Antigorite'),
+    'beidellite': (None, 'clay', [], 'Na0.5Al2(Si3.5Al0.5)O10(OH)2.n(H2O)', 'monoclinic', (1.5, 1.0, 2.0), 2.15, 'meas avg', (2.0, 2.3), 'White, Gray, Reddish white, Brownish white, Pale yellow', 'Beidellite'),
+    'brucite': ('Mg(OH)2', 'oxide', [], 'Mg(OH)2', 'trigonal', (2.75, 2.5, 3.0), 2.39, 'meas avg', (2.39, 2.4), 'Blue, Gray, Gray blue, Yellow, White', 'Brucite'),
+    'chamosite': (None, 'clay', [], '(Fe++,Mg,Fe+++)5Al(Si3Al)O10(OH,O)8', 'monoclinic', (3.0, 3.0, 3.0), 3.2, 'meas avg', (3.0, 3.4), 'Gray, Greenish gray, Brown, Blackish green', 'Chamosite'),
+    'chrysotile': ('Mg3Si2O5(OH)4', 'clay', [], 'Mg3Si2O5(OH)4', 'monoclinic', (2.5, 2.5, 2.5), 2.53, 'meas', None, 'Green', 'Chrysotile'),
+    'clinochlore': ('Mg5Al2Si3O10(OH)8', 'clay', [], '(Mg,Fe++)5Al(Si3Al)O10(OH)8', 'monoclinic', (2.25, 2.0, 2.5), 2.65, 'meas avg', (2.55, 2.75), 'Blackish green, Bluish green, White, Yellowish green, Olive ', 'Clinochlore'),
+    'illite': (None, 'clay', [], '(K,H3O)(Al,Mg,Fe)2(Si,Al)4O10[(OH)2,(H2O)]', 'monoclinic', (1.5, 1.0, 2.0), 2.75, 'meas avg', (2.6, 2.9), 'White', 'Illite'),
+    'lizardite': ('Mg3Si2O5(OH)4', 'clay', [], 'Mg3Si2O5(OH)4', 'triclinic', (2.5, 2.5, 2.5), 2.57, 'meas avg', (2.55, 2.6), 'Green, Green blue, Yellow, White', 'Lizardite'),
+    'montmorillonite': (None, 'clay', [], '(Na,Ca)0,3(Al,Mg)2Si4O10(OH)2.n(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 2.35, 'meas avg', (2.0, 2.7), 'White, Gray white, Yellow, Brownish yellow, Greenish yellow', 'Montmorillonite'),
+    'nontronite': (None, 'clay', [], 'Na0.3Fe+++2(Si,Al)4O10(OH)2.n(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 2.3, 'meas', None, 'Greenish yellow, Brownish green, Olive green', 'Nontronite'),
+    'palygorskite': (None, 'clay', [], '(Mg,Al)2Si4O10(OH).4(H2O)', 'monoclinic', (2.25, 2.0, 2.5), 2.15, 'meas avg', (2.1, 2.2), 'White, Gray, Brownish white', 'Palygorskite'),
+    'saponite': (None, 'clay', [], '(Ca/2,Na)0,3(Mg,Fe++)3(Si,Al)4O10(OH)2.4(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 2.3, 'meas', None, 'White, Yellowish white, Greenish white, Reddish white, Bluis', 'Saponite'),
+    'sepiolite': ('Mg4Si6O15(OH)2.6H2O', 'clay', [], 'Mg4Si6O15(OH)2.6(H2O)', 'orthorhombic', (2.0, 2.0, 2.0), 2.0, 'meas', None, 'Grayish white, Yellowish white, Bluish green white, Reddish ', 'Sepiolite'),
+    'talc': ('Mg3Si4O10(OH)2', 'clay', [], 'Mg3Si4O10(OH)2', 'monoclinic', (1.0, 1.0, 1.0), 2.75, 'meas avg', (2.7, 2.8), 'Pale green, White, Gray white, Yellowish white, Brownish whi', 'Talc'),
+    'cristobalite': ('SiO2', 'oxide', [], 'SiO2', 'tetragonal', (6.5, 6.5, 6.5), 2.27, 'meas', None, 'Blue gray, Brown, Gray, Yellow, White', 'Cristobalite'),
+    'lime': ('CaO', 'oxide', ['calcium oxide'], 'CaO', 'cubic', (3.5, 3.5, 3.5), 3.35, 'meas', None, 'White', 'Lime'),
+    'lonsdaleite': ('C', 'carbon', [], 'C', 'hexagonal', (7.5, 7.0, 8.0), 3.41, 'meas avg', (3.3, 3.52), 'Brownish black, Light brownish yellow', 'Lonsdaleite'),
+    'opal': (None, 'oxide', [], 'SiO2.n(H2O)', 'amorphous', (5.75, 5.5, 6.0), 2.09, 'meas avg', (1.9, 2.3), 'White, Yellow, Red, Brown, Blue', 'Opal'),
+    'portlandite': ('Ca(OH)2', 'oxide', [], 'Ca(OH)2', 'trigonal', (2.75, 2.5, 3.0), 2.23, 'meas', None, 'Colorless', 'Portlandite'),
+    'tridymite': ('SiO2', 'oxide', [], 'SiO2', 'triclinic', (6.75, 6.5, 7.0), 2.3, 'meas avg', (2.28, 2.33), 'Colorless, White, Yellowish white, Gray', 'Tridymite'),
+    'akermanite': ('Ca2MgSi2O7', 'silicate', [], 'Ca2MgSi2O7', 'tetragonal', (5.5, 5.0, 6.0), 2.94, 'meas', None, 'Colorless, Grayish, Green, Brown', 'Akermanite'),
+    'gehlenite': ('Ca2Al2SiO7', 'silicate', [], 'Ca2Al(AlSi)O7', 'tetragonal', (5.5, 5.0, 6.0), 2.98, 'meas avg', (2.9, 3.07), 'Brown, Colorless, Greenish, Gray, Yellow', 'Gehlenite'),
+    'grossmanite': ('CaTiAlSiO6', 'silicate', [], 'CaTi+++AlSiO6', 'monoclinic', None, 3.41, 'calc', None, '', 'Grossmanite'),
+    'hibonite': (None, 'oxide', [], '(Ca,Ce)(Al,Ti,Mg)12O19', 'hexagonal', (7.75, 7.5, 8.0), 3.84, 'meas', None, 'Black, Black, Reddish brown', 'Hibonite'),
+    'melilite': (None, 'silicate', [], '(Ca,Na)2(Al,Mg,Fe++)(Si,Al)2O7', 'tetragonal', (5.25, 5.0, 5.5), 2.95, 'meas avg', (2.9, 3.0), 'White, Yellowish white, Brown, Gray, Greenish gray', 'Melilite'),
+    'analcime': ('NaAlSi2O6.H2O', 'silicate', [], 'NaAlSi2O6.(H2O)', 'triclinic', (5.0, 5.0, 5.0), 2.3, 'meas', None, 'White, Grayish white, Greenish white, Yellowish white, Reddi', 'Analcime'),
+    'augite': (None, 'silicate', [], '(Ca,Na)(Mg,Fe,Al,Ti)(Si,Al)2O6', 'monoclinic', (5.75, 5.0, 6.5), 3.4, 'meas avg', (3.2, 3.6), 'Brown green, Green, Light brown, Dark brown, Black', 'Augite'),
+    'epidote': (None, 'silicate', [], 'Ca2(Fe+++,Al)3(SiO4)3(OH) = Ca2(Fe,Al)Al2(SiO4)(Si2O7)O(OH)', 'monoclinic', (7.0, 7.0, 7.0), 3.45, 'meas avg', (3.3, 3.6), 'Yellowish green, Brownish green, Black, Yellow, Gray', 'Epidote'),
+    'hornblende': (None, 'silicate', [], 'Ca2(Mg,Fe,Al)5(Si,Al)8O22(OH)2', 'monoclinic', (5.5, 5.0, 6.0), 3.23, 'listed average of 3 to 3.47 (the page of magnesiohornblende, where webmineral redirects hornblende)', (3.0, 3.47), 'Brown, Green, Greenish brown, Greenish black, Dark green', 'Magnesiohornblende'),
+    'hypersthene': (None, 'silicate', [], '(Mg,Fe++)2Si2O6', 'orthorhombic', (5.75, 5.5, 6.0), 3.55, 'meas avg', (3.2, 3.9), 'Grayish white, Greenish white, Yellowish white, Bronzy brown', 'Hypersthene'),
+    'jadeite': ('NaAlSi2O6', 'silicate', [], 'Na(Al,Fe+++)Si2O6', 'monoclinic', (6.5, 6.5, 6.5), 3.3, 'meas avg', (3.25, 3.35), 'Green, White, Pale bluish gray, Grayish green, Pale purple', 'Jadeite'),
+    'leucite': ('KAlSi2O6', 'silicate', [], 'KAlSi2O6', 'tetragonal', (6.0, 6.0, 6.0), 2.47, 'meas', None, 'Colorless, Gray, Yellow gray, White', 'Leucite'),
+    'nepheline': ('NaAlSiO4', 'silicate', [], '(Na,K)AlSiO4', 'hexagonal', (6.0, 6.0, 6.0), 2.59, 'meas avg', (2.55, 2.65), 'White, Gray, Brown, Brownish gray, Reddish white', 'Nepheline'),
+    'pigeonite': (None, 'silicate', [], '(Mg,Fe++,Ca)(Mg,Fe++)Si2O6', 'monoclinic', (6.0, 6.0, 6.0), 3.38, 'meas avg', (3.3, 3.46), 'Brown, Greenish brown, Light purple brown, Black', 'Pigeonite'),
+    'tremolite': ('Ca2Mg5Si8O22(OH)2', 'silicate', [], '[ ]Ca2Mg5Si8O22(OH)2', 'monoclinic', (5.5, 5.0, 6.0), 3.05, 'meas avg', (2.9, 3.2), 'Brown, Colorless, Gray, White, Light green', 'Tremolite'),
+    'wollastonite': ('CaSiO3', 'silicate', [], 'CaSiO3', 'triclinic', (5.0, 5.0, 5.0), 2.84, 'listed average of 2.8 to 2.9 (Wollastonite-1A page; the research file had a recalled 2.9)', (2.8, 2.9), 'White, Yellow, Gray, Red, Brown', 'Wollastonite-1A'),
+}
+
+# Groups of the rows above (and the amphibole, chlorite and smectite names the recipes use): group id -> (name, member ids). A group carries no number.
+PART1_GROUPS = {
+    "smectite": ("smectite", ("montmorillonite", "saponite", "nontronite", "beidellite")),
+    "chlorite": ("chlorite", ("clinochlore", "chamosite")),
+    "amphibole": ("amphibole", ("tremolite", "hornblende")),
+}
+
+# GEN.1357: the carbonates, salts and phosphates the evaporite and ore recipes will draw, read from the Webmineral data page of each mineral on 2026-11-07 (the two
+# perchlorates, which webmineral does not list, from PubChem). Same fields as PART1_MINERALS; a page starting "PubChem" is read from the PubChem record.
+# Values the research file had recalled and the pages changed: rhodochrosite Mohs 3 (not 4); chlorapatite 3.15 (the average of 3.1 to 3.2, not 3.17) and
+# hydroxylapatite 3.08 (not 3.16), on the pages of Apatite-(CaCl) and Apatite-(CaOH) where webmineral redirects the older names; magnesium perchlorate 2.21 (PubChem,
+# USCG), not 2.6. Sylvite 1.99, langbeinite 2.83, rhodochrosite 3.69 and calcium perchlorate 2.651 were opened and stand.
+PART3_MINERALS = {
+    'ankerite': (None, 'carbonate', [], 'Ca(Fe++,Mg,Mn)(CO3)2', 'trigonal', (3.75, 3.5, 4.0), 3.05, 'the listed average of 3 to 3.1', (3.0, 3.1), 'Brown, Brownish yellow, Gray, Gray brown, White', 'Ankerite'),
+    'aragonite': ('CaCO3', 'carbonate', [], '', 'orthorhombic', (3.75, 3.5, 4.0), 2.93, 'the single value listed', None, 'Colorless, White, Gray, Yellowish white, Reddish white', 'Aragonite'),
+    'dolomite': ('CaMg(CO3)2', 'carbonate', [], '', 'trigonal', (3.75, 3.5, 4.0), 2.84, 'the listed average of 2.8 to 2.9', (2.8, 2.9), 'White, Gray, Reddish white, Brownish white, Gray', 'Dolomite'),
+    'hydromagnesite': ('Mg5(CO3)4(OH)2.4H2O', 'carbonate', [], 'Mg5(CO3)4(OH)2.4(H2O)', 'monoclinic', (3.5, 3.5, 3.5), 2.18, 'the listed average of 2.16 to 2.2', (2.16, 2.2), 'Colorless, White', 'Hydromagnesite'),
+    'magnesite': ('MgCO3', 'carbonate', [], '', 'trigonal', (4.0, 4.0, 4.0), 3.0, 'the single value listed', None, 'Colorless, White, Grayish white, Yellowish white, Brownish white', 'Magnesite'),
+    'nesquehonite': ('Mg(HCO3)(OH).2H2O', 'carbonate', [], 'Mg(HCO3)(OH).2(H2O)', 'monoclinic', (2.5, 2.5, 2.5), 1.84, 'the listed average of 1.83 to 1.85', (1.83, 1.85), 'Colorless, White', 'Nesquehonite'),
+    'rhodochrosite': ('MnCO3', 'carbonate', [], '', 'trigonal', (3.0, 3.0, 3.0), 3.69, 'the single value listed', None, 'Pinkish red, Red, Rose red, Yellowish gray, Brown', 'Rhodochrosite'),
+    'siderite': ('FeCO3', 'carbonate', [], 'Fe++CO3', 'trigonal', (3.5, 3.5, 3.5), 3.96, 'the single value listed', None, 'Yellowish brown, Brown, Gray, Yellowish gray, Greenish gray', 'Siderite'),
+    'alunite': ('KAl3(SO4)2(OH)6', 'evaporite', [], '', 'trigonal', (3.75, 3.5, 4.0), 2.74, 'the listed average of 2.59 to 2.9', (2.59, 2.9), 'White, Gray, Yellowish gray, Reddish gray, Yellowish white', 'Alunite'),
+    'anhydrite': ('CaSO4', 'evaporite', [], '', 'orthorhombic', (3.5, 3.5, 3.5), 2.97, 'the listed average of 2.96 to 2.98', (2.96, 2.98), 'Colorless, White, Bluish white, Violet white, Dark gray', 'Anhydrite'),
+    'bassanite': ('Ca2(SO4)2.H2O', 'evaporite', [], '2CaSO4.(H2O)', 'orthorhombic', None, 2.7, 'the single value listed', None, 'Colorless, Snow white', 'Bassanite'),
+    'bischofite': ('MgCl2.6H2O', 'evaporite', [], 'MgCl2.6(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 1.56, 'the single value listed', None, 'Colorless, White', 'Bischofite'),
+    'burkeite': ('Na6(CO3)(SO4)2', 'carbonate', [], '', 'orthorhombic', (3.5, 3.5, 3.5), 2.57, 'the single value listed', None, 'Gray, Gray white, White, Light brown, Pink', 'Burkeite'),
+    'carnallite': ('KMgCl3.6H2O', 'evaporite', [], 'KMgCl3.6(H2O)', 'orthorhombic', (2.5, 2.5, 2.5), 1.6, 'the single value listed', None, 'Blue, Colorless, Yellow, White, Red', 'Carnallite'),
+    'epsomite': ('MgSO4.7H2O', 'evaporite', [], 'MgSO4.7(H2O)', 'orthorhombic', (2.25, 2.0, 2.5), 1.67, 'the listed average of 1.67 to 1.68', (1.67, 1.68), 'Colorless, White, Yellowish white, Greenish white, Pinkish white', 'Epsomite'),
+    'glauberite': ('Na2Ca(SO4)2', 'evaporite', [], '', 'monoclinic', (2.75, 2.5, 3.0), 2.77, 'the listed average of 2.7 to 2.85', (2.7, 2.85), 'Colorless, Gray, Gray white, Yellow, Yellowish white', 'Glauberite'),
+    'hexahydrite': ('MgSO4.6H2O', 'evaporite', [], 'MgSO4.6(H2O)', 'monoclinic', (2.25, 2.0, 2.5), 1.76, 'the single value listed', None, 'Colorless, White, Greenish white', 'Hexahydrite'),
+    'jarosite': ('KFe3(SO4)2(OH)6', 'evaporite', [], 'KFe+++3(SO4)2(OH)6', 'trigonal', (3.0, 2.5, 3.5), 3.09, 'the listed average of 2.9 to 3.3', (2.9, 3.3), 'Brown, Yellow, Yellow brown, Light yellow', 'Jarosite'),
+    'kainite': ('KMgSO4Cl.3H2O', 'evaporite', [], 'MgSO4.KCl.3(H2O)', 'monoclinic', (3.0, 3.0, 3.0), 2.1, 'the single value listed', None, 'Blue, Colorless, Violet, Gray, Gray blue', 'Kainite'),
+    'kieserite': ('MgSO4.H2O', 'evaporite', [], 'MgSO4.(H2O)', 'monoclinic', (3.5, 3.5, 3.5), 2.57, 'the single value listed', None, 'Colorless, Green yellow, Gray white, Yellowish, White', 'Kieserite'),
+    'langbeinite': ('K2Mg2(SO4)3', 'evaporite', [], '', 'cubic', (3.75, 3.5, 4.0), 2.83, 'the single value listed', None, 'Colorless, Violet, Greenish, Gray, Yellowish', 'Langbeinite'),
+    'mirabilite': ('Na2SO4.10H2O', 'evaporite', [], 'Na2SO4.10(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 1.49, 'the single value listed', None, 'Colorless, White, Yellowish white, Greenish white', 'Mirabilite'),
+    'nahcolite': ('NaHCO3', 'carbonate', [], '', 'monoclinic', (2.5, 2.5, 2.5), 2.21, 'the single value listed', None, 'Colorless, White, Gray, Brown, Black', 'Nahcolite'),
+    'natrite': ('Na2CO3', 'carbonate', [], '', 'monoclinic', (3.5, 3.5, 3.5), 2.54, 'the single value listed', None, 'Colorless, Yellow orange, White, Pink', 'Natrite'),
+    'polyhalite': ('K2Ca2Mg(SO4)4.2H2O', 'evaporite', [], 'K2Ca2Mg(SO4)4.2(H2O)', 'triclinic', (3.0, 2.5, 3.5), 2.77, 'the listed average of 2.77 to 2.78', (2.77, 2.78), 'Colorless, Gray, Gray white, White, Pink', 'Polyhalite'),
+    'sylvite': ('KCl', 'evaporite', [], '', 'cubic', (2.5, 2.5, 2.5), 1.99, 'the single value listed', None, 'White, Yellowish white, Reddish white, Bluish white, Brownish white', 'Sylvite'),
+    'thenardite': ('Na2SO4', 'evaporite', [], '', 'orthorhombic', (2.5, 2.5, 2.5), 2.68, 'the listed average of 2.67 to 2.7', (2.67, 2.7), 'White, Grayish white, Yellowish white, Reddish white, Brownish white', 'Thenardite'),
+    'thermonatrite': ('Na2CO3.H2O', 'carbonate', [], 'Na2CO3.(H2O)', 'orthorhombic', (1.0, 1.0, 1.0), 2.255, 'the single value listed', None, 'Colorless, Grayish yellow, Grayish, Yellowish, White', 'Thermonatrite'),
+    'trona': ('Na3H(CO3)2.2H2O', 'carbonate', [], 'Na3(CO3)(HCO3).2(H2O)', 'monoclinic', (2.5, 2.5, 2.5), 2.13, 'the listed average of 2.11 to 2.17', (2.11, 2.17), 'Colorless, Gray white, Grayish, Yellowish, Yellowish white', 'Trona'),
+    'chlorapatite': ('Ca5(PO4)3Cl', 'phosphate', [], '', 'hexagonal', (5.0, 5.0, 5.0), 3.15, 'the listed average of 3.1 to 3.2', (3.1, 3.2), 'White, Light yellow, Pink white', 'Apatite-(CaCl)'),
+    'hydroxylapatite': ('Ca5(PO4)3(OH)', 'phosphate', [], '', 'hexagonal', (5.0, 5.0, 5.0), 3.08, 'the single value listed', None, 'Colorless, White, Gray, Yellow, Yellowish green', 'Apatite-(CaOH)'),
+    'merrillite': ('Ca18Na2Mg2(PO4)14', 'phosphate', [], '', 'trigonal', None, 3.1, 'the specific gravity listed (the page also gives a bulk electron density of 3.07)', None, '', 'Merrillite'),
+    'whitlockite': ('Ca9Mg(PO4)6(PO3OH)', 'phosphate', [], 'Ca9(Mg,Fe++)(PO4)6(PO3OH)', 'trigonal', (5.0, 5.0, 5.0), 3.13, 'the single value listed', None, 'Colorless, Gray, Gray white, Yellowish, White', 'Whitlockite'),
+    'mg_perchlorate': ('Mg(ClO4)2', 'evaporite', ['magnesium perchlorate'], '', '', None, 2.21, 'PubChem density annotation 2.21 at 68 F (a US Coast Guard record); the research file had a recalled 2.6', None, '', 'PubChem CID 24840'),
+    'ca_perchlorate': ('Ca(ClO4)2', 'evaporite', ['calcium perchlorate'], '', '', None, 2.651, 'PubChem record text: density 2.651 g/cm3', None, '', 'PubChem CID 61629'),
+}
+
+# The apatite family (fluorapatite is a GEN.427 row): group id -> (name, member ids).
+PART3_GROUPS = {
+    "apatite": ("apatite", ("fluorapatite", "chlorapatite", "hydroxylapatite")),
+}
+
+# Rows no draw reads (TEST.685, tests/test_materials_reachability.py). A row is reached when a module that uses the table names it (its id, name or an alias),
+# or a reached group lists it. A row that is neither is listed here with why, so it is vocabulary a later item may wire, not a row someone forgot; a row listed
+# here that a draw reads, or a row that is not in the table, fails the test. Reasons are plain words.
+_HP_SILICATE = "high-pressure silicate phase: no draw reads it, the mantle density comes from a fixed table in physics/bulk_structure.py"
+_ICE_PHASE = "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)"
+_SPECIES_ROW = "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet"
+VOCABULARY_ONLY = {
+    "mg_wadsleyite": _HP_SILICATE, "fe_wadsleyite": _HP_SILICATE, "mg_ringwoodite": _HP_SILICATE, "fe_ringwoodite": _HP_SILICATE,
+    "mg_bridgmanite": _HP_SILICATE, "fe_bridgmanite": _HP_SILICATE, "mgfe_bridgmanite": _HP_SILICATE, "mg_post_perovskite": _HP_SILICATE,
+    "fe_post_perovskite": _HP_SILICATE, "ca_perovskite": _HP_SILICATE, "al_perovskite": _HP_SILICATE, "al_post_perovskite": _HP_SILICATE,
+    "mg_akimotoite": _HP_SILICATE, "mg_majorite": _HP_SILICATE, "hp_clinoenstatite": _HP_SILICATE, "clinoenstatite": _HP_SILICATE,
+    "coesite": _HP_SILICATE, "stishovite": _HP_SILICATE, "seifertite": _HP_SILICATE,
+    "ice_ii": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "ice_iii": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "ice_v": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "hydrogen": "envelope row: the giant-planet draws read the gas table (physics/gases), not this row",
+    "helium": "envelope row: the giant-planet draws read the gas table (physics/gases), not this row",
+    "potassium": "element row: the element draws go through physics/elements, not this row",
+    "tungsten": "element row: the element draws go through physics/elements, not this row",
+    "fesi": "light-element compound of a core: no draw names it",
+    "carbon_diamond": "carbon polymorph: the carbon draws name graphite, black and amorphous carbon only",
+    "amorphous_carbon": "carbon form: no draw names it",
+    "wustite": "iron oxide: no draw names it",
+    "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
+    "komatiite": "rock type: no recipe or taxon names it",
+    "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
+    "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    # GEN.1359: the species rows the inventories name; a later item wires each to its draw
+    "ice_ic": _ICE_PHASE, "ice_iv": _ICE_PHASE, "ice_ix": _ICE_PHASE, "ice_xi": _ICE_PHASE, "ice_xv": _ICE_PHASE,
+    "o2_ice": _SPECIES_ROW, "xe_ice": _SPECIES_ROW, "ar_ice": _SPECIES_ROW, "kr_ice": _SPECIES_ROW, "c2h2_ice": _SPECIES_ROW,
+    "nh4cl": _SPECIES_ROW, "nh4hco3": _SPECIES_ROW, "nh4sh": _SPECIES_ROW, "ammonium_formate": _SPECIES_ROW, "ammonium_sulfate": _SPECIES_ROW,
+    "ammonia_monohydrate": _SPECIES_ROW, "sulfuric_acid_monohydrate": _SPECIES_ROW, "sulfuric_acid_tetrahydrate": _SPECIES_ROW,
+    "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
+    "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
+    **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
+        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
+        "sinoite", "khamrabaevite")},
+}
+
+# The rows GEN.1355 adds as data. The norm (physics/rock_types.py) names nepheline, leucite, hypersthene and wollastonite, so those four are reached; the rest no
+# recipe or taxon names yet. They are tagged here, as the item says the tags come with the rows, and lose the tag when a draw reads them.
+_NORM_NAMED = ("nepheline", "leucite", "hypersthene", "wollastonite")
+_ADDED_AS_DATA = "mineral added as table data (GEN.1355): no recipe or taxon names it yet"
+VOCABULARY_ONLY.update({row_id: _ADDED_AS_DATA for row_id in (*PART1_MINERALS, *PART1_GROUPS) if row_id not in _NORM_NAMED})
+VOCABULARY_ONLY["smectite"] = ("group added as table data (GEN.1355): surface_composition.py names Hu's Mg-smectite only in a comment, kaolinite stands in, and swapping "
+                               "it is a change to drawn output (a later epoch item)")
+
+# GEN.1357 rows: no recipe or taxon names them yet (the evaporite placeholder is halite, gypsum and calcite; GEN.1366 draws the salts).
+_ADDED_BY_1357 = "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
+_NORM_NAMED_1357 = ("apatite", "chlorapatite", "hydroxylapatite")   # the norm (physics/rock_types.py) names apatite, and the group reaches its members
+VOCABULARY_ONLY.update({row_id: _ADDED_BY_1357 for row_id in (*PART3_MINERALS, *PART3_GROUPS) if row_id not in _NORM_NAMED_1357})

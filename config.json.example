@@ -137,6 +137,7 @@
     "python": ""
   },
   "generation": {
+    "cell_cap": 5000.0,
     "weirdness_dial": 1.0
   },
   "parity": {

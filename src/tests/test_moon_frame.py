@@ -95,3 +95,15 @@ def test_the_moons_of_an_upright_planet_lie_in_the_plane_of_its_orbit_to_its_inc
         planet_normal = spin.orbit_normal(planet.orbital_inclination_deg, planet.orbital_ascending_node_deg)
         for moon in planet.moons:
             assert _angle_deg(_orbit_normal(moon), planet_normal) <= planet.axial_tilt_deg + moon.orbital_inclination_deg + 1.0e-6
+
+
+def test_moving_a_moon_or_making_its_ellipse_again_keeps_it_in_its_planets_equator(giants):
+    """`settle_orbit` makes a captured moon's position again after the moons are set (GEN.1352): the plane must not turn to the system's frame."""
+    planet = next(p for p in giants if p.moons)
+    moon = planet.moons[0]
+    inclination = moon.orbital_inclination_deg
+    planets.update_orbital_position(moon)
+    assert _angle_deg(_orbit_normal(moon), _axis(planet)) == pytest.approx(inclination, abs=1.0e-6)
+    planets.move_orbit(moon, moon.distance * 1.1, planet.mass)
+    assert _angle_deg(_orbit_normal(moon), _axis(planet)) == pytest.approx(inclination, abs=1.0e-6)
+    assert getattr(moon, "_frame_axis", None) is not None

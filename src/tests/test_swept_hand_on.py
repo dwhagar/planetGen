@@ -70,7 +70,8 @@ def test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system():
     assert sum(disk.swept_kg.values()) == pytest.approx(gone, rel=1e-9)
     assert disk.swept_kg["ejected"] > disk.swept_kg["implanted"] > 0.0 and disk.swept_kg["captured"] > 0.0
     assert disk.mass_kg / EARTH_KG <= disk.primordial_mass_earth - disk.cleared_mass_earth - disk.scattered_mass_earth + 1e-12       # the disk's own mass is what is left, not changed again
-    assert sum(belt.implanted_kg for belt in belts if belt.origin != "outer-disk") == 0.0                                          # this system has no inner belt to receive the implant
+    received = sum(belt.implanted_kg for belt in belts if belt.origin != "outer-disk")
+    assert received == pytest.approx(disk.swept_kg["implanted"], rel=1e-9) or received == 0.0       # the implant goes whole to the inner belt nearest the disk, or nowhere where the system has none
 
 
 def test_an_inner_belt_that_receives_an_implant_grows_by_it_and_says_so():
