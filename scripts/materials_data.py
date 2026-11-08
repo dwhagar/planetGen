@@ -346,6 +346,8 @@ PART3_MINERALS = {
     'kieserite': ('MgSO4.H2O', 'evaporite', [], 'MgSO4.(H2O)', 'monoclinic', (3.5, 3.5, 3.5), 2.57, 'the single value listed', None, 'Colorless, Green yellow, Gray white, Yellowish, White', 'Kieserite'),
     'langbeinite': ('K2Mg2(SO4)3', 'evaporite', [], '', 'cubic', (3.75, 3.5, 4.0), 2.83, 'the single value listed', None, 'Colorless, Violet, Greenish, Gray, Yellowish', 'Langbeinite'),
     'mirabilite': ('Na2SO4.10H2O', 'evaporite', [], 'Na2SO4.10(H2O)', 'monoclinic', (1.75, 1.5, 2.0), 1.49, 'the single value listed', None, 'Colorless, White, Yellowish white, Greenish white', 'Mirabilite'),
+    'natron': ('Na2CO3.10H2O', 'carbonate', [], 'Na2CO3.10(H2O)', 'monoclinic', (1.0, 1.0, 1.0), 1.44, 'the listed average of 1.42 to 1.47', (1.42, 1.47), 'White, Gray, Colorless, Yellow', 'Natron'),
+    'antarcticite': ('CaCl2.6H2O', 'evaporite', [], 'CaCl2.6(H2O)', 'trigonal', (2.5, 2.0, 3.0), 1.71, 'the listed average of 1.705 to 1.725', (1.705, 1.725), 'Colorless', 'Antarcticite'),
     'nahcolite': ('NaHCO3', 'carbonate', [], '', 'monoclinic', (2.5, 2.5, 2.5), 2.21, 'the single value listed', None, 'Colorless, White, Gray, Brown, Black', 'Nahcolite'),
     'natrite': ('Na2CO3', 'carbonate', [], '', 'monoclinic', (3.5, 3.5, 3.5), 2.54, 'the single value listed', None, 'Colorless, Yellow orange, White, Pink', 'Natrite'),
     'polyhalite': ('K2Ca2Mg(SO4)4.2H2O', 'evaporite', [], 'K2Ca2Mg(SO4)4.2(H2O)', 'triclinic', (3.0, 2.5, 3.5), 2.77, 'the listed average of 2.77 to 2.78', (2.77, 2.78), 'Colorless, Gray, Gray white, White, Pink', 'Polyhalite'),
@@ -417,4 +419,13 @@ VOCABULARY_ONLY["smectite"] = ("group added as table data (GEN.1355): surface_co
 # GEN.1357 rows: no recipe or taxon names them yet (the evaporite placeholder is halite, gypsum and calcite; GEN.1366 draws the salts).
 _ADDED_BY_1357 = "mineral added as table data (GEN.1357): no recipe or taxon names it yet; the evaporite draw of GEN.1366 reads the salts"
 _NORM_NAMED_1357 = ("apatite", "chlorapatite", "hydroxylapatite")   # the norm (physics/rock_types.py) names apatite, and the group reaches its members
-VOCABULARY_ONLY.update({row_id: _ADDED_BY_1357 for row_id in (*PART3_MINERALS, *PART3_GROUPS) if row_id not in _NORM_NAMED_1357})
+_READ_BY_1366 = ("antarcticite", "natron", "hydromagnesite", "magnesite", "thermonatrite", "natrite", "nahcolite", "trona", "anhydrite", "epsomite", "hexahydrite", "kieserite",
+                 "mirabilite", "thenardite", "sylvite", "carnallite", "bischofite", "mg_perchlorate", "ca_perchlorate", "jarosite", "alunite")   # physics/evaporite_sequence.py names them (GEN.1366)
+VOCABULARY_ONLY.update({row_id: _ADDED_BY_1357 for row_id in (*PART3_MINERALS, *PART3_GROUPS) if row_id not in _NORM_NAMED_1357 and row_id not in _READ_BY_1366})
+for _row_id in _READ_BY_1366:
+    VOCABULARY_ONLY.pop(_row_id, None)
+
+# GEN.1368: the taxon mixes carry these as accessory minerals (physics/accessory_minerals.py names them), so they lose their tag
+_READ_BY_1368 = ('alabandite', 'carbon_diamond', 'carbon_graphite', 'chlorapatite', 'chromite', 'cohenite', 'cronstedtite', 'daubreelite', 'dolomite', 'epsomite', 'gypsum', 'hibonite', 'hydroxylapatite', 'ilmenite', 'magnesite', 'melilite', 'merrillite', 'moissanite', 'nepheline', 'niningerite', 'oldhamite', 'pentlandite', 'perovskite', 'pyrrhotite', 'saponite', 'sinoite', 'spinel', 'tochilinite', 'whitlockite')
+for _row_id in _READ_BY_1368:
+    VOCABULARY_ONLY.pop(_row_id, None)

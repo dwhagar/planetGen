@@ -23,7 +23,8 @@ import contextlib
 import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
+from planetgen.physics import ore_deposits
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -138,15 +139,9 @@ def apply_class(planet):
     if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
     planet.planet_class = detail.letter
-    body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
-
-
-def is_life_class(body):
-    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
-    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
 
 
 @finite_domain()
@@ -333,16 +328,13 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
-def remake_end_stages(body, planet, attempt=0):
+def remake_end_stages(body, planet):
     """
-    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`, and the bar on
-    habitable worlds, GEN.1250). `planet` is the body itself for a planet and the parent for a moon. `attempt` 0 is the draw `refinish_rocky` always
-    made; a later attempt is another draw of the same step, for a body that came out with the conditions a system that bars habitable worlds
-    keeps off (`StarSystem._bar_habitable_worlds`).
+    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
+    itself for a planet and the parent for a moon.
     """
     stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}"
-                         + (f":bar{attempt}" if attempt else ""))
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
@@ -698,6 +690,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     interior_heat.update_heat(planet)
     # GEN.441: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature, the air and the water.
     surface_composition.generate_surface(planet)
+    phosphorus_budget.generate(planet)         # GEN.1367: the crust's P2O5 and hosts, the ocean's phosphate
+    # GEN.1380: the crust's thickness, craton and sulfur, and the magmatic ore types the body admits (own streams, no draw of the run's)
+    ore_deposits.generate(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
@@ -749,12 +744,14 @@ def refresh_at_final_age(body):
     surface_w = getattr(body, "_surface_w", None)
     if body.body_type in ("g", "a") or surface_w is None:
         return
-    seed = f"final-age:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
+    seed = f"final-age:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
     flux = internal_heat_flux_w_m2(body)            # the heat at the star's age now (no draws; the life pass has run it already)
     ground = surface_composition.mix_of(body)
     with draw.bound(draw.Stream(seed)):
         hydrosphere.generate_hydrosphere(body, flux, surface_w)
         surface_composition.generate_surface(body)
+        phosphorus_budget.generate(body)        # GEN.1367: the heat, the water and the ground moved
+        ore_deposits.generate(body)         # GEN.1380: the heat, the water and the ground moved
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
     envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air

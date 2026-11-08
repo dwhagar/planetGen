@@ -47,7 +47,7 @@ def _generate(seed):
 def hazy():
     for seed in range(60):
         planet, captured = _generate(seed)
-        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):      # GEN.1334: a planet under a deep envelope is solved at its 1 bar level, as a giant is
+        if planet.tau_haze and planet.tau_haze > 0.0:
             return planet, captured
     pytest.fail("no body of the first 60 seeds has a haze")
 
@@ -64,10 +64,20 @@ def test_the_setting_carries_the_draws_of_the_bodys_own_stream(hazy):
     assert captured["setting"].star_temperature_k == planet.star.temperature
 
 
-def test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it(hazy):
+@pytest.fixture(scope="module")
+def hazy_with_ground():
+    for seed in range(60):
+        planet, captured = _generate(seed)
+        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):
+            return planet, captured
+    pytest.fail("no body with ground of the first 60 seeds has a haze")
+
+
+def test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it(hazy_with_ground):
     """A haze that absorbs sunlight aloft shields the ground (the anti-greenhouse): the same air, solved on the same stream without the haze,
-    is as warm or warmer."""
-    _, captured = hazy
+    is as warm or warmer. A body with ground: a planet under a deep envelope takes one step of the solve from its starting temperature (GEN.1334, GEN.1394) and is
+    not a fixed point to compare."""
+    _, captured = hazy_with_ground
     with draw.bound("haze-in-the-air-replay"):
         with_haze = sa.solve(captured["setting"], captured["start"])
     with draw.bound("haze-in-the-air-replay"):

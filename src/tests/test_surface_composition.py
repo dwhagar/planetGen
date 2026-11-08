@@ -69,7 +69,10 @@ def test_ocean_world_has_ocean_and_salts():
     result = sc.draw_surface(earth())
     assert result.mix[sc.OCEAN] == pytest.approx(0.71)
     assert result.components["water_liquid"] == pytest.approx(0.71 * (1 - sc.RANGES["ocean_salt"]), rel=1e-6)
-    assert result.components["halite"] >= 0.71 * sc.RANGES["ocean_salt"]
+    ocean = sc.ocean_salts(earth())
+    assert math.fsum(ocean.values()) == pytest.approx(1.0)
+    for name, share in ocean.items():                                                                               # the ocean's salt is its brine's (GEN.1366)
+        assert result.components[name] >= 0.71 * sc.RANGES["ocean_salt"] * share - 1e-12
 
 
 def test_ice_needs_cold_enough_surface():

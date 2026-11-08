@@ -48,7 +48,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import brentq
 
-from planetgen.physics import activity, air_column, atmospheric_radiation, constants, gases, photolysis, saturation, stellar_spectrum
+from planetgen.physics import activity, air_column, atmospheric_radiation, climate_draws, constants, gases, photolysis, planet_type, saturation, stellar_spectrum
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -637,6 +637,21 @@ def stream_of(body):
                        f":{getattr(body, 'atmospheric_pressure', None)!r}")
 
 
+def _haze_temperature_k(body, surface_temperature_k):
+    """
+    The temperature the air's haze was measured at (GEN.1394). A body with ground takes the fixed point of its air to rest, and the haze is the one of
+    its temperature. A giant, or a planet under a deep envelope (GEN.1334), takes one step of the fixed point (`surface_air.solve`), so the haze its
+    temperature was made under is the one of the temperature the step starts from, the no-air one at its albedo, and the depth it stores is that one.
+    """
+    star = getattr(body, "star", None)
+    distance_au = getattr(body, "_star_distance_au", None)
+    albedo = getattr(body, "bond_albedo", None)
+    if planet_type.has_ground(body) or star is None or not distance_au or albedo is None:
+        return surface_temperature_k
+    starlight = star.luminosity / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2)
+    return climate_draws.equilibrium_temperature_k(albedo, starlight)
+
+
 def generate_aerosols(body):
     """
     Sets `BODY_FIELDS` on a planet or moon from its air, its surface temperature and its ocean (call after `hydrosphere`). A body with no
@@ -650,7 +665,8 @@ def generate_aerosols(body):
     dry = body.body_type != "g" and not (getattr(body, "ocean_fraction", None) or 0.0)
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
     star = getattr(body, "star", None)
-    haze = haze_in(column, temperature, draw_haze_draws(haze_stream_of(body)), star_temperature, far_uv_of(star, getattr(body, "_star_distance_au", None)))
+    haze = haze_in(column, _haze_temperature_k(body, temperature), draw_haze_draws(haze_stream_of(body)), star_temperature,
+                   far_uv_of(star, getattr(body, "_star_distance_au", None)))
     drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry)
     for field in BODY_FIELDS:
         setattr(body, field, getattr(drawn, field))

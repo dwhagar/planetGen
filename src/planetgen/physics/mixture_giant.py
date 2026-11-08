@@ -36,7 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, gas_equilibrium, saturation, species_thermo, unit_registry as units
+from planetgen.physics import constants, disk_condensation, gas_equilibrium, saturation, species_thermo, stellar_abundances, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 
@@ -67,12 +67,19 @@ KZZ_CM2_S = {"giant": (1.0e6, 1.0e11, "log"), "envelope": (1.0e6, 1.0e11, "log")
 other planets' is that widened down to 1e6 and a brown dwarf's, whose gravity is 30 times higher, is the lowest decades of the
 literature's 1e2 to 1e6; design, to be replaced by the research item that tabulates Kzz by object."""
 
-PHOTOSPHERE_LOG_EPS = {"He": 10.914, "Kr": 3.12, "Xe": 2.22}
-"""dict: [R0168] photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks: He, Kr and Xe, the part 05 section 2.1 table (READ).
+PHOTOSPHERE_LOG_EPS = {"He": 10.914, "Kr": 3.12, "Xe": 2.22, "Cl": 5.31}
+"""dict: [R0168] photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks: He, Kr and Xe, the part 05 section 2.1 table (READ), and Cl
+(5.31, [R0168: Table 2], READ; GEN.1374: the chlorine that carries the lithium, sodium and potassium of a cool air).
 P, Ti, V and Cr are in `tuning.STELLAR_SOLAR_LOG_EPS` since GEN.1360 (A21 Table 2, read; V and Cr were recalled here before)."""
 
-METALS = ("C", "N", "O", "Ne", "Na", "Mg", "Si", "S", "Ar", "K", "Ca", "Fe", "P", "Ti", "V", "Cr", "Kr", "Xe")
-"""tuple: The elements the budget carries beyond hydrogen and helium (every one the thermodynamic table has a gas of)."""
+METALS = ("C", "N", "O", "Ne", "Na", "Mg", "Si", "S", "Ar", "K", "Ca", "Fe", "P", "Ti", "V", "Cr", "Kr", "Xe", "Cl", "Li")
+"""tuple: The elements the budget carries beyond hydrogen and helium (every one the thermodynamic table has a gas of). Cl and Li are GEN.1374's: Li is the
+protosolar value (the CI chondrites; the photosphere's is burned, [R0168: Table 2]), so a brown dwarf that burned its lithium has none (`LITHIUM_BURNED_FRACTION`)."""
+
+LITHIUM_BURNED_FRACTION = 0.0
+"""float: The share of its lithium a brown dwarf above the lithium-burning mass still holds. Lithium burns in a few hundred million years above
+about 65 Jupiter masses ([R2731: section 1.1]), which is the limit of `stellar_abundances.lithium_burning_limit_sol` and the brown dwarf's `burned_lithium`;
+the depletion is taken as complete (a stand-in, registry GEN.725: observed massive dwarfs are depleted by factors of hundreds, not zero)."""
 
 ALKALI_ONSET_K = {"Na": 962.0, "K": 775.0}
 """dict: Where the sodium and potassium gas appear (the centers of rows `m7` and `m8`), for a body whose recipe has no such row."""
@@ -84,6 +91,7 @@ MIN_CONDENSED = 1e-10
 """float: Ices that took fewer moles than this per hydrogen atom are not listed as condensed."""
 
 
+
 def _log_eps(symbol):
     return PHOTOSPHERE_LOG_EPS.get(symbol, tuning.STELLAR_SOLAR_LOG_EPS.get(symbol))
 
@@ -92,7 +100,32 @@ SOLAR_PER_HYDROGEN = {symbol: 10.0 ** (_log_eps(symbol) - 12.0) for symbol in ("
 """dict: Atoms per hydrogen atom of the reference (photospheric) scale, the zero point of [Fe/H] and of the metallicity."""
 
 
-def element_budget(log_enrichment, c_over_o=None):
+def _disk_c_over_o(subject, log_enrichment_over_host):
+    """
+    The C/O of the envelope of a giant that formed where the disk was at the subject's `formation_temperature_k` with its star's `disk_carbon` and `disk_oxygen`
+    and holds `10 ** log_enrichment_over_host` times its star's heavy elements (`disk_condensation.envelope_c_over_o`, GEN.1363 part C); `None` for a subject that carries no
+    disk (a brown dwarf, a rogue, a hand-built subject), whose C/O is the recipe's `f7`; the caller spreads the value by `f7` over the center of its core.
+    """
+    temperature = subject.get("formation_temperature_k")
+    if temperature is None:
+        return None
+    return disk_condensation.envelope_c_over_o(temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
+
+
+def _disk_enrichments(subject, log_enrichment_over_host):
+    """
+    The nitrogen, sulfur, argon, krypton and xenon of the envelope over its star's (`disk_condensation.envelope_enrichments`, GEN.1372) for a giant that formed where the disk was at the
+    subject's `formation_temperature_k` with its star's disk ratios; an empty dict for a subject that carries no disk, whose elements all take the one scale.
+    """
+    temperature = subject.get("formation_temperature_k")
+    if temperature is None:
+        return {}
+    return disk_condensation.envelope_enrichments(
+        temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
+        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0))
+
+
+def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
     """
     The atoms per hydrogen atom of the envelope: helium as the reference, every metal at `10 ** log_enrichment` times its reference
     abundance, with the carbon and oxygen re-split to `c_over_o` at their total (when given).
@@ -101,6 +134,10 @@ def element_budget(log_enrichment, c_over_o=None):
         log_enrichment (float): log10 of the metals over their reference abundance (the metallicity of the planet plus the
             host's [Fe/H]).
         c_over_o (float, optional): The carbon to oxygen number ratio; default the reference's.
+        lithium_burned (bool): The object burned its lithium (`LITHIUM_BURNED_FRACTION` of it is left).
+        star_log_scale (float): The host's [Fe/H], the log10 of its metals over the reference.
+        disk_factors (dict, optional): Element symbol -> the envelope's atoms of it per hydrogen over the star's (`_disk_enrichments`); those elements are the star's own amount
+            (`10 ** star_log_scale` times the reference) times this, in place of the one scale. The carbon and oxygen are not among them (their total is the scale's).
 
     Returns:
         dict: Element symbol -> atoms per hydrogen atom, `H` included (1).
@@ -109,6 +146,10 @@ def element_budget(log_enrichment, c_over_o=None):
     budget = {"H": 1.0, "He": SOLAR_PER_HYDROGEN["He"]}
     for symbol in METALS:
         budget[symbol] = SOLAR_PER_HYDROGEN[symbol] * scale
+    for symbol, factor in (disk_factors or {}).items():
+        budget[symbol] = SOLAR_PER_HYDROGEN[symbol] * 10.0 ** star_log_scale * factor
+    if lithium_burned:
+        budget["Li"] *= LITHIUM_BURNED_FRACTION
     if c_over_o is not None:
         total = budget["C"] + budget["O"]
         budget["C"] = total * c_over_o / (1.0 + c_over_o)
@@ -118,19 +159,32 @@ def element_budget(log_enrichment, c_over_o=None):
 
 # --- the clouds -----------------------------------------------------------------------------------------------------------
 
+TITANATE_1_BAR_K = 1963.0
+"""float: Where the first titanium condensate, the calcium titanate Ca4Ti3O10, forms at 1 bar and solar composition ([R2725]: 1963 K; perovskite alone would
+form at 1958 K). Vanadium goes into solid solution with the titanium condensates from there, so the oxides TiO and VO leave the gas together, above the iron
+([R2725]; [R2731: section 1.5.2]). Its pressure and metallicity terms are the iron fit's (the slopes of the paper's figure are not tabulated: a stand-in)."""
+
+CHROMIUM_1_BAR_K = 1518.0
+"""float: Where chromium metal condenses at 1 bar and solar composition ([R2731: section 1.5.3]), below the iron (1843 K) and the forsterite (about 1700 K); the
+chromium hydride lives in the gas between the iron and this. Pressure and metallicity terms as for `TITANATE_1_BAR_K`."""
+
+
 def condensation_temperatures(pressure_bar, log_iron):
     """
     The condensation temperatures (K) of the iron and magnesium silicate clouds at `pressure_bar`, from the Visscher, Lodders and
     Fegley fits of part 05 section 7.2: `10^4 / T = a - b log P - c [Fe/H]`, with `log_iron` the log10 of the metals over the reference.
 
     Returns:
-        dict: `iron`, `forsterite` (Mg2SiO4), `enstatite` (MgSiO3).
+        dict: `iron`, `forsterite` (Mg2SiO4), `enstatite` (MgSiO3), and, from GEN.1374, `titanate` (the calcium titanates that take the titanium and
+            vanadium out of the gas) and `chromium` (chromium metal).
     """
     log_p = math.log10(pressure_bar)
     return {
         "iron": 1.0e4 / (5.44 - 0.48 * log_p - 0.48 * log_iron),
         "forsterite": 1.0e4 / (5.89 - 0.37 * log_p - 0.73 * log_iron),
         "enstatite": 1.0e4 / (6.26 - 0.35 * log_p - 0.70 * log_iron),
+        "titanate": 1.0e4 / (1.0e4 / TITANATE_1_BAR_K - 0.48 * log_p - 0.48 * log_iron),
+        "chromium": 1.0e4 / (1.0e4 / CHROMIUM_1_BAR_K - 0.48 * log_p - 0.48 * log_iron),
     }
 
 
@@ -167,6 +221,12 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
         left[symbol] -= amount
         return amount
 
+    if temperature_k < cond["titanate"]:
+        # the refractory oxides condense before the iron (GEN.1374: at the titanate's temperature, not the forsterite's), so TiO and VO are gone from the
+        # gas of a dwarf while its FeH and CrH are still in it ([R2731: section 1.5.3], the M to L transition)
+        for symbol in ("Ca", "Ti", "V"):
+            left["O"] -= OXIDE_OXYGEN[symbol] * take(symbol)
+        condensed["oxides"] = cond["titanate"]
     if temperature_k < cond["iron"]:
         take("Fe")
         condensed["iron"] = cond["iron"]
@@ -176,10 +236,9 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
         left["Si"] -= silicon
         left["O"] -= OXIDE_OXYGEN["Mg"] * magnesium + OXIDE_OXYGEN["Si"] * silicon
         condensed["forsterite"] = cond["forsterite"]
-        # the refractory oxides condense before the silicates
-        for symbol in ("Ca", "Ti", "V", "Cr"):
-            left["O"] -= OXIDE_OXYGEN[symbol] * take(symbol)
-        condensed["oxides"] = cond["forsterite"]
+    if temperature_k < cond["chromium"]:
+        take("Cr")
+        condensed["chromium"] = cond["chromium"]
     if temperature_k < cond["enstatite"]:
         silicon = take("Si")
         left["O"] -= OXIDE_OXYGEN["Si"] * silicon
@@ -192,7 +251,7 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
         left["S"] -= min(left["S"], sodium / 2.0)
         condensed["sodium_sulfide"] = 0.0
     if not keep_potassium:
-        take("K")
+        left["Cl"] -= min(left["Cl"], take("K"))      # the KCl cloud takes one chlorine per potassium
         condensed["potassium_chloride"] = 0.0
     return left, condensed
 
@@ -220,6 +279,24 @@ def remove_ammonium_hydrosulfide(budget, temperature_k, pressure_bar, log_enrich
     return left, x
 
 
+NASA_CONDENSATE = {"LiCl": ("LiCL(cr)", "LiCL(L)")}
+"""dict: Gases whose saturation curve is the NASA database's own, from the free energies of the gas and of its crystal and liquid (`species_thermo`), because the
+saturation table has none: the lithium chloride that takes the chlorine of a cool air out of the gas (GEN.1374; the review's lithium condensates are Li2S and LiF,
+which the database lacks, registry GEN.725 row BD5)."""
+
+
+def nasa_saturation_pa(formula, temperature_k):
+    """The saturation pressure (Pa) of a gas of `NASA_CONDENSATE` at `temperature_k`, `None` for another gas. A temperature under the fit's range (300 K) is read at 300 K
+    (the vapor is far thinner there: the cap is only more certain)."""
+    if formula not in NASA_CONDENSATE:
+        return None
+    crystal, liquid = (species_thermo.SPECIES[name] for name in NASA_CONDENSATE[formula])
+    gas = species_thermo.gas(formula)
+    condensate = crystal if temperature_k <= crystal.range_k[1] else liquid
+    t = max(temperature_k, condensate.range_k[0])
+    return math.exp(condensate.g_over_rt(t) - gas.g_over_rt(t)) * saturation.BAR_TO_PA
+
+
 def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=1000, tolerance=1e-4):
     """
     Caps every species with a saturation curve at its saturation pressure at `temperature_k`: the excess is taken out of the
@@ -243,12 +320,18 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
         takes = {}
         for name, fraction in result.mole_fractions.items():
             formula = species_thermo.SPECIES[name].formula
-            if fraction * pressure_bar < MIN_PARTIAL_BAR or not saturation.has(formula):
+            if fraction * pressure_bar < MIN_PARTIAL_BAR:
                 continue
-            curve = saturation.saturation(formula, temperature_k)
-            if curve.status == saturation.ABOVE_CRITICAL:
-                continue
-            allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
+            if saturation.has(formula):
+                curve = saturation.saturation(formula, temperature_k)
+                if curve.status == saturation.ABOVE_CRITICAL:
+                    continue
+                allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
+            else:
+                pascals = nasa_saturation_pa(formula, temperature_k)
+                if pascals is None:
+                    continue
+                allowed = pascals / saturation.BAR_TO_PA / pressure_bar
             if fraction > allowed * (1.0 + tolerance):
                 takes[name] = (result.moles[name] - allowed * result.total_moles) / (1.0 - min(allowed, 0.999999))
         if not takes:
@@ -337,6 +420,12 @@ def enrichment_of_mass_fraction(z):
     return 0.5 * (low + high)
 
 
+def burned_lithium(mass_jupiter):
+    """Whether a brown dwarf of `mass_jupiter` Jupiter masses (or `None`) is above the lithium-burning limit, the test of its makeup
+    (`stellar_composition.star_makeup`'s `burned_lithium`; age is not modelled: the burning takes a few hundred million years)."""
+    return mass_jupiter is not None and mass_jupiter * stellar_abundances.JUPITER_MASS_SOL > stellar_abundances.lithium_burning_limit_sol()
+
+
 def _layer_temperature(subject, family):
     for name in {"hot-jupiter": ("t_layer_k", "tday_k", "teq_k"), "brown-dwarf": ("t_layer_k", "teff_k")}.get(family, ("t_layer_k", "teq_k")):
         if subject.get(name) is not None:
@@ -401,9 +490,18 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     metallicity = 10.0 ** log_enrichment
     constants_drawn["log_enrichment"] = log_enrichment
     c_over_o = recipe.values.get("f7")
+    disk = _disk_c_over_o(subject, log_enrichment - fe_h)
+    if disk is not None:       # GEN.1363 part C: the C/O of the disk where it formed, spread as the recipe's row f7 spreads it (the history of what the giant swallowed)
+        c_over_o = disk if c_over_o is None else disk * c_over_o / disk_condensation.RECIPE_C_OVER_O_CENTER
     if c_over_o is not None:
         constants_drawn["c_over_o"] = c_over_o
-    budget = element_budget(log_enrichment, c_over_o)
+    lithium_burned = family == "brown-dwarf" and burned_lithium(subject.get("mass_jupiter"))
+    if lithium_burned:
+        constants_drawn["lithium_burned"] = True
+    disk_factors = _disk_enrichments(subject, log_enrichment - fe_h)
+    for symbol, factor in disk_factors.items():
+        constants_drawn[f"enrichment_{symbol.lower()}"] = factor
+    budget = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
 
     budget, condensed = remove_clouds(
         budget, temperature, pressure, log_enrichment,
@@ -455,4 +553,4 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
         temperature_k=temperature, pressure_bar=pressure, moles=result.moles, mole_fractions=result.mole_fractions,
         total_moles=result.total_moles, iterations=result.iterations, skipped=result.skipped)
     return finish(result, family=family, drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=None,
-                  inventory=element_budget(log_enrichment, c_over_o), constants=constants_drawn, condensed=condensed)
+                  inventory=element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors), constants=constants_drawn, condensed=condensed)

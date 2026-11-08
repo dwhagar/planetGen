@@ -32,7 +32,7 @@ import math
 
 from markupsafe import Markup, escape
 
-from planetgen.physics import brown_dwarf_types, class_fit, constants as phys, planet_classes, small_body_composition
+from planetgen.physics import brown_dwarf_types, class_code, class_fit, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
 from planetgen.datasets import mamajek_sequence
 from planetgen.datasets.fetch import DataMissing
@@ -493,7 +493,8 @@ def class_url_parts(type_slug, code):
     """
     `(type_slug, code)` for a class page that exists, else `None`. A
     luminosity class alias ("D") resolves to its class ("VII"), and an
-    asteroid field's full class ("C3") to its letter.
+    asteroid field's full class ("C3") and a planet's written class code
+    ("F2", `class_code.parse_code`) to its letter.
     """
     if code is None:
         return None
@@ -502,6 +503,11 @@ def class_url_parts(type_slug, code):
         code = LUMINOSITY_CLASS_ALIASES.get(code, code)
     elif type_slug == "asteroid-field":
         code = code.rstrip("0123456789")
+    elif type_slug in ("planet", "rogue-planet"):
+        try:
+            code = class_code.parse_code(code)[0]       # GEN.1208: a written code ("F2") is on its letter's page; the digit is one position of the family
+        except class_code.ClassCodeError:
+            pass
     if class_entry(type_slug, code) is None:
         return None
     return type_slug, code

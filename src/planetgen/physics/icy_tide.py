@@ -31,7 +31,7 @@ import math
 
 from scipy import integrate
 
-from planetgen.physics import constants, hydrosphere, tidal_rheology
+from planetgen.physics import aquifers, constants, hydrosphere, tidal_rheology
 
 STRAIN_FACTOR = 1.0
 """float: The strain in the shell as a multiple of the tide's amplitude over the body's radius (the shell follows the ocean under it, which follows the equilibrium tide). Source tier
@@ -74,7 +74,7 @@ def love_k2(mass_kg, radius_m, frequency_rad_s):
     return tidal_rheology.ice_response(mass_kg, radius_m, frequency_rad_s, LOVE_TEMPERATURE_K).k2
 
 
-def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentricity, own_flux_w_m2, top_k, base_k=hydrosphere.WATER_MELTING_K):
+def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentricity, own_flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
     """
     `(F, P)`: the heat flux the shell conducts, W/m2, and the power its tide makes, W, for a body on an orbit of `eccentricity` about a host of `host_mass_kg`, with `own_flux_w_m2` of
     its own heat coming up into the shell. The tide's flux is `F - own_flux_w_m2`.
@@ -90,7 +90,7 @@ def flux_from_tide(mass_kg, radius_m, host_mass_kg, semi_major_axis_m, eccentric
     return own + tide, 4.0 * math.pi * radius_m ** 2 * tide
 
 
-def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=hydrosphere.WATER_MELTING_K):
+def k2_over_q(mass_kg, radius_m, frequency_rad_s, flux_w_m2, top_k, base_k=aquifers.WATER_MELTING_K):
     """
     The effective `k2/Q` of the shell for a tide of `frequency_rad_s` (the semi-diurnal frequency of a spinning body, or the orbital rate of an eccentricity tide) with the shell
     conducting `flux_w_m2`: the dissipation the strain above makes, over what a body of that `k2/Q` would make in the torque law (`spin_torques.Torques.gravitational`),

@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
+from planetgen.physics import accessory_minerals, comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -275,7 +275,7 @@ TAXON_TABLE = pt.REGISTRY.register(pt.Table(
 """Table: The belt and field taxa, a flagged stand-in at every row until GEN.475 (the weights are derived)."""
 
 
-def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DIRICHLET_CONCENTRATION):
+def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DIRICHLET_CONCENTRATION, host=None):
     """
     The composition of a belt or a field of asteroids at `distance_au` from a star of luminosity `luminosity_w` that was born with the aluminum-26 ratio `al26_ratio`
     (`radiogenic.star_al26_ratio`): the disk is at its blackbody temperature there and `taxon_kernel` gives the taxa.
@@ -297,16 +297,16 @@ def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DI
     probabilities = TAXON_TABLE.probabilities(subject)
     names = [row.name[len("taxon-"):] for row, _p in probabilities]
     weights = [p for _row, p in probabilities]
-    return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio})
+    return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio}, host=host)
 
 
 METAL_ROWS = ("kamacite", "taenite", "schreibersite")
 """tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis."""
 
-REFRACTORY_ROWS = ("spinel", "anorthite")
+REFRACTORY_ROWS = ("spinel", "anorthite", "melilite", "hibonite", "perovskite")
 """tuple: The rows that stand for the refractory inclusions (calcium-aluminium-rich) of its refractory axis."""
 
-MATRIX_ROWS = ("serpentine", "magnetite", "complex_organics", "calcite")
+MATRIX_ROWS = ("serpentine", "cronstedtite", "saponite", "tochilinite", "magnetite", "complex_organics", "calcite")
 """tuple: The rows of the fine-grained matrix of its matrix axis: the water-altered minerals and the organics (ice is not matrix; an icy mix is far from every group, `ICE_MAX`)."""
 
 OLIVINE_MIN_VOLUME = 0.05
@@ -338,10 +338,11 @@ def chondrite_group(components):
     return (meteorite_groups.NONE if ice >= ICE_MAX else group), distance
 
 
-def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
+def _from_taxa(kind, names, weights, concentration, detail, porosity=None, host=None):
     """
     The makeup of a mixture of the taxa `names` around the center `weights`: the Dirichlet shares, then a porosity for each taxon
-    (`porosity` states one for all, drawing none); the rest as `draw_belt` says.
+    (`porosity` states one for all, drawing none); the rest as `draw_belt` says. Each taxon's mix carries its accessory minerals, scaled by the host star's bulk (`host`, GEN.1368;
+    `accessory_minerals`).
     """
     drawn = draw.dirichlet([concentration * w for w in weights])
     shares = {taxon: 0.0 for taxon in TAXA}
@@ -354,11 +355,11 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
             taxon_porosity[taxon] = draw.uniform(low, high)
         else:
             taxon_porosity[taxon] = porosity
-        grain = compaction.grain_density_kg_m3(data.fractions)
+        fractions = accessory_minerals.mix(taxon, data.fractions, host)
+        grain = compaction.grain_density_kg_m3(fractions)
         bulk[taxon] = grain * (1.0 - taxon_porosity[taxon])
-        total = math.fsum(data.fractions.values())
-        for name, value in data.fractions.items():
-            components[name] = components.get(name, 0.0) + shares[taxon] * value / total
+        for name, value in fractions.items():
+            components[name] = components.get(name, 0.0) + shares[taxon] * value
     mean_bulk = 1.0 / math.fsum(shares[t] / bulk[t] for t in names)
     mean_porosity = math.fsum(shares[t] * taxon_porosity[t] for t in names)
     albedo = math.fsum(shares[t] * TAXON_DATA[t].albedo for t in names)
