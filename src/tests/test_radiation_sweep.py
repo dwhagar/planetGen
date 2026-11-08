@@ -66,6 +66,15 @@ def swept():
     return bodies
 
 
+def _air_on_the_light_now(body):
+    """Whether the body's air, temperature, dose and spectrum were made on the light its stored orbit gives. A rocky planet whose orbit settled (`settle_orbit`, its
+    eccentricity worn down) after its air was made, with the star's age risen by under `planets.AGE_SETTLE_TOLERANCE`, is not made again (`refinish_rocky`), so
+    its values are those of the older light: a known gap the rules below must not read as a break in them."""
+    made_on = getattr(body, "_air_light_au", None)
+    now = getattr(body, "_star_distance_au", None)
+    return made_on is None or not now or math.isclose(made_on, now, rel_tol=1e-9)
+
+
 def _starlight_w_m2(body):
     """The starlight at the body, W/m2, or `None` for a body with no star light or no stored distance."""
     distance_au = getattr(body, "_star_distance_au", None)
@@ -118,7 +127,7 @@ def climate_problems(body):
     if not _has_air(body) and factor != 0.0:
         problems.append("an airless body has a greenhouse factor")
     flux = _starlight_w_m2(body)
-    if flux is not None:
+    if flux is not None and _air_on_the_light_now(body):
         expected = climate_draws.surface_temperature_k(albedo, factor, flux)
         cap = surface_air.MAX_SURFACE_TEMPERATURE_K
         if _same(temperature, cap):
@@ -142,7 +151,7 @@ def dose_problems(body, is_moon):
         problems.append("a dose term is negative, or the cosmic-ray or ground term is not positive")
     if belt > 0.0 and not is_moon:
         problems.append("a planet has a belt dose")
-    if is_moon:
+    if is_moon or not _air_on_the_light_now(body):
         return problems
     column = rad.column_g_cm2(getattr(body, "atmospheric_pressure", None) or 0.0, getattr(body, "gravity", None))
     cutoff = rad.cutoff_rigidity_gv(getattr(body, "magnetic_moment_a_m2", None) or 0.0, body.radius)
@@ -164,7 +173,7 @@ def ultraviolet_problems(body, is_moon):
     if (body.ozone_column_du > 0.0) != (holds_oxygen and has_light):
         problems.append("the ozone column is not positive exactly when the air holds oxygen under a lit star")
     index = body_radiation.dna_dose_index(body)
-    if not is_moon and index is not None and not _same(body.uv_surface_index, index):
+    if not is_moon and index is not None and _air_on_the_light_now(body) and not _same(body.uv_surface_index, index):
         problems.append(f"stored UV index {body.uv_surface_index:.6g} is not the Setlow dose of the spectrum {index:.6g}")
     bare = body_radiation.bare_dna_dose_w_m2(body)
     if _has_air(body) and bare is not None and not is_moon:

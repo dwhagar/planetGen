@@ -621,7 +621,7 @@ def test_planet_attrs_carries_one_look_record_not_loose_colour_attrs():
     planet = _planet(1, 10, AU_KM, 0.0, planet_class="J", body_type="g", surface_temperature_k=165.0)
     attrs = sm._planet_attrs(planet)
     look = json.loads(attrs["look"])
-    assert look["body"] == "gas" and look["cls"] == "J" and look["tempK"] == 165.0
+    assert look["body"] == "gas" and look["tempK"] == 165.0
     assert look["color"].startswith("#")
     assert "color" not in attrs and "hasatmosphere" not in attrs
     assert attrs["looknote"].startswith("Cloud-top color from its mean cloud-top temperature (165 K)")

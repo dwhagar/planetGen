@@ -344,7 +344,7 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     <li><strong>Marks and symbols</strong>: black holes and the worlds, life, and civilizations the Menu's Show on the map
     lists, each with its own symbol or color in the Key.</li>
     <li><strong>In an opened sector</strong>: points of light are stars, black holes, neutron stars, quasars, and rogue
-    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants, and asteroid fields, and outlines
+    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants, and asteroid fields, pale-gold balls are globular clusters, and outlines
     are the sectors beside it.</li>
     <li><strong>Course</strong>: a line through every stop of a course shown from the Nav page, and a dashed line for the
     direct line from its start to its end.</li>

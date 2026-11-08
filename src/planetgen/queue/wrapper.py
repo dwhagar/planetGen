@@ -132,9 +132,31 @@ def _expand(conn, run_id, index):
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
     step comes from the run record, so any process can do this.
 
+    The cut is the *opening* of the stage (PERF.252): it runs in the work horse of the last unit of the stage before, so the run
+    record names the stage being opened (`runrecord.begin_opening`) while it lasts, for a kill or a failure to say so, and the log
+    says that it is opening and how much memory the process holds after each step, since the stage's own start line is written
+    only when the cut is done.
+
     Returns:
         int: How many units the stage queued.
     """
+    runrecord.begin_opening(conn, run_id, index)
+    try:
+        return _open(conn, run_id, index)
+    finally:
+        runrecord.end_opening(conn, run_id)
+
+
+def _say_opening(conn, run_id, index, text, held):
+    """Logs one step of an opening with the memory the process holds after it (`units.resident_mb`); returns the most it has held so far."""
+    now = units.resident_mb()
+    held = max(held, now)
+    runrecord.log(conn, run_id, f"Opening stage {index + 1}: {text}" + (f" (this process holds {now:,.0f} MB, at most {held:,.0f} MB so far)" if now else ""),
+                  kind="stage.opening", stage=index, peak_mb=round(held) if held else None)
+    return held
+
+
+def _open(conn, run_id, index):
     stages = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
@@ -142,15 +164,19 @@ def _expand(conn, run_id, index):
     if step.params.get(FINISHED_BY):
         _carry_finished_stage(conn, run_id, index, step, started)
         return 0
+    held = _say_opening(conn, run_id, index, f"{stages[index]['label']} is being cut into its units", 0.0)
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
+        held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(params)
+        held = _say_opening(conn, run_id, index, "its preparation is done", held)
     expansion = commands.expand_function(step.kind)(params)
+    held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {time.time() - started:,.0f} s", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
@@ -374,6 +400,18 @@ def stage_name(conn, run_id, index):
     except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
         label = None
     return label or str(index)
+
+
+def opening_note(conn, run_id, stage):
+    """
+    What a failure message adds when the process that failed was opening a stage (PERF.252): `" while it was opening stage <label>"`,
+    or `""`. The opening of a stage runs in the work horse of the last unit of the stage before it, so that unit is named by the job
+    and the stage being opened is not.
+    """
+    opened = runrecord.opening(conn, run_id)
+    if opened is None or opened == stage:
+        return ""
+    return f" while it was opening stage {stage_name(conn, run_id, opened)}"
 
 
 def _stage_step(conn, run_id, index):

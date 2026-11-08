@@ -82,7 +82,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on the classes T, I and V; the oddity line names the planets it selects when the oddity wiring lands |
+| module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands |
 | row | 6.79:HC1 | GEN.1047 | the four ranges of the Hycean box, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
@@ -112,9 +112,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
 | row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
 | row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
-| module | planetgen.physics.trojan_bodies | GEN.1151 | which classes of world the mass rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
-| row | 6.125:TB1 | GEN.1151 | `trojan_bodies.CLASS_J_MIN_EARTH`, read when the whole-body draw lands |
-| row | 6.125:TB2 | GEN.1151 | `trojan_bodies.CLASS_M_MASS_EARTH`, read when the whole-body draw lands |
+| module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
