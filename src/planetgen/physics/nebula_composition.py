@@ -219,7 +219,7 @@ GRAINS = {
 
 SIC_SI_SHARE_OF_SILICATE_SI = 0.025
 """float: The share of the silicon of the silicate grains that sits in SiC in the interstellar mixes. The absence of the 11.3 micron SiC band toward the Galactic center puts the
-silicon in SiC dust at less than 5 percent of the silicon in silicates [R5148: section 5.3]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
+silicon in SiC dust at less than 5 percent of the silicon in silicates [R5152: section 5.3]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
 L1: inside a published upper limit.]"""
 
 GRAIN_MIXES = {
@@ -233,7 +233,7 @@ GRAIN_MIXES = {
 }
 """dict: The shares of the dust mass in each grain kind, by mix (a class names one in `CLASSES`); each adds to 1. The diffuse mix is a Milky Way
 one (silicates, iron, carbon with a PAH tail of a few percent, and SiC at half the interstellar limit `SIC_SI_SHARE_OF_SILICATE_SI`); the dense one gains ice mantles; the
-carbon-rich one (the winds of carbon stars) has SiC at 10 percent of the dust, the share below which 37 of 44 galactic carbon stars lie [R5150: the text];
+carbon-rich one (the winds of carbon stars) has SiC at 10 percent of the dust, the share below which 37 of 44 galactic carbon stars lie [R5154: the text];
 the others follow the report's table. [Stand-ins NBC6 and NBC19, tiers T6 and T2, tweaks L3 and L1: the first chosen so that a solar-metallicity diffuse nebula's dust fits inside
 its metals within a fifth of the law, the second inside the published carbon-star range.]"""
 
@@ -241,23 +241,23 @@ assert all(abs(sum(mix.values()) - 1.0) < 1e-12 for mix in GRAIN_MIXES.values())
 
 OLIVINE_SHARE_OF_AMORPHOUS_SILICATE = 0.849
 """float: The mass share of amorphous olivine in the amorphous silicate (the rest is amorphous pyroxene): 84.9 percent olivine and 15.1 percent pyroxene by mass fit the 10
-micron band of the diffuse interstellar medium toward the Galactic center [R5147: abstract]. A split of the mass only; the element content of the silicate kind stays that of
+micron band of the diffuse interstellar medium toward the Galactic center [R5151: abstract]. A split of the mass only; the element content of the silicate kind stays that of
 `GRAINS`. [Stand-in NBC20, tier T1, tweak L0.]"""
 
 CRYSTALLINE_SHARE_OF_SILICATE = {
     "diffuse": 0.002, "dense": 0.002, "reflection": 0.002, "oxygen-rich": 0.15, "carbon-rich": 0.15, "ejecta": 0.15, "iron-group": 0.15,
 }
-"""dict: By mix, the mass share of the silicate that is crystalline (forsterite and enstatite). The diffuse medium holds 0.2 +- 0.2 percent [R5147: abstract]; the silicates of
-stellar ejecta are 11 to 18 percent crystalline (about 10 percent around OH/IR stars, 15 to 20 around red supergiants) [R5147: section 4.1], so the mixes of stellar ejecta take 15
+"""dict: By mix, the mass share of the silicate that is crystalline (forsterite and enstatite). The diffuse medium holds 0.2 +- 0.2 percent [R5151: abstract]; the silicates of
+stellar ejecta are 11 to 18 percent crystalline (about 10 percent around OH/IR stars, 15 to 20 around red supergiants) [R5151: section 4.1], so the mixes of stellar ejecta take 15
 percent. The ejecta of a supernova and the carbon-rich winds take the same value for want of a source of their own. [Stand-in NBC21, tier T2, tweak L1.]"""
 
 GRAPHITE_SHARE_OF_CARBON = {
     "diffuse": 0.5, "dense": 0.25, "reflection": 0.5, "oxygen-rich": 0.5, "carbon-rich": 0.1, "ejecta": 0.3, "iron-group": 0.0,
 }
 """dict: By mix, the mass share of the carbon grains (not the PAHs) that is graphite; the rest is amorphous carbon. Two models of the diffuse medium disagree: the
-silicate-graphite-PAH model puts all its large carbon in graphite [R5149], the astrodust model has none [R5151], so the diffuse mix takes the middle of the widest range; a
+silicate-graphite-PAH model puts all its large carbon in graphite [R5153], the astrodust model has none [R5155], so the diffuse mix takes the middle of the widest range; a
 dense cloud and a carbon star make amorphous carbon (a carbon star's dust is amorphous carbon with SiC); presolar graphite is a small part of the grains of a meteorite
-(1 ppm against 6 ppm of SiC) [R5148: Table 3]. [Stand-in NBC22, tier T6, tweak L3 where a mix is not the diffuse one, T3 and L1 where it is.]"""
+(1 ppm against 6 ppm of SiC) [R5152: Table 3]. [Stand-in NBC22, tier T6, tweak L3 where a mix is not the diffuse one, T3 and L1 where it is.]"""
 
 assert set(CRYSTALLINE_SHARE_OF_SILICATE) == set(GRAPHITE_SHARE_OF_CARBON) == set(GRAIN_MIXES), "every mix needs a crystalline and a graphite share"
 SURVIVES_AS = {"SiC": "silicate"}

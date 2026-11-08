@@ -264,7 +264,7 @@ def test_the_species_split_each_kind_without_losing_any_dust():
 
 
 def test_the_amorphous_silicate_is_85_percent_olivine_and_the_diffuse_medium_is_barely_crystalline():
-    """The diffuse-medium silicate fit [R5147]: 84.9 percent amorphous olivine and 15.1 percent pyroxene by mass; 0.2 +- 0.2 percent crystalline."""
+    """The diffuse-medium silicate fit [R5151]: 84.9 percent amorphous olivine and 15.1 percent pyroxene by mass; 0.2 +- 0.2 percent crystalline."""
     m = make("B")
     amorphous = m.species["amorphous_olivine"] + m.species["amorphous_pyroxene"]
     assert m.species["amorphous_olivine"] / amorphous == pytest.approx(0.849)
@@ -278,7 +278,7 @@ def test_the_stellar_ejecta_silicates_are_11_to_18_percent_crystalline():
 
 
 def test_the_silicon_in_interstellar_sic_is_under_five_percent_of_the_silicon_in_silicates():
-    """The dust review [R5148], section 5.3: Si in SiC dust under 5 percent of Si in silicates."""
+    """The dust review [R5152], section 5.3: Si in SiC dust under 5 percent of Si in silicates."""
     for name in ("diffuse", "dense", "reflection"):
         mix = nc.GRAIN_MIXES[name]
         in_sic = mix["SiC"] * nc.GRAINS["SiC"]["Si"]

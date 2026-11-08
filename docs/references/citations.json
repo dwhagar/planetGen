@@ -25723,25 +25723,45 @@
     },
     "R5147": {
       "kind": "paper",
+      "label": "Nittler et al. 2018",
+      "title": "The Chemical Composition of Mercury"
+    },
+    "R5148": {
+      "kind": "paper",
+      "label": "Badro et al. 2014",
+      "title": "A seismologically consistent compositional model of Earth’s core"
+    },
+    "R5149": {
+      "kind": "paper",
+      "label": "Edmund et al. 2022",
+      "title": "The Fe-FeSi phase diagram at Mercury’s core conditions"
+    },
+    "R5150": {
+      "kind": "paper",
+      "label": "Iizuka-Oku et al. 2021",
+      "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution"
+    },
+    "R5151": {
+      "kind": "paper",
       "label": "Kemper et al. 2004",
       "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium"
     },
-    "R5148": {
+    "R5152": {
       "kind": "paper",
       "label": "Draine 2003",
       "title": "Interstellar Dust Grains"
     },
-    "R5149": {
+    "R5153": {
       "kind": "paper",
       "label": "Draine and Li 2007",
       "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era"
     },
-    "R5150": {
+    "R5154": {
       "kind": "paper",
       "label": "Chen et al. 2021",
       "title": "Where have all the interstellar silicon carbides gone?"
     },
-    "R5151": {
+    "R5155": {
       "kind": "paper",
       "label": "Hensley and Draine 2023",
       "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium"

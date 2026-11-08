@@ -1,6 +1,6 @@
 """The dust grains of a nebula by species (GEN.1376).
 
-Schema v231. `nebulae`, `supernova_remnants` and `nebula_field` split `grain_silicate` into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`, split `grain_carbon`
+Schema v232. `nebulae`, `supernova_remnants` and `nebula_field` split `grain_silicate` into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`, split `grain_carbon`
 into `grain_amorphous_carbon` and `grain_graphite`, and gain `grain_sic` (silicon carbide). The model also changed what is in the dust (SiC, an ice mantle that holds CO, CO2, methanol, ammonia and methane),
 so a table that still has the old columns has its whole composition written again by the model (`nebula_columns`, the fills of migrations 0214 and 0215) and then loses the two old columns. A table
 that has the new columns already (a galaxy built from a version before 214 gets them from 0214 and 0215) is left as it is. A stopped run can be started again: the rows still empty are the ones filled, and
@@ -14,8 +14,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0231"
-down_revision = "0230"
+revision = "0232"
+down_revision = "0231"
 branch_labels = None
 depends_on = None
 
