@@ -36645,7 +36645,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": null,
+          "unread": "by design",
           "what": "nebula_composition.SIC_SI_SHARE_OF_SILICATE_SI 0.025: the share of the silicon of the silicates that sits in SiC in the interstellar mixes"
         },
         {
@@ -36763,7 +36763,11 @@
           "what": "nebula_composition.CRYSTALLINE_SHARE_OF_SILICATE {interstellar mixes 0.002, ejecta mixes 0.15}: the mass share of the silicate that is crystalline"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the graphite share of interstellar carbon grains is not measured; the silicate-graphite-PAH and astrodust models disagree and the middle of their range is taken; any measured graphite fraction replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -36801,7 +36805,11 @@
           "what": "nebula_composition.GRAPHITE_SHARE_OF_CARBON {diffuse 0.5, dense 0.25, reflection 0.5, oxygen-rich 0.5, carbon-rich 0.1, ejecta 0.3, iron-group 0}: the share of the carbon grains (not PAHs) that is graphite, the rest amorphous carbon"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no source measures the sputtering or shattering rate of silicon carbide in shocks; it is taken to survive like the silicates until one does"
+          ],
           "fields": [
             [
               "What it is",
