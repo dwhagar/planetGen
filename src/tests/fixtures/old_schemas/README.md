@@ -113,3 +113,4 @@ Commit each file came from:
 - v227: train 16 after MAP.402's migration 0227 (uncharted sector rows, no schema change), before GEN.1047 oddities column (0228)
 - v228: train 17 after GEN.1047's migration 0228 (oddities column), before GEN.1350 dipole orientation (0229)
 - v229: train 17 after GEN.1350's migration 0229 (dipole orientation), before GEN.1362 mantle oxide columns (0230)
+- v231: train 18 after GEN.1364's migration 0231 (core composition), before GEN.1376 dust species (0232)

@@ -255,3 +255,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.213:DSC4 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
 | row | 6.213:DSC5 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
 | row | 6.213:DSC6 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |

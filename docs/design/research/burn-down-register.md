@@ -239,6 +239,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.179:NBC9 | no data | - | the dust survival shares are recalled from sputtering and reverse-shock literature; no measured dust share of an old remnant is in hand |
 | 6.179:NBC10 | no data | - | the ionized, atomic and molecular shares by class are recalled from observed phase fractions; none is measured per class here |
 | 6.179:NBC13 | no data | - | the wind share of a Wolf-Rayet ring is argued from the observed rings, not measured |
+| 6.179:NBC22 | no data | - | the graphite share of interstellar carbon grains is not measured; the silicate-graphite-PAH and astrodust models disagree and the middle of their range is taken; any measured graphite fraction replaces it |
+| 6.179:NBC23 | no data | - | no source measures the sputtering or shattering rate of silicon carbide in shocks; it is taken to survive like the silicates until one does |
 | 6.190:CW2 | no data | - | no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses |
 | 6.192:SEP1 | no data | - | L3, hand-tuned against a Hill-sphere packing sweep (125, 27 and 27 sectors at 8,128, 4,000 and 1,500 pc); it goes when a nearest-neighbour distribution from catalogued stars is fitted |
 | 6.189:HC2 | no data | - | L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined |

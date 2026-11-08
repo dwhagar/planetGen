@@ -1541,7 +1541,7 @@
 -- v209 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v209 has none until the galaxy is regenerated.
 -- v210 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
 --   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v210, nothing is backfilled.
--- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
+-- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (v229, GEN.1376: `grain_amorphous_olivine`, `_amorphous_pyroxene`, `_crystalline_silicate`, `_iron`, `_amorphous_carbon`, `_graphite`, `_pah`, `_sic`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
@@ -1551,6 +1551,7 @@
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
+-- v232 (GEN.1376): the dust grains of a nebula, a remnant and a field cloud are stored by species: `grain_silicate` is split into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`, `grain_carbon` into `grain_amorphous_carbon` and `grain_graphite`, and `grain_sic` (silicon carbide) is new (`physics/nebula_columns.py`, `physics/nebula_composition.py`). The migration adds the six columns, writes the whole composition of every row again with the model, and drops the two old columns.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3881,10 +3882,14 @@ CREATE TABLE IF NOT EXISTS nebulae (
     molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
     dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
     dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
-    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_amorphous_olivine      DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous olivine grains
+    grain_amorphous_pyroxene     DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous pyroxene grains
+    grain_crystalline_silicate   DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in crystalline silicate grains
     grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
-    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_amorphous_carbon       DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous carbon grains
+    grain_graphite               DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in graphite grains
     grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_sic                    DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in silicon carbide grains
     grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
     progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
 
@@ -4019,10 +4024,14 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
     dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
     dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
-    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_amorphous_olivine      DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous olivine grains
+    grain_amorphous_pyroxene     DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous pyroxene grains
+    grain_crystalline_silicate   DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in crystalline silicate grains
     grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
-    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_amorphous_carbon       DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in amorphous carbon grains
+    grain_graphite               DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in graphite grains
     grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_sic                    DOUBLE NULL,  -- v232 (GEN.1376): share of the dust mass in silicon carbide grains
     grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
     progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
     ejecta_mass_sol              DOUBLE NULL,  -- v214 (GEN.1276): mass thrown out by the explosion, solar masses
@@ -5445,10 +5454,14 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     molecular_share              FLOAT NULL,  -- v215 (GEN.1277): molecular_share of the cloud, as on `nebulae` but single precision
     dust_to_gas                  FLOAT NULL,  -- v215 (GEN.1277): dust_to_gas of the cloud, as on `nebulae` but single precision
     dust_to_metals               FLOAT NULL,  -- v215 (GEN.1277): dust_to_metals of the cloud, as on `nebulae` but single precision
-    grain_silicate               FLOAT NULL,  -- v215 (GEN.1277): grain_silicate of the cloud, as on `nebulae` but single precision
+    grain_amorphous_olivine      FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_olivine of the cloud, as on `nebulae` but single precision
+    grain_amorphous_pyroxene     FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_pyroxene of the cloud, as on `nebulae` but single precision
+    grain_crystalline_silicate   FLOAT NULL,  -- v232 (GEN.1376): grain_crystalline_silicate of the cloud, as on `nebulae` but single precision
     grain_iron                   FLOAT NULL,  -- v215 (GEN.1277): grain_iron of the cloud, as on `nebulae` but single precision
-    grain_carbon                 FLOAT NULL,  -- v215 (GEN.1277): grain_carbon of the cloud, as on `nebulae` but single precision
+    grain_amorphous_carbon       FLOAT NULL,  -- v232 (GEN.1376): grain_amorphous_carbon of the cloud, as on `nebulae` but single precision
+    grain_graphite               FLOAT NULL,  -- v232 (GEN.1376): grain_graphite of the cloud, as on `nebulae` but single precision
     grain_pah                    FLOAT NULL,  -- v215 (GEN.1277): grain_pah of the cloud, as on `nebulae` but single precision
+    grain_sic                    FLOAT NULL,  -- v232 (GEN.1376): grain_sic of the cloud, as on `nebulae` but single precision
     grain_ice                    FLOAT NULL,  -- v215 (GEN.1277): grain_ice of the cloud, as on `nebulae` but single precision
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
