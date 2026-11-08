@@ -43657,8 +43657,8 @@
       "title": "Stand-ins of the phosphorus budget"
     },
     {
-      "key": "6.233",
-      "number": "6.233",
+      "key": "6.236",
+      "number": "6.236",
       "rows": [
         {
           "burn_down": null,
@@ -43689,9 +43689,9 @@
             ]
           ],
           "id": "ISO1",
-          "key": "6.233:ISO1",
+          "key": "6.236:ISO1",
           "kind": "T",
-          "slug": "6-233-iso1",
+          "slug": "6-236-iso1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -43727,9 +43727,9 @@
             ]
           ],
           "id": "ISO2",
-          "key": "6.233:ISO2",
+          "key": "6.236:ISO2",
           "kind": "T",
-          "slug": "6-233-iso2",
+          "slug": "6-236-iso2",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
@@ -43765,9 +43765,9 @@
             ]
           ],
           "id": "ISO3",
-          "key": "6.233:ISO3",
+          "key": "6.236:ISO3",
           "kind": "T",
-          "slug": "6-233-iso3",
+          "slug": "6-236-iso3",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L2",
@@ -43807,9 +43807,9 @@
             ]
           ],
           "id": "ISO4",
-          "key": "6.233:ISO4",
+          "key": "6.236:ISO4",
           "kind": "T",
-          "slug": "6-233-iso4",
+          "slug": "6-236-iso4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L3",
@@ -43845,9 +43845,9 @@
             ]
           ],
           "id": "ISO5",
-          "key": "6.233:ISO5",
+          "key": "6.236:ISO5",
           "kind": "T",
-          "slug": "6-233-iso5",
+          "slug": "6-236-iso5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -43883,9 +43883,9 @@
             ]
           ],
           "id": "ISO6",
-          "key": "6.233:ISO6",
+          "key": "6.236:ISO6",
           "kind": "T",
-          "slug": "6-233-iso6",
+          "slug": "6-236-iso6",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L2",
@@ -43921,9 +43921,9 @@
             ]
           ],
           "id": "ISO7",
-          "key": "6.233:ISO7",
+          "key": "6.236:ISO7",
           "kind": "T",
-          "slug": "6-233-iso7",
+          "slug": "6-236-iso7",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -43963,9 +43963,9 @@
             ]
           ],
           "id": "ISO8",
-          "key": "6.233:ISO8",
+          "key": "6.236:ISO8",
           "kind": "T",
-          "slug": "6-233-iso8",
+          "slug": "6-236-iso8",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L3",
@@ -44001,9 +44001,9 @@
             ]
           ],
           "id": "ISO9",
-          "key": "6.233:ISO9",
+          "key": "6.236:ISO9",
           "kind": "T",
-          "slug": "6-233-iso9",
+          "slug": "6-236-iso9",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -44011,7 +44011,7 @@
           "what": "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
         }
       ],
-      "slug": "6-233-stand-ins-of-the-isotope-record-of-a-body",
+      "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",
       "title": "Stand-ins of the isotope record of a body"
     },
     {

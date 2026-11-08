@@ -291,5 +291,5 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.229:CV10 | no data | - | L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it |
 | 6.229:CG1 | replace | GEN.1425 | L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it |
 | 6.229:CG2 | no data | - | L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would |
-| 6.233:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
-| 6.233:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |
+| 6.236:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
+| 6.236:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |

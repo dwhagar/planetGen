@@ -333,7 +333,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.222", "6.222 Stand-ins of the phosphorus budget",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.233", "6.233 Stand-ins of the isotope record of a body",
+    ("6.236", "6.236 Stand-ins of the isotope record of a body",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.227", "6.227 Stand-ins of the crust fields and the magmatic ore types",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
