@@ -19,6 +19,7 @@ The file holds, per species: its elements, its phase (`g` gas, `c` condensed), i
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -56,6 +57,9 @@ WANTED = {
     "Si": "g", "SiO": "g", "SiO2": "g", "SiH4": "g", "SiS": "g",
     "Ti": "g", "TiO": "g", "TiO2": "g", "V": "g", "VO": "g", "Cr": "g", "Ca": "g", "CaO": "g", "CaOH": "g",
     "Li": "g", "LiOH": "g", "Mn": "g",
+    # GEN.1374: the lithium and alkali chlorides of the brown dwarf air (Lodders and Fegley 2006, sections 1.5.4 and 1.5.5: Li to LiCl below 1520 K at 1 bar, K to KCl
+    # below about 980 K, Na to NaCl) and lithium hydride ("LiCL", "NaCL" and "KCL" are the file's spellings)
+    "LiH": "g", "LiCL": "g", "NaCL": "g", "KCL": "g",
     # Condensed phases (the rainout of part 05 section 7.2 and 12, the melt oxides of the lava worlds)
     "H2O(cr)": "c", "H2O(L)": "c", "C(gr)": "c",
     "Fe(a)": "c", "Fe(L)": "c", "MgO(cr)": "c", "MgO(L)": "c", "SiO2(a-qz)": "c", "SiO2(L)": "c",
@@ -63,6 +67,20 @@ WANTED = {
     "CaO(cr)": "c", "CaO(L)": "c", "TiO2(cr)": "c", "TiO2(L)": "c",
     "Na2O(L)": "c", "K2O(L)": "c", "AL2O3(L)": "c",     # the melt's alkali oxides (the Na and K vapor over a lava world, part 05 section 4)
 }
+
+# GEN.1374: the two metal hydrides the thermo.inp lacks (the oxide to hydride transition of the L dwarfs, Lodders and Fegley 2006 section 1.5.3), made from atoms: the natural
+# logarithm of the equilibrium constant of M + H = MH (1 bar standard state) as the fit `ln K = c1/T + c2 ln T + c3 + c4 T + c5 T^2` that FastChem ships
+# (github.com/exoclime/FastChem, input/logK/logK.dat) for the data of Barklem and Collet 2016 (A&A 588, A96), valid 300 to 6000 K. The fit is a sum with the atoms' own
+# NASA coefficients (the free energy is linear in the coefficients), so the species is an ordinary entry of the file; the check against NASA's FeO (JANAF in the same
+# file) is within 0.02 in ln K at 500 to 3000 K, which pins the convention (natural logarithm, atoms as the reference, bar).
+DERIVED = {
+    "FeH": {"atoms": ("Fe", "H"), "elements": {"Fe": 1.0, "H": 1.0},
+            "ln_k": (1.753348310198887e+04, -1.11388879926553e+00, -3.271791493702197e+00, 6.369338645092837e-04, -4.849669108201963e-08)},
+    "CrH": {"atoms": ("Cr", "H"), "elements": {"Cr": 1.0, "H": 1.0},
+            "ln_k": (2.250241642326867e+04, -1.339993974941812e+00, -6.817855156596314e-01, 2.732708618298449e-04, -1.840639345958405e-08)},
+}
+DERIVED_RANGE_K = (300.0, 6000.0)
+GAS_CONSTANT = 8.314462618
 
 ATOMIC_MASS_TOLERANCE = 0.01  # g/mol between the file's molar mass and the sum over its elements (physics.elements)
 
@@ -115,6 +133,37 @@ def read_species(path):
     return species
 
 
+def _clipped(intervals):
+    """The intervals of an atom's fit inside `DERIVED_RANGE_K`, as `(t_min, t_max, a, b)`."""
+    low, high = DERIVED_RANGE_K
+    return [(max(row["t_min_k"], low), min(row["t_max_k"], high), row["a"], row["b"])
+            for row in intervals if row["t_max_k"] > low and row["t_min_k"] < high]
+
+
+def from_atoms(entry, species):
+    """
+    The NASA-form row of a species made from its atoms and an `ln K` fit: per temperature interval the sum of the atoms' coefficients and
+    the coefficients that reproduce `-ln K` in the free energy (`a3 = c2`, `b1 = -c1`, `b2 = c2 + c3`, `a4 = 2 c4`, `a5 = 6 c5`, the rest 0).
+    """
+    c1, c2, c3, c4, c5 = entry["ln_k"]
+    first, second = (_clipped(species[symbol]["intervals"]) for symbol in entry["atoms"])
+    if [(t0, t1) for t0, t1, _, _ in first] != [(t0, t1) for t0, t1, _, _ in second]:
+        raise SystemExit(f"{entry['atoms']}: the atoms' intervals do not line up")
+    delta_a = [0.0, 0.0, c2, 2.0 * c4, 6.0 * c5, 0.0, 0.0]
+    delta_b = [-c1, c2 + c3]
+    intervals = []
+    for (t0, t1, a1, b1), (_, _, a2, b2) in zip(first, second):
+        intervals.append({"t_min_k": t0, "t_max_k": t1, "a": [x + y + z for x, y, z in zip(a1, a2, delta_a)],
+                          "b": [x + y + z for x, y, z in zip(b1, b2, delta_b)]})
+    t = 298.15
+    a = intervals[0]["a"]
+    h_over_rt = (-a[0] / t ** 2 + a[1] * math.log(t) / t + a[2] + a[3] * t / 2 + a[4] * t ** 2 / 3 + a[5] * t ** 3 / 4 + a[6] * t ** 4 / 5
+                 + intervals[0]["b"][0] / t)
+    mass = sum(species[symbol]["molar_mass_g_mol"] * count for symbol, count in entry["elements"].items())
+    return {"elements": entry["elements"], "condensed": False, "molar_mass_g_mol": mass,
+            "formation_enthalpy_j_mol": h_over_rt * GAS_CONSTANT * t, "intervals": intervals}
+
+
 def build(path):
     species = read_species(path)
     rows = {}
@@ -127,6 +176,8 @@ def build(path):
         if not row["intervals"]:
             raise SystemExit(f"{name!r} has no fitted interval")
         rows[name] = row
+    for name, entry in DERIVED.items():
+        rows[name] = from_atoms(entry, species)
     return {
         "title": "NASA Glenn 9-coefficient thermodynamic fits of the gases and condensed phases of the atmosphere chemistry (ideal gas, 1 bar standard state)",
         "source": SOURCE,
