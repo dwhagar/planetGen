@@ -25810,6 +25810,21 @@
       "kind": "web",
       "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
       "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"
+    },
+    "R5165": {
+      "kind": "paper",
+      "label": "Li 2021",
+      "title": "Tasting nuclear pasta made with classical molecular dynamics simulations"
+    },
+    "R5166": {
+      "kind": "paper",
+      "label": "Passamonti and Pons 2016",
+      "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases"
+    },
+    "R5167": {
+      "kind": "web",
+      "label": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+      "title": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)"
     }
   }
 }
