@@ -223,7 +223,7 @@ def _system_with_rocky_worlds():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=26000.0)
-        if any(body.body_type == "t" for body in _bodies(system)):
+        if any(body.body_type == "t" and planet_type.has_ground(body) for body in _bodies(system)):      # GEN.1334: a planet under a deep envelope has no ratings to score
             return cfg, system
     raise AssertionError("no seed gave a rocky world")
 
@@ -269,6 +269,9 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         rows = store.with_life_inputs(conn, stored, False)
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
+            if not planet_type.has_ground(row):      # GEN.1334: a planet under a deep envelope stores no ratings, before or after the cloud
+                assert row["eq_body"] is None
+                continue
             again = hw.compute({**row, "is_moon": False, "native_life": store._stored_native_life(row)})
             assert row["eq_body"] >= 4  # an airless world needs a pressure suit at least: a hot or a cold surface asks for a heavier body
             for name in hw.SCORE_FIELDS:
