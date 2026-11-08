@@ -660,16 +660,6 @@ def get_superbubbles(db):
         return []
 
 
-def get_galaxy_made(db, since, until=None):
-    """Returns `GET /api/galaxy/made` (`total` and `items`): the sectors
-    created from `since` to `until`, Unix seconds (ADM.31)."""
-    _require_db(db)
-    params = {"db": db, "since": since}
-    if until is not None:
-        params["until"] = until
-    return _request("/galaxy/made", params)
-
-
 def get_galaxy_shape(db):
     """Returns `GET /api/galaxy/shape`'s `shape` dict -- the galaxy's
     stored density-skeleton shape (`planetgen plan`'s output), or

@@ -1589,20 +1589,6 @@ def test_the_generate_form_reports_every_bad_field_at_once():
     assert "Minimum start density must be at least 0.001." in message
 
 
-def test_made_url_only_for_a_finished_sector_run(client):
-    """ADM.31: a finished galaxy run offers its sectors on the Galaxy Map."""
-    now = time.time()
-    with client.application.test_request_context("/"):
-        base = {"created_at": now - 61, "steps": []}
-        done = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": True, "started_at": now - 60,
-                                        "finished_at": now, **base})
-        assert done["made_url"].startswith("/galaxy?made=")
-        for job in ({"kind": "galaxy", "finished": False, "started_at": now},
-                    {"kind": "plan", "finished": True, "started_at": now},
-                    {"kind": "galaxy", "finished": True, "started_at": None}):
-            assert generate_page._job_view({"id": "j2", **base, **job})["made_url"] is None
-
-
 def test_random_start_argv_carries_the_neighborhood_count():
     """GEN.97: more than one neighborhood adds the count and the density bias."""
     assert generate_page.random_start_argv({"neighborhoods": "4", "neighborhood_gamma": "1.5"}) == [

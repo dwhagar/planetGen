@@ -98,7 +98,6 @@ ID_PATHS = {
     "api.uncharted_systems": {},
     "api.uncharted_system": {},
     "api.galaxy_phenomena": {"items[].id": "phenomenon"},
-    "api.galaxy_made": {"items[].id": "sector"},
     "api.galaxy_locate_route": {"matches[].id": "by-kind"},
     "api.search": {
         "results.sectors.rows[].id": "sector",

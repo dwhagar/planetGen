@@ -401,26 +401,7 @@ def test_deleting_a_sector_with_facilities(admin_client, mysql_config):
     assert all(s["id"] != sector_id for s in admin_client.get("/api/galaxy/sectors").get_json()["items"])
 
 
-def test_galaxy_made_lists_sectors_created_in_a_window(client, mysql_config):
-    """ADM.31: `/api/galaxy/made` returns the placed sectors made between two times."""
-    import time
-    _place_sector(mysql_config, "Made One", (100.0, 0.0, 0.0), address=(30, 0, 0))
-    _place_sector(mysql_config, "Made Two", (-100.0, 0.0, 0.0), address=(30, 0, 5))
-    now = time.time()
-    body = client.get(f"/api/galaxy/made?since={now - 3600}&until={now + 3600}").get_json()
-    assert body["total"] == 2
-    assert {i["name"] for i in body["items"]} == {"Made One", "Made Two"}
-    assert {(i["shell_index"], i["band_index"], i["wedge_index"]) for i in body["items"]} == {(30, 0, 0), (30, 0, 5)}
-    assert client.get(f"/api/galaxy/made?since={now + 3600}").get_json() == {"total": 0, "items": []}
-    assert client.get("/api/galaxy/made?since=soon").status_code == 400
-
-
-@pytest.mark.parametrize("spelling", ["nan", "NaN", "inf", "-inf", "Infinity", "-Infinity", "+inf"])
-def test_galaxy_made_and_the_cloud_volume_refuse_numbers_that_are_not_finite(client, spelling):
+def test_the_cloud_volume_refuses_numbers_that_are_not_finite(client, spelling):
     """SEC.41: `float()` takes "nan" and "inf"; they used to reach MySQL as parameters and answer an anonymous 500."""
-    for query in (f"since={spelling}", f"since=1&until={spelling}"):
-        response = client.get(f"/api/galaxy/made?{query}")
-        assert response.status_code == 400, query
-        assert "numbers" in response.get_json()["error"]
     for query in (f"x={spelling}&y=2&z=3&radius_pc=4&family=diffuse", f"x=1&y=2&z=3&radius_pc={spelling}&family=diffuse"):
         assert client.get(f"/api/galaxy/cloud-volume?{query}").status_code == 400, query

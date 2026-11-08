@@ -1104,10 +1104,6 @@ def _edge_pc(action, form, database):
     return (shape or {}).get("edge_pc")
 
 
-MAKES_SECTORS_KINDS = ("galaxy", "new_galaxy")
-"""tuple: Job kinds whose finished page offers "Show on Galaxy Map" (ADM.31)."""
-
-
 def _job_view(job):
     """A `jobs.get_job` dict plus what the page and the script show."""
     if job is None:
@@ -1125,10 +1121,6 @@ def _job_view(job):
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
     view["rerun_url"] = generate_flow.rerun_url(job)
-    # ADM.31: a finished run that makes sectors offers them on the Galaxy Map.
-    view["made_url"] = None
-    if job.get("finished") and job.get("kind") in MAKES_SECTORS_KINDS and job.get("started_at"):
-        view["made_url"] = url_for("web.galaxy", made=f"{int(job['started_at'])},{int(job.get('finished_at') or time.time()) + 1}")
     # The run's own decaying-average ETA (PERF.7), counted down from when
     # it was written, so the page and the terminal agree.
     eta_s = progress.get("eta_s")

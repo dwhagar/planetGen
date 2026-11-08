@@ -547,12 +547,6 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.uncharted_sector_contents`) and `hosted_nebulae`, the nebulae its waiting stars light (`star_id`, the
   star's `x`, `y`, `z` in parsecs and the fields of `hosted_nebula` above, GEN.530). `400` for a missing or
   non-integer address, a negative shell, or a cell outside the grid.
-- `GET /api/galaxy/made?since=<unix>[&until=<unix>]` — the galaxy-placed
-  sectors created in a time window, for the Galaxy Map's "Show on Galaxy Map"
-  after a generate job (ADM.31): `{"total", "items"}` (`queryDb.sectors_made`),
-  `items` the first `MADE_SECTOR_LIMIT` by id, each `{id, name, x, y, z,
-  shell_index, band_index, wedge_index}`. `400` unless `since` (and `until`
-  when given) are numbers.
 - `GET /api/galaxy/nodes?keys=<key>,<key>,...` — the single-space Galaxy Map's data, one sector block ("node") at a
   time (MAP.260, `db.nodes.galaxy_nodes`). A key is `m.shell.band.wedge` of the block ladder (`m` one of 177147, 59049,
   19683, 6561, 2187, 729, 243, 81, 27, 9, 3, or 1 for a sector), at most 128 keys. Returns `{"nodes": {"<key>":
@@ -1882,12 +1876,10 @@ request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
-  "error_status", "made_url", "waiting"}`; `error_status` is the HTTP status of a
+  "error_status", "waiting"}`; `error_status` is the HTTP status of a
   refusal; `waiting` is, for a running job that waits in line for the generation run in front of it
   (PERF.153, PERF.154: the one waiting list holds up to `queue.max_waiting` entries, 8 by default, and refuses one more with the list named; `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
-  (`text` reads "Waiting at position 1 for run ..."), else `null`; `made_url` is, for a finished job that generated sectors
-  (a neighborhood or a regenerate), the Galaxy Map fitted to them and
-  highlighting them, else `null`.
+  (`text` reads "Waiting at position 1 for run ..."), else `null`.
   `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
   what the work returned once it succeeded; `error` is the last line of
   its error text once it failed. `404` for an unknown or expired id

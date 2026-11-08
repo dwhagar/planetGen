@@ -4465,45 +4465,6 @@ def galaxy_placed_sectors(conn):
     ]
 
 
-MADE_SECTOR_LIMIT = 2000
-"""int: Most sectors `sectors_made` returns by address: a bigger run is shown
-by its first sectors (the response still says the real total)."""
-
-
-
-
-
-def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
-    """
-    The galaxy-placed sectors created from `since` to `until` (Unix
-    seconds; `until=None` means now) -- what a generate job made, for the
-    Galaxy Map's "Show on Galaxy Map" (ADM.31).
-
-    Returns:
-        dict: `total` (how many), `items` (up to `limit`, lowest id first:
-            `id`, `name`, `x`/`y`/`z` pc, `shell_index`, `band_index`,
-            `wedge_index`).
-    """
-    where = "center_x_pc IS NOT NULL AND UNIX_TIMESTAMP(created_at) >= ?"
-    params = [since]
-    if until is not None:
-        where += " AND UNIX_TIMESTAMP(created_at) <= ?"
-        params.append(until)
-    total = conn.execute(f"SELECT COUNT(*) AS n FROM sectors WHERE {where}", params).fetchone()["n"]
-    rows = conn.execute(
-        "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index "
-        f"FROM sectors WHERE {where} ORDER BY id LIMIT ?", [*params, int(limit)],
-    ).fetchall()
-    return {
-        "total": total,
-        "items": [
-            {"id": r["id"], "name": r["name"], "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-             "shell_index": r["shell_index"], "band_index": r["band_index"], "wedge_index": r["wedge_index"]}
-            for r in rows
-        ],
-    }
-
-
 def galaxy_density_shape(conn):
     """
     The galaxy's stored density-skeleton shape (the singleton

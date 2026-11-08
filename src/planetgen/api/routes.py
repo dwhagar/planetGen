@@ -32,7 +32,7 @@ import math
 import time
 
 import pymysql
-from flask import Blueprint, current_app, g, jsonify, request, url_for
+from flask import Blueprint, current_app, g, jsonify, request
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
@@ -80,7 +80,6 @@ from planetgen.db.query import (
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
     galaxy_tile_stamp,
-    sectors_made,
     galaxy_locate,
     galaxy_stage,
     galaxy_edge_pc,
@@ -1176,22 +1175,6 @@ def galaxy_sectors():
     not by the addressable galaxy's own astronomical scale.
     """
     return jsonify({"items": galaxy_placed_sectors(get_db())})
-
-
-@bp.route("/galaxy/made")
-def galaxy_made():
-    """
-    The galaxy-placed sectors created in a time window, for the Galaxy
-    Map's "Show on Galaxy Map" after a generate job (ADM.31): `?since=`
-    and optional `&until=` as Unix seconds. Returns `{"total", "items"}`
-    (`db.query.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
-    """
-    try:
-        since = finite_float(request.args.get("since", ""))
-        until = finite_float(request.args["until"]) if request.args.get("until") else None
-    except ValueError:
-        return jsonify({"error": "since and until must be numbers (Unix seconds)."}), 400
-    return jsonify(sectors_made(get_db(), since, until))
 
 
 @bp.route("/galaxy/phenomena")
@@ -2579,17 +2562,13 @@ def job_status_route(job_id):
     """`GET /api/jobs/<id>` -- where a queued API job stands: `state`
     (`queued`, `running`, `succeeded` or `failed`), its `result` once it
     succeeded, its `error` once it failed (PERF.24). 404 for an
-    unknown or expired id; results are kept for a day. A finished job that
-    generated sectors also gives `made_url`, the Galaxy Map fitted to them
-    (ADM.31), else `null`."""
+    unknown or expired id; results are kept for a day."""
     try:
         job = api_jobs.status(job_id)
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     if job is None:
         raise ApiError(f"no such job: {job_id}", status_code=404)
-    made = job.pop("made")
-    job["made_url"] = url_for("web.galaxy", made=f"{made['since']},{made['until']}") if made else None
     return jsonify(job)
 
 
