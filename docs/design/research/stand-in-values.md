@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1293 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1294 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 126 | 55 | 1 | 1 | 0 | 183 |
 | T3 | 92 | 43 | 9 | 10 | 0 | 154 |
 | T4 | 56 | 5 | 1 | 19 | 10 | 91 |
-| T5 | 61 | 21 | 3 | 1 | 0 | 86 |
+| T5 | 62 | 21 | 3 | 1 | 0 | 87 |
 | T6 | 134 | 96 | 25 | 63 | 0 | 318 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 712 | 270 | 61 | 205 | 45 | 1293 |
+| All | 713 | 270 | 61 | 205 | 45 | 1294 |
 
 ## How the labels were given
 
@@ -1823,9 +1823,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | BD1 | P | T1 | L0 | mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal) | none | 1 bar, solar composition | a condensation sequence at 1 bar that puts the titanium or the chromium cloud more than 50 K from these | none | [R2725] (the 1963 K and the 1958 K of perovskite alone) and [R2731: section 1.5.3] were opened for this item; the iron fit of the same code gives 1838 K against the review's 1843 K | - | - |
-| BD2 | P | T6 | L0 | the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, `10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]` | none | 0.1 to 10 bar, [Fe/H] -1 to +1 | a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade | the slopes of the stability fields in the figures of [R2725] and [R2731], read | the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact | - | - |
+| BD2 | P | T6 | L0 | the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, `10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]` | none | 0.1 to 10 bar, [Fe/H] -1 to +1 | a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade | the slopes of the stability fields in the figures of [R2725, R2731], read | the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact | - | - |
 | BD3 | P | T6 | L1 | mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (`stellar_abundances.lithium_burning_limit_sol`, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age | 0 to 0.01 | brown dwarfs above 65 Jupiter masses | a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models | the depletion against mass and age from the evolutionary models | the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled) | - | - |
 | BD4 | P | T2 | L0 | species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (`scripts/build_species_thermo.py`, `DERIVED`) | none | 300 to 6000 K, ideal gas, 1 bar standard state | a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K | the NASA Glenn or JANAF fit of the two gases, if one is published | the fits are the polynomial that FastChem ships for the data of [R5143]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here | - | - |
+| BD5 | P | T5 | L0 | mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition | none | 300 to 883 K crystal, above it liquid; below 300 K read at 300 K | a lithium condensate that forms at another temperature at 1 bar: [R2731: section 1.5.5] names Li2S (low pressure) and LiF (high pressure) and gives no temperature | Li2S and LiF, if their free energies are held | the database holds no Li2S or LiF gas or crystal in the file; LiCl is the lithium and chlorine condensate it does hold, and without any lithium condensate the chlorine of the cold air re-forms HCl ice for ever (the caps did not settle) | - | - |
 
 ## 6.210 Stand-ins of where the mass an outer disk lost goes
 

@@ -91,6 +91,7 @@ MIN_CONDENSED = 1e-10
 """float: Ices that took fewer moles than this per hydrogen atom are not listed as condensed."""
 
 
+
 def _log_eps(symbol):
     return PHOTOSPHERE_LOG_EPS.get(symbol, tuning.STELLAR_SOLAR_LOG_EPS.get(symbol))
 
@@ -260,6 +261,24 @@ def remove_ammonium_hydrosulfide(budget, temperature_k, pressure_bar, log_enrich
     return left, x
 
 
+NASA_CONDENSATE = {"LiCl": ("LiCL(cr)", "LiCL(L)")}
+"""dict: Gases whose saturation curve is the NASA database's own, from the free energies of the gas and of its crystal and liquid (`species_thermo`), because the
+saturation table has none: the lithium chloride that takes the chlorine of a cool air out of the gas (GEN.1374; the review's lithium condensates are Li2S and LiF,
+which the database lacks, registry GEN.725 row BD5)."""
+
+
+def nasa_saturation_pa(formula, temperature_k):
+    """The saturation pressure (Pa) of a gas of `NASA_CONDENSATE` at `temperature_k`, `None` for another gas. A temperature under the fit's range (300 K) is read at 300 K
+    (the vapor is far thinner there: the cap is only more certain)."""
+    if formula not in NASA_CONDENSATE:
+        return None
+    crystal, liquid = (species_thermo.SPECIES[name] for name in NASA_CONDENSATE[formula])
+    gas = species_thermo.gas(formula)
+    condensate = crystal if temperature_k <= crystal.range_k[1] else liquid
+    t = max(temperature_k, condensate.range_k[0])
+    return math.exp(condensate.g_over_rt(t) - gas.g_over_rt(t)) * saturation.BAR_TO_PA
+
+
 def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=1000, tolerance=1e-4):
     """
     Caps every species with a saturation curve at its saturation pressure at `temperature_k`: the excess is taken out of the
@@ -283,12 +302,18 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
         takes = {}
         for name, fraction in result.mole_fractions.items():
             formula = species_thermo.SPECIES[name].formula
-            if fraction * pressure_bar < MIN_PARTIAL_BAR or not saturation.has(formula):
+            if fraction * pressure_bar < MIN_PARTIAL_BAR:
                 continue
-            curve = saturation.saturation(formula, temperature_k)
-            if curve.status == saturation.ABOVE_CRITICAL:
-                continue
-            allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
+            if saturation.has(formula):
+                curve = saturation.saturation(formula, temperature_k)
+                if curve.status == saturation.ABOVE_CRITICAL:
+                    continue
+                allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
+            else:
+                pascals = nasa_saturation_pa(formula, temperature_k)
+                if pascals is None:
+                    continue
+                allowed = pascals / saturation.BAR_TO_PA / pressure_bar
             if fraction > allowed * (1.0 + tolerance):
                 takes[name] = (result.moles[name] - allowed * result.total_moles) / (1.0 - min(allowed, 0.999999))
         if not takes:

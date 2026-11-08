@@ -65,6 +65,7 @@ WANTED = {
     "Fe(a)": "c", "Fe(L)": "c", "MgO(cr)": "c", "MgO(L)": "c", "SiO2(a-qz)": "c", "SiO2(L)": "c",
     "Na(cr)": "c", "Na(L)": "c", "K(cr)": "c", "K(L)": "c",
     "CaO(cr)": "c", "CaO(L)": "c", "TiO2(cr)": "c", "TiO2(L)": "c",
+    "LiCL(cr)": "c", "LiCL(L)": "c",     # GEN.1374: the lithium chloride that takes the chlorine of a cold air out of the gas ("CL" is the file's spelling)
     "Na2O(L)": "c", "K2O(L)": "c", "AL2O3(L)": "c",     # the melt's alkali oxides (the Na and K vapor over a lava world, part 05 section 4)
 }
 

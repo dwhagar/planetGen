@@ -336,3 +336,13 @@ def test_a_giant_planet_never_burns_its_lithium_and_the_potassium_cloud_takes_ch
     gone, clouds = mg.remove_clouds(budget, 600.0, 0.3, 0.0, keep_potassium=False)
     assert gone["K"] == 0.0 and "potassium_chloride" in clouds
     assert gone["Cl"] == pytest.approx(budget["Cl"] - budget["K"])
+
+
+def test_lithium_chloride_condenses_under_about_680_k_at_one_bar_and_takes_its_chlorine_and_lithium():
+    for temperature, condensed in ((900.0, False), (760.0, False), (620.0, True), (300.0, True)):
+        budget, _ = mg.remove_clouds(mg.element_budget(0.0), temperature, 1.0, 0.0, keep_sodium=False, keep_potassium=False)
+        result, _, ices = mg.cap_ices(budget, temperature, 1.0, lambda trial, t=temperature: ge.solve(trial, t, 1.0))
+        assert ("LiCl" in ices) is condensed, temperature
+    assert mg.nasa_saturation_pa("LiCl", 700.0) == pytest.approx(5.6e-9 * 1e5, rel=0.1)
+    assert mg.nasa_saturation_pa("H2O", 300.0) is None
+    assert mg.nasa_saturation_pa("LiCl", 100.0) == mg.nasa_saturation_pa("LiCl", 300.0)      # under the fit read at its lower end

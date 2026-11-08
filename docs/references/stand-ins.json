@@ -41371,7 +41371,7 @@
             ],
             [
               "What replaces it",
-              "the slopes of the stability fields in the figures of [R2725] and [R2731], read"
+              "the slopes of the stability fields in the figures of [R2725, R2731], read"
             ],
             [
               "Evidence",
@@ -41463,6 +41463,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 883 K crystal, above it liquid; below 300 K read at 300 K"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium condensate that forms at another temperature at 1 bar: [R2731: section 1.5.5] names Li2S (low pressure) and LiF (high pressure) and gives no temperature"
+            ],
+            [
+              "What replaces it",
+              "Li2S and LiF, if their free energies are held"
+            ],
+            [
+              "Evidence",
+              "the database holds no Li2S or LiF gas or crystal in the file; LiCl is the lithium and chlorine condensate it does hold, and without any lithium condensate the chlorine of the cold air re-forms HCl ice for ever (the caps did not settle)"
+            ]
+          ],
+          "id": "BD5",
+          "key": "6.212:BD5",
+          "kind": "P",
+          "slug": "6-212-bd5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
         }
       ],
       "slug": "6-212-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
