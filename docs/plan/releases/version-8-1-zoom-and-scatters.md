@@ -482,12 +482,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1458 | Seasons, day and eclipses with every sun and every eclipser: a second sun's declination and phase in the swing, eclipses of one star by another planet or moon | none | Boss, 2026-11-08. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
-| TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 |  | Lane 15, 2026-11-08. |
-| TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor |  | Lane 15, 2026-11-08. |
-| TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold |  | Lane 15, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |
-| DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) |  | Lane 05, 2026-11-08. |
 | TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j |  | Lane 05, 2026-11-08. |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out |  | Lane 05, 2026-11-08. |
 | GEN.1439 | A plan stores no container for each globular cluster |  | Lane 05, 2026-11-08. |
