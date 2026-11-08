@@ -15,6 +15,12 @@ the saturated air still holds, `m_c = (M_i / (M g)) integral (x_i - min(x_i, p_s
 from 0.1 to its limit; `cloud_cover` is 0 without a condensate, else uniform on 0.1 to 1. Clouds are grey with a single-scattering
 albedo of 1 and an asymmetry of 0.85 (the Monte Carlo table of part 06 3.10).
 
+**Acid cloud (GEN.1019, `sulfuric_cloud`).** An air with sulfur dioxide, an oxidiser and water also has a cloud of sulfuric acid droplets, a
+depth of 20 to 30 and a droplet radius of 0.3 to 3.85 micron (the published Venus cloud models) drawn from the stored `aerosol_draw`, held to
+the acid the sulfur can make, based at the warmest level of the dry adiabat where the air's acid condenses (`sulfuric_vapor`, GEN.1424; `skin_k` is the cold top and `skin_of` finds it from the
+body's greenhouse factor). Its depth adds to the condensate cloud's, its cover is the larger of the two (the acid cloud covers the sky). It adds
+no draw. The same cloud has an infrared opacity in `radiative_convective` (`cloud_infrared`).
+
 **Haze (10.2, stand-in).** Above a CH4/CO2 ratio of 0.1 (thick above 0.2; a tenth of the production in hydrogen-rich air) methane
 photolysis makes a haze. The supply is the smaller of the diffusion-limited one, `N K_zz f_CH4 / H_a`, with `N` the air at the level where the methane
 column is one Lyman-alpha optical depth and `K_zz` log-uniform on 1e6 to 1e10 cm2/s (a nuisance parameter, decision 12), and the most methane the star's far
@@ -525,7 +531,7 @@ def draw_dust(dry_surface, rng):
     return depth
 
 
-def draw_aerosols(column, temperature_k, rng, haze, *, dry_surface=True):
+def draw_aerosols(column, temperature_k, rng, haze, *, dry_surface=True, skin_k=None):
     """
     The five stored aerosol values of a body.
 
@@ -535,14 +541,20 @@ def draw_aerosols(column, temperature_k, rng, haze, *, dry_surface=True):
         rng: An object with `random()`; `DRAWS` draws are taken, the same seven whatever the air.
         haze (Haze): The haze of the air (`haze_in` of the body's own `draw_haze_draws`).
         dry_surface (bool): Whether the ground is dry solid (no ocean); only then does the wind loft dust.
+        skin_k (float or None): The temperature the air turns isothermal at, for the acid cloud's base (`sulfuric_cloud`); the grey factor of
+            `temperature_k` when `None`. A greenhouse world's cold top is far below that factor.
     """
     if column is None:
         for _ in range(DRAWS):
             rng.random()
         return NONE
+    from planetgen.physics import sulfuric_cloud       # imports this module
+
     cloud, cover = draw_cloud(column, temperature_k, rng)
     dust = draw_dust(dry_surface, rng)
-    return Aerosols(haze.tau, dust, cloud, cover, rng.random())
+    aerosol_draw = rng.random()
+    acid, acid_cover, _radius = sulfuric_cloud.of_draw(column, temperature_k, aerosol_draw, skin_k)
+    return Aerosols(haze.tau, dust, cloud + acid, max(cover, acid_cover), aerosol_draw)
 
 
 def _haze_exponent(draw):
@@ -594,9 +606,11 @@ def layers(aerosols, centers_nm):
     return mixed, cloud
 
 
-def colour_layers(aerosols, centers_nm):
+def colour_layers(aerosols, centers_nm, cloud_absorption=None):
     """
     The haze, dust and cloud of a body as `atmosphere_colour.Aerosol`s for the atmosphere colour (GEN.418), on the wavelengths `centers_nm`.
+    `cloud_absorption` is the absorption optical depth of the cloud at each of them (the acid cloud's ultraviolet absorber, GEN.1425 V10:
+    `sulfur_cloud_set.absorber_band`), else the cloud is white (a single-scattering albedo of `CLOUD_OMEGA`).
 
     Returns:
         tuple: `(haze, dust, cloud)`, each `None` where its depth is 0 (the cloud also where it covers none of the sky).
@@ -616,7 +630,10 @@ def colour_layers(aerosols, centers_nm):
         g = DUST_G[0] + DUST_G[1] * (2.0 * aerosols.aerosol_draw - 1.0)
         dust = colour_model.Aerosol(aerosols.tau_dust, tuple(zip(centers.tolist(), omega.tolist())), g)
     if aerosols.tau_cloud > 0.0 and aerosols.cloud_cover > 0.0:
-        cloud = colour_model.Aerosol(aerosols.tau_cloud, CLOUD_OMEGA, CLOUD_G)
+        omega = CLOUD_OMEGA
+        if cloud_absorption is not None:
+            omega = tuple(zip(centers.tolist(), np.clip(CLOUD_OMEGA - np.asarray(cloud_absorption, dtype=float) / aerosols.tau_cloud, 0.0, 1.0).tolist()))
+        cloud = colour_model.Aerosol(aerosols.tau_cloud, omega, CLOUD_G)
     return haze, dust, cloud
 
 
@@ -652,6 +669,16 @@ def _haze_temperature_k(body, surface_temperature_k):
     return climate_draws.equilibrium_temperature_k(albedo, starlight)
 
 
+def skin_of(body):
+    """The temperature the body's air turns isothermal at: the grey factor of its airless equilibrium temperature `T_s / (1 + G)^(1/4)` (the two
+    numbers the temperature is made of, `climate_draws.record`); `None` for a body that stores no greenhouse factor."""
+    factor = getattr(body, "greenhouse_factor", None)
+    temperature = getattr(body, "surface_temperature", None)
+    if factor is None or not temperature or factor < 0.0:
+        return None
+    return SKIN_FACTOR * temperature / (1.0 + factor) ** 0.25
+
+
 def generate_aerosols(body):
     """
     Sets `BODY_FIELDS` on a planet or moon from its air, its surface temperature and its ocean (call after `hydrosphere`). A body with no
@@ -667,7 +694,7 @@ def generate_aerosols(body):
     star = getattr(body, "star", None)
     haze = haze_in(column, _haze_temperature_k(body, temperature), draw_haze_draws(haze_stream_of(body)), star_temperature,
                    far_uv_of(star, getattr(body, "_star_distance_au", None)))
-    drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry)
+    drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry, skin_k=skin_of(body))
     for field in BODY_FIELDS:
         setattr(body, field, getattr(drawn, field))
 
