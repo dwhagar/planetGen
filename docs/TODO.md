@@ -13141,16 +13141,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
   Filed by the TODO thread.
 
-- [ ] **TEST.704 test_class_sample[P] finds no class P planet in 24 tries after the class-last change**
-  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 11. Do: make the sample draw conditions that give class P (or raise the tries with a stated reason), without reading the class letter in generation. Done: the test passes. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
-- [ ] **TEST.705 test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change**
-  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 12; test_fuzz_system_generation. Do: decide whether the unknown-class check still belongs in generation or the test changes to match class-last; keep the invalid slot type check. Done: the test passes. Lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
-  Filed by the TODO thread.
-
 - [ ] **PERF.255 Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world**
   Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 13, the same family as PERF.253. Do: profile the three, find the shared slow call and cache or shrink it. Done: each finishes under the timeout in the gate. Lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.

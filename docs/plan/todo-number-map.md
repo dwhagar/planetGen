@@ -4388,8 +4388,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.701 | The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt | none | done, PR #5755 |
 | TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j | none | done, PR #5767 |
 | TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) | none | done, PR #5755 |
-| TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change | none | open |
-| TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change | none | open |
+| TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change | none | done, PR #5773 |
+| TEST.705 | test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change | none | done, PR #5774 |
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 | none | done, PR #5765 |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor | none | done, PR #5765 |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | done, PR #5765 |
