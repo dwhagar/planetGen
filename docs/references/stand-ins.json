@@ -36223,7 +36223,7 @@
           "fields": [
             [
               "What it is",
-              "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+              "nebula_composition.GRAINS and GRAIN_MIXES: the element content of six grain kinds (magnesium silicate, iron, carbon, PAH, ice, SiC) and the share of the dust mass in each, by mix"
             ],
             [
               "The range it moves in",
@@ -36254,7 +36254,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+          "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of six grain kinds (magnesium silicate, iron, carbon, PAH, ice, SiC) and the share of the dust mass in each, by mix"
         },
         {
           "burn_down": null,
@@ -36647,6 +36647,272 @@
           "tweak": "L0",
           "unread": null,
           "what": "nebula_composition.GAS_OH_MAX_DEX 0.7: the highest [O/H] the gas of a place can have, dex (the gradient is capped; a galaxy with a very wide disk would otherwise put the gas several dex above solar)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.ICE_MANTLE_PER_100_H2O {H2O 100, CO 25, CO2 26, CH3OH 8, NH3 6, CH4 4.5}: the molecules of an interstellar ice mantle, per 100 water"
+            ],
+            [
+              "The range it moves in",
+              "each molecule within the quartiles of the table, CO 9 to 67, CO2 14 to 43, CH3OH 1 to 12"
+            ],
+            [
+              "Where it holds",
+              "the ices toward background stars of quiescent clouds and low-mass young stars"
+            ],
+            [
+              "What would show it wrong",
+              "an ice mantle toward a dense cloud with CO2 above 43 or CH3OH above 12 per 100 water"
+            ],
+            [
+              "What replaces it",
+              "the ices of each environment separately, or a gas-grain chemistry model of the cloud"
+            ],
+            [
+              "Evidence",
+              "the ice survey, Table 2 [R0461], read from the arXiv text: medians of the background stars for CO, CO2 and methanol; of the low-mass young stellar objects for NH3 and CH4, where the quiescent clouds give an upper limit only"
+            ]
+          ],
+          "id": "NBC17",
+          "key": "6.179:NBC17",
+          "kind": "P",
+          "slug": "6-179-nbc17",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.ICE_MANTLE_PER_100_H2O {H2O 100, CO 25, CO2 26, CH3OH 8, NH3 6, CH4 4.5}: the molecules of an interstellar ice mantle, per 100 water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.SIC_SI_SHARE_OF_SILICATE_SI 0.025: the share of the silicon of the silicates that sits in SiC in the interstellar mixes"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium toward the Galactic center"
+            ],
+            [
+              "What would show it wrong",
+              "an 11.3 micron SiC band in the interstellar extinction"
+            ],
+            [
+              "What replaces it",
+              "a detection or a lower limit of the SiC band"
+            ],
+            [
+              "Evidence",
+              "the dust review [R5144] section 5.3: silicon in SiC under 5 percent of the silicon in silicates, a limit the review quotes from an earlier survey; the mixes take half the limit"
+            ]
+          ],
+          "id": "NBC18",
+          "key": "6.179:NBC18",
+          "kind": "P",
+          "slug": "6-179-nbc18",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.SIC_SI_SHARE_OF_SILICATE_SI 0.025: the share of the silicon of the silicates that sits in SiC in the interstellar mixes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GRAIN_MIXES carbon-rich SiC 0.10: the share of the dust mass of a carbon-star wind that is SiC"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.43"
+            ],
+            [
+              "Where it holds",
+              "the dust of carbon stars"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon-rich nebula whose dust is half SiC"
+            ],
+            [
+              "What replaces it",
+              "the dust yields of AGB stars by mass and metallicity (the LMC and SMC AGB dust-yield models)"
+            ],
+            [
+              "Evidence",
+              "the SiC review [R5146]: below 10 percent for 37 of 44 galactic carbon stars (a galactic carbon-star survey), up to 43 percent in the LMC and 11 percent in the SMC as upper limits (a dust-yield model), both second-hand"
+            ]
+          ],
+          "id": "NBC19",
+          "key": "6.179:NBC19",
+          "kind": "P",
+          "slug": "6-179-nbc19",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.GRAIN_MIXES carbon-rich SiC 0.10: the share of the dust mass of a carbon-star wind that is SiC"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.OLIVINE_SHARE_OF_AMORPHOUS_SILICATE 0.849: the mass share of amorphous olivine in the amorphous silicate (the rest is pyroxene)"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium toward the Galactic center"
+            ],
+            [
+              "What would show it wrong",
+              "a 10 micron band that needs half pyroxene"
+            ],
+            [
+              "What replaces it",
+              "a fit of the band along other lines of sight"
+            ],
+            [
+              "Evidence",
+              "the diffuse-medium silicate fit [R5143]: 84.9 percent amorphous olivine and 15.1 percent amorphous pyroxene by mass"
+            ]
+          ],
+          "id": "NBC20",
+          "key": "6.179:NBC20",
+          "kind": "P",
+          "slug": "6-179-nbc20",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_composition.OLIVINE_SHARE_OF_AMORPHOUS_SILICATE 0.849: the mass share of amorphous olivine in the amorphous silicate (the rest is pyroxene)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.CRYSTALLINE_SHARE_OF_SILICATE {interstellar mixes 0.002, ejecta mixes 0.15}: the mass share of the silicate that is crystalline"
+            ],
+            [
+              "The range it moves in",
+              "interstellar 0 to 0.004; ejecta 0.10 to 0.20"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium; the dust of OH/IR stars and red supergiants"
+            ],
+            [
+              "What would show it wrong",
+              "crystalline silicate above 1 percent in the diffuse medium"
+            ],
+            [
+              "What replaces it",
+              "the crystallinity of supernova and carbon-star silicates"
+            ],
+            [
+              "Evidence",
+              "the diffuse-medium silicate fit [R5143]: 0.2 +- 0.2 percent in the diffuse medium; 11 to 18 percent in the combined stellar ejecta (OH/IR stars about 10, red supergiants 15 to 20); the supernova and carbon-rich mixes have no source of their own"
+            ]
+          ],
+          "id": "NBC21",
+          "key": "6.179:NBC21",
+          "kind": "P",
+          "slug": "6-179-nbc21",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.CRYSTALLINE_SHARE_OF_SILICATE {interstellar mixes 0.002, ejecta mixes 0.15}: the mass share of the silicate that is crystalline"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GRAPHITE_SHARE_OF_CARBON {diffuse 0.5, dense 0.25, reflection 0.5, oxygen-rich 0.5, carbon-rich 0.1, ejecta 0.3, iron-group 0}: the share of the carbon grains (not PAHs) that is graphite, the rest amorphous carbon"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 in the diffuse medium"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium; carbon-star winds"
+            ],
+            [
+              "What would show it wrong",
+              "a measured graphite fraction of interstellar carbon grains"
+            ],
+            [
+              "What replaces it",
+              "the grain model that wins the 2175 angstrom bump and the 3.4 micron band"
+            ],
+            [
+              "Evidence",
+              "the silicate-graphite-PAH model [R5145] (graphite) against the astrodust model [R5147] (none): the middle of the widest range; amorphous carbon dominates carbon-star dust and presolar graphite is 1 ppm of a meteorite against 6 ppm SiC [R5144]; the other mixes are argued"
+            ]
+          ],
+          "id": "NBC22",
+          "key": "6.179:NBC22",
+          "kind": "P",
+          "slug": "6-179-nbc22",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.GRAPHITE_SHARE_OF_CARBON {diffuse 0.5, dense 0.25, reflection 0.5, oxygen-rich 0.5, carbon-rich 0.1, ejecta 0.3, iron-group 0}: the share of the carbon grains (not PAHs) that is graphite, the rest amorphous carbon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.SURVIVES_AS {SiC: silicate}: SiC takes the survival share of the silicates in every class"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1"
+            ],
+            [
+              "Where it holds",
+              "classes with a survival row"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SiC destruction rate in shocks"
+            ],
+            [
+              "What replaces it",
+              "SiC sputtering and shattering rates"
+            ],
+            [
+              "Evidence",
+              "no source: SiC is a hard carbide, taken to survive like the silicates"
+            ]
+          ],
+          "id": "NBC23",
+          "key": "6.179:NBC23",
+          "kind": "P",
+          "slug": "6-179-nbc23",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.SURVIVES_AS {SiC: silicate}: SiC takes the survival share of the silicates in every class"
         }
       ],
       "slug": "6-179-stand-ins-of-the-composition-of-a-nebula",

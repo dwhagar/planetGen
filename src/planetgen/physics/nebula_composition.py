@@ -219,7 +219,7 @@ GRAINS = {
 
 SIC_SI_SHARE_OF_SILICATE_SI = 0.025
 """float: The share of the silicon of the silicate grains that sits in SiC in the interstellar mixes. The absence of the 11.3 micron SiC band toward the Galactic center puts the
-silicon in SiC dust at less than 5 percent of the silicon in silicates [R5144: section 5.3, Whittet et al. 1990]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
+silicon in SiC dust at less than 5 percent of the silicon in silicates [R5144: section 5.3]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
 L1: inside a published upper limit.]"""
 
 GRAIN_MIXES = {
@@ -233,7 +233,7 @@ GRAIN_MIXES = {
 }
 """dict: The shares of the dust mass in each grain kind, by mix (a class names one in `CLASSES`); each adds to 1. The diffuse mix is a Milky Way
 one (silicates, iron, carbon with a PAH tail of a few percent, and SiC at half the interstellar limit `SIC_SI_SHARE_OF_SILICATE_SI`); the dense one gains ice mantles; the
-carbon-rich one (the winds of carbon stars) has SiC at 10 percent of the dust, the share below which 37 of 44 galactic carbon stars lie [R5146: the text, Groenewegen et al. 1998];
+carbon-rich one (the winds of carbon stars) has SiC at 10 percent of the dust, the share below which 37 of 44 galactic carbon stars lie [R5146: the text];
 the others follow the report's table. [Stand-ins NBC6 and NBC19, tiers T6 and T2, tweaks L3 and L1: the first chosen so that a solar-metallicity diffuse nebula's dust fits inside
 its metals within a fifth of the law, the second inside the published carbon-star range.]"""
 

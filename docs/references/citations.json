@@ -25700,6 +25700,31 @@
       "kind": "paper",
       "label": "Raymond et al. 2007a",
       "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability"
+    },
+    "R5143": {
+      "kind": "paper",
+      "label": "Kemper et al. 2004",
+      "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium"
+    },
+    "R5144": {
+      "kind": "paper",
+      "label": "Draine 2003",
+      "title": "Interstellar Dust Grains"
+    },
+    "R5145": {
+      "kind": "paper",
+      "label": "Draine and Li 2007",
+      "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era"
+    },
+    "R5146": {
+      "kind": "paper",
+      "label": "Chen et al. 2021",
+      "title": "Where have all the interstellar silicon carbides gone?"
+    },
+    "R5147": {
+      "kind": "paper",
+      "label": "Hensley and Draine 2023",
+      "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium"
     }
   }
 }
