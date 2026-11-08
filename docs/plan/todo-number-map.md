@@ -13,11 +13,11 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.289 |
+| UX | UX.290 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
 | GEN | GEN.1403 |
-| PERF | PERF.251 |
+| PERF | PERF.252 |
 | DB | DB.116 |
 | API | API.42 |
 | ADM | ADM.143 |
@@ -2201,6 +2201,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | open |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | open |
+| UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) | none | open |
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) | none | open |
 | GEN.1389 | Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug) | none | open |
@@ -2209,6 +2210,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | open |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | open |
+| PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |

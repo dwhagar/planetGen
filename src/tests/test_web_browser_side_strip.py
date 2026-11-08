@@ -32,6 +32,7 @@ SNAPSHOT = "() => document.querySelector('#galaxymap3d-canvas').galaxySideStrip(
 
 def _open_strip(page):
     page.locator("#galaxymap3d-menu > summary").click()
+    page.evaluate("() => { const sub = document.querySelector('#galaxymap3d-chart'); if (sub) sub.open = true; }")     # TEST.696: its sub-menu starts closed
     page.locator(BUTTON).click()
     page.wait_for_selector(STRIP, state="visible")
     page.wait_for_function("() => { const c = document.querySelector('#galaxymap3d-strip canvas'); return c && Number(c.dataset.stars) > 0; }",
@@ -107,6 +108,7 @@ def test_the_side_strip_opens_from_the_menu_and_a_pick_in_either_view_selects_in
 def test_on_a_phone_the_side_strip_is_a_drawer_at_the_bottom_of_the_window(page, dense_site):
     open_dense_region(page, dense_site, 14.0)
     page.locator("#galaxymap3d-menu > summary").click()
+    page.evaluate("() => { const sub = document.querySelector('#galaxymap3d-chart'); if (sub) sub.open = true; }")
     page.locator(BUTTON).click()
     page.wait_for_selector(STRIP, state="visible")
     page.wait_for_function("() => { const c = document.querySelector('#galaxymap3d-strip canvas'); return c && Number(c.dataset.stars) > 0; }",
