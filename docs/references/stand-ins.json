@@ -41781,6 +41781,802 @@
       "title": "Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope"
     },
     {
+      "key": "6.228",
+      "number": "6.228",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfuric_vapor.json zeleznik_1991: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "200 to 350 K, 0.1 MPa, every strength (the paper says no measurement above 25 C for the concentrated acid)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured water or acid activity over the solution off the model by more than the paper's 0.75 percent in the Gibbs energy"
+            ],
+            [
+              "What replaces it",
+              "a newer thermodynamic model (the Clegg and Brimblecombe model, [R4289] fits it)"
+            ],
+            [
+              "Evidence",
+              "READ ([R4877: Table 6], checked against [R4877: Table 7] at 200, 250 and 300 K)"
+            ]
+          ],
+          "id": "SV1",
+          "key": "6.228:SV1",
+          "kind": "D",
+          "slug": "6-228-sv1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfuric_vapor.json zeleznik_1991: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
+            ],
+            [
+              "The range it moves in",
+              "default curve; refit curve as the other end"
+            ],
+            [
+              "Where it holds",
+              "190 to 445 K (never the raw Ayers line below 300 K: it is 4.5 times high at 200 K)"
+            ],
+            [
+              "What would show it wrong",
+              "the pure acid vapor pressure measured off the curve by more than the 1.28 spread"
+            ],
+            [
+              "What replaces it",
+              "the primary [R2516] or a fourth open paper"
+            ],
+            [
+              "Evidence",
+              "2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R0210, R2516]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
+            ]
+          ],
+          "id": "SV2",
+          "key": "6.228:SV2",
+          "kind": "B",
+          "slug": "6-228-sv2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K)"
+            ],
+            [
+              "The range it moves in",
+              "Zeleznik's activity used everywhere in 200 to 350 K, so acid and water stay consistent"
+            ],
+            [
+              "Where it holds",
+              "185 to 260 K for the comparison"
+            ],
+            [
+              "What would show it wrong",
+              "a measured water pressure over 60 to 80 percent acid below 260 K"
+            ],
+            [
+              "What replaces it",
+              "the measurements of Massucci and others 1996 behind [R4289], if opened"
+            ],
+            [
+              "Evidence",
+              "READ ([R4877], [R4289: Table 1])"
+            ]
+          ],
+          "id": "SV3",
+          "key": "6.228:SV3",
+          "kind": "B",
+          "slug": "6-228-sv3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of saturation)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "185 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured supercooled water pressure off it by more than 2 percent between 260 and 273 K"
+            ],
+            [
+              "What replaces it",
+              "the Wagner supercooled curve"
+            ],
+            [
+              "Evidence",
+              "READ ([R4289: equation 1]); the 260 to 273 K part is carried, not printed"
+            ]
+          ],
+          "id": "SV4",
+          "key": "6.228:SV4",
+          "kind": "D",
+          "slug": "6-228-sv4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of saturation)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is extrapolated there"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "350 to 445 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid or water pressure over concentrated acid above 350 K"
+            ],
+            [
+              "What replaces it",
+              "a model that reaches the sub-cloud region"
+            ],
+            [
+              "Evidence",
+              "the base of the published cloud sits at 345 to 367 K, so this part is where the Venus base is decided; the 97 to 99 percent base strengths are consistent with the published over 95 percent ([R0157: Table 1])"
+            ]
+          ],
+          "id": "SV5",
+          "key": "6.228:SV5",
+          "kind": "T",
+          "slug": "6-228-sv5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L2",
+          "unread": null,
+          "what": "the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is extrapolated there"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any air"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud whose base is not where this puts it for the air's own acid and water"
+            ],
+            [
+              "What replaces it",
+              "the cloud step of GEN.1425 with the sulfur chemistry"
+            ],
+            [
+              "Evidence",
+              "derived from the activities above; next to no acid condenses at the dew point of the water"
+            ]
+          ],
+          "id": "SV6",
+          "key": "6.228:SV6",
+          "kind": "T",
+          "slug": "6-228-sv6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1425",
+            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "warm clouds; cold ones are the window's edge"
+            ],
+            [
+              "What would show it wrong",
+              "a cold acid aerosol that is solid where this puts it liquid"
+            ],
+            [
+              "What replaces it",
+              "the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function"
+            ],
+            [
+              "Evidence",
+              "not read into code; [R4877] prints the solid phases"
+            ]
+          ],
+          "id": "SV7",
+          "key": "6.228:SV7",
+          "kind": "P",
+          "slug": "6-228-sv7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no measurement of the SO3 share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "below 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SO3 share of the sub-cloud vapor"
+            ],
+            [
+              "What replaces it",
+              "a decomposition equilibrium"
+            ],
+            [
+              "Evidence",
+              "recalled from the Venus acid-cloud report (P8), not opened"
+            ]
+          ],
+          "id": "SV8",
+          "key": "6.228:SV8",
+          "kind": "P",
+          "slug": "6-228-sv8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
+        }
+      ],
+      "slug": "6-228-stand-ins-of-the-vapor-pressure-over-aqueous-sulfuric-acid-and-its-condensation-window",
+      "title": "Stand-ins of the vapor pressure over aqueous sulfuric acid and its condensation window"
+    },
+    {
+      "key": "6.229",
+      "number": "6.229",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set.json species V1: sulfuric acid water droplets (about 75 percent acid on Venus), given to an air whose acid vapor condenses by the curve of sulfuric_vapor"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "airs with sulfur dioxide, an oxidiser, water and a cool enough level"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud-bearing air the curve calls clear, or a clear one it calls cloudy"
+            ],
+            [
+              "What replaces it",
+              "the cloud step reading the window (part B of GEN.1425)"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ ([R0157: Table 1] through sulfuric_cloud.json, [R3418], GEN.1424); Venus is the only calibration planet"
+            ]
+          ],
+          "id": "CV1",
+          "key": "6.229:CV1",
+          "kind": "B",
+          "slug": "6-229-cv1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfur_cloud_set.json species V1: sulfuric acid water droplets (about 75 percent acid on Venus), given to an air whose acid vapor condenses by the curve of sulfuric_vapor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V2: sulfur dioxide gas, read from the air (nothing added)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "as generated"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ (the gas table; [R5169] fits the sulfur dioxide band)"
+            ]
+          ],
+          "id": "CV2",
+          "key": "6.229:CV2",
+          "kind": "D",
+          "slug": "6-229-cv2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V2: sulfur dioxide gas, read from the air (nothing added)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V3: hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases, read from the air (nothing added); present when one is over its floor (chlorine_min_share, reductant_min_share)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "as generated"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ (the gas table and the halogen budget of mixture_rocky)"
+            ]
+          ],
+          "id": "CV3",
+          "key": "6.229:CV3",
+          "kind": "D",
+          "slug": "6-229-cv3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V3: hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases, read from the air (nothing added); present when one is over its floor (chlorine_min_share, reductant_min_share)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V4: sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer) from the photolysis of sulfur dioxide with a reductant (gate 3)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "an air over uv_c_min_w_m2 of ultraviolet-C flux with a reductant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured air with the oxides where this gives none"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (sulfur monoxide observed); READ ([R5169: Table 3] disulfur monoxide has the lowest misfit, 14, the dimer the best shape, 22; neither is detected)"
+            ]
+          ],
+          "id": "CV4",
+          "key": "6.229:CV4",
+          "kind": "T",
+          "slug": "6-229-cv4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V4: sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer) from the photolysis of sulfur dioxide with a reductant (gate 3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over sulfur_aerosol_min_so2_share as well as gate 3"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "a sulfur-rich photochemical air"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sulfur-rich air without the aerosol"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] S8 misfit 76 to 120, against 14 for S2O: fits less well, not excluded)"
+            ]
+          ],
+          "id": "CV5",
+          "key": "6.229:CV5",
+          "kind": "T",
+          "slug": "6-229-cv5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over sulfur_aerosol_min_so2_share as well as gate 3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "terrestrial body without a global ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid cloud with chlorine and iron and no trace of it"
+            ],
+            [
+              "What replaces it",
+              "a model of where the iron goes"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] misfit 86; [R5170] abstract, a preprint under review, only the abstract read)"
+            ]
+          ],
+          "id": "CV6",
+          "key": "6.229:CV6",
+          "kind": "T",
+          "slug": "6-229-cv6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "terrestrial body without a global ocean"
+            ],
+            [
+              "What would show it wrong",
+              "as CV6"
+            ],
+            [
+              "What replaces it",
+              "a model of where the iron goes"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5170] abstract only)"
+            ]
+          ],
+          "id": "CV7",
+          "key": "6.229:CV7",
+          "kind": "T",
+          "slug": "6-229-cv7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+            ],
+            [
+              "The range it moves in",
+              "off by default"
+            ],
+            [
+              "Where it holds",
+              "needs the acid cloud, iron and dust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid cloud with dust and none of it"
+            ],
+            [
+              "What replaces it",
+              "a per-planet dust influx and a second paper"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (one preprint); READ ([R5170] abstract only: the cloud-top carbon and iron need 600 and 3 thousand years of influx at the least)"
+            ]
+          ],
+          "id": "CV8",
+          "key": "6.229:CV8",
+          "kind": "T",
+          "slug": "6-229-cv8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4"
+            ],
+            [
+              "The range it moves in",
+              "off by default"
+            ],
+            [
+              "Where it holds",
+              "photolysed sulfur and chlorine"
+            ],
+            [
+              "What would show it wrong",
+              "as CV8"
+            ],
+            [
+              "What replaces it",
+              "a second paper"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] SCl2 misfit 57; the others are not in the table)"
+            ]
+          ],
+          "id": "CV9",
+          "key": "6.229:CV9",
+          "kind": "T",
+          "slug": "6-229-cv9",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+            ],
+            [
+              "The range it moves in",
+              "centre 0.34 +/- 0.03, width 0.14 +/- 0.01 (read); strength hand-set"
+            ],
+            [
+              "Where it holds",
+              "with V1 and sulfur dioxide"
+            ],
+            [
+              "What would show it wrong",
+              "a measured band centre or width outside the stated ranges; a peak depth far from 0.1"
+            ],
+            [
+              "What replaces it",
+              "a retrieved band strength"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (its identity); READ for the band ([R5169: abstract and section 4.3]); the strength is a stand-in, not in the text"
+            ]
+          ],
+          "id": "CV10",
+          "key": "6.229:CV10",
+          "kind": "P",
+          "slug": "6-229-cv10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1425",
+            "L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set.json acid_vapor_share_of_so2 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat"
+            ],
+            [
+              "The range it moves in",
+              "1 to 10 percent"
+            ],
+            [
+              "Where it holds",
+              "airs with an acid cloud"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model of the acid vapor"
+            ],
+            [
+              "Evidence",
+              "from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it"
+            ]
+          ],
+          "id": "CG1",
+          "key": "6.229:CG1",
+          "kind": "P",
+          "slug": "6-229-cg1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sulfur_cloud_set.json acid_vapor_share_of_so2 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
+            ],
+            [
+              "The range it moves in",
+              "each a decade either way"
+            ],
+            [
+              "Where it holds",
+              "gates 2 to 4"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep that moves any of them"
+            ],
+            [
+              "What replaces it",
+              "a sweep"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors"
+            ]
+          ],
+          "id": "CG2",
+          "key": "6.229:CG2",
+          "kind": "P",
+          "slug": "6-229-cg2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
+        }
+      ],
+      "slug": "6-229-stand-ins-of-the-sulfur-cloud-chemistry-set-and-its-gates",
+      "title": "Stand-ins of the sulfur-cloud chemistry set and its gates"
+    },
+    {
       "key": "6.224",
       "number": "6.224",
       "rows": [
@@ -42861,8 +43657,8 @@
       "title": "Stand-ins of the phosphorus budget"
     },
     {
-      "key": "6.231",
-      "number": "6.231",
+      "key": "6.233",
+      "number": "6.233",
       "rows": [
         {
           "burn_down": null,
@@ -42893,9 +43689,9 @@
             ]
           ],
           "id": "ISO1",
-          "key": "6.231:ISO1",
+          "key": "6.233:ISO1",
           "kind": "T",
-          "slug": "6-231-iso1",
+          "slug": "6-233-iso1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -42931,9 +43727,9 @@
             ]
           ],
           "id": "ISO2",
-          "key": "6.231:ISO2",
+          "key": "6.233:ISO2",
           "kind": "T",
-          "slug": "6-231-iso2",
+          "slug": "6-233-iso2",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
@@ -42969,9 +43765,9 @@
             ]
           ],
           "id": "ISO3",
-          "key": "6.231:ISO3",
+          "key": "6.233:ISO3",
           "kind": "T",
-          "slug": "6-231-iso3",
+          "slug": "6-233-iso3",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L2",
@@ -43011,9 +43807,9 @@
             ]
           ],
           "id": "ISO4",
-          "key": "6.231:ISO4",
+          "key": "6.233:ISO4",
           "kind": "T",
-          "slug": "6-231-iso4",
+          "slug": "6-233-iso4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L3",
@@ -43049,9 +43845,9 @@
             ]
           ],
           "id": "ISO5",
-          "key": "6.231:ISO5",
+          "key": "6.233:ISO5",
           "kind": "T",
-          "slug": "6-231-iso5",
+          "slug": "6-233-iso5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -43087,9 +43883,9 @@
             ]
           ],
           "id": "ISO6",
-          "key": "6.231:ISO6",
+          "key": "6.233:ISO6",
           "kind": "T",
-          "slug": "6-231-iso6",
+          "slug": "6-233-iso6",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L2",
@@ -43125,9 +43921,9 @@
             ]
           ],
           "id": "ISO7",
-          "key": "6.231:ISO7",
+          "key": "6.233:ISO7",
           "kind": "T",
-          "slug": "6-231-iso7",
+          "slug": "6-233-iso7",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -43167,9 +43963,9 @@
             ]
           ],
           "id": "ISO8",
-          "key": "6.231:ISO8",
+          "key": "6.233:ISO8",
           "kind": "T",
-          "slug": "6-231-iso8",
+          "slug": "6-233-iso8",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L3",
@@ -43205,9 +44001,9 @@
             ]
           ],
           "id": "ISO9",
-          "key": "6.231:ISO9",
+          "key": "6.233:ISO9",
           "kind": "T",
-          "slug": "6-231-iso9",
+          "slug": "6-233-iso9",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -43215,7 +44011,7 @@
           "what": "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
         }
       ],
-      "slug": "6-231-stand-ins-of-the-isotope-record-of-a-body",
+      "slug": "6-233-stand-ins-of-the-isotope-record-of-a-body",
       "title": "Stand-ins of the isotope record of a body"
     },
     {

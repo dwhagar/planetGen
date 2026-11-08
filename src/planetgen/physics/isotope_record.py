@@ -16,16 +16,16 @@ rock gives C and Si in place of the oxides.
 **Which isotopes** of an element: every isotope of the table with a natural abundance (`elements`, NIST and IUPAC, [R2768] for the half-lives). Nothing real is dropped. The shares default to the
 table's natural mix (origin `natural`) and are replaced where a physical value is known:
 
-* **Hydrogen** (`physical`): the deuterium share is the hydrogen-atom-weighted mean of the body's reservoirs. The gas of the star's birth cloud has the primordial D/H (2.527e-5, [R5165]) reduced by the star formation that burned deuterium since: `exp(-ASTRATION * 10^[Fe/H])` (the metal-richer the star, the more of the gas has been through stars). Every ice and the water
-  are enriched over the gas by `ice_factor`, a law in the formation temperature `exp(T0 (1/T - 1/T_ref))` (ion-molecule fractionation grows as the gas gets colder, [R5168: Sec. 2.1]) that is
+* **Hydrogen** (`physical`): the deuterium share is the hydrogen-atom-weighted mean of the body's reservoirs. The gas of the star's birth cloud has the primordial D/H (2.527e-5, [R5171]) reduced by the star formation that burned deuterium since: `exp(-ASTRATION * 10^[Fe/H])` (the metal-richer the star, the more of the gas has been through stars). Every ice and the water
+  are enriched over the gas by `ice_factor`, a law in the formation temperature `exp(T0 (1/T - 1/T_ref))` (ion-molecule fractionation grows as the gas gets colder, [R5174: Sec. 2.1]) that is
   calibrated at two published points of the Solar System: the ocean (1.56e-4, VSMOW) at the snow-line temperature and comet 67P's water (5.3e-4, [R0088]) at 30 K. A body that formed warmer than
   the snow line took its ice from the snow line's temperature. One log-normal scatter per body.
-* **Carbon** (`physical`): 13C/12C from the Galaxy's chemical evolution: 12C/13C = 6.21 D + 18.71 ([R5169: equation 5], D in kpc from the Galactic centre) read at the galactocentric distance
+* **Carbon** (`physical`): 13C/12C from the Galaxy's chemical evolution: 12C/13C = 6.21 D + 18.71 ([R5175: equation 5], D in kpc from the Galactic centre) read at the galactocentric distance
   whose gas metallicity is the star's (`nebula_composition.GAS_GRADIENT_DEX_PER_KPC`), and moved in time between the local interstellar value (68) and the Solar System's (89) by the star's age.
-* **Nitrogen** (`physical`): 14N/15N the same way ([R5171] as quoted in [R5166: equation 2]: 21.1 D + 123.8), between the local interstellar value (about 400) and the
-  protosolar one (441, solar wind, quoted in [R5166]), then raised in 15N by `ice_factor` for the solid share of the body (comets are enriched 2 to 3 times, [R5168]). An envelope's nitrogen is the gas value;
+* **Nitrogen** (`physical`): 14N/15N the same way ([R5177] as quoted in [R5172: equation 2]: 21.1 D + 123.8), between the local interstellar value (about 400) and the
+  protosolar one (441, solar wind, quoted in [R5172]), then raised in 15N by `ice_factor` for the solid share of the body (comets are enriched 2 to 3 times, [R5174]). An envelope's nitrogen is the gas value;
   the two are mixed by the envelope's share of the body's mass.
-* **Argon** (`physical`, `radiogenic`): the primordial 36Ar/38Ar is the solar wind's 5.501 ([R5170]); 40Ar is the share of the air's argon that the body's potassium made and its interior
+* **Argon** (`physical`, `radiogenic`): the primordial 36Ar/38Ar is the solar wind's 5.501 ([R5176]); 40Ar is the share of the air's argon that the body's potassium made and its interior
   let out: the 40K that has decayed (`radiogenic.formation_mix`, the body's age), times the 10.72 percent of decays that end in 40Ar, times the share of the mantle's easily degassed element
   that the interior's released heat has brought to the surface (`surface_pressure.degassed_share`), over the moles of argon in the air; it cannot be more than all but the primordial share.
 * **Potassium, uranium** (`decay`): the isotopes that decay are those of the body's age, from the formation mix of `radiogenic` (today's natural mix decayed back to the Solar System's birth, a stand-in
@@ -53,10 +53,10 @@ ORIGINS = (NATURAL, PHYSICAL, DECAY, RADIOGENIC)
 
 # --- the laws (stand-ins IS1 to IS8) -------------------------------------------------------------------------------------
 PRIMORDIAL_D_H = 2.527e-5
-"""float: The primordial deuterium over hydrogen by number ([R5165]). [Stand-in ISO1, tier T1, tweak L0.]"""
+"""float: The primordial deuterium over hydrogen by number ([R5171]). [Stand-in ISO1, tier T1, tweak L0.]"""
 
 PROTOSOLAR_D_H = 2.1e-5
-"""float: The deuterium over hydrogen of the Sun's birth gas, used only to set `ASTRATION` ([R5168: Sec. 4.2], quoting the Jovian and solar-wind values). [Stand-in ISO2, tier T2, tweak L0.]"""
+"""float: The deuterium over hydrogen of the Sun's birth gas, used only to set `ASTRATION` ([R5174: Sec. 4.2], quoting the Jovian and solar-wind values). [Stand-in ISO2, tier T2, tweak L0.]"""
 
 ASTRATION = math.log(PRIMORDIAL_D_H / PROTOSOLAR_D_H)
 """float: The fall of ln D/H from the primordial value to the Sun's birth gas, at the Sun's metallicity; the fall is taken proportional to the metals, `ASTRATION * 10^[Fe/H]` (stars burn deuterium as they make metals). [Stand-in ISO2, tier T5, tweak L1.]"""
@@ -65,16 +65,16 @@ ICE_REFERENCE_K = 182.0
 """float: The temperature of the snow line's water, the highest the enrichment of an ice is taken at (a warmer body took its ice from there). [Stand-in ISO3, tier T1, tweak L0.]"""
 
 COLD_ICE_K = 30.0
-"""float: The temperature of the cold calibration point, comet 67P's water (the CO2 and CH4 line zone, below which the forward H3+ + HD reaction wins, [R5168]). [Stand-in ISO3, tier T2, tweak L0.]"""
+"""float: The temperature of the cold calibration point, comet 67P's water (the CO2 and CH4 line zone, below which the forward H3+ + HD reaction wins, [R5174]). [Stand-in ISO3, tier T2, tweak L0.]"""
 
 FLOOR_ICE_K = 20.0
 """float: The coldest temperature the law is read at: below it the enrichment would run past the calibration. [Stand-in ISO4, tier T4, tweak L3.]"""
 
 OCEAN_D_H = 1.56e-4
-"""float: The deuterium over hydrogen of ocean water (VSMOW, [R5168: Sec. 1.2]), the enrichment at `ICE_REFERENCE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
+"""float: The deuterium over hydrogen of ocean water (VSMOW, [R5174: Sec. 1.2]), the enrichment at `ICE_REFERENCE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
 
 COMET_D_H = 5.3e-4
-"""float: The deuterium over hydrogen of the water of a Jupiter-family comet ((5.3 +- 0.7)e-4, [R0088], quoted in [R5167]), the enrichment at `COLD_ICE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
+"""float: The deuterium over hydrogen of the water of a Jupiter-family comet ((5.3 +- 0.7)e-4, [R0088], quoted in [R5173]), the enrichment at `COLD_ICE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
 
 D_H_ENRICHMENT_REFERENCE = OCEAN_D_H / PROTOSOLAR_D_H
 D_H_ENRICHMENT_COLD = COMET_D_H / PROTOSOLAR_D_H
@@ -82,35 +82,35 @@ D_H_T0_K = math.log(D_H_ENRICHMENT_COLD / D_H_ENRICHMENT_REFERENCE) / (1.0 / COL
 """float: The temperature scale of the deuterium enrichment of ice, K (about 44): the law is fitted to the two published points, so it is tuned to published statistics. [Stand-in ISO3, tier T5, tweak L2.]"""
 
 D_H_SCATTER_LN = 0.3
-"""float: The log-normal scatter of one body's ice D/H about the law (comets span a factor of about 2 to 3 around their mean, [R5167]). [Stand-in ISO4, tier T4, tweak L3.]"""
+"""float: The log-normal scatter of one body's ice D/H about the law (comets span a factor of about 2 to 3 around their mean, [R5173]). [Stand-in ISO4, tier T4, tweak L3.]"""
 
 CARBON_GRADIENT = (6.21, 18.71)
-"""tuple: 12C/13C against galactocentric distance in kpc, `(slope, intercept)` ([R5169: equation 5], fitted to CN, CO and H2CO). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: 12C/13C against galactocentric distance in kpc, `(slope, intercept)` ([R5175: equation 5], fitted to CN, CO and H2CO). [Stand-in ISO5, tier T1, tweak L0.]"""
 
 NITROGEN_GRADIENT = (21.1, 123.8)
-"""tuple: 14N/15N against galactocentric distance in kpc ([R5171], equation 2 of [R5166]). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: 14N/15N against galactocentric distance in kpc ([R5177], equation 2 of [R5172]). [Stand-in ISO5, tier T1, tweak L0.]"""
 
 CARBON_RATIOS = (68.0, 89.0)
-"""tuple: `(local interstellar now, Solar System birth)` 12C/13C ([R5169: Abstract]). The star's age moves the ratio between them. [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: `(local interstellar now, Solar System birth)` 12C/13C ([R5175: Abstract]). The star's age moves the ratio between them. [Stand-in ISO5, tier T1, tweak L0.]"""
 
 NITROGEN_RATIOS = (400.0, 441.0)
-"""tuple: `(local interstellar now, protosolar)` 14N/15N ([R5166: Abstract and Sec. 3.3]; the solar wind). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: `(local interstellar now, protosolar)` 14N/15N ([R5172: Abstract and Sec. 3.3]; the solar wind). [Stand-in ISO5, tier T1, tweak L0.]"""
 
 SOLAR_GALACTOCENTRIC_KPC = 7.9
-"""float: The Sun's distance from the Galactic centre, kpc ([R5169]), where the two gradients read the local interstellar ratios. [Stand-in ISO5, tier T1, tweak L0.]"""
+"""float: The Sun's distance from the Galactic centre, kpc ([R5175]), where the two gradients read the local interstellar ratios. [Stand-in ISO5, tier T1, tweak L0.]"""
 
 GALACTOCENTRIC_RANGE_KPC = (2.0, 20.0)
-"""tuple: The range the gradients are read in (the data of [R5169] reach from 2 to 12 kpc; the inner and outer Galaxy past it hold no data). [Stand-in ISO4, tier T4, tweak L3.]"""
+"""tuple: The range the gradients are read in (the data of [R5175] reach from 2 to 12 kpc; the inner and outer Galaxy past it hold no data). [Stand-in ISO4, tier T4, tweak L3.]"""
 
 NITROGEN_ENRICHMENT_REFERENCE = 441.0 / 274.0
 NITROGEN_ENRICHMENT_COLD = 441.0 / 140.0
-"""float: 15N enrichment of the solids over the protosolar gas at `ICE_REFERENCE_K` (the terrestrial 14N/15N, 274 from the table's IUPAC mix) and at `COLD_ICE_K` (about 140 in the comets, 'very constant', [R5167]). [Stand-in ISO6, tier T2, tweak L0.]"""
+"""float: 15N enrichment of the solids over the protosolar gas at `ICE_REFERENCE_K` (the terrestrial 14N/15N, 274 from the table's IUPAC mix) and at `COLD_ICE_K` (about 140 in the comets, 'very constant', [R5173]). [Stand-in ISO6, tier T2, tweak L0.]"""
 
 N_T0_K = math.log(NITROGEN_ENRICHMENT_COLD / NITROGEN_ENRICHMENT_REFERENCE) / (1.0 / COLD_ICE_K - 1.0 / ICE_REFERENCE_K)
 """float: The temperature scale of the 15N enrichment, K (about 24), fitted to the two points above. [Stand-in ISO6, tier T5, tweak L2.]"""
 
 ARGON_36_OVER_38 = 5.501
-"""float: The primordial 36Ar/38Ar, the solar wind's ([R5170: Abstract], 5.501 +- 0.005). [Stand-in ISO7, tier T1, tweak L0.]"""
+"""float: The primordial 36Ar/38Ar, the solar wind's ([R5176: Abstract], 5.501 +- 0.005). [Stand-in ISO7, tier T1, tweak L0.]"""
 
 ARGON_40_SHARE_MAX = 0.9996
 """float: The most of an argon inventory that 40Ar can be, leaving the primordial share a gas always holds. [Stand-in ISO8, tier T4, tweak L3.]"""

@@ -184,3 +184,10 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | Boss, 10:41 AM EST on 2026-11-08. |
 | TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | Boss, 10:28 AM EST on 2026-11-08. |
+
+### Flavor text settings and signals (Boss, 2026-11-08)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.1435 | Ancient works setting: tag the derelict, wreck, megastructure and signal lines (57 of 82) and a per-galaxy on/off choice at galaxy planning, on the same screen and storage as the fictional materials setting | GEN.1430 | Boss, 2026-11-08. |
+| GEN.1436 | Natural signal resolution: sensor readings for unknown-origin signals that resolve to a cause (pulsars, giants with volcanic moons, masers) | GEN.1430 | Boss, 2026-11-08. |

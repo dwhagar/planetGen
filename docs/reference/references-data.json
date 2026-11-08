@@ -74987,6 +74987,54 @@
    "volume": "122",
    "year": 2017
   },
+  "10.1002/2017je005406": {
+   "arxiv": "1801.03820",
+   "authors": [
+    [
+     "Pérez‐Hoyos",
+     "S."
+    ],
+    [
+     "Sánchez‐Lavega",
+     "A."
+    ],
+    [
+     "García‐Muñoz",
+     "A."
+    ],
+    [
+     "Irwin",
+     "P. G. J."
+    ],
+    [
+     "Peralta",
+     "J."
+    ],
+    [
+     "Holsclaw",
+     "G."
+    ],
+    [
+     "McClintock",
+     "W. M."
+    ],
+    [
+     "Sanz‐Requena",
+     "J. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2017je005406",
+   "editors": [],
+   "journal": "JGRE",
+   "page": "145",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Venus Upper Clouds and the UV Absorber From MESSENGER/MASCS Observations",
+   "type": "journal-article",
+   "volume": "123",
+   "year": 2018
+  },
   "10.1002/2018gl077106": {
    "authors": [
     [
@@ -82360,6 +82408,25 @@
    "type": "journal-article",
    "volume": "63",
    "year": 2020
+  },
+  "10.1007/s11467-020-1043-8": {
+   "authors": [
+    [
+     "Li",
+     "B. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11467-020-1043-8",
+   "editors": [],
+   "journal": "Front. Phys.",
+   "page": "24302",
+   "publisher": "China Engineering Science Press Co. Ltd.",
+   "src": "crossref",
+   "title": "Tasting nuclear pasta made with classical molecular dynamics simulations",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2021
   },
   "10.1007/s12036-017-9469-2": {
    "arxiv": "1709.09434",
@@ -195539,6 +195606,29 @@
    "volume": "462",
    "year": 2016
   },
+  "10.1093/mnras/stw1880": {
+   "authors": [
+    [
+     "Passamonti",
+     "A."
+    ],
+    [
+     "Pons",
+     "J. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw1880",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "1173",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases",
+   "type": "journal-article",
+   "volume": "463",
+   "year": 2016
+  },
   "10.1093/mnras/stw1929": {
    "arxiv": "1608.01435",
    "authors": [
@@ -271385,6 +271475,101 @@
    "volume": "15",
    "year": 2015
   },
+  "10.5194/acp-17-8923-2017": {
+   "authors": [
+    [
+     "Tsagkogeorgas",
+     "G."
+    ],
+    [
+     "Roldin",
+     "P."
+    ],
+    [
+     "Duplissy",
+     "J."
+    ],
+    [
+     "Rondo",
+     "L."
+    ],
+    [
+     "Tröstl",
+     "J."
+    ],
+    [
+     "Slowik",
+     "J. G."
+    ],
+    [
+     "Ehrhart",
+     "S."
+    ],
+    [
+     "Franchin",
+     "A."
+    ],
+    [
+     "Kürten",
+     "A."
+    ],
+    [
+     "Amorim",
+     "A."
+    ],
+    [
+     "Bianchi",
+     "F."
+    ],
+    [
+     "Kirkby",
+     "J."
+    ],
+    [
+     "Petäjä",
+     "T."
+    ],
+    [
+     "Baltensperger",
+     "U."
+    ],
+    [
+     "Boy",
+     "M."
+    ],
+    [
+     "Curtius",
+     "J."
+    ],
+    [
+     "Flagan",
+     "R. C."
+    ],
+    [
+     "Kulmala",
+     "M."
+    ],
+    [
+     "Donahue",
+     "N. M."
+    ],
+    [
+     "Stratmann",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/acp-17-8923-2017",
+   "editors": [],
+   "journal": "Atmos. Chem. Phys.",
+   "page": "8923",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Evaporation of sulfate aerosols at low relative humidity",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2017
+  },
   "10.5194/acp-24-2415-2024": {
    "authors": [
     [
@@ -280294,6 +280479,36 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2608.11696": {
+   "arxiv": "2608.11696",
+   "authors": [
+    [
+     "Mogul",
+     "R."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ],
+    [
+     "Way",
+     "M. J."
+    ],
+    [
+     "Limaye",
+     "S. S."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Altered Cosmic Organics as Venus' Ultraviolet Absorbers",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2609.21027": {
    "arxiv": "2609.21027",
    "authors": [
@@ -281063,7 +281278,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5172,
+ "id_next": 5178,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281104,6 +281319,7 @@
   "10.1002/2017je005341": "R4490",
   "10.1002/2017je005377": "R1947",
   "10.1002/2017je005387": "R1861",
+  "10.1002/2017je005406": "R5169",
   "10.1002/2018gl077106": "R2960",
   "10.1002/2018je005558": "R3775",
   "10.1002/9781118872086.ch9": "R3123",
@@ -281371,6 +281587,7 @@
   "10.1007/s11214-025-01243-w": "R4155",
   "10.1007/s11214-025-01264-5": "R1718",
   "10.1007/s11433-019-1541-6": "R4616",
+  "10.1007/s11467-020-1043-8": "R5165",
   "10.1007/s12036-017-9469-2": "R2849",
   "10.1007/s12036-019-9601-6": "R1675",
   "10.1007/s12036-020-09640-z": "R0380",
@@ -283411,7 +283628,7 @@
   "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
-  "10.1086/497123": "R5169",
+  "10.1086/497123": "R5175",
   "10.1086/497422": "R0582",
   "10.1086/497582": "R3819",
   "10.1086/497684": "R1437",
@@ -283617,7 +283834,7 @@
   "10.1088/0004-637x/743/2/179": "R0519",
   "10.1088/0004-637x/744/2/137": "R1532",
   "10.1088/0004-637x/744/2/159": "R2599",
-  "10.1088/0004-637x/744/2/194": "R5171",
+  "10.1088/0004-637x/744/2/194": "R5177",
   "10.1088/0004-637x/745/1/79": "R2633",
   "10.1088/0004-637x/745/1/85": "R2585",
   "10.1088/0004-637x/746/1/95": "R2598",
@@ -284315,6 +284532,7 @@
   "10.1093/mnras/stw185": "R2268",
   "10.1093/mnras/stw1861": "R3113",
   "10.1093/mnras/stw1876": "R3688",
+  "10.1093/mnras/stw1880": "R5166",
   "10.1093/mnras/stw1929": "R2679",
   "10.1093/mnras/stw2021": "R3692",
   "10.1093/mnras/stw2036": "R3328",
@@ -284384,7 +284602,7 @@
   "10.1093/mnras/stx897": "R0826",
   "10.1093/mnras/sty082": "R2225",
   "10.1093/mnras/sty089": "R0687",
-  "10.1093/mnras/sty1027": "R5166",
+  "10.1093/mnras/sty1027": "R5172",
   "10.1093/mnras/sty1057": "R0290",
   "10.1093/mnras/sty1059": "R1553",
   "10.1093/mnras/sty1302": "R1013",
@@ -285044,7 +285262,7 @@
   "10.1126/science.1105533": "R2254",
   "10.1126/science.1127173": "R4055",
   "10.1126/science.1127376": "R5009",
-  "10.1126/science.1145528": "R5170",
+  "10.1126/science.1145528": "R5176",
   "10.1126/science.1152110": "R0505",
   "10.1126/science.11538074": "R0798",
   "10.1126/science.11538492": "R2999",
@@ -285197,7 +285415,7 @@
   "10.1146/annurev-astro-082812-140944": "R0449",
   "10.1146/annurev-astro-083109-153241": "R4496",
   "10.1146/annurev-astro-091916-055240": "R4445",
-  "10.1146/annurev-astro-091918-104409": "R5167",
+  "10.1146/annurev-astro-091918-104409": "R5173",
   "10.1146/annurev-astro-091918-104453": "R4096",
   "10.1146/annurev-astro-112420-020055": "R4897",
   "10.1146/annurev-astro-120920-010005": "R1585",
@@ -285603,7 +285821,7 @@
   "10.3847/1538-4357/aaa42a": "R2946",
   "10.3847/1538-4357/aaa70f": "R0008",
   "10.3847/1538-4357/aaa765": "R0223",
-  "10.3847/1538-4357/aaab53": "R5165",
+  "10.3847/1538-4357/aaab53": "R5171",
   "10.3847/1538-4357/aab0a1": "R1512",
   "10.3847/1538-4357/aab264": "R3633",
   "10.3847/1538-4357/aab784": "R3732",
@@ -285876,6 +286094,7 @@
   "10.5194/acp-12-2491-2012": "R4583",
   "10.5194/acp-13-11735-2013": "R4165",
   "10.5194/acp-15-4399-2015": "R3909",
+  "10.5194/acp-17-8923-2017": "R5168",
   "10.5194/acp-24-2415-2024": "R4570",
   "10.5194/acp-4-1461-2004": "R0182",
   "10.5194/acp-7-2277-2007": "R2886",
@@ -286639,7 +286858,7 @@
   "arxiv:1710.06721": "R3843",
   "arxiv:1710.07222": "R0198",
   "arxiv:1710.08479": "R0119",
-  "arxiv:1710.11129": "R5165",
+  "arxiv:1710.11129": "R5171",
   "arxiv:1711.00977": "R1861",
   "arxiv:1711.04867": "R1288",
   "arxiv:1711.08484": "R4365",
@@ -286658,6 +286877,7 @@
   "arxiv:1801.00748": "R2381",
   "arxiv:1801.02489": "R0134",
   "arxiv:1801.02821": "R1124",
+  "arxiv:1801.03820": "R5169",
   "arxiv:1801.03945": "R2946",
   "arxiv:1801.03949": "R2225",
   "arxiv:1801.04278": "R3731",
@@ -286688,7 +286908,7 @@
   "arxiv:1804.02434": "R0369",
   "arxiv:1804.03734": "R4577",
   "arxiv:1804.05343": "R4150",
-  "arxiv:1804.05717": "R5166",
+  "arxiv:1804.05717": "R5172",
   "arxiv:1804.05889": "R0157",
   "arxiv:1804.06417": "R1013",
   "arxiv:1804.07306": "R2163",
@@ -286815,7 +287035,7 @@
   "arxiv:1907.13145": "R2434",
   "arxiv:1907.13150": "R2856",
   "arxiv:1908.02763": "R1026",
-  "arxiv:1908.04046": "R5167",
+  "arxiv:1908.04046": "R5173",
   "arxiv:1908.05909": "R2414",
   "arxiv:1908.06834": "R2485",
   "arxiv:1908.08047": "R4276",
@@ -287030,7 +287250,7 @@
   "arxiv:2203.01656": "R2546",
   "arxiv:2203.05460": "R0061",
   "arxiv:2203.10066": "R3333",
-  "arxiv:2203.10863": "R5168",
+  "arxiv:2203.10863": "R5174",
   "arxiv:2203.11223": "R1909",
   "arxiv:2204.00342": "R3722",
   "arxiv:2204.04243": "R4468",
@@ -287313,6 +287533,7 @@
   "arxiv:2607.22814": "R4581",
   "arxiv:2607.25542": "R2100",
   "arxiv:2608.02945": "R2470",
+  "arxiv:2608.11696": "R5170",
   "arxiv:2609.21027": "R3937",
   "arxiv:2609.25488": "R0059",
   "arxiv:2609.29996": "R4230",
@@ -287472,6 +287693,7 @@
   "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5164",
   "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
   "web:https://alextardif.com/taa.html": "R5061",
+  "web:https://arxiv.org/abs/1109.3511": "R5167",
   "web:https://bartwronski.com/page/3/": "R5063",
   "web:https://beltoforion.de/en/dithering/": "R5039",
   "web:https://castle-engine.io/occlusion_culling": "R5040",
@@ -288027,6 +288249,15 @@
    "provider": "Mineralogical Society of America",
    "url": "http://www.minsocam.org/ammin/AM52/AM52_171.pdf",
    "year": "1967"
+  },
+  {
+   "checked": "2026-11-08",
+   "identifier": "arXiv:1109.3511",
+   "kind": "web page",
+   "name": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+   "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
+   "url": "https://arxiv.org/abs/1109.3511",
+   "year": "2012"
   }
  ]
 }

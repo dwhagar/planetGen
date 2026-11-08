@@ -25813,35 +25813,65 @@
     },
     "R5165": {
       "kind": "paper",
+      "label": "Li 2021",
+      "title": "Tasting nuclear pasta made with classical molecular dynamics simulations"
+    },
+    "R5166": {
+      "kind": "paper",
+      "label": "Passamonti and Pons 2016",
+      "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases"
+    },
+    "R5167": {
+      "kind": "web",
+      "label": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+      "title": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)"
+    },
+    "R5168": {
+      "kind": "paper",
+      "label": "Tsagkogeorgas et al. 2017",
+      "title": "Evaporation of sulfate aerosols at low relative humidity"
+    },
+    "R5169": {
+      "kind": "paper",
+      "label": "Pérez‐Hoyos et al. 2018",
+      "title": "Venus Upper Clouds and the UV Absorber From MESSENGER/MASCS Observations"
+    },
+    "R5170": {
+      "kind": "paper",
+      "label": "Mogul et al. 2026",
+      "title": "Altered Cosmic Organics as Venus' Ultraviolet Absorbers"
+    },
+    "R5171": {
+      "kind": "paper",
       "label": "Cooke et al. 2018",
       "title": "One Percent Determination of the Primordial Deuterium Abundance*"
     },
-    "R5166": {
+    "R5172": {
       "kind": "paper",
       "label": "Colzi et al. 2018",
       "title": "Nitrogen fractionation in high-mass star-forming cores across the Galaxy"
     },
-    "R5167": {
+    "R5173": {
       "kind": "paper",
       "label": "Altwegg et al. 2019",
       "title": "Cometary Chemistry and the Origin of Icy Solar System Bodies: The View After Rosetta"
     },
-    "R5168": {
+    "R5174": {
       "kind": "paper",
       "label": "Nomura et al. 2022",
       "title": "The Isotopic Links from Planet Forming Regions to the Solar System"
     },
-    "R5169": {
+    "R5175": {
       "kind": "paper",
       "label": "Milam et al. 2005",
       "title": "The 12 C/ 13 C Isotope Gradient Derived from Millimeter Transitions of CN: The Case for Galactic Chemical Evolution"
     },
-    "R5170": {
+    "R5176": {
       "kind": "paper",
       "label": "Meshik et al. 2007",
       "title": "Constraints on Neon and Argon Isotopic Fractionation in Solar Wind"
     },
-    "R5171": {
+    "R5177": {
       "kind": "paper",
       "label": "Adande and Ziurys 2011",
       "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY"
