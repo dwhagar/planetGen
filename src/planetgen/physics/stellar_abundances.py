@@ -109,7 +109,7 @@ RELATIONS = (
              "the two oxygen sets differ by up to 0.1 dex on the plateau; neon's physics is open"),
     Relation("[X/Fe] residual scatter and correlation", "[R0535] (844 dwarfs)", VERIFIED),
     Relation("[X/Fe] means and scatter of Ti, V, Cr and Mn by branch", "straight lines to the 1,615 dwarfs of [R0535] weighted by each "
-             "branch's probability (GEN.1360, scripts/fit_stellar_xfe_iron_peak.py)", PARTLY_VERIFIED,
+             "branch's probability (scripts/fit_stellar_xfe_iron_peak.py)", PARTLY_VERIFIED,
              "the high-alpha lines rest on about 40 stars' weight; the scatter is the table's robust one, measurement error included"),
     Relation("[P/Fe] and [Zn/Fe] trends", "[R2785: Table 4] bins (P) and [R0349] text (Zn), read by the research lane "
              "(real-material-data-1 section 1.2); one trend for both branches", PARTLY_VERIFIED,
