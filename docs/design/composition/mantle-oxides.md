@@ -13,7 +13,7 @@ The Cr, Mn, P, Na and K the core took, and the Ni it took, join the metal; a car
 
 ## What is stored
 
-Seven columns on `planets`, `moons` and `rogue_planets` (migration 0227): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL for a carbon rock or a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
+Seven columns on `planets`, `moons` and `rogue_planets` (migration 0230): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL for a carbon rock or a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
 
 ## Calibration (a test point, never an input)
 
