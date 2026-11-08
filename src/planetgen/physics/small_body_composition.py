@@ -233,7 +233,7 @@ TAXON_DATA = {
                {"enstatite": 0.20, "ferrosilite": 0.20, "diopside": 0.15, "anorthite": 0.40, "kamacite": 0.02, "troilite": 0.03}),
     "A": Taxon("A", "brachinite and pallasite mantle", ROCKY, 0.274,
                {"forsterite": 0.80, "fayalite": 0.08, "kamacite": 0.08, "troilite": 0.04}),
-    # E (GEN.1384): the aubrite sulfides are the middle of the modal ranges of Wilbur et al. 2018 (troilite 0.3 to 1.4, niningerite 0.1 to 0.6
+    # E (GEN.1384): the aubrite sulfides are the middle of the modal ranges of [R5146: Table 1] (troilite 0.3 to 1.4, niningerite 0.1 to 0.6
     # mod. percent; enstatite 63 to 97, albite 0.1 to 13), not troilite alone at 5 percent; the freed mass is enstatite's
     "E": Taxon("E", "aubrite (enstatite chondrite)", ROCKY, 0.536,
                {"enstatite": 0.918, "troilite": 0.0085, "niningerite": 0.0035, "kamacite": 0.04, "albite": 0.03}),

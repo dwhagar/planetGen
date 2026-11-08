@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5027 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5028 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -4637,6 +4637,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 
 ### U
 
+- <a id="paper-r5146"></a>**R5146** Udry, A., et al. 2019, Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury, M&PS, 54, 785, doi:10.1111/maps.13252. [paper](https://doi.org/10.1111/maps.13252) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/maps.13252/abstract)
 - <a id="paper-r4462"></a>**R4462** Ueda, H. 1999, Analysis of Mathematical Morphology for Quantifying Galaxy Distributions in AT-Body Simulations, PASJ, 51, 435, doi:10.1093/pasj/51.4.435. [paper](https://doi.org/10.1093/pasj/51.4.435) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/pasj/51.4.435/abstract)
 - <a id="paper-r4463"></a>**R4463** Ueda, M., Pato, M. P., Hussein, M. S., & Takigawa, N. 1998, Forward Glory Phenomenon in the Dark-Side of Heavy-Ion Nuclear Rainbow Scattering, PhRvL, 81, 1809, doi:10.1103/physrevlett.81.1809. [paper](https://doi.org/10.1103/physrevlett.81.1809) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1103/physrevlett.81.1809/abstract)
 - <a id="paper-r4464"></a>**R4464** Ugliano, M., et al. 2012, Oxygen Consumption and Development of Volatile Sulfur Compounds during Bottle Aging of Two Shiraz Wines. Influence of Pre- and Postbottling Controlled Oxygen Exposure, J. Agric. Food Chem., 60, 8561, doi:10.1021/jf3014348. [paper](https://doi.org/10.1021/jf3014348) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1021/jf3014348/abstract)

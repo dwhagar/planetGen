@@ -224244,6 +224244,65 @@
    "volume": "49",
    "year": 2014
   },
+  "10.1111/maps.13252": {
+   "authors": [
+    [
+     "Udry",
+     "A."
+    ],
+    [
+     "Wilbur",
+     "Z. E."
+    ],
+    [
+     "Rahib",
+     "R. R."
+    ],
+    [
+     "McCubbin",
+     "F. M."
+    ],
+    [
+     "Vander Kaaden",
+     "K. E."
+    ],
+    [
+     "McCoy",
+     "T. J."
+    ],
+    [
+     "Ziegler",
+     "K."
+    ],
+    [
+     "Gross",
+     "J."
+    ],
+    [
+     "DeFelice",
+     "C."
+    ],
+    [
+     "Combs",
+     "L."
+    ],
+    [
+     "Turrin",
+     "B. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/maps.13252",
+   "editors": [],
+   "journal": "M&PS",
+   "page": "785",
+   "publisher": "Wiley",
+   "src": "crossref",
+   "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury",
+   "type": "journal-article",
+   "volume": "54",
+   "year": 2019
+  },
   "10.1111/maps.13449": {
    "authors": [
     [
@@ -280150,7 +280209,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5146,
+ "id_next": 5147,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284064,6 +284123,7 @@
   "10.1111/j.2153-3490.1969.tb00466.x": "R0580",
   "10.1111/maps.12095": "R2978",
   "10.1111/maps.12293": "R3895",
+  "10.1111/maps.13252": "R5146",
   "10.1111/maps.13449": "R3552",
   "10.1111/maps.13908": "R4292",
   "10.1111/maps.13994": "R4488",
