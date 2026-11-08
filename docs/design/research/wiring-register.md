@@ -62,7 +62,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | data | quadruple_stability_2p2.json | GEN.1016 | the 2+2 quadruple stability rules (validity ranges, the stability definition); read by `quadruple_stability` |
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
-| data | partial_pressure_rules.json | by design | the record of the rules GEN.1331 converted to partial pressure and the ones that stay a share (and why); read by the test that checks the code against it |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
 | module | planetgen.physics.atmosphere_retention | GEN.1047 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
@@ -245,3 +244,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
 | row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
 | row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
+| module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
+| data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
+| row | 6.210:HC1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |
+| row | 6.210:HC2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
+| row | 6.210:HC3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
+| row | 6.210:HC4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
