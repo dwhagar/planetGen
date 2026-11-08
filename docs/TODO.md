@@ -13440,6 +13440,12 @@ clears each one.
   Prerequisites: none. Related: TEST.696.
   Filed by the TODO thread.
 
+- [ ] **UX.292 At phone width an expanded star-system card with long rows scrolls itself instead of its rest region: the first view alone fills the card's maximum height (bug)**
+  Lane 03 (as the lane reported, 3:24 AM EST on 2026-11-08), measured on main with the expanded long card at 390 by 640 (test_web_browser_map_card, test_a_card_far_too_long_for_the_window_scrolls_what_is_behind_expand_and_keeps_its_name_and_buttons[390-640]): the card's max height is 295 px, but its first view alone is 41 (head) + 18 (kind) + 238 (three long wrapped rows) + 31 (buttons) = 328 px, so the rest region gets 0 px and the card itself scrolls (scrollHeight 362 against clientHeight 295). The test states the MAP.347 contract (the card never scrolls, the rest region does), so the page is wrong, not the test. Do: shrink or clip long row values at phone width (ellipsis or a line clamp, with the full text one tap away), or change the max height so the rest region always keeps a minimum height; then confirm the test passes. Follows UX.291. No generation change.
+  Owner (proposed by TODO, confirm with TODO before taking; lock-free, one item at a time while waiting): Lane 11.
+  Prerequisites: none. Related: UX.291, MAP.347, TEST.696.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
