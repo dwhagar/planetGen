@@ -394,10 +394,6 @@ VOCABULARY_ONLY = {
     "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
     "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
     "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
-<<<<<<< HEAD
-    **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
-        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "alabandite", "daubreelite", "osbornite",
-=======
     # GEN.1359: the species rows the inventories name; a later item wires each to its draw
     "ice_ic": _ICE_PHASE, "ice_iv": _ICE_PHASE, "ice_ix": _ICE_PHASE, "ice_xi": _ICE_PHASE, "ice_xv": _ICE_PHASE,
     "o2_ice": _SPECIES_ROW, "xe_ice": _SPECIES_ROW, "ar_ice": _SPECIES_ROW, "kr_ice": _SPECIES_ROW, "c2h2_ice": _SPECIES_ROW,
@@ -406,8 +402,7 @@ VOCABULARY_ONLY = {
     "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
     "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
     **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
-        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
->>>>>>> origin/main
+        "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "alabandite", "daubreelite", "osbornite",
         "sinoite", "khamrabaevite")},
 }
 
