@@ -1998,7 +1998,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1205 | Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725 | none | done, PR #4469 |
 | GEN.1206 | Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list | none | done, PR #4473 |
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match | none | done, PR #5334 |
-| GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | open |
+| GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | done, PR #5334 |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | done, PR #5379 |
 | GEN.1210 | Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column | none | done, PR #4481 |
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | done, PR #5373 |

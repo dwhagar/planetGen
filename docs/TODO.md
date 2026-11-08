@@ -9643,28 +9643,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: unowned until GEN.1162 merges (Lane 22 proposed).
   Prerequisites: none.
 
-- [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
-  Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 11; lock-free, one item at a time on its own branch.
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: reword the age_needs reducing-air tier label ('young, hot or
-  still-outgassing') and any 'cools' or 'young' phrasing in the
-  generated class pages, and remove 'Checked after' and 'leftover'
-  wording that makes M the endpoint of an order. A class is the world's
-  state now, not a stage. Docs and page text, but the class pages are
-  generated from the rules: if the generated pages are part of the
-  golden, fold this into step 3's epoch, else it is lock-free. Where we
-  think it belongs (best guess, can move): same lane as step 1.
-  Covered by GEN.1207 (Lane 14, as the lane reported) (11:59 AM EST on
-  2026-11-05): The wording change (age and stage words dropped, Checked
-  after, leftover) is already in the GEN.1207 branch
-  (claude/core4-gen1207, train 12). No separate build. Retires when
-  GEN.1207 merges.
-  Prerequisites: none.
-
 - [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
   Found by Sources 2 (as the lane reported, 12:15 PM EDT 2026-10-31)
   while starting MAP.283, filed by the TODO thread as a wiring gap
