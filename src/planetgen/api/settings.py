@@ -15,6 +15,13 @@ need a logged-in admin past the forced credential change.
   value that doesn't fit is a 200 with `saved: false` and `errors`; a file changed by someone else since the form
   was drawn is a 409; a file that can't be written is a 409 with the reason.
 
+- `POST /api/admin/settings/update/plan` `{"remove": [...], "apply": [...]}`: what "Update config.json" would do (ADM.140),
+  nothing written: the keys the file lacks (`added`, each with the value it gets), the options a site should set that it lacks
+  (`recommended`, each with its reason, default, recommended value if any and whether `apply` ticked it), the keys the model no
+  longer knows (`stale`, names only) and `removed`, the stale keys `remove` ticked.
+- `POST /api/admin/settings/update` `{"remove": [...], "apply": [...], "expect_hash": "..."}`: the same, then the write
+  (`planetgen.util.settings_writer.update`) with a backup archive first. Every existing value is kept as it is.
+
 A secret's value is never in an answer: a change to one is shown as `(changed)`, and a stored one as `is_set`.
 Writing the file needs the web server's user to own config.json (`examples/apache/set-permissions.sh`).
 """
@@ -26,7 +33,7 @@ from planetgen.util import settings_view, settings_writer
 
 from .authz import require_admin
 from .common import ApiError, get_control_db, require_json_body
-from .schemas import SettingsChanges, parse_body
+from .schemas import SettingsChanges, SettingsUpdate, parse_body
 
 bp = Blueprint("settings", __name__, url_prefix="/api/admin/settings")
 
@@ -112,3 +119,45 @@ def save_settings():
     except settings_writer.SettingsWriteError as exc:
         raise ApiError(str(exc), status_code=409) from exc
     return jsonify(_view(result))
+
+
+def _update_view(plan):
+    """An `UpdatePlan` or `UpdateResult` as JSON (secrets never shown)."""
+    def item(change):
+        return {"path": change.path, "new": change.shown("new"), "secret": change.secret, "restart": change.restart}
+
+    return {
+        "ok": plan.ok,
+        "added": [item(c) for c in plan.added],
+        "removed": [c.path for c in plan.removed],
+        "stale": plan.stale,
+        "recommended": [{"path": r.path, "why": r.why, "default": "(set)" if r.secret else r.default, "has_value": r.has_value,
+                         "recommended": "(set)" if r.secret and r.has_value else r.recommended, "selected": r.selected}
+                        for r in plan.recommended],
+        "errors": plan.errors,
+        "file_hash": plan.file_hash,
+        "saved": getattr(plan, "saved", False),
+        "backup": getattr(plan, "backup", None),
+        "audit_errors": getattr(plan, "audit_errors", []),
+    }
+
+
+@bp.route("/update/plan", methods=["POST"])
+@require_admin(fresh=True)
+def plan_update():
+    """`POST /api/admin/settings/update/plan` -- see the module docstring; nothing is written."""
+    body = parse_body(SettingsUpdate, require_json_body())
+    return jsonify(_update_view(settings_writer.plan_update(remove=body.remove, apply=body.apply)))
+
+
+@bp.route("/update", methods=["POST"])
+@require_admin(fresh=True)
+def update_settings():
+    """`POST /api/admin/settings/update` -- see the module docstring."""
+    body = parse_body(SettingsUpdate, require_json_body())
+    try:
+        result = settings_writer.update(actor=g.admin_user["username"], remove=body.remove, apply=body.apply,
+                                        audit=_audit, expect_hash=body.expect_hash)
+    except settings_writer.SettingsWriteError as exc:     # a stale page is a StaleSettingsError, also a 409
+        raise ApiError(str(exc), status_code=409) from exc
+    return jsonify(_update_view(result))

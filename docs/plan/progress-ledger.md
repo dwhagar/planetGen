@@ -2882,3 +2882,27 @@ Baseline: PR #1817.
 | PERF.227 | 8.1 | Queue, caches and performance |
 | GEN.229 | 8.1 | Generate page and directives |
 | TEST.682 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.303 | 8.1 | Galactic core and halo |
+| TEST.685 | 8.1 | Stand-in replacements |
+| GEN.1379 | 8.1 | Stand-in replacements |
+| MAP.402 | 8.1 | Generate page and directives |
+| TEST.687 | 8.1 | Bugs and flaky tests |
+| GEN.1355 | 8.1 | Stand-in replacements |
+| GEN.1356 | 8.1 | Stand-in replacements |
+| GEN.1357 | 8.1 | Stand-in replacements |
+| GEN.1358 | 8.1 | Stand-in replacements |
+| GEN.1359 | 8.1 | Stand-in replacements |
+| GEN.1049 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1308 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1048 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1050 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1051 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1340 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1341 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1344 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1346 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1351 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1352 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.680 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.684 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| ADM.140 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |

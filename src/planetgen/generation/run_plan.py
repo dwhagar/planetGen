@@ -43,6 +43,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util import step_timer as stepTimer
+from planetgen.util.settings import get_settings
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy import scatter_limits, spherical
 from planetgen.galaxy.spherical import sector_position_pc
@@ -295,12 +296,16 @@ scan's own and every row of the lever table (`galaxy.dials`)."""
 def skeleton_params(args, mysql_config):
     """The parameters of the `plan-skeleton` command for the parsed `args` (plain JSON): the database, the seed the
     user asked for (32 hex digits, or `None`), whether the unit prints its step table (`--timing` or `--debug`, UX.162)
-    and each of `SKELETON_OPTIONS` the arguments carry."""
+    and each of `SKELETON_OPTIONS` the arguments carry. A `cell_star_ceiling` the arguments leave out is the deployment's `generation.cell_cap`
+    (GEN.303), read here, at the start of the run, and stored with the galaxy."""
     seed = getattr(args, "seed", None)
-    return {"database": wrapper.database_args(mysql_config),
-            "galaxy_seed": None if seed is None else galaxySeed.format_seed(seed),
-            "timing": bool(getattr(args, "timing", False) or getattr(args, "debug", None) is not None),
-            **{name: getattr(args, name) for name in SKELETON_OPTIONS if hasattr(args, name)}}
+    params = {"database": wrapper.database_args(mysql_config),
+              "galaxy_seed": None if seed is None else galaxySeed.format_seed(seed),
+              "timing": bool(getattr(args, "timing", False) or getattr(args, "debug", None) is not None),
+              **{name: getattr(args, name) for name in SKELETON_OPTIONS if hasattr(args, name)}}
+    if params.get("cell_star_ceiling") is None:             # GEN.303: the run starts with the deployment's own cell cap, as config.json has it
+        params["cell_star_ceiling"] = float(get_settings().generation.cell_cap)
+    return params
 
 
 def expand_plan_skeleton(params):
@@ -2570,7 +2575,7 @@ def refresh_block_lights(mysql_config, args=None):
                                 log.normal(f"Making the block light totals: unit {done:,} of {total:,}.")
 
                         written = block_lights.rebuild(conn, on_progress=on_progress, on_phase=log.normal)
-                    uncharted_index.index(conn, on_phase=log.normal)       # MAP.402
+                    uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))       # MAP.402
                 finally:
                     log.reset_console()
         finally:
@@ -2601,7 +2606,7 @@ def fill_block_totals(args):
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
-        uncharted = uncharted_index.index(conn, on_phase=log.normal)      # MAP.402
+        uncharted = uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))      # MAP.402
     finally:
         conn.close()
     log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
@@ -2794,7 +2799,7 @@ def refresh_block_lights_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         written = block_lights.rebuild(conn, on_progress=report, on_phase=lines.append)
-        uncharted_index.index(conn, on_phase=lines.append)      # MAP.402: a sector row for every cell the scatter left something in
+        uncharted_index.index(conn, on_phase=lines.append, run_id=params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
@@ -2812,6 +2817,9 @@ class BlockLightsFollower(followed.Follower):
     def __init__(self, args):
         super().__init__(args)
         self.bar = None
+
+    def params(self):
+        return {"run_id": getattr(self.args, "generation_run_id", None)}      # the run the uncharted rows (MAP.402) are recorded under
 
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and phenomenon again; "

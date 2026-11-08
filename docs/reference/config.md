@@ -144,6 +144,37 @@ it, typing replaces it, Clear it removes it). While a saved option still needs a
 restart of the web server, every admin page shows a banner naming it; the banner
 goes when the server restarts. The page is described in [html-interface.md](html-interface.md).
 
+### Update config.json
+
+A release that adds an option does not touch a site's own `config.json` (the file
+is never overwritten), so an older file simply lacks the new keys and the program
+uses their defaults. The **Update config.json** link on the settings page
+(`/admin/settings/update`, ADM.140; any admin) brings the file up to the version
+without losing what the site has set. It shows a preview first and writes nothing
+until its one button is pressed:
+
+- **Settings to add.** Every option the model has and the file lacks, with the
+  default it will be written with. An option the web cannot change (the database
+  section) is added with its default too and never altered otherwise. A secret is
+  added with its default and its value is never shown.
+- **Recommended, not set.** The options a site should have in its file whatever the
+  default is (`should_set` in `settings.opt`), each with the reason. One that also
+  names a value (`recommended`) has a box, ticked to begin with, and a ticked box
+  writes that value instead of the default; an option only the site can fill, such
+  as `base_url`, is listed with its reason and no box. An option the file already
+  has any key for is never listed and never changed.
+- **Stale keys.** Keys the model no longer knows, shown by name only. They stay in
+  the file unless their box is ticked.
+
+Every value already in the file is kept exactly, and so is the order of its keys.
+The write is the settings page's own (see [Saving settings](#saving-settings)): a
+settings-only backup archive of the old file first, an atomic replace, and one
+`admin_audit_log` row per key added or taken out (`config.update_file`). A file
+changed by someone else after the page was drawn is refused, and a failed write
+leaves the old file. The API is `POST /api/admin/settings/update/plan` (nothing
+written) and `POST /api/admin/settings/update`
+([api/settings.py](../../src/planetgen/api/settings.py)).
+
 ## Backups
 
 `planetgen.backup` (ADM.87) takes every backup as one `backups/<UTC time>.tar.bz2` in
@@ -369,6 +400,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `parity.dir` | Repair file folder | text | empty | at once | command line only | `PLANETGEN_PARITY_DIR` | Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the database is on if you can: a parity file on the same failing disk protects nothing. |
 | `parity.group_size` | Sectors per repair group | whole number (sectors) | 32 | after a restart | any admin | none | Sectors in one parity group (G). Any `parity_blocks` damaged sectors of a group are rebuilt from the rest, which are read to do it: a bigger group costs less disk and more reading. A change applies to the groups made afterwards. |
 | `parity.parity_blocks` | Repair blocks per group | whole number (blocks) | 2 | after a restart | any admin | none | Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A change applies to the groups made afterwards. |
+| `generation.cell_cap` | Systems a cell may hold | number (systems) | 5000 | at once | any admin | none | The most systems one cell of the galaxy may expect before it is filled only with the stars at or above the fill luminosity cap (the rest is left unresolved, its count and mass shown on the sector page). A new galaxy takes this value when its plan starts and keeps it, so a change affects only galaxies planned afterwards, never cells already stored; the command line's --cell-star-ceiling sets one galaxy's own and wins over this. A lower cap fills fewer systems in a crowded cell and makes the galaxy smaller and quicker to build; a higher one fills more and takes more disk and time. |
 
 <!-- END GENERATED OPTIONS -->
 
