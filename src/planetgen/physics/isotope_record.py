@@ -20,12 +20,12 @@ table's natural mix (origin `natural`) and are replaced where a physical value i
   are enriched over the gas by `ice_factor`, a law in the formation temperature `exp(T0 (1/T - 1/T_ref))` (ion-molecule fractionation grows as the gas gets colder, [R5174: Sec. 2.1]) that is
   calibrated at two published points of the Solar System: the ocean (1.56e-4, VSMOW) at the snow-line temperature and comet 67P's water (5.3e-4, [R0088]) at 30 K. A body that formed warmer than
   the snow line took its ice from the snow line's temperature. One log-normal scatter per body.
-* **Carbon** (`physical`): 13C/12C from the Galaxy's chemical evolution: 12C/13C = 6.21 D + 18.71 ([R5175: equation 5], D in kpc from the Galactic centre) read at the galactocentric distance
+* **Carbon** (`physical`): 13C/12C from the Galaxy's chemical evolution: 12C/13C = 6.21 D + 18.71 ([R5175: equation 5], D in kpc from the Galactic center) read at the galactocentric distance
   whose gas metallicity is the star's (`nebula_composition.GAS_GRADIENT_DEX_PER_KPC`), and moved in time between the local interstellar value (68) and the Solar System's (89) by the star's age.
 * **Nitrogen** (`physical`): 14N/15N the same way ([R5177] as quoted in [R5172: equation 2]: 21.1 D + 123.8), between the local interstellar value (about 400) and the
   protosolar one (441, solar wind, quoted in [R5172]), then raised in 15N by `ice_factor` for the solid share of the body (comets are enriched 2 to 3 times, [R5174]). An envelope's nitrogen is the gas value;
   the two are mixed by the envelope's share of the body's mass.
-* **Argon** (`physical`, `radiogenic`): the primordial 36Ar/38Ar is the solar wind's 5.501 ([R5176]); 40Ar is the share of the air's argon that the body's potassium made and its interior
+* **Argon** (`physical`, `radiogenic`): the primordial 36Ar/38Ar is the solar wind's 5.501 [R5176]; 40Ar is the share of the air's argon that the body's potassium made and its interior
   let out: the 40K that has decayed (`radiogenic.formation_mix`, the body's age), times the 10.72 percent of decays that end in 40Ar, times the share of the mantle's easily degassed element
   that the interior's released heat has brought to the surface (`surface_pressure.degassed_share`), over the moles of argon in the air; it cannot be more than all but the primordial share.
 * **Potassium, uranium** (`decay`): the isotopes that decay are those of the body's age, from the formation mix of `radiogenic` (today's natural mix decayed back to the Solar System's birth, a stand-in
@@ -53,7 +53,7 @@ ORIGINS = (NATURAL, PHYSICAL, DECAY, RADIOGENIC)
 
 # --- the laws (stand-ins IS1 to IS8) -------------------------------------------------------------------------------------
 PRIMORDIAL_D_H = 2.527e-5
-"""float: The primordial deuterium over hydrogen by number ([R5171]). [Stand-in ISO1, tier T1, tweak L0.]"""
+"""float: The primordial deuterium over hydrogen by number [R5171]. [Stand-in ISO1, tier T1, tweak L0.]"""
 
 PROTOSOLAR_D_H = 2.1e-5
 """float: The deuterium over hydrogen of the Sun's birth gas, used only to set `ASTRATION` ([R5174: Sec. 4.2], quoting the Jovian and solar-wind values). [Stand-in ISO2, tier T2, tweak L0.]"""
@@ -97,7 +97,7 @@ NITROGEN_RATIOS = (400.0, 441.0)
 """tuple: `(local interstellar now, protosolar)` 14N/15N ([R5172: Abstract and Sec. 3.3]; the solar wind). [Stand-in ISO5, tier T1, tweak L0.]"""
 
 SOLAR_GALACTOCENTRIC_KPC = 7.9
-"""float: The Sun's distance from the Galactic centre, kpc ([R5175]), where the two gradients read the local interstellar ratios. [Stand-in ISO5, tier T1, tweak L0.]"""
+"""float: The Sun's distance from the Galactic center, kpc [R5175], where the two gradients read the local interstellar ratios. [Stand-in ISO5, tier T1, tweak L0.]"""
 
 GALACTOCENTRIC_RANGE_KPC = (2.0, 20.0)
 """tuple: The range the gradients are read in (the data of [R5175] reach from 2 to 12 kpc; the inner and outer Galaxy past it hold no data). [Stand-in ISO4, tier T4, tweak L3.]"""
@@ -191,7 +191,7 @@ def gas_d_h(star):
 
 
 def _galactocentric_kpc(star):
-    """The distance from the Galactic centre at which the gas has the star's metallicity, kpc: the Sun's distance moved by the gas gradient, held inside `GALACTOCENTRIC_RANGE_KPC`."""
+    """The distance from the Galactic center at which the gas has the star's metallicity, kpc: the Sun's distance moved by the gas gradient, held inside `GALACTOCENTRIC_RANGE_KPC`."""
     kpc = SOLAR_GALACTOCENTRIC_KPC - _metallicity(star) / nebula_composition.GAS_GRADIENT_DEX_PER_KPC
     return min(max(kpc, GALACTOCENTRIC_RANGE_KPC[0]), GALACTOCENTRIC_RANGE_KPC[1])
 

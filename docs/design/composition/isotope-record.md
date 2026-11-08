@@ -14,9 +14,9 @@ The elements of what it is made of, read from the stored composition: the rock (
 
 | Element | Law | Sources |
 |---|---|---|
-| H | D/H of the star's birth gas = primordial 2.527e-5 times `exp(-A 10^[Fe/H])`, A fixed by the protosolar 2.1e-5; ice and water enriched by `exp(T0 (1/T - 1/182 K))`, fitted to the ocean (1.56e-4 at 182 K) and comet 67P (5.3e-4 at 30 K); the body's D/H is the hydrogen-atom-weighted mean of its envelope, water and ices, with one log-normal scatter | [R5171], [R5174], [R0088], [R5173] |
+| H | D/H of the star's birth gas = primordial 2.527e-5 times `exp(-A 10^[Fe/H])`, A fixed by the protosolar 2.1e-5; ice and water enriched by `exp(T0 (1/T - 1/182 K))`, fitted to the ocean (1.56e-4 at 182 K) and comet 67P (5.3e-4 at 30 K); the body's D/H is the hydrogen-atom-weighted mean of its envelope, water and ices, with one log-normal scatter | [R0088, R5171, R5173, R5174] |
 | C | 12C/13C from the gradient 6.21 D + 18.71 read at the radius whose gas has the star's metallicity, moved between the local interstellar 68 and the Solar System's 89 by the star's age | [R5175] |
-| N | 14N/15N from the gradient 21.1 D + 123.8, between the local ~400 and the protosolar 441, then the solids raised in 15N by the same kind of law as D/H (fitted to the terrestrial 274 and the comets' ~140); an envelope keeps the gas value | [R5177], [R5172] |
+| N | 14N/15N from the gradient 21.1 D + 123.8, between the local ~400 and the protosolar 441, then the solids raised in 15N by the same kind of law as D/H (fitted to the terrestrial 274 and the comets' ~140); an envelope keeps the gas value | [R5172, R5177] |
 | O | the table's natural mix (no source read for the oxygen gradient; the mass-independent anomalies are left out) | |
 | Ar | 36Ar/38Ar = 5.501 (primordial); 40Ar = the 40K that decayed times 10.72 percent times the interior's degassed share, over the moles of argon in the air, at most 99.96 percent | [R5176] |
 | K, U | the natural mix decayed back to the Solar System's birth (a stand-in for every star) and forward to the body's age | `radiogenic.formation_mix` |
