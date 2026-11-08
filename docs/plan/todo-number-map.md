@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.289 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
-| GEN | GEN.1397 |
+| GEN | GEN.1398 |
 | PERF | PERF.251 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2175,6 +2175,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
 | GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
+| GEN.1397 | Remove the life-bearing class list: life comes from conditions (bug) | none | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | open |
