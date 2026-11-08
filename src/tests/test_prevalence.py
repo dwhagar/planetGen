@@ -186,7 +186,8 @@ def test_a_feature_a_forced_system_only_sometimes_has_is_forced_more_often_and_s
 
     wanted = base * 1.2
     assert forced_share(20) == pytest.approx((wanted - base) / (hit - base), abs=0.03)
-    assert forced_share(50) == 1.0                  # +50 asks for 0.876, past the 0.747 a forced system gives
+    assert forced_share(50) == pytest.approx((base * 1.5 - base) / (hit - base), abs=0.03)
+    assert forced_share(200) == 1.0                 # +200 asks for 0.075, past the 0.069 a forced system gives
     assert forced_share(-100) == 0.0
 
 
