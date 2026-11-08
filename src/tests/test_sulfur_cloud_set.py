@@ -125,15 +125,15 @@ def test_the_acid_cloud_base_agrees_with_the_vapor_curve_at_its_own_level():
 
 
 def test_the_absorber_band_is_the_measured_gaussian():
-    centre, fwhm = sc.number("absorber_centre_um"), sc.number("absorber_fwhm_um")
-    assert (centre, fwhm) == (0.34, 0.14)
-    peak = sc.absorber_depth(20.0, 1.0e-3, centre)
+    center, fwhm = sc.number("absorber_center_um"), sc.number("absorber_fwhm_um")
+    assert (center, fwhm) == (0.34, 0.14)
+    peak = sc.absorber_depth(20.0, 1.0e-3, center)
     assert peak == pytest.approx(sc.number("absorber_depth_per_cloud_depth") * 20.0)
-    assert sc.absorber_depth(20.0, 1.0e-3, centre + fwhm / 2.0) == pytest.approx(0.5 * peak)
-    assert sc.absorber_depth(20.0, 1.0e-3, centre - fwhm / 2.0) == pytest.approx(0.5 * peak)
+    assert sc.absorber_depth(20.0, 1.0e-3, center + fwhm / 2.0) == pytest.approx(0.5 * peak)
+    assert sc.absorber_depth(20.0, 1.0e-3, center - fwhm / 2.0) == pytest.approx(0.5 * peak)
     assert sc.absorber_depth(20.0, 1.0e-3, 0.7) < 0.01 * peak
-    assert sc.absorber_depth(20.0, 0.5 * sc.number("absorber_so2_reference_share"), centre) == pytest.approx(0.5 * peak)
-    assert sc.absorber_depth(0.0, 1.0e-3, centre) == 0.0
+    assert sc.absorber_depth(20.0, 0.5 * sc.number("absorber_so2_reference_share"), center) == pytest.approx(0.5 * peak)
+    assert sc.absorber_depth(0.0, 1.0e-3, center) == 0.0
     assert sc.absorber_spread_um() == (0.03, 0.01)
 
 

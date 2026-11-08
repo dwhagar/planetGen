@@ -12,7 +12,7 @@ carbon-dioxide world under a young active star gets V1 to V5.
 
 The gates, in order (each later one needs the one before it):
 
-1. **Sulfur supplied, in an oxidising air** (V2): sulfur dioxide, an oxidiser (oxygen plus carbon dioxide) and a trace of water, the floors of `acid_medium`.
+1. **Sulfur supplied, in an oxidizing air** (V2): sulfur dioxide, an oxidiser (oxygen plus carbon dioxide) and a trace of water, the floors of `acid_medium`.
 2. **An acid cloud** (V1): the air has `cloud_water_min_share` of water and, at some level of its dry adiabat, the acid vapor it holds
    (`acid_vapor_share_of_so2` of its sulfur dioxide) is above the pressure over the solution its water fixes (`sulfuric_vapor.condenses`, GEN.1424). The base is
    the warmest such level and the strength is that solution's.
@@ -179,7 +179,7 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
     needs = {
         "V1": (gate2, "no acid cloud (gate 2)"),
         "V2": (gate1, "no sulfur dioxide with an oxidiser and water (gate 1)"),
-        "V3": (gate4 or share.get("HF", 0.0) > 0.0 or reductant > 0.0, "none of hydrogen chloride, hydrogen fluoride, carbonyl sulfide or carbon monoxide in the air"),
+        "V3": (gate4 or share.get("HF", 0.0) >= number("chlorine_min_share") or reductant >= number("reductant_min_share"), "none of hydrogen chloride, hydrogen fluoride, carbonyl sulfide or carbon monoxide above its floor in the air"),
         "V4": (gate3, "no sulfur dioxide photolysis with a reductant (gate 3)"),
         "V5": (gate3 and sulfur >= number("sulfur_aerosol_min_so2_share"), "too little sulfur or no photolysis with a reductant (gate 3)"),
         "V6": (gate1 and gate2 and gate4 and gate5_iron, "needs the acid cloud, chlorine and exposed iron (gates 2, 4, 5)"),
@@ -205,14 +205,14 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
 
 def absorber_depth(cloud_tau_550, so2_share, wavelength_um):
     """
-    The absorption optical depth of V10 at `wavelength_um`: a Gaussian band (centre `absorber_centre_um`, full width `absorber_fwhm_um`) whose peak is
+    The absorption optical depth of V10 at `wavelength_um`: a Gaussian band (center `absorber_center_um`, full width `absorber_fwhm_um`) whose peak is
     `absorber_depth_per_cloud_depth` of the cloud's depth at 550 nm, scaled down in proportion to the sulfur dioxide below `absorber_so2_reference_share`.
     """
     sigma = number("absorber_fwhm_um") / (2.0 * math.sqrt(2.0 * math.log(2.0)))
     strength = number("absorber_depth_per_cloud_depth") * cloud_tau_550 * min(1.0, so2_share / number("absorber_so2_reference_share"))
-    return strength * math.exp(-0.5 * ((wavelength_um - number("absorber_centre_um")) / sigma) ** 2)
+    return strength * math.exp(-0.5 * ((wavelength_um - number("absorber_center_um")) / sigma) ** 2)
 
 
 def absorber_spread_um():
-    """`(centre_sigma, fwhm_sigma)`, the stated uncertainties of the band, micron, for a caller that varies the band inside them."""
-    return number("absorber_centre_sigma_um"), number("absorber_fwhm_sigma_um")
+    """`(center_sigma, fwhm_sigma)`, the stated uncertainties of the band, micron, for a caller that varies the band inside them."""
+    return number("absorber_center_sigma_um"), number("absorber_fwhm_sigma_um")

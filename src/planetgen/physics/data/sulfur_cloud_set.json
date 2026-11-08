@@ -111,7 +111,7 @@
    "tier": "T9",
    "tweak": "L3",
    "default": "on",
-   "evidence": "READ for the band ([R5169]: centre 0.34 +/- 0.03 micron, width 0.14 +/- 0.01 micron); the strength is a stand-in (L3)"
+   "evidence": "READ for the band ([R5169]: center 0.34 +/- 0.03 micron, width 0.14 +/- 0.01 micron); the strength is a stand-in (L3)"
   }
  ],
  "numbers": {
@@ -151,23 +151,23 @@
    "tweak": "L3",
    "basis": "The hydrogen chloride, as a mole share of the air, that supplies chlorine to V6 and V9 (gate 4); section 10.2 of the report gives 0.1 ppm as the stand-in floor and Venus holds 0.4 to 0.5 ppm. The host star's chlorine reaches the air through the halogen budget of `mixture_rocky`, so the gate reads the air and does not read the star twice"
   },
-  "absorber_centre_um": {
+  "absorber_center_um": {
    "value": 0.34,
    "tier": "T1",
    "tweak": "L0",
-   "basis": "The centre of the unidentified ultraviolet absorber's band, 0.34 +/- 0.03 micron, retrieved from the MESSENGER/MASCS spectra of Venus's upper cloud ([R5169], abstract and section 4.3, read in full text)"
+   "basis": "The center of the unidentified ultraviolet absorber's band, 0.34 +/- 0.03 micron, retrieved from the MESSENGER/MASCS spectra of Venus's upper cloud ([R5169], abstract and section 4.3, read in full text)"
   },
-  "absorber_centre_sigma_um": {
+  "absorber_center_sigma_um": {
    "value": 0.03,
    "tier": "T1",
    "tweak": "L0",
-   "basis": "The stated uncertainty of the band centre ([R5169], section 4.3)"
+   "basis": "The stated uncertainty of the band center ([R5169], section 4.3)"
   },
   "absorber_fwhm_um": {
    "value": 0.14,
    "tier": "T1",
    "tweak": "L0",
-   "basis": "The full width at half maximum of the band, 0.14 +/- 0.01 micron, a Gaussian shape assumed in the retrieval ([R5169], section 4.3); the paper's prior from Pollack and others 1980 was 0.33 micron and a width a little under 0.1 micron"
+   "basis": "The full width at half maximum of the band, 0.14 +/- 0.01 micron, a Gaussian shape assumed in the retrieval ([R5169], section 4.3); the paper's prior, an earlier retrieval, was 0.33 micron and a width a little under 0.1 micron"
   },
   "absorber_fwhm_sigma_um": {
    "value": 0.01,
@@ -179,7 +179,7 @@
    "value": 0.1,
    "tier": "T9",
    "tweak": "L3",
-   "basis": "The absorption optical depth of the band at its centre as a share of the acid cloud's depth at 550 nm when the air holds `absorber_so2_reference_share` of sulfur dioxide; [R5169] gives no peak strength in the text (only a figure) so the scale is from needed output (a visibly yellow-ultraviolet-dark cloud), hand-set. The identity of the absorber is not claimed"
+   "basis": "The absorption optical depth of the band at its center as a share of the acid cloud's depth at 550 nm when the air holds `absorber_so2_reference_share` of sulfur dioxide; [R5169] gives no peak strength in the text (only a figure) so the scale is from needed output (a visibly yellow-ultraviolet-dark cloud), hand-set. The identity of the absorber is not claimed"
   },
   "absorber_so2_reference_share": {
    "value": 0.0001,
