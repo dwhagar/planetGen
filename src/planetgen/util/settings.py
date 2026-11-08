@@ -930,7 +930,6 @@ class Settings(_Section):
     jobs: Jobs = Jobs()
     generation: Generation = Generation()
     parity: Parity = Parity()
-    generation: Generation = Generation()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 

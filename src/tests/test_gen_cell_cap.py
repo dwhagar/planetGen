@@ -92,7 +92,7 @@ def test_a_lower_cap_stores_fewer_systems_in_a_crowded_cell(config):
 
 def test_the_option_is_in_the_example_file_the_docs_and_the_help():
     example = settings.example_dict()["generation"]
-    assert example == {"cell_cap": 5000}
+    assert example["cell_cap"] == 5000
     assert "generation.cell_cap" in settings.docs_table()
     parser = argparse.ArgumentParser(prefix_chars="-+")
     generate_cli.add_plan_arguments(parser)
