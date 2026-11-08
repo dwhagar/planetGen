@@ -8,7 +8,7 @@ The condensation temperatures of the cloud species of hot atmospheres (chromium,
 chloride) from the elements of the host star, and the elements and gases the atmosphere tables leave out: the trace elements Rb, Cs, Ge, As and Se
 and the gases GeH4, AsH3, H2Se, MgH, CaH, NaH, LiCl, LiF, AlCl, PN and HCP. The data are `physics/data/hot_condensates.json`.
 
-The temperature of a cloud species falls out of one relation, [R3165] and [R4562] (READ):
+The temperature of a cloud species falls out of one relation, [R3165, R4562] (READ):
 
     10^4 / T_cond = a - b log10 P_T - sum over the limiting elements of c [X/H]
 

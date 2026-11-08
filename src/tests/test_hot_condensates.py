@@ -3,7 +3,7 @@
 """
 GEN.1375: the cloud temperatures and trace gases of hot atmospheres that follow the host star's elements (`physics/hot_condensates.py`).
 
-At the Sun's composition the fits must give the table of the research part (06 section 2.2, computed from [R3165] and [R4562]); a host poorer or
+At the Sun's composition the fits must give the table of the research part (06 section 2.2, computed from [R3165, R4562]); a host poorer or
 richer in one element moves only the clouds that element sets; the trace gases are held to the least of their elements.
 """
 

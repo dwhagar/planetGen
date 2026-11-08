@@ -54,8 +54,7 @@ VALENCE = {"Ti": 0, "Cr": 2, "Mn": 2, "Ni": 2, "P": 5, "Na": 0, "K": 0}
 Cr is taken as 2 (Cr2+ at the oxygen fugacity of core formation; Cr3+ would give 3), the alkalis and Ti as 0 (Na and K have a fixed cap; Ti is lithophile)."""
 
 EARTH_CORE_SHARE = {"Ti": 0.0, "Cr": 0.552, "Mn": 0.601, "Ni": 0.929, "P": 0.942, "Na": 0.05, "K": 0.05}
-"""dict: The share of each element that is in the Earth's core (1): the core ppm times 0.325 over the bulk ppm, from the concordance table of Wang, Lineweaver and
-Ireland 2018 (Cr 6590 / 3883, Mn 3257 / 1760, Ni 50600 / 17700, P 2774 / 957 ppm). Ti has no core ppm. Na and K are capped at 5 percent, the research note's cap on
+"""dict: The share of each element that is in the Earth's core (1): the core ppm times 0.325 over the bulk ppm, from the concordance table of [R4608] (Cr 6590 / 3883, Mn 3257 / 1760, Ni 50600 / 17700, P 2774 / 957 ppm). Ti has no core ppm. Na and K are capped at 5 percent, the research note's cap on
 the core fractions of the old model (Na 0.20 and K 0.30 there). [Stand-ins MO1 and MO2.]"""
 
 _MOLAR = {symbol: elements.element(symbol).atomic_weight for symbol in SYMBOLS}

@@ -1,7 +1,7 @@
 {
  "title": "Cloud condensation temperatures that follow the host star's elements, the trace elements of hot atmospheres and the trace gases they carry (GEN.1375)",
  "sources": {
-  "fits": "[R3165] and [R4562] (READ): 10^4/T_cond = a - b log10 P_T - sum of c [X/H], P_T in bar; the Fe-scaled forms printed in the research part (06 section 2.1) are these with every [X/H] equal to [Fe/H]",
+  "fits": "[R3165, R4562] (READ): 10^4/T_cond = a - b log10 P_T - sum of c [X/H], P_T in bar; the Fe-scaled forms printed in the research part (06 section 2.1) are these with every [X/H] equal to [Fe/H]",
   "kcl": "[R3165] (READ): log10 P_sat(KCl) = 7.611 - 11382/T with the gas pressure of KCl 2.55e-7 of the total pressure at solar composition (potassium limits: A21 K 5.07 against Cl 5.31)",
   "abundances": "[R0168: Table 2] log eps on H = 12 (READ); CI-chondrite values where the photosphere has none"
  },
