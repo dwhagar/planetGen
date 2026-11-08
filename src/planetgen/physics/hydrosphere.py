@@ -11,7 +11,8 @@ planets (`physics.rogue_surface`) use the functions here.
    composition (`bulk_draw`, GEN.428) from the delivery law of its mass and where it formed
    (`delivered_water`, GEN.849; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
-   than it can store (`mantle_max_water_fraction`: 2 Earth oceans at 0.5 Earth masses to 8 at 5, [R1717], GEN.1147). Gas giants have no
+   than its minerals can store (`mantle_max_water_fraction`: the upper mantle, the transition zone and the lower mantle each hold what their minerals can,
+   GEN.1365). Gas giants have no
    hydrosphere (every field `None`).
 2. **Land.** A two-level hypsometry (GEN.1147, [R0914]'s idea): the surface is ocean crust and continental crust, each a
    Gaussian of height (`HYPSOMETRY`: shares, mean height and spread in km), the relief scaled as `g_E / g`. `D`, the global water layer, fills the
@@ -55,11 +56,10 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, planet_type, runaway_history, saturation, unit_registry, water_layer
+from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
-_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
@@ -93,10 +93,6 @@ REFERENCE_PRESSURE_MPA = 0.1
 ice Ih melting curve (`water_layer.ice_ih_melting_k`, [R4585]). GEN.1190 replaced the straight 0.0074 K per bar, which falls short of the curve past a few hundred bar."""
 
 EARTH_OCEAN_FRACTION = 2.34e-4
-MANTLE_CAP_OCEANS = ((0.5, 2.0), (5.0, 8.0))
-"""tuple: The most water a mantle stores, in Earth oceans, at two masses in Earth masses (`mantle_max_water_fraction` joins them as a power law and holds
-the ends outside): [R1717], whose mantle storage saturates at 2 to 8 Earth oceans for 0.5 to 5 Earth masses (read by way of the GEN.1146
-report). Stand-in row HY1."""
 MANTLE_BUFFER_RANGE = (1.0, 8.0)
 COVER_SNAP = 0.999
 """float: A cover this high is all of the surface: the last tenth of a percent of a Gaussian tail is a seamount, not an island."""
@@ -235,19 +231,18 @@ def frozen_cover(body, gravity_m_s2):
     return ocean_fraction(layer_km, gravity_m_s2, icy=True)
 
 
-def mantle_max_water_fraction(mass_kg):
-    """The most water, as a mass fraction of the body, a mantle stores (GEN.1147): `MANTLE_CAP_OCEANS` joined as a power law of the mass, the ends held outside."""
-    (low_mass, low_oceans), (high_mass, high_oceans) = MANTLE_CAP_OCEANS
-    earths = _kg_to_mearth(mass_kg)
-    exponent = math.log(high_oceans / low_oceans) / math.log(high_mass / low_mass)
-    oceans = low_oceans * (min(max(earths, low_mass), high_mass) / low_mass) ** exponent
-    return oceans * EARTH_OCEAN_FRACTION
+def mantle_max_water_fraction(mass_kg, radius_m, rock_fraction):
+    """The most water, as a mass fraction of the body, its mantle stores (GEN.1365, `mantle_reservoirs.water_capacity_fraction`): the minerals of
+    each zone of the mantle hold what they can. A body with no rock stores none."""
+    if rock_fraction <= 0.0:
+        return 0.0
+    return mantle_reservoirs.water_capacity_fraction(mass_kg, radius_m, min(rock_fraction, 1.0))
 
 
-def surface_water_fraction(water_mass_fraction, mass_kg, rng=draw):
-    """Rule 1: what the mantle leaves at the surface of a body of `mass_kg`."""
+def surface_water_fraction(water_mass_fraction, mass_kg, radius_m, rock_fraction, rng=draw):
+    """Rule 1: what the mantle leaves at the surface of a body of `mass_kg`, `radius_m` and `rock_fraction`."""
     buffer = log_uniform(*MANTLE_BUFFER_RANGE, rng=rng)
-    return max(water_mass_fraction / buffer, water_mass_fraction - mantle_max_water_fraction(mass_kg))
+    return max(water_mass_fraction / buffer, water_mass_fraction - mantle_max_water_fraction(mass_kg, radius_m, rock_fraction))
 
 
 def ocean_class(body, hp_ice_km, surface_fraction, covered):
@@ -291,7 +286,7 @@ def draw_surface_water(body):
     w = body.water_mass_fraction
     if w is None:
         raise ValueError("the body has no water mass fraction: its bulk composition is drawn first")
-    surface_w = surface_water_fraction(w, body.mass)
+    surface_w = surface_water_fraction(w, body.mass, body.radius * 1000.0, body.rock_mass_fraction or 0.0)
     lost_kg = water_loss_kg(body)
     if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water
         lost = min(surface_w, lost_kg / body.mass)

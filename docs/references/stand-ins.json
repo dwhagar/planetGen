@@ -47669,44 +47669,6 @@
           "fields": [
             [
               "What it is",
-              "hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses)"
-            ],
-            [
-              "The range it moves in",
-              "the ends 1 to 4 and 4 to 16 oceans"
-            ],
-            [
-              "Where it holds",
-              "rocky bodies with a mantle"
-            ],
-            [
-              "What would show it wrong",
-              "a measured mantle capacity under 2 oceans at 0.5 Earth masses or far over 8 at 5"
-            ],
-            [
-              "What replaces it",
-              "a mantle storage law from the mantle's melt and its pressure"
-            ],
-            [
-              "Evidence",
-              "the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's"
-            ]
-          ],
-          "id": "HY1",
-          "key": "6.134:HY1",
-          "kind": "T",
-          "slug": "6-134-hy1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L1",
-          "unread": null,
-          "what": "hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999"
             ],
             [
@@ -51549,6 +51511,166 @@
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",
       "title": "Stand-ins of the architecture's losses"
+    },
+    {
+      "key": "6.219",
+      "number": "6.219",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper mantle of Earth holds"
+            ],
+            [
+              "The range it moves in",
+              "50 ppm to 0.9 wt% (the olivine ceiling)"
+            ],
+            [
+              "Where it holds",
+              "olivine, pyroxene and garnet to 13 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "an upper mantle measured above 200 ppm over a large depth"
+            ],
+            [
+              "What replaces it",
+              "a capacity with temperature and the share of each mineral"
+            ],
+            [
+              "Evidence",
+              "[R5159: Abstract] gives the held 50 to 200 ppm and [R5156: Introduction] the olivine ceiling under 0.9 wt%; the saturation of olivine at depth is not printed in the pages read"
+            ]
+          ],
+          "id": "MR1",
+          "key": "6.219:MR1",
+          "kind": "T",
+          "slug": "6-219-mr1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper mantle of Earth holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt%"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 3.0 wt%"
+            ],
+            [
+              "Where it holds",
+              "wadsleyite and ringwoodite, 13 to 23 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a transition zone shown to saturate under 1.0 or over 3 wt%"
+            ],
+            [
+              "What replaces it",
+              "a capacity as a function of temperature and pressure for each phase"
+            ],
+            [
+              "Evidence",
+              "the pages read print \"up to about 3 wt%\" [R5156: Introduction], ringwoodite 1.5 to 2 wt% [R5157: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5161] and about 1.0 wt% by several lines of evidence [R5158: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed"
+            ]
+          ],
+          "id": "MR2",
+          "key": "6.219:MR2",
+          "kind": "T",
+          "slug": "6-219-mr2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt%"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm)"
+            ],
+            [
+              "The range it moves in",
+              "20 ppm to 0.1 wt%"
+            ],
+            [
+              "Where it holds",
+              "bridgmanite and ferropericlase beyond 23 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a lower mantle shown to hold over 0.1 wt%"
+            ],
+            [
+              "What replaces it",
+              "a capacity of aluminous bridgmanite"
+            ],
+            [
+              "Evidence",
+              "[R5159: Abstract] gives under 20 ppm and [R5158: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5160: Abstract], so the lower mantle's cap is the least certain of the three"
+            ]
+          ],
+          "id": "MR3",
+          "key": "6.219:MR3",
+          "kind": "T",
+          "slug": "6-219-mr3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4"
+            ],
+            [
+              "Where it holds",
+              "the upper mantle and the transition zone, 15 to 45 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a mantle that holds carbonate at dIW 1 or diamond at dIW 5"
+            ],
+            [
+              "What replaces it",
+              "the phase boundary of carbon as a function of pressure and temperature"
+            ],
+            [
+              "Evidence",
+              "read in a lecture note (Plinius 38, 2012, no DOI, not in the reference list): diamond and carbonate meet about 3 log units over iron-wuestite at 15 to 45 GPa; the primary papers were not opened"
+            ]
+          ],
+          "id": "MR4",
+          "key": "6.219:MR4",
+          "kind": "T",
+          "slug": "6-219-mr4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite)"
+        }
+      ],
+      "slug": "6-219-stand-ins-of-the-water-and-carbon-a-mantle-stores",
+      "title": "Stand-ins of the water and carbon a mantle stores"
     }
   ]
 }

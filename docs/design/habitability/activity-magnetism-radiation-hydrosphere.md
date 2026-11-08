@@ -505,7 +505,7 @@ unknown [S]. Since GEN.1147 the cover is a two-level hypsometry (Cowan and Abbot
 the surface is ocean crust (60 percent of it, at -4.5 km with a spread of 1.0 km) and continental crust (40 percent, at +0.45 km
 with 0.9 km), relief scaled as `g_E / g`; the global water layer `D = w M / (rho_w A)` fills the lowest ground to a level and
 `f_ocean` is the share of the surface under it. The four numbers are stand-ins (row HY2) tuned only so that Earth's 2.74 km layer
-covers 0.71. The mantle never holds more than it can store: 2 Earth oceans at 0.5 Earth masses to 8 at 5 ([R1717], row HY1).
+covers 0.71. The mantle never holds more than its minerals can store (GEN.1365: the upper mantle, the transition zone of wadsleyite and ringwoodite and the lower mantle, rows MR1 to MR3; 4.8 Earth oceans for the Earth).
 The old law `min(1, sqrt(2 D / L))` went from no land to all ocean over a factor of 16 in the water; the new one covers 0.27 at
 0.2 km, 0.50 at 0.64 km, 0.59 at 1.3 km, 0.71 at 2.7 km and everything at 5 km. The table below is the old law.
 
