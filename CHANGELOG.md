@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3679] - 2026-11-08
+
+**Headline:** The enstatite-rich asteroid class now carries the sulfides of aubrites, a little troilite and niningerite, instead of five percent troilite alone.
+
+### Changed
+- GEN.1384 (part 2): the aubrite taxon E of the belt and field makeups goes from enstatite 0.88, troilite 0.05, kamacite 0.04, albite 0.03 to enstatite 0.918, troilite 0.0085, niningerite 0.0035, kamacite 0.04, albite 0.03. Troilite and niningerite are the middle of the aubrite modal ranges (0.3 to 1.4 and 0.1 to 0.6 percent; [R5146: Table 1], which gives the enstatite range 63 to 97 and albite 0.1 to 13 the new shares stay inside); the freed mass goes to enstatite. The grains' density of the taxon falls from 3,303 to 3,255 kg/m3. Generator output changes (stored belt and field compositions, densities and the nearest meteorite group of belts with this taxon), so it needs an epoch with `--affects fill` and rides a train. The `niningerite` row leaves the vocabulary-only list.
+
 ## [8.0.3678] - 2026-11-08
 
 **Headline:** The clouds of a hot atmosphere now start to condense at temperatures that follow the host star's own elements.
