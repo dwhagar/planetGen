@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3653] - 2026-11-08
+
+**Headline:** Starting a sector fill on a planned galaxy no longer times out: the size and time are worked out in the background and shown as soon as they are ready.
+
+### Fixed
+- **The Generate page's size and time took two minutes, outlived the web server's 60 second limit and restarted it (ADM.141).** Every `planetgen sectors` run, even one that only estimates, first worked out the generator battery (30 seconds on a free machine, 90 under load) to warn about a version mismatch before a write. An estimate writes nothing, so it now skips that: the estimate of a planned galaxy takes about five seconds instead of two minutes.
+- **The size line started the estimate again on every change and every reload.** The estimate now runs in the work queue: the page answers "working out how big this would be" at once and asks again every few seconds (the size line, the Review step and the command palette), one estimate runs at a time for a galaxy, and a form changed or a page reloaded while it runs no longer starts the command again. A failure is shown on the form instead of a timeout.
+- **A region with no sector in it started a run when only its estimate was asked for (ADM.142).** `planetgen sectors --around X Y Z --estimate-only` (and any mode whose plan holds nothing) went on to start a stage that generated 0 sectors and printed no estimate; it now prints the estimate of nothing and starts nothing.
+
 ## [8.0.3652] - 2026-11-08
 
 **Headline:** One browser test file that never stopped Playwright no longer breaks the 1,500 browser tests after it.
