@@ -13265,6 +13265,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
   Filed by the TODO thread.
 
+- [ ] **GEN.1440 Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs)**
+  Lane 15, 1:32 PM EST on 2026-11-08 (GEN.1425 part B, PR 5734): the Venus chemistry set V8 (PAHs with iron, off by default) needs a per-planet supply of cosmic dust and comet influx, but only the star's debris disk exists, so V8 is not built. Do: decide what a planet's dust and comet influx is from stored properties (the star's debris disk, the belts and comets of its own system, the planet's orbit and gravity), store or derive it with units, and give V8 of GEN.1425 its first caller; stand-ins registered in GEN.725 with tier and tweak level. Done: a sample shows influx varying with the system's belts and debris disk, and V8 reads it. Lock item if a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 or Lane 22 (belts). Prerequisites: none. Related: GEN.1425, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
