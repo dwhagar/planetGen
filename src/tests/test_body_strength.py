@@ -104,7 +104,7 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
                                         (saved,)).fetchall():
                     seen[table] += 1
                     assert row["binding_energy_j"] is not None and row["binding_energy_j"] > 0.0
-                    giant = row["planet_class"] in ("I", "J", "T")
+                    giant = row["roundness_ratio"] is None     # GEN.1398: giant by body type or envelope, never by the class letter; checked against the conditions below
                     assert (row["roundness_ratio"] is None) == giant
                     assert (row["yield_strength_pa"] is None) == giant
             for row in conn.execute("SELECT density_g_cm3, ice_mass_fraction, roundness_ratio, yield_strength_pa, binding_energy_j FROM comets WHERE star_system_id = ?", (saved,)).fetchall():
@@ -114,3 +114,37 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
                 seen["asteroid_belts"] += 1
                 assert row["density_g_cm3"] is not None and 0.0 <= row["ice_mass_fraction"] <= 1.0
     assert all(seen.values()), seen
+
+
+def test_a_giant_is_told_by_its_body_type_and_its_envelope_never_by_the_class_letter():
+    # GEN.1398: the strength pass reads what the classifier reads (`planet_classes.quantities`), not the letter
+    from types import SimpleNamespace
+
+    from planetgen.physics import body_strength, planet_type
+
+    thin = SimpleNamespace(body_type="t", envelope_mass_fraction=planet_type.TERRESTRIAL_MAX_ENVELOPE / 2, planet_class="I")
+    thick = SimpleNamespace(body_type="t", envelope_mass_fraction=planet_type.TERRESTRIAL_MAX_ENVELOPE, planet_class="A")
+    assert not body_strength._is_giant(thin) and body_strength._is_giant(thick)
+    assert body_strength._is_giant(SimpleNamespace(body_type="g", envelope_mass_fraction=None, planet_class="A"))
+
+
+def test_applying_the_class_changes_no_strength_field(mysql_config):
+    from planetgen.physics import planets
+
+    config = SystemConfig()
+    config.PLANETS = True
+    config.MAX_PLANETS = True
+    fields = ("roundness_ratio", "yield_strength_pa", "binding_energy_j")
+    checked = 0
+    for seed in range(1000, 1006):
+        draw.set_run_seed(seed)
+        system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            for body in [planet, *getattr(planet, "moons", [])]:
+                if body.body_type in ("a",):
+                    continue
+                before = {name: getattr(body, name, None) for name in fields}
+                planets.apply_class(body)
+                assert {name: getattr(body, name, None) for name in fields} == before
+                checked += 1
+    assert checked

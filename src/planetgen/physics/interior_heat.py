@@ -295,6 +295,16 @@ def mantle_of(mass_kg, radius_km, rock):
     return Mantle(dry_kg, dry_m, thickness_m, gravity, mantle_ceiling_k(gravity, thickness_m), pressure_gpa)
 
 
+def cmb_pressure_gpa(mass_kg, radius_km, rock):
+    """The pressure at the base of the mantle, GPa, of a body of `mass_kg` and `radius_km` made of `rock` (`core_heat.cmb_pressure_gpa`); 0 for a body with no
+    core or no silicate."""
+    if mass_kg * rock.metal <= 0.0 or mantle_of(mass_kg, radius_km, rock) is None:
+        return 0.0
+    dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
+    metal_kg, silicate_kg = mass_kg * rock.metal, mass_kg * rock.silicate
+    return core_heat.cmb_pressure_gpa(metal_kg, silicate_kg, dry_m * (metal_kg / (metal_kg + silicate_kg)) ** 0.5, dry_m)
+
+
 def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """`qu`, W/m2, at the mantle temperature. A stagnant lid loses heat across the boundary layer's viscous temperature scale `dT = a_rh R
     Tm^2 / Ea` (the lid is cold and rigid, the convection under it only has that drop to work with); a mobile lid's plates carry the
@@ -430,7 +440,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         t, step, released_j, held = 0.0, FIRST_STEP_GY, 0.0, False
         if top_k < cap_k and start_k > top_k:
             released_j += capacity * (start_k - top_k)
-        core = core_heat.Stepper(interior, metal_kg, silicate_kg, core_m, dry_m) if metal_kg > 0.0 else None
+        core = core_heat.Stepper(interior, metal_kg, silicate_kg, core_m, dry_m, rock.core) if metal_kg > 0.0 else None
         if core:
             core.start(temperature)
         core_steps = 0

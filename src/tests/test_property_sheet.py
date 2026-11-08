@@ -515,3 +515,25 @@ def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_c
     ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, 0.4)
     rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
     assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
+
+
+def test_a_nebula_and_a_remnant_sheet_show_their_composition_and_dust_by_species(client, mysql_config):
+    """GEN.1272: the stored composition is on the sheet with its units: the element shares, the gas phases, the dust ratios, the grain species (adding to one), and a remnant's ejecta and swept-up gas."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+
+    config = SystemConfig()
+    for kind, cls, stored_as in (("nebula", Nebula, "nebula"), ("supernova_remnant", SupernovaRemnant, "supernova-remnant")):
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        body = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet").get_json()
+        rows = _rows(body)
+        assert rows["mass_fraction_h"]["stored"] and rows["dust_to_gas"]["stored"] and rows["abundance_o"]["stored"], kind
+        group_of = {row["key"]: group["key"] for group in body["groups"] for row in group["rows"]}
+        assert group_of["mass_fraction_h"] == "composition" and group_of["dust_to_gas"] == "dust", kind
+        grains = [row for key, row in rows.items() if key.startswith("grain_")]
+        assert len(grains) == 9 and all(row["stored"] for row in grains), kind
+        assert sum(row["raw"] for row in grains) == pytest.approx(1.0, abs=1e-6), kind
+        assert all(row["text"] and "None" not in row["text"] for row in rows.values()), kind
+        assert ("ejecta_mass_sol" in rows) == (kind == "supernova_remnant"), kind
+        assert ("swept_mass_fraction_he" in rows) == (kind == "supernova_remnant"), kind

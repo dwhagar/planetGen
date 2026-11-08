@@ -5,8 +5,7 @@ The habitable bodies per system, measured on the current generator (GEN.1245).
     python scripts/measure_habitable_count.py [--systems 4000] [--seed 5000000] [--jobs 4] [--chunk 100] [--out FILE]
 
 Generates `--systems` systems from the seeds `--seed` upward with the default settings (`StarSystem(SystemConfig())`) and counts
-the bodies of a life class in each (`System.habitable_class_count`: planets and moons whose class is in
-`tuning.HABITABLE_PLANET_CLASSES`). It writes the histogram to `src/planetgen/physics/data/habitable_count.json`, which
+the bodies with life on them in each (`System.habitable_class_count`: planets and moons that `habitable_request.carries_life`). It writes the histogram to `src/planetgen/physics/data/habitable_count.json`, which
 `generation.directives` reads for `HABITABLE_COUNT_PMF`: the forced fill of a `habitable` directive (GEN.180) and the "impossible"
 check size themselves from it.
 

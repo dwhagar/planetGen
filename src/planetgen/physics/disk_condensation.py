@@ -7,8 +7,8 @@ What a protoplanetary disk condenses at a temperature, species by species (GEN.1
 `condensate_shares` has three ices (water 182 K, ammonia 131 K, methane 41 K) and puts all the carbon in methane. A disk measured by its
 gas and ice is not like that [R3321, R3322]: about half of the carbon is refractory (organic and graphite-like grains that survive to about
 500 K); the rest is mostly CO and CO2, with a little CH4; most of the nitrogen is N2; sulfur is mostly in troilite with some H2S; and the noble gases
-come out as clathrates in the water ice. This module is the budget and the lines of that disk. The jump of the solid density at the snow line reads it (`snow_line_solid_jump`, GEN.1396); part B wires
-the ice shares of a body to it and part C the C/O of a giant.
+come out as clathrates in the water ice. This module is the budget and the lines of that disk, and nothing draws from it yet (part B wires the
+ice shares of a body to it and part C the C/O of a giant).
 
 1. **The budget.** Per 10^4 hydrogen atoms (the unit of [R3322: Table 1]) the Sun has C 2.88, N 0.68, O 4.90, S 0.13, Ar 0.024, Kr 1.3e-5 and Xe 1.7e-6
    ([R0168: Table 2], photospheric log eps; `tuning.STELLAR_SOLAR_LOG_EPS` and `NOBLE_LOG_EPS`). A star's ratios (its element over its rock-forming
@@ -78,6 +78,10 @@ salts hold a minority ([R3321], citing the Rosetta result second-hand; the split
 SULFUR_AS_H2S = 0.3
 """float: The share of the sulfur that is H2S ice: 67P's H2S is 1.1 percent of the water ([R3835: Table 2]) against 3.5 percent for all the sulfur over the water (S 0.13 over the
 3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DSC6, tier T3, tweak L2.]"""
+
+RECIPE_C_OVER_O_CENTER = 0.57
+"""float: The center of the core of the giant recipe's C/O row `f7` (0.57, the median of LExACoM's 69 retrieved giants, pinned by tests/test_atmosphere_recipes.py); the drawn `f7` over this
+is the spread of a giant's C/O around its disk's value, which the disk alone (one place, one star) does not give (GEN.1363 part C, stand-in DSC7, tier T3, tweak L2)."""
 
 MOLAR_MASS = {"H2O": 18.015, "NH3": 17.031, "NH4": 17.031, "H2S": 34.08, "Xe": 131.29, "Kr": 83.80, "Ar": 39.948, "CO2": 44.009, "CH4": 16.043, "N2": 28.014,
               "CO": 28.010, "C": 12.011}
@@ -197,30 +201,13 @@ def masses_percent(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1
 
 
 @finite_domain()
-def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+def water_share_of_solids(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
     """
-    The carbon over oxygen atoms of the gas and of the solids at `temperature_k`, as `(gas, solid)` ([R3322]: the gas C/O rises outward past the water, CO2 and CO lines). The gas is what
-    is not frozen: the carbon not in grains and not in a frozen CO, CO2 or CH4, over the oxygen not in rock and not in frozen water, CO or CO2. The solids are the rest. `None` for a
-    side that holds no oxygen.
+    Water ice over everything solid (`masses_percent`: rock, the carbon grains and every ice) at `temperature_k`; 0 above the water line. The oxygen that CO and CO2 hold is out of the
+    water, so the Sun's water share is 0.34 against the 0.54 of Lodders's equilibrium with all the spare oxygen as water (`condensate_shares`, before GEN.1363 part B).
     """
-    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
-    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
-    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
-    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
-    carbon_gas = held.carbon - carbon_solid
-    oxygen_gas = held.oxygen - oxygen_solid
-    gas = carbon_gas / oxygen_gas if oxygen_gas > 1e-12 else None
-    solid = carbon_solid / oxygen_solid if oxygen_solid > 1e-12 else None
-    return gas, solid
-
-
-@finite_domain()
-def line_au(species, luminosity_w):
-    """The distance, AU, at which a blackbody in the light of a star of `luminosity_w` is as cold as the line of `species` (`LINES_K`)."""
-    if species not in LINES_K:
-        raise ValueError(f"no line for {species!r}")
-    distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / LINES_K[species] ** 2
-    return _m_to_au(distance_m)
+    masses = masses_percent(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    return masses.get("H2O", 0.0) / sum(masses.values())
 
 
 SNOW_LINE_SOLID_JUMP_K = 0.5 * (LINES_K["H2O"] + LINES_K["NH3"])
@@ -250,3 +237,116 @@ def snow_line_solid_jump(carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble
 
 SNOW_LINE_SOLID_JUMP = snow_line_solid_jump()
 """float: The jump of the solid surface density at the snow line for the Sun's composition (1.97); `formation.mmsn_surface_density_gcm2` multiplies the disk's solids by it beyond a star's own snow line."""
+
+
+@finite_domain()
+def gas_and_solid_c_over_o(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    The carbon over oxygen atoms of the gas and of the solids at `temperature_k`, as `(gas, solid)` ([R3322]: the gas C/O rises outward past the water, CO2 and CO lines). The gas is what
+    is not frozen: the carbon not in grains and not in a frozen CO, CO2 or CH4, over the oxygen not in rock and not in frozen water, CO or CO2. The solids are the rest. `None` for a
+    side that holds no oxygen.
+    """
+    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
+    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
+    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
+    carbon_gas = held.carbon - carbon_solid
+    oxygen_gas = held.oxygen - oxygen_solid
+    gas = carbon_gas / oxygen_gas if oxygen_gas > 1e-12 else None
+    solid = carbon_solid / oxygen_solid if oxygen_solid > 1e-12 else None
+    return gas, solid
+
+
+@finite_domain()
+def line_au(species, luminosity_w):
+    """The distance, AU, at which a blackbody in the light of a star of `luminosity_w` is as cold as the line of `species` (`LINES_K`)."""
+    if species not in LINES_K:
+        raise ValueError(f"no line for {species!r}")
+    distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / LINES_K[species] ** 2
+    return _m_to_au(distance_m)
+
+
+def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble):
+    """`(carbon gas, oxygen gas, carbon solid, oxygen solid)` in atoms per 10^4 hydrogen at `temperature_k` (the rock's oxygen is solid at any temperature below its line)."""
+    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
+    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
+    oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
+    return held.carbon - carbon_solid, held.oxygen - oxygen_solid, carbon_solid, oxygen_solid
+
+
+def _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid):
+    """`sigma` of `envelope_c_over_o`: the multiple of the frozen solids the envelope holds, that makes its carbon and oxygen `enrichment` times the star's."""
+    metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
+    metals_solid = carbon_solid + oxygen_solid
+    return max(enrichment * metals_star - (carbon_gas + oxygen_gas), 0.0) / metals_solid if metals_solid > 0.0 else 0.0
+
+
+@finite_domain()
+def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
+    """
+    The carbon over oxygen atoms of a giant's envelope that formed where the disk was at `temperature_k` and holds `enrichment` times its star's heavy elements (GEN.1363 part C).
+
+    The envelope is the disk's gas plus `sigma` times the solids that froze there, `sigma` being what makes the carbon and oxygen of the envelope `enrichment` times the star's
+    (`sigma` is 1 at enrichment 1: gas and solids in the disk's own proportion, the star's C/O; it is 0, gas alone, when the enrichment is under the gas's share of the star's carbon
+    and oxygen). A cold or inner-disk giant with little enrichment takes the gas C/O of its place ([R3322]: it rises outward past the water line), a heavily enriched one the
+    solids' (oxygen-rich) C/O. `None` when the disk has no oxygen left in the gas and the envelope holds none of the solids' either.
+
+    Args:
+        temperature_k (float): The disk temperature where the giant formed.
+        enrichment (float): The envelope's heavy elements over its star's (`f5` of the giant recipe); zero or more.
+        carbon, oxygen (float): The star's C and O over its rock-forming metals, over the Sun's (`bulk_draw.ice_forming_ratios`).
+    """
+    if not temperature_k > 0.0:
+        raise ValueError("the temperature must be positive")
+    if not enrichment >= 0.0:
+        raise ValueError("the enrichment must be zero or more")
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0)
+    sigma = _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid)
+    oxygen_total = oxygen_gas + sigma * oxygen_solid
+    if oxygen_total <= 1e-12:
+        return None
+    return (carbon_gas + sigma * carbon_solid) / oxygen_total
+
+
+ENRICHED_ELEMENTS = ("N", "S", "Ar", "Kr", "Xe")
+"""tuple: The elements `envelope_enrichments` gives their own factor beyond C and O (GEN.1372). P is not among them: its carriers (phosphides, apatite) condense above 1000 K, so it
+is rock at every formation temperature of a giant and follows the rock-forming metals' scale. Ne stays gas and is not enriched by solids."""
+
+
+@finite_domain()
+def envelope_enrichments(temperature_k, enrichment, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
+    """
+    The nitrogen, sulfur and noble gases of a giant's envelope over its star's, element by element (GEN.1372), for a giant that formed where the disk was at `temperature_k` and holds
+    `enrichment` times its star's heavy elements.
+
+    The envelope is the disk's gas plus `sigma` times what froze there (`envelope_c_over_o` gives `sigma`: the share that makes the carbon and oxygen `enrichment` times the star's),
+    so an element's factor is `(gas + sigma * solid) / (gas + solid)` of its atoms: one for an element that stays gas (the noble gases of a giant that formed warmer than their
+    lines; its Jupiter-like 3 times solar needs the cold trapping or the pebble drift this model does not have), `sigma` for one that froze whole as an ice, the rock's own scale `enrichment` for the troilite of the sulfur, and
+    between for the nitrogen (N2 gas, the ammonia and the salts frozen below the ammonia line) and the rest of the sulfur (H2S gas above its line).
+
+    Args:
+        temperature_k (float): The disk temperature where the giant formed.
+        enrichment (float): The envelope's heavy elements over its star's; zero or more.
+        carbon, oxygen, nitrogen, sulfur, noble (float): The star's ratios over the rock-forming metals, over the Sun's (`inventory`); `noble` is the argon's, taken for krypton and xenon.
+
+    Returns:
+        dict: `ENRICHED_ELEMENTS` symbol to the envelope's atoms per hydrogen over the star's.
+    """
+    if not temperature_k > 0.0:
+        raise ValueError("the temperature must be positive")
+    if not enrichment >= 0.0:
+        raise ValueError("the enrichment must be zero or more")
+    held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
+    frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
+    sigma = _planetesimal_share(enrichment, *_gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble))
+    nitrogen_total = 2.0 * held.moles["N2"] + held.moles["NH3"] + ammonium_salts(carbon, oxygen, nitrogen, sulfur, noble)
+    nitrogen_solid = 2.0 * frozen.get("N2", 0.0) + frozen.get("NH3", 0.0) + frozen.get("NH4", 0.0)
+    sulfur_total = solar_per_1e4_h("S") * sulfur
+    sulfur_ice = frozen.get("H2S", 0.0)
+    troilite = sulfur_total * (1.0 - SULFUR_AS_H2S)
+    solids = {"N": (nitrogen_total, nitrogen_solid), "Ar": (held.moles["Ar"], frozen.get("Ar", 0.0)), "Kr": (held.moles["Kr"], frozen.get("Kr", 0.0)),
+              "Xe": (held.moles["Xe"], frozen.get("Xe", 0.0))}
+    factors = {symbol: (total - solid + sigma * solid) / total for symbol, (total, solid) in solids.items()}
+    factors["S"] = (sulfur_total - troilite - sulfur_ice + enrichment * troilite + sigma * sulfur_ice) / sulfur_total      # the troilite is rock: the rock's scale, not the ices'
+    return factors

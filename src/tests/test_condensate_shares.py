@@ -12,17 +12,6 @@ SUN_W = physical_constants.SOLAR_LUMINOSITY
 
 def test_nothing_but_rock_is_whole_above_the_water_line():
     assert shares.condensed_masses(300.0) == {"rock": 0.489}
-    assert shares.water_share_of_solids(300.0) == 0.0
-
-
-def test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints():
-    """[R2726: Table 11]: rock 0.489, water 0.571, ammonia 0.097, methane 0.330 (water over rock 1.17, all ices over rock 2.04)."""
-    assert shares.water_share_of_solids(150.0) == pytest.approx(0.571 / (0.489 + 0.571))
-    assert shares.water_share_of_solids(100.0) == pytest.approx(0.571 / (0.489 + 0.571 + 0.097))
-    assert shares.water_share_of_solids(30.0) == pytest.approx(0.571 / 1.487)
-    assert shares.condensed_masses(150.0)["H2O"] / shares.condensed_masses(150.0)["rock"] == pytest.approx(1.17, abs=0.005)
-    ices_30 = sum(mass for name, mass in shares.condensed_masses(30.0).items() if name != "rock")
-    assert ices_30 / shares.condensed_masses(30.0)["rock"] == pytest.approx(0.998 / 0.489, abs=0.005)
 
 
 def test_a_line_belongs_to_the_colder_side():
@@ -36,7 +25,7 @@ def test_oxygen_after_the_rock_makes_the_water():
     assert shares.condensed_masses(150.0, oxygen=shares.ROCK_OXYGEN_SHARE)["H2O"] == 0.0
     assert shares.condensed_masses(150.0, oxygen=0.0)["H2O"] == 0.0
     assert shares.condensed_masses(150.0, oxygen=2.0)["H2O"] == pytest.approx(0.571 * (2.0 - 0.2275) / 0.7725)
-    assert shares.water_share_of_solids(150.0, oxygen=1.5) > shares.water_share_of_solids(150.0) > shares.water_share_of_solids(150.0, oxygen=0.6)
+    assert shares.condensed_masses(150.0, oxygen=1.5)["H2O"] > shares.condensed_masses(150.0)["H2O"] > shares.condensed_masses(150.0, oxygen=0.6)["H2O"]
 
 
 def test_ammonia_and_methane_follow_their_own_element():
@@ -62,19 +51,6 @@ def test_the_water_line_of_the_sun_is_where_a_blackbody_is_182_k():
     assert shares.disk_temperature_k(line, SUN_W) == pytest.approx(182.0)
     assert shares.ice_line_au(SUN_W, "CH4") > shares.ice_line_au(SUN_W, "NH3") > line
     assert shares.ice_line_au(4.0 * SUN_W) == pytest.approx(2.0 * line)
-
-
-def test_the_share_by_distance_is_zero_inside_the_line_and_never_rises_outward():
-    line = shares.ice_line_au(SUN_W)
-
-    def share_at(distance_au):
-        return shares.water_share_of_solids(shares.disk_temperature_k(distance_au, SUN_W))
-
-    assert share_at(0.9 * line) == 0.0
-    outward = [share_at(line * 1.05 ** step) for step in range(1, 200)]
-    assert outward[0] == pytest.approx(0.539, abs=0.001)
-    assert all(a >= b for a, b in zip(outward, outward[1:]))
-    assert outward[-1] == pytest.approx(0.571 / 1.487, abs=0.001)
 
 
 def test_an_unknown_ice_is_refused():

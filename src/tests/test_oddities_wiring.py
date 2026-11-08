@@ -515,8 +515,9 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
-    other = _planet_at("G2V", 1.2, "w20-G2V-3", force=("W20",))
-    first = _planet_at("G2V", 1.2, "w20-G2V-3", dial=0.0)
+    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374), so the seed that had one was replaced (7: 47 K and 0.29 apart)
+    other = _planet_at("G2V", 1.2, "w20-G2V-7", force=("W20",))
+    first = _planet_at("G2V", 1.2, "w20-G2V-7", dial=0.0)
     assert "W20" in other.oddities and first.oddities == ()
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
@@ -602,3 +603,19 @@ def test_the_dial_is_an_option_of_the_world_generation_group():
 
     field = settings.Generation.model_fields["weirdness_dial"]
     assert field.json_schema_extra["x-group"] == "generation" and field.default == 1.0
+
+
+def test_a_forced_eccentricity_is_held_where_the_neighbours_keep_their_spacing():
+    """The resonance raises an eccentricity after `space_orbits` placed the orbits, so the cap keeps the mutual Hill spacing of `clearance_ledger.planet_exclusion` (found with GEN.1365's draws)."""
+    from planetgen.physics import clearance_ledger, resonant_chains
+
+    host = 3.2e29
+    planets = [types.SimpleNamespace(distance=distance, eccentricity=e, mass=1.5e24) for distance, e in ((0.0266, 0.0289), (0.03179, 0.0), (0.0385, 0.0025))]
+    held = resonant_chains._clear_of_neighbours(planets, [0.0, 0.0119, 0.0], host)
+    assert all(0.0 <= value <= 0.0119 for value in held)
+    assert held[1] < 0.0119       # the middle planet has no room for the whole of it (a system the generator drew)
+    for inner, outer, e_in, e_out in zip(planets, planets[1:], held, held[1:]):
+        kappa = clearance_ledger.spacing_kappa(inner.mass, outer.mass, host)
+        assert outer.distance * (1.0 - e_out - kappa / 2.0) >= inner.distance * (1.0 + e_in + kappa / 2.0) - 1e-12
+    far = [types.SimpleNamespace(distance=distance, eccentricity=0.0, mass=1.5e24) for distance in (0.5, 1.0, 2.0)]
+    assert resonant_chains._clear_of_neighbours(far, [0.01, 0.02, 0.03], host) == [0.01, 0.02, 0.03]    # a wide gap changes nothing

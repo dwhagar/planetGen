@@ -305,8 +305,14 @@ The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the at
 | Cl | 35.450 | - | 21.85 | 22.23 | no phase data; free energy in species_thermo.py | COMPUTED |
 | F | 18.998 | - | 22.74 | 21.27 | no phase data; free energy in species_thermo.py | COMPUTED |
 | F2 | 37.996 | - | 31.34 | 37.06 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Li | 6.940 | - | 20.79 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
+| LiH | 7.948 | - | 29.75 | 36.07 | no phase data; free energy in species_thermo.py | COMPUTED |
+| LiOH | 23.947 | - | 46.08 | 54.02 | no phase data; free energy in species_thermo.py | COMPUTED |
+| LiCl | 42.390 | - | 33.29 | 37.53 | no phase data; free energy in species_thermo.py | COMPUTED |
 
 The last three rows (Cl, F, F2; GEN.1337) are the halogen atoms and fluorine that a hot outgassed gas holds once its hydrogen halides dissociate: `physics/gas_equilibrium.py` already carries their free energies, and a drawn mixture whose unlisted share was above the 1e-3 limit of `mixture_base.finish` failed with a MixtureError (about 1 in 240 G2V systems) until the table listed them. Cp is the NASA Glenn fit, as above.
+
+The four lithium rows (Li, LiH, LiOH, LiCl; GEN.1374) are the lithium gases of a brown dwarf's air: atomic Li down to 1520 K at 1 bar, then LiCl, with LiOH and LiH beside them ([R2731] section 1.5.5). Cp is the NASA Glenn fit, as above. The FeH and CrH rows above are no longer "NOT REACHED" for their free energy: `species_thermo` holds both since GEN.1374, made from atoms and the equilibrium constants of [R5162].
 
 ## 6. Saturation vapour pressure correlations
 

@@ -55,7 +55,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import birth_radioisotopes, bulk_composition, elements, rprocess_enrichment
+from planetgen.physics import birth_radioisotopes, bulk_composition, core_composition, elements, rprocess_enrichment
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.util import draw
@@ -217,12 +217,14 @@ class Rock:
         metal (float): The core's share of the body's mass.
         wet (float): The share that is water, ice or envelope (the rock's own radius is smaller than the body's by it).
         aluminium (float): Aluminium in the bulk silicate, mass fraction (26Al's parent).
+        core (core_composition.Mix): What the metal is made of (GEN.1364); the Earth's where the body stores no split.
     """
 
     silicate: float
     metal: float
     wet: float
     aluminium: float
+    core: core_composition.Mix = core_composition.EARTH
 
 
 def rock_of(body):
@@ -236,7 +238,7 @@ def rock_of(body):
     aluminium = BULK_SILICATE_EARTH_AL_MASS_FRACTION
     if fractions.rock_al2o3 is not None:
         aluminium *= fractions.rock_al2o3 / BULK_SILICATE_EARTH_AL2O3_FRACTION
-    return Rock(fractions.rock, fractions.metal, fractions.water + fractions.ice + fractions.envelope, aluminium)
+    return Rock(fractions.rock, fractions.metal, fractions.water + fractions.ice + fractions.envelope, aluminium, core_composition.mix_of(body))
 
 
 # --- The draws --------------------------------------------------------------------------------------------------------------

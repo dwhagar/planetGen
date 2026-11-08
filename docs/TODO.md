@@ -9643,27 +9643,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: unowned until GEN.1162 merges (Lane 22 proposed).
   Prerequisites: none.
 
-- [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: reword the age_needs reducing-air tier label ('young, hot or
-  still-outgassing') and any 'cools' or 'young' phrasing in the
-  generated class pages, and remove 'Checked after' and 'leftover'
-  wording that makes M the endpoint of an order. A class is the world's
-  state now, not a stage. Docs and page text, but the class pages are
-  generated from the rules: if the generated pages are part of the
-  golden, fold this into step 3's epoch, else it is lock-free. Where we
-  think it belongs (best guess, can move): same lane as step 1.
-  Covered by GEN.1207 (Lane 14, as the lane reported) (11:59 AM EST on
-  2026-11-05): The wording change (age and stage words dropped, Checked
-  after, leftover) is already in the GEN.1207 branch
-  (claude/core4-gen1207, train 12). No separate build. Retires when
-  GEN.1207 merges.
-  Prerequisites: none.
-
 - [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
   Found by Sources 2 (as the lane reported, 12:15 PM EDT 2026-10-31)
   while starting MAP.283, filed by the TODO thread as a wiring gap
@@ -10182,70 +10161,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anywhere and takes load off 8.2.
   Decided (Boss, 10:55 AM EST on 2026-11-07, option 1 with a condition): after production starts, and it is an admin setting that is off by default and never automatic.
   Prerequisites: none. Related: PERF.149.
-
-- [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
-  Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
-  generation run on hal that began about 2:34 PM EDT failed after 11104
-  s with an out-of-memory error (Boss confirmed). PERF.220 (#4560,
-  #4565) caps only the four scatter kinds (`MEMORY_HEAVY_KINDS` in
-  `src/planetgen/queue/workers.py`: scatter-mass, scatter-luminosity,
-  scatter-backfill, scatter-band) at 900 MB per worker and half the
-  host; every other stage uses the ordinary 300 MB per worker guess
-  (`WORKER_MEMORY_MB`) and 60 percent of the host (`HOST_MEMORY_SHARE`),
-  which nobody has measured. A run that dies three hours in is more
-  likely a later stage (bright-star units, system fill, planets,
-  phenomena) than a scatter. Do: (1) read the failed run's log for the
-  last stage line and the host's kernel log for the process the killer
-  chose and its resident size, and say which stage it was; (2) measure
-  the peak resident memory of one worker of every stage kind on a
-  populated database (a run with a memory sampler, or
-  `resource.getrusage` at the end of each task, written to the stage's
-  progress line); (3) put each stage's measured peak in
-  `MEMORY_HEAVY_KINDS` (renamed for what it is) with a margin, and have
-  `stage_worker_cap` apply to every stage, so a stage that grows past
-  its guess is slowed, not killed; (4) print the measured peak per
-  worker in the run report so the next growth shows before it kills.
-  Done: a test that every command kind has a memory figure or says it is
-  ordinary on purpose, and a measured run on a populated database whose
-  report lists the peak per stage and finishes under the cap. Lock-free,
-  generation output unchanged (the work seed does not depend on the
-  worker count). Owner: Star 2 (proposed by Lane 02, 6:03 PM EDT
-  2026-10-31; it holds PERF.224 and the scatter worker sizing). Version 8.1.
-  Boss (2026-10-09): Boss, 6:07 PM and 6:09 PM EDT 2026-10-31 (as the
-  coordinator relayed): "stop telling me to modify the service drop in,
-  I'm not doing that, period, we MUST solve the memory problem another
-  way" and "stop telling me to run this inside apache's memory pool as
-  well, again we're going to solve this by fixing the memory usage
-  intelligently, not by just adding bandaids." So this item solves it in
-  the program: no systemd drop-ins, no Apache memory limit, no redo log
-  or buffer pool prompts from update.sh (PERF.222 and PERF.223 prompts
-  are removed, #4632). Total memory stays under the host through
-  measured per-stage worker caps and anything else that actually lowers
-  the use (smaller tables per worker, streaming rows, releasing a
-  stage's data before the next, fewer workers when the free memory is
-  low at start). Nothing in the fix may ask the user to change an
-  operating system setting.
-  Progress (2026-10-31 8:10 PM EDT): #4637 (first cut) and #4652 merged.
-  Every stage with units now has a figure, measured as worker plus horse
-  together (Pss): sector stages 2,600 MB, every other stage 1,700 MB, so
-  a 16 GB host runs 3 sector workers or 4 of the others where it ran 36.
-  The cause is that every bulk worker holds about 1.4 GB of sampling
-  tables and datasets from the moment it starts. Still open here: leaner
-  workers for the stages that need no tables (would allow more workers),
-  and peaks for scatter-phenomena and the nebula draw. The deadlock seen
-  in rescore-habitability is PERF.228.
-  Part 3 merged (#4666) (2026-10-31 8:48 PM EDT): Workers no longer
-  build the star tables at start: only units that draw stars build them,
-  and a worker holding them restarts itself before a unit that needs
-  none. Measured worker plus horse: link 601 MB (was 1,564) and 2.4
-  times faster, settle 588, re-score 552, map-luminosity 540. Figures:
-  lean stages 700 MB, scatters 1,700, sector stages 2,600;
-  warm-cluster-field sits at 1,700 until PERF.225 is measured. Still
-  open: peaks for scatter-phenomena and the nebula draw need a
-  full-galaxy run (they use the lean figure; the run report warns if a
-  stage goes over), and the 1,700 MB scatter and 2,600 MB sector workers
-  can still be made leaner.
-  Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
   REWORKED: folded into GEN.1397. The 12 s versus 3 s cost of a barred system is the same redraw storm; GEN.1397 removes the redraw on the class letter. Done for this item: a barred system at or under about 4 s after GEN.1397 (measure and put the time in the performance guard). Close when GEN.1397 merges.
@@ -12781,6 +12696,7 @@ clears each one.
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
+  Owner (TODO, 9:30 AM EST on 2026-11-08, Boss asked for idle lanes to take non-lock items): Lane 14; lock-free, one item at a time on its own branch.
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
   merging GEN.841 and TEST.410 (#3405). The exobase loop is not the
   cause (only a NaN input made it run unbounded, now an error); the long
@@ -12952,7 +12868,8 @@ clears each one.
   Prerequisites: none. Related: MAP.401.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
-  SPLIT (Boss wants the oxygen fixes in train 18; Lane 21's read at 12:35 AM EST on 2026-11-08, report reports/gen1309-oxygen-census-after-train14-2026-11-07.md): of 3,544 bodies only 10 have a living sea and 16 kPa of oxygen. They miss class M because (a) CO2 over the 1 kPa limit, 8 of 10 (1.5 to 17 kPa, no CO2 draw-down is modelled for an oxygen world), (b) thin near-pure-oxygen air under 50 kPa, 4 of 10 (the steady-oxygen law adds oxygen on top of the air that exists), (c) gravity over 2 g, 4 of 13 (mass distribution, not oxygen). Lane 21 corrected itself at 12:36 AM EST: a thin-air split has no clean physics (Earth's oxygen is limited by buried carbon in rock, not by air CO2) and would not raise the class M count, since capping the oxygen share only makes low-oxygen thin airs; so no share cap is built. The real lever is the CO2. Part 1 and part 2 are now one lock item, owner Lane 21 with Lane 15 measuring first, aimed at train 18 if the measure and a physical law are ready before the freeze, otherwise train 19: the CO2 draw-down (weathering and burial holding an oxygenic world's CO2 near the carbonate balance, using the law already in surface_pressure.py); Lane 15 measures how CO2 reaches 5 to 17 kPa and reports before any law is chosen. Even a perfect fix gives only about 5 to 8 more class M per 3,544 bodies; the rest of the gap is that a request for a habitable world mostly goes unmet because few temperate liquid-water worlds exist (GEN.909 diagnosed this as cold by the physics, no code change; GEN.853 is a different, finished item about civilizations, so it is not part of this).
+  Boss decided at 10:21 AM EST on 2026-11-08 (class M rarity report, lever 9): keep the carbon dioxide limit of classes M, H, O, P and R at 1 kPa; class L's edge is unchanged. Do not widen the window to raise M; the rarity comes from ocean cover, temperature and the oxygen chain.
+  SPLIT (Boss wants the oxygen fixes in train 18; Lane 21's read at 12:35 AM EST on 2026-11-08, report reports/gen1309-oxygen-census-after-train14-2026-11-07.md): of 3,544 bodies only 10 have a living sea and 16 kPa of oxygen. They miss class M because (a) CO2 over the 1 kPa limit, 8 of 10 (1.5 to 17 kPa, no CO2 draw-down is modelled for an oxygen world), (b) thin near-pure-oxygen air under 50 kPa, 4 of 10 (the steady-oxygen law adds oxygen on top of the air that exists), (c) gravity over 2 g, 4 of 13 (mass distribution, not oxygen). Lane 21 corrected itself at 12:36 AM EST: a thin-air split has no clean physics (Earth's oxygen is limited by buried carbon in rock, not by air CO2) and would not raise the class M count, since capping the oxygen share only makes low-oxygen thin airs; so no share cap is built. The real lever is the CO2. Lane 15's measure (reports/gen1309-co2-measure-2026-11-08.md) and Lane 21's decision at 2:55 AM EST on 2026-11-08: no CO2 draw-down law for oxygen worlds, because all 19 oxygen sea worlds have no land (16 seafloor, 3 sealed), so their CO2 is what the published waterworld law gives, and where land exists the weathering law already gives under 1 kPa (12 of 13); class M is rare mostly because 93 percent of sea worlds are global oceans and 10 of 15 oxygen worlds are under 275 K (the water inventory, GEN.1339 and GEN.1342). What is fixable: the air is not re-balanced after the oxygen rise burns the methane (final temperature 7 to 67 K below the solve temperature in 8 of 9 worlds; CO2 up by the burnt carbon). So GEN.1309 is now two lock steps, owner Lane 21, train 19: step A re-solves CO2 at the final temperature after the rise (store the sink inputs on the body; about a day; probably +1 or 2 class M per 3,500 bodies), then step B caps organic burial by carbon supply with recycling (medium; also trims the 35.5 kPa pile-up). Superseded plan: the CO2 draw-down (weathering and burial holding an oxygenic world's CO2 near the carbonate balance, using the law already in surface_pressure.py); Lane 15 measures how CO2 reaches 5 to 17 kPa and reports before any law is chosen. Even a perfect fix gives only about 5 to 8 more class M per 3,544 bodies; the rest of the gap is that a request for a habitable world mostly goes unmet because few temperate liquid-water worlds exist (GEN.909 diagnosed this as cold by the physics, no code change; GEN.853 is a different, finished item about civilizations, so it is not part of this).
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
   (1437-world sample: no world reaches even a partial match with M, H, L,
@@ -12986,7 +12903,7 @@ clears each one.
   Progress (6:35 AM EST on 2026-11-07, as Lane 21 reported): after train 14 only 13 of 1,692 natural bodies hold 16 kPa or more oxygen; the causes are filed as GEN.1339 (sea worlds are almost all global oceans, which leaves CO2 high) and GEN.1340 (thin air keeps its nitrogen). GEN.854 as worded is met and retired; this item stays open until those two land and the census is re-run.
 
 - [ ] **GEN.1311 Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves**
-  Boss held the rest of the fudge chain (GEN.1312 to GEN.1315) at 12:42 AM EST on 2026-11-08 until the oxygen and CO2 fix (GEN.1309) lands; this harness part does not depend on it and may proceed.
+  Boss held the rest of the fudge chain (GEN.1312 to GEN.1315) at 12:42 AM EST on 2026-11-08 and released it at 8:53 AM EST on 2026-11-08: the chain is built now, aimed at Train 19, with GEN.1309 in parallel. Part 1 is the first step; nothing exists yet (no scripts/stand_in_sensitivity.py).
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). scripts/stand_in_sensitivity.py parses the numeric ranges from the
   stand-in registry (GEN.725) for the in-scope rows only (the 355 rows that
   feed a class quantity: mass law, architecture, radius valley, envelope
@@ -13007,7 +12924,7 @@ clears each one.
   Prerequisites: none. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1312 Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix**
-  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
+  RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Screening pass first (low and high only, 5 systems) to drop the rows that
   move nothing, then the full pass on the rest, on the same bodies as the
   matrix report. Hours of a lane machine with the datasets; TODO picks the
@@ -13020,7 +12937,7 @@ clears each one.
   Update (coordinator, 6:36 PM EST on 2026-11-06): the sweep runs in its own thread ("Run fudge cap simulation sweep"), on a lane machine with MySQL, Redis and the datasets (scripts/lane_up.sh brings them up after a restart). The sweep is rerun after GEN.1309 and GEN.1306 parts 2 and 3 merge, to revisit the spread.
 
 - [ ] **GEN.1313 Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths**
-  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
+  RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Per quantity: width = root sum of squares of the column of the matrix; a
   T1 to T3 range is used as printed, a T4 to T8 range widened by 1.5 and a
   T9 range by 2 (stand-ins with registry rows of their own); shoulder = 2
@@ -13036,7 +12953,8 @@ clears each one.
   Prerequisites: GEN.1312. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1314 Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored**
-  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move.
+  Boss decided at 10:21 AM EST on 2026-11-08 (class M rarity report, lever 9): keep the carbon dioxide limit of classes M, H, O, P and R at 1 kPa; class L's edge is unchanged. Do not widen the window to raise M; the rarity comes from ocean cover, temperature and the oxygen chain.
+  RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The linear shoulder stays (no new code shape), its width per quantity
   comes from the table. The CF1 to CF7 and DM1 to DM8 hand shoulders are
   replaced, not kept beside it (no backward-compat shims). Generator epoch,
@@ -13048,7 +12966,7 @@ clears each one.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
 - [ ] **GEN.1315 Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters)**
-  HOLD (Boss, 12:42 AM EST on 2026-11-08): wait for the oxygen and CO2 fix (GEN.1309) before this step, since it changes the class spread and may have side effects in the generation stream; running it now would build on a spread that is about to move. Also rework when it starts: the barred-world loop it mentions is deleted by GEN.1397 (the finished body is judged and dropped), and habitable counts no longer use a letter list.
+  RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away. Also rework when it starts: the barred-world loop it mentions is deleted by GEN.1397 (the finished body is judged and dropped), and habitable counts no longer use a letter list.
   REWORKED: the barred-world loop it reads is rebuilt by GEN.1397 (the bar asks whether any life class scores above zero, no letter list). This item reads that new bar; it follows GEN.1397 in the same train or after it, and the habitable count by threshold uses the stored life class.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
   the barred-world loop and the +habitable_world request read the stored
@@ -13118,40 +13036,6 @@ clears each one.
   Boss (2:21 PM EST on 2026-11-07, as the coordinator relayed), while answering GEN.229, where a re-roll leaves systems in admin-edited sectors alone and names them: "in the admin console for 8.2 lets have an option to look at and reset manually edited items that were generated". Do: an admin page that lists every generated item (sector, system, star, planet, moon, phenomenon) an admin has edited by hand, from the edit record the edit tools keep, showing what was edited and the generated value it replaced, with a reset for one item or a chosen set that restores the generated value by drawing it again from the item's own seed (the way the GEN.229 re-roll does) and records who reset it and when. A reset never touches facilities or a placed bright star without naming them first. Done: the page lists edited items with their original and edited values, a reset restores the generated value and clears the edit mark, a test covers a reset of one item and of a set, and the edit record keeps the history. Lock-free. Goal issue #2350. Version 8.2. Owner: none yet (a waiting lane takes it when 8.2 opens, confirmed with TODO). Filed by the TODO thread.
   Prerequisites: none (runs after GEN.229, merged). Related: GEN.229, ADM.43.
 
-- [ ] **GEN.1363 Disc condensation with CO, CO2, N2, H2S, Ar/Kr/Xe clathrate and ammonium salts, and the carbon split between refractory, CO, CO2 and CH4, feeding ice shares and giant C/O**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N4 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size L; lock. Target: wave 2, train 19 (after GEN.1022 lands its
-  brackets). The sequence has three ices and puts all carbon in methane;
-  CO, CO2, N2, H2S, the noble-gas clathrates and ammonium salts are
-  absent from the disc budget, which drives ice-rich body composition
-  and giant C/O. Do: add the snow lines (CO about 20 K, N2 about 20 K,
-  CH4 30 K, Ar/Kr/Xe clathrate 48/53/69 K, CO2 47 K or 70 K, NH3 131 K,
-  H2O 135 to 182 K, H2S about 50 to 90 K, H2S recalled), split carbon
-  (about half refractory), keep an O and C budget per H, store the
-  species columns GEN.1359 prepares, and feed the ice shares and the
-  giants' C/O. Data:
-  /mnt/project-files/research/real-material-data/ice_and_snowline_temperatures.csv;
-  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
-  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 14.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1022. Related: GEN.471.
-
 - [ ] **GEN.1364 Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13183,124 +13067,6 @@ clears each one.
   from the Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1361. Related: GEN.993, GEN.820, GEN.1048, GEN.842.
 
-- [ ] **GEN.1365 Mantle water and carbon reservoirs: hydrous wadsleyite and ringwoodite, brucite, phase A, carbonates, and diamond or graphite by redox**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N7 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 2, train 19. The mantle water store is not
-  modelled (Earth's mantle holds about 974 ppm water, about 2.8 oceans).
-  Do: store the reservoirs with the water capacity of olivine,
-  wadsleyite, ringwoodite and bridgmanite (recalled) and feed
-  outgassing. Data:
-  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
-  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 23.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1362. Related: GEN.725.
-
-- [ ] **GEN.1366 Evaporite and salt sequence from the GEN.1319 brine: calcite, gypsum and anhydrite, halite, sylvite, carnallite, epsomite, kieserite, perchlorate and natrite, replacing the placeholder recipe**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N9 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 2, train 19. GEN.1319 made the ocean
-  chemistry real but the solids it precipitates are a placeholder. Do:
-  precipitate the 20 salt and carbonate solids in evaporation order from
-  the brine, with Mars, Ceres and Europa settings (sequence and settings
-  recalled). Data:
-  /mnt/project-files/research/real-material-data/minerals_missing_from_table.csv;
-  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
-  section 2. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 15.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1357. Related: GEN.1319, GEN.471.
-
-- [ ] **GEN.1367 Phosphorus budget: stellar P to crustal apatite, schreibersite and merrillite to ocean phosphate by weathering and redox, replacing the high, limited and starved label**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N18 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 3, train 20. Phosphorus is a label drawn
-  from the ocean kind and life scoring reads it. The core takes 94
-  percent of Earth's phosphorus and Mars' mantle is nearly ten times
-  richer in P, so a reduced planet's ocean is starved by construction.
-  Do: carry P from the star through the core partition and the crust's
-  P2O5 to apatite, and through the salts and weathering to the ocean
-  phosphate the life scores read (the crust, ocean and kinetic links are
-  recalled). Data:
-  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
-  section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 21.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1366. Related: GEN.1319.
-
-- [ ] **GEN.1368 Accessory minerals in the asteroid taxon mixes: chromite, spinel, phosphates, CAI phases, Fe-Ni sulfides, carbonates, sulfates, phyllosilicates, nanodiamond and presolar grains, weights from the bulk**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N11 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 3, train 20. The taxon mixes carry about 15
-  major minerals and the 84-name vocabulary is never drawn. Do: add the
-  accessory phases per chondrite group and differentiated class with
-  weights taken from the drawn bulk; GEN.473, GEN.475 and GEN.477 are
-  open and overlap, so confirm with their owner before taking. Data:
-  /mnt/project-files/research/real-material-data/chondrite_groups_modal_and_minerals.csv,
-  differentiated_meteorite_minerals.csv;
-  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
-  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 22.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1362. Related: GEN.475, GEN.477, GEN.473.
-
 - [ ] **GEN.1369 Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13328,6 +13094,181 @@ clears each one.
   epoch; tests are scripts/test.py changed --resume; no fixed content
   from the Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1368. Related: GEN.477.
+
+- [ ] **GEN.1422 Superionic water and ammonia boundary table: the deep-layer boundary of ice giants and water worlds from the observed superionic phases, replacing the weird-worlds G4 text line**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report rows 2 and 10. Do: a data table of the superionic water and ammonia boundary (pressure, temperature, phase) with sources by registry number; the interior and layer models of ice giants and water worlds read it for the deep-layer boundary (built code needs a caller); stand-ins in GEN.725 with tier, tweak level and the new evidence status. Done: a census shows the boundary layer on ice giants and deep water worlds, and the old G4 text line is gone. Lock item (changes interior layers). Size M.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06. Prerequisites: none. Related: GEN.471, GEN.1373.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1423 Silicon carbide (moissanite) and cohenite (Fe3C) mineral rows for carbon-rich worlds**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report row 15. Do: two rows in the materials table through scripts/materials_data.py and build_materials_table.py (source, state, density, formula, family carbide), drawn on worlds whose bulk C/O says they form, with the mixture and ore laws reading them (built code needs a caller). Moissanite may already exist as a row (family carbide); check first and extend only what is missing. Done: both minerals appear on carbon-rich worlds in a census sample and never on oxygen-rich ones. Lock item if drawn output changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22. Prerequisites: none. Related: GEN.1370.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1425 Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research, and his addition about Venus compounds): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus chemistry set, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md (sections 6, 7, 9 and 10). Papers cited from memory are opened before they enter the registry. Boss's addition (11:55 AM EST on 2026-11-08): add the theoretical Venus chemicals that are reasonably or near certain, or well supported by physics, as stand-in registered values that the evolution chain can add to any planet. Report section 10: V1 sulfuric acid droplets, V2 SO2, V3 OCS, CO, HCl, HF, V4 SO and S2O, V5 sulfur aerosol, V6 FeCl3, V7 ferric sulfates, V8 PAHs with iron (off by default), V9 sulfur-chlorine products (off by default), V10 the unidentified UV absorber as a measured curve (band centre 0.34 micron, width 0.14 micron, strength from the acid cloud depth times SO2, tier Unverified from needed output, always with V1); croconic acid and microbial pigments are not registered. Do: GEN.725 rows with tier, tweak level and the evidence status; the six gates of report section 10.2 in order (oxidising sulfur-supplied atmosphere; sulfuric acid cloud using GEN.1424; reduced sulfur from FUV and CO or OCS; chlorine from the star's [Cl/Fe] and volcanic HCl; iron and carbon supply from dust and comet influx; colour output replacing, not adding to, V10 if V8 or V9 are on); floors as stand-ins at L3 until a sweep sets them. Open the cited papers before entry. Done: a hot volcanic CO2 world with a young active star gets V1 to V5, a cold sulfur-poor world gets none, and V6 to V9 appear only with their supplies, shown on a census sample; Venus is the only calibration point and the report says so. Lock item. The tiered Venus and cloud stand-in values are in /mnt/project-files/reports/venus-acid-cloud-standins-2026-11-08.md (sections 4 and 8, rule N6); read them with report section 10 of the unseen-compounds report. PART A MERGED (Lane 15, PR 5732, 12:45 PM EST on 2026-11-08, lock-free): the set V1 to V10 as registered stand-ins and the six gates as a function, nothing stored, no epoch. PART B REMAINS and is the lock item with an epoch: (a) the cloud step (sulfuric_cloud and cloud_infrared) takes its base and acid strength from the GEN.1424 window instead of the fixed 367 K and the weight percent line in acid_medium, which changes stored cloud depth and acid-medium life results; (b) the V10 band goes into the sky colour; (c) a per-planet cosmic dust supply for V8. The wiring register lines point at this item, so it stays open until part B merges.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 (after GEN.1424). Prerequisites: GEN.1424. Related: GEN.1424, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1426 Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report rows 9 and 11. Do: sourced pressure-density steps for the lower mantle of massive rocky planets, used by the interior and radius code (built code needs a caller); stand-ins in GEN.725 with evidence status. Done: the radius of a 5 to 10 Earth mass rocky planet moves with a stated reason and the new radii are checked against the published mass-radius curves. Lock item (changes radii). Size M.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 21. Prerequisites: none. Related: GEN.1364, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1428 GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus absorber curve, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md. Papers cited from memory are opened before they enter the registry. Report section 6 card 2. Do: one new column in the stand-in registry (scripts/build_stand_in_values.py and docs/design/research/stand-in-values.md), a value for each of the 316 rows (observed in a planet or lab only where the source says so), a test that no row is blank, and a one-line note where tier is shown. Also list as ordinary observed rows (not hypotheticals): BC8 carbon, superionic ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, ambient cg-N. Done: the column is filled and the guard test passes; lock-free. Every row of the tiered Venus and acid cloud values in /mnt/project-files/reports/venus-acid-cloud-standins-2026-11-08.md already has a tier and a tweak level; use them as the first rows with an evidence status.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 12 (after TEST.700). Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1429 GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report**
+  Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research, and his addition about Venus compounds): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus chemistry set, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md (sections 6, 7, 9 and 10). Papers cited from memory are opened before they enter the registry. Do: a WATCH line in GEN.725 (docs/design/research/stand-in-values.md source, scripts/build_stand_in_values.py) for report rows 3, 5, 8, 12 to 14, 16, 18 to 22 and 25 to 30, each marked predicted only or disputed with its existence and property percentages and the reason it changes no number now, so a later finding can promote it. Nothing is built or drawn. Done: the lines exist and the guard tests pass. Lock-free, docs and registry only; uses the status column of GEN.1428.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 12 (with GEN.1428). Prerequisites: GEN.1428. Related: GEN.725, GEN.1428.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1430 Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key)**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: physics/data/flavor_tree.json read like planet_class_fit.json and oddities.json, one tree per scope with a gate on each node (quantity, min, max, lt, equals, in, any), gates inherited, node tags and weight multipliers, line ids permanent with retired ids kept, slot values computed during the walk and stored with the chosen line id; the walk gathers every option whose gates pass, removes line ids already used in the system, and draws one by weight on the body's own sub-stream, with no retry on an empty list; move the existing lists in and delete the tuning.py lists and flavor_key; the GEN.1399 conditions test becomes the first gate. The gates read stored conditions only, never the class letter (this also finishes audit finding F6, generation/life.py lines 512 and 516, so it is not filed separately). Needs a migration for the id and slot columns and an epoch; new numeric columns go in db/column_units.py; line weights are registered stand-ins in GEN.725. Done: the same body gets the same line whatever order the system's bodies are made in; the tree tests of GEN.1438 pass; the golden and a census sample show the lines drawn. Lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (built GEN.1399). Prerequisites: GEN.1399 (merged). Related: GEN.1431, GEN.1433, GEN.1438.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1431 Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger)**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: the life branch of the tree from life_class_text.json and the section 4 lines of /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md (about 33 new lines): water, sulfuric acid, liquid carbon dioxide, hydrocarbons and ammonia-water media; light, chemical and hydrogen energy; no gate names a life class id unless a line truly needs one (ask TODO then). Retire the multicellular-only trigger. Done: every medium and energy source has at least 3 lines at each rung from 2 up that the life reaches, shown by the coverage test of GEN.1438. Lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (after GEN.1430). Prerequisites: GEN.1430. Related: GEN.1438.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1433 Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: add each scope as its own root node of the tree of GEN.1430, with a fallback branch of at least one line for a plain body, so scopes can ship one at a time; lines from the rewrites file; gates on stored properties only. Done: every scope has coverage and a plain-body line, and a census sample shows each line offered at least once. Lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (after GEN.1430). Prerequisites: GEN.1430. Related: GEN.1438.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1434 Derived sky and clock fields from physics: gravitational time dilation, the host's sky size, the eclipse calendar and the solar-lens focus distance**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: the four derived values per body from stored mass, radius, orbit and host (report section 5.3 of /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md), as computed functions with units in the registry, each with a caller (the flavor slots of GEN.1430 and the Sensor view); stand-ins registered in GEN.725. Done: the Sun-Earth case, a close white dwarf case and a moon-eclipse case give the textbook values. Lock-free if derived only.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 23 (eclipse calendar) and Lane 15 (sky size), confirm with TODO. Prerequisites: none. Related: GEN.1430.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1435 Ancient works setting: tag the derelict, wreck, megastructure and signal lines (57 of 82) and a per-galaxy on/off choice at galaxy planning, on the same screen and storage as the fictional materials setting**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: tag nodes ancient_works (with sub-family tags) in the tree; a per-galaxy flag stored with the galaxy plan next to the fiction settings (DB.116 family, ADM.143 page fields, the CLI flag); the walk skips any tagged node when the flag is off. Default off or on is Boss's call at build time (default in config.json like the materials). Done: with the flag off no option from a tagged node is ever offered (the settings test of GEN.1438). Rides the 8.2 setting work.
+  Version 8.2. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): unassigned. Prerequisites: GEN.1430. Related: ADM.143, GEN.1410, DB.116.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1436 Natural signal resolution: sensor readings for unknown-origin signals that resolve to a cause (pulsars, giants with volcanic moons, masers)**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: signal lines whose cause is computed from stored properties (report section 6 of /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md), shown on the Sensor view channels; no signal is invented that the physics does not support. Done: each resolved signal names its real source and a census sample shows them. Lock item. Needs the Sensor view channels.
+  Version 8.2. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): unassigned. Prerequisites: GEN.1430. Related: UX.286, UX.287.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1437 Design notes for the chaotic triple-star zone and the dimming star (debris stream or disintegrating planet with irregular transits)**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: two short design notes in the research tree from report sections 5.3 and 6 of /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md, each ending in the oddity chain items it needs (not built here). Done: both notes merged. Docs only.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): research thread, then Lane 06 or Lane 21. Prerequisites: none. Related: GEN.1433.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1438 Flavor tree tests: classless gates, quantities exist, every line reachable, coverage per life class and scope, order independence, plain words, settings pruning**
+  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: the seven tests of section 5 of the design: no gate names a class letter, planet_class, a class fit or a derived class field (extend the class-last audit to scan the file); every gate quantity is in the quantity table; a census sample offers every line at least once (rare lines listed with a reason); coverage per medium, energy source, rung and scope; the same body yields the same line in any build order; every line passes the plain-words check with sample slot values; with a setting off, no tagged option is ever offered. Done: the tests pass on the file of GEN.1430. Lock-free, ships with GEN.1430.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (with GEN.1430). Prerequisites: GEN.1430. Related: GEN.1430.
+  Filed by the TODO thread.
+
+- [ ] **PERF.254 Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step**
+  Lane 22's write-up: /mnt/project-files/reports/memory-kills-and-dynamic-workers-2026-11-08.md. Boss asked (11:00 AM EST on 2026-11-08) why the jobs do not share one system that sets memory per worker from the system load. Today every worker size is a number measured once in queue/workers.py (STAGE_WORKER_MEMORY_MB) and nothing reads the host while a run goes. Do: read MemAvailable and each worker's real size every 5 seconds in the run's ensure tick; start a worker only when available memory minus a reserve covers the stage's expected size (the larger of the table figure and the biggest worker seen so far); shed idle workers when available falls under the reserve; the cut of a stage into units becomes a measured step with its own cap; scale the figures with galaxy size; log every decision; fall back to the table cap and bound any waiting so a wrong governor cannot stall a run. Output unchanged (the work seed does not depend on the worker count). Needs Lane 13's measurement of what the cut holds. Done: a full galaxy run on a 16 GB host finishes past stage 13 with no kernel kill. Lock-free, queue code only; train 20 or 21.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
+  Filed by the TODO thread.
+
+- [ ] **UX.294 Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 1; test_no_raw_measurement_formatting fails for daycounter.js, galaxyplane.js, galaxystrip.js, skypick.js, skysphere.js, systemgravity.js and systemsky.js. Do: route each number through the shared formatters. Done: the test passes and the pages show the same text. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.701 The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 2; test_web_old_urls_errors fails 4 cases (head/options, admin/anonymous). Do: add a belt reference value to the test's route table. Done: all four cases pass. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.118 Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug)**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 3; 2 cases fail on MySQL. Do: find the column added without its literal-insert row, fix the insert path, and check no other table drifted. Done: the test passes and the cause is named in the change note. Lock-free unless a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.702 Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 4; test_db_boundary_values fails 2 cases. Do: decide with the check owner whether the extreme values are valid input; make the test and util/checks agree. Done: both pass. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.703 Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest)**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 5; test_multistar_standin_registry fails 2 cases. Do: point the rows at the test that now covers the same behaviour (or restore it). Done: the registry test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.119 SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 6; test_sql_portability fails 2 cases. Do: rewrite with the portable form and quote the word. Done: the test passes on MySQL and the portable path. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DB.120 The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 7; test_point_columns fails. Do: add it to the right list with its reason. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DOC.111 The link-neighbors command is in no document**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 8; test_command_rules[link-neighbors] fails. Do: add the command to the command docs. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **DOC.112 The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 9; test_web_formulas fails. Do: write the formula next to each name. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1439 A plan stores no container for each globular cluster**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 10; test_container_plan fails. Do: store the container for each globular cluster in the plan, or correct the test if the design says otherwise (ask TODO). Done: the test passes. Lock item if a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.704 test_class_sample[P] finds no class P planet in 24 tries after the class-last change**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 11. Do: make the sample draw conditions that give class P (or raise the tries with a stated reason), without reading the class letter in generation. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.705 test_invalid_slot_type_and_unknown_planet_class_raise_value_error gets no ValueError after the class-last change**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 12; test_fuzz_system_generation. Do: decide whether the unknown-class check still belongs in generation or the test changes to match class-last; keep the invalid slot type check. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **PERF.255 Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world**
+  Lane 05, 11:05 AM EST on 2026-11-08 (red causes left from GEN.1390 and TEST.695 after TEST.698, main f464f448; list in /mnt/project-files/reports/lane05/red-causes-2026-11-08.md, cause number given): Cause 13, the same family as PERF.253. Do: profile the three, find the shared slow call and cache or shrink it. Done: each finishes under the timeout in the gate. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **MAP.409 Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load[single]. Do: find the object that is null when the wheel carries the map into a system (the scene update) and fix the page, not the test. Done: the test passes with no uncaught exception and the scene fades in. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **MAP.410 Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')"**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Test test_each_edit_of_the_waypoints_plans_the_course_again. Do: find the element read before it exists or after it is removed, and fix the page. Done: the test passes with no uncaught exception. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **MAP.411 Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed**
+  Lane 03, 11:34 AM EST on 2026-11-08 (browser re-run on main: map_hover, handover, galaxy_closed, fixture_maps, 14 red; PR 5722 fixes only the galaxy and sector menu test): Lane 03 thinks these are one map regression, not many stale tests, and will not loosen any test. Do: bisect the first bad commit on the map page, decide per case whether the page or the test is wrong, and split into items if more than one cause is found. Tests: the hover test for the Fixture Maw black hole, point-phenomena hover for the neutron star, the nebula group ring, the close-star choices popup, two info-card size tests (content 132 in a 208 box), the flag drag position, the scale line after the wheel, and galaxy_closed. Done: each passes on main with the cause named. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 11. Prerequisites: none. Related: none.
+  Filed by the TODO thread.
+
+- [ ] **TEST.706 test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226**
+  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: run python scripts/american_spelling_sweep.py apply and check the test file still tests the same thing (the name is a fake timer's attribute, so change every use together). Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.707 test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor**
+  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: reword the shown string so it carries no TODO code. Done: the test passes and the text reads as plain words. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **TEST.708 test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold**
+  Found by Lane 15 on 2026-11-08 while merging GEN.1424 (PR 5728); the test fails on main, not from that PR: Do: decide whether Dust is a real area; add it to the test's area list or rename the group. Done: the test passes. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 05. Prerequisites: none. Related: GEN.1390, TEST.695.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1440 Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs)**
+  Lane 15, 1:32 PM EST on 2026-11-08 (GEN.1425 part B, PR 5734): the Venus chemistry set V8 (PAHs with iron, off by default) needs a per-planet supply of cosmic dust and comet influx, but only the star's debris disk exists, so V8 is not built. Do: decide what a planet's dust and comet influx is from stored properties (the star's debris disk, the belts and comets of its own system, the planet's orbit and gravity), store or derive it with units, and give V8 of GEN.1425 its first caller; stand-ins registered in GEN.725 with tier and tweak level. Done: a sample shows influx varying with the system's belts and debris disk, and V8 reads it. Lock item if a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 or Lane 22 (belts). Prerequisites: none. Related: GEN.1425, GEN.725.
+  Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13385,31 +13326,6 @@ clears each one.
   from the Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1364. Related: GEN.1268.
 
-- [ ] **GEN.1372 Giant planet heavy-element species: C, N, O, S, P and the noble gases enriched element by element, not one Z share**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N19 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 3, train 20. A giant's heavy-element share
-  is one number. Do: enrich C, N, O, S, P and the noble gases separately
-  from the star and the disc budget. Owner (proposed by TODO,
-  2026-11-07, confirm with TODO before taking; one lock-free item at a
-  time while waiting): Lane 14. Rules: open the primary or an accepted
-  secondary source of every recalled value before it enters GEN.725;
-  draws through draw.py; every stand-in gets a GEN.725 row with tier and
-  tweak level; every number has a unit or scale and a column_units
-  entry; a change to drawn output carries tests.golden_update --reason
-  ... --affects fill and the next epoch; tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System; built code needs a caller.
-  Prerequisites: GEN.1363. Related: GEN.1268.
-
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13434,58 +13350,168 @@ clears each one.
   Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1372. Related: GEN.1372.
 
-- [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N21 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size S; lock. Target: wave 2, train 19. Brown dwarf spectra miss the
-  lithium test, alkali wings and the oxide-to-hydride transition. Do:
-  add them from the star element set. Owner (proposed by TODO,
-  2026-11-07, confirm with TODO before taking; one lock-free item at a
-  time while waiting): Lane 15. Rules: open the primary or an accepted
-  secondary source of every recalled value before it enters GEN.725;
-  draws through draw.py; every stand-in gets a GEN.725 row with tier and
-  tweak level; every number has a unit or scale and a column_units
-  entry; a change to drawn output carries tests.golden_update --reason
-  ... --affects fill and the next epoch; tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System; built code needs a caller.
-  Prerequisites: GEN.1360. Related: GEN.1360.
+- [ ] **UX.291 Phone width: the star-system map card is 338 px high against the half-window limit of 329 px because its three rows wrap (bug)**
+  Lane 03 (as the lane reported, 3:13 AM EST on 2026-11-08), from the TEST.696 browser reds (the map_card test): at phone width (390 by 844) the star-system card is 338 px high where the half-window limit is 329 px, because its three rows wrap; the long row is 'Habitable worlds: 2 habitable worlds, be...'. Do: shorten or restructure the card rows so the card fits within half the window at phone width without hiding information (shorter habitable-worlds wording, or let that row use a second line only when needed), then confirm the map_card browser test passes. No generation change.
+  Owner (proposed by TODO, confirm with TODO before taking; lock-free, one item at a time while waiting): Lane 11.
+  Prerequisites: none. Related: TEST.696.
+  Filed by the TODO thread.
 
-- [ ] **GEN.1376 Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N23 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 3, train 20. Nebula composition carries gas
-  and dust fractions but no dust species. Do: add the species on the
-  GEN.1268 parts d and e path (a nebula composition owner is already in
-  that item; confirm with it). Owner (proposed by TODO, 2026-11-07,
-  confirm with TODO before taking; one lock-free item at a time while
-  waiting): Lane 14. Rules: open the primary or an accepted secondary
-  source of every recalled value before it enters GEN.725; draws through
-  draw.py; every stand-in gets a GEN.725 row with tier and tweak level;
-  every number has a unit or scale and a column_units entry; a change to
-  drawn output carries tests.golden_update --reason ... --affects fill
-  and the next epoch; tests are scripts/test.py changed --resume; no
-  fixed content from the Milky Way or the Solar System; built code needs
-  a caller.
-  Prerequisites: GEN.1359. Related: GEN.1268.
+- [ ] **UX.292 At phone width an expanded star-system card with long rows scrolls itself instead of its rest region: the first view alone fills the card's maximum height (bug)**
+  Lane 03 (as the lane reported, 3:24 AM EST on 2026-11-08), measured on main with the expanded long card at 390 by 640 (test_web_browser_map_card, test_a_card_far_too_long_for_the_window_scrolls_what_is_behind_expand_and_keeps_its_name_and_buttons[390-640]): the card's max height is 295 px, but its first view alone is 41 (head) + 18 (kind) + 238 (three long wrapped rows) + 31 (buttons) = 328 px, so the rest region gets 0 px and the card itself scrolls (scrollHeight 362 against clientHeight 295). The test states the MAP.347 contract (the card never scrolls, the rest region does), so the page is wrong, not the test. Do: shrink or clip long row values at phone width (ellipsis or a line clamp, with the full text one tap away), or change the max height so the rest region always keeps a minimum height; then confirm the test passes. Follows UX.291. No generation change.
+  Owner (proposed by TODO, confirm with TODO before taking; lock-free, one item at a time while waiting): Lane 11.
+  Prerequisites: none. Related: UX.291, MAP.347, TEST.696.
+  Filed by the TODO thread.
+
+- [ ] **TEST.697 test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug)**
+  Lane 02 (as the lane reported, 5:11 AM EST on 2026-11-08), from the train 18 gate: src/tests/test_sweep_life.py::test_an_index_that_reads_the_letter_is_reported fails on origin/main as well (1 failed, 2 passed), so it is not a train fault. The test patches habitability_world.compute so that a body scored as another class gets phi_bio -1.0, then expects sweep rules._check_scores_class_blind to report 'as class X the habitability index differs ... phi_bio'. Do: find whether the check stopped re-scoring the body under another letter (the class-last work moved the letter) or the test patch no longer reaches the scorer; fix the check or the test so a real letter-reading index is still caught (this guard is how class-last leaks are found), as a test or sweep-rules PR. Lock-free. If the check can no longer see a leak, say so before changing it.
+  Owner (proposed by TODO, confirm with TODO before taking): Lane 04.
+  Prerequisites: none. Related: GEN.1397, TEST.696.
+  Filed by the TODO thread.
+
+- [ ] **PERF.253 test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)**
+  Lane 05 (as the lane reported, 9:07 AM EST on 2026-11-08), from the GEN.1390 grouping: test_systems.py::test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s test timeout inside habitability_world.world_from, in temperature_coverage.series_of_values. Do: find why one forced case spends more than 900 s there (an unbounded or repeated series for a moon of a binary B2V host) and cut it without changing any value; if it is only slowness it is lock-free. Done: the case runs well inside the timeout and the profile is written down.
+  Prerequisites: none. Related: GEN.1390, TEST.695.
+  Owner (proposed by TODO, confirm with TODO before taking): Lane 05.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
+  Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1404 Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 5. Only 3 of 59 sea worlds sit in class M's 20 to 80 percent cover band, because the mantle water cap (MANTLE_CAP_OCEANS, 2 to 8 oceans), the relief scale 1/g and the delivered water (Bern) put most sea worlds at global ocean (GEN.1339 measured it and made no change). The Cowan and Abbot paper argues that mantle hydration and degassing can keep land above water for a wide range of inventories; the sources read so far (Raymond and Kite and Ford, as the report cites them) favour a deep-water median. Do: obtain the Cowan and Abbot paper (second-hand if Boss cannot supply the paper), read what land fraction a given water inventory leaves, compare with the generated ocean-cover distribution, and report. Per Boss's rule, physics found in research wins: if the source shows the cap or the relief scale is off, file the retuning as its own lock item; do not retune to hit an answer. Research and report, no code change.
+  Version 8.1. Prerequisites: none. Related: GEN.1339, GEN.1309.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1405 Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 6. The delay between oxygenic life and free oxygen is a fitted stand-in with Earth's own delay as the only data point, and it leaves worlds waiting 9 to 23 Gyr, longer than the star's age. Do: find the primary or accepted secondary sources for the sinks that must fill (reduced iron and sulfur in the crust and ocean, volcanic gas, methane and hydrogen), derive the delay from the sink size and the oxygen source on each world, replace the fitted constant (or keep it with a row that explains the scatter), register it in GEN.725 and re-measure how many worlds wait longer than their star lives. Lock item (moves the oxygen timeline and the life stage of every oxygenic world). Lane 21 area (biogenic_oxygen). Not before GEN.1309 steps A and B.
+  Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.750, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1406 Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 7. GEN.1335 (done) compared the generated inner mass function with published masses and measured the gap, but no tuning item exists. Do: read the GEN.1335 report, find which draw (the mass law, the architecture, or the radius valley) puts too few bodies at 0.8 to 1.5 Earth radii, and fix it from the source where the physics or the data says so (verified data wins), with a GEN.725 row for any stand-in and a note of which survey and completeness correction is used. Lock item (the whole architecture shifts: every class share and every golden). Boss decides whether to build; run the sweep (GEN.1318) afterwards.
+  Version 8.1. Prerequisites: none. Related: GEN.1335, GEN.1318, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1407 K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 8. GEN.909 left this open: at K5V the temperate share is 6 of 40 against 16 of 45 at G2V, and K and M dwarfs are most stars. Do: a probe that splits the ecosphere by incoming flux and by the star's spectrum (the shift of the zone edges with a redder spectrum is currently a guess) and reports where the cold comes from: the zone edges, the greenhouse optics, or the albedo. Report first, no code change; if a fault shows, file the fix as its own item (lock, moves K and M dwarf temperate counts only).
+  Version 8.1. Prerequisites: none. Related: GEN.909, GEN.1309.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1408 Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. The fictional-materials table. Do: `generation/fictional_materials.py` with `MATERIALS`, one frozen row per material (id, default name, help sentence, needs text) for the four invented materials only: Kyber, Solar crystal, Aurora crystal and Tritanium (section 2; Boss's rule of 10:38 AM EST on 2026-11-08: all real materials, including deuterium, tritium, spodumene and neutron-degenerate matter, always exist and are never settings), and a strict loader (repeated id, default name equal to a real material name or alias, row with no draw: refused; empty table loads). Done: the table loads, tests cover each refusal. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1409 Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Custom name rules. Do: `clean_material_name` (section 4.4): NFKC, tidy white space, 2 to 40 characters, letters digits space hyphen apostrophe, no clash with a real material, element or class name or another material's name in the galaxy, a name only for a material that is on. Done: a test per rule; the clash message names the clash. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1410 Fictional materials part 3: the settings object and its config default (per-material include flag and custom name)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. The settings object and deployment default. Do: `FictionSettings` (frozen map id to name or None), constructors from flags, form and stored rows, canonical text form; `generation.fiction` key in `config.json`, `config.schema.json`, `config.json.example` (empty by default), unknown id refused. Done: round-trip test across all constructors; the default applies at plan time only. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408, GEN.1409. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DB.116 Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Storage of the setting. Do: table `galaxy_fiction` (`material_id` primary key, `custom_name` NULL; a row means the material is on), migration, `schema.sql`, `models.py`, `store.py` write in the plan's transaction and read beside the pins, rebuilt by every plan, galaxy wipe, fingerprint list; a plan with different settings on a galaxy that has sectors is refused with a sentence naming the stored settings (the seed rule at `run_plan.py` lines 355 to 361). Done: migration up and down test, refusal test, an all-off galaxy's fingerprint unchanged. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410. Migration; no epoch. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.143 Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Generate page, command line and docs. Do: a "Fictional materials" group on the plan fields (checkbox, name box with the default as placeholder, help line, All and None links), the Review text, `planetgen plan --fiction ID[=NAME]` and `--no-fiction`, the generated block in `docs/reference/cli.md`, and a parity test (every table row has a flag value, a field, a help line and a docs row). Done: the New galaxy, Plan a new galaxy and Plan actions carry the setting; a saved recipe keeps it; the parity test fails on a missing piece. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410, DB.116. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **API.42 Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Read side. Do: the skeleton gains `fiction`; `GET /galaxy/fiction` (every table row with on state, name, default name, kind, plus the canonical text); the same text beside the seed on `/galaxy/shape` and the galaxy status page ("none" for a galaxy planned before). Done: route test and page test; API version bump. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: DB.116. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1411 Fictional materials part 7: the biomass index (the gate for the three life-gated crystals)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Biomass index. Do: `physics/biomass.py`, `biomass_index(life, now_gyr)` from share, complexity weight and years of life, clamped 0 to 1, weights and thresholds registered in GEN.725 (tier educated guess, L2 weights, L4 thresholds). Done: zero life gives 0; monotone in share, complexity and age; clamps to 1. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1412 Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Label resolver. Do: `material_label(material_id, settings)` (custom name, else default name if on, else the real name or None) and the single place every reader gets the word; a guard test that no web or API module hard-codes a default name. Done: resolver test, guard test. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1413 Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. The crystal occurrence stage. Do: `generation/rare_materials.py` and the fill stage after life: for each crystal that is on, the biomass and age gate, a per-material stream keyed by material id and body through `draw.py`, the shared cause (placeholder 0.6), Solar Grade A or B (5 percent B, never C), field size; no draw and no record for a material that is off; hooked into the admin regenerate paths; the settings reach the stage through the skeleton and sector context. Done: statistics tests over 1e5 bodies, off equals absent, toggle invariance, material independence; goldens and the epoch entry (`affects: ["fill"]`); a wiring-register line until the record is read. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: API.42, GEN.1411. Epoch. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DB.117 Fictional materials part 10: the per-body rare-material table (migration)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Per-body record. Do: table `body_rare_material` (`object_id`, `material_id`, `grade` NULL, `field_kg`, `age_gyr`), migration, models, `column_units` (kg, Gyr), store write from the stage, wipe and fingerprint lists. Done: migration up and down, a stage run stores and a regenerate replaces the rows. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413. Migration. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1414 Fictional materials part 11: the crystal rows and their GEN.725 registry rows**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Crystal rows. Do: rows `carbon13_diamond` (isotope-scaled from `carbon_diamond`) and `aurora_corundum` (the `corundum` row with the dopant and inclusion list), the Kyber stand-in once Boss answers its composition, source key `fiction-stand-in`, GEN.725 registry rows with `Wrong if` and `Result lands as`. Done: the committed `materials.json` equals the build; the strict loader accepts the rows. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1408. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1415 Fictional materials part 12: Tritanium rows and the reduced-body ore law**
+  Boss's 10:38 AM EST ruling (all real materials always exist): osbornite and khamrabaevite are real minerals and belong in the 8.1 mineral table, not here; add them there if missing and keep only Tritanium as the fictional entry.
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Tritanium. Do: row `tritanium_carbonitride` (`osbornite` and `khamrabaevite` are real minerals and come from the 8.1 table; ask TODO to add them there if missing); the ore law on reduced, carbon-rich rocky bodies reading star C/O, star Ti (the 8.1 star-element item), redox and ore potentials; placeholder rate registered at L4. Done: statistics test, no draw when off, gate test. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413, GEN.1414, and the 8.1 star Ti, redox and ore-potential items. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **UX.293 Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Pages, body JSON, search. Do: a plain-words line per material on planet, moon and rogue planet pages, `rare_materials` in the body JSON (resolved name, stable id), a search filter (by id; the box also accepts the resolved name), the map legend and sitemap entry; every line marked fictional. Done: page, API and search tests; API version bump. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1412, DB.117. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.144 Fictional materials part 17: edit custom names after generation**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Admin rename (firm, Boss question 3 option 1). Do: on the admin page of ADM.145 (design section 4.5 block 1), a rename box for each material that is on in this galaxy, changing only `galaxy_fiction.custom_name` through GEN.1409's rules; nothing is regenerated, no draw or record changes. Done: rename test, clash message test, the status page and pages show the new label. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: DB.116, GEN.1412, and ADM.145. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **TEST.699 Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it)**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Invariance suite and browser test. Do: the three properties of section 7.1 as a standing suite; a browser test of the Generate group. Done: suite and test pass in the changed-only run. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413, ADM.143. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **DOC.110 Fictional materials part 20: reference docs and help for the setting**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Reference docs. Do: `docs/design/composition/fictional-materials.md`, a README row, one line in `reproducible-galaxies.md` section 7 naming `galaxy_fiction`, the cli reference, wiring-register lines for anything unread. Done: docs build, links resolve. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1413, ADM.143, API.42, UX.293, TEST.699. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1420 Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top**
+  Boss, 10:38 AM EST on 2026-11-08 (as the coordinator relayed): all real, true, defined materials always exist: all isotopes, elements and compounds known to exist, or so likely to exist that we know they do. Deuterium is a share of hydrogen, not a fictional substance, and is never on the fictional list. Build the major isotopes for 8.1, including tritium and deuterium. What exists today (checked 2026-11-08): src/planetgen/physics/data/isotopes.json holds 395 isotopes with mass, natural abundance and half-life (hydrogen-1, hydrogen-2 and hydrogen-3 are rows), the radioisotope budget is built (radiogenic.py, birth_radioisotopes.py) and a formula may hold D and T (util/chem.py); the stellar side has the deuterium burning limit. What is missing: no body carries an isotope record (GEN.1377 is open and covers only D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon and four short-lived isotopes), so deuterium exists only as a table row and a share of hydrogen is never stored or shown. Do: for every element a body holds (planet, moon, belt member, comet, star surface where it applies) the record carries the isotope fractions, defaulting to the table's natural abundances (verified IUPAC and NUBASE values) and replaced by the physical value where GEN.1377 or the disc budget gives one (D/H from the ice and the disc, not the Earth value everywhere); heavy-water and other isotopologue shares follow from D/H. Nothing real is dropped: every stable or long-lived isotope in the table can be drawn. Done: a census over a generated sample finds each stable isotope of the elements present, D/H varies by body with a stated source, and the record is shown on the object page. Lock item. Build it together with GEN.1377 (one record, one migration); no fixed content from the Milky Way or the Solar System.
+  Version 8.1. Owner (TODO, 2026-11-08): Lane 14, with GEN.1377. Prerequisites: GEN.1363. Related: GEN.1377, GEN.1421, TEST.686, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1421 Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water**
+  Boss, 10:38 AM EST on 2026-11-08 (as the coordinator relayed): all real, true, defined materials always exist: all isotopes, elements and compounds known to exist, or so likely to exist that we know they do. Deuterium is a share of hydrogen, not a fictional substance, and is never on the fictional list. Build the major isotopes for 8.1, including tritium and deuterium. Tritium (half-life 12.3 years, in the isotope table) is not primordial; it exists as a trace from cosmic-ray and stellar-particle production in air and water, and from decay chains. Do: a steady-state inventory (production rate over decay rate) for tritium, carbon-14, beryllium-10 and aluminium-26 per body from its air column, water and the particle flux the generator already stores (solar_particles.py), written to the isotope record of GEN.1420. Sources from the literature, stand-ins in GEN.725 with tier and tweak level. Done: each of the four exists on a body with a suitable target and flux and is absent where production is zero (no air, no flux), tested on a sample. Lock item with GEN.1420.
+  Version 8.1. Owner (TODO, 2026-11-08): Lane 14, after GEN.1420. Prerequisites: GEN.1420. Related: GEN.1377, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.145 Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Fictional materials admin page, read side. Do: a page in the admin pages (route and API under `/api/admin/fiction`, registered in `adminregistry.py`) listing the four materials with their default on/off and default name from `config.json`, this galaxy's stored state and names (read only, "fixed when the galaxy was planned"), the maker line (seed, release, epoch, canonical settings text) and the help and "where it can occur" lines (design 4.5). A galaxy planned before 8.2 says "Fictional materials: none". Done: page and API tests, admin login required. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: GEN.1410, DB.116, API.42. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.146 Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Admin page, defaults. Do: on the same page, set each material's default on/off and default name; saved to `generation.fiction` through `util/settings_writer` (backup archive, atomic write, audit row per change, 409 on a changed file, the reason shown when the file cannot be written); role as the Admin settings page's `writer_role()`. Done: save test with backup and audit, hash-conflict test, unwritable-file test; the Generate form's prefill follows the saved default. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: ADM.145, GEN.1410. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **ADM.147 Fictional materials admin page C: show how many bodies hold each material**
+  Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. Admin page, counts. Do: how many bodies hold each material in this galaxy, with a link to the search filter. Done: counts match `body_rare_material`; zero is shown as "none made here". Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
+  Version 8.2. Owner: none yet. Prerequisites: ADM.145, DB.117. Related: GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **TEST.700 test_species_limits needs 66 minutes alone because its fixture hunts a civilized system (about 23 s a system, about 1 in 12 qualifies), so the train gate's 25 minute cap always cuts it; pin a system or speed the fixture (bug)**
+  Lane 02 (as the lane reported, 10:45 AM EST on 2026-11-08), from the Train 18 gate: tests/test_species_limits.py needs 66 minutes alone, so the gate always cuts it at its 25 minute cap and a species limits regression would go unseen; on Lane 12's machine it also hit a setup timeout. Do: pin a generated system known to qualify (a stored seed and address that passes the fixture's check, with a cheap guard that the pin still qualifies) or cache the hunt result, without weakening what the tests check. Note also: tests/test_systems.py runs over 50 minutes and is not in the gate list; PERF.253 covers one forced MOONS case of it and TEST.417 covers whole-sector tests in general. Lock-free, test only. Done: test_species_limits runs in a few minutes and sits in the gate list.
+  Version 8.1. Owner (TODO, 2026-11-08): Lane 12. Prerequisites: none. Related: TEST.417, PERF.253, TEST.261.
+  Filed by the TODO thread.
 
 - [ ] **GEN.1377 Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244**
+  Boss, 10:38 AM EST on 2026-11-08: all real materials always exist and the major isotopes, deuterium and tritium included, are built in 8.1. This item and GEN.1420 and GEN.1421 are built together as one isotope record; owner moves from the proposed Materials 1 lane to Lane 14 (TODO, 2026-11-08). The 8.2 fictional list no longer holds Deuterium.
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
   from the report is built in 8.1, the Solar Crystal and fictional
@@ -13513,80 +13539,6 @@ clears each one.
   Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1363. Related: GEN.1371.
 
-- [ ] **GEN.1378 Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N25 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 4, train 21. Deposits that need the life
-  timeline are not generated. Do: build them from the salt sequence, the
-  phosphorus budget and the life timeline. Owner (proposed by TODO,
-  2026-11-07, confirm with TODO before taking; one lock-free item at a
-  time while waiting): Materials 1 (new lane, proposed). Rules: open the
-  primary or an accepted secondary source of every recalled value before
-  it enters GEN.725; draws through draw.py; every stand-in gets a
-  GEN.725 row with tier and tweak level; every number has a unit or
-  scale and a column_units entry; a change to drawn output carries
-  tests.golden_update --reason ... --affects fill and the next epoch;
-  tests are scripts/test.py changed --resume; no fixed content from the
-  Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1366, GEN.1367. Related: GEN.1379.
-
-- [ ] **GEN.1380 Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N10 part 2 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 4, train 21. First mechanism slice, needs
-  only the oxides and the minerals. Do: store the deposit fields from
-  the design. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Materials
-  1 (new lane, proposed). Rules: open the primary or an accepted
-  secondary source of every recalled value before it enters GEN.725;
-  draws through draw.py; every stand-in gets a GEN.725 row with tier and
-  tweak level; every number has a unit or scale and a column_units
-  entry; a change to drawn output carries tests.golden_update --reason
-  ... --affects fill and the next epoch; tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System; built code needs a caller.
-  Prerequisites: GEN.1362. Related: GEN.798.
-
-- [ ] **GEN.1381 Ore processes build, hydrothermal and sedimentary-hosted deposits**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N10 part 3 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 4, train 21. Second slice. Do: store the
-  deposit fields from the design. Owner (proposed by TODO, 2026-11-07,
-  confirm with TODO before taking; one lock-free item at a time while
-  waiting): Materials 1 (new lane, proposed). Rules: open the primary or
-  an accepted secondary source of every recalled value before it enters
-  GEN.725; draws through draw.py; every stand-in gets a GEN.725 row with
-  tier and tweak level; every number has a unit or scale and a
-  column_units entry; a change to drawn output carries
-  tests.golden_update --reason ... --affects fill and the next epoch;
-  tests are scripts/test.py changed --resume; no fixed content from the
-  Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1380, GEN.1378. Related: GEN.798.
-
 - [ ] **GEN.1382 Ore processes build, weathering and pegmatite deposits (bauxite and laterite, REE and Li pegmatites)**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13609,7 +13561,7 @@ clears each one.
   tests.golden_update --reason ... --affects fill and the next epoch;
   tests are scripts/test.py changed --resume; no fixed content from the
   Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1380, GEN.1371. Related: GEN.798.
+  Prerequisites: GEN.1371. Related: GEN.798.
 
 - [ ] **GEN.1383 Ore processes build, carbonatite, kimberlite and unconformity uranium deposits**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13634,9 +13586,10 @@ clears each one.
   and the next epoch; tests are scripts/test.py changed --resume; no
   fixed content from the Milky Way or the Solar System; built code needs
   a caller.
-  Prerequisites: GEN.1382, GEN.1365. Related: GEN.798.
+  Prerequisites: GEN.1382. Related: GEN.798.
 
 - [ ] **TEST.686 Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row**
+  Boss, 10:38 AM EST on 2026-11-08: all real materials always exist. The census also checks that every stable isotope of the elements present and the major compounds can be drawn (GEN.1420, GEN.1421).
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
   from the report is built in 8.1, the Solar Crystal and fictional
@@ -13660,7 +13613,7 @@ clears each one.
   ... --affects fill and the next epoch; tests are scripts/test.py
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
-  Prerequisites: GEN.1383, GEN.1377, GEN.1376, GEN.1374, GEN.1370, GEN.1369. Related: TEST.261, GEN.725.
+  Prerequisites: GEN.1383, GEN.1377, GEN.1370, GEN.1369. Related: TEST.261, GEN.725.
 
 - [ ] **GEN.1384 Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13683,17 +13636,6 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
-
-- [ ] **GEN.1385 test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug)**
-  Lane 15 (as the lane reported 5:50 PM EST on 2026-11-07), found while
-  gating GEN.1356, red on unmodified main and not from it. Do: run the
-  test on main, find the generated body (about 408 K with ice cover),
-  decide whether the ground or the ice-cover step is wrong (an ice cover
-  at 408 K cannot be water ice at the body's pressure unless a
-  high-pressure phase or a cold trap is named), fix the cause, and keep
-  the test. Owner (proposed by TODO): Lane 04. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.1356, TEST.687.
 
 - [ ] **TEST.689 src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug)**
   Lane 23 (as the lane reported 2026-11-08), red on main and not from its change. Do: run the test, decide whether the sheet must show the oddities column the oddity table now stores (train 16) or the test is out of date, fix the cause and keep the test. Owner (proposed by TODO): Lane 04. Rules: tests are
@@ -13757,12 +13699,6 @@ clears each one.
   Prerequisites: GEN.1364. Related: GEN.842.
   Filed by the TODO thread.
 
-- [ ] **GEN.1394 A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug)**
-  Lane 04 (as the lane reported 9:28 PM EST on 2026-11-07), found triaging the train 17 gate reds. Found by test_haze_in_the_air.py on the train: on a 2.5 Earth-mass class T world the solved haze is 42.8 and the stored haze 21.6. Do: store the haze that was solved (or solve it at the level the body is described at), keep the test, and check other columns that GEN.1334 bodies solve at 1 bar and store at the surface. Lock (epoch). Size S. Target: train 18. Owner (proposed by TODO): Lane 04. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.1334.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1395 Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects**
   Boss (9:43 PM EST on 2026-11-07, as the coordinator relayed), answering Lane 14's two findings from GEN.1363. Boss: yes, tune it as best we can to observed Sun-like giants and what physics expects. GEN.1363 part C makes a giant's C/O come from the disc where it formed; the disc alone puts sampled Sun-like giants' median near 0.34 where the retrieved giants' median is 0.57, because the recipe draws heavy-element enrichments of 3 to 80 times the star's and the solids are oxygen-rich (docs/design/composition/disc-condensation.md sections 3 and 4). Do: find which of the enrichment range, the solid accretion share, and the carbon-rich gas accretion window moves the median and the spread toward the retrieved distribution without leaving what the disc physics allows; register every tuned number in GEN.725 with tier and tweak level (L2 when tuned to a published statistic); keep the spread; census before and after. Lock (epoch). Size M. Target: train 19, after GEN.1363 merges. Owner (proposed by TODO): Lane 14. Rules: tests are
   scripts/test.py changed --resume.
@@ -13775,33 +13711,10 @@ clears each one.
   Prerequisites: GEN.1363. Related: GEN.1268.
   Filed by the TODO thread.
 
-- [ ] **GEN.1397 Remove the life-bearing class list: life comes from conditions, so the barred-world bar, the habitable flag, the counts, the chips and the inhabited filter read the life classes and not a letter list (bug)**
-  REDRAW REMOVAL (Boss asked 2026-11-07 evening whether redraw code can go; audit /mnt/project-files/reports/redraw-sites-audit-2026-11-08.md): also delete the barred-world redraw loops: planet.barred_world (generation/planet.py lines 460-467, 30 tries) and planet.barred_world_final (_bar_habitable_worlds and _drop_barred_bodies, generation/system.py lines 2186-2216). Replacement: judge the finished body by conditions (habitable_request.meets or a Blue/Green rating); on a violation report it (unmet requirement or a flag on the body) or drop it, never redraw. Default output is unchanged (loops only run when HABITABLE_WORLD is False).
-  EXTENDED (class-last audit F5): also cover the read side. db/query.py lines 4357-4359 (_with_life_fields: habitable_class by letter and life_stage nulled for off-list letters; derive from the stored life columns, drop the nulling); db/interests.py lines 37, 43, 71-72 (Inhabited and Civilization reasons AND planet_class IN list; check 0167_inhabited_interests.py, which froze the list as text); generation/system.py lines 2302-2316 (count_habitable_class_worlds) and generation/directives.py lines 118 and 160-175 with physics/data/habitable_count.json (re-measure with scripts/measure_habitable_count.py); web/lib/habitability_chips.py lines 50-61 (read the stored life class, or retire the chip); tuning.py line 2258 (the list itself, which includes W and is tested against nothing). Count bodies with life_class set and planet_class off the list before and after. Owner Lane 04 with Lane 05 helping on request.
-  Boss, 10:57 PM EST on 2026-11-07 (as the coordinator relayed): remove the life-bearing class list; highest priority bug fix, in the next train (18) at all costs. Why: tuning.HABITABLE_PLANET_CLASSES and is_life_class are a leftover of the letter-first design; life is already decided by conditions through the 9 life classes (epochs 120 and 121), so the list contradicts the design. Lane 04 traced it (2026-11-07): the barred-world loop in Planet.__init__ builds the planet, picks its class and redraws the whole planet if it meets the habitable-request conditions or its letter is on the list, up to 30 times; E (deep-frozen) and W (frozen) are the common outcome for a cold planet, so nearly every draw lands on the list and fails again; after 30 misses the last draw is kept anyway, so the bar still leaks (80 of 144 events in the probe); about 23 redraws per system and the 12 s versus 3 s of PERF.240. What reads the list today: the barred loop; class requests (an E request is snapped into the ecosphere, wrong for a deep-frozen world); the habitable count column and directive counts; the database habitable_class flag, which also hides the life stage of any body whose letter is off the list; the web habitability chips; and the 'inhabited' interest filter. Do: delete the list and is_life_class. The bar tests 'does any life class score above zero on this body' (the test life already uses), so E and W keep life when conditions allow it and a cold planet no life class supports is no longer redrawn. The flag, counts, chips and filters read the stored life class instead of the letter. Absorbs GEN.1387 and PERF.240, finishes GEN.688, and may move the GEN.1390 prevalence red. Tests: test_barred_world passes at the ceiling (0.0183 per system), a barred system draws in about 4 s, the life-stage of an E or W body shows, and the inhabited filter finds E and W bodies with life. Lock (epoch with --affects fill and life; a migration only if the flag column changes). Size M. Target: train 18, highest priority; Lane 02 reserves the slot and the epoch. Owner: Lane 04, with Lane 05 helping on request. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1387, PERF.240, GEN.688, GEN.1315, GEN.1390, GEN.1333, GEN.1353, GEN.1142.
-
-- [ ] **GEN.1398 The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2)**
-  Boss, 11:07 PM EST on 2026-11-07 (as the coordinator relayed): fix every leak of the class-last audit (/mnt/project-files/reports/class-last-audit-2026-11-08.md) as soon as possible, in train 18. Class is the last thing decided: nothing before the end may read, pick, force, filter or seed by the letter. F1: physics/planets.py line 747 (refresh_at_final_age) seeds the water and ground redraw with the provisional class letter, which depends on the pass order. Drop planet_class from the seed (mass, radius, distance, age and moon flag identify the body). F2: physics/planets.py lines 139-141 (apply_class) re-runs body_strength.generate with the class, and body_strength._is_giant (lines 70-72) reads the letter's kind, so a terrestrial body of a giant class loses roundness and strength. Make _is_giant use body_type plus envelope_mass_fraction >= planet_type.TERRESTRIAL_MAX_ENVELOPE as planet_classes.quantities does (line 98), and delete the second generate call. Tests: two bodies identical but for the provisional letter draw the same ground; no strength field flips after apply_class. This also absorbs the class T fix TEST.688 if Lane 04's code is not enough. Lock (epoch). Size M. Owner (proposed by TODO): Lane 06. Target: train 18. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.1397, GEN.688.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1399 The flavor-text draw list is chosen by class A: choose it by conditions (audit F6)**
-  Boss, 11:07 PM EST on 2026-11-07 (as the coordinator relayed): fix every leak of the class-last audit (/mnt/project-files/reports/class-last-audit-2026-11-08.md) as soon as possible, in train 18. Class is the last thing decided: nothing before the end may read, pick, force, filter or seed by the letter. generation/life.py lines 512 and 516 (decide_flavor_text) pick the 'planet' or 'orbital' flavor list by planet_classes.classify(planet) != 'A'. Class A is a hot airless-rock class, so replace the letter test with the conditions (no air and molten surface, or the body type) and a stored fact. Test: the list does not depend on the letter. Lock (epoch; the flavor draw changes for class A bodies). Size S. Owner (proposed by TODO): Lane 06, with GEN.1398. Target: train 18. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.1397, GEN.688.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1400 Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8)**
   Boss, 11:07 PM EST on 2026-11-07 (as the coordinator relayed): fix every leak of the class-last audit (/mnt/project-files/reports/class-last-audit-2026-11-08.md) as soon as possible, in train 18. Class is the last thing decided: nothing before the end may read, pick, force, filter or seed by the letter. Remove or define by conditions: m_count (generation/system.py lines 2139-2147, 1851, 596; nothing generates from it); physics/trojan_bodies.py lines 35-71 (CLASS_J_MIN_EARTH, CLASS_M_MASS_EARTH, classes_allowed: nothing imports it but its test; make it a mass and room test or delete it); physics/hycean_candidate.py lines 40-61 (a flag defined by letters T, I, V; define it on mass, radius and temperature or delete it); web/maps/bodylook.py lines 345 and 227 (planet_class passed into the look and air colour; nothing reads it); physics/habitability_world.py line 151 (planet_class carried in the world dict; no reader); the orphaned docstring at tuning.py lines 2262-2270 about a removed class milestone cap map. Wiring rule: anything kept needs a caller. Keep report tools (plausibility.py, class_sample.py) as output-only. No epoch. Lock-free. Size S. Owner (proposed by TODO): Lane 05. Target: train 18. Rules: tests are
   scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.1397, GEN.688.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1401 Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug)**
-  Found by Lane 15 on the train 17 stack (2026-11-08): (1) a bare `import planetgen.physics.hydrosphere` or `bulk_draw` raises a circular import unless planet_type is imported first (tests hide it by import order): break the cycle by moving the shared piece to a module both import, with a test that imports each physics module alone in a fresh interpreter. (2) test_no_todo_codes_shown fails on a GEN code in describe/sheet.py line 551 (GEN.1047) and stellar_abundances.py line 111 (GEN.1360): reword the user-facing text to plain words. Lock-free. Size S. Owner: Lane 15. Needed on train 17 if the reds are on its head (ask Lane 02).
-  Prerequisites: none.
   Filed by the TODO thread.
 
 - [ ] **GEN.1402 A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug)**
@@ -13823,6 +13736,7 @@ clears each one.
 - [ ] **PERF.252 A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug)**
   Boss's full-galaxy run 20261108-020807-50fea318 (log /mnt/project-files/uploads/hearth/0155e006-a295-4c19-bba3-59463c6ce53a). Stages 1 to 9 of 14 completed (starting sector 223 s, massive stars 500 s, bright stars 794 s, phenomena, nebula field 948 s, block light totals 3790 s with a 570 MB worker; it logged 'Made 5,109,171 uncharted sector rows' and 'Made 8,372,946 block light totals' at 04:44:59 UTC). Then silence for 45 minutes, and at 05:30:23 UTC: 'unit 0 of stage Make the block light totals was killed: its worker process 169074 ended with status 9 (SIGKILL: the machine may be out of memory)' (event run.failed). Stage 12 was dropped because population never finished. No stage 10 start line was ever logged, so the killed unit is probably stage 10 (Scatter the massive stars from the neighborhood, the backfill) mislabelled by wrapper.stage_name, or the stage 9 worker was killed after it reported done. Two memory warnings also: the starting sector worker used 2,762 MB over its 2,600 MB sizing and bright stars 1,879 MB over 1,700 MB. This does not show the 8.4 GB hypergiant signature of PERF.249 (no worker over 2.8 GB logged before the kill, no hypergiant system in the log). Do: (1) find what stage 10 does that has no start log line, why the kill is labelled with the block light totals stage, and its peak memory (a measure on a small galaxy with the worker's memory logged); (2) fix the label and log a start line for every unit; (3) cut the peak or size the worker from the measure; raise STAGE_WORKER_MEMORY_MB for the starting sector and bright stars to what was measured. Boss can continue the run with `planetgen finish-run`. Lock-free unless the fix changes stored values. Size M. Owner (proposed by TODO): Lane 13 (same stages as PERF.251, whose move of the block lights to the last stage may remove this; check first), Lane 22 reads the log first. Related: PERF.249, PERF.251.
   Prerequisites: none.
+  Second occurrence (reported by another thread, 6:06 AM EST on 2026-11-08): Boss's full-galaxy run job-20261108-060424-3525 (started 1:04 AM EST, build 8.0.3660, six minutes before the PERF.252 logging fix PR 5682 merged, so it had no 'Opening stage N' lines and the old worker sizes) failed at 6:35 AM EST in stage 12 of 14, Make the block light totals: 'unit 0 of stage Make the block light totals was killed: its worker process 202345 ended with status 9 (SIGKILL: the machine may be out of memory)', after 10007 s in the stage. Memory peak line: MySQL 1,260 MB, 15 workers 15,128 MB, the step itself 353 MB, the whole host 15,941 of 15,992 MB. The unit's result lines were already logged ('Made 13,245,925 uncharted sector rows in 30,777 shells', 'Made 20,287,023 block light totals'), so the block lights function returned; no 'Stage 12 finished' and no 'Stage 13' line followed. Same signature as the first occurrence (long silent stretch after the block lights, then a kill labelled with the block lights stage), most likely the backfill opening again, but unproven (no opening log in that build). New facts: (1) the stage took 10007 s against 3790 s, with about 2.6 times the uncharted rows (13.2M against 5.1M) and 20.3M block rows against 8.4M; (2) 15 processes held 15.1 GB at the peak (about 1 GB each), which does not fit one opening in one worker, so the measure should also find what the 15 are (idle workers from earlier stages, or the opening); (3) the refresh block lights command has no STAGE_WORKER_MEMORY_MB entry, so nothing caps its workers; (4) the log shows the block lights still ran BEFORE the backfill (PERF.251's move to last is not in that build), so the move takes the placeholder rows out of the opening's way only if the opening itself stays small: treat the backfill opening memory as the open work.
   Filed by the TODO thread.
 
 - [ ] **TEST.660 The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train**

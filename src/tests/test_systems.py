@@ -22,6 +22,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation import habitable_request
 from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
+from planetgen.physics import spin
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
 from tests import render_support
@@ -305,6 +306,9 @@ def assert_positions_and_speeds_are_consistent(system):
     """
     for body in _all_planets_and_moons(system):
         position = (body.position_x, body.position_y, body.position_z)
+        axis = getattr(body, "_frame_axis", None)
+        if axis is not None:      # GEN.1352: a moon is set in the system's frame, but its inclination and node are measured in the frame of its planet's equator
+            position = spin.turn_from_axis(position, axis)
         radius = math.sqrt(sum(c * c for c in position))
         low, high = body.distance * (1.0 - body.eccentricity), body.distance * (1.0 + body.eccentricity)
         assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9), (

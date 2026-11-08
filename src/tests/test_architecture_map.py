@@ -85,7 +85,7 @@ def test_calls_are_resolved_the_way_the_notes_say(data):
     assert ("planetgen.queue.redisqueue", "redis_url") in resolved        # `redisqueue.redis_url()`: a module alias
     assert ("planetgen.queue.api_jobs", "new_job_id") in resolved         # a function of the module itself
     assert ("planetgen.queue.workers", "ensure_workers") in resolved      # `workers.ensure_workers()`
-    assert ".enqueue" in submit[7]                                        # a method on an unknown value stays text
+    assert "connection.ping" in submit[7]                                 # a method on an unknown value stays text
     assert not any(t in ("len", "int") for t in submit[7])                # builtins are left out
 
 

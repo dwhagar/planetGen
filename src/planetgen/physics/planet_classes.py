@@ -34,6 +34,7 @@ Use:
 """
 
 import json
+from types import SimpleNamespace
 import os
 from collections.abc import Mapping
 
@@ -125,12 +126,13 @@ def quantities(values):
 class Class:
     """One class: a letter, its name and sentence and the body kind it covers. Its conditions are its row of `class_fit` (`class_fit.CLASSES`)."""
 
-    __slots__ = ("letter", "name", "kind", "sentence", "basis", "core")
+    __slots__ = ("letter", "name", "kind", "phrase", "sentence", "basis", "core")
 
     def __init__(self, row, core):
         self.letter = row["letter"]
         self.name = row["name"]
         self.kind = row["kind"]
+        self.phrase = row["phrase"]
         self.sentence = row["sentence"]
         self.basis = row["basis"]
         self.core = self.letter in core
@@ -168,6 +170,13 @@ def _load():
         raise ClassError("a class letter is used by two rows of one kind")
     if any(len({c.name for c in classes if c.letter == letter}) != 1 for letter in letters):
         raise ClassError("the rows of one letter in the two kinds have different names")
+    for row in (*classes, SimpleNamespace(letter="Asteroid", **{k: document["asteroid"][k] for k in ("phrase", "sentence")})):
+        if not row.phrase[:1].islower():
+            raise ClassError(f"class {row.letter}: the phrase is empty or does not start in lower case (GEN.1432): {row.phrase!r}")
+        if any(character.isdigit() for character in row.sentence):
+            raise ClassError(f"class {row.letter}: the sentence holds a number typed by hand; the page lists the conditions from class_fit (GEN.1432): {row.sentence!r}")
+    if any(len({c.phrase for c in classes if c.letter == letter}) != 1 for letter in letters):
+        raise ClassError("the rows of one letter in the two kinds have different phrases")
     reserve = tuple(document["reserve"])
     if set(reserve) & set(letters):
         raise ClassError("a reserved letter is also a class")
@@ -189,12 +198,13 @@ VERSION = DOCUMENT["version"]
 class AsteroidType:
     """The object type of a body under a roundness ratio of 1 (GEN.1160): not a planet class, so no letter. It can be a moon."""
 
-    __slots__ = ("letter", "name", "kind", "sentence", "basis", "when", "core")
+    __slots__ = ("letter", "name", "kind", "phrase", "sentence", "basis", "when", "core")
 
     def __init__(self, row):
         self.letter = None
         self.name = row["name"]
         self.kind = row["kind"]
+        self.phrase = row["phrase"]
         self.sentence = row["sentence"]
         self.basis = row["basis"]
         self.when = tuple(row["when"])

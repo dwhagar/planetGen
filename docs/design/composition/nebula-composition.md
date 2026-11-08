@@ -41,3 +41,28 @@ Table growth: from about 11 MB of data to about 29 MB, and a plan writes it in t
 
 The key of a field cloud is its cell and place (`nebula_columns.field_key`: the cell index and the centre in milliparsecs), not its object ID, because the row exists at plan time and has none until a sector stores it. The `nebulae` row the cloud becomes is keyed the same way (a class M or N nebula with a centre, `row_key`), so the two read one composition; the stored nebula keeps full doubles and the field row the FLOAT of the same number. The cloud's density is the one its `Nebula` was drawn with (`cell_draw`), which differs from cloud to cloud inside the class range, so gas, dust and phases differ with it and with the place's gas. `field_cloud_density_cm3` is kept for a cloud the draw does not give back (a table planned under another seed), in migration 0215 only. No progenitor mass is stored: no class M or N cloud has a progenitor.
 
+## 4. Dust species (GEN.1376)
+
+The grain kinds of section 2 carried the element budget; the stored columns now name the **species** (`SPECIES`, `species_of`), and two kinds gained real content.
+
+**What was read** (arXiv text): the diffuse-medium silicate paper [R5151] fits the 10 micron band of the diffuse medium with 84.9 percent amorphous olivine and 15.1 percent amorphous pyroxene by mass, finds the crystalline share 0.2 +- 0.2 percent, and gives the silicates of stellar ejecta 11 to 18 percent crystalline (section 4.1). The dust review [R5152] (section 5.3, Table 3) puts the silicon in SiC dust under 5 percent of the silicon in silicates, a limit it quotes from an earlier survey, so SiC is "not a major component of the interstellar grain mix"; presolar graphite is 1 ppm of a primitive meteorite against 6 ppm of SiC. The SiC review [R5154] quotes the SiC share of the dust of carbon stars: below 10 percent for 37 of 44 galactic stars (a survey of galactic carbon stars, second-hand), up to 43 percent in the LMC and 11 percent in the SMC as upper limits (a dust-yield model, second-hand). The silicate-graphite-PAH model [R5153] uses graphite for the large carbon grains and PAHs at 4.6 percent of the dust mass; the astrodust paper [R5155] uses one silicate-like material and no graphite. The ice survey [R0461: Table 2], gives the ices as molecules per 100 H2O.
+
+**The species.** Silicate splits into amorphous olivine, amorphous pyroxene and crystalline silicate (the mass split above, `OLIVINE_SHARE_OF_AMORPHOUS_SILICATE`, and the crystalline share of each mix, `CRYSTALLINE_SHARE_OF_SILICATE`: 0.2 percent in the interstellar mixes, 15 percent in the mixes of stellar ejecta). The split is of the mass only: the element content of the silicate kind (Mg 1.5, Si 1, O 3.5) is unchanged, so the metal caps and the gas left over behave as before. Carbon splits into amorphous carbon and graphite (`GRAPHITE_SHARE_OF_CARBON`): the two models of the diffuse medium disagree (graphite in one, none in the other), so the diffuse mix takes the middle of the widest range, 0.5; a dense cloud and a carbon star make mostly amorphous carbon. SiC is a grain kind of its own with silicon and carbon in its element budget: half the interstellar limit in the interstellar mixes (0.3 percent of the dust), 10 percent of the dust in the carbon-rich mix, and none in the oxygen-rich and the ejecta mixes. It survives like the silicates (`SURVIVES_AS`). PAHs and iron are as before.
+
+**The ice mantle.** The ice kind is no longer pure water: `ICE_MANTLE_PER_100_H2O` (CO 25, CO2 26, methanol 8, ammonia 6, methane 4.5 per 100 H2O) gives it carbon, oxygen, hydrogen and nitrogen by mass (H2O 44 percent, CO2 28, CO 17, methanol 6, NH3 3, CH4 2). The table is one for every class that has ice and is not stored: the pages read it with the stored `grain_ice` share.
+
+**Stored.** `nebulae`, `supernova_remnants` and `nebula_field` replace `grain_silicate` and `grain_carbon` with `grain_amorphous_olivine`, `grain_amorphous_pyroxene`, `grain_crystalline_silicate`, `grain_amorphous_carbon`, `grain_graphite` and add `grain_sic` (schema v229). The migration writes every row's composition again with the model (the element budget changed too), then drops the two old columns.
+
+**Dust by species at [O/H] = 0, in percent of the dust mass** (a nebula of 10 cm-3 and 5 ly; the caps scale a kind whose elements run short, so a row is not the bare mix):
+
+| class | mix | amorphous olivine | amorphous pyroxene | crystalline silicate | iron | amorphous carbon | graphite | PAH | SiC | ice |
+|---|---|---|---|---|---|---|---|---|---|---|
+| A | diffuse | 32.9 | 5.8 | 0.1 | 24.0 | 15.0 | 15.0 | 6.8 | 0.3 | 0.0 |
+| F | reflection | 30.9 | 5.5 | 0.1 | 20.3 | 11.9 | 11.9 | 9.1 | 0.3 | 10.1 |
+| H | oxygen-rich | 35.0 | 6.2 | 7.3 | 31.1 | 7.5 | 7.5 | 5.3 | 0.0 | 0.0 |
+| K | carbon-rich | 11.7 | 2.1 | 2.4 | 4.1 | 43.9 | 4.9 | 16.3 | 14.6 | 0.0 |
+| M | dense | 28.4 | 5.1 | 0.1 | 17.7 | 15.3 | 5.1 | 4.2 | 0.3 | 23.9 |
+| R | ejecta | 32.5 | 5.8 | 6.7 | 35.0 | 14.0 | 6.0 | 0.0 | 0.0 | 0.0 |
+
+The stand-ins are rows NBC17 to NBC23 of section 6.179 of the stand-in registry. Not modeled: the Fe and Ni inside the silicates (iron is its own grain here, as in section 2), the carbonates and Al2O3 of planetary-nebula discs, nanodiamond, and the size of the grains.
+

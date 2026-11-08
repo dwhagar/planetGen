@@ -7,6 +7,7 @@ change, so the command ran over and over. A request now answers from the cache o
 "working" at once; one command runs for a question, and for a galaxy database, until it ends.
 """
 
+import json
 import sys
 import textwrap
 import uuid
@@ -336,3 +337,36 @@ def test_the_answers_keep_their_headers_small(client, queued):
                  _post(client, action="galaxy", mode="shell", shell_index="40")):
         size = sum(len(name) + len(value) + 4 for name, value in resp.headers)
         assert size < 2048, dict(resp.headers)
+
+
+# --- Through a real Redis and the guarded worker (the allowlist let nothing else catch ADM.141's missing entry) ----------
+
+def test_the_estimate_runs_end_to_end_through_the_queue_and_the_guarded_worker(database, redis_server, monkeypatch):
+    """The request queues `estimatejob.work` with `api_jobs.submit`; a worker built as the site builds it (the allowlist's `GuardedJob`) runs it, and the next ask reads the estimate."""
+    import rq
+
+    from planetgen.queue import allowlist, api_jobs, redisqueue, workers
+
+    name = f"planetgen-estimate-e2e-{uuid.uuid4().hex[:8]}"
+    monkeypatch.setattr(api_jobs, "lane", lambda expected_seconds=None: (name, 1))
+    monkeypatch.setattr(workers, "ensure_workers", lambda *args, **kwargs: None)       # this test's worker is the one below
+    ran = []
+
+    def command(argv, env, cwd, timeout, merge_stderr=False):
+        ran.append(argv)
+        return {"returncode": 0, "stdout": "noise\nESTIMATE " + json.dumps(ESTIMATE) + "\n", "stderr": "", "timed_out": False, "error": None}
+
+    monkeypatch.setattr(api_jobs, "run_command", command)
+    with pytest.raises(estimatecache.Working):
+        _ask(database, lambda key, versions: REAL_START(key, versions, ARGV, {"PLANETGEN_MYSQL_DATABASE": database}, "."))
+    connection = redisqueue.connect(redis_server)
+    try:
+        queue = redisqueue.queue(name, connection)
+        assert queue.count == 1
+        rq.SimpleWorker([queue], connection=connection, serializer=redisqueue.serializer_for(name), job_class=allowlist.GuardedJob).work(burst=True, logging_level="CRITICAL")
+        assert ran == [ARGV + ["--estimate-only"]]
+        assert _ask(database, _Queue()) == ESTIMATE
+    finally:
+        queue.empty()
+        for job_id in queue.failed_job_registry.get_job_ids():
+            queue.failed_job_registry.remove(job_id, delete_job=True)

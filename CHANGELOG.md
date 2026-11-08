@@ -2,6 +2,355 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3713] - 2026-11-08
+
+**Headline:** The chemistry the one measured acid cloud holds is now a registered set that the generator can give to any air with the supplies for it.
+
+### Added
+- **The sulfur-cloud chemistry set V1 to V10 and its six gates (GEN.1425, part A).** `physics/sulfur_cloud_set.py` and `physics/data/sulfur_cloud_set.json` hold the acid droplets, the sulfur gases, the lower sulfur oxides, sulfur aerosol, the chlorine and iron compounds and the measured ultraviolet-absorber band as stand-ins with tier, tweak and evidence status, and `chemistry(values)` says which of them an air gets: sulfur in an oxidising air, an acid cloud by the vapor curve of GEN.1424, reduced sulfur from the star's ultraviolet-C, chlorine, and iron and carbon supply. A hot volcanic carbon-dioxide world under a bright star gets V1 to V5 (and V6, V7 and V10 where chlorine and exposed iron are present), a cold sulfur-poor world gets none, and V8 and V9 are off by default. Nothing is stored yet; the cloud step reads it in part B.
+
+## [8.0.3712] - 2026-11-08
+
+**Headline:** The one-line description of a planet class and its class-page sentence now live in one row, with no number typed by hand and no Solar System feature stated as a fact of the class.
+
+### Changed
+
+- GEN.1432: each row of `planet_classes.json` now holds the class's `phrase` (what a planet or moon page says after "It is") beside its page `sentence`; `planet_class_text.json` is gone and `planet_class_text.py` reads the phrase from the class rows. The two had disagreed for about ten of the 25 letters (class A said "small, barren" though it asks for sulfur dioxide in the air; class F said "volcanic with shallow seas" though it asks for an air with almost no oxygen). The phrases are reconciled to what each class's conditions say.
+- The class-page sentences hold no digits: the temperatures, pressures and masses they typed by hand are gone, and the page's Conditions line (read from `planet_class_fit.json`) carries the numbers. The loader refuses a row whose sentence has a digit or whose phrase is empty or starts in capitals.
+- Class J no longer says every gas giant has rings, class I no longer says every ice giant has a tilted magnetic field, and classes N and U no longer say "Venus-like" and "Titan-like". A test checks that no class text names a Solar System feature.
+- Nothing stored changes: the phrase is read when a page is built.
+
+generation-output: unchanged
+
+## [8.0.3711] - 2026-11-08
+
+**Headline:** The vapor pressure of sulfuric acid and water over aqueous sulfuric acid, and the window a sulfuric acid cloud condenses in, are now computed from published thermodynamics.
+
+### Changed
+- **The curve that decides where sulfuric acid and water condense together (GEN.1424).** A new `physics/sulfuric_vapor.py` and `physics/data/sulfuric_vapor.json` give the activities of acid and water in the solution at any strength from 200 to 350 K (Zeleznik 1991, checked against its Table 7), the pure acid curve (Ayers with the Kulmala and Laaksonen correction, read from three open papers) and the water curve of Tabazadeh and others 1997, and `condensation_temperature_k` and `window` for the cloud base. A Venus-like air (30 ppm water, 3 to 10 ppm acid vapor, 1.3 bar) condenses at 356 to 370 K as a 97 to 99 percent solution and the strength falls to the 80s at the cloud top. Nothing stored changes: the cloud step of GEN.1425 will read it.
+
+## [8.0.3710] - 2026-11-08
+
+**Headline:** The map menu test accepts the layer counts and the gravity slab label as text.
+
+### Fixed
+- **Galaxy and sector menu browser test (TEST.696).** The check that every visible word in a map menu is a heading or a control flagged the "8 of 9 on" counts beside the layer groups and the "slab 9 of 16" label of the Gravity settings. Both are readouts that belong to the menu, so the test now lets them through, as it already does for the group headings and the gravity note.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (galaxy and sector menus).
+
+## [8.0.3709] - 2026-11-08
+
+**Headline:** A neutron star's page now shows the nuclear pasta layer at the bottom of its crust, the five shapes the nuclei are predicted to take, marked as predicted and never observed.
+
+### Changed
+
+- GEN.1427: `neutron_star_crust.PASTA` (data in `neutron_star_crust.json`, block `pasta`) holds the layer below the inner crust: from 0.2 of the normal nuclear density (0.165 nucleons per fm^3) to the bottom of the crust table, about 100 m thick, holding up to half the crust's mass, with the shapes in order of rising density (gnocchi, spaghetti, lasagna, anti-spaghetti, anti-gnocchi). The loader refuses a block with fewer than three shapes, a start above the crust-core boundary or a mass share above 1. The neutron star page's Crust table has a new row, "Nuclear pasta", that says it is predicted, not observed. Stand-ins PS1 to PS3 in section 6.232; sources [R5165, R5166, R5167].
+- Nothing stored changes: the layer is a described fact read when the page is built, so the generated systems are the same as before.
+
+generation-output: unchanged
+
+## [8.0.3708] - 2026-11-08
+
+**Headline:** The block light totals stage is now held to the workers the host's memory holds, and a stage's cut into units runs with the other workers gone, so a full-galaxy run is less likely to be killed for memory at the end of the block lights.
+
+### Changed
+- **The block lights have a worker memory (PERF.226).** `refresh-block-lights` is exempt from the unit-length ceiling (`whole`) but is cut into one unit per run of shells (90 on the full galaxy), and it had no figure in `workers.STAGE_WORKER_MEMORY_MB`, so the run's 15 workers were all kept (15,128 MB of a 15,992 MB host when the run of 2026-11-08 was killed). It now has the lean figure (700 MB), 11 workers on that host.
+- **The workers beside the opener leave before a stage is cut (PERF.226).** The unit that completes a stage cuts the next one in its own work horse; the other workers only waited, each holding what its last unit left. The cut now asks them to finish and exit first (`workers.shed_bulk`), and the run's `ensure` does not start workers while a cut is in progress; it starts the next stage's workers once the cut is done.
+
+Output unchanged.
+
+## [8.0.3707] - 2026-11-08
+
+**Headline:** A written class code such as F2 now works in the class filters and the class page address: a letter alone still matches every digit, a letter and a digit match that one position.
+
+### Changed
+
+- GEN.1208: `class_code.parse_code` is read where a class code is typed or linked: the planet and moon class filters of the database queries and of the search page (`F` matches F, F1 to F4 as before; `F2` matches digit 2 of the family only, `M0` the ideal), and the class page address (`/classes/planet/F2` goes to the page of class F, the digit being a position of the family; an unknown code is still a 404). No stored value changes, and nothing that was matched before is matched differently.
+
+generation-output: unchanged
+
+## [8.0.3706] - 2026-11-08
+
+**Headline:** `physics.hydrosphere`, `bulk_draw` and the other modules on the same import chain now import on their own, and two item codes that showed in text are cut (GEN.1401).
+
+### Changed
+
+- `hydrosphere` and `icy_tide` read the melting point of water from `aquifers`, the one definition, so the chain `hydrosphere` to `planet_type` to `orbit_elements` to `interior_heat` to `icy_tide` back to `hydrosphere` no longer fails when `hydrosphere` or `bulk_draw` is the first import. `tests/test_physics_imports_alone.py` imports each of the chain's modules in a fresh interpreter.
+- The item codes GEN.1047 (a field description in the sheet) and GEN.1360 (a relation note in the stellar abundances) no longer show in the text the code prints.
+
+generation-output: unchanged
+
+## [8.0.3705] - 2026-11-08
+
+**Headline:** A world's flavor-text list is chosen from its conditions (a gas giant or a rock molten all over gets the orbital list), not from its class letter.
+
+### Changed
+
+- The line of flavor text a world may carry comes from the orbital list when the body is a gas giant or its whole surface is lava (nothing could lie on the ground), and from the planet list for any other rock. This used to follow class A, a volcanic world defined by sulfur dioxide in the air, so volcanic worlds with a ground now draw from the planet list, and lava worlds that are not class A draw from the orbital list. The class is decided last and is no longer read here.
+
+generation-output: changed
+
+## [8.0.3704] - 2026-11-08
+
+**Headline:** A body's roundness, strength and final-age ground no longer depend on its class letter.
+
+### Changed
+- **The strength pass and the final-age redraw no longer read the class letter (GEN.1398, class-last audit F1 and F2).** `body_strength._is_giant` now tests the body type and the hydrogen-helium envelope share, as the classifier does, the second strength pass in `apply_class` is gone, and the final-age water and ground redraw is seeded from the body's mass, radius, distance, age and moon flag only. This changes the generator output, so it takes the generator epoch of the train that carries it (the Train Manager assigns the number).
+
+## [8.0.3703] - 2026-11-08
+
+**Headline:** Life no longer depends on a list of class letters, and a system that bars habitable worlds stops redrawing every cold planet.
+
+### Changed
+- **The list of life-bearing classes is gone (GEN.1397, which absorbs GEN.1387 and PERF.240).** Life was already decided by the conditions of the finished body, through the life classes. The list of class letters (it still held the deep-frozen world E after that letter was redefined) only filtered: it set which bodies a system that bars habitable worlds redrew, which bodies showed a life stage, and which counted as inhabited. A system that bars habitable worlds now keeps out a body that meets the habitable request or is rated habitable (Blue or Green), judged from the conditions and not the letter. On six sample seeds the redraws of those systems fell from 23 a system to none.
+- **Every class shows its life.** The life stage of a world is shown whatever its class letter, a civilization counts as inhabiting a world of any class, and the "Habitable class" flag now means the conditions support a life class or one lives there. The habitable count of a system is the bodies with life on them.
+- **A requested class is no longer moved into the ecosphere.** A slot that names a class is built where the slot puts it, and the finished body's conditions decide whether it is that class; asking for a class while habitable worlds are barred is no longer an error.
+
+generation-output: changed
+
+## [8.0.3702] - 2026-11-08
+
+**Headline:** A giant, or a planet under a deep envelope, stores the haze depth its temperature was made under.
+
+### Changed
+- **The haze of a body solved like a giant matches its air.** A giant and a planet under a deep hydrogen envelope take one step of the air solver, so the haze that sets the warming aloft is measured at the temperature the step starts from (the no-air temperature at the body's albedo). The depth the body stored was measured at its final, much hotter temperature, so a 2.5 Earth-mass gas dwarf stored 21.6 where its air had been solved with 42.8. It now stores the depth the air was solved with. A body with ground is unchanged.
+
+generation-output: changed
+
+## [8.0.3701] - 2026-11-08
+
+**Headline:** A world whose life warms it past freezing no longer keeps a ground of ice.
+
+### Fixed
+- **The ground follows the temperature the life leaves (GEN.1385).** The air the life makes could warm a body from 240 K to 408 K after its water and ground had been drawn at the cold temperature, leaving a hot world with an ice-covered ground. When the life's air takes a body past the freezing point with ice on its ground, the water and the ground are now made again at the final temperature. A body the life does not thaw keeps what it had.
+
+generation-output: changed (only bodies whose life thaws an icy ground)
+
+TODO items resolved: GEN.1385.
+
+## [8.0.3700] - 2026-11-08
+
+**Headline:** A rocky world with liquid water and a heat engine now also carries its hydrothermal and uranium deposits (porphyry copper, seafloor sulfide, basin zinc-lead, orogenic and epithermal gold, roll-front uranium), in the same table as its magmatic and sedimentary ore.
+
+### Added
+- **Six hydrothermal and sedimentary-hosted deposit types (GEN.1381, `physics/hydrothermal_deposits.py`).** After the life pass each body is assessed for porphyry Cu-Mo-Au (mobile lid, liquid water, oxidised mantle, thick crust), volcanogenic massive sulfide (mobile lid, liquid ocean, heat flow), SEDEX and MVT Zn-Pb (a basin, sulfur and old sediment), orogenic gold (continental crust), epithermal Au-Ag (volcanism, the youngest part of the age) and roll-front uranium (oxygen, land, granite and a reductant). Each is a row in `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` with status, grade, endowment and the window it formed in; a stagnant-lid or dry body has none of the arc types. Copper and zinc grades follow the star's Cu/Fe and Zn/Fe; uranium follows the rock's own uranium. Stand-ins HT1 to HT7 are in section 6.224 of the gap-filling plan.
+
+### Changed
+- `ore_deposits.over_iron(star, symbol)` generalises the star's sulfur-over-iron ratio to any element of the abundance set. The stored deposits of every rocky body gain six rows and the next epoch is needed.
+
+generation-output: changed
+TODO items resolved: GEN.1381
+
+## [8.0.3699] - 2026-11-08
+
+**Headline:** Rocky planets and moons now carry a crust thickness, a craton share, a crustal sulfur index, and a record of which magmatic ore types (nickel-copper-PGE sulfide, chromitite, iron-titanium-vanadium oxide) they hold, how much and how rich.
+
+### Added
+- **Crust fields (GEN.1380, `physics/ore_deposits.py`).** `crust_thickness_km` (thick on a small stagnant body, thin on a hot mantle or a mobile lid), `craton_fraction` (a mobile lid, 2 Gyr or older, with granitoid ground) and `crust_sulfur_index` (the star's S/Fe, liquid water and age), on `planets`, `moons` and `rogue_planets`.
+- **Magmatic ore types.** The new child tables `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` hold one row per type a rocky body was assessed for: `status` (present, absent by state or absent by chance), the ore mass, the grade of the key element capped by what the host rock supplies, the age window and a capped flag. The gate is the magma volume (the mantle processed through melting), the sulfur index for the sulfide, and the mantle redox. A metal-poor star gives leaner ore. Stand-ins ORE1 to ORE7 (section 6.227). Later slices (GEN.1381 to GEN.1383, GEN.1378) add the other types to the same tables.
+- Schema v228 (migration 0228; the train renumbers it).
+
+### Changed
+- Every rocky planet and moon made again has the new fields and rows, so the next epoch is needed (the stored bodies move; no existing draw of the run's stream moves, the ore uses the body's own streams).
+
+generation-output: changed
+TODO items resolved: GEN.1380
+
+## [8.0.3698] - 2026-11-08
+
+**Headline:** A rocky world with an ocean and a history of life now also carries its sedimentary and biogenic deposits (iron formations, phosphorite, evaporite, limestone, chert, coal and kerogen), in the same table as its magmatic ore.
+
+### Added
+- **Seven sedimentary and biogenic deposit types (GEN.1378, `physics/sedimentary_deposits.py`).** After the life pass each body is assessed for banded iron formation (a neutral ocean from the first oxygenic photosynthesis, for about 1.2 Gyr), phosphorite (an open ocean with life and at least 1 umol/L of phosphate from the phosphorus budget, the grade capped by the crust's P2O5), evaporite (an open ocean with land that dries at 270 K or more, graded by the dominant salt of the body's own brine), limestone, chert (from complex cells), coal (flora of 3 or more on a wet land, from multicellular life) and kerogen. Each is a row in `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` with status, grade, endowment and the window it formed in. A body whose life never reached the stage a type needs has the type `absent_by_state`. Stand-ins SD1 to SD9 are in section 6.223 of the gap-filling plan.
+
+### Changed
+- `ore_deposits.poisson` and `ore_deposits.lognormal_sum` are public so the two modules share the count and the size law. The stored deposits of every rocky body gain seven rows and the next epoch is needed.
+
+generation-output: changed
+TODO items resolved: GEN.1378
+
+## [8.0.3697] - 2026-11-08
+
+**Headline:** Nebulae, supernova remnants and the field clouds now say which dust species they hold (amorphous olivine and pyroxene, crystalline silicate, iron, amorphous carbon, graphite, PAHs, silicon carbide and ice), and the nebula page and its Properties sheet show the composition.
+
+### Changed
+
+- GEN.1376: the nine stored `grain_*` columns of `nebulae`, `supernova_remnants` and `nebula_field` name dust species instead of five kinds (`grain_silicate` splits into `grain_amorphous_olivine`, `grain_amorphous_pyroxene` and `grain_crystalline_silicate`; `grain_carbon` into `grain_amorphous_carbon` and `grain_graphite`; `grain_sic` is new). The silicate split is the diffuse-ISM split (84.9 percent olivine, 15.1 percent pyroxene by mass, 0.2 percent crystalline in the ISM and 10 to 20 percent in stellar ejecta), silicon carbide takes under 5 percent of the silicon of a diffuse cloud and up to 10 percent of the dust of a carbon-rich shell, and the ice mantle of a dense cloud is a mix of water, CO, CO2, methanol, ammonia and methane ([R0461: Table 2]), so it carries carbon and nitrogen as well as hydrogen and oxygen. Seven new stand-ins are in GEN.725 (NBC17 to NBC23), five new papers are in the registry (R5151 to R5155), and the design is `docs/design/composition/nebula-composition.md` section 4. Migration 0232 adds the six columns, fills them from the galaxy's seed and drops the two old ones; the stored mass fractions and abundances of existing rows are re-filled because the ice and silicon carbide budgets moved a little.
+- GEN.1272 (GEN.1268 parts d and e): the nebula page's describe sheet and the Properties sheet of a nebula or a supernova remnant show the stored composition in a gas group (mass fractions of hydrogen, helium and metals, the seven shown elements, the phase shares, 12 + log abundances) and a new Dust group (dust-to-gas, dust-to-metals and the nine species shares). The composition columns are declared in `frac`, not a bare ratio, so the sheet prints them as fractions.
+- A leftover TODO code in a sheet string (`(GEN.1047)`) that made `test_no_todo_codes_shown` fail on main is gone.
+
+generation-output: unchanged
+
+## [8.0.3696] - 2026-11-08
+
+**Headline:** Cool giants and brown dwarfs now lose their titanium and vanadium oxides before their iron, keep iron and chromium hydrides in between, and carry lithium and chlorine (GEN.1374).
+
+### Changed
+
+- The air of a giant planet, hot Jupiter or brown dwarf had one cloud for calcium, titanium, vanadium and chromium at about 1,700 K at 1 bar. The calcium, titanium and vanadium now leave at the titanate temperature (1963 K at 1 bar), the iron at 1838 K, the magnesium silicates near 1,700 K and the chromium as metal at 1518 K. A layer between the titanates and the iron has no TiO or VO and has FeH and CrH, the oxide to hydride change of the M to L dwarfs.
+- FeH and CrH are in the species file, made from the atoms' NASA fits and the equilibrium constants of the diatomic-molecule paper behind FastChem's data (300 to 6000 K); LiH, LiCl, NaCl and KCl come from the NASA file. The gas table lists Li, LiH, LiOH and LiCl (now 119 rows).
+- Lithium (protosolar, 3.25) and chlorine (5.31) are in the element budget of every giant. A brown dwarf above the lithium-burning mass has no lithium; below it, lithium is atomic down to 1520 K at 1 bar and LiCl below, and potassium turns to KCl near 980 K, both as the substellar review gives them.
+- The generated giants' and brown dwarfs' mixtures change, so this is an epoch. The stand-ins are registered as BD1 to BD5 (GEN.725, section 6.220, provisional number).
+
+## [8.0.3695] - 2026-11-08
+
+**Headline:** A gas giant's nitrogen, sulfur, argon, krypton and xenon are now enriched element by element from the disk it formed in (which ices were frozen where it formed), instead of sharing one metal scale (GEN.1372).
+
+### Changed
+
+- `physics/disk_condensation.envelope_enrichments`: the envelope's nitrogen, sulfur, argon, krypton and xenon over its star's, as the disk's gas plus `sigma` times what froze at the formation temperature, with the `sigma` that sets the carbon and oxygen of GEN.1363 part C. A giant at 110 K with four times its star's heavy elements gets nitrogen 3.0 and sulfur 3.1 (the Galileo probe measured 2.96 and 2.75 times solar for Jupiter, [R5163]); its noble gases stay at the star's amount, because they only freeze below 48 K (the probe's roughly three times solar is not reproduced).
+- `bulk_draw.disk_volatile_ratios` and `mixture_subject` give a giant its star's nitrogen, sulfur and argon over the Sun's; `mixture_giant` applies the factors in `element_budget` and records them as the constants `enrichment_n`, `enrichment_s`, `enrichment_ar`, `enrichment_kr` and `enrichment_xe`. Phosphorus and the rock-forming metals keep the one scale; a giant with no disk keeps it for every element.
+- The air of every generated giant with a disk changes (its nitrogen, sulfur and noble gases), so this is an epoch. The stand-ins are registered as GE1 to GE3 (GEN.725, section 6.221, provisional until the build renumbers).
+
+generation-output: changed
+
+## [8.0.3694] - 2026-11-08
+
+**Headline:** The asteroid and small-body mixes now carry the accessory minerals of their meteorite analogues, in amounts that follow the host star's chromium, titanium, phosphorus, aluminium, nickel and sodium.
+
+### Added
+- **Accessory minerals in the taxon mixes (GEN.1368, `physics/accessory_minerals.py`).** Each taxon's mix adds the accessory phases of its analogue: chromite and the phosphates (merrillite, chlorapatite) in the ordinary and differentiated taxa, the calcium-aluminium-rich inclusion phases (melilite, spinel, hibonite, perovskite) and nepheline in the CO and CV taxa, the Fe-Ni sulfides, carbonates, sulfates and phyllosilicates (cronstedtite, saponite, tochilinite, dolomite, magnesite, epsomite, gypsum) in the altered carbonaceous taxa, the oldhamite family in the enstatite taxon, and nanodiamond and presolar silicon carbide. A mineral that one element sets is scaled by that element's atoms per magnesium atom in the host star over the reference ratio. The reference shares are recalled modal ranges, registered as stand-ins (section 6.225, rows ACC1 to ACC4).
+
+### Changed
+- A belt's composition carries the new rows (`draw_belt(host=...)`; `belt.py` passes the host star's ratios), so the stored belt compositions and bulk densities move a little. No new draws, so the taxon shares, porosities and placements are unchanged; the next epoch is needed. A field has no host and takes the reference.
+- The metal, refractory and matrix axes of the chondrite-group label count the new inclusion and clay rows.
+- Twenty-nine rows of the materials table lose their vocabulary-only tag (TEST.685) because the mixes now name them.
+
+generation-output: changed
+TODO items resolved: GEN.1368
+
+## [8.0.3693] - 2026-11-08
+
+**Headline:** An ocean's phosphate now comes from the star's phosphorus, the crust it ends up in and the weathering that carries it to the water, instead of a high, limited or starved label drawn from the ocean's kind.
+
+### Added
+- **The phosphorus budget (GEN.1367, `physics/phosphorus_budget.py`).** The mantle's P2O5 (GEN.1362, which already has the star's phosphorus, the volatility of the formation zone and the share the core took) is concentrated into the crust by the batch melt of the body's heat flow, and sits in apatite where the crust is wet, merrillite where it is dry, and schreibersite where the mantle is reduced (a logistic of the mantle's redox about iron-wuestite minus 3). The weathering supply is the crust's P2O5 times the share the hosts let the water take, the erosion of the lid, and the rock area the rain reaches, over the ocean's volume, against the Earth's 2.3 umol/L. A soda lake, which has no free calcium to take the phosphate out, climbs to the ceiling of 1000 umol/L, and a sealed ocean holds the floor of 0.01.
+- Five new columns on planets, moons and rogue planets (schema v233): `crust_p2o5_wt`, `crust_apatite_share`, `crust_merrillite_share`, `crust_schreibersite_share` and `ocean_phosphate_umol_l`. Stand-ins PB1 to PB10 are in section 6.222 of the gap-filling plan.
+
+### Changed
+- The habitability score reads the ocean's phosphate in umol/L from `ocean_phosphate_umol_l`; the `phosphorus` text (high, limited, starved) stays only as the band of that number (starved under 0.1, high from 100), and `hydrosphere.py` no longer draws it. An aquifer's water and a non-aqueous sea keep the Earth's 2.3. The stored ocean phosphate and the life scores change for every ocean, so the next epoch is needed.
+- The burial of phosphorus with iron oxides and the recycling by a biosphere are not modelled; the module says so.
+
+generation-output: changed
+TODO items resolved: GEN.1367
+
+## [8.0.3692] - 2026-11-08
+
+**Headline:** The salts on a dried ocean floor, and in the ocean itself, now come from the chemistry of the body's own water instead of a fixed halite, gypsum and calcite mix.
+
+### Added
+- **The evaporite sequence (GEN.1366, `physics/evaporite_sequence.py`).** A body's brine is built from the cations of the crust it weathers (the melt of its mantle, with sodium and potassium put back because the stored rock carries no alkalis) and the anions of its ocean class (neutral, soda, chloride brine, acid sulfate). Its ions go to salts in the order of the chemical divides: jarosite and alunite (acid water), calcite, the alkaline path (magnesium carbonate, then nahcolite, trona, thermonatrite or natrite), the calcium path (gypsum or anhydrite, epsomite, hexahydrite or kieserite, mirabilite or thenardite, calcium chloride), perchlorate in thin oxidizing air, then halite, carnallite, sylvite, bischofite and antarcticite. Gypsum or anhydrite follows Hardie's measured equilibrium of temperature and water activity (R5164), so a halite-saturated brine makes anhydrite above about 18 degrees C. The other hydrate boundaries and the ion budget are registered stand-ins (section 6.226, rows EV1 to EV11).
+- Two table rows the sequence needs: natron and antarcticite (Webmineral pages read on 2026-11-07).
+- The Hardie source on the gypsum and anhydrite equilibrium is in the references registry as R5164.
+
+### Changed
+- The evaporite ground and the ocean's dissolved salt are read from the sequence (`surface_composition.dried_salts`, `ocean_salts`): the old fixed mix (four tenths halite, three tenths gypsum, three tenths calcite) and the halite-only ocean salt are gone. A body with no silicate rock still gets halite. The areal ground mix, the draws and the albedo rows are unchanged; the stored mass composition changes, so the next epoch is needed.
+- Twenty-one rows of the materials table that GEN.1355 and GEN.1357 tagged vocabulary-only are now read by the sequence and lose the tag (TEST.685).
+
+generation-output: changed
+TODO items resolved: GEN.1366
+
+## [8.0.3691] - 2026-11-08
+
+**Headline:** A rocky planet's mantle now stores water in the minerals its pressure makes, and the page shows what it can hold and what form its carbon takes.
+
+### Changed
+
+- The most water a mantle keeps is the sum over three zones of the mantle, by pressure: the upper mantle (olivine, to 13 GPa), the transition zone (wadsleyite and ringwoodite, 13 to 23 GPa, up to 1.5 wt% water) and the lower mantle (bridgmanite, beyond 23 GPa, 20 ppm), with the mass of each zone worked out from the body's mass, radius and rock share. The Earth stores about 4.8 oceans, a half-Earth-mass planet 3.5 and a five-Earth-mass one 7.3, and a body that is too small to have a transition zone (the Moon) stores almost none, so a small wet world now keeps more of its water at the surface. This replaces the old power law of the mass (row HY1), which gave a five-Earth-mass planet five times too much room.
+
+### Added
+
+- A rocky or icy body's page shows "Water the mantle can store" and "Carbon in the mantle" (carbonate when the mantle is more than 3 log units over the iron-wuestite buffer, diamond, graphite and iron carbide below it). Stand-ins MR1 to MR4 are registered (GEN.725).
+
+generation-output: changed
+
+## [8.0.3690] - 2026-11-08
+
+**Headline:** A rocky body's metal core now has a make-up (nickel, sulfur, silicon, oxygen, carbon, hydrogen) that follows how oxidised its rock is and how deep its mantle is, and that make-up decides when its inner core freezes and how strongly its dynamo is driven.
+
+### Changed
+- **What a metal core is made of (GEN.1364).** The light elements of the metal, drawn as one lump before, are split into sulfur, silicon, oxygen, carbon and hydrogen. Planets, moons and rogue planets with a metal core store `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction`, `core_h_fraction` and `core_light_fraction` (mass fractions of the core; the iron is the rest). The mean shares follow the redox of the rock the core formed against (`delta_IW = 2 log10(x_FeO / x_Fe)` from the rock's FeO), interpolated between the cores of Mercury, the Earth [R4608] and Mars [R4833]: a reduced body puts silicon and carbon in its core, an oxidised one sulfur, oxygen and hydrogen. The pressure at the base of the mantle tilts the oxygen and silicon, and a Dirichlet draw from a stream keyed on the body scatters the shares so no other draw of the run moves. The make-up reaches the core's thermal history (`core_heat`): the light elements the solid inner core does not take lower the iron liquidus in proportion to the mole fraction they leave in the liquid (checked against the Fe-FeS eutectic), so a sulfur-rich core freezes later, and the compositional energy of the freezing inner core is the Earth's scaled by the light mass the liquid keeps per kilogram frozen, so a silicon-rich core has a weaker compositional dynamo input and a sulfur-rich one a stronger one. The Earth's mix leaves both as they were. The stand-ins are CX1 to CX7 of the stand-in registry (section 6.218); the silicon partition and the incompatibility of oxygen are read in [R5148], the rest of the partition coefficients, the eutectic and the anchors' pressures are recalled and not yet opened (tier T3). Schema v231 adds the columns, with the units in `db/column_units.py`; the object pages show them. A row made before v231 has none until its galaxy is regenerated and its core takes the Earth's mix (generation-output changed: the new columns, and the dynamo history of every core with an inner core, are part of the golden).
+
+generation-output: changed
+
+## [8.0.3689] - 2026-11-08
+
+**Headline:** A gas giant's carbon-to-oxygen ratio now comes from the disc it formed in (its snow lines and its star's carbon and oxygen), spread as the observed giants are, instead of a draw around 0.57 (GEN.1363 part C).
+
+### Changed
+
+- `physics/disk_condensation.envelope_c_over_o`: the C/O of an envelope made of the disc's gas plus the solids that froze where the giant formed, as many solids as its enrichment over the star asks for. A lightly enriched giant takes the gas C/O of its place; a heavily enriched one the oxygen-rich solids' (about 0.34 for the Sun's disc at 60 to 140 K).
+- `mixture_subject` gives a giant that is not a moon its formation temperature (182 K at the snow line, falling as one over the square root of the distance) and its star's carbon and oxygen over the Sun's; `mixture_giant` multiplies the disc value by the recipe's drawn `f7` over 0.57 (its core's center), so the observed spread stays (stand-in DSC7, section 6.213). A giant with no disc (a brown dwarf, a rogue) keeps the recipe's value.
+- The median C/O of the sampled G2V giants falls from 0.57 to about 0.34 (disc value 0.28 to 0.40 before the spread). The cause is that enrichments of 3 to 80 times the star's draw mostly solids, and the solids are oxygen-rich; the published median of 0.57 is not reproduced by the disc alone, which is reported to Boss in the part B report.
+
+generation-output: changed
+
+## [8.0.3688] - 2026-11-08
+
+**Headline:** The most water an icy body can hold now follows the disc's budget, where carbon monoxide and dioxide hold part of the oxygen, so it falls from 0.54 to 0.34 of the solids for the Sun (GEN.1363 part B).
+
+### Changed
+
+- `bulk_draw._icy_water_range` takes the top of an icy body's water from the new `disk_condensation.water_share_of_solids`, at the body's formation temperature and with its star's carbon and oxygen over its magnesium. For the Sun that is 0.34 beyond the water line and 0.23 beyond the CO line (Lodders's table gave 0.54 and 0.38); a star with more oxygen over its magnesium than the Sun's holds more water. The water of an icy body is a draw between a floor and this top, so every icy body's water ceiling falls by about a third for a Sun-like disc.
+- `condensate_shares.water_share_of_solids` is deleted (nothing else read it); the jump of the solid surface density at the snow line stays on Lodders's table (`WATER_ICE_SOLID_BOOST`, 2.17) until the disc's solids are weighed against the minimum-mass nebula.
+- A disk with no spare oxygen (carbon takes it all, C/O above about 1) freezes no water, so the top of the range is 0; an icy body there now holds no water and no other ice, where the draw failed with a math domain error.
+- With part C (the C/O of a giant) this is the third and last part of GEN.1363; the three share one epoch.
+
+generation-output: changed
+
+## [8.0.3687] - 2026-11-08
+
+**Headline:** The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
+
+### Changed
+
+- New `physics/disk_condensation.py`: the snow lines (CO 20 K, N2 22, CH4 41, CO2 47, Ar 48, Kr 53, Xe 69, H2S 80, NH3 131, H2O 182), the carbon split (half refractory grains, the rest CO, CO2 and a little CH4), the oxygen taken out of the water by CO and CO2, the nitrogen and sulfur split, the mass each condensate makes in percent of the nebula, and the gas and solid C/O across each line. Stand-ins DSC1 to DSC6 (section 6.213); N2 and H2S lines are recalled, registered as such.
+- Nothing reads it yet: part B wires the ice shares of a body to it and part C the C/O of a giant, so no generated value changes.
+
+generation-output: unchanged
+
+## [8.0.3686] - 2026-11-08
+
+**Headline:** A progress bar now appears for any step that takes more than 5 seconds, and a random start's first sector has one.
+
+### Changed
+- **The bar threshold is 5 seconds (UX.289).** `tuning.PROGRESS_BAR_SECONDS` was 15 seconds; a step that is predicted to take over 5 seconds, or has no recorded speed yet, draws its bar at once, and a step that was thought quick but runs past 5 seconds gets its bar at that moment, started at the work done so far and counting the rest. The docs of `steps` and `stage_progress` say 5 seconds.
+- **A random start's sector has a bar.** Stage 1 of `planetgen galaxy` ("Generate the starting sector") took about 90 seconds on a small galaxy with nothing drawn; it now shows a "Starting sector" bar (or "Starting sectors" with `--neighborhoods`) like the single-address mode already did.
+- **Tests.** `test_steps.py` checks the 5 second threshold, a prediction just under and just over it, a quick step that runs past 5 seconds (with a fake timer) and a quick step that leaves no bar.
+
+## [8.0.3685] - 2026-11-08
+
+**Headline:** On a small phone screen the Galaxy Map's info card no longer scrolls itself when it is expanded: its three values scroll in their own box and the "more" region keeps room.
+
+### Changed
+
+- UX.292: with a long name and long values in a window only 640 px high (390 by 640), an expanded star-system card had a first view of 328 px against a card limit of 295 px, so the "more" region got no height and the card itself scrolled. An expanded card now keeps at least 4 rem for its "more" region, and the three values of the first view shrink into a box of their own that scrolls, so the card never scrolls (the MAP.347 contract). Cards that fit are drawn as before.
+
+generation-output: unchanged
+
+## [8.0.3684] - 2026-11-08
+
+**Headline:** On a phone the Galaxy Map's info card for a star system fits in half the map again: each row's label now stands over its value instead of beside it in a column too narrow for it.
+
+### Changed
+
+- UX.291: at phone width (390 by 844) the star-system card was 338 px high against the half-window limit of 329 px, because the label column of its three rows ("Habitable worlds", "Uninhabitable worlds") broke into pieces of a few letters beside a value column only about 100 px wide. Below 40 rem the card's rows are now one column, the label over its value, so every row takes one or two lines and nothing is hidden.
+
+generation-output: unchanged
+
+## [8.0.3683] - 2026-11-08
+
+**Headline:** The architecture map test no longer depends on which methods the package happens to name.
+
+### Fixed
+- **Architecture map call test (TEST.696).** The test for "a method on an unknown value stays text" used `.enqueue`, which stopped being unknown once `queue/requires.py` gained the only function of that name, so the map resolved it as a probable call. The test now uses `connection.ping`, which no function in the package carries.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (architecture map).
+
 ## [8.0.3682] - 2026-11-08
 
 **Headline:** The settings page has a "Galaxy and world generation" group with the oddity rate, the dial that says how often generated worlds get rare oddities (1 is the natural rate, 0 turns them off).

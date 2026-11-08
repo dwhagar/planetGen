@@ -8,8 +8,8 @@ A step has a name, a stats kind (what `generation_stats` records its speed
 under) and a work count. At its start the helper predicts how long it will
 take from that kind and count and the speeds this server recorded
 (`GenerationStats.pool_rate`, PERF.32/PERF.33): a step predicted to take
-longer than `tuning.PROGRESS_BAR_SECONDS` (15 s) draws its bar at once, one
-predicted shorter draws nothing, and one that runs past 15 s anyway gets its
+longer than `tuning.PROGRESS_BAR_SECONDS` (5 s) draws its bar at once, one
+predicted shorter draws nothing, and one that runs past 5 s anyway gets its
 bar the moment it passes it. A step with nothing recorded for its kind has no
 prediction and is treated as long, so a first run still shows its bar. On
 leaving, a finished step records its measured speed back under its kind, so
@@ -422,7 +422,7 @@ def worker_step(channel, key, name, kind=None, total=None, workers=1):
 class Relay:
     """
     The parent's end of `worker_step`: turns each worker's reports into a
-    `Step` drawn on the run's display (the same 15 second rule), and ends
+    `Step` drawn on the run's display (the same 5 second rule), and ends
     any a worker left open. Give workers `Relay.put` directly with one
     worker, or a channel `drain` reads from.
 

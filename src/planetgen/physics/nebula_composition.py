@@ -172,31 +172,96 @@ def _mass_shares(numbers):
     return {symbol: mass / total for symbol, mass in masses.items()}
 
 
+ICE_MANTLE_PER_100_H2O = {"H2O": 100.0, "CO": 25.0, "CO2": 26.0, "CH3OH": 8.0, "NH3": 6.0, "CH4": 4.5}
+"""dict: The molecules of an interstellar ice mantle, in molecules per 100 of water: the medians of the ices toward background stars behind quiescent clouds for CO (25), CO2 (26)
+and CH3OH (8), and of the low-mass young stellar objects for NH3 (6) and CH4 (4.5), where the quiescent clouds give an upper limit only (< 7 and < 3) [R0461: Table 2, read from the
+arXiv text]. One mantle for every class that has ice. [Stand-in NBC17, tier T2, tweak L1: the medians of two environments joined.]"""
+
+_MOLECULES = {"H2O": {"H": 2, "O": 1}, "CO": {"C": 1, "O": 1}, "CO2": {"C": 1, "O": 2}, "CH3OH": {"C": 1, "H": 4, "O": 1}, "NH3": {"N": 1, "H": 3}, "CH4": {"C": 1, "H": 4}}
+"""dict: The atoms of each ice molecule."""
+
+
+def _molecule_mass(name):
+    return sum(count * _WEIGHT[symbol] for symbol, count in _MOLECULES[name].items())
+
+
+def _ice_mantle():
+    masses = {name: count * _molecule_mass(name) for name, count in ICE_MANTLE_PER_100_H2O.items()}
+    total = sum(masses.values())
+    return {name: mass / total for name, mass in masses.items()}
+
+
+ICE_MANTLE = _ice_mantle()
+"""dict: The mass share of each molecule in the ice mantle of a grain (add to 1)."""
+
+
+def _ice_elements():
+    elements = {}
+    for name, share in ICE_MANTLE.items():
+        molecule_mass = _molecule_mass(name)
+        for symbol, count in _MOLECULES[name].items():
+            elements[symbol] = elements.get(symbol, 0.0) + share * count * _WEIGHT[symbol] / molecule_mass
+    return elements
+
+
 GRAINS = {
     "silicate": _mass_shares(_SILICATE),
     "iron": {"Fe": 1.0},
     "carbon": {"C": 1.0},
     "PAH": {"C": 0.92, "H": 0.08},
-    "ice": _mass_shares({"H": 2.0, "O": 1.0}),
+    "ice": _ice_elements(),
+    "SiC": _mass_shares({"Si": 1.0, "C": 1.0}),
 }
 """dict: The element mass shares of each grain kind: a magnesium silicate (Mg 1.5, Si 1, O 3.5 by number, the average of olivine and pyroxene), iron
-(metal and sulfide; the iron of the silicates is here, so the dust follows the iron a metal-poor gas has), amorphous carbon and soot, a PAH
-(92 percent carbon by mass, the rest hydrogen), and water ice. [Stand-in NBC6, tier T6, tweak L0.]"""
+(metal and sulfide; the iron of the silicates is here, so the dust follows the iron a metal-poor gas has), amorphous carbon and graphite together, a PAH
+(92 percent carbon by mass, the rest hydrogen), an ice mantle (`ICE_MANTLE`: water with CO, CO2, methanol, ammonia and methane), and silicon carbide.
+[Stand-in NBC6, tier T6, tweak L0.]"""
+
+SIC_SI_SHARE_OF_SILICATE_SI = 0.025
+"""float: The share of the silicon of the silicate grains that sits in SiC in the interstellar mixes. The absence of the 11.3 micron SiC band toward the Galactic center puts the
+silicon in SiC dust at less than 5 percent of the silicon in silicates [R5152: section 5.3]; the mixes take half the limit. [Stand-in NBC18, tier T2, tweak
+L1: inside a published upper limit.]"""
 
 GRAIN_MIXES = {
-    "diffuse": {"silicate": 0.42, "iron": 0.20, "carbon": 0.31, "PAH": 0.07},
-    "dense": {"silicate": 0.36, "iron": 0.17, "carbon": 0.20, "PAH": 0.04, "ice": 0.23},
-    "reflection": {"silicate": 0.39, "iron": 0.18, "carbon": 0.24, "PAH": 0.09, "ice": 0.10},
+    "diffuse": {"silicate": 0.42, "iron": 0.20, "carbon": 0.3065, "PAH": 0.07, "SiC": 0.0035},
+    "dense": {"silicate": 0.36, "iron": 0.17, "carbon": 0.197, "PAH": 0.04, "ice": 0.23, "SiC": 0.003},
+    "reflection": {"silicate": 0.39, "iron": 0.18, "carbon": 0.2368, "PAH": 0.09, "ice": 0.10, "SiC": 0.0032},
     "oxygen-rich": {"silicate": 0.50, "iron": 0.23, "carbon": 0.20, "PAH": 0.07},
-    "carbon-rich": {"silicate": 0.08, "iron": 0.02, "carbon": 0.70, "PAH": 0.20},
+    "carbon-rich": {"silicate": 0.08, "iron": 0.02, "carbon": 0.60, "PAH": 0.20, "SiC": 0.10},
     "ejecta": {"silicate": 0.45, "carbon": 0.20, "iron": 0.35},
     "iron-group": {"silicate": 0.20, "iron": 0.80},
 }
 """dict: The shares of the dust mass in each grain kind, by mix (a class names one in `CLASSES`); each adds to 1. The diffuse mix is a Milky Way
-one (silicates, iron, carbon with a PAH tail of a few percent); the dense one gains ice mantles; the others follow the report's table. [Stand-in NBC6,
-tier T6, tweak L3: chosen so that a solar-metallicity diffuse nebula's dust fits inside its metals within a fifth of the law.]"""
+one (silicates, iron, carbon with a PAH tail of a few percent, and SiC at half the interstellar limit `SIC_SI_SHARE_OF_SILICATE_SI`); the dense one gains ice mantles; the
+carbon-rich one (the winds of carbon stars) has SiC at 10 percent of the dust, the share below which 37 of 44 galactic carbon stars lie [R5154: the text];
+the others follow the report's table. [Stand-ins NBC6 and NBC19, tiers T6 and T2, tweaks L3 and L1: the first chosen so that a solar-metallicity diffuse nebula's dust fits inside
+its metals within a fifth of the law, the second inside the published carbon-star range.]"""
 
 assert all(abs(sum(mix.values()) - 1.0) < 1e-12 for mix in GRAIN_MIXES.values()), "a grain mix must add to 1"
+
+OLIVINE_SHARE_OF_AMORPHOUS_SILICATE = 0.849
+"""float: The mass share of amorphous olivine in the amorphous silicate (the rest is amorphous pyroxene): 84.9 percent olivine and 15.1 percent pyroxene by mass fit the 10
+micron band of the diffuse interstellar medium toward the Galactic center [R5151: abstract]. A split of the mass only; the element content of the silicate kind stays that of
+`GRAINS`. [Stand-in NBC20, tier T1, tweak L0.]"""
+
+CRYSTALLINE_SHARE_OF_SILICATE = {
+    "diffuse": 0.002, "dense": 0.002, "reflection": 0.002, "oxygen-rich": 0.15, "carbon-rich": 0.15, "ejecta": 0.15, "iron-group": 0.15,
+}
+"""dict: By mix, the mass share of the silicate that is crystalline (forsterite and enstatite). The diffuse medium holds 0.2 +- 0.2 percent [R5151: abstract]; the silicates of
+stellar ejecta are 11 to 18 percent crystalline (about 10 percent around OH/IR stars, 15 to 20 around red supergiants) [R5151: section 4.1], so the mixes of stellar ejecta take 15
+percent. The ejecta of a supernova and the carbon-rich winds take the same value for want of a source of their own. [Stand-in NBC21, tier T2, tweak L1.]"""
+
+GRAPHITE_SHARE_OF_CARBON = {
+    "diffuse": 0.5, "dense": 0.25, "reflection": 0.5, "oxygen-rich": 0.5, "carbon-rich": 0.1, "ejecta": 0.3, "iron-group": 0.0,
+}
+"""dict: By mix, the mass share of the carbon grains (not the PAHs) that is graphite; the rest is amorphous carbon. Two models of the diffuse medium disagree: the
+silicate-graphite-PAH model puts all its large carbon in graphite [R5153], the astrodust model has none [R5155], so the diffuse mix takes the middle of the widest range; a
+dense cloud and a carbon star make amorphous carbon (a carbon star's dust is amorphous carbon with SiC); presolar graphite is a small part of the grains of a meteorite
+(1 ppm against 6 ppm of SiC) [R5152: Table 3]. [Stand-in NBC22, tier T6, tweak L3 where a mix is not the diffuse one, T3 and L1 where it is.]"""
+
+assert set(CRYSTALLINE_SHARE_OF_SILICATE) == set(GRAPHITE_SHARE_OF_CARBON) == set(GRAIN_MIXES), "every mix needs a crystalline and a graphite share"
+SURVIVES_AS = {"SiC": "silicate"}
+"""dict: A grain kind with no survival share of its own is read as another's: SiC survives like the silicates. [Stand-in NBC23, tier T6, tweak L3: no source.]"""
 
 
 def molecular_column_scale():
@@ -328,7 +393,9 @@ class NebulaMakeup:
         dust_to_gas (float): Dust mass over gas mass, after survival and the metal caps.
         dust_to_gas_law (float): The same before them (`dust_to_gas_law` of the nebula's oxygen).
         dust_to_metals (float): Dust mass over metal mass.
-        grains (dict): The share of the dust mass in each grain kind.
+        grains (dict): The share of the dust mass in each grain kind (`GRAINS`).
+        species (dict): The share of the dust mass in each grain species (`SPECIES`): the grain kinds with the silicate split into amorphous olivine, amorphous pyroxene and crystalline
+            silicate and the carbon into amorphous carbon and graphite (add to 1 where there is dust).
         ionized, atomic, molecular (float): The shares of the hydrogen mass in each phase (add to 1).
         abundances (dict): 12 + log(X/H) of the gas phase for `ABUNDANCE_ELEMENTS`.
         open_items (tuple): What the model leaves open for this class.
@@ -347,6 +414,7 @@ class NebulaMakeup:
     dust_to_gas_law: float
     dust_to_metals: float
     grains: dict
+    species: dict
     ionized: float
     atomic: float
     molecular: float
@@ -380,7 +448,7 @@ def _dust_of(elements, law_ratio, row):
     and the survival of the class: each grain kind is asked for its share of the surviving dust, then every element is held to its cap."""
     mix = GRAIN_MIXES[row.mix]
     ratio = law_ratio / (1.0 + law_ratio)    # dust mass over the total
-    wanted = {kind: ratio * share * row.survival.get(kind, 1.0) for kind, share in mix.items()}
+    wanted = {kind: ratio * share * row.survival.get(kind, row.survival.get(SURVIVES_AS.get(kind), 1.0)) for kind, share in mix.items()}
     demand = {}
     for kind, mass in wanted.items():
         for symbol, part in GRAINS[kind].items():
@@ -402,6 +470,24 @@ def _dust_of(elements, law_ratio, row):
     if dust.get("H", 0.0) > 0.5 * elements["H"]:
         raise ValueError("dust cannot hold half the hydrogen of a nebula")
     return dust, grains, ratio
+
+
+SPECIES = ("amorphous_olivine", "amorphous_pyroxene", "crystalline_silicate", "iron", "amorphous_carbon", "graphite", "PAH", "SiC", "ice")
+"""tuple: The grain species the pages and the stored columns name."""
+
+
+def species_of(mix, shares):
+    """The share of the dust in each of `SPECIES` for the grain kind shares `shares` of mix `mix`; a kind the dust does not hold is 0. Empty for dust-free `shares`."""
+    if not shares:
+        return {}
+    silicate = shares.get("silicate", 0.0)
+    carbon = shares.get("carbon", 0.0)
+    crystalline = silicate * CRYSTALLINE_SHARE_OF_SILICATE[mix]
+    graphite = carbon * GRAPHITE_SHARE_OF_CARBON[mix]
+    amorphous = silicate - crystalline
+    return {"amorphous_olivine": amorphous * OLIVINE_SHARE_OF_AMORPHOUS_SILICATE, "amorphous_pyroxene": amorphous * (1.0 - OLIVINE_SHARE_OF_AMORPHOUS_SILICATE),
+            "crystalline_silicate": crystalline, "iron": shares.get("iron", 0.0), "amorphous_carbon": carbon - graphite, "graphite": graphite,
+            "PAH": shares.get("PAH", 0.0), "SiC": shares.get("SiC", 0.0), "ice": shares.get("ice", 0.0)}
 
 
 def makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_rayet_subtype=None):
@@ -455,10 +541,11 @@ def makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_r
         molecular = (1.0 - ionized) * molecular_fraction(sigma, z_over_solar)
         atomic = 1.0 - ionized - molecular
     grain_total = sum(grains.values())
+    shares = {kind: mass / grain_total for kind, mass in grains.items()} if grain_total > 0 else {}
     return NebulaMakeup(
         nebula_class, gas_oh_dex, fe_h, elements["H"], elements["He"], metals, elements, dust, gas_fractions,
         dust_total / gas_total, law, dust_total / metals if metals > 0 else 0.0,
-        {kind: mass / grain_total for kind, mass in grains.items()} if grain_total > 0 else {}, ionized, atomic, molecular, abundances, tuple(open_items))
+        shares, species_of(row.mix, shares), ionized, atomic, molecular, abundances, tuple(open_items))
 
 
 def field_cloud_density_cm3(nebula_class, key):

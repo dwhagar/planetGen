@@ -30,7 +30,7 @@ COMET_SYSTEMS = 100
 """int: Systems drawn for the comet and binary cases, whose systems cost more (a pair or comets make the system larger): 830 s for 140 on the slowest cell, so 100 (about 600 s)."""
 FORCED_ON_SYSTEMS = 50
 """int: Systems drawn when a feature is forced on or barred in many of them (`habitable_world` +50 and -50): the forcing or the bar repeats a draw until the condition holds, which costs
-about 8.6 seconds a system forced on and about 12 seconds a system barred (GEN.1275 remakes every body of a life class), so 50 cost 430 to 600 s. The tolerance at 50 is 0.17 to 0.25; the shares compared lie 0.3 apart."""
+about 8.6 seconds a system forced on and about 12 seconds a system barred (GEN.1275 judged every body), so 50 cost 430 to 600 s. The tolerance at 50 is 0.17 to 0.25; the shares compared lie 0.3 apart."""
 BASELINE_SEED = 11
 """int: The seed of the draw with no prevalence change, which the checks that compare against the usual share share."""
 
@@ -38,7 +38,7 @@ BASELINE_SEED = 11
 def _features(system):
     planets, belts, _moons = system.count_objects()
     return {
-        "habitable_world": system.count_habitable_class_worlds() > 0,
+        "habitable_world": any(system._barred(body) for planet in system.all_planets if planet.body_type != "a" for body in (planet, *planet.moons)),      # GEN.1397: the conditions of the request or a Blue or Green rating, never a class letter
         "asteroid_belt": belts > 0,
         "large_star": (system.primary_star.initial_mass_sol or 0.0) >= tuning.LARGE_STAR_MIN_MASS_SOL,
         "planets": planets + belts > 0,
@@ -186,7 +186,8 @@ def test_a_feature_a_forced_system_only_sometimes_has_is_forced_more_often_and_s
 
     wanted = base * 1.2
     assert forced_share(20) == pytest.approx((wanted - base) / (hit - base), abs=0.03)
-    assert forced_share(50) == 1.0                  # +50 asks for 0.876, past the 0.747 a forced system gives
+    assert forced_share(50) == pytest.approx((base * 1.5 - base) / (hit - base), abs=0.03)
+    assert forced_share(200) == 1.0                 # +200 asks for 0.075, past the 0.069 a forced system gives
     assert forced_share(-100) == 0.0
 
 

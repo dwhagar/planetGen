@@ -1227,7 +1227,7 @@
           "fields": [
             [
               "How it is filled",
-              "1 Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
+              "1 (The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
             ],
             [
               "How it is drawn",
@@ -1250,7 +1250,7 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
+          "what": "(The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
         },
         {
           "burn_down": null,
@@ -9635,19 +9635,19 @@
           "fields": [
             [
               "What it is",
-              "habitability_world.PHOSPHATE_UMOL_L (high 1000, limited 2.3, starved 0.01), habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
+              "habitability_world.AQUIFER_PHOSPHATE_UMOL_L 2.3, habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
             ],
             [
               "The range it moves in",
-              "each class value"
+              "each value"
             ],
             [
               "Where it holds",
-              "an ocean's phosphorus class as phosphate"
+              "the phosphate of an aquifer's water and of a non-aqueous medium, umol/L (an ocean's comes from the phosphorus budget, section 6.222)"
             ],
             [
               "What would show it wrong",
-              "an ocean-class survey"
+              "an aquifer or non-aqueous survey"
             ],
             [
               "What replaces it",
@@ -9655,7 +9655,7 @@
             ],
             [
               "Evidence",
-              "2.3 is Earth's ocean; high and starved are planetGen's; an aquifer is limited (DESIGN stand-in, GEN.654)"
+              "2.3 is Earth's ocean (phosphorus_budget.EARTH_OCEAN_UMOL_L); an aquifer takes it as a DESIGN stand-in (GEN.654)"
             ]
           ],
           "id": "LF16",
@@ -9666,7 +9666,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability_world.PHOSPHATE_UMOL_L (high 1000, limited 2.3, starved 0.01), habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
+          "what": "habitability_world.AQUIFER_PHOSPHATE_UMOL_L 2.3, habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
         },
         {
           "burn_down": [
@@ -36147,7 +36147,7 @@
           "fields": [
             [
               "What it is",
-              "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+              "nebula_composition.GRAINS and GRAIN_MIXES: the element content of six grain kinds (magnesium silicate, iron, carbon, PAH, ice, SiC) and the share of the dust mass in each, by mix"
             ],
             [
               "The range it moves in",
@@ -36178,7 +36178,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+          "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of six grain kinds (magnesium silicate, iron, carbon, PAH, ice, SiC) and the share of the dust mass in each, by mix"
         },
         {
           "burn_down": null,
@@ -36571,6 +36571,280 @@
           "tweak": "L0",
           "unread": null,
           "what": "nebula_composition.GAS_OH_MAX_DEX 0.7: the highest [O/H] the gas of a place can have, dex (the gradient is capped; a galaxy with a very wide disk would otherwise put the gas several dex above solar)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.ICE_MANTLE_PER_100_H2O {H2O 100, CO 25, CO2 26, CH3OH 8, NH3 6, CH4 4.5}: the molecules of an interstellar ice mantle, per 100 water"
+            ],
+            [
+              "The range it moves in",
+              "each molecule within the quartiles of the table, CO 9 to 67, CO2 14 to 43, CH3OH 1 to 12"
+            ],
+            [
+              "Where it holds",
+              "the ices toward background stars of quiescent clouds and low-mass young stars"
+            ],
+            [
+              "What would show it wrong",
+              "an ice mantle toward a dense cloud with CO2 above 43 or CH3OH above 12 per 100 water"
+            ],
+            [
+              "What replaces it",
+              "the ices of each environment separately, or a gas-grain chemistry model of the cloud"
+            ],
+            [
+              "Evidence",
+              "the ice survey, Table 2 [R0461], read from the arXiv text: medians of the background stars for CO, CO2 and methanol; of the low-mass young stellar objects for NH3 and CH4, where the quiescent clouds give an upper limit only"
+            ]
+          ],
+          "id": "NBC17",
+          "key": "6.179:NBC17",
+          "kind": "P",
+          "slug": "6-179-nbc17",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.ICE_MANTLE_PER_100_H2O {H2O 100, CO 25, CO2 26, CH3OH 8, NH3 6, CH4 4.5}: the molecules of an interstellar ice mantle, per 100 water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.SIC_SI_SHARE_OF_SILICATE_SI 0.025: the share of the silicon of the silicates that sits in SiC in the interstellar mixes"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium toward the Galactic center"
+            ],
+            [
+              "What would show it wrong",
+              "an 11.3 micron SiC band in the interstellar extinction"
+            ],
+            [
+              "What replaces it",
+              "a detection or a lower limit of the SiC band"
+            ],
+            [
+              "Evidence",
+              "the dust review [R5152] section 5.3: silicon in SiC under 5 percent of the silicon in silicates, a limit the review quotes from an earlier survey; the mixes take half the limit"
+            ]
+          ],
+          "id": "NBC18",
+          "key": "6.179:NBC18",
+          "kind": "P",
+          "slug": "6-179-nbc18",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "by design",
+          "what": "nebula_composition.SIC_SI_SHARE_OF_SILICATE_SI 0.025: the share of the silicon of the silicates that sits in SiC in the interstellar mixes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GRAIN_MIXES carbon-rich SiC 0.10: the share of the dust mass of a carbon-star wind that is SiC"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.43"
+            ],
+            [
+              "Where it holds",
+              "the dust of carbon stars"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon-rich nebula whose dust is half SiC"
+            ],
+            [
+              "What replaces it",
+              "the dust yields of AGB stars by mass and metallicity (the LMC and SMC AGB dust-yield models)"
+            ],
+            [
+              "Evidence",
+              "the SiC review [R5154]: below 10 percent for 37 of 44 galactic carbon stars (a galactic carbon-star survey), up to 43 percent in the LMC and 11 percent in the SMC as upper limits (a dust-yield model), both second-hand"
+            ]
+          ],
+          "id": "NBC19",
+          "key": "6.179:NBC19",
+          "kind": "P",
+          "slug": "6-179-nbc19",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.GRAIN_MIXES carbon-rich SiC 0.10: the share of the dust mass of a carbon-star wind that is SiC"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.OLIVINE_SHARE_OF_AMORPHOUS_SILICATE 0.849: the mass share of amorphous olivine in the amorphous silicate (the rest is pyroxene)"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium toward the Galactic center"
+            ],
+            [
+              "What would show it wrong",
+              "a 10 micron band that needs half pyroxene"
+            ],
+            [
+              "What replaces it",
+              "a fit of the band along other lines of sight"
+            ],
+            [
+              "Evidence",
+              "the diffuse-medium silicate fit [R5151]: 84.9 percent amorphous olivine and 15.1 percent amorphous pyroxene by mass"
+            ]
+          ],
+          "id": "NBC20",
+          "key": "6.179:NBC20",
+          "kind": "P",
+          "slug": "6-179-nbc20",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_composition.OLIVINE_SHARE_OF_AMORPHOUS_SILICATE 0.849: the mass share of amorphous olivine in the amorphous silicate (the rest is pyroxene)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.CRYSTALLINE_SHARE_OF_SILICATE {interstellar mixes 0.002, ejecta mixes 0.15}: the mass share of the silicate that is crystalline"
+            ],
+            [
+              "The range it moves in",
+              "interstellar 0 to 0.004; ejecta 0.10 to 0.20"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium; the dust of OH/IR stars and red supergiants"
+            ],
+            [
+              "What would show it wrong",
+              "crystalline silicate above 1 percent in the diffuse medium"
+            ],
+            [
+              "What replaces it",
+              "the crystallinity of supernova and carbon-star silicates"
+            ],
+            [
+              "Evidence",
+              "the diffuse-medium silicate fit [R5151]: 0.2 +- 0.2 percent in the diffuse medium; 11 to 18 percent in the combined stellar ejecta (OH/IR stars about 10, red supergiants 15 to 20); the supernova and carbon-rich mixes have no source of their own"
+            ]
+          ],
+          "id": "NBC21",
+          "key": "6.179:NBC21",
+          "kind": "P",
+          "slug": "6-179-nbc21",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.CRYSTALLINE_SHARE_OF_SILICATE {interstellar mixes 0.002, ejecta mixes 0.15}: the mass share of the silicate that is crystalline"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the graphite share of interstellar carbon grains is not measured; the silicate-graphite-PAH and astrodust models disagree and the middle of their range is taken; any measured graphite fraction replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GRAPHITE_SHARE_OF_CARBON {diffuse 0.5, dense 0.25, reflection 0.5, oxygen-rich 0.5, carbon-rich 0.1, ejecta 0.3, iron-group 0}: the share of the carbon grains (not PAHs) that is graphite, the rest amorphous carbon"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 in the diffuse medium"
+            ],
+            [
+              "Where it holds",
+              "the diffuse medium; carbon-star winds"
+            ],
+            [
+              "What would show it wrong",
+              "a measured graphite fraction of interstellar carbon grains"
+            ],
+            [
+              "What replaces it",
+              "the grain model that wins the 2175 angstrom bump and the 3.4 micron band"
+            ],
+            [
+              "Evidence",
+              "the silicate-graphite-PAH model [R5153] (graphite) against the astrodust model [R5155] (none): the middle of the widest range; amorphous carbon dominates carbon-star dust and presolar graphite is 1 ppm of a meteorite against 6 ppm SiC [R5152]; the other mixes are argued"
+            ]
+          ],
+          "id": "NBC22",
+          "key": "6.179:NBC22",
+          "kind": "P",
+          "slug": "6-179-nbc22",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.GRAPHITE_SHARE_OF_CARBON {diffuse 0.5, dense 0.25, reflection 0.5, oxygen-rich 0.5, carbon-rich 0.1, ejecta 0.3, iron-group 0}: the share of the carbon grains (not PAHs) that is graphite, the rest amorphous carbon"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no source measures the sputtering or shattering rate of silicon carbide in shocks; it is taken to survive like the silicates until one does"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.SURVIVES_AS {SiC: silicate}: SiC takes the survival share of the silicates in every class"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1"
+            ],
+            [
+              "Where it holds",
+              "classes with a survival row"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SiC destruction rate in shocks"
+            ],
+            [
+              "What replaces it",
+              "SiC sputtering and shattering rates"
+            ],
+            [
+              "Evidence",
+              "no source: SiC is a hard carbide, taken to survive like the silicates"
+            ]
+          ],
+          "id": "NBC23",
+          "key": "6.179:NBC23",
+          "kind": "P",
+          "slug": "6-179-nbc23",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.SURVIVES_AS {SiC: silicate}: SiC takes the survival share of the silicates in every class"
         }
       ],
       "slug": "6-179-stand-ins-of-the-composition-of-a-nebula",
@@ -41187,6 +41461,3078 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.220",
+      "number": "6.220",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "1 bar, solar composition"
+            ],
+            [
+              "What would show it wrong",
+              "a condensation sequence at 1 bar that puts the titanium or the chromium cloud more than 50 K from these"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R2725] (the 1963 K and the 1958 K of perovskite alone) and [R2731: section 1.5.3] were opened for this item; the iron fit of the same code gives 1838 K against the review's 1843 K"
+            ]
+          ],
+          "id": "BD1",
+          "key": "6.220:BD1",
+          "kind": "P",
+          "slug": "6-220-bd1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.TITANATE_1_BAR_K 1963 K (Ca4Ti3O10, the first titanium condensate at 1 bar and solar composition) and CHROMIUM_1_BAR_K 1518 K (chromium metal)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "0.1 to 10 bar, [Fe/H] -1 to +1"
+            ],
+            [
+              "What would show it wrong",
+              "a titanate or chromium condensation curve against pressure that departs from the iron slope by more than 50 K over a decade"
+            ],
+            [
+              "What replaces it",
+              "the slopes of the stability fields in the figures of [R2725, R2731], read"
+            ],
+            [
+              "Evidence",
+              "the paper's figures show the curves and no slope is printed; the iron slope is the nearest read fit, and the layer of a brown dwarf is at 1 bar where the anchors are exact"
+            ]
+          ],
+          "id": "BD2",
+          "key": "6.220:BD2",
+          "kind": "P",
+          "slug": "6-220-bd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the pressure and metallicity terms of the titanate and chromium temperatures: the iron fit's slopes, 10^4/T = 10^4/T_1bar - 0.48 log P - 0.48 [Fe/H]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "brown dwarfs above 65 Jupiter masses"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models"
+            ],
+            [
+              "What replaces it",
+              "the depletion against mass and age from the evolutionary models"
+            ],
+            [
+              "Evidence",
+              "the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled)"
+            ]
+          ],
+          "id": "BD3",
+          "key": "6.220:BD3",
+          "kind": "P",
+          "slug": "6-220-bd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (stellar_abundances.lithium_burning_limit_sol, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 6000 K, ideal gas, 1 bar standard state"
+            ],
+            [
+              "What would show it wrong",
+              "a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K"
+            ],
+            [
+              "What replaces it",
+              "the NASA Glenn or JANAF fit of the two gases, if one is published"
+            ],
+            [
+              "Evidence",
+              "the fits are the polynomial that FastChem ships for the data of [R5162]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here"
+            ]
+          ],
+          "id": "BD4",
+          "key": "6.220:BD4",
+          "kind": "P",
+          "slug": "6-220-bd4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (scripts/build_species_thermo.py, DERIVED)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 883 K crystal, above it liquid; below 300 K read at 300 K"
+            ],
+            [
+              "What would show it wrong",
+              "a lithium condensate that forms at another temperature at 1 bar: [R2731: section 1.5.5] names Li2S (low pressure) and LiF (high pressure) and gives no temperature"
+            ],
+            [
+              "What replaces it",
+              "Li2S and LiF, if their free energies are held"
+            ],
+            [
+              "Evidence",
+              "the database holds no Li2S or LiF gas or crystal in the file; LiCl is the lithium and chlorine condensate it does hold, and without any lithium condensate the chlorine of the cold air re-forms HCl ice for ever (the caps did not settle)"
+            ]
+          ],
+          "id": "BD5",
+          "key": "6.220:BD5",
+          "kind": "P",
+          "slug": "6-220-bd5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
+        }
+      ],
+      "slug": "6-220-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
+      "title": "Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air"
+    },
+    {
+      "key": "6.221",
+      "number": "6.221",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: the troilite of the sulfur (1 - SULFUR_AS_H2S of it) is rock and takes the rock-forming metals' scale enrichment, not the ices' sigma; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "giants formed below about 700 K (troilite stable)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured P/Fe or S/Fe in a giant's envelope off the rock's by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a model of how rock and troilite reach an envelope"
+            ],
+            [
+              "Evidence",
+              "the Galileo S is 2.75 +/- 0.66 times solar against 3.1 here ([R5163: Table 2]); the probe has no phosphorus (PH3 only as a mass-34 interference), so P is a choice, not a fit"
+            ]
+          ],
+          "id": "GE1",
+          "key": "6.221:GE1",
+          "kind": "P",
+          "slug": "6-221-ge1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: the troilite of the sulfur (1 - SULFUR_AS_H2S of it) is rock and takes the rock-forming metals' scale enrichment, not the ices' sigma; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (disk_noble), because the star's element set has no krypton or xenon"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "stars with the Sun's ratios of the noble gases"
+            ],
+            [
+              "What would show it wrong",
+              "a star with a measured krypton or xenon over argon off the Sun's by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the star's own krypton and xenon, if the element set gains them"
+            ],
+            [
+              "Evidence",
+              "[R0168] gives the Sun's krypton and xenon; no star sample here measures them"
+            ]
+          ],
+          "id": "GE2",
+          "key": "6.221:GE2",
+          "kind": "P",
+          "slug": "6-221-ge2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (disk_noble), because the star's element set has no krypton or xenon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same sigma (the planetesimals carry the disk's proportions of all species)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "giants whose heavy elements came mostly as planetesimals"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose nitrogen and sulfur enrichments differ from its carbon and oxygen by the ice split alone by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a model of which ices the planetesimals shed in the envelope (volatiles are lost on the way in)"
+            ],
+            [
+              "Evidence",
+              "nitrogen 3.0 and sulfur 3.1 against the probe's 2.96 and 2.75 times solar at one formation temperature and four times the star's heavy elements; one giant, so not a test of the split"
+            ]
+          ],
+          "id": "GE3",
+          "key": "6.221:GE3",
+          "kind": "P",
+          "slug": "6-221-ge3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same sigma (the planetesimals carry the disk's proportions of all species)"
+        }
+      ],
+      "slug": "6-221-stand-ins-of-the-nitrogen-sulfur-and-noble-gases-of-a-giant-s-envelope",
+      "title": "Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope"
+    },
+    {
+      "key": "6.228",
+      "number": "6.228",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfuric_vapor.json zeleznik_1991: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "200 to 350 K, 0.1 MPa, every strength (the paper says no measurement above 25 C for the concentrated acid)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured water or acid activity over the solution off the model by more than the paper's 0.75 percent in the Gibbs energy"
+            ],
+            [
+              "What replaces it",
+              "a newer thermodynamic model (the Clegg and Brimblecombe model, [R4289] fits it)"
+            ],
+            [
+              "Evidence",
+              "READ ([R4877: Table 6], checked against [R4877: Table 7] at 200, 250 and 300 K)"
+            ]
+          ],
+          "id": "SV1",
+          "key": "6.228:SV1",
+          "kind": "D",
+          "slug": "6-228-sv1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfuric_vapor.json zeleznik_1991: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
+            ],
+            [
+              "The range it moves in",
+              "default curve; refit curve as the other end"
+            ],
+            [
+              "Where it holds",
+              "190 to 445 K (never the raw Ayers line below 300 K: it is 4.5 times high at 200 K)"
+            ],
+            [
+              "What would show it wrong",
+              "the pure acid vapor pressure measured off the curve by more than the 1.28 spread"
+            ],
+            [
+              "What replaces it",
+              "the primary [R2516] or a fourth open paper"
+            ],
+            [
+              "Evidence",
+              "2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R0210, R2516]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
+            ]
+          ],
+          "id": "SV2",
+          "key": "6.228:SV2",
+          "kind": "B",
+          "slug": "6-228-sv2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "sulfuric_vapor.json pure_acid_*: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K)"
+            ],
+            [
+              "The range it moves in",
+              "Zeleznik's activity used everywhere in 200 to 350 K, so acid and water stay consistent"
+            ],
+            [
+              "Where it holds",
+              "185 to 260 K for the comparison"
+            ],
+            [
+              "What would show it wrong",
+              "a measured water pressure over 60 to 80 percent acid below 260 K"
+            ],
+            [
+              "What replaces it",
+              "the measurements of Massucci and others 1996 behind [R4289], if opened"
+            ],
+            [
+              "Evidence",
+              "READ ([R4877], [R4289: Table 1])"
+            ]
+          ],
+          "id": "SV3",
+          "key": "6.228:SV3",
+          "kind": "B",
+          "slug": "6-228-sv3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of saturation)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "185 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured supercooled water pressure off it by more than 2 percent between 260 and 273 K"
+            ],
+            [
+              "What replaces it",
+              "the Wagner supercooled curve"
+            ],
+            [
+              "Evidence",
+              "READ ([R4289: equation 1]); the 260 to 273 K part is carried, not printed"
+            ]
+          ],
+          "id": "SV4",
+          "key": "6.228:SV4",
+          "kind": "D",
+          "slug": "6-228-sv4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of saturation)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is extrapolated there"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "350 to 445 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid or water pressure over concentrated acid above 350 K"
+            ],
+            [
+              "What replaces it",
+              "a model that reaches the sub-cloud region"
+            ],
+            [
+              "Evidence",
+              "the base of the published cloud sits at 345 to 367 K, so this part is where the Venus base is decided; the 97 to 99 percent base strengths are consistent with the published over 95 percent ([R0157: Table 1])"
+            ]
+          ],
+          "id": "SV5",
+          "key": "6.228:SV5",
+          "kind": "T",
+          "slug": "6-228-sv5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L2",
+          "unread": null,
+          "what": "the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is extrapolated there"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any air"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud whose base is not where this puts it for the air's own acid and water"
+            ],
+            [
+              "What replaces it",
+              "the cloud step of GEN.1425 with the sulfur chemistry"
+            ],
+            [
+              "Evidence",
+              "derived from the activities above; next to no acid condenses at the dew point of the water"
+            ]
+          ],
+          "id": "SV6",
+          "key": "6.228:SV6",
+          "kind": "T",
+          "slug": "6-228-sv6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1425",
+            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "warm clouds; cold ones are the window's edge"
+            ],
+            [
+              "What would show it wrong",
+              "a cold acid aerosol that is solid where this puts it liquid"
+            ],
+            [
+              "What replaces it",
+              "the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function"
+            ],
+            [
+              "Evidence",
+              "not read into code; [R4877] prints the solid phases"
+            ]
+          ],
+          "id": "SV7",
+          "key": "6.228:SV7",
+          "kind": "P",
+          "slug": "6-228-sv7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no measurement of the SO3 share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "below 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SO3 share of the sub-cloud vapor"
+            ],
+            [
+              "What replaces it",
+              "a decomposition equilibrium"
+            ],
+            [
+              "Evidence",
+              "recalled from the Venus acid-cloud report (P8), not opened"
+            ]
+          ],
+          "id": "SV8",
+          "key": "6.228:SV8",
+          "kind": "P",
+          "slug": "6-228-sv8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
+        }
+      ],
+      "slug": "6-228-stand-ins-of-the-vapor-pressure-over-aqueous-sulfuric-acid-and-its-condensation-window",
+      "title": "Stand-ins of the vapor pressure over aqueous sulfuric acid and its condensation window"
+    },
+    {
+      "key": "6.229",
+      "number": "6.229",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set.json species V1: sulfuric acid water droplets (about 75 percent acid on Venus), given to an air whose acid vapor condenses by the curve of sulfuric_vapor"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "airs with sulfur dioxide, an oxidiser, water and a cool enough level"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud-bearing air the curve calls clear, or a clear one it calls cloudy"
+            ],
+            [
+              "What replaces it",
+              "the cloud step reading the window (part B of GEN.1425)"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ ([R0157: Table 1] through sulfuric_cloud.json, [R3418], GEN.1424); Venus is the only calibration planet"
+            ]
+          ],
+          "id": "CV1",
+          "key": "6.229:CV1",
+          "kind": "B",
+          "slug": "6-229-cv1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sulfur_cloud_set.json species V1: sulfuric acid water droplets (about 75 percent acid on Venus), given to an air whose acid vapor condenses by the curve of sulfuric_vapor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V2: sulfur dioxide gas, read from the air (nothing added)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "as generated"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ (the gas table; [R5169] fits the sulfur dioxide band)"
+            ]
+          ],
+          "id": "CV2",
+          "key": "6.229:CV2",
+          "kind": "D",
+          "slug": "6-229-cv2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V2: sulfur dioxide gas, read from the air (nothing added)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V3: hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases, read from the air (nothing added); present when one is over its floor (chlorine_min_share, reductant_min_share)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "as generated"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "STATUS observed in a planet (Venus); READ (the gas table and the halogen budget of mixture_rocky)"
+            ]
+          ],
+          "id": "CV3",
+          "key": "6.229:CV3",
+          "kind": "D",
+          "slug": "6-229-cv3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V3: hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases, read from the air (nothing added); present when one is over its floor (chlorine_min_share, reductant_min_share)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V4: sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer) from the photolysis of sulfur dioxide with a reductant (gate 3)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "an air over uv_c_min_w_m2 of ultraviolet-C flux with a reductant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured air with the oxides where this gives none"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (sulfur monoxide observed); READ ([R5169: Table 3] disulfur monoxide has the lowest misfit, 14, the dimer the best shape, 22; neither is detected)"
+            ]
+          ],
+          "id": "CV4",
+          "key": "6.229:CV4",
+          "kind": "T",
+          "slug": "6-229-cv4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V4: sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer) from the photolysis of sulfur dioxide with a reductant (gate 3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over sulfur_aerosol_min_so2_share as well as gate 3"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "a sulfur-rich photochemical air"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sulfur-rich air without the aerosol"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] S8 misfit 76 to 120, against 14 for S2O: fits less well, not excluded)"
+            ]
+          ],
+          "id": "CV5",
+          "key": "6.229:CV5",
+          "kind": "T",
+          "slug": "6-229-cv5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over sulfur_aerosol_min_so2_share as well as gate 3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "terrestrial body without a global ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid cloud with chlorine and iron and no trace of it"
+            ],
+            [
+              "What replaces it",
+              "a model of where the iron goes"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] misfit 86; [R5170] abstract, a preprint under review, only the abstract read)"
+            ]
+          ],
+          "id": "CV6",
+          "key": "6.229:CV6",
+          "kind": "T",
+          "slug": "6-229-cv6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5)"
+            ],
+            [
+              "The range it moves in",
+              "default on"
+            ],
+            [
+              "Where it holds",
+              "terrestrial body without a global ocean"
+            ],
+            [
+              "What would show it wrong",
+              "as CV6"
+            ],
+            [
+              "What replaces it",
+              "a model of where the iron goes"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5170] abstract only)"
+            ]
+          ],
+          "id": "CV7",
+          "key": "6.229:CV7",
+          "kind": "T",
+          "slug": "6-229-cv7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+            ],
+            [
+              "The range it moves in",
+              "off by default"
+            ],
+            [
+              "Where it holds",
+              "needs the acid cloud, iron and dust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid cloud with dust and none of it"
+            ],
+            [
+              "What replaces it",
+              "a per-planet dust influx and a second paper"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (one preprint); READ ([R5170] abstract only: the cloud-top carbon and iron need 600 and 3 thousand years of influx at the least)"
+            ]
+          ],
+          "id": "CV8",
+          "key": "6.229:CV8",
+          "kind": "T",
+          "slug": "6-229-cv8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4"
+            ],
+            [
+              "The range it moves in",
+              "off by default"
+            ],
+            [
+              "Where it holds",
+              "photolysed sulfur and chlorine"
+            ],
+            [
+              "What would show it wrong",
+              "as CV8"
+            ],
+            [
+              "What replaces it",
+              "a second paper"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; READ ([R5169: Table 3] SCl2 misfit 57; the others are not in the table)"
+            ]
+          ],
+          "id": "CV9",
+          "key": "6.229:CV9",
+          "kind": "T",
+          "slug": "6-229-cv9",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+            ],
+            [
+              "The range it moves in",
+              "centre 0.34 +/- 0.03, width 0.14 +/- 0.01 (read); strength hand-set"
+            ],
+            [
+              "Where it holds",
+              "with V1 and sulfur dioxide"
+            ],
+            [
+              "What would show it wrong",
+              "a measured band centre or width outside the stated ranges; a peak depth far from 0.1"
+            ],
+            [
+              "What replaces it",
+              "a retrieved band strength"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only (its identity); READ for the band ([R5169: abstract and section 4.3]); the strength is a stand-in, not in the text"
+            ]
+          ],
+          "id": "CV10",
+          "key": "6.229:CV10",
+          "kind": "P",
+          "slug": "6-229-cv10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1425",
+            "L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set.json acid_vapor_share_of_so2 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat"
+            ],
+            [
+              "The range it moves in",
+              "1 to 10 percent"
+            ],
+            [
+              "Where it holds",
+              "airs with an acid cloud"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide"
+            ],
+            [
+              "What replaces it",
+              "a photochemistry model of the acid vapor"
+            ],
+            [
+              "Evidence",
+              "from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it"
+            ]
+          ],
+          "id": "CG1",
+          "key": "6.229:CG1",
+          "kind": "P",
+          "slug": "6-229-cg1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sulfur_cloud_set.json acid_vapor_share_of_so2 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
+            ],
+            [
+              "The range it moves in",
+              "each a decade either way"
+            ],
+            [
+              "Where it holds",
+              "gates 2 to 4"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep that moves any of them"
+            ],
+            [
+              "What replaces it",
+              "a sweep"
+            ],
+            [
+              "Evidence",
+              "STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors"
+            ]
+          ],
+          "id": "CG2",
+          "key": "6.229:CG2",
+          "kind": "P",
+          "slug": "6-229-cg2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
+        }
+      ],
+      "slug": "6-229-stand-ins-of-the-sulfur-cloud-chemistry-set-and-its-gates",
+      "title": "Stand-ins of the sulfur-cloud chemistry set and its gates"
+    },
+    {
+      "key": "6.224",
+      "number": "6.224",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+            ],
+            [
+              "The range it moves in",
+              "heat flow 0.08 to 0.09 W/m2"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies with a stored heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mean outside the range"
+            ],
+            [
+              "What replaces it",
+              "the Earth's measured means (the references stay)"
+            ],
+            [
+              "Evidence",
+              "the Earth's global heat flow (about 87 mW/m2), the hypsometry and the air's oxygen share, recalled; not opened"
+            ]
+          ],
+          "id": "HT1",
+          "key": "6.224:HT1",
+          "kind": "B",
+          "slug": "6-224-ht1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the gate numbers are design choices; no source measures where a deposit class stops forming"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.PORPHYRY_MIN_CRUST_KM 20, OROGENIC_MIN_CRUST_KM 25, VMS_MIN_HEAT_RATIO 0.3, SEDEX_MIN_SULFUR 0.3, SEDEX_MIN_AGE_GY 0.5, EPITHERMAL_MIN_MAGMA_RATIO 0.2 and ROLL_FRONT_MIN_O2_PA 1000: the least crust, heat, sulfur, sediment age, volcanism and oxygen at which each type's setting exists"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "wet rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a deposit of a type found in a setting below its threshold"
+            ],
+            [
+              "What replaces it",
+              "the process models of each deposit class (a hydrothermal cell, a metamorphic belt, a basin brine)"
+            ],
+            [
+              "Evidence",
+              "design file section 5 gates in words ('a 1 to 4 km intrusion', 'heat flow above a floor', 'oxidising groundwater'); the numbers are mine"
+            ]
+          ],
+          "id": "HT2",
+          "key": "6.224:HT2",
+          "kind": "T",
+          "slug": "6-224-ht2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.PORPHYRY_MIN_CRUST_KM 20, OROGENIC_MIN_CRUST_KM 25, VMS_MIN_HEAT_RATIO 0.3, SEDEX_MIN_SULFUR 0.3, SEDEX_MIN_AGE_GY 0.5, EPITHERMAL_MIN_MAGMA_RATIO 0.2 and ROLL_FRONT_MIN_O2_PA 1000: the least crust, heat, sulfur, sediment age, volcanism and oxygen at which each type's setting exists"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the ceilings are design choices; only the Earth's counts exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.HEAT_RATIO_CAP 3 and MAGMA_RATIO_CAP 3: the ceilings on the heat-flow and volcanism factors of the count"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "hot and large rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a count that keeps rising with heat past the cap"
+            ],
+            [
+              "What replaces it",
+              "a hydrothermal-cell model of the count against heat flow"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (no ore count is known to rise without bound)"
+            ]
+          ],
+          "id": "HT3",
+          "key": "6.224:HT3",
+          "kind": "T",
+          "slug": "6-224-ht3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.HEAT_RATIO_CAP 3 and MAGMA_RATIO_CAP 3: the ceilings on the heat-flow and volcanism factors of the count"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.CRUST_PPM (Cu 60, Zn 70 ppm, Au 4 ppb) and CONCENTRATION (Cu 140, Zn 750, Au 2300, U 740): the continental crust mean and the factor from it to ore"
+            ],
+            [
+              "The range it moves in",
+              "crust means within 20 percent"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a crust mean or factor outside the published range"
+            ],
+            [
+              "What replaces it",
+              "the crust abundances of the reference compilation (accepted secondary)"
+            ],
+            [
+              "Evidence",
+              "design file section 6: the concentration factors and the crustal abundances it cites; recalled; not opened"
+            ]
+          ],
+          "id": "HT4",
+          "key": "6.224:HT4",
+          "kind": "B",
+          "slug": "6-224-ht4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hydrothermal_deposits.CRUST_PPM (Cu 60, Zn 70 ppm, Au 4 ppb) and CONCENTRATION (Cu 140, Zn 750, Au 2300, U 740): the continental crust mean and the factor from it to ore"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.U_CRUST_OVER_BULK 80 and U3O8_PER_U 1.1792: the crust's uranium over the bulk silicate's, and the U3O8 per uranium"
+            ],
+            [
+              "The range it moves in",
+              "50 to 120"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored uranium"
+            ],
+            [
+              "What would show it wrong",
+              "a crust mean uranium far from 80 times the bulk silicate's"
+            ],
+            [
+              "What replaces it",
+              "a crust-extraction model of the incompatible elements"
+            ],
+            [
+              "Evidence",
+              "the Earth's 1.7 ppm crust over a 0.02 ppm bulk silicate, recalled; the oxide factor is stoichiometry"
+            ]
+          ],
+          "id": "HT5",
+          "key": "6.224:HT5",
+          "kind": "P",
+          "slug": "6-224-ht5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "hydrothermal_deposits.U_CRUST_OVER_BULK 80 and U3O8_PER_U 1.1792: the crust's uranium over the bulk silicate's, and the U3O8 per uranium"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the windows are design choices; only the Earth's deposits by era exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0)"
+            ],
+            [
+              "The range it moves in",
+              "each edge by 0.2"
+            ],
+            [
+              "Where it holds",
+              "all six types"
+            ],
+            [
+              "What would show it wrong",
+              "a type found outside its window on the Earth's record"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts by era and an erosion model"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (shallow deposits erode away, deep ones survive), recalled from the file's remark"
+            ]
+          ],
+          "id": "HT6",
+          "key": "6.224:HT6",
+          "kind": "P",
+          "slug": "6-224-ht6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.WINDOWS: the share of the body's age in which each type formed and survived (porphyry 0.5 to 1.0, VMS, SEDEX and orogenic 0.3 to 1.0, epithermal 0.9 to 1.0, roll-front 0.6 to 1.0)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the counts are design choices; only the Earth's deposits exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window"
+            ],
+            [
+              "The range it moves in",
+              "deposits 0.3x to 3x"
+            ],
+            [
+              "Where it holds",
+              "wet rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like draw with a total far from the Earth's known endowment of the type"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts and tonnage distributions"
+            ],
+            [
+              "Evidence",
+              "medians inside the file's tonnage ranges (1e8 to 1e10 t, 1e6 to 1e8 t, 1e5 to 1e7 t, 1e3 to 1e5 t U), recalled; the counts are mine"
+            ]
+          ],
+          "id": "HT7",
+          "key": "6.224:HT7",
+          "kind": "P",
+          "slug": "6-224-ht7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "hydrothermal_deposits.PORPHYRY_DEPOSITS 30, VMS_DEPOSITS 100, SEDEX_DEPOSITS 80, OROGENIC_DEPOSITS 100, EPITHERMAL_DEPOSITS 150 and ROLL_FRONT_DEPOSITS 120, medians 1e12, 1e10, 1e10, 1e10, 1e9 and 1e10 kg of ore, spread 1.5: the deposits of an Earth-like body over the reference window"
+        }
+      ],
+      "slug": "6-224-stand-ins-of-the-hydrothermal-and-uranium-deposits",
+      "title": "Stand-ins of the hydrothermal and uranium deposits"
+    },
+    {
+      "key": "6.223",
+      "number": "6.223",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no ocean-oxygenation model exists in the generator, and the Earth's dates are the one case; recalled, not opened"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.BIF_SPAN_GY 1.2 Gyr: the iron formations are laid from the first oxygenic photosynthesis until the deep ocean is oxic"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 2.0 Gyr"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like body whose iron formations outlast the span or end long before it"
+            ],
+            [
+              "What replaces it",
+              "an ocean-oxygenation model (the oxygen supply against the iron and sulfur sinks)"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 9: 'a rising oxygen source, age window'; the Earth laid them from about 3.0 to 1.85 Ga after photosynthesis, recalled; not opened"
+            ]
+          ],
+          "id": "SD1",
+          "key": "6.223:SD1",
+          "kind": "T",
+          "slug": "6-223-sd1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.BIF_SPAN_GY 1.2 Gyr: the iron formations are laid from the first oxygenic photosynthesis until the deep ocean is oxic"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the count of formations per ocean is the least anchored number of the type; only the Earth's iron-formation total exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.BIF_DEPOSITS 12, BIF_FE_PER_FEO 0.7773, BIF_CRUST_OVER_BULK 0.9, BIF_CONCENTRATION 11, median ore 1e13 kg, spread 1.0: the formations of an Earth-like ocean and the cap on their Fe grade"
+            ],
+            [
+              "The range it moves in",
+              "deposits 4 to 40; the cap's factors within 30 percent"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like endowment more than a factor of 10 from the known iron-formation total"
+            ],
+            [
+              "What replaces it",
+              "the Earth's iron-formation tonnages when the data file's sources are opened"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 9 (Fe 25 to 35 percent, 1e9 to 1e11 t per deposit) and section 6 (the Fe concentration factor 11), recalled; the count and the crust-over-bulk share are the design's"
+            ]
+          ],
+          "id": "SD2",
+          "key": "6.223:SD2",
+          "kind": "P",
+          "slug": "6-223-sd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.BIF_DEPOSITS 12, BIF_FE_PER_FEO 0.7773, BIF_CRUST_OVER_BULK 0.9, BIF_CONCENTRATION 11, median ore 1e13 kg, spread 1.0: the formations of an Earth-like ocean and the cap on their Fe grade"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the lag, the minimum phosphate and the grade factor of phosphorite are set by the design; only the Earth's phosphorite supply exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.PHOSPHORITE_LAG_GY 0.5, PHOSPHORITE_MIN_UMOL_L 1.0, PHOSPHORITE_DEPOSITS 25, PHOSPHORITE_CONCENTRATION 200, median ore 1e12 kg, spread 1.5: productive upwelling begins a lag after the first photosynthesis; the count scales with the ocean's phosphate; the grade cap is 200 times the crust's P2O5"
+            ],
+            [
+              "The range it moves in",
+              "lag 0.2 to 1.5 Gyr; minimum 0.3 to 2 umol/L; deposits 8 to 80; factor 100 to 400"
+            ],
+            [
+              "Where it holds",
+              "surface oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "a phosphorite on an ocean with under 0.3 umol/L, or none on one with 5"
+            ],
+            [
+              "What replaces it",
+              "the phosphorus budget's ocean phosphate against a measured phosphorite supply"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 16 (P2O5 18 to 35 percent, 1e8 to 1e10 t), recalled; the lag, the minimum and the factor are the design's"
+            ]
+          ],
+          "id": "SD3",
+          "key": "6.223:SD3",
+          "kind": "P",
+          "slug": "6-223-sd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.PHOSPHORITE_LAG_GY 0.5, PHOSPHORITE_MIN_UMOL_L 1.0, PHOSPHORITE_DEPOSITS 25, PHOSPHORITE_CONCENTRATION 200, median ore 1e12 kg, spread 1.5: productive upwelling begins a lag after the first photosynthesis; the count scales with the ocean's phosphate; the grade cap is 200 times the crust's P2O5"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the basin count and the drying temperature are set by the design; only the Earth's evaporite totals exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.EVAPORITE_DEPOSITS 40, EVAPORITE_MIN_TEMPERATURE_K 270, EVAPORITE_WINDOW (0.2, 1.0), median ore 1e12 kg, spread 2.0: evaporite basins of an Earth-like land, dry above 270 K, laid from a fifth of the body's age"
+            ],
+            [
+              "The range it moves in",
+              "deposits 10 to 100; the temperature 260 to 285 K"
+            ],
+            [
+              "Where it holds",
+              "open oceans with land"
+            ],
+            [
+              "What would show it wrong",
+              "a salt bed on a body too cold for its brine to dry, or none on a warm ocean world with land"
+            ],
+            [
+              "What replaces it",
+              "a climate model of aridity by basin"
+            ],
+            [
+              "Evidence",
+              "design file section 5 row 17 (halite, potash and gypsum beds, 1e8 to 1e12 t), recalled; the salts are the sequence of GEN.1366 (section 6.212)"
+            ]
+          ],
+          "id": "SD4",
+          "key": "6.223:SD4",
+          "kind": "P",
+          "slug": "6-223-sd4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.EVAPORITE_DEPOSITS 40, EVAPORITE_MIN_TEMPERATURE_K 270, EVAPORITE_WINDOW (0.2, 1.0), median ore 1e12 kg, spread 2.0: evaporite basins of an Earth-like land, dry above 270 K, laid from a fifth of the body's age"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many carbonate platforms a planet with an ocean has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.LIMESTONE_DEPOSITS 120, LIMESTONE_MIN_CO2_PA 1.0, LIMESTONE_BIOTIC_BOOST 2.0, median ore 1e13 kg, spread 1.5: shelf limestones of an Earth-like ocean, doubled once complex cells exist"
+            ],
+            [
+              "The range it moves in",
+              "deposits 30 to 300; the boost 1 to 4"
+            ],
+            [
+              "Where it holds",
+              "neutral oceans with carbon dioxide in the air"
+            ],
+            [
+              "What would show it wrong",
+              "a carbonate platform on a body with no carbon dioxide"
+            ],
+            [
+              "What replaces it",
+              "a carbonate saturation model of the ocean"
+            ],
+            [
+              "Evidence",
+              "the item's title names limestone; the design file has no row for it, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD5",
+          "key": "6.223:SD5",
+          "kind": "P",
+          "slug": "6-223-sd5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.LIMESTONE_DEPOSITS 120, LIMESTONE_MIN_CO2_PA 1.0, LIMESTONE_BIOTIC_BOOST 2.0, median ore 1e13 kg, spread 1.5: shelf limestones of an Earth-like ocean, doubled once complex cells exist"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many chert beds a planet with complex life has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.CHERT_DEPOSITS 60, median ore 1e12 kg, spread 1.5: biogenic chert from the first complex cells"
+            ],
+            [
+              "The range it moves in",
+              "deposits 15 to 150"
+            ],
+            [
+              "Where it holds",
+              "oceans with complex life"
+            ],
+            [
+              "What would show it wrong",
+              "a biogenic chert on a body with no complex cells"
+            ],
+            [
+              "What replaces it",
+              "a silica budget of the ocean and its secretors"
+            ],
+            [
+              "Evidence",
+              "the item's title names chert; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD6",
+          "key": "6.223:SD6",
+          "kind": "P",
+          "slug": "6-223-sd6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.CHERT_DEPOSITS 60, median ore 1e12 kg, spread 1.5: biogenic chert from the first complex cells"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many coal fields a planet with forests has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.COAL_MIN_FLORA 3, COAL_DEPOSITS 80, median ore 3e12 kg, spread 1.5: coal from the time of multicellular life where the flora scores 3 or more on a wet land"
+            ],
+            [
+              "The range it moves in",
+              "flora 2 to 5; deposits 20 to 200"
+            ],
+            [
+              "Where it holds",
+              "open oceans with land and flora"
+            ],
+            [
+              "What would show it wrong",
+              "coal on a body with no flora, or none on one with forests"
+            ],
+            [
+              "What replaces it",
+              "a land-plant timeline and a peat-burial model"
+            ],
+            [
+              "Evidence",
+              "the item's title names coal; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD7",
+          "key": "6.223:SD7",
+          "kind": "P",
+          "slug": "6-223-sd7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.COAL_MIN_FLORA 3, COAL_DEPOSITS 80, median ore 3e12 kg, spread 1.5: coal from the time of multicellular life where the flora scores 3 or more on a wet land"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis"
+            ],
+            [
+              "The range it moves in",
+              "lag 0.1 to 1 Gyr; deposits 15 to 150"
+            ],
+            [
+              "Where it holds",
+              "surface and ice-covered oceans with life"
+            ],
+            [
+              "What would show it wrong",
+              "kerogen on a lifeless ocean"
+            ],
+            [
+              "What replaces it",
+              "an ocean productivity and anoxia model"
+            ],
+            [
+              "Evidence",
+              "the item's title names kerogen; no design row, the numbers are the design's own"
+            ]
+          ],
+          "id": "SD8",
+          "key": "6.223:SD8",
+          "kind": "P",
+          "slug": "6-223-sd8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.KEROGEN_LAG_GY 0.3, KEROGEN_DEPOSITS 60, median ore 1e13 kg, spread 1.5: organic-rich marine mud a lag after the first photosynthesis"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the reference window is a design choice; only the Earth's deposits by era exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4 Gyr"
+            ],
+            [
+              "Where it holds",
+              "all seven types"
+            ],
+            [
+              "What would show it wrong",
+              "a type whose count does not follow its window"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts by era"
+            ],
+            [
+              "Evidence",
+              "design file section 6: 'the share of the body's life during which the setting existed'; the 2 Gyr reference is the design's"
+            ]
+          ],
+          "id": "SD9",
+          "key": "6.223:SD9",
+          "kind": "T",
+          "slug": "6-223-sd9",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sedimentary_deposits.REFERENCE_WINDOW_GY 2.0 Gyr: the window at which a type's deposit count applies in full; a shorter window scales the count down"
+        }
+      ],
+      "slug": "6-223-stand-ins-of-the-sedimentary-and-biogenic-deposits",
+      "title": "Stand-ins of the sedimentary and biogenic deposits"
+    },
+    {
+      "key": "6.222",
+      "number": "6.222",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.EARTH_CRUST_P2O5_WT 0.14 weight percent: the Earth's crust, the anchor of the supply ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.13 to 0.15"
+            ],
+            [
+              "Where it holds",
+              "all rocky bodies with a stored mantle P2O5"
+            ],
+            [
+              "What would show it wrong",
+              "a measured crust mean outside 0.10 to 0.20 percent"
+            ],
+            [
+              "What replaces it",
+              "the published crust means of the continental and oceanic crust when opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: continental crust 0.13, MORB 0.15 percent P2O5, RECALLED; not opened"
+            ]
+          ],
+          "id": "PB1",
+          "key": "6.222:PB1",
+          "kind": "B",
+          "slug": "6-222-pb1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "phosphorus_budget.EARTH_CRUST_P2O5_WT 0.14 weight percent: the Earth's crust, the anchor of the supply ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.EARTH_OCEAN_UMOL_L 2.3 umol/L, with the Earth's land share 0.29, ocean volume 1.335e18 m3: the one calibration of the chain"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 umol/L"
+            ],
+            [
+              "Where it holds",
+              "bodies with a liquid ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured deep-ocean phosphate outside 1.5 to 3.5 umol/L"
+            ],
+            [
+              "What replaces it",
+              "the ocean-phosphate compilation of the World Ocean Atlas when opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: 'modern deep ocean about 2 micromolar', RECALLED; 2.3 is the value habitability_world already used for the Earth's limited class (GEN.654); the land share and volume are the Earth's"
+            ]
+          ],
+          "id": "PB2",
+          "key": "6.222:PB2",
+          "kind": "B",
+          "slug": "6-222-pb2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "phosphorus_budget.EARTH_OCEAN_UMOL_L 2.3 umol/L, with the Earth's land share 0.29, ocean volume 1.335e18 m3: the one calibration of the chain"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.PHOSPHIDE_MIDPOINT_DIW -3.0 and PHOSPHIDE_SCALE_DIW 0.6: the crust's P in schreibersite is 1/(1+exp((dIW+3)/0.6))"
+            ],
+            [
+              "The range it moves in",
+              "midpoint -4 to -2; scale 0.4 to 1"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored mantle redox"
+            ],
+            [
+              "What would show it wrong",
+              "a crust with phosphide above dIW -1, or without it below dIW -5"
+            ],
+            [
+              "What replaces it",
+              "a metal-silicate partition law for P with oxygen fugacity, D(metal/silicate) from the experiments"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: P siderophile when reduced, D of 10 to 1000 over IW-1 to IW-4, RECALLED; the logistic and its midpoint are the design's"
+            ]
+          ],
+          "id": "PB3",
+          "key": "6.222:PB3",
+          "kind": "P",
+          "slug": "6-222-pb3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.PHOSPHIDE_MIDPOINT_DIW -3.0 and PHOSPHIDE_SCALE_DIW 0.6: the crust's P in schreibersite is 1/(1+exp((dIW+3)/0.6))"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.APATITE_WET_SHARE 1.0 and APATITE_DRY_SHARE 0.2: of the crust's phosphate, apatite where liquid water stands in the crust's reach, 0.2 where dry, merrillite the rest"
+            ],
+            [
+              "The range it moves in",
+              "dry share 0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a wet body whose crust holds merrillite beside apatite, or a dry one with no apatite at all"
+            ],
+            [
+              "What replaces it",
+              "a volatile budget of the crust (water, F, Cl) that sets apatite against merrillite"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: apatite family and merrillite as hosts, READ; apatite needs the volatiles, merrillite is the anhydrous phase of dry rock, qualitative; the shares are the design's"
+            ]
+          ],
+          "id": "PB4",
+          "key": "6.222:PB4",
+          "kind": "P",
+          "slug": "6-222-pb4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.APATITE_WET_SHARE 1.0 and APATITE_DRY_SHARE 0.2: of the crust's phosphate, apatite where liquid water stands in the crust's reach, 0.2 where dry, merrillite the rest"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite"
+            ],
+            [
+              "The range it moves in",
+              "merrillite 1.5 to 10; schreibersite 0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "bodies with a stored crust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dissolution rate of merrillite below apatite's, or of schreibersite above it"
+            ],
+            [
+              "What replaces it",
+              "the dissolution rates of the three hosts when the experiments are opened"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: meteoritic schreibersite corrodes to phosphite and phosphate, apatite weathering is the long-run supply, RECALLED; merrillite dissolves faster than apatite, qualitative, not opened"
+            ]
+          ],
+          "id": "PB5",
+          "key": "6.222:PB5",
+          "kind": "P",
+          "slug": "6-222-pb5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured weathering supply for a stagnant-lid body exists; Mars and Venus have no rivers to measure, so the erosion ratio stays a design choice"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored lid regime"
+            ],
+            [
+              "What would show it wrong",
+              "a stagnant-lid body whose measured weathering supply is the Earth's"
+            ],
+            [
+              "What replaces it",
+              "an erosion law of the lid (uplift, rain, relief)"
+            ],
+            [
+              "Evidence",
+              "design choice; a mobile lid uplifts and strips its crust, a stagnant one is a slow plain, qualitative"
+            ]
+          ],
+          "id": "PB6",
+          "key": "6.222:PB6",
+          "kind": "T",
+          "slug": "6-222-pb6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.SEAFLOOR_AREA_FRACTION 0.05: the share of the surface whose rock reaches the water with no land above it (an ocean under ice, or a flooded world)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "bodies with a liquid ocean and little land"
+            ],
+            [
+              "What would show it wrong",
+              "a world with no land that makes as much phosphate as the Earth"
+            ],
+            [
+              "What replaces it",
+              "a model of sea-floor weathering and hydrothermal leaching"
+            ],
+            [
+              "Evidence",
+              "design choice, qualitative"
+            ]
+          ],
+          "id": "PB7",
+          "key": "6.222:PB7",
+          "kind": "T",
+          "slug": "6-222-pb7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.SEAFLOOR_AREA_FRACTION 0.05: the share of the surface whose rock reaches the water with no land above it (an ocean under ice, or a flooded world)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L"
+            ],
+            [
+              "The range it moves in",
+              "100 to 1000"
+            ],
+            [
+              "Where it holds",
+              "oceans of the soda class"
+            ],
+            [
+              "What would show it wrong",
+              "a soda lake whose phosphate stays near the neutral ocean's"
+            ],
+            [
+              "What replaces it",
+              "a carbonate-apatite equilibrium of the lake's own pH and calcium"
+            ],
+            [
+              "Evidence",
+              "[R4399] (carbonate-rich lakes of the Archean, up to millimolar phosphate for want of free calcium), RECALLED; the factor is set so that the old high class (1000 umol/L) is the Earth-like soda value"
+            ]
+          ],
+          "id": "PB8",
+          "key": "6.222:PB8",
+          "kind": "P",
+          "slug": "6-222-pb8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor"
+            ],
+            [
+              "The range it moves in",
+              "ceiling 300 to 3000; floor 0.001 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "oceans"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed ocean with a measured phosphate far above the floor"
+            ],
+            [
+              "What replaces it",
+              "an ice-ocean exchange model for the sealed case"
+            ],
+            [
+              "Evidence",
+              "the old class values of habitability_world (GEN.654: high 1000, starved 0.01), kept as the two bounds"
+            ]
+          ],
+          "id": "PB9",
+          "key": "6.222:PB9",
+          "kind": "B",
+          "slug": "6-222-pb9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the bands are a label for pages; the number drives the score, so no measurement can fix the band edges"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of phosphorus_class"
+            ],
+            [
+              "The range it moves in",
+              "starved 0.03 to 0.3; high 30 to 300"
+            ],
+            [
+              "Where it holds",
+              "all oceans"
+            ],
+            [
+              "What would show it wrong",
+              "a band that a life score does not follow"
+            ],
+            [
+              "What replaces it",
+              "none; a label for a page, the number drives the score"
+            ],
+            [
+              "Evidence",
+              "research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only"
+            ]
+          ],
+          "id": "PB10",
+          "key": "6.222:PB10",
+          "kind": "T",
+          "slug": "6-222-pb10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of phosphorus_class"
+        }
+      ],
+      "slug": "6-222-stand-ins-of-the-phosphorus-budget",
+      "title": "Stand-ins of the phosphorus budget"
+    },
+    {
+      "key": "6.227",
+      "number": "6.227",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1383",
+            "the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.CRUST_KM_MOBILE 17 km, CRUST_KM_STAGNANT 22 km, REFERENCE_MANTLE_K 2200 K: the crust is D_lid / g * (T_ref / T_m)"
+            ],
+            [
+              "The range it moves in",
+              "each D within 30 percent; the mantle exponent 0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "rocky planets and moons from 0.05 to 5 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured crust thickness more than a factor of 1.5 from the law for a body of known gravity and mantle temperature"
+            ],
+            [
+              "What replaces it",
+              "the crust-production model of the interior (melt column against gravity and mantle temperature)"
+            ],
+            [
+              "Evidence",
+              "design file section 4.1: Earth 7 km oceanic and about 35 km continental (17 km area-weighted), Mars about 50 km, Venus about 30 km, all recalled; the law gives Mars 58 and Venus 24 km"
+            ]
+          ],
+          "id": "ORE1",
+          "key": "6.227:ORE1",
+          "kind": "T",
+          "slug": "6-227-ore1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.CRUST_KM_MOBILE 17 km, CRUST_KM_STAGNANT 22 km, REFERENCE_MANTLE_K 2200 K: the crust is D_lid / g * (T_ref / T_m)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1383",
+            "the craton share and age floor come from the continental growth model of that item"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.CRATON_SHARE 0.3, CRATON_MIN_AGE_GY 2, CRATON_AGE_FULL_GY 4.5, CRATON_SCATTER (0.5, 1.5)"
+            ],
+            [
+              "The range it moves in",
+              "the share 0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "mobile-lid bodies older than 2 Gyr with a granitoid ground share"
+            ],
+            [
+              "What would show it wrong",
+              "a craton share of an Earth-like body outside 0.1 to 0.5, or a craton on a stagnant lid"
+            ],
+            [
+              "What replaces it",
+              "the continental growth model of GEN.1383"
+            ],
+            [
+              "Evidence",
+              "design file section 4.2: 'a DESIGN fraction around 0.3 for an Earth-like body'; the 2 Gyr age floor is the design's"
+            ]
+          ],
+          "id": "ORE2",
+          "key": "6.227:ORE2",
+          "kind": "T",
+          "slug": "6-227-ore2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.CRATON_SHARE 0.3, CRATON_MIN_AGE_GY 2, CRATON_AGE_FULL_GY 4.5, CRATON_SCATTER (0.5, 1.5)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.SULFUR_PRIMORDIAL 0.15, SULFUR_SEDIMENTARY 0.65, SULFUR_AGE_GY 2: crust_sulfur_index = 0.15 r + 0.65 w a"
+            ],
+            [
+              "The range it moves in",
+              "each part within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies; r is the star's S/Fe over the Sun's"
+            ],
+            [
+              "What would show it wrong",
+              "a dry body that makes Ni-Cu-PGE sulfide ore on its primordial sulfur alone, or a wet old body that cannot"
+            ],
+            [
+              "What replaces it",
+              "a sulfur budget of the crust from the bulk composition and the sediment record"
+            ],
+            [
+              "Evidence",
+              "design file section 4.3: the sources of crustal sulfur are sedimentary sulfide (needs an ocean and time) and evaporite sulfate; the index adds the two to the primordial part"
+            ]
+          ],
+          "id": "ORE3",
+          "key": "6.227:ORE3",
+          "kind": "T",
+          "slug": "6-227-ore3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.SULFUR_PRIMORDIAL 0.15, SULFUR_SEDIMENTARY 0.65, SULFUR_AGE_GY 2: crust_sulfur_index = 0.15 r + 0.65 w a"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.MAGMA_REFERENCE_KG 1.5e24 kg, MAGMA_MIN_RATIO 0.05, SULFUR_GATE 0.3, CONCENTRATING_REDOX (reduced and intermediate for the sulfide and the chromite, any for the Fe-Ti oxide)"
+            ],
+            [
+              "The range it moves in",
+              "the reference 5e23 to 5e24 kg; the minimum 0.02 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored interior"
+            ],
+            [
+              "What would show it wrong",
+              "a Mars-mass body with no magmatic ore, or a 0.03 Earth-mass body with some"
+            ],
+            [
+              "What replaces it",
+              "a magma-volume model of the plume and impact melt"
+            ],
+            [
+              "Evidence",
+              "design file section 3 rule 1: the gate is the magma volume, not the lid; the opportunity is the mantle processed through melting (surface_pressure.degassed_share), the Earth-like body at 4.5 Gyr having processed about 0.28 of its mantle"
+            ]
+          ],
+          "id": "ORE4",
+          "key": "6.227:ORE4",
+          "kind": "T",
+          "slug": "6-227-ore4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.MAGMA_REFERENCE_KG 1.5e24 kg, MAGMA_MIN_RATIO 0.05, SULFUR_GATE 0.3, CONCENTRATING_REDOX (reduced and intermediate for the sulfide and the chromite, any for the Fe-Ti oxide)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES counts of deposits on an Earth-like body: 60 Ni-Cu-PGE, 40 chromitite, 50 Fe-Ti-V oxide; and the age windows (0.30 to 0.90, 0.15 to 0.85, 0.35 to 0.75 of the body's age)"
+            ],
+            [
+              "The range it moves in",
+              "each count within a factor of 3"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like endowment more than a factor of 10 from the known total of the type"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts when the data file's sources are opened"
+            ],
+            [
+              "Evidence",
+              "design file section 6 and section 10 point 3: 'the count per unit opportunity is the least anchored number'; the windows are shares of the age, not the Earth's absolute ages"
+            ]
+          ],
+          "id": "ORE5",
+          "key": "6.227:ORE5",
+          "kind": "P",
+          "slug": "6-227-ore5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.TYPES counts of deposits on an Earth-like body: 60 Ni-Cu-PGE, 40 chromitite, 50 Fe-Ti-V oxide; and the age windows (0.30 to 0.90, 0.15 to 0.85, 0.35 to 0.75 of the body's age)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES median ore per deposit (3e10, 1e11, 3e11 kg) and the lognormal spread (1.5, 2.0, 1.0 in ln); the grade ranges (Ni 0.5 to 3 percent, Cr2O3 30 to 60, TiO2 10 to 35)"
+            ],
+            [
+              "The range it moves in",
+              "the median within a factor of 3; the spread 0.5 to 2.5"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "a per-deposit tonnage or grade outside the file's range"
+            ],
+            [
+              "What replaces it",
+              "the data file's per-deposit statistics when its sources are opened"
+            ],
+            [
+              "Evidence",
+              "the data file's ranges (Ni-Cu-PGE 1e6 to 1e9 t, chromitite 1e7 to 1e10 t, Fe-Ti-V 1e8 to 1e9 t; grades as above), recalled; the medians are the geometric middles"
+            ]
+          ],
+          "id": "ORE6",
+          "key": "6.227:ORE6",
+          "kind": "P",
+          "slug": "6-227-ore6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.TYPES median ore per deposit (3e10, 1e11, 3e11 kg) and the lognormal spread (1.5, 2.0, 1.0 in ln); the grade ranges (Ni 0.5 to 3 percent, Cr2O3 30 to 60, TiO2 10 to 35)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share)"
+            ],
+            [
+              "The range it moves in",
+              "each crust-over-bulk within 40 percent"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like bulk silicate whose cap falls outside its type's grade range"
+            ],
+            [
+              "What replaces it",
+              "a crust model that gives the element's crustal mean from the rock types"
+            ],
+            [
+              "Evidence",
+              "the design file's concentration factors (Ni 320, Cr 3300) recalled; the crust-over-bulk shares are the crust's recalled abundance (Ni 47 ppm, Cr 100 ppm, TiO2 0.7 percent) over the Earth's bulk silicate (Ni 1960 ppm, Cr2O3 0.38 percent, TiO2 0.2 percent), Cr set so the Earth's bulk caps the grade at the middle of the range"
+            ]
+          ],
+          "id": "ORE7",
+          "key": "6.227:ORE7",
+          "kind": "P",
+          "slug": "6-227-ore7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share)"
+        }
+      ],
+      "slug": "6-227-stand-ins-of-the-crust-fields-and-the-magmatic-ore-types",
+      "title": "Stand-ins of the crust fields and the magmatic ore types"
+    },
+    {
+      "key": "6.225",
+      "number": "6.225",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+            ],
+            [
+              "The range it moves in",
+              "each share within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "the ordinary, differentiated and enstatite taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis of the analogue meteorites whose accessory shares lie outside a factor of 2 of these"
+            ],
+            [
+              "What replaces it",
+              "the modal averages read from the group reviews"
+            ],
+            [
+              "Evidence",
+              "the ranges of the research file chondrite_groups_modal_and_minerals.csv (chromite 0.5 to 0.7, phosphates about 0.5 for the ordinary chondrites), recalled; not opened"
+            ]
+          ],
+          "id": "ACC1",
+          "key": "6.225:ACC1",
+          "kind": "P",
+          "slug": "6-225-acc1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2 (the nanodiamond and silicon carbide shares within a factor of 10)"
+            ],
+            [
+              "Where it holds",
+              "the carbonaceous taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis outside those ranges"
+            ],
+            [
+              "What replaces it",
+              "the modal averages of the carbonaceous groups"
+            ],
+            [
+              "Evidence",
+              "the research file's CI, CM, CO and CV lines, recalled; the nanodiamond and silicon carbide abundances are orders of magnitude from the recalled ppm of Murchison-type meteorites"
+            ]
+          ],
+          "id": "ACC2",
+          "key": "6.225:ACC2",
+          "kind": "P",
+          "slug": "6-225-acc2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "belts with a host star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dependence of the carbonate or sulfide share on the host star's bulk"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items)"
+            ],
+            [
+              "Evidence",
+              "the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them"
+            ]
+          ],
+          "id": "ACC3",
+          "key": "6.225:ACC3",
+          "kind": "B",
+          "slug": "6-225-acc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+            ],
+            [
+              "The range it moves in",
+              "the exponent 0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "stars within a factor of 3 of the reference in the element"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the bulk in which the mineral competes for its cations"
+            ],
+            [
+              "Evidence",
+              "the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit"
+            ]
+          ],
+          "id": "ACC4",
+          "key": "6.225:ACC4",
+          "kind": "T",
+          "slug": "6-225-acc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+        }
+      ],
+      "slug": "6-225-stand-ins-of-the-accessory-minerals-of-the-asteroid-taxon-mixes",
+      "title": "Stand-ins of the accessory minerals of the asteroid taxon mixes"
+    },
+    {
+      "key": "6.226",
+      "number": "6.226",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MOBILITY: the relative mobility of the cations in weathering, Ca 3.0, Na 2.4, Mg 1.3, K 1.25 (Polynov's series)"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "silicate crusts weathered by liquid water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured river or lake cation ratio of a basaltic terrain that differs from the series by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a leaching model with mineral dissolution rates and the pH of the water"
+            ],
+            [
+              "Evidence",
+              "recalled from the series as Perel'man tabulates it; not opened"
+            ]
+          ],
+          "id": "EV1",
+          "key": "6.226:EV1",
+          "kind": "P",
+          "slug": "6-226-ev1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MOBILITY: the relative mobility of the cations in weathering, Ca 3.0, Na 2.4, Mg 1.3, K 1.25 (Polynov's series)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.ANION_PARAMS: carbonate per calcium and the chloride share of the rest of the anion charge for each ocean class (neutral 1.0 and 0.85, soda 1.5 and 0.60, chloride brine 0.10 and 0.95, acid sulfate 0 and 0.20)"
+            ],
+            [
+              "The range it moves in",
+              "carbonate per calcium 0.5 to 2 for neutral and soda"
+            ],
+            [
+              "Where it holds",
+              "the four open-water ocean classes"
+            ],
+            [
+              "What would show it wrong",
+              "a speciated brine of an ocean class whose calcium is not taken by carbonate (neutral) or whose carbonate does not outlast calcium (soda)"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the early ocean from its carbon, sulfur and chlorine inventories (GEN.1319 inventories)"
+            ],
+            [
+              "Evidence",
+              "the class definitions of hydrosphere.ocean_class (SO2 share, CO2 pressure, reduced mantle) fix the direction; the sizes are chosen"
+            ]
+          ],
+          "id": "EV2",
+          "key": "6.226:EV2",
+          "kind": "P",
+          "slug": "6-226-ev2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.ANION_PARAMS: carbonate per calcium and the chloride share of the rest of the anion charge for each ocean class (neutral 1.0 and 0.85, soda 1.5 and 0.60, chloride brine 0.10 and 0.95, acid sulfate 0 and 0.20)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.GYPSUM_STAGE_AW 0.94: the activity of water at which calcium sulfate first precipitates, used where no halite forms"
+            ],
+            [
+              "The range it moves in",
+              "0.92 to 0.96"
+            ],
+            [
+              "Where it holds",
+              "brines that dry without reaching halite"
+            ],
+            [
+              "What would show it wrong",
+              "a brine whose gypsum precipitates at an activity of water above 0.96 or below 0.9"
+            ],
+            [
+              "What replaces it",
+              "the activity of water along a computed evaporation"
+            ],
+            [
+              "Evidence",
+              "the order of a seawater evaporation (calcium carbonate, then gypsum well before halite at 0.75), argued, not opened"
+            ]
+          ],
+          "id": "EV3",
+          "key": "6.226:EV3",
+          "kind": "P",
+          "slug": "6-226-ev3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.GYPSUM_STAGE_AW 0.94: the activity of water at which calcium sulfate first precipitates, used where no halite forms"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.SODIUM_SULFATE_K 305.55: below it mirabilite, above it thenardite (32.4 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "305 to 306"
+            ],
+            [
+              "Where it holds",
+              "sodium sulfate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured transition more than 1 K from it"
+            ],
+            [
+              "What replaces it",
+              "the sodium sulfate phase diagram from a source"
+            ],
+            [
+              "Evidence",
+              "the Glauber's salt transition, recalled; not opened"
+            ]
+          ],
+          "id": "EV4",
+          "key": "6.226:EV4",
+          "kind": "P",
+          "slug": "6-226-ev4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.SODIUM_SULFATE_K 305.55: below it mirabilite, above it thenardite (32.4 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MAGNESIUM_SULFATE_K (321.15, 341.15): epsomite below, hexahydrite between, kieserite above (48 and 68 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 K"
+            ],
+            [
+              "Where it holds",
+              "magnesium sulfate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured boundary more than 10 K from either"
+            ],
+            [
+              "What replaces it",
+              "a source for the hexahydrite and kieserite stability fields"
+            ],
+            [
+              "Evidence",
+              "recalled, paywalled from here; the Handbook of Mineralogy pages of the three say only that epsomite dehydrates readily in dry air"
+            ]
+          ],
+          "id": "EV5",
+          "key": "6.226:EV5",
+          "kind": "P",
+          "slug": "6-226-ev5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MAGNESIUM_SULFATE_K (321.15, 341.15): epsomite below, hexahydrite between, kieserite above (48 and 68 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.SODIUM_CARBONATE_K (305.65, 382.15): natron below, thermonatrite between, natrite above (32.5 and 109 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 K"
+            ],
+            [
+              "Where it holds",
+              "sodium carbonate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured boundary more than 10 K away"
+            ],
+            [
+              "What replaces it",
+              "the sodium carbonate and bicarbonate phase diagram from a source"
+            ],
+            [
+              "Evidence",
+              "recalled; the Handbook page of natron says it dehydrates rapidly in air to thermonatrite"
+            ]
+          ],
+          "id": "EV6",
+          "key": "6.226:EV6",
+          "kind": "P",
+          "slug": "6-226-ev6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.SODIUM_CARBONATE_K (305.65, 382.15): natron below, thermonatrite between, natrite above (32.5 and 109 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5 Pa"
+            ],
+            [
+              "Where it holds",
+              "the alkaline path"
+            ],
+            [
+              "What would show it wrong",
+              "a trona deposit in an air of more than 0.5 bar of carbon dioxide or nahcolite in an air of less than 0.01 bar"
+            ],
+            [
+              "What replaces it",
+              "the trona and nahcolite boundary of Eugster as a function of carbon dioxide and temperature"
+            ],
+            [
+              "Evidence",
+              "no source: the direction (more carbon dioxide, more bicarbonate) is chemistry, the size is chosen"
+            ]
+          ],
+          "id": "EV7",
+          "key": "6.226:EV7",
+          "kind": "P",
+          "slug": "6-226-ev7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MAGNESITE_MIN_K 333.15: below it the magnesium carbonate that dries is hydromagnesite, above it magnesite (60 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "313 to 373 K"
+            ],
+            [
+              "Where it holds",
+              "the alkaline path"
+            ],
+            [
+              "What would show it wrong",
+              "magnesite found in a surface deposit below 40 degrees C that formed without microbes"
+            ],
+            [
+              "What replaces it",
+              "a kinetic model of magnesite precipitation"
+            ],
+            [
+              "Evidence",
+              "recalled: magnesite does not precipitate at low temperature in the laboratory"
+            ]
+          ],
+          "id": "EV8",
+          "key": "6.226:EV8",
+          "kind": "P",
+          "slug": "6-226-ev8",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MAGNESITE_MIN_K 333.15: below it the magnesium carbonate that dries is hydromagnesite, above it magnesite (60 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield"
+            ],
+            [
+              "The range it moves in",
+              "0.001 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "bodies with air and chloride and under 100 Pa of free oxygen"
+            ],
+            [
+              "What would show it wrong",
+              "a measured perchlorate share of an arid chloride crust above 10 percent or below 0.1 percent"
+            ],
+            [
+              "What replaces it",
+              "a photochemical and atmospheric oxidation rate of chloride"
+            ],
+            [
+              "Evidence",
+              "no source opened: perchlorate in arid surface salts is observed in the recalled literature; the share is chosen"
+            ]
+          ],
+          "id": "EV9",
+          "key": "6.226:EV9",
+          "kind": "P",
+          "slug": "6-226-ev9",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "acid sulfate waters"
+            ],
+            [
+              "What would show it wrong",
+              "a measured jarosite to alunite ratio of an acid deposit outside 0.2 to 4"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the acid water with its iron and aluminium"
+            ],
+            [
+              "Evidence",
+              "no source: the share is chosen"
+            ]
+          ],
+          "id": "EV10",
+          "key": "6.226:EV10",
+          "kind": "P",
+          "slug": "6-226-ev10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_composition.weathered_oxides puts back the sodium of waterworld_carbon.CRUST_SODIUM_WT and the potassium of the basaltic reservoir, because the stored rock carries no alkalis"
+            ],
+            [
+              "The range it moves in",
+              "sodium within 50 percent"
+            ],
+            [
+              "Where it holds",
+              "silicate crusts"
+            ],
+            [
+              "What would show it wrong",
+              "a crust whose measured alkali content differs from them by a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a stored alkali content of the rock (a later bulk-composition item)"
+            ],
+            [
+              "Evidence",
+              "[R1494] through [R2381] for sodium (read, tier 1, GEN.1319) and N-MORB [R1494] for the potassium"
+            ]
+          ],
+          "id": "EV11",
+          "key": "6.226:EV11",
+          "kind": "P",
+          "slug": "6-226-ev11",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_composition.weathered_oxides puts back the sodium of waterworld_carbon.CRUST_SODIUM_WT and the potassium of the basaltic reservoir, because the stored rock carries no alkalis"
+        }
+      ],
+      "slug": "6-226-stand-ins-of-the-evaporite-sequence",
+      "title": "Stand-ins of the evaporite sequence"
+    },
+    {
       "key": "6.210",
       "number": "6.210",
       "rows": [
@@ -42381,6 +45727,44 @@
           "tweak": "L2",
           "unread": null,
           "what": "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
+            ],
+            [
+              "The range it moves in",
+              "spread of f7 (core 0.15 dex, tail to 1.5)"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc (not a brown dwarf or a rogue)"
+            ],
+            [
+              "What would show it wrong",
+              "a retrieved sample whose C/O spread around the disc value is narrower"
+            ],
+            [
+              "What replaces it",
+              "a model of what a giant swallows after the disc has set the place"
+            ],
+            [
+              "Evidence",
+              "f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center"
+            ]
+          ],
+          "id": "DSC7",
+          "key": "6.213:DSC7",
+          "kind": "P",
+          "slug": "6-213-dsc7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": null,
+          "what": "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
         }
       ],
       "slug": "6-213-stand-ins-of-the-species-the-disk-condenses",
@@ -47037,44 +50421,6 @@
           "fields": [
             [
               "What it is",
-              "hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses)"
-            ],
-            [
-              "The range it moves in",
-              "the ends 1 to 4 and 4 to 16 oceans"
-            ],
-            [
-              "Where it holds",
-              "rocky bodies with a mantle"
-            ],
-            [
-              "What would show it wrong",
-              "a measured mantle capacity under 2 oceans at 0.5 Earth masses or far over 8 at 5"
-            ],
-            [
-              "What replaces it",
-              "a mantle storage law from the mantle's melt and its pressure"
-            ],
-            [
-              "Evidence",
-              "the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's"
-            ]
-          ],
-          "id": "HY1",
-          "key": "6.134:HY1",
-          "kind": "T",
-          "slug": "6-134-hy1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L1",
-          "unread": null,
-          "what": "hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999"
             ],
             [
@@ -50917,6 +54263,166 @@
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",
       "title": "Stand-ins of the architecture's losses"
+    },
+    {
+      "key": "6.219",
+      "number": "6.219",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper mantle of Earth holds"
+            ],
+            [
+              "The range it moves in",
+              "50 ppm to 0.9 wt% (the olivine ceiling)"
+            ],
+            [
+              "Where it holds",
+              "olivine, pyroxene and garnet to 13 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "an upper mantle measured above 200 ppm over a large depth"
+            ],
+            [
+              "What replaces it",
+              "a capacity with temperature and the share of each mineral"
+            ],
+            [
+              "Evidence",
+              "[R5159: Abstract] gives the held 50 to 200 ppm and [R5156: Introduction] the olivine ceiling under 0.9 wt%; the saturation of olivine at depth is not printed in the pages read"
+            ]
+          ],
+          "id": "MR1",
+          "key": "6.219:MR1",
+          "kind": "T",
+          "slug": "6-219-mr1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper mantle of Earth holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt%"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 3.0 wt%"
+            ],
+            [
+              "Where it holds",
+              "wadsleyite and ringwoodite, 13 to 23 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a transition zone shown to saturate under 1.0 or over 3 wt%"
+            ],
+            [
+              "What replaces it",
+              "a capacity as a function of temperature and pressure for each phase"
+            ],
+            [
+              "Evidence",
+              "the pages read print \"up to about 3 wt%\" [R5156: Introduction], ringwoodite 1.5 to 2 wt% [R5157: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5161] and about 1.0 wt% by several lines of evidence [R5158: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed"
+            ]
+          ],
+          "id": "MR2",
+          "key": "6.219:MR2",
+          "kind": "T",
+          "slug": "6-219-mr2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION transition zone 1.5 wt%"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm)"
+            ],
+            [
+              "The range it moves in",
+              "20 ppm to 0.1 wt%"
+            ],
+            [
+              "Where it holds",
+              "bridgmanite and ferropericlase beyond 23 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a lower mantle shown to hold over 0.1 wt%"
+            ],
+            [
+              "What replaces it",
+              "a capacity of aluminous bridgmanite"
+            ],
+            [
+              "Evidence",
+              "[R5159: Abstract] gives under 20 ppm and [R5158: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5160: Abstract], so the lower mantle's cap is the least certain of the three"
+            ]
+          ],
+          "id": "MR3",
+          "key": "6.219:MR3",
+          "kind": "T",
+          "slug": "6-219-mr3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CAPACITY_FRACTION lower mantle 0.002 wt% (20 ppm)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4"
+            ],
+            [
+              "Where it holds",
+              "the upper mantle and the transition zone, 15 to 45 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a mantle that holds carbonate at dIW 1 or diamond at dIW 5"
+            ],
+            [
+              "What replaces it",
+              "the phase boundary of carbon as a function of pressure and temperature"
+            ],
+            [
+              "Evidence",
+              "read in a lecture note (Plinius 38, 2012, no DOI, not in the reference list): diamond and carbonate meet about 3 log units over iron-wuestite at 15 to 45 GPa; the primary papers were not opened"
+            ]
+          ],
+          "id": "MR4",
+          "key": "6.219:MR4",
+          "kind": "T",
+          "slug": "6-219-mr4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite)"
+        }
+      ],
+      "slug": "6-219-stand-ins-of-the-water-and-carbon-a-mantle-stores",
+      "title": "Stand-ins of the water and carbon a mantle stores"
     }
   ]
 }

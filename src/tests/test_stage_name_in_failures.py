@@ -85,3 +85,28 @@ def test_an_opening_logs_each_step_with_the_memory_the_process_holds(monkeypatch
     assert logged[0][0] == "Opening stage 10: is being cut into its units (this process holds 1,200 MB, at most 1,200 MB so far)"
     assert logged[2][0].endswith("(this process holds 1,500 MB, at most 1,900 MB so far)") and logged[2][1]["peak_mb"] == 1900
     assert all(fields["kind"] == "stage.opening" and fields["stage"] == 9 for _text, fields in logged)
+
+
+def test_the_opening_asks_the_other_bulk_workers_to_go_and_the_run_waits_to_start_more(run, monkeypatch):
+    """PERF.226: the stage before is complete, so the workers beside the one that opens the next stage only wait; they leave
+    before the cut, and the run's `ensure` does not start them again until the cut is done."""
+    shed = []
+    monkeypatch.setattr(wrapper.workers, "shed_bulk", lambda conn, cap: shed.append(cap) or 0)
+    seen = []
+    monkeypatch.setattr(wrapper, "_open", lambda conn, run_id, index: seen.append(runrecord.opening(conn, run_id)) or 0)
+    wrapper._expand(run, "r1", 2)
+    assert shed == [1] and seen == [2]
+    ensured = []
+    clock = iter(range(0, 1000, 10))
+    runrecord.begin_opening(run, "r1", 2)
+    ticks = []
+
+    def sleep(_seconds):
+        ticks.append(1)
+        if len(ticks) == 2:
+            runrecord.end_opening(run, "r1")
+        if len(ticks) > 5:
+            raise RuntimeError("never ensured")
+    monkeypatch.setattr(runrecord, "read_plan", lambda conn, run_id, index: {"units": 1} if ensured else None)
+    result = wrapper._await_plan(run, "r1", 2, lambda: ensured.append(len(ticks)), clock=lambda: next(clock), sleep=sleep, touch=False)
+    assert result == {"units": 1} and ensured and ensured[0] >= 2          # not while the opening lasted

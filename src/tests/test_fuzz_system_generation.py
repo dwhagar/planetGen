@@ -125,12 +125,6 @@ def _normalize(cfg):
     if cfg.HABITABLE_WORLD is True and cfg.ASTEROID_BELT is True:
         assume(cfg.LARGE_STAR is not False)
         cfg.LARGE_STAR = True
-    if cfg.HABITABLE_WORLD is False:
-        # An explicit habitable-class slot under -habitable_world is a
-        # contradiction the generator rejects with a clean ValueError
-        # (covered by test_contradictory_slot_and_flag_is_a_clean_value_error).
-        assume(not any(spec and spec.get("planet_class") in prog.HABITABLE_PLANET_CLASSES
-                       for spec in (cfg.SLOTS or [])))
     return cfg
 
 
@@ -282,9 +276,8 @@ def assert_flags_honored(system, cfg):
         assert not any(b.body_type == "a" for b in bodies), "ASTEROID_BELT=False but a belt exists"
     if cfg.HABITABLE_WORLD is False:
         # HABITABLE_WORLD False bars only the conditions a habitable request asks for, in the ecosphere (GEN.916, GEN.1130), and
-        # keeps the last draw after `tuning.BARRED_CLASS_MAX_ATTEMPTS`; the classes that can carry life (hot reducing, glaciated, carbon
-        # dioxide, ...) stand freely elsewhere in the system (TEST.571: seed 97119524 holds seven). So the count is not zero; the system
-        # makes no habitable request, and says so.
+        # drops a body that meets them (GEN.1397). The system
+        # makes no habitable request, and says so (GEN.1387: a body with life is remade and dropped, never judged by its class letter).
         assert system.habitable_request is None, "HABITABLE_WORLD=False but the system answers a habitable request"
     if cfg.BINARY_SYSTEM is False:
         assert system.binary_type is None and len(system.stars) == 1
@@ -514,16 +507,6 @@ def test_invalid_slot_type_and_unknown_planet_class_raise_value_error():
         cfg.NUM_ORBITS = 1
         with pytest.raises(ValueError):
             _generate(cfg, seed=1)
-
-
-def test_contradictory_slot_and_flag_is_a_clean_value_error():
-    cfg = SystemConfig()
-    cfg.HABITABLE_WORLD = False
-    cfg.BINARY_SYSTEM = False
-    cfg.SLOTS = [{"type": "planet", "planet_class": "M"}]
-    cfg.NUM_ORBITS = 1
-    with pytest.raises(ValueError):
-        _generate(cfg, seed=0)
 
 
 @settings(max_examples=scaled(40))
