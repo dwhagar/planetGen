@@ -1,6 +1,6 @@
 {
  "title": "Volatility depletion of a rocky body against CI chondrites by the 50 percent condensation temperature of the element (GEN.1361)",
- "source": "Bulk Earth from [R4608] (Wang, Lineweaver and Ireland 2018, Table 1, READ), CI chondrites from [R0168] (Asplund and others 2021, READ), 50 percent condensation temperatures at 1e-4 bar from [R2726] (Lodders 2003, Table 8, READ); the ratios are Earth over CI with both normalised to magnesium and rounded to the shown digits (COMPUTED by the research thread, real-material data set)",
+ "source": "Bulk Earth from [R4608: Table 1] (READ), CI chondrites from [R0168: Table 2] (READ), 50 percent condensation temperatures at 1e-4 bar from [R2726: Table 8] (READ); the ratios are Earth over CI with both normalised to magnesium and rounded to the shown digits (COMPUTED by the research thread, real-material data set)",
  "label": "READ, COMPUTED",
  "law": {
   "slope_per_k": 0.00165,
