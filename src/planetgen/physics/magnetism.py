@@ -417,6 +417,17 @@ def magnetopause_rp(body, star_distance_au):
     return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius
 
 
+def _with_companions(host_value, star, star_distance_au, band):
+    """GEN.1442: the host's own value of a band plus what the other stars of the system put on the body (`radiation_field.companion_part`); a lone star's value
+    is returned as it was (a band no source has stays `None`)."""
+    if not star_distance_au:
+        return host_value
+    extra = radiation_field.companion_part(star, star_distance_au, band)
+    if extra == 0.0:
+        return host_value
+    return (host_value or 0.0) + extra
+
+
 def update_exposure(body, star_distance_au):
     """The star-distance values (no draws): XUV flux, exposure index, flare
     irradiation index and, once the field is drawn, the magnetopause.
@@ -424,7 +435,8 @@ def update_exposure(body, star_distance_au):
     planet's)."""
     body._star_distance_au = star_distance_au
     star = body.star
-    body.xuv_flux_earth = activity.xuv_flux_earth(star, star_distance_au)
-    body.xuv_exposure_index = activity.exposure_index(star, star_distance_au)
-    body.flare_irradiation_index = activity.flare_irradiation_index(star, star_distance_au)
+    body.xuv_flux_earth = _with_companions(activity.xuv_flux_earth(star, star_distance_au), star, star_distance_au, "xuv_flux_earth")
+    body.xuv_exposure_index = _with_companions(activity.exposure_index(star, star_distance_au), star, star_distance_au, "exposure_index")
+    body.flare_irradiation_index = _with_companions(activity.flare_irradiation_index(star, star_distance_au), star, star_distance_au,
+                                                    "flare_irradiation_index")
     body.magnetopause_rp = magnetopause_rp(body, star_distance_au) if star_distance_au else None

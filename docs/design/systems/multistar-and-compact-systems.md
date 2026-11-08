@@ -597,6 +597,15 @@ subtree as one point) are the registry rows RF1 to RF5 of section 6.239 of the g
 Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
 largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
 
+**As built (GEN.1442).** The rest of the radiation reads the same field. `magnetism.update_exposure` stores the XUV flux, the cumulative XUV index and the flare index of
+a body as the host's value plus the other stars' parts (`radiation_field.companion_part`); the free-space particle dose adds each star's `sqrt(N33 w) / d^2`
+(`radiation.companion_free_sep_msv_yr`); the far-ultraviolet of the haze and methane law adds each star's (`aerosols.far_uv_of`, the chromospheric share weighted by
+the light); the DNA dose and UV index at the ground add each star's own spectrum through the one air and ozone column (`body_radiation.companion_spectra`); and the loss
+of air and of envelope follow each star's XUV decay through time (`thermosphere._mixed_history`, `envelope_escape.envelope_left_earth(emitters=)`, the
+`host_distance_au` and `xuv_companions` quantities of the recipe subject), the host's XUV taking its own distance now that the light is the whole system's. A lone star
+keeps its numbers to the last digit. Limits are registry rows DS1 to DS4 of section 6.241 of the gap plan (the ozone fit by the host's colour, coplanar and shadow-free
+doses).
+
 ### 6.6 Placement by population (GEN.103)
 
 Multiplicity depends on the stellar population: the close-binary fraction rises

@@ -359,7 +359,15 @@ def far_uv_of(star, distance_au):
     share = activity.far_uv_chromospheric_share(star)
     if ratio is None or share is None:
         return None
-    return FarUv(ratio, share)
+    others = radiation_field.companion_far_uv(star, distance_au) if distance_au else []      # GEN.1442: the other stars' far ultraviolet too
+    if not others:
+        return FarUv(ratio, share)
+    total, chromosphere = ratio, ratio * share
+    for other, part in others:
+        other_share = activity.far_uv_chromospheric_share(other)
+        total += part
+        chromosphere += part * (share if other_share is None else other_share)
+    return FarUv(total, chromosphere / total)
 
 
 def photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv):
