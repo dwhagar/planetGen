@@ -402,6 +402,18 @@ def test_unwritable_output_path_is_a_clean_error(tmp_path):
     assert_clean(["system", "--quiet", "--output", str(tmp_path / "missing" / "page.txt")], allowed=(1, 2))
 
 
+def test_unwritable_output_path_prints_an_error_and_exits_1_with_no_traceback(tmp_path, capsys):
+    # UX.288: `planetgen system --output <bad path>` raised FileNotFoundError out of run_system.
+    from tests.bughunt_support import run_cli
+    bad = tmp_path / "missing" / "page.txt"
+    with pytest.raises(SystemExit) as stopped:
+        run_cli("system", ["--quiet", "--star-type", "G2V", "--output", str(bad)])
+    assert stopped.value.code == 1
+    captured = capsys.readouterr()
+    assert "could not be written" in captured.out + captured.err and str(bad) in captured.out + captured.err
+    assert "Traceback" not in captured.out + captured.err and not bad.exists()
+
+
 def test_unwritable_debug_file_is_a_clean_error(tmp_path):
     assert_clean(["system", "--debug", str(tmp_path / "missing" / "log.txt"), "--output", "-"],
                  allowed=(1, 2))

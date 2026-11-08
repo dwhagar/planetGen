@@ -12,6 +12,8 @@ Numbering: 0x runs the system, 1x is core generation and product families, 2x is
 | 02 | Train Manager: merge trains | Train Manager (was Bug 2) | builds and merges the trains |
 | 03 | Gate: run gates, fix reds | Gate 1 | started 2026-11-07, runs gate shards and fixes reds for lane 02 |
 | 04 | Bugs and test health | Bug 1 | the current Bug 1 thread (an older Bug 1 thread ran in October 2026 and is retired) |
+| 05 | Bugs and test health, second lane | none (new 2026-11-08) | Boss, 8:10 PM EST on 2026-11-07: a second bug lane to assist lane 04 with the 8.1 bug-hunt queue (GEN.1390, TEST.695 and their splits) |
+| 06 | Gate shards and red fixes, second gate lane | none (new 2026-11-08) | Boss, 8:14 PM EST on 2026-11-07: a second gate lane to help with train 17 (PR 5626), beside lane 03 |
 | 11 | Oddities, census, ore design | Core 1 | |
 | 12 | Storage, remnants, volatility law | Core 2 | |
 | 13 | Galaxy and admin | Core 3 | |
@@ -20,7 +22,7 @@ Numbering: 0x runs the system, 1x is core generation and product families, 2x is
 | 21 | Planet composition chain | Planets 1 | |
 | 22 | Belts, small bodies, mineral rows | Aux 5 | the current Aux 5 thread (an older Aux 5 ran in October 2026 and is retired) |
 | 23 | Tides, spin, moons | Tides 1 | |
-| 24 | Materials | none yet | reserved for the real-material items that wait on their prerequisites (GEN.1377, GEN.1378, GEN.1380 to GEN.1383, TEST.686) |
+| 24 | Materials | none yet | reserved for the real-material items that wait on their prerequisites (GEN.1377, GEN.1378, GEN.1381 to GEN.1383, TEST.686; GEN.1380 is with lane 22) |
 
 ## Retired lanes (no number; the old names stay)
 
