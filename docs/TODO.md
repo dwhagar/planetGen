@@ -12902,27 +12902,6 @@ clears each one.
   Added (Boss, 6:36 PM EST on 2026-11-06): after this item merges, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
   Progress (6:35 AM EST on 2026-11-07, as Lane 21 reported): after train 14 only 13 of 1,692 natural bodies hold 16 kPa or more oxygen; the causes are filed as GEN.1339 (sea worlds are almost all global oceans, which leaves CO2 high) and GEN.1340 (thin air keeps its nitrogen). GEN.854 as worded is met and retired; this item stays open until those two land and the census is re-run.
 
-- [ ] **GEN.1311 Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves**
-  Boss held the rest of the fudge chain (GEN.1312 to GEN.1315) at 12:42 AM EST on 2026-11-08 and released it at 8:53 AM EST on 2026-11-08: the chain is built now, aimed at Train 19, with GEN.1309 in parallel. Part 1 is the first step; nothing exists yet (no scripts/stand_in_sensitivity.py).
-  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). scripts/stand_in_sensitivity.py parses the numeric ranges from the
-  stand-in registry (GEN.725) for the in-scope rows only (the 355 rows that
-  feed a class quantity: mass law, architecture, radius valley, envelope
-  cut, bulk composition and water, the star's light and tracks, orbit
-  elements, greenhouse and cloud optics, tidal and interior heat, seasonal
-  swing, day and night, band winds, atmosphere mixture, retention, redox,
-  dry-body carbon, surface liquids, the oxygen build-up), overrides one
-  constant at a time (module constant, tuning value or data-file entry) in a
-  context manager, regenerates a fixed sample and records how far gravity,
-  mean temperature, pressure, gas shares, ocean cover, band temperatures and
-  wet bulb move. It uses draw.py with fixed sub-streams and flags a row
-  whose change alters the draw count (measured on a distribution, not a
-  paired sample). It lists the rows it cannot override (no numeric range,
-  JSON recipe tables). Lock-free, no generated value changes. Done: the
-  harness runs a screening pass on a small sample and lists the overridable
-  and non-overridable rows.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.725, GEN.1306, TEST.430.
-
 - [ ] **GEN.1312 Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix**
   RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Screening pass first (low and high only, 5 systems) to drop the rows that

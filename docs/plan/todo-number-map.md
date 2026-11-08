@@ -2101,7 +2101,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 | done, PR #5620 |
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) | none | open |
 | GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent | GEN.1304 | done, PR #5572 |
-| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves | none | open |
+| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves | none | done, PR #5745 |
 | GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 | open |
 | GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 | open |
 | GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 | open |

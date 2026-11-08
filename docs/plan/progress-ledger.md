@@ -2962,3 +2962,4 @@ Baseline: PR #1817.
 | MAP.411 | 8.1 | Stand-in replacements |
 | GEN.1428 | 8.1 | Stand-in replacements |
 | GEN.1429 | 8.1 | Stand-in replacements |
+| GEN.1311 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
