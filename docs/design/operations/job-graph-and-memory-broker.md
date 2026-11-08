@@ -302,7 +302,7 @@ Done when: a full galaxy on a 16 GB host runs past stage 13 with no kernel kill,
 
 Smaller choices I took, which you can overrule: the graph lives in our Redis and Dask is out; PERF.254 step 1 is the first slice, not a separate project; the planner takes a goal and subtracts stored facts, so there is no "skip" flag anywhere.
 
-## 9. Items (numbers from TODO, docs PRs 5750 and after; all proposed, build after Boss approves this note)
+## 9. Items (numbers from TODO, docs PRs 5750 and after; DOC.113 and OPS.122 to OPS.132; all proposed, build after Boss approves this note)
 
 | Item | What | Owner proposed | Steps of section 7 |
 |---|---|---|---|
@@ -315,10 +315,12 @@ Smaller choices I took, which you can overrule: the graph lives in our Redis and
 | OPS.127 | Migration stage by stage, each compared byte for byte | Lanes 22 and 13 | 0, 5 to 8 |
 | OPS.128 | Run planner: every task planned first as a stored command sequence, for every start path; takes over PERF.203's job spec | to be set by TODO | 4 |
 | OPS.129 | Split the bundled commands (the phenomena finish into about five, run-population into four, and the rest of section 3.0) | to be set by TODO | 1 and 8 |
+| OPS.131 | Independence harness: command read/write declarations, the SQL tap test, planner edges from conflicts, `independence.json` written by an overlapped-both-orders test at 1 and 15 workers by content hash | to be set by TODO | 6 |
+| OPS.132 | Per-pair overlap rollout and the narrow edges | to be set by TODO | 7, 7b |
 | OPS.130 | Fair task scheduler: classes with weights and reserved places for site-serving work, weighted fair sharing across job kinds, aging; replaces the hand-set lane counts (Boss, 3:44 PM EST) | Lane 22, after PERF.254 | 2b |
 | OPS.125 | Optional Dask engine: **dropped** | | |
 
-Not covered by an item yet (asked of TODO): the independence harness and the per-pair overlap proofs (steps 6 and 7) and the narrow edges (7b). OPS.127 may take them, or they are filed separately.
+All steps now have an item. The independence harness is OPS.131 and the per-pair overlap rollout with the narrow edges is OPS.132 (TODO, 2026-11-08).
 
 ## 10. What I did not verify
 
