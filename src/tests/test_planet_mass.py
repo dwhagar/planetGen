@@ -5,7 +5,7 @@ import statistics
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, planet_mass
+from planetgen.physics import constants, disk_condensation, formation, planet_mass
 from planetgen.util import draw
 
 SUN_KG = constants.SOLAR_MASS_TO_KG
@@ -49,7 +49,8 @@ def test_solids_grow_outward_and_jump_at_the_snow_line():
                                  for _ in range(400)) / EARTH_KG
     inner, just_inside, just_outside, far = (assembled(d) for d in (0.3, 2.6, 2.8, 5.0))
     assert inner < just_inside < just_outside < far
-    assert just_outside > 3.0 * just_inside   # the ice boost of the snow line
+    # the jump of the snow line (GEN.1396): the isolation mass goes as the density to the 3/2, and the two radii are 0.2 AU apart
+    assert just_outside > 0.9 * disk_condensation.SNOW_LINE_SOLID_JUMP ** 1.5 * just_inside
 
 
 def test_the_slow_outer_disk_builds_less_than_the_isolation_mass_alone(monkeypatch):
