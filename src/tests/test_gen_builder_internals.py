@@ -3,7 +3,7 @@ System builder internals (TODO TEST.32).
 
 Direct tests of the `StarSystem` placement helpers that the validate
 module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
-`generate_slot_object`, `calculate_distance_for_class`, `build_planet`,
+`generate_slot_object`, `build_planet`,
 `_trim_to_orbit_ceiling`,
 `_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
 `from_dict` newer-schema error. Systems are built planet-less so each
@@ -96,56 +96,10 @@ def test_slot_type_defaults_to_planet(system):
     assert isinstance(obj, Planet) and obj.body_type in ('t', 'g')
 
 
-def test_a_slot_for_a_class_that_can_carry_life_is_placed_in_the_ecosphere(system):
-    """A class that can carry life asked for in a cold-zone slot is placed in the habitable zone instead of failing."""
-    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
-    distance = system.calculate_distance_for_class(letter, system.star.habitable_zone[1] * 5)
-    assert zone_of(system, distance) == 'e'
-
-
 @pytest.mark.parametrize("slot_type", ["comet", "", "Planet", None])
 def test_slot_with_an_unknown_type_raises(system, slot_type):
     with pytest.raises(ValueError, match=f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'."):
         system.generate_slot_object(system.star, {"type": slot_type}, 1.0)
-
-
-# --- calculate_distance_for_class -----------------------------------------
-
-@pytest.mark.parametrize("planet_class", [None, "Z", "not-a-class", "J", "A", "T"])
-def test_distance_unchanged_for_no_class_or_a_class_no_zone_belongs_to(system, planet_class):
-    """A class is derived from a finished body, so only a class that can carry life has a place (GEN.688)."""
-    assert system.calculate_distance_for_class(planet_class, 7.25) == 7.25
-
-
-def test_distance_unchanged_when_the_life_class_already_fits(system):
-    inner, outer = system.star.habitable_zone
-    distance = (inner + outer) / 2
-    for letter in tuning.HABITABLE_PLANET_CLASSES:
-        assert system.calculate_distance_for_class(letter, distance) == distance
-
-
-def test_a_life_class_is_moved_inside_the_zone_with_margin(system):
-    inner, outer = system.star.habitable_zone
-    margin = min(tuning.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
-    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
-    for estimated in (inner * 0.1, outer * 10):
-        for _ in range(DRAWS):
-            distance = system.calculate_distance_for_class(letter, estimated)
-            assert inner + margin <= distance <= outer - margin
-
-
-def test_ecosphere_draw_avoids_a_belt_in_the_zone(system):
-    inner, outer = system.star.habitable_zone
-    mid = (inner + outer) / 2
-    placed = [belt(system, mid - 0.1, mid + 0.1)]
-    for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], outer * 5, planets=placed)
-        assert inner <= distance <= outer
-        assert not (mid - 0.1 < distance < mid + 0.1)
-
-
-def test_distance_returned_is_a_float(system):
-    assert isinstance(system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], 100.0), float)
 
 
 # --- _trim_to_orbit_ceiling -----------------------------------------------

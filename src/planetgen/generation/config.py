@@ -42,7 +42,7 @@ class SystemConfig:
     str or None: A planet class letter (e.g. "O") the system must hold at least one planet of (GEN.791). A test and admin
     option for a sample that needs every class (`generation/class_sample.py`), not a recipe field: a class attribute, so a
     config holds it only when a caller sets it, it is not saved with the system and a default run never sets it. The first
-    orbital slot is that class, placed in a zone that allows it (`StarSystem.calculate_distance_for_class`), and a system
+    orbital slot is that class, and a system
     whose attempts all lost the planet reports "a planet of class X" in `StarSystem.unmet_requirements`. It cannot be
     combined with `SLOTS` (slots already name classes). Defaults to None.
     """

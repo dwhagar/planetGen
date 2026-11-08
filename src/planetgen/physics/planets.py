@@ -144,11 +144,6 @@ def apply_class(planet):
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
 
 
-def is_life_class(body):
-    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
-    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
-
-
 @finite_domain()
 def calculate_orbital_period_years(distance_au, primary_mass_kg):
     """
@@ -333,16 +328,13 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
-def remake_end_stages(body, planet, attempt=0):
+def remake_end_stages(body, planet):
     """
-    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`, and the bar on
-    habitable worlds, GEN.1250). `planet` is the body itself for a planet and the parent for a moon. `attempt` 0 is the draw `refinish_rocky` always
-    made; a later attempt is another draw of the same step, for a body that came out with the conditions a system that bars habitable worlds
-    keeps off (`StarSystem._bar_habitable_worlds`).
+    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
+    itself for a planet and the parent for a moon.
     """
     stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}"
-                         + (f":bar{attempt}" if attempt else ""))
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
