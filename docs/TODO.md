@@ -13395,6 +13395,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 (queue and memory), after PERF.254. Prerequisites: none. Related: PERF.254, OPS.122, OPS.124, OPS.128, DOC.113, OPS.121.
   Filed by the TODO thread.
 
+- [ ] **TEST.709 test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row**
+  Found by Lane 21 on 2026-11-08 while reading the Train 19 gate (PR 5740): the test fails about 2 runs in 10 on origin/main and 1 in 4 on the Train 19 tree ('assert None is not None' at line 98) because the 40-try loop of unseeded systems sometimes gets no methane row. Do: seed the draw (or pick a fixed system that has the row) so the test is deterministic, without loosening what it checks. Done: the test passes 50 times in a row. Lock-free.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 04 (test health). Prerequisites: none. Related: TEST.706.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
