@@ -168,7 +168,7 @@ def test_a_cold_air_world_between_minus_40_c_and_freezing_is_class_w_unless_clas
 
 
 def test_a_fifth_carbon_dioxide_is_g_whatever_the_oxygen():
-    # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide with 3 to 16 percent oxygen
+    # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide (a share, class G's edge) with 3 to 16 kPa of oxygen (GEN.1321)
     assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
     assert cf.best_class(body(share_co2=0.05, share_o2=0.1))[0] == "L"
 
