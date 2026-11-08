@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.289 |
+| UX | UX.290 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
 | GEN | GEN.1403 |
@@ -2201,6 +2201,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | open |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | open |
+| UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) | none | open |
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) | none | open |
 | GEN.1389 | Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug) | none | open |
