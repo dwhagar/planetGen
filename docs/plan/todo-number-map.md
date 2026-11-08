@@ -3088,7 +3088,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.223 | Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug) | none | done, PR #4570 |
 | PERF.224 | Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster | none | dropped (Star 2 12:14 AM EDT as the lane reported: three compositions per bin is not a certified bound, the caches are not the lever, so as written it cannot be done) |
 | PERF.225 | The galaxy shape's cluster field is built by a queued job in small saved chunks and kept between requests, so no web request rebuilds it (about 56 seconds) | none | done, PR #4641 |
-| PERF.226 | Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory | none | open |
+| PERF.226 | Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory | none | done, PR #5719 |
 | PERF.227 | Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug) | none | done, PR #5588 |
 | PERF.228 | The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug) | none | done, PR #5182 |
 | PERF.229 | Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug) | none | done, PR #5096 |
