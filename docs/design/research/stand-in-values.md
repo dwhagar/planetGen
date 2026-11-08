@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1400 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1407 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 175 | 20 | 11 | 1 | 0 | 207 |
-| T2 | 131 | 58 | 1 | 1 | 0 | 191 |
+| T1 | 178 | 20 | 11 | 1 | 0 | 210 |
+| T2 | 132 | 58 | 1 | 1 | 0 | 192 |
 | T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 62 | 11 | 2 | 21 | 10 | 106 |
-| T5 | 63 | 23 | 6 | 1 | 0 | 93 |
-| T6 | 150 | 100 | 27 | 75 | 0 | 352 |
+| T5 | 64 | 23 | 6 | 1 | 0 | 94 |
+| T6 | 150 | 101 | 27 | 76 | 0 | 354 |
 | T7 | 37 | 15 | 9 | 30 | 0 | 91 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 762 | 288 | 70 | 235 | 45 | 1400 |
+| All | 767 | 289 | 70 | 236 | 45 | 1407 |
 
 ## How the labels were given
 
@@ -1919,6 +1919,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | ISO7 | T | T1 | L0 | isotope_record.ARGON_36_OVER_38 5.501 | the printed 0.005 | argon from the nebula | a primordial argon whose ratio is measured away from 5.5 by more than 3 percent | none (a measurement) | the abstract: 5.501 +- 0.005, 3.42 +- 0.09 percent above the air's | - | - |
 | ISO8 | T | T4 | L3 | isotope_record.ARGON_40_SHARE_MAX 0.9996 and SOLID_ICES (the organics taken as CH2O) | the cap 0.99 to 0.9999 | argon-bearing air; ices with an 'other' share | an air whose argon is more than 0.04 percent primordial at the age of its star | a model of the argon of an air from the nebula and the interior | a cap that keeps the primordial share a gas always holds; the organics' H, C and O are taken as a formaldehyde stand-in | - | no data |
 | ISO9 | T | T6 | L0 | isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (`surface_pressure.degassed_share`), over the moles of argon in the air | the degassed share 0.5 to 2 times | rocky bodies with an interior and argon in the air | an Earth-like body whose air is under 99 percent 40Ar, or a Mars-like one at the Earth's share | a model that follows the argon between the mantle and the air | the branching is the table's NUBASE value; the degassing law is the one the air's outgassing already uses; the Earth's air holds about half of its 40Ar produced, which this law does not tune to | - | - |
+| ISO10 | T | T1 | L0 | isotope_record.ESS_INITIAL_RATIO: 53Mn/55Mn 7e-6, 129I/127I 1.28e-4, 244Pu/238U 7e-3 | the printed 2 sigma (1e-6, 0.03e-4, 1e-3) | the early Solar System's first solids | a measured ratio outside the printed range; 60Fe is taken from the gamma-ray mean instead | none (read from the review) | [R2768: Table 2]; 244Pu/238U of 0.0068 in an older value is within the range | - | - |
+| ISO11 | T | T6 | L1 | isotope_record.EXTINCT_MEAN_OVER_ESS 0.1: the mean ratio of 53Mn, 129I and 244Pu in a galaxy's gas over the early Solar System's | 0.04 to 0.33 (the 26Al range of 3 to 25 times under) | any galaxy | a measured interstellar 53Mn, 129I or 244Pu; a galactic-chemical-evolution model with production ratios | the steady state from nucleosynthetic yields | [R2768: Sec. 3.2] gives the 26Al range only; 53Mn, 129I and 244Pu have no gamma-ray line | - | - |
+| ISO12 | T | T2 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 14C 1.6 atoms/cm2/s | 1.2 to 2.1 | the Earth's air at a modulation of 650 MV | a production model of the Earth's air under 1.2 or over 2.1 | CRAC-type yield functions of the body's own air and flux | [R5180: Table 1 and Sec. 3.2] (1.47 at 802 MV from 2.36e26 atoms a year), [R5182: Sec. 2] (1.6 to 2) | - | - |
+| ISO13 | T | T1 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 3H 0.345 atoms/cm2/s; EARTH_COLUMN_G_CM2 1033; EARTH_TARGETS_PER_G N 3.22e22, O 8.67e21; EARTH_DIPOLE_A_M2 7.8e22 | tritium 0.14 to 0.8 (earlier estimates, 0.32 for [R5183]) | the Earth's air at 650 MV | a measured global tritium production outside 0.14 to 0.8 | the same yield functions | [R5181: Sec. 3, Table 1, Eq. 4]; [R5180: Eq. 6 and Sec. 3.2] | - | - |
+| ISO14 | T | T5 | L0 | isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's | 100 to 200 g/cm2 | air columns from a few to many thousand g/cm2 | a yield-function profile whose column integral differs from this law by over 30 percent for a 100 g/cm2 air | the altitudinal yield functions of a thin-air model | the tritium maximum at about 40 g/cm2 ([R5181: Sec. 3]) bounds it; no paper in hand prints an attenuation length | - | - |
+| ISO15 | T | T1 | L0 | isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's | m of 0 to 10 | rocky bodies with air | a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent | the geomagnetic cutoff integrated over the body (`R_c` from the dipole) | the polar and global values of tritium ([R5181: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none | - | - |
+| ISO16 | T | T6 | L3 | isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean | 10 to 100 | bodies with a surface ocean | an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54 | the body's own dissolved inorganic carbon | the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet | - | no data |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

@@ -25875,6 +25875,31 @@
       "kind": "paper",
       "label": "Adande and Ziurys 2011",
       "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY"
+    },
+    "R5180": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2016",
+      "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions"
+    },
+    "R5181": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2020",
+      "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)"
+    },
+    "R5182": {
+      "kind": "paper",
+      "label": "Pavlov et al. 2013",
+      "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst"
+    },
+    "R5183": {
+      "kind": "paper",
+      "label": "Masarik and Beer 2009",
+      "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere"
+    },
+    "R5184": {
+      "kind": "paper",
+      "label": "Kovaltsov et al. 2012",
+      "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere"
     }
   }
 }
