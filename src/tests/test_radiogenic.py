@@ -15,7 +15,7 @@ from planetgen import tuning
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import elements, radiation, radiogenic, rogue_surface, surface_composition
+from planetgen.physics import elements, planet_type, radiation, radiogenic, rogue_surface, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -198,7 +198,7 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             silicate_kg = body.mass * rock.silicate
             assert found.radiogenic_w == pytest.approx(radiogenic.heat_w(content, silicate_kg, body.star.age, rock.aluminium))
             assert found.total_w == pytest.approx(found.radiogenic_w + found.primordial_w + found.tidal_w)
-            assert body.dose_ground_msv_yr > 0
+            assert (body.dose_ground_msv_yr > 0) if planet_type.has_ground(body) else body.dose_ground_msv_yr is None      # a planet under a deep envelope has no ground (GEN.1334)
     assert seen > 8
 
 

@@ -404,6 +404,13 @@ class Generation(_Section):
                           ge=500, le=50000, label="Systems a cell may hold",
                           summary="How many systems a crowded cell may hold before it is only partly filled; applies to galaxies planned "
                                   "afterwards.")
+    weirdness_dial: float = opt(1.0, "How often the worlds the generator makes get the rare, physically plausible oddities of the "
+                                "oddity table (a planet tipped onto its side, a slow backwards day, an iron-rich core, a ring from a "
+                                "fallen moon). 1 is the rate the sources give, 0 turns every oddity off, 2 doubles every chance. It "
+                                "applies to the worlds generated afterwards; a world already made keeps what it has. A run that "
+                                "names its own dial (the generator page, an administrator's force) uses that instead.",
+                                unit="times the sourced rate", group="generation", ge=0.0, le=10.0, label="Oddity rate",
+                                summary="How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off.")
 
 
 class Parity(_Section):
@@ -921,8 +928,8 @@ class Settings(_Section):
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
-    parity: Parity = Parity()
     generation: Generation = Generation()
+    parity: Parity = Parity()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 

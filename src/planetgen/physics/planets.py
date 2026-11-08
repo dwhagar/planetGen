@@ -483,6 +483,10 @@ def settle_giant(planet):
         bool: Whether the giant's radius moved.
     """
     if not giant_draw.settle(planet):
+        # The radius stayed (the tables moved it by under the tolerance, or the giant was sized another way), but the star's age rose after the flux was
+        # stored and the giant's own heat falls with the age: the flux it radiates is made again at the final age.
+        if not planet.is_moon and getattr(planet, "energy_flux_w_m2", None) is not None:
+            planet.energy_flux_w_m2 = habitability_world.giant_energy_flux_w_m2(planet)
         return False
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     calculate_surface_gravity(planet)
@@ -610,6 +614,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
     # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
     distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
+    planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
     orbital_radius_km = _au_to_km(distance)
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
@@ -626,7 +631,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     # before the air because the ocean is the reservoir the air's water vapor and its carbonate cycle stand in contact with.
     magnetism.update_exposure(planet, distance)     # GEN.86: the star's XUV and flares at this distance (no draws); the water loss reads it
     heat = interior_heat.update_heat(planet)
-    giant = planet.body_type == "g"
+    giant = not planet_type.has_ground(planet)      # GEN.1334: a giant, or a rocky planet under a deep envelope, has no surface; the air is solved at its 1 bar level
     own_heat_w_m2 = (getattr(planet, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(planet, "tidal_flux_w_m2", None) or 0.0)
     if getattr(planet.star, "starless", False) and not giant and own_heat_w_m2 > 0.0:
         # GEN.1111: a body with no star (an ejected one) lives on its own heat, which is a flux through its surface; under a star it is below a part in
@@ -1298,7 +1303,10 @@ def generate_moons(planet, moon_count=None):
     limit_radius_km, limit_mass_kg = moon_size_limits(planet)
     if limit_mass_kg <= tuning.MOON_MIN_MASS_KG:
         return
-    parent_is_giant = planet.body_type == "g"
+    # GEN.1334: a rocky planet under a deep envelope (a sub-Neptune, 1 percent or more) has a disk of its own, so it is a giant parent for its moons' masses and origins alike (it
+    # drew massive rocky impact moons and then disk moons of ice that were too large for it to hold)
+    parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
+    parent_is_giant = planet.body_type == "g" or parent_kind == moon_composition.GIANT
     # GEN.962: a rocky planet (no row in the `satellite-share` table, not a giant) holds massive moons from giant impacts at a rate of its own; its other moons
     # are the captured ones of `captured_moons`
     impact_moons = not parent_is_giant and hosting_gate.satellite_share(hosting_host(planet)) is None

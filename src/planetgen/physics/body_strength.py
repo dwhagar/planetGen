@@ -67,9 +67,11 @@ def _core(body, mass_kg, radius_m):
 
 
 def _is_giant(body):
-    """Whether the body is a giant: its body type says so, or its class is one of the giant classes (an ice giant of rock and water is a terrestrial body type with a giant class)."""
-    letter = getattr(body, "planet_class", None)
-    return getattr(body, "body_type", None) == planet_classes.GIANT or (letter in planet_classes.BY_LETTER and planet_classes.BY_LETTER[letter].kind == planet_classes.GIANT)
+    """Whether the body is a giant: its body type says so, or its class letter is used by giant classes only (an ice giant of rock and water is a terrestrial body type with a giant class)."""
+    if getattr(body, "body_type", None) == planet_classes.GIANT:
+        return True
+    kinds = {row.kind for row in planet_classes.CLASSES if row.letter == getattr(body, "planet_class", None)}
+    return kinds == {planet_classes.GIANT}      # class T has a giant row and a terrestrial one (GEN.1142): the body type says which, so a gas dwarf with a surface has a roundness ratio
 
 
 def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0):

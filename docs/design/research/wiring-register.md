@@ -234,16 +234,24 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.class_fit.best_class | by design | the public scorer of the best-fit classifier: the generator reads `fit` and the class sweep, the class-fit command line and the tests read this one-call form |
 | function | planetgen.physics.class_fit.domain_scores | by design | the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined `fit` |
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
+| function | planetgen.physics.volatile_depletion.earth_over_ci | by design | the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it |
+| function | planetgen.physics.volatile_depletion.retained_fractions | by design | the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time |
 | function | planetgen.physics.comet_species.low_over_h2o | GEN.1021 | the low end of a species' bracket for the loguniform rows of atmosphere-k:k7 (OCS, SO2, O2); the wiring swap rides a train with GEN.1022's, in one epoch |
 | function | planetgen.physics.comet_species.high_over_h2o | GEN.1021 | the high end of the same bracket; wired with it |
 | module | planetgen.physics.comet_ice_formation | GEN.1022 | the latent ice formation temperature that draws a comet's CO/H2O, N2, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch |
 | row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
 | row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
 | row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
-| module | planetgen.physics.disc_condensation | GEN.1363 | the species the disc condenses (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon), the carbon split and the C/O of the gas and solids across each snow line; part B wires the ice shares of a body to it and part C the C/O of a giant, in one epoch |
-| row | 6.213:DSC1 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC2 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC3 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC4 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC5 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
-| row | 6.213:DSC6 | GEN.1363 | read by `physics/disc_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
+| data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
+| row | 6.217:HK1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |
+| row | 6.217:HK2 | GEN.994 | the trace gas ceiling is read when the thermochemistry places the gases |
+| row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
+| row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
+| module | planetgen.physics.disk_condensation | GEN.1363 | the species the disc condenses (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon), the carbon split and the C/O of the gas and solids across each snow line; part B wires the ice shares of a body to it and part C the C/O of a giant, in one epoch |
+| row | 6.213:DSC1 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.213:DSC2 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.213:DSC3 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.213:DSC4 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.213:DSC5 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |
+| row | 6.213:DSC6 | GEN.1363 | read by `physics/disk_condensation.py`, which nothing reads until part B (the ice shares of a body) and part C (the C/O of a giant) wire it |

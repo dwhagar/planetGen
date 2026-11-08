@@ -67,9 +67,9 @@ KZZ_CM2_S = {"giant": (1.0e6, 1.0e11, "log"), "envelope": (1.0e6, 1.0e11, "log")
 other planets' is that widened down to 1e6 and a brown dwarf's, whose gravity is 30 times higher, is the lowest decades of the
 literature's 1e2 to 1e6; design, to be replaced by the research item that tabulates Kzz by object."""
 
-PHOTOSPHERE_LOG_EPS = {"He": 10.914, "P": 5.41, "Ti": 4.97, "Kr": 3.12, "Xe": 2.22, "V": 3.90, "Cr": 5.62}
-"""dict: [R0168] photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks. He, P,
-Ti, Kr and Xe are the part 05 section 2.1 table (READ); V and Cr are RECALLED from the same paper and carry the stand-in label."""
+PHOTOSPHERE_LOG_EPS = {"He": 10.914, "Kr": 3.12, "Xe": 2.22}
+"""dict: [R0168] photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks: He, Kr and Xe, the part 05 section 2.1 table (READ).
+P, Ti, V and Cr are in `tuning.STELLAR_SOLAR_LOG_EPS` since GEN.1360 (A21 Table 2, read; V and Cr were recalled here before)."""
 
 METALS = ("C", "N", "O", "Ne", "Na", "Mg", "Si", "S", "Ar", "K", "Ca", "Fe", "P", "Ti", "V", "Cr", "Kr", "Xe")
 """tuple: The elements the budget carries beyond hydrogen and helium (every one the thermodynamic table has a gas of)."""

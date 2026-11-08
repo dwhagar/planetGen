@@ -249,14 +249,14 @@
       "letter": "O",
       "name": "Ocean world",
       "kind": "t",
-      "sentence": "An ocean world, the oxygen-water world too wet: water over 80 percent of the surface, a mean surface of 298 to 312 K.",
+      "sentence": "An ocean world, the oxygen-water world too wet: water over 80 percent of the surface, a mean surface of 275 to 312 K.",
       "basis": "design stand-in (GEN.1142, registry CL6): 80 percent, from 90"
     },
     {
       "letter": "H",
       "name": "Desert world",
       "kind": "t",
-      "sentence": "A desert world, the oxygen-water world too dry: water over under 20 percent of the surface with groundwater below it, a mean surface of 295 to 315 K.",
+      "sentence": "A desert world, the oxygen-water world too dry: some water but under 20 percent of the surface, with groundwater below it, a mean surface of 275 to 315 K.",
       "basis": "design stand-in (GEN.1142, registry CL6): 20 percent, from 15"
     },
     {
