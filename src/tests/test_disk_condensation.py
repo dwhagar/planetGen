@@ -154,7 +154,7 @@ def test_the_oxygen_held_by_carbon_monoxide_and_dioxide_leaves_less_water_than_t
 # --- GEN.1372: the nitrogen, sulfur and noble gases of a giant's envelope, element by element ---------------------------------------------------
 
 def test_a_jupiter_like_envelope_takes_its_nitrogen_and_sulfur_near_three_times_the_star_at_four_times_its_heavy_elements():
-    # The Galileo probe: NH3 2.96 +/- 1.13 and H2S 2.75 +/- 0.66 times solar ([R5148: Table 2]), at a formation temperature between the ammonia and hydrogen sulfide lines.
+    # The Galileo probe: NH3 2.96 +/- 1.13 and H2S 2.75 +/- 0.66 times solar ([R5163: Table 2]), at a formation temperature between the ammonia and hydrogen sulfide lines.
     factors = dc.envelope_enrichments(110.0, 4.0)
     assert factors["N"] == pytest.approx(2.96, abs=0.5)
     assert factors["S"] == pytest.approx(2.75, abs=0.66 + 0.4)
