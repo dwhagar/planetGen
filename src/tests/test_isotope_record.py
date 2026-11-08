@@ -190,3 +190,11 @@ def test_the_sheet_lists_the_ratios_the_record_moves_and_counts_the_rest():
     assert shown["isotope_D/H"][1] == pytest.approx(0.0002 / 0.9998) and shown["isotope_40Ar/36Ar"][1] == pytest.approx(99.0)
     assert "isotope_13C/12C" not in shown and shown["isotope_count"][0] == "5 isotopes of 3 elements"
     assert ir.sheet_rows([]) == []
+
+
+def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record():
+    for distance in (0.0, None):
+        body = _body(distance=0.0, formation_distance_au=distance, water_mass_fraction=0.01)
+        assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
+        rows = {row["isotope"]: row for row in ir.record_of(body)}
+        assert rows["H-2"]["fraction"] > 0.0
