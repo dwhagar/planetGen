@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1433 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1435 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1407 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1409 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 137 | 59 | 1 | 1 | 0 | 198 |
 | T3 | 102 | 47 | 9 | 10 | 0 | 168 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
-| T5 | 64 | 23 | 6 | 1 | 0 | 94 |
+| T5 | 66 | 23 | 6 | 1 | 0 | 96 |
 | T6 | 159 | 102 | 27 | 75 | 0 | 363 |
 | T7 | 37 | 17 | 9 | 31 | 0 | 94 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 787 | 295 | 71 | 235 | 45 | 1433 |
+| All | 789 | 295 | 71 | 235 | 45 | 1435 |
 
 ## How the labels were given
 
@@ -2521,3 +2521,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | UC16 | T | T6 | L0 | a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number | none | neutron-star cores | a measured mass and radius that exclude it | none | EXISTENCE 35 percent for any exotic core, 5 percent for a pure strange-quark star, PROPERTIES 15 percent (the report's judgment). Changes no number now: at most one text line on the kind of core; there is no equation of state on offer. Recalled, not opened | predicted only | - | - |
 | UC17 | T | T4 | L0 | azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number | none | Titan's liquid methane | a measurement that the vesicles cannot form there | none | EXISTENCE 5 percent, PROPERTIES 5 percent (the report's judgment). Changes no number now: PlanetGen has no use for it; later energetics work cast doubt on it. Recalled, not opened | predicted only | - | - |
 | UC18 | T | T4 | L0 | superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number | none | r-process ejecta and cosmic rays | a measured superheavy nuclide in nature | none | EXISTENCE 3 percent, PROPERTIES 20 percent (the report's judgment). Changes no number now: PlanetGen has no use for it. Recalled, not opened | predicted only | - | - |
+
+## 6.243 Stand-ins of the spacing of orbits against every neighbour
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T5 | L0 | planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, `min_orbit_distance` is five of it | the Hill radius at periapsis is smaller by (1 - e) (0.7 of it at e = 0.3) | planets with eccentricity under 0.5 | a census in which releasing the belt keep-out to the periapsis Hill radius moves a belt or a planet by more than a tenth of its distance | none; the circular radius is the larger, so it only widens the keep-out, and the planet-planet spacing already uses the apoapsis and periapsis (`clearance_ledger.planet_exclusion`) and a moon's limit already carries the planet's eccentricity (`clearance_ledger.moon_hill_fraction`, [R1138]) | physics: the two other places an eccentric orbit enters the keep-out already do; the circular radius is the conservative one, so nothing is let through by it | predicted only | - | - |
+| SP2 | P | T5 | L0 | validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet | the factor (`constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR`) | wide pairs with the companion beyond about 50 AU | a companion at a few hundred AU that pumps an outer planet's eccentricity past the gap by the Kozai-Lidov law | the pumping of GEN.1447 (Lane 23) | the existing criterion of the cross-star check, kept as it was; only the set of pairs it is applied to changed (GEN.1460) | predicted only | - | - |

@@ -144,6 +144,14 @@ def min_distance_after_au(body, inner_bodies):
     return needed
 
 
+def moon_clearance_au(inner_moons):
+    """
+    The distance, AU from the planet, outside which a moon clears every moon inside it (GEN.1460): the farthest of each inner moon's distance and its own `min_orbit_distance`.
+    The moon just inside is not the only one: a massive moon two places in keeps more room round it than a light one beside the new moon. 0 for no moon inside.
+    """
+    return max((inner.distance + inner.min_orbit_distance for inner in inner_moons), default=0.0)
+
+
 # ---------------------------------------------------------------------
 # Spacing pass (generation's own)
 # ---------------------------------------------------------------------
@@ -383,41 +391,53 @@ def _cross_star_threshold_au(system, outer_p, outer_s):
     return constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
 
 
+def cross_star_violation(system):
+    """
+    The worst pair of a wide binary's two planet lists that keeps less than the clearance it needs (GEN.1460): `(body_p, body_s, shortfall_au)`, or `None`. Every body of
+    one star is held against every body of the other, not only the two outermost: the gap of a pair is the stars' closest approach less both bodies' outer edges (`edge_au`),
+    and what it needs is `_cross_star_threshold_au` of that pair, which grows with the pair's masses, so a heavy inner planet can need more room than a light outer one.
+    """
+    if system.binary_type != "wide" or not system.planets or not system.secondary_planets:
+        return None
+    closest_au = system.wide_binary.periapsis_au
+    worst = None
+    for body_p in system.planets:
+        for body_s in system.secondary_planets:
+            gap = closest_au - edge_au(body_p) - edge_au(body_s)
+            needed = _cross_star_threshold_au(system, body_p, body_s)
+            if _below(gap, needed) and (worst is None or needed - gap > worst[2]):
+                worst = (body_p, body_s, needed - gap)
+    return worst
+
+
 def cross_star_clearance(system):
     """
-    For an S-type (wide) binary, prunes the outermost body from whichever
-    star's list gravitationally encroaches on the other star's own
-    outermost body, until the worst-case gap between them (the two pointed
-    straight at each other with the stars at their closest approach,
-    `periapsis - edge_p - edge_s`) clears Gladman's mutual Hill criterion (or, with a belt
-    involved, `MIN_ASTEROID_BELT_SEPARATION`). The star whose outermost
-    body has the least room to its own `a_crit_au` loses it. See
-    `StarSystem._validate_cross_star_clearance` for the full reasoning.
+    For an S-type (wide) binary, prunes a body from whichever star's list gravitationally encroaches on a body of the other star, until every pair
+    (`cross_star_violation`: the worst-case gap between two bodies pointed straight at each other with the stars at their closest approach,
+    `periapsis - edge_p - edge_s`) clears Gladman's mutual Hill criterion (or, with a belt involved, `MIN_ASTEROID_BELT_SEPARATION`). Of the worst
+    pair, the body whose star has the least room to its own `a_crit_au` loses it. See `StarSystem._validate_cross_star_clearance` for the full reasoning.
+    GEN.1460: every pair is held to it, not the two outermost bodies alone (a pair of outermost bodies is still the usual worst, so a system whose other pairs
+    clear is pruned as before).
 
     Returns:
         list: The removed bodies. Empty unless `system.binary_type` is
              "wide" and both lists are non-empty.
     """
     removed = []
-    if system.binary_type != "wide" or not system.planets or not system.secondary_planets:
-        return removed
-
-    closest_au = system.wide_binary.periapsis_au
-    while system.planets and system.secondary_planets:
-        outer_p = max(system.planets, key=edge_au)
-        outer_s = max(system.secondary_planets, key=edge_au)
-        worst_case_gap_au = closest_au - edge_au(outer_p) - edge_au(outer_s)
-        if worst_case_gap_au >= _cross_star_threshold_au(system, outer_p, outer_s):
+    while True:
+        worst = cross_star_violation(system)
+        if worst is None:
             break
+        body_p, body_s, _shortfall = worst
         draw.redrawn("planet.cross_star_trim")
-        primary_room = system.primary_star.a_crit_au - edge_au(outer_p)
-        secondary_room = system.secondary_star.a_crit_au - edge_au(outer_s)
+        primary_room = system.primary_star.a_crit_au - edge_au(body_p)
+        secondary_room = system.secondary_star.a_crit_au - edge_au(body_s)
         if primary_room <= secondary_room:
-            system.planets.remove(outer_p)
-            removed.append(outer_p)
+            system.planets.remove(body_p)
+            removed.append(body_p)
         else:
-            system.secondary_planets.remove(outer_s)
-            removed.append(outer_s)
+            system.secondary_planets.remove(body_s)
+            removed.append(body_s)
     return removed
 
 
@@ -467,8 +487,8 @@ def check_lunar_system(planet):
     Checks a planet and its moons: the planet itself (`check_planet`),
     then every moon -- its own class and zone, that it is no larger than
     the planet can hold, that it orbits inside the planet's stable range
-    (`planetPhysics.moon_orbit_bounds_km`), and that each moon clears the
-    one inside it by that moon's own `min_orbit_distance`.
+    (`planetPhysics.moon_orbit_bounds_km`), and that each moon clears
+    every moon inside it by that moon's own `min_orbit_distance` (`moon_clearance_au`).
 
     Returns:
         list: `Problem`s, empty when it validates.
@@ -478,7 +498,7 @@ def check_lunar_system(planet):
         return problems
     low_km, _high_km = planetPhysics.moon_orbit_bounds_km(planet)
     largest_km = max_moon_radius_km(planet)
-    last = None
+    inner = []
     for moon in sorted(planet.moons, key=lambda m: m.distance):
         name = _label(moon)
         problems.extend(check_planet(moon, parent=planet))
@@ -490,9 +510,10 @@ def check_lunar_system(planet):
         if _below(distance_km, low_km) or distance_km > limit_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"its orbit ({distance_km:.4g} km) is outside {_label(planet)}'s stable "
                                           f"range for moons ({low_km:.4g}-{limit_km:.4g} km)"))
-        if last is not None and _below(moon.distance, last.distance + last.min_orbit_distance):
-            problems.append(Problem(name, f"its orbit is too close to {_label(last)}'s"))
-        last = moon
+        crowded = [other for other in inner if _below(moon.distance, other.distance + other.min_orbit_distance)]
+        if crowded:
+            problems.append(Problem(name, f"its orbit is too close to {_label(crowded[-1])}'s"))
+        inner.append(moon)
     return problems
 
 
@@ -540,7 +561,7 @@ def check_star_system(system):
     orbit ceiling (`orbit_ceiling_au`), and every planet with its moons
     (`check_lunar_system`); for a wide binary, that the two stars'
     outermost bodies keep clear of each other (`cross_star_clearance`'s
-    rule).
+    rule, every pair).
 
     Returns:
         list: `Problem`s, empty when it validates.
@@ -561,14 +582,11 @@ def check_star_system(system):
             if not comet_fits_ceiling(comet, ceiling):
                 problems.append(Problem(_label(comet), f"its orbit reaches beyond the farthest stable orbit "
                                                        f"({ceiling:.4g} AU)"))
-    if getattr(system, "binary_type", None) == "wide" and system.planets and system.secondary_planets:
-        outer_p = max(system.planets, key=edge_au)
-        outer_s = max(system.secondary_planets, key=edge_au)
-        gap = system.wide_binary.periapsis_au - edge_au(outer_p) - edge_au(outer_s)
-        needed = _cross_star_threshold_au(system, outer_p, outer_s)
-        if _below(gap, needed):
-            problems.append(Problem(_label(outer_p), f"it and {_label(outer_s)} come too close to each other "
-                                                     f"across the two stars"))
+    worst = cross_star_violation(system)
+    if worst is not None:
+        body_p, body_s, _shortfall = worst
+        problems.append(Problem(_label(body_p), f"it and {_label(body_s)} come too close to each other "
+                                                f"across the two stars"))
     return problems
 
 
@@ -609,15 +627,15 @@ def stabilize_lunar_system(planet):
     low_km, _high_km = planetPhysics.moon_orbit_bounds_km(planet)
     floor_au = _km_to_au(low_km)
     moved = []
-    last = None
+    inner = []
     for moon in planet.moons:
         refresh_moon_orbit(moon, planet)
-        needed = floor_au if last is None else max(floor_au, last.distance + last.min_orbit_distance)
+        needed = max(floor_au, moon_clearance_au(inner))
         if moon.distance < needed:
             moon.distance = needed
             refresh_moon_orbit(moon, planet)
             moved.append(moon)
-        last = moon
+        inner.append(moon)
     refresh_planet_reflex(planet)
     return moved
 
