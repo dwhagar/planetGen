@@ -40,13 +40,19 @@
 #   PLANETGEN_REPO          path to a checkout to read requirements from
 #   PLANETGEN_REPO_URL      repo to clone if no checkout is found (default below)
 #   PLANETGEN_TEST_DB_PASSWORD   MySQL root password (default planetgen-test)
-#   PLAYWRIGHT_VERSION      pip playwright version (default 1.56.0 = Chromium 1194)
+#   PLAYWRIGHT_VERSION      pip playwright version (default: the one for the image's Chromium build, 1194 = 1.56.0, 1243 = 1.63.0)
 
 set -Eeuo pipefail
 
 REPO_URL="${PLANETGEN_REPO_URL:-https://github.com/dwhagar/planetGen}"
 DB_PASSWORD="${PLANETGEN_TEST_DB_PASSWORD:-planetgen-test}"
-PLAYWRIGHT_VERSION="${PLAYWRIGHT_VERSION:-1.56.0}"
+# TEST.693: the Playwright that wants the Chromium build the image carries (a mismatch skipped every browser test)
+if [[ -z "${PLAYWRIGHT_VERSION:-}" ]]; then
+    case "$(ls /opt/pw-browsers 2>/dev/null | grep -o '^chromium-[0-9]*' | sort | tail -1)" in
+        chromium-1194) PLAYWRIGHT_VERSION=1.56.0 ;;
+        *)             PLAYWRIGHT_VERSION=1.63.0 ;;
+    esac
+fi
 SEED_DIR=/opt/planetgen-seed
 NLTK_DIR=/usr/local/share/nltk_data
 LOG=/var/log/planetgen-setup.log

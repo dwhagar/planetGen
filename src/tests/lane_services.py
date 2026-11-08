@@ -38,8 +38,9 @@ import time
 from urllib.parse import urlparse
 
 PROFILE = "/etc/profile.d/planetgen-test.sh"
-PLAYWRIGHT_VERSION = "1.56.0"
-"""str: The Playwright the lane image's Chromium matches (`PLAYWRIGHT_VERSION` in setup-planetgen-env.sh)."""
+PLAYWRIGHT_BY_CHROMIUM_BUILD = {"1194": "1.56.0", "1243": "1.63.0"}
+"""dict: The Playwright release that wants each Chromium build the lane images carry (`/opt/pw-browsers/chromium-<build>`), so the fix for a mismatch
+names the right pin (TEST.693). The check itself asks Playwright whether its own Chromium is there; this only words the advice."""
 REQUIRED = ("PLANETGEN_TEST_MYSQL_USER", "PLANETGEN_TEST_MYSQL_PASSWORD", "PLANETGEN_TEST_REDIS_URL")
 """tuple: Variables a run needs. A missing user is not an error to the tests, it is the wrong account (`planetgen`)."""
 INTERVAL = 15
@@ -213,6 +214,25 @@ def free_mb(path="/"):
     return usage.free // (1024 * 1024)
 
 
+def chromium_missing():
+    """The Chromium executable the installed Playwright wants if it is not on disk, else `None` (TEST.693: the check follows the machine, not a pin)."""
+    code = ("from playwright.sync_api import sync_playwright as s\n"
+            "p = s().start()\nprint(p.chromium.executable_path)\np.stop()")
+    found = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=120)
+    path = found.stdout.strip().splitlines()[-1] if found.stdout.strip() else ""
+    return None if path and os.path.exists(path) else (path or "a Chromium it could not name")
+
+
+def installed_chromium_builds():
+    """The Chromium builds in the browsers folder (`PLAYWRIGHT_BROWSERS_PATH`, else /opt/pw-browsers), as strings."""
+    folder = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or "/opt/pw-browsers"
+    try:
+        names = os.listdir(folder)
+    except OSError:
+        return []
+    return sorted(name.split("-", 1)[1] for name in names if name.startswith("chromium-") and name.split("-", 1)[1].isdigit())
+
+
 def package_problems(browser):
     """What the tests import that is missing or wrong, as sentences with the command that fixes it."""
     problems = []
@@ -225,9 +245,15 @@ def package_problems(browser):
             have = importlib.metadata.version("playwright")
         except importlib.metadata.PackageNotFoundError:
             have = None
-        if have != PLAYWRIGHT_VERSION:
-            problems.append(f"playwright is {have or 'not installed'}, the image's Chromium needs {PLAYWRIGHT_VERSION} "
-                            f"(pip install playwright=={PLAYWRIGHT_VERSION}; do not run `playwright install`)")
+        if have is None:
+            problems.append("playwright is not installed (pip install playwright; do not run `playwright install`)")
+        else:
+            missing = chromium_missing()
+            if missing:
+                builds = installed_chromium_builds()
+                advice = ", ".join(f"{build}: playwright=={PLAYWRIGHT_BY_CHROMIUM_BUILD.get(build, '?')}" for build in builds) or "none found"
+                problems.append(f"playwright {have} wants {missing}, which is not installed (Chromium builds in the image, with the Playwright that "
+                                f"matches each: {advice}; pip install the matching one, do not run `playwright install`)")
     return problems
 
 

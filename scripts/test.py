@@ -31,7 +31,7 @@ lanes' gates then gets fewer workers instead of timeouts and OOM kills; the phas
 
 Containers (TEST.376): before every run, `src/tests/lane_services.py` loads the `PLANETGEN_TEST_*` variables from
 /etc/profile.d/planetgen-test.sh when they are missing, starts MySQL and Redis when they do not answer, purges the
-MySQL binlogs when the disk is nearly full, checks `argon2-cffi` and (for the browser tests) `playwright` 1.56.0 and fetches the
+MySQL binlogs when the disk is nearly full, checks `argon2-cffi` and (for the browser tests) `playwright` (the release whose Chromium the machine has) and fetches the
 white-dwarf data a fresh machine lacks;
 what it cannot repair stops the run before it starts (exit 2, `--no-preflight` skips the check). While a phase runs a
 watchdog asks MySQL and Redis every 15 seconds; one that is gone is restarted at once, the phase's pytest is stopped and
@@ -700,6 +700,10 @@ def main(argv=None):
                 capped = f" (capped: {why})" if why else ""
             first_phase = False
             print(f"--- {label}: -m {marker!r}, {workers} worker(s){capped}", flush=True)
+            if label == "browser":      # TEST.693: a browser that will not start fails the phase instead of skipping every test
+                environment["PLANETGEN_REQUIRE_BROWSER"] = "1"
+            else:
+                environment.pop("PLANETGEN_REQUIRE_BROWSER", None)
             if args.no_preflight:
                 code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
             else:
