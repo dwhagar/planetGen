@@ -13458,6 +13458,31 @@ clears each one.
   Owner (proposed by TODO, confirm with TODO before taking): Lane 05.
   Filed by the TODO thread.
 
+- [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
+  Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1404 Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 5. Only 3 of 59 sea worlds sit in class M's 20 to 80 percent cover band, because the mantle water cap (MANTLE_CAP_OCEANS, 2 to 8 oceans), the relief scale 1/g and the delivered water (Bern) put most sea worlds at global ocean (GEN.1339 measured it and made no change). The Cowan and Abbot paper argues that mantle hydration and degassing can keep land above water for a wide range of inventories; the sources read so far (Raymond and Kite and Ford, as the report cites them) favour a deep-water median. Do: obtain the Cowan and Abbot paper (second-hand if Boss cannot supply the paper), read what land fraction a given water inventory leaves, compare with the generated ocean-cover distribution, and report. Per Boss's rule, physics found in research wins: if the source shows the cap or the relief scale is off, file the retuning as its own lock item; do not retune to hit an answer. Research and report, no code change.
+  Version 8.1. Prerequisites: none. Related: GEN.1339, GEN.1309.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1405 Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 6. The delay between oxygenic life and free oxygen is a fitted stand-in with Earth's own delay as the only data point, and it leaves worlds waiting 9 to 23 Gyr, longer than the star's age. Do: find the primary or accepted secondary sources for the sinks that must fill (reduced iron and sulfur in the crust and ocean, volcanic gas, methane and hydrogen), derive the delay from the sink size and the oxygen source on each world, replace the fitted constant (or keep it with a row that explains the scatter), register it in GEN.725 and re-measure how many worlds wait longer than their star lives. Lock item (moves the oxygen timeline and the life stage of every oxygenic world). Lane 21 area (biogenic_oxygen). Not before GEN.1309 steps A and B.
+  Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.750, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1406 Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 7. GEN.1335 (done) compared the generated inner mass function with published masses and measured the gap, but no tuning item exists. Do: read the GEN.1335 report, find which draw (the mass law, the architecture, or the radius valley) puts too few bodies at 0.8 to 1.5 Earth radii, and fix it from the source where the physics or the data says so (verified data wins), with a GEN.725 row for any stand-in and a note of which survey and completeness correction is used. Lock item (the whole architecture shifts: every class share and every golden). Boss decides whether to build; run the sweep (GEN.1318) afterwards.
+  Version 8.1. Prerequisites: none. Related: GEN.1335, GEN.1318, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1407 K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 8. GEN.909 left this open: at K5V the temperate share is 6 of 40 against 16 of 45 at G2V, and K and M dwarfs are most stars. Do: a probe that splits the ecosphere by incoming flux and by the star's spectrum (the shift of the zone edges with a redder spectrum is currently a guess) and reports where the cold comes from: the zone edges, the greenhouse optics, or the albedo. Report first, no code change; if a fault shows, file the fix as its own item (lock, moves K and M dwarf temperate counts only).
+  Version 8.1. Prerequisites: none. Related: GEN.909, GEN.1309.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
