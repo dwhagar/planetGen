@@ -2979,3 +2979,5 @@ Baseline: PR #1817.
 | TEST.707 | 8.1 | Stand-in replacements |
 | TEST.708 | 8.1 | Stand-in replacements |
 | DB.118 | 8.1 | Stand-in replacements |
+| TEST.702 | 8.1 | Stand-in replacements |
+| DOC.112 | 8.1 | Stand-in replacements |
