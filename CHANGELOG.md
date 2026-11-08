@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3725] - 2026-11-08
+
+**Headline:** The deep ice layer of an ice giant is superionic, an ionic fluid or an ice by a measured table of pressure and temperature, not by a single pressure.
+
+### Changed
+- **Superionic water and ammonia come from a boundary table (GEN.1422).** `physics/superionic.py` reads `physics/data/superionic_boundary.json` (floors and ceilings of water from the diamond-cell work [R5181] and the shock work [R3081], ammonia and the metallic limits from [R5172]). The ice mantle of an ice giant takes its state, and its water becomes superionic ice, from the pressure and the temperature of the structure model's adiabat at its bottom; the single 100 GPa line is gone, and the weird-worlds line G4 is built for the superionic part. Stand-ins SI1 to SI4 are in section 6.234. This changes ice-giant layer states and materials, so it takes a generator epoch (the Train Manager assigns it).
+
 ## [8.0.3724] - 2026-11-08
 
 **Headline:** The solid material beyond a star's snow line is now set by the disk's own condensation budget (a jump of 1.97 times the rock instead of 2.17), with the gas-giant tuning moved so giants stay as common as the surveys find them.
