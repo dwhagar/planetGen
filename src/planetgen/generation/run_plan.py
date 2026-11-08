@@ -2547,6 +2547,48 @@ def planned_habitability(args):
     return followed.Planned([follower], "Habitability", lambda: follower.total)
 
 
+BLOCK_LIGHTS_BAR_TOTAL = 100.0
+"""float: The scale of the block light totals' bar (PERF.251): the three parts of the stage share it, so the bar never stands at its end while the next part works."""
+
+BLOCK_LIGHTS_UNITS_SHARE, BLOCK_LIGHTS_ROLL_SHARE = 70.0, 15.0
+"""float: How much of `BLOCK_LIGHTS_BAR_TOTAL` the units of shells take, and how much adding up the levels above them; the uncharted index takes the rest. The shares are
+a rough guess of the time each takes on a full galaxy, here so none of them looks like a stage that stopped."""
+
+
+def make_block_lights(conn, report, say, run_id=None):
+    """
+    The block light totals and then the uncharted sector rows (MAP.259, MAP.402), on one bar (PERF.251): the units of shells, the levels above them added up and the
+    index of the uncharted cells, one share each, so the bar moves in all three.
+
+    Args:
+        conn (Connection): A writable connection.
+        report (callable): `report(done, total)` on the scale of `BLOCK_LIGHTS_BAR_TOTAL`.
+        say (callable): `say(text)` for the phases of the work.
+        run_id (int, optional): The run the uncharted rows are recorded under.
+
+    Returns:
+        tuple: The block light rows written, the uncharted sector rows made.
+    """
+    total = BLOCK_LIGHTS_BAR_TOTAL
+    index_start = BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE
+    shells = uncharted_index.shells_with_objects(conn)       # counted first, so the index has its share of the bar before the lights end
+
+    def units(done, count):
+        report(BLOCK_LIGHTS_UNITS_SHARE * done / count, total)
+
+    def above(fraction):
+        report(BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE * fraction, total)
+
+    def indexed(done, count):
+        report(index_start + (total - index_start) * done / count, total)
+
+    written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above)
+    report(index_start, total)
+    made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells)
+    report(total, total)
+    return written, made
+
+
 def refresh_block_lights(mysql_config, args=None):
     """
     MAP.259: makes the light totals of the Galaxy Map's blocks again (`db.block_lights.rebuild`) once a scatter, a
@@ -2566,16 +2608,15 @@ def refresh_block_lights(mysql_config, args=None):
                     log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and "
                                "phenomenon again; a full galaxy takes a while)...")
                     last_line = [time.monotonic()]
-                    with steps.Step("Making the block light totals", "block-lights", None, args=args, progress=progress,
+                    with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
                         def on_progress(done, total):
                             bar.update(completed=done, total=total)
                             if time.monotonic() - last_line[0] >= program_constants.PROGRESS_LOG_SECONDS:
                                 last_line[0] = time.monotonic()
-                                log.normal(f"Making the block light totals: unit {done:,} of {total:,}.")
+                                log.normal(f"Making the block light totals: {done / total:.0%}.")
 
-                        written = block_lights.rebuild(conn, on_progress=on_progress, on_phase=log.normal)
-                    uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))       # MAP.402
+                        written, _made = make_block_lights(conn, on_progress, log.normal, getattr(args, "generation_run_id", None))
                 finally:
                     log.reset_console()
         finally:
@@ -2605,8 +2646,8 @@ def fill_block_totals(args):
             f"{len(addresses):,} sectors hold a body with no stored mass and are left out of the mass sums: "
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
-        lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
-        uncharted = uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))      # MAP.402
+        lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
+                                              getattr(args, "generation_run_id", None))      # MAP.402
     finally:
         conn.close()
     log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
@@ -2798,8 +2839,7 @@ def refresh_block_lights_unit(params, report):
     lines = []
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        written = block_lights.rebuild(conn, on_progress=report, on_phase=lines.append)
-        uncharted_index.index(conn, on_phase=lines.append, run_id=params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
+        written, _made = make_block_lights(conn, report, lines.append, params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
@@ -2824,7 +2864,7 @@ class BlockLightsFollower(followed.Follower):
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and phenomenon again; "
                    "a full galaxy takes a while)...")
-        self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", None, args=self.args,
+        self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 
     def on_progress(self, unit, done, estimate):

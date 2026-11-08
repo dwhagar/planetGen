@@ -26,6 +26,7 @@ Use:
 
     envelope_capture.draw_start(mass_earth)                    # the starting fraction, from the stream bound now
     envelope_capture.kept(body, start)                         # (envelope fraction, radius_earth) after the loss, or None for a bare core
+    envelope_capture.kept(body, start, tides=True)             # the same with the obliquity tide of the planet's own tilt (GEN.1347)
 """
 
 import math
@@ -113,10 +114,24 @@ def draw_puff_start(mass_earth, period_d):
     return fraction if is_puff else 0.0
 
 
-def kept(body, start):
+def tidal_q_prime(body):
+    """
+    The tidal quality factor `Q'` of `body` (GEN.1347, row PF5): log-uniform over `super_puff.TIDAL_Q_PRIME_RANGE`, from a stream of the planet's own (its mass, formation
+    distance and star), so the run's stream does not move and every pass draws the same value.
+    """
+    from planetgen.physics import planets
+    low, high = super_puff.TIDAL_Q_PRIME_RANGE
+    stream = draw.Stream(f"tidal-q-prime:{float(body.mass)!r}:{float(planets.formation_distance_au(body))!r}:{float(body.star.mass)!r}")
+    with draw.bound(stream):
+        return math.exp(math.log(low) + draw.random() * (math.log(high) - math.log(low)))
+
+
+def kept(body, start, tides=False):
     """
     The envelope `body` (a rocky planet with its star, mass, orbit and the star's final age) still has after the loss of a starting
-    envelope of `start` of its mass, and the radius it gives the planet.
+    envelope of `start` of its mass, and the radius it gives the planet. With `tides` the radius is multiplied by the obliquity-tide inflation
+    (GEN.1347, `super_puff.tidal_inflation_ratio`) of the planet's own tilt (`axial_tilt_deg`) and tidal quality (`tidal_q_prime`), where its tilt is known and the tidal power
+    over its starlight reaches `super_puff.TIDAL_MIN_LUMINOSITY_RATIO`; a planet with no tilt yet has none.
 
     Returns:
         tuple or None: `(fraction of the mass, radius in Earth radii)`, or `None` for a planet that is a bare core (nothing kept).
@@ -134,4 +149,22 @@ def kept(body, start):
         return None
     fraction = left / (mass_earth + left)
     flux = max(insolation, bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0])     # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
-    return fraction, super_puff.radius_earth(mass_earth, fraction, flux, star.age)
+    radius = super_puff.radius_earth(mass_earth, fraction, flux, star.age)
+    ratio = tidal_ratio(body, mass_earth, fraction, flux, radius) if tides else 1.0
+    return fraction, radius * ratio
+
+
+def tidal_ratio(body, mass_earth, fraction, flux_earth, radius_earth):
+    """The inflation of a planet of `mass_earth`, `fraction` envelope, `flux_earth` Earth fluxes and (uninflated) radius `radius_earth` by its obliquity tides: 1 when it has no tilt yet,
+    its tilt is under `super_puff.MIN_OBLIQUITY_DEG`, its light is under `super_puff.TIDAL_MIN_FLUX_EARTH` or the tide is too weak against the starlight."""
+    tilt = getattr(body, "axial_tilt_deg", None)
+    if tilt is None or flux_earth < super_puff.TIDAL_MIN_FLUX_EARTH or not super_puff.covers(mass_earth, fraction):
+        return 1.0
+    q_term = super_puff.q_term(tidal_q_prime(body), tilt)
+    if not math.isfinite(q_term):
+        return 1.0
+    radius_m = radius_earth * constants.EARTH_RADIUS_KM * 1.0e3
+    distance_m = body.distance * constants.AU_TO_KM * 1.0e3        # the tide is worked out for a circular orbit at the semi-major axis ([R3079] eq. 11)
+    if super_puff.tidal_luminosity_ratio(body.star.mass, radius_m, distance_m, flux_earth, q_term) < super_puff.TIDAL_MIN_LUMINOSITY_RATIO:
+        return 1.0
+    return super_puff.tidal_inflation_ratio(mass_earth, fraction, flux_earth, q_term)

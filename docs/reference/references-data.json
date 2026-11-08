@@ -158263,6 +158263,41 @@
    "volume": "634",
    "year": 2005
   },
+  "10.1086/497123": {
+   "authors": [
+    [
+     "Milam",
+     "S. N."
+    ],
+    [
+     "Savage",
+     "C."
+    ],
+    [
+     "Brewster",
+     "M. A."
+    ],
+    [
+     "Ziurys",
+     "L. M."
+    ],
+    [
+     "Wyckoff",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/497123",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1126",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The 12 C/ 13 C Isotope Gradient Derived from Millimeter Transitions of CN: The Case for Galactic Chemical Evolution",
+   "type": "journal-article",
+   "volume": "634",
+   "year": 2005
+  },
   "10.1086/497422": {
    "arxiv": "astro-ph/0506467",
    "authors": [
@@ -166320,6 +166355,29 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "NEW CONSTRAINTS ON THE EVOLUTION OF THE STELLAR-TO-DARK MATTER CONNECTION: A COMBINED ANALYSIS OF GALAXY-GALAXY LENSING, CLUSTERING, AND STELLAR MASS FUNCTIONS FROM z = 0.2 to z = 1",
+   "type": "journal-article",
+   "volume": "744",
+   "year": 2011
+  },
+  "10.1088/0004-637x/744/2/194": {
+   "authors": [
+    [
+     "Adande",
+     "G. R."
+    ],
+    [
+     "Ziurys",
+     "L. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/744/2/194",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "194",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY",
    "type": "journal-article",
    "volume": "744",
    "year": 2011
@@ -198834,6 +198892,50 @@
    "volume": "476",
    "year": 2018
   },
+  "10.1093/mnras/sty1027": {
+   "arxiv": "1804.05717",
+   "authors": [
+    [
+     "Colzi",
+     "L."
+    ],
+    [
+     "Fontani",
+     "F."
+    ],
+    [
+     "Rivilla",
+     "V. M."
+    ],
+    [
+     "Sánchez-Monge",
+     "A."
+    ],
+    [
+     "Testi",
+     "L."
+    ],
+    [
+     "Beltrán",
+     "M. T."
+    ],
+    [
+     "Caselli",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/sty1027",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3693",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Nitrogen fractionation in high-mass star-forming cores across the Galaxy",
+   "type": "journal-article",
+   "volume": "478",
+   "year": 2018
+  },
   "10.1093/mnras/sty1057": {
    "authors": [
     [
@@ -227309,6 +227411,73 @@
    "volume": "314",
    "year": 2006
   },
+  "10.1126/science.1145528": {
+   "authors": [
+    [
+     "Meshik",
+     "A."
+    ],
+    [
+     "Mabry",
+     "J."
+    ],
+    [
+     "Hohenberg",
+     "C."
+    ],
+    [
+     "Marrocchi",
+     "Y."
+    ],
+    [
+     "Pravdivtseva",
+     "O."
+    ],
+    [
+     "Burnett",
+     "D."
+    ],
+    [
+     "Olinger",
+     "C."
+    ],
+    [
+     "Wiens",
+     "R."
+    ],
+    [
+     "Reisenfeld",
+     "D."
+    ],
+    [
+     "Allton",
+     "J."
+    ],
+    [
+     "McNamara",
+     "K."
+    ],
+    [
+     "Stansbery",
+     "E."
+    ],
+    [
+     "Jurewicz",
+     "A. J. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1145528",
+   "editors": [],
+   "journal": "Science",
+   "page": "433",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Constraints on Neon and Argon Isotopic Fractionation in Solar Wind",
+   "type": "journal-article",
+   "volume": "318",
+   "year": 2007
+  },
   "10.1126/science.1152110": {
    "authors": [
     [
@@ -233741,6 +233910,45 @@
    "volume": "281",
    "year": 1998
   },
+  "10.1126/science.283.5398.44": {
+   "authors": [
+    [
+     "Cavazzoni",
+     "C."
+    ],
+    [
+     "Chiarotti",
+     "G. L."
+    ],
+    [
+     "Scandolo",
+     "S."
+    ],
+    [
+     "Tosatti",
+     "E."
+    ],
+    [
+     "Bernasconi",
+     "M."
+    ],
+    [
+     "Parrinello",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.283.5398.44",
+   "editors": [],
+   "journal": "Science",
+   "page": "44",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Superionic and Metallic States of Water and Ammonia at Giant Planet Conditions",
+   "type": "journal-article",
+   "volume": "283",
+   "year": 1999
+  },
   "10.1126/science.284.5417.1146": {
    "authors": [
     [
@@ -236478,6 +236686,34 @@
    "type": "journal-article",
    "volume": "55",
    "year": 2017
+  },
+  "10.1146/annurev-astro-091918-104409": {
+   "arxiv": "1908.04046",
+   "authors": [
+    [
+     "Altwegg",
+     "K."
+    ],
+    [
+     "Balsiger",
+     "H."
+    ],
+    [
+     "Fuselier",
+     "S. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev-astro-091918-104409",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "113",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Cometary Chemistry and the Origin of Icy Solar System Bodies: The View After Rosetta",
+   "type": "journal-article",
+   "volume": "57",
+   "year": 2019
   },
   "10.1146/annurev-astro-091918-104453": {
    "arxiv": "1901.05465",
@@ -250742,6 +250978,34 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "854",
+   "year": 2018
+  },
+  "10.3847/1538-4357/aaab53": {
+   "arxiv": "1710.11129",
+   "authors": [
+    [
+     "Cooke",
+     "R. J."
+    ],
+    [
+     "Pettini",
+     "M."
+    ],
+    [
+     "Steidel",
+     "C. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/aaab53",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "102",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "One Percent Determination of the Primordial Deuterium Abundance*",
+   "type": "journal-article",
+   "volume": "855",
    "year": 2018
   },
   "10.3847/1538-4357/aab0a1": {
@@ -275604,6 +275868,60 @@
    "volume": "",
    "year": 2022
   },
+  "arXiv:2203.10863": {
+   "arxiv": "2203.10863",
+   "authors": [
+    [
+     "Nomura",
+     "H."
+    ],
+    [
+     "Furuya",
+     "K."
+    ],
+    [
+     "Cordiner",
+     "M. A."
+    ],
+    [
+     "Charnley",
+     "S. B."
+    ],
+    [
+     "Alexander",
+     "C. M. O."
+    ],
+    [
+     "Nixon",
+     "C. A."
+    ],
+    [
+     "Guzman",
+     "V. V."
+    ],
+    [
+     "Yurimoto",
+     "H."
+    ],
+    [
+     "Tsukagoshi",
+     "T."
+    ],
+    [
+     "Iino",
+     "T."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "The Isotopic Links from Planet Forming Regions to the Solar System",
+   "type": "preprint",
+   "volume": "",
+   "year": 2022
+  },
   "arXiv:2203.11223": {
    "arxiv": "2203.11223",
    "authors": [
@@ -284329,6 +284647,7 @@
   "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
+  "10.1086/497123": "R5177",
   "10.1086/497422": "R0582",
   "10.1086/497582": "R3819",
   "10.1086/497684": "R1437",
@@ -284534,6 +284853,7 @@
   "10.1088/0004-637x/743/2/179": "R0519",
   "10.1088/0004-637x/744/2/137": "R1532",
   "10.1088/0004-637x/744/2/159": "R2599",
+  "10.1088/0004-637x/744/2/194": "R5179",
   "10.1088/0004-637x/745/1/79": "R2633",
   "10.1088/0004-637x/745/1/85": "R2585",
   "10.1088/0004-637x/746/1/95": "R2598",
@@ -285301,6 +285621,7 @@
   "10.1093/mnras/stx897": "R0826",
   "10.1093/mnras/sty082": "R2225",
   "10.1093/mnras/sty089": "R0687",
+  "10.1093/mnras/sty1027": "R5174",
   "10.1093/mnras/sty1057": "R0290",
   "10.1093/mnras/sty1059": "R1553",
   "10.1093/mnras/sty1302": "R1013",
@@ -285965,6 +286286,7 @@
   "10.1126/science.1105533": "R2254",
   "10.1126/science.1127173": "R4055",
   "10.1126/science.1127376": "R5009",
+  "10.1126/science.1145528": "R5178",
   "10.1126/science.1152110": "R0505",
   "10.1126/science.11538074": "R0798",
   "10.1126/science.11538492": "R2999",
@@ -286024,6 +286346,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
+  "10.1126/science.283.5398.44": "R5172",
   "10.1126/science.284.5417.1146": "R5114",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
@@ -286117,6 +286440,7 @@
   "10.1146/annurev-astro-082812-140944": "R0449",
   "10.1146/annurev-astro-083109-153241": "R4496",
   "10.1146/annurev-astro-091916-055240": "R4445",
+  "10.1146/annurev-astro-091918-104409": "R5175",
   "10.1146/annurev-astro-091918-104453": "R4096",
   "10.1146/annurev-astro-112420-020055": "R4897",
   "10.1146/annurev-astro-120920-010005": "R1585",
@@ -286522,6 +286846,7 @@
   "10.3847/1538-4357/aaa42a": "R2946",
   "10.3847/1538-4357/aaa70f": "R0008",
   "10.3847/1538-4357/aaa765": "R0223",
+  "10.3847/1538-4357/aaab53": "R5173",
   "10.3847/1538-4357/aab0a1": "R1512",
   "10.3847/1538-4357/aab264": "R3633",
   "10.3847/1538-4357/aab784": "R3732",
@@ -287565,6 +287890,7 @@
   "arxiv:1710.06721": "R3843",
   "arxiv:1710.07222": "R0198",
   "arxiv:1710.08479": "R0119",
+  "arxiv:1710.11129": "R5173",
   "arxiv:1711.00977": "R1861",
   "arxiv:1711.04867": "R1288",
   "arxiv:1711.08484": "R4365",
@@ -287614,6 +287940,7 @@
   "arxiv:1804.02434": "R0369",
   "arxiv:1804.03734": "R4577",
   "arxiv:1804.05343": "R4150",
+  "arxiv:1804.05717": "R5174",
   "arxiv:1804.05889": "R0157",
   "arxiv:1804.06417": "R1013",
   "arxiv:1804.07306": "R2163",
@@ -287741,6 +288068,7 @@
   "arxiv:1907.13145": "R2434",
   "arxiv:1907.13150": "R2856",
   "arxiv:1908.02763": "R1026",
+  "arxiv:1908.04046": "R5175",
   "arxiv:1908.05909": "R2414",
   "arxiv:1908.06834": "R2485",
   "arxiv:1908.08047": "R4276",
@@ -287957,6 +288285,7 @@
   "arxiv:2203.01656": "R2546",
   "arxiv:2203.05460": "R0061",
   "arxiv:2203.10066": "R3333",
+  "arxiv:2203.10863": "R5176",
   "arxiv:2203.11223": "R1909",
   "arxiv:2204.00342": "R3722",
   "arxiv:2204.04243": "R4468",

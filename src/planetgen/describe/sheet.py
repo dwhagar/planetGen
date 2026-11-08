@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -1086,6 +1086,12 @@ GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "m
 """dict: The child table and owner column that keep the air of a planet or a moon, one row per gas (DB.71)."""
 
 
+ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
+"""dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",)
+"""tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
+
+
 def _gas_rows(conn, kind, object_id):
     """The rows of a body's air, one per gas it holds, the most abundant first: each is `(spec, partial pressure Pa)` with a spec
     whose value is read from the gas table."""
@@ -1302,6 +1308,10 @@ def sheet(conn, kind, object_id):
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    if kind in ISOTOPE_TABLES:
+        recorded = conn.execute(f"SELECT isotope, fraction FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
+        for key, label, text, ratio in isotope_record.sheet_rows(recorded):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
     if eclipse:
         value = [model.qty("time", eclipse, "h")]

@@ -11,7 +11,7 @@ nebula's surface density, and the isolation mass a planet can grow to.
 import math
 
 from planetgen import tuning
-from planetgen.physics import condensate_shares, constants as physical_constants, unit_registry as units
+from planetgen.physics import condensate_shares, constants as physical_constants, disk_condensation, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
@@ -120,7 +120,7 @@ def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
         * distance_au ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
     )
     if distance_au >= snow_line_au:
-        density *= condensate_shares.WATER_ICE_SOLID_BOOST
+        density *= disk_condensation.SNOW_LINE_SOLID_JUMP
     return density
 
 

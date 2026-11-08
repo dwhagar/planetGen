@@ -64,6 +64,11 @@ RESERVE_SHARE = 0.08
 """The memory the gate never hands out (MB): the larger of `RESERVE_MIN_MB` and this share of the host's. MySQL's buffer pool grows, Redis,
 the web server and the kernel's own needs come out of it. Stand-in: a design edge, not a measurement."""
 
+KEEP_CPU_PER_PLACE = 0.5
+KEEP_CPU_SHARE = 0.25
+"""The cores each reserved place keeps free against the bulk and maintenance lanes (OPS.130), and the most of the host's cores that all of them keep: a
+generation run or a warm-up that fills the cores still leaves the site's jobs a core to start on."""
+
 KEEP_MB_PER_PLACE = 700
 """int: What each place reserved for the interactive and long lanes keeps free against the bulk and maintenance lanes, MB (a lean
 worker's figure, `workers.LEAN_WORKER_MEMORY_MB`)."""
@@ -274,6 +279,17 @@ def kept_mb(held, places=None):
     return max(0.0, places * KEEP_MB_PER_PLACE - in_use)
 
 
+def kept_cores(held, host, places=None):
+    """What the places reserved for the interactive and long lanes keep free of the host's cores against the other lanes (OPS.130): `places` at
+    `KEEP_CPU_PER_PLACE` each, less what those lanes' claims hold already, and never more than `KEEP_CPU_SHARE` of the host's cores."""
+    if places is None:
+        from planetgen.util.settings import get_settings
+        section = get_settings().queue
+        places = section.interactive_workers + section.long_workers
+    in_use = sum(holder.claim.cpu for holder in held if holder.claim.lane in SHORT_LANES)
+    return max(0.0, min(places * KEEP_CPU_PER_PLACE, KEEP_CPU_SHARE * host.cores) - in_use)
+
+
 def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     """
     The gate's rule (pure: the host and the claims held are given). `held` are the other claims (`holders`); `own_mb` is what the
@@ -294,7 +310,7 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     if need > free:
         return Decision(False, f"needs {need:,.0f} MB, {free:,.0f} MB are free ({host.available_mb:,.0f} available, {reserve:,.0f} kept for the host, "
                                f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free)
-    cap = host.cores * (INTERACTIVE_CPU_SHARE if short else CPU_SHARE)
+    cap = host.cores * (INTERACTIVE_CPU_SHARE if short else CPU_SHARE) - (0.0 if short else kept_cores(others, host, places))
     busy = sum(holder.claim.cpu for holder in others)
     if busy + claim.cpu > cap:
         return Decision(False, f"needs {claim.cpu:g} core(s), {busy:g} of {cap:g} are claimed", need, free)
@@ -335,18 +351,28 @@ def wait_is_over(conn, claim, held, cap_of):
     return cap is None or sum(1 for holder in held if holder.claim.kind == claim.kind) < cap
 
 
-def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, clock=time.monotonic, sleep=time.sleep, max_wait=MAX_WAIT_SECONDS):
+def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, clock=time.monotonic, sleep=time.sleep, max_wait=MAX_WAIT_SECONDS,
+            scheduler=None):
     """
     Takes `claim` for the worker `name` (the job `job`), waiting until the host has room (`decide`), or, once `max_wait` seconds have gone,
     until the old table cap lets it in (`wait_is_over`). `on_wait(decision, waited)` is called at every wait, for the heartbeat and for
     a worker to stop (it may raise). With the gate off (`DISABLE_ENV`) it admits at once.
 
+    `scheduler` (OPS.130, `planetgen.queue.scheduler.Scheduler`) decides which waiting job goes next: it is asked in place of `decide`, under the
+    same lock, and told when the job is done waiting however that ends (`done`).
+
     Returns:
         Admission: How long it waited, and whether the table cap admitted it.
     """
-    pid = os.getpid() if pid is None else pid
+    try:
+        return _acquire(conn, claim, name, job, os.getpid() if pid is None else pid, cap_of or (lambda kind: None), on_wait, clock, sleep, max_wait, scheduler)
+    finally:
+        if scheduler is not None:
+            scheduler.done(conn, name)
+
+
+def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wait, scheduler):
     started = clock()
-    cap_of = cap_of or (lambda kind: None)
     announced = float("-inf")
     while True:
         waited = clock() - started
@@ -354,7 +380,10 @@ def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, cloc
             held = holders(conn)
             host = read_host()
             if enabled():
-                decision = decide(claim, host, held, own_mb=held_mb(pid), name=name)
+                if scheduler is None:
+                    decision = decide(claim, host, held, own_mb=held_mb(pid), name=name)
+                else:
+                    decision = scheduler.decide(conn, claim, name, host, held, own_mb=held_mb(pid), waited=waited, pid=pid)
             else:
                 decision = Decision(True, "the gate is off", claim.mb, host.available_mb)
             timed_out = False
@@ -401,6 +430,8 @@ def release(conn, name):
     peak = float(row.get("peak", 0.0))
     if peak > 0.0:
         learn(conn, row["kind"], peak)
+    from planetgen.queue import scheduler
+    scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
     return peak
 
 
@@ -470,6 +501,9 @@ def hold(conn, claim, name=None, **options):
     gives it up, learning the peak. `name` is unique to the holder (default `kind:pid:random`).
     """
     name = name or f"{claim.kind}:{os.getpid()}:{uuid.uuid4().hex[:6]}"
+    if "scheduler" not in options:
+        from planetgen.queue import scheduler
+        options["scheduler"] = scheduler.Scheduler()
     acquire(conn, claim, name, **options)
     try:
         yield name

@@ -55,7 +55,7 @@ from dataclasses import dataclass, field
 
 from planetgen.datasets import fetch, hhe_eos
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, giant_structure, unit_registry as units
+from planetgen.physics import constants, giant_structure, superionic, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.wordlist import join_words
 
@@ -127,9 +127,6 @@ ICE_GIANT_ROCK_FRACTION_RANGE = (0.05, 0.67)
 ICE_GIANT_RELATIVE_DENSITY = {"rock_core": 2.0, "ice_mantle": 1.0, "molecular_envelope": 0.25}
 """dict: STAND-IN (D7): the relative densities of the three constant-density layers of an ice giant. Only the ratios matter:
 the scale is set so the layers fill the radius."""
-
-SUPERIONIC_PRESSURE_GPA = 100.0
-"""float: Water above this pressure is superionic ice (ice XVIII at 100 to 400 [R3081] abstract, READ)."""
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -612,8 +609,19 @@ def _layer(kind, state, top_pa, bottom_pa, heavy, helium, hydrogen, top_radius=1
     return Layer(kind, state, top_pa / 1e9, bottom_pa / 1e9, mass, components, top_radius, bottom_radius)
 
 
-def _water_material(bottom_pressure_gpa):
-    return "ice_x" if bottom_pressure_gpa >= SUPERIONIC_PRESSURE_GPA else "water_liquid"
+def _temperature_function(profile):
+    """The temperature (K) at a pressure (Pa) along the structure model's adiabat, or a function that answers `None` where the model has none (the polytrope and the
+    constant-density stand-ins)."""
+    function = getattr(profile, "temperature_at_pressure_k", None)
+    if function is None and hasattr(profile, "structure"):
+        function = getattr(profile.structure, "temperature_at_pressure_k", None)
+    return function or (lambda pressure_pa: None)
+
+
+def _bottom_temperature_k(temperature_of, bottom_pressure_pa):
+    """The temperature a layer is read at: its bottom's on the model's adiabat, else `superionic.FALLBACK_TEMPERATURE_K`."""
+    value = temperature_of(bottom_pressure_pa)
+    return value if value is not None else superionic.FALLBACK_TEMPERATURE_K
 
 
 STAND_IN_POLYTROPE = "giant layer pressures from the polytrope"
@@ -833,19 +841,27 @@ def _gas_giant(subject):
         layers.append(_layer(kind, state, top if kind != "molecular_envelope" else 1e5, bottom, heavy_part, helium, hydrogen,
                              top_radius, bottom_radius))
         above += layer_mass
-    layers = _fix_water(layers)
+    layers = _fix_water(layers, _temperature_function(profile))
     return GiantInterior(tuple(layers), mass, "gas_giant", p_mm_gpa, depletion)
 
 
-def _fix_water(layers):
-    """Water at or below 100 GPa is ordinary liquid, above it superionic ice (the materials table's `ice_x`)."""
+def _fix_water(layers, temperature_of):
+    """
+    GEN.1422: the water of a deep layer is the materials table's `ice_x` (superionic water) where the boundary table (`physics/superionic.py`) says water is superionic at
+    the layer's bottom pressure and the temperature of the model's adiabat there, ordinary liquid otherwise. A water-and-ammonia layer's state follows the species that
+    holds more of its mass; a layer the table puts in the ionic or metallic fluid keeps that state.
+    """
     fixed = []
     for layer in layers:
-        components = dict(layer.components)
-        if "water_liquid" in components and layer.bottom_pressure_gpa >= SUPERIONIC_PRESSURE_GPA and layer.kind in (
-                "ice_mantle", "dilute_core"):
-            components["ice_x"] = components.pop("water_liquid")
-        fixed.append(Layer(layer.kind, layer.state, layer.top_pressure_gpa, layer.bottom_pressure_gpa, layer.mass_earth,
+        components, state = dict(layer.components), layer.state
+        if layer.kind in ("ice_mantle", "dilute_core") and ("water_liquid" in components or "ice_x" in components or "nh3_ice" in components):
+            bottom_gpa = layer.bottom_pressure_gpa
+            found = superionic.layer_state(components, bottom_gpa, _bottom_temperature_k(temperature_of, bottom_gpa * 1e9))
+            if layer.kind == "ice_mantle" and found in ("superionic", "ionic_fluid"):
+                state = found
+            if "water_liquid" in components and superionic.is_superionic("water", bottom_gpa, _bottom_temperature_k(temperature_of, bottom_gpa * 1e9)):
+                components["ice_x"] = components.pop("water_liquid")
+        fixed.append(Layer(layer.kind, state, layer.top_pressure_gpa, layer.bottom_pressure_gpa, layer.mass_earth,
                            components, layer.top_radius_fraction, layer.bottom_radius_fraction))
     return fixed
 
@@ -1014,12 +1030,12 @@ def _ice_giant(subject):
         layers.append(_layer(kind, state, top, bottom, heavy_part, helium, hydrogen, top_radius, bottom_radius))
     if mantle > 0:
         top, bottom = profile.boundary_pressures(index["ice_mantle"])
-        layers.append(_layer("ice_mantle", "superionic" if bottom / 1e9 >= SUPERIONIC_PRESSURE_GPA else "ionic_fluid",
+        layers.append(_layer("ice_mantle", "ionic_fluid",       # `_fix_water` reads the boundary table for the state (GEN.1422)
                              top, bottom, mantle_take, 0.0, 0.0, outer[index["ice_mantle"]] / radius_1bar, inner_of("ice_mantle")))
     if core > 0:
         top, bottom = profile.boundary_pressures(index["rock_core"])
         layers.append(_layer("rock_core", "molten", top, bottom, core_take, 0.0, 0.0, outer[index["rock_core"]] / radius_1bar, 0.0))
-    return GiantInterior(tuple(_fix_water(layers)), mass, "ice_giant", p_mm_gpa, 1.0)
+    return GiantInterior(tuple(_fix_water(layers, _temperature_function(profile))), mass, "ice_giant", p_mm_gpa, 1.0)
 
 
 def _brown_dwarf(subject):

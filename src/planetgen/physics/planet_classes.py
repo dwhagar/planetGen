@@ -172,9 +172,9 @@ def _load():
         raise ClassError("the rows of one letter in the two kinds have different names")
     for row in (*classes, SimpleNamespace(letter="Asteroid", **{k: document["asteroid"][k] for k in ("phrase", "sentence")})):
         if not row.phrase[:1].islower():
-            raise ClassError(f"class {row.letter}: the phrase is empty or does not start in lower case (GEN.1432): {row.phrase!r}")
+            raise ClassError(f"class {row.letter}: the phrase is empty or does not start in lower case: {row.phrase!r}")
         if any(character.isdigit() for character in row.sentence):
-            raise ClassError(f"class {row.letter}: the sentence holds a number typed by hand; the page lists the conditions from class_fit (GEN.1432): {row.sentence!r}")
+            raise ClassError(f"class {row.letter}: the sentence holds a number typed by hand; the page lists the conditions from class_fit: {row.sentence!r}")
     if any(len({c.phrase for c in classes if c.letter == letter}) != 1 for letter in letters):
         raise ClassError("the rows of one letter in the two kinds have different phrases")
     reserve = tuple(document["reserve"])

@@ -224,6 +224,18 @@ class Profile:
     _ln_p: tuple = field(repr=False, default=())
     _mass: tuple = field(repr=False, default=())
     _radius: tuple = field(repr=False, default=())
+    _t_nodes: tuple = field(repr=False, default=())
+    _t_log_p0: float = field(repr=False, default=0.0)
+    _t_d_log_p: float = field(repr=False, default=1.0)
+
+    def temperature_at_pressure_k(self, pressure_pa):
+        """The temperature (K) of the model's adiabat at `pressure_pa` (GEN.1422: the heat of a deep ice layer is read on it, as the layers under the
+        envelope are not given an adiabat of their own); `None` for a profile made without one."""
+        if not self._t_nodes:
+            return None
+        y = min(max((math.log10(max(pressure_pa, ONE_BAR_PA)) - 9.0 - self._t_log_p0) / self._t_d_log_p, 0.0), len(self._t_nodes) - 1.000001)
+        j = int(y)
+        return 10.0 ** (self._t_nodes[j] + (y - j) * (self._t_nodes[j + 1] - self._t_nodes[j]))
 
     def at_pressure(self, pressure_pa):
         """`(radius fraction, mass inside fraction)` where the pressure is `pressure_pa`; (1, 1) at or below the one-bar level and
@@ -409,7 +421,7 @@ def _profile(model, log_s0, closed, evaluations, radius_m):
     masses = tuple(item[2] / mass for item in record) + (0.0,)
     radii = tuple(item[1] / radius_m for item in record) + (0.0,)
     return Profile(mass, radius_m, model.grid.surface_temperature_k(log_s0), closed, central, _temperature_at(model, log_s0, u),
-                   evaluations, ln_p, masses, radii)
+                   evaluations, ln_p, masses, radii, tuple(model.grid.adiabat_log_t(log_s0)), model.grid.log_p0, model.grid.d_log_p)
 
 
 def _own_radius_m(model, log_s0):

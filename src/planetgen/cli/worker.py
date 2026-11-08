@@ -24,7 +24,7 @@ from rq.worker import RoundRobinWorker
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import allowlist, claims, memorygate, pause, progress_file, redisqueue, runrecord, stopall, units, work, workers
+from planetgen.queue import allowlist, claims, memorygate, pause, progress_file, redisqueue, runrecord, scheduler, stopall, units, work, workers
 from planetgen.util import log
 
 WARM_MODULES = (
@@ -151,7 +151,7 @@ def worker_class(round_robin=False):
             except claims.NoClaim as exc:
                 log.error(f"{exc}; the job {job.id} claims the default {claims.DEFAULT_MB} MB")
                 claim = claims.default_claim(job)
-            admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of,
+            admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of, scheduler=scheduler.Scheduler(),
                                            on_wait=lambda decision, waited: self._while_gated(job))
             if admission.waited >= GATE_REPORT_SECONDS:
                 self._report_wait(job, claim, admission)

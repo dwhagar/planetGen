@@ -2,6 +2,98 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3728] - 2026-11-08
+
+**Headline:** A warm-up or another bulk command can no longer block the site: waiting jobs are now ordered by a fair-share scheduler, with places kept for the site.
+
+### Added
+- **A fair-share scheduler on the memory gate (OPS.130, `queue/scheduler.py`).** A job waiting for room is a ticket, ordered by its class (interactive 100, node prefetch 90, long 80, a run's units 40, the maintenance lane 30), plus a rise for each second it waited, less a penalty for the share of recent system time its kind has used. A job that has waited 600 s outranks a new job of any class, so nothing starves. A lower job goes ahead of a higher one that has no room (the host is not left idle), unless the higher one has waited 120 s, when the room is kept for it. The scheduler reads the same load and memory as the gate.
+- **Cores are kept for the site's places** (half a core a place, at most a quarter of the host) against the bulk and maintenance lanes, as memory already was.
+
+### Changed
+- Every worker and `memorygate.hold` use the scheduler. `PLANETGEN_MEMORY_GATE=0` still turns the gate off.
+- Generated output is unchanged.
+
+## [8.0.3727] - 2026-11-08
+
+**Headline:** The block light totals are now the last stage of a galaxy run, and their bar moves through all three parts.
+
+### Changed
+- **Block lights last (PERF.251).** `galaxy_stages` puts "Make the block light totals" after the settling and the run blocks instead of after the nebula field. The totals add up only stars and phenomena that are not built yet, so they were redone for nothing as the backfill, population and settling built them; made last they are made once from what is left. The stage list, `run_galaxy`'s followers, `commands`' stage numbers and the design docs (`redis-and-the-work-queue.md`, `command-inventory.md`) follow the new order.
+- **The uncharted placeholder rows come after the backfill (PERF.252).** The totals stage writes the uncharted sector rows, which the bright-star backfill used to count as sectors the run had just made: on a small galaxy (3e7 solar masses, radius 6 pc) it planned 573,713 backfill targets and 34,707 sky cells from 19 real sectors and drew 16,471 bright stars where the run's own sectors give 1,037; on a big galaxy that is millions of rows, the 900 s job limit and an out-of-memory kill. With the totals last the backfill opens on the run's real sectors only, and `store.sector_centers_since` now counts charted sectors only (a cell with no chart ledger row is a placeholder), so a placeholder can never be taken for a run sector again.
+generation-output: changed
+- **The bar moves all the way.** "Making the block light totals" counts 100 steps in three parts (the units 70, the levels above the units 15, the uncharted rows the rest) and says the share done in its log line, so it no longer sits at one value through the longest part.
+- **Tests.** `test_stages.py` has the new stage numbers and a test that the block lights stage is last; `test_block_lights.py` checks that the bar moves in all three parts.
+
+## [8.0.3726] - 2026-11-08
+
+**Headline:** A carbon-rich rocky world (a star with C/O of 0.8 or more) now carries moissanite (silicon carbide) and cohenite (iron carbide) deposits; oxygen-rich worlds never do.
+
+### Added
+- **Two carbide deposit types (GEN.1423, `physics/carbide_deposits.py`).** After the ore pass each rocky planet, moon and rogue planet is assessed for `moissanite_crust` (the SiC of the carbon rock, grade 0.71 to 0.95, the share the bulk draw's graphite range leaves) and `cohenite_metal` (Fe3C in the carbon-saturated metal, grade 0.30 to 0.64). Both are rows of the existing deposit tables (no column, no migration); a body with silicate rock has both rows `absent_by_state`. Stand-ins CH1 to CH3 in section 6.235.
+
+### Changed
+- The stored deposits of every rocky body gain two rows, so the next epoch is a new one.
+
+generation-output: changed
+TODO items resolved: GEN.1423
+
+## [8.0.3725] - 2026-11-08
+
+**Headline:** The deep ice layer of an ice giant is superionic, an ionic fluid or an ice by a measured table of pressure and temperature, not by a single pressure.
+
+### Changed
+- **Superionic water and ammonia come from a boundary table (GEN.1422).** `physics/superionic.py` reads `physics/data/superionic_boundary.json` (floors and ceilings of water from the diamond-cell work [R5181] and the shock work [R3081], ammonia and the metallic limits from [R5172]). The ice mantle of an ice giant takes its state, and its water becomes superionic ice, from the pressure and the temperature of the structure model's adiabat at its bottom; the single 100 GPa line is gone, and the weird-worlds line G4 is built for the superionic part. Stand-ins SI1 to SI4 are in section 6.234. This changes ice-giant layer states and materials, so it takes a generator epoch (the Train Manager assigns it).
+
+## [8.0.3724] - 2026-11-08
+
+**Headline:** The solid material beyond a star's snow line is now set by the disk's own condensation budget (a jump of 1.97 times the rock instead of 2.17), with the gas-giant tuning moved so giants stay as common as the surveys find them.
+
+### Changed
+
+- GEN.1396: the jump of the solid surface density at the snow line, which sets the core mass of every planet beyond it (the isolation mass goes as the density to the 3/2), is `disk_condensation.SNOW_LINE_SOLID_JUMP` (1.967 for the Sun: the rock, the water, ammonia and other ices, and the refractory carbon grains standing at the middle of the water and ammonia lines, over the rock). It replaces the water-only boost of 2.17 in `condensate_shares` (`WATER_ICE_SOLID_BOOST`, `ice_over_rock` and `solid_boost` are gone). The divisor is the rock alone because the minimum-mass nebula's 7.0 g/cm^2 counts only the silicates and metal; the 1.52 that rock plus grains would give is kept in the notes (stand-ins SSJ1 and SSJ2 in section 6.233). The icy dwarf planets of the Kuiper belt hold about 0.7 rock by mass, above the 0.51 the jump leaves, which is the direction a body that loses ice and cannot gain it should differ.
+- Because the cores beyond the snow line are lighter, `GIANT_GAS_SURVIVAL_SHARE` goes from 0.766 to 0.79 and `GIANT_CORE_CRITICAL_MASS_EARTH` from 10 to 9 (inside the 5 to 20 Earth masses the core accretion papers give); over 20,000 Sun-like stars the giants at 2 to 8 AU stay at 0.1065, the hot Jupiters of Sun-like stars go from 0.0058 to 0.0067 and those of M dwarfs from 0.0032 to 0.0034 (the bands are 0.0062 and 0.0027).
+- Generated systems change: every planet beyond its star's snow line has a different core mass (about 0.86 times the old at the same draws), and a few more or fewer giants and ice giants form.
+
+generation-output: changed
+
+## [8.0.3723] - 2026-11-08
+
+**Headline:** Every planet, moon and rogue planet now carries an isotope record: the shares of each isotope of each element it holds, with deuterium, carbon-13, nitrogen-15, argon-40 and the decaying potassium and uranium following physical laws, and the record shown on the property sheet (GEN.1377, GEN.1420 part 1).
+
+### Changed
+
+- New `physics/isotope_record.py` builds the record from the body's stored composition on its own streams: the table's natural mix by default and, for hydrogen, carbon, nitrogen and argon, a law of the star's metals and age and of the temperature the ice formed at (D/H from the primordial value less the deuterium star formation burned, enriched in ice as the temperature falls, fitted to the ocean and comet 67P; 12C/13C and 14N/15N from the galactic gradients; 36Ar/38Ar from the solar wind; 40Ar from the potassium that decayed and the interior let out). Potassium and uranium isotopes are those of the body's age.
+- Schema v235 (migration 0235): the child tables `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes`. A body saved before it has no record and nothing is backfilled.
+- The property sheet of a planet or moon lists the ratios the record moves and the count of isotopes. `bulk_draw.formation_temperature_k` is now public.
+- Stand-in section 6.236 (ISO1 to ISO9) in the registry, design note `composition/isotope-record.md`, citations R5173 to R5179.
+- The short-lived isotopes and the cosmogenic ones (GEN.1377, GEN.1421) are the second part.
+
+generation-output: changed
+
+## [8.0.3722] - 2026-11-08
+
+**Headline:** A tilted close-in planet with a thick hydrogen envelope is now puffed up by its obliquity tides, so super-puffs can stay inflated past 1 Gyr.
+
+### Changed
+
+- A planet with an envelope, light above 20 Earth fluxes, a tilt of 0.01 degrees or more and enough tidal power against its starlight has its radius multiplied by the obliquity-tide inflation of [R3079] (up to a factor of 2), from its own tilt and a tidal quality drawn per planet (1e3 to 1e5, log-uniform). A planet the tides have brought to an upright or synchronous state has no tilt to speak of and is not inflated. The planet's tilt is only known after its spin is made, so the inflation is applied in the settle pass.
+- A super-puff is typed by mass, period and density (under 0.1 g/cc) at any age; the age of 1 Gyr is gone from the gate.
+- Stand-in PF5 (the tidal quality range) is registered (GEN.725), PF1 and PF4 are updated.
+
+generation-output: changed
+
+## [8.0.3721] - 2026-11-08
+
+**Headline:** The carbon dioxide of a world whose life makes oxygen is balanced again at the temperature the oxygen leaves it at.
+
+### Changed
+
+- The sink that holds a world's carbon dioxide (continental weathering, seafloor weathering, or a sealed ocean's chemistry) was solved once, at the temperature of the air before life. When oxygenic life burned the air's methane and hydrogen, the air cooled by 7 to 67 K in the worlds measured, and the carbon dioxide stayed as it was, plus the burnt methane. The sink is now asked again at the new temperature, and the carbon dioxide and the temperature are worked against each other until they settle. On 800 systems asked for a habitable world (2,704 bodies) 8 bodies change; one sea world with 35.5 kPa of oxygen goes from 8.4 to 0.8 kPa of carbon dioxide and one body becomes class O.
+- Nothing changes for a world without oxygen, without a carbon sink, or whose air the oddity rows replaced.
+
+generation-output: changed
+
 ## [8.0.3720] - 2026-11-08
 
 **Headline:** Every job of the work queue now takes a claim on the host's memory and load before it starts, so a generation run no longer takes the machine down.

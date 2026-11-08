@@ -603,7 +603,7 @@ a body as the host's value plus the other stars' parts (`radiation_field.compani
 the light); the DNA dose and UV index at the ground add each star's own spectrum through the one air and ozone column (`body_radiation.companion_spectra`); and the loss
 of air and of envelope follow each star's XUV decay through time (`thermosphere._mixed_history`, `envelope_escape.envelope_left_earth(emitters=)`, the
 `host_distance_au` and `xuv_companions` quantities of the recipe subject), the host's XUV taking its own distance now that the light is the whole system's. A lone star
-keeps its numbers to the last digit. Limits are registry rows DS1 to DS4 of section 6.240 of the gap plan (the ozone fit by the host's colour, coplanar and shadow-free
+keeps its numbers to the last digit. Limits are registry rows DS1 to DS4 of section 6.241 of the gap plan (the ozone fit by the host's colour, coplanar and shadow-free
 doses).
 
 ### 6.6 Placement by population (GEN.103)

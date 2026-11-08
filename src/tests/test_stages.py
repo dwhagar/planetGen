@@ -55,9 +55,16 @@ def test_a_random_start_galaxy_run_has_fourteen_stages_and_skips_none_of_them():
     found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
         ("start", False), ("neighborhood", False), ("link", False), ("mass", False), ("luminosity", False),
-        ("phenomena", False), ("phenomena-index", False), ("nebula-draw", False), ("block-lights", False),
+        ("phenomena", False), ("phenomena-index", False), ("nebula-draw", False),
         ("backfill", False), ("population", False), ("territories", False), ("settle", False),
-        ("run-blocks", False)]
+        ("run-blocks", False), ("block-lights", False)]
+
+
+def test_the_block_light_totals_are_the_last_stage_of_a_galaxy_run():
+    """PERF.251: the totals are made once the backfill, the population and the run's own block totals have changed every light, so none is made stale after them."""
+    for flags in ((), ("--shell", "3", "--band", "0", "--wedge", "1", "--radius-pc", "20"), ("--center-sector", "1", "--radius-pc", "20")):
+        keys = [stage.key for stage in stages.galaxy_stages(_galaxy(*flags))]
+        assert keys[-1] == "block-lights" and keys.count("block-lights") == 1 and keys.index("backfill") < keys.index("run-blocks")
 
 
 def test_a_galaxy_run_of_one_sector_and_its_neighborhood_has_both_stages():
@@ -109,10 +116,11 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
     assert "Stage 2 of 14: Generate the neighborhood -- skipped: not needed" in text
     assert "Stage 4 of 14: Scatter the massive stars -- skipped: no layers" in text
-    assert "Stage 11 of 14: Run the population pass -- skipped: not needed" in text
-    assert "Stage 12 of 14: Recompute the territories -- skipped: not needed" in text
-    assert "Stage 13 of 14: Save the sector paths" in text
-    assert "Stage 14 of 14: Update the map's block totals -- skipped: not needed" in text
+    assert "Stage 10 of 14: Run the population pass -- skipped: not needed" in text
+    assert "Stage 11 of 14: Recompute the territories -- skipped: not needed" in text
+    assert "Stage 12 of 14: Save the sector paths" in text
+    assert "Stage 13 of 14: Update the map's block totals -- skipped: not needed" in text
+    assert "Stage 14 of 14: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
     assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 14
 
 
@@ -441,7 +449,7 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     assert text.startswith("Stage 4 of 17: Generate the starting sector")      # a step of 14 stages: the banner names the step
     assert "stages (stages" not in text
     assert "Stage 5 of 17: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 16 of 17: Save the sector paths" in text
+    assert "Stage 15 of 17: Save the sector paths" in text
 
 
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
