@@ -25720,6 +25720,26 @@
       "kind": "paper",
       "label": "Udry et al. 2019",
       "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury"
+    },
+    "R5147": {
+      "kind": "paper",
+      "label": "Nittler et al. 2018",
+      "title": "The Chemical Composition of Mercury"
+    },
+    "R5148": {
+      "kind": "paper",
+      "label": "Badro et al. 2014",
+      "title": "A seismologically consistent compositional model of Earth’s core"
+    },
+    "R5149": {
+      "kind": "paper",
+      "label": "Edmund et al. 2022",
+      "title": "The Fe-FeSi phase diagram at Mercury’s core conditions"
+    },
+    "R5150": {
+      "kind": "paper",
+      "label": "Iizuka-Oku et al. 2021",
+      "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution"
     }
   }
 }

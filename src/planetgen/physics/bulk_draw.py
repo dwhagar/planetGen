@@ -39,8 +39,8 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, delivered_water, elements,
-                               hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition, volatile_depletion)
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
+                               elements, hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition, volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -285,6 +285,8 @@ class DryPartition:
     rock_feo: float
     rock_al2o3: float
     rock_mg_si: float
+    core_ni: float
+    core_light: float
     oxides: dict | None = None
 
 
@@ -361,8 +363,9 @@ def _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock
     metal = iron / (1.0 - light_elements)
     total = metal + rock
     oxides = {name: grams / rock for name, grams in oxide_grams.items()} or None
+    ni_share = nickel_core / iron if iron > 0.0 else 0.0
     return DryPartition(metal=metal / total, rock=rock / total, rock_feo=rock_feo, rock_al2o3=al2o3 / rock,
-                        rock_mg_si=1.0 / ratios.si, oxides=oxides)
+                        rock_mg_si=1.0 / ratios.si, core_ni=ni_share * (1.0 - light_elements), core_light=light_elements, oxides=oxides)
 
 
 def origin_of(body):
@@ -527,7 +530,8 @@ def draw_terrestrial(body, radius_given, mass_given):
     metal, rock = _normalise(part.metal, part.rock, water, ice)
     bulk = bulk_composition.BulkFractions(
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
-        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn", ice_shares=ice_shares, **_minor_oxides(part))
+        rock_mg_si=part.rock_mg_si, porosity=porosity, core_ni=part.core_ni, core_light=part.core_light, carbon_rock=carbon_rock, origin="drawn",
+        ice_shares=ice_shares, **_minor_oxides(part))
     _settle(body, bulk, mass_given)
 
 
@@ -543,7 +547,8 @@ def _draw_moon(body, origin, part, mass_given):
     makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
     bulk = bulk_composition.BulkFractions(
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn", **_minor_oxides(part))
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, core_ni=part.core_ni, core_light=part.core_light,
+        carbon_rock=False, origin="drawn", **_minor_oxides(part))
     if mass_given:
         # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
         low, high = compaction.ROCK_FRACTION_RANGE
@@ -595,9 +600,27 @@ def resettle(body, bulk):
 def _store(body, bulk):
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)
+    _store_core(body, bulk)
     body.composition = composition_text.text(body)  # GEN.430: the text states the stored fractions
     volume_m3 = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3
     body.density = body.mass / volume_m3 / 1000.0
+
+
+def _store_core(body, bulk):
+    """
+    Splits the metal's light elements by the redox of the rock and the pressure at the base of the mantle and stores the shares (`core_composition`, GEN.1364). A
+    body with no metal, or no drawn light elements, stores none (its Ni and light-element totals too). The split is a stream keyed on the body: a body stored again (`resettle`) is split the same.
+    """
+    if bulk.core_light is None or bulk.metal <= 0.0:
+        for field in (*core_composition.BODY_FIELDS, "core_ni_fraction", "core_light_fraction"):
+            setattr(body, field, None)
+        return
+    from planetgen.physics import interior_heat, oddities, radiogenic    # these import this module's neighbours (a cycle at the top of the file)
+    pressure = interior_heat.cmb_pressure_gpa(body.mass, body.radius, radiogenic.Rock(bulk.rock, bulk.metal, bulk.water + bulk.ice + bulk.envelope, 0.0))
+    redox = core_composition.delta_iw(bulk.rock_feo or 0.0, bulk.rock_al2o3, bulk.rock_mg_si)
+    parts = core_composition.split(bulk.core_light, redox, pressure, oddities.body_key(body))
+    for name, field in core_composition.FIELDS_OF.items():
+        setattr(body, field, parts[name])
 
 
 def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
@@ -612,6 +635,6 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
         cmf = MAX_CMF if radius_earth < bulk_structure.radius_fit_earth(mass_earth, MAX_CMF, x_fe, 1.0) else 0.0
     bulk = bulk_composition.BulkFractions(
         metal=cmf * (1.0 - wet), rock=(1.0 - cmf) * (1.0 - wet), water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse",
-        ice_shares=ice_shares, **_minor_oxides(part))
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, core_ni=part.core_ni, core_light=part.core_light,
+        carbon_rock=carbon_rock, origin="inverse", ice_shares=ice_shares, **_minor_oxides(part))
     _store(body, bulk)

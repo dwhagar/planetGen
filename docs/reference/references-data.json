@@ -102962,6 +102962,37 @@
    "volume": "",
    "year": 2017
   },
+  "10.1017/9781316650684.003": {
+   "authors": [
+    [
+     "Nittler",
+     "L. R."
+    ],
+    [
+     "Chabot",
+     "N. L."
+    ],
+    [
+     "Grove",
+     "T. L."
+    ],
+    [
+     "Peplowski",
+     "P. N."
+    ]
+   ],
+   "book": "Mercury",
+   "doi": "10.1017/9781316650684.003",
+   "editors": [],
+   "journal": "Mercury",
+   "page": "30",
+   "publisher": "Cambridge University Press",
+   "src": "crossref",
+   "title": "The Chemical Composition of Mercury",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2018
+  },
   "10.1017/9781316650684.019": {
    "arxiv": "1712.08234",
    "authors": [
@@ -123804,6 +123835,57 @@
    "volume": "13",
    "year": 2022
   },
+  "10.1038/s41467-022-27991-9": {
+   "authors": [
+    [
+     "Edmund",
+     "E."
+    ],
+    [
+     "Morard",
+     "G."
+    ],
+    [
+     "Baron",
+     "M. A."
+    ],
+    [
+     "Rivoldini",
+     "A."
+    ],
+    [
+     "Yokoo",
+     "S."
+    ],
+    [
+     "Boccato",
+     "S."
+    ],
+    [
+     "Hirose",
+     "K."
+    ],
+    [
+     "Pakhomova",
+     "A."
+    ],
+    [
+     "Antonangeli",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41467-022-27991-9",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "387",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Fe-FeSi phase diagram at Mercury’s core conditions",
+   "type": "journal-article",
+   "volume": "13",
+   "year": 2022
+  },
   "10.1038/s41467-022-31620-w": {
    "authors": [
     [
@@ -130821,6 +130903,57 @@
    "type": "journal-article",
    "volume": "10",
    "year": 2020
+  },
+  "10.1038/s41598-021-91801-3": {
+   "authors": [
+    [
+     "Iizuka-Oku",
+     "R."
+    ],
+    [
+     "Gotou",
+     "H."
+    ],
+    [
+     "Shito",
+     "C."
+    ],
+    [
+     "Fukuyama",
+     "K."
+    ],
+    [
+     "Mori",
+     "Y."
+    ],
+    [
+     "Hattori",
+     "T."
+    ],
+    [
+     "Sano-Furukawa",
+     "A."
+    ],
+    [
+     "Funakoshi",
+     "K. I."
+    ],
+    [
+     "Kagi",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41598-021-91801-3",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "12632",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2021
   },
   "10.1038/s41598-024-67342-w": {
    "authors": [
@@ -151033,6 +151166,33 @@
    "publisher": "National Academy of Sciences",
    "src": "crossref",
    "title": "Requirements and limits for life in the context of exoplanets",
+   "type": "journal-article",
+   "volume": "111",
+   "year": 2014
+  },
+  "10.1073/pnas.1316708111": {
+   "authors": [
+    [
+     "Badro",
+     "J."
+    ],
+    [
+     "Côté",
+     "A. S."
+    ],
+    [
+     "Brodholt",
+     "J. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.1316708111",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "7542",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref",
+   "title": "A seismologically consistent compositional model of Earth’s core",
    "type": "journal-article",
    "volume": "111",
    "year": 2014
@@ -280209,7 +280369,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5147,
+ "id_next": 5151,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281174,6 +281334,7 @@
   "10.1016/s1464-1917(00)00041-6": "R4759",
   "10.1016/s1567-1356(03)00160-0": "R1619",
   "10.1017/9781139020558": "R0692",
+  "10.1017/9781316650684.003": "R5147",
   "10.1017/9781316650684.019": "R1207",
   "10.1017/cbo9780511581397": "R3974",
   "10.1017/cbo9780511780783": "R3519",
@@ -281811,6 +281972,7 @@
   "10.1038/s41467-020-19896-2": "R2628",
   "10.1038/s41467-021-26403-8": "R3627",
   "10.1038/s41467-021-27811-6": "R1318",
+  "10.1038/s41467-022-27991-9": "R5149",
   "10.1038/s41467-022-31620-w": "R1912",
   "10.1038/s41467-024-46326-4": "R2938",
   "10.1038/s41550-017-0042": "R4309",
@@ -281888,6 +282050,7 @@
   "10.1038/s41592-019-0686-2": "R4560",
   "10.1038/s41598-017-04910-3": "R4580",
   "10.1038/s41598-020-67751-7": "R3378",
+  "10.1038/s41598-021-91801-3": "R5150",
   "10.1038/s41598-024-67342-w": "R3503",
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
@@ -282336,6 +282499,7 @@
   "10.1073/pnas.0913352107": "R4057",
   "10.1073/pnas.1002443107": "R0298",
   "10.1073/pnas.1304212111": "R2997",
+  "10.1073/pnas.1316708111": "R5148",
   "10.1073/pnas.1406545111": "R2688",
   "10.1073/pnas.1500954112": "R0357",
   "10.1073/pnas.1700527114": "R2007",
