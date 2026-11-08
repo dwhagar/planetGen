@@ -13452,6 +13452,12 @@ clears each one.
   Prerequisites: none. Related: GEN.1397, TEST.696.
   Filed by the TODO thread.
 
+- [ ] **PERF.253 test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)**
+  Lane 05 (as the lane reported, 9:07 AM EST on 2026-11-08), from the GEN.1390 grouping: test_systems.py::test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s test timeout inside habitability_world.world_from, in temperature_coverage.series_of_values. Do: find why one forced case spends more than 900 s there (an unbounded or repeated series for a moon of a binary B2V host) and cut it without changing any value; if it is only slowness it is lock-free. Done: the case runs well inside the timeout and the profile is written down.
+  Prerequisites: none. Related: GEN.1390, TEST.695.
+  Owner (proposed by TODO, confirm with TODO before taking): Lane 05.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

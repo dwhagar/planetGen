@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.409 |
 | NAV | NAV.78 |
 | GEN | GEN.1403 |
-| PERF | PERF.253 |
+| PERF | PERF.254 |
 | DB | DB.116 |
 | API | API.42 |
 | ADM | ADM.143 |
 | SEC | SEC.47 |
-| TEST | TEST.698 |
+| TEST | TEST.699 |
 | USR | USR.32 |
 | OPS | OPS.122 |
 | DOC | DOC.110 |
@@ -2212,10 +2212,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) | none | open |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
 | TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | open |
+| TEST.698 | test_systems position-in-plane check stale since GEN.1352: moons are set in the system frame, their inclination and node stay in the equator frame (bug) | none | done, PR #5703 |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) | none | done, PR #5688 |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) | none | done, PR #5688 |
 | PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
 | PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | open |
+| PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
