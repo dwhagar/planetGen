@@ -585,9 +585,15 @@ the mean total `L_h/d^2 + L_c/(a^2 sqrt(1 - e^2))`; for a circumbinary planet it
 `4 delta / d` with `delta = |L1 r1 - L2 r2| / (L1 + L2)` the luminosity centroid's offset
 from the barycentre (`r1 = a m2/M`, `r2 = a m1/M`). The Temperature domain scores the
 worse of the cold and hot extremes `T (1 -+ f/2)^(1/4)` of the cycle, and the wet-bulb
-test reads the hot one. The equilibrium temperature itself still comes from the host star's
-light alone: the companion's mean share is at most a few percent of a planet's light
-(under 0.1% for a companion beyond 100 AU) and a planetGen simplification kept for now.
+test reads the hot one. The equilibrium temperature itself came from the host star's
+light alone until GEN.1441.
+
+**As built (GEN.1441).** `physics/radiation_field.py` sums every star's light on a body by position: the host's own light plus, for each other star, its luminosity
+times the mean of `1 / (R^2 - d^2)` over its orbit round the host (`R` its distance from the host, `d` the body's), an average over the body's own orbit too. Light, XUV,
+flare index and far-ultraviolet are each given as a total and per source. The mean starlight of a planet or moon feeds its temperature and air solve, its albedo and ice,
+the runaway greenhouse test, the zone letter and the energy flux; a companion beyond 100 AU moves the temperature by under 0.1 percent, and an equal one at 5 AU
+adds about 10 percent of the light to a planet at 1.5 AU. The simplification that kept the companion's share out is retired; the limits (coplanar orbits, a
+subtree as one point) are the registry rows RF1 to RF5 of section 6.239 of the gap plan.
 Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
 largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
 

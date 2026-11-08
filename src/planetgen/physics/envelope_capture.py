@@ -32,6 +32,7 @@ Use:
 import math
 
 from planetgen.physics import bulk_structure, constants, envelope_escape, orbit_elements, super_puff
+from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -141,7 +142,7 @@ def kept(body, start, tides=False):
     mass_earth = _kg_to_mearth(body.mass)
     luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
-    insolation = luminosity / distance_au ** 2
+    insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
     left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age)
     if left <= 0.0:
         return None
