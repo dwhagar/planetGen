@@ -117,7 +117,7 @@ RELATIONS = (
     Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5145] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
              "thin and thick indistinguishable), [R1062] prints no Cu value (thick disk higher by a few hundredths between -0.5 and -0.2), "
              "and Li's trend is recalled", STAND_IN,
-             "the rises are not modelled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),
+             "the rises are not modeled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),
     Relation("log eps of Li, P, Ti, V, Cr, Mn, Co, Cu and Zn", "[R0168: Table 2], the photosphere; Li the CI chondrites", VERIFIED),
     Relation("carbon-enhanced metal-poor share", "[R1448]: 20 to 30 percent below [Fe/H] -2", VERIFIED),
     Relation("neon follows oxygen (or magnesium)", "the solids-law filing prefers oxygen; part A 3.2 step 4 prefers magnesium", OPEN,

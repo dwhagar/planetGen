@@ -42231,7 +42231,7 @@
           "fields": [
             [
               "What it is",
-              "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+              "disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
             ],
             [
               "The range it moves in",
@@ -42262,14 +42262,14 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1363",
-          "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+          "what": "disk_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+              "disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
             ],
             [
               "The range it moves in",
@@ -42300,14 +42300,14 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1363",
-          "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+          "what": "disk_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+              "disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
             ],
             [
               "The range it moves in",
@@ -42338,14 +42338,14 @@
           "tier_code": "T2",
           "tweak": "L1",
           "unread": "GEN.1363",
-          "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+          "what": "disk_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+              "disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
             ],
             [
               "The range it moves in",
@@ -42376,7 +42376,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": "GEN.1363",
-          "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+          "what": "disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
         },
         {
           "burn_down": [
@@ -42387,7 +42387,7 @@
           "fields": [
             [
               "What it is",
-              "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+              "disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
             ],
             [
               "The range it moves in",
@@ -42418,14 +42418,14 @@
           "tier_code": "T3",
           "tweak": "L3",
           "unread": "GEN.1363",
-          "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+          "what": "disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+              "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
             ],
             [
               "The range it moves in",
@@ -42456,11 +42456,11 @@
           "tier_code": "T3",
           "tweak": "L2",
           "unread": "GEN.1363",
-          "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+          "what": "disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
         }
       ],
-      "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
-      "title": "Stand-ins of the species the disc condenses"
+      "slug": "6-213-stand-ins-of-the-species-the-disk-condenses",
+      "title": "Stand-ins of the species the disk condenses"
     },
     {
       "key": "6.197",
