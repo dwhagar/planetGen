@@ -235,18 +235,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Class M rarity report, 2026-11-08.</td>
 </tr>
 <tr>
-<td>TEST.691</td>
-<td>The ozone-loss radiation test fails on main (bug)</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>TEST.692</td>
-<td>src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug)</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td>PERF.249</td>
 <td>A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug)</td>
 <td></td>
@@ -295,12 +283,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Bug Hunt first pass, 2026-11-07.</td>
 </tr>
 <tr>
-<td>PERF.253</td>
-<td>test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)</td>
-<td></td>
-<td>Lane 05, 2026-11-08.</td>
-</tr>
-<tr>
 <td>PERF.254</td>
 <td>Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step</td>
 <td></td>
@@ -311,6 +293,48 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps</td>
 <td></td>
 <td>Boss, 2026-11-08 (proposed).</td>
+</tr>
+<tr>
+<td>DOC.114</td>
+<td>Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.115</td>
+<td>One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.116</td>
+<td>A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>DOC.117</td>
+<td>History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.148</td>
+<td>Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.149</td>
+<td>Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS)</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
+</tr>
+<tr>
+<td>ADM.150</td>
+<td>An admin-requested list of the systems made so far in a generation run, as a job on the new task system (admin may wait for it)</td>
+<td></td>
+<td>Boss, 2026-11-08.</td>
 </tr>
 <tr>
 <td>OPS.122</td>
@@ -1667,6 +1691,48 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 21, 2026-11-08.</td>
 </tr>
 <tr>
+<td>GEN.1464</td>
+<td>Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1465</td>
+<td>The effect ledger: for every body and every effect (light, UV, tide, heating, Kozai and secular forcing, precession, eccentricity perturbation) the size of each source's contribution, stored as a fraction of the largest</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1466</td>
+<td>Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1467</td>
+<td>Mutual tides, spin and apsidal precession between the stars of a binary or triple</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1468</td>
+<td>An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only)</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1469</td>
+<td>Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives</td>
+<td></td>
+<td>Boss, 2026-11-08, approved for Train 21.</td>
+</tr>
+<tr>
+<td>GEN.1470</td>
+<td>Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug)</td>
+<td></td>
+<td>Lane 14, 2026-11-08.</td>
+</tr>
+<tr>
 <td>GEN.1459</td>
 <td>Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down</td>
 <td>none</td>
@@ -1689,12 +1755,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Page error: editing the waypoints throws &quot;Cannot read properties of null (reading 'textContent')&quot;</td>
 <td></td>
 <td>Lane 03, 2026-11-08.</td>
-</tr>
-<tr>
-<td>PERF.255</td>
-<td>Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world</td>
-<td></td>
-<td>Lane 05, 2026-11-08.</td>
 </tr>
 <tr>
 <td>GEN.1430</td>
