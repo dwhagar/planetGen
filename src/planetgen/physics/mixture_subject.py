@@ -138,12 +138,12 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     snow_line = getattr(star, "snow_line_au", None)
     if snow_line:
         quantities["snow_ratio"] = distance_au / snow_line
-        if kind_of_body(body) == "giant" and not quantities["is_moon"]:     # GEN.1363 part C: the disc a giant formed in gives its C/O
+        if kind_of_body(body) == "giant" and not quantities["is_moon"]:     # GEN.1363 part C: the disk a giant formed in gives its C/O
             formation_au = getattr(body, "formation_distance_au", None) or body.distance
             ratios = bulk_draw.ice_forming_ratios(star)
             if ratios is not None and formation_au:
                 quantities["formation_temperature_k"] = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(snow_line / formation_au)
-                quantities["disc_carbon"], quantities["disc_oxygen"] = ratios
+                quantities["disk_carbon"], quantities["disk_oxygen"] = ratios
     zone_edges = getattr(star, "habitable_zone", None)
     if zone_edges:
         inner, outer = zone_edges
@@ -170,7 +170,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disc_carbon", "disc_oxygen")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

@@ -2,7 +2,7 @@
 
 ### Changed
 
-- New `physics/disc_condensation.py`: the snow lines (CO 20 K, N2 22, CH4 41, CO2 47, Ar 48, Kr 53, Xe 69, H2S 80, NH3 131, H2O 182), the carbon split (half refractory grains, the rest CO, CO2 and a little CH4), the oxygen taken out of the water by CO and CO2, the nitrogen and sulfur split, the mass each condensate makes in percent of the nebula, and the gas and solid C/O across each line. Stand-ins DSC1 to DSC6 (section 6.213); N2 and H2S lines are recalled, registered as such.
+- New `physics/disk_condensation.py`: the snow lines (CO 20 K, N2 22, CH4 41, CO2 47, Ar 48, Kr 53, Xe 69, H2S 80, NH3 131, H2O 182), the carbon split (half refractory grains, the rest CO, CO2 and a little CH4), the oxygen taken out of the water by CO and CO2, the nitrogen and sulfur split, the mass each condensate makes in percent of the nebula, and the gas and solid C/O across each line. Stand-ins DSC1 to DSC6 (section 6.213); N2 and H2S lines are recalled, registered as such.
 - Nothing reads it yet: part B wires the ice shares of a body to it and part C the C/O of a giant, so no generated value changes.
 
 generation-output: unchanged

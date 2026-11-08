@@ -3,9 +3,9 @@
 """
 What has condensed at a disk temperature, by Lodders's equilibrium table (GEN.950, part 1).
 
-The water share of the solids an icy body can reach is no longer read from here: GEN.1363 part B takes it from `disc_condensation.water_share_of_solids`, which holds back the oxygen
+The water share of the solids an icy body can reach is no longer read from here: GEN.1363 part B takes it from `disk_condensation.water_share_of_solids`, which holds back the oxygen
 that CO and CO2 carry (0.34 for the Sun, 0.54 here). What stays here is the line temperatures, the ice mass over the rock that sets the snow line's jump of the surface density
-(`WATER_ICE_SOLID_BOOST`, left on this table until the disc's solids are weighed against the minimum-mass nebula) and the disk temperature law.
+(`WATER_ICE_SOLID_BOOST`, left on this table until the disk's solids are weighed against the minimum-mass nebula) and the disk temperature law.
 
 [R2726] computes the equilibrium condensation of a gas of solar composition at 10^-4 bar. Table 10 gives the
 temperatures at which the ices come out (water at 182 K, ammonia hydrate at 131 K, methane at 41 K) and Table 11 the mass that
