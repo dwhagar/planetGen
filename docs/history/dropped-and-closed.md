@@ -1,10 +1,13 @@
 # Dropped, retired, closed and replaced
 
-Every commit title (as of `8487fa43b`) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, "as a finding", "not built", "no longer". A `Retire GEN.n` commit usually means the item shipped; read the title for "finding", "dropped" or "closed". Newest first.
+Every commit title (as of `d02661568`) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, "as a finding", "not built", "no longer". A `Retire GEN.n` commit usually means the item shipped; read the title for "finding", "dropped" or "closed". Newest first.
 
 
 ## 2026-11
 
+- 2026-11-08: Boss approved the job design note (6:43 PM EST): build order on the OPS rows, retire DOC.113 and OPS.130 (#5799)
+- 2026-11-08: Retire DOC.116 (PR 5791), widen ADM.150, file ADM.151, rebuild global docs and site (#5798)
+- 2026-11-08: Retire PERF.255 (PR 5787) (#5789)
 - 2026-11-08: Retire TEST.689, TEST.697 (green on main) (#5785)
 - 2026-11-08: Retire TEST.665 (same red as TEST.704, fixed in PR 5773) (#5780)
 - 2026-11-08: Retire GEN.1353 (PR 5777) and GEN.1309 (step A in Train 19, step B closed as a finding, noted on GEN.1405) (#5778)
@@ -402,7 +405,7 @@ Every commit title (as of `8487fa43b`) that has one of these words in it: retire
 - 2026-10-31: GEN.1130: rebase on train 7; drop the unread meets_with_moons
 - 2026-10-31: GEN.1130: drop the tests of the removed forced habitable distance
 - 2026-10-31: Retire the train 7 items (GEN.733 to GEN.1173 list), log train 7 in lanes.md, regenerate the architecture map (#4598)
-- 2026-10-31: GEN.821: nitrogen of the Titan-like air from the body's ammonia ice (Erkaev et al. 2020); drop a stray report file
+- 2026-10-31: GEN.821: nitrogen of the Titan-like air from the body's ammonia ice [R1282]; drop a stray report file
 - 2026-10-31: GEN.1000: retire the largest-body stand-in (LB1), wiring register lines for the ledger the belts now read
 - 2026-10-31: Retire MAP.363 (#4594) (#4595)
 - 2026-10-31: Owners of retired lanes' items; TEST.537 filed and retired (#4593)
@@ -449,7 +452,7 @@ Every commit title (as of `8487fa43b`) that has one of these words in it: retire
 - 2026-10-31: Retire GEN.1210; burn-down lines for the life readings stand-ins (#4482)
 - 2026-10-31: Retire DOC.83 (PR #4478) (#4479)
 - 2026-10-31: Retire GEN.1205 and GEN.1206 (PRs #4469, #4473); burn-down lines for the best-fit shoulders; GEN.1207 and UX.252 notes (#4475)
-- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: Goldsby and Kohlstedt 2001 Table 5 and Durham 1996 preprint read (#4466)
+- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: [R1614: Table 5] and [R1196] preprint read (#4466)
 - 2026-10-31: UX.250 retired (PR #4462); file TEST.518 flaky bodyview rotation test (#4463)
 - 2026-10-31: Retire TEST.516 and TEST.517 (#4459)
 - 2026-10-31: Retire UX.224 and DOC.19; GEN.1174 decided by Boss (#4454)

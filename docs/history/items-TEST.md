@@ -1,6 +1,6 @@
 # Items: TEST, Tests
 
-The life of every TEST item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every TEST item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## TEST.1
 
@@ -3129,7 +3129,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-10-29 to 2026-10-29; 3 commits; not open.
 
 - 2026-10-29: docs: Star 1 lane, star audit second pass (GEN.947), data-use audit gaps (GEN.948-950, TEST.456), GEN.755 absorbed by GEN.935 (#3748)
-- 2026-10-29: TEST.456: generated [X/Fe] held to the Brewer and Fischer 2016 table; wiring register and burn-down lines (#3817)
+- 2026-10-29: TEST.456: generated [X/Fe] held to the [R0535] table; wiring register and burn-down lines (#3817)
 - 2026-10-29: Docs: retire TEST.456; file GEN.988 to GEN.990 (#3818)
 
 ## TEST.457
@@ -3603,7 +3603,7 @@ The life of every TEST item that a commit title names, from the git history as o
 
 - 2026-10-31: UX.250 retired (PR #4462); file TEST.518 flaky bodyview rotation test (#4463)
 - 2026-10-31: TEST.518: the body view spin test picks its two samples by the angle the page reports (#4465)
-- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: Goldsby and Kohlstedt 2001 Table 5 and Durham 1996 preprint read (#4466)
+- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: [R1614: Table 5] and [R1196] preprint read (#4466)
 
 ## TEST.519
 
@@ -4773,7 +4773,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-11-07 to 2026-11-07; 4 commits; not open.
 
 - 2026-11-07: docs: TEST.671 text names its sources by registry number, not by name (#5513)
-- 2026-11-07: TEST.671: write Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014 and Fulton 2017 by registry ID (#5512)
+- 2026-11-07: TEST.671: write [R2275], Simpson's limit, [R1307], a source and [R1478] by registry ID (#5512)
 - 2026-11-07: TEST.671: citation guard leftovers (sweep script lines, rogue-planet review) (#5515)
 - 2026-11-07: docs: retire TEST.671 and TEST.673, file TEST.674 (#5517)
 
@@ -4923,7 +4923,7 @@ The life of every TEST item that a commit title names, from the git history as o
 
 ## TEST.692
 
-2026-11-07 to 2026-11-07; 1 commits; open.
+2026-11-07 to 2026-11-07; 1 commits; not open.
 
 - 2026-11-07: Docs: file TEST.688 to TEST.692, the class T and sheet reds on main (#5627)
 

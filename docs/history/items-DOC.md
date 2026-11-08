@@ -1,6 +1,6 @@
 # Items: DOC, Documentation
 
-The life of every DOC item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every DOC item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## DOC.5
 
@@ -701,8 +701,37 @@ The life of every DOC item that a commit title names, from the git history as of
 
 ## DOC.113
 
-2026-11-08 to 2026-11-08; 2 commits; open.
+2026-11-08 to 2026-11-08; 4 commits; not open.
 
 - 2026-11-08: File DOC.113 and OPS.122 to OPS.127: break every run into small queued jobs (proposed, build after Boss approves the design note) (#5750)
 - 2026-11-08: File OPS.130 fair-share task scheduler; fair-share rule in PERF.254, OPS.122, OPS.124, OPS.128, DOC.113 and lanes.md (#5753)
+- 2026-11-08: DOC.113: design note: every task planned as a sequence of single-purpose commands, then executed (#5751)
+- 2026-11-08: Boss approved the job design note (6:43 PM EST): build order on the OPS rows, retire DOC.113 and OPS.130 (#5799)
+
+## DOC.114
+
+2026-11-08 to 2026-11-08; 2 commits; open.
+
+- 2026-11-08: File DOC.114 to DOC.117 (docs consolidation and site) and ADM.148 to ADM.150 (admin cleanup, systems-so-far list); fix GEN.1466 path (#5793)
+- 2026-11-08: DOC.116, DOC.114, DOC.117: docs website for GitHub Pages, code inventories, project history (#5791)
+
+## DOC.115
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: DOC.115: plan hub (docs/plan/README.md) names the one source for each kind of fact and the standing rules
+
+## DOC.116
+
+2026-11-08 to 2026-11-08; 2 commits; not open.
+
+- 2026-11-08: DOC.116, DOC.114, DOC.117: docs website for GitHub Pages, code inventories, project history (#5791)
+- 2026-11-08: Retire DOC.116 (PR 5791), widen ADM.150, file ADM.151, rebuild global docs and site (#5798)
+
+## DOC.117
+
+2026-11-08 to 2026-11-08; 2 commits; open.
+
+- 2026-11-08: File DOC.114 to DOC.117 (docs consolidation and site) and ADM.148 to ADM.150 (admin cleanup, systems-so-far list); fix GEN.1466 path (#5793)
+- 2026-11-08: DOC.116, DOC.114, DOC.117: docs website for GitHub Pages, code inventories, project history (#5791)
 

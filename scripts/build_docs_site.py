@@ -50,6 +50,9 @@ KATEX = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9"
 ROOT_FILES = ("README.md", "INSTALL.md", "CHANGELOG.md", "DATA-LICENSE.md", "LICENSE.md")
 """tuple: the repository's own top-level Markdown files, published under `site/repo/`."""
 
+KEEP_NAMES = ("docs/REFERENCES.", "docs/references/", "DATA-LICENSE.md", "LICENSE.md", "CHANGELOG.md")
+"""tuple: path fragments of the files that keep author names (`rewrite_citations.KEEP`, DOC.99); no page is built from them."""
+
 SECTION_TITLES = {
     "": "Start here", "reference": "Reference: using and configuring the program", "deployment": "Deployment",
     "design": "Design notes", "plan": "The plan", "references": "Reference papers and datasets",
@@ -223,9 +226,11 @@ def discover():
         for name in sorted(files):
             if name.endswith(".md"):
                 rel = os.path.relpath(os.path.join(folder, name), ROOT).replace(os.sep, "/")
+                if any(part in rel for part in KEEP_NAMES):
+                    continue  # these keep sources by name (DOC.99); links to them go to GitHub, the reference list to docs/REFERENCES.html
                 pages.append(Page(rel, rel[len("docs/"):][:-3] + ".html"))
     for name in ROOT_FILES:
-        if os.path.exists(os.path.join(ROOT, name)):
+        if os.path.exists(os.path.join(ROOT, name)) and not any(part in name for part in KEEP_NAMES):
             pages.append(Page(name, "repo/" + name[:-3] + ".html"))
     return sorted(pages, key=lambda p: p.out)
 

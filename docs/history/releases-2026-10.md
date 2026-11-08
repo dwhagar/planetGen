@@ -16,7 +16,7 @@
 - **8.0.3021**: Every map is drawn on black in either theme: the Galaxy Map, the sector and System Maps (diagram and 3D), the Phenomena and navigation maps, the rendered picture of a world, and the nebula and phenomenon views.
 - **8.0.3020**: The installer and updater no longer print advice about systemd memory settings or the MySQL redo log; the memory problem is solved in the program, not in the operating system.
 - **8.0.3019**: Help now ends with a References page, the one place that says where the numbers come from and how sure each part is, built from the registries and marked as out of the story.
-- **8.0.3018**: The stand-in row for the ice rheology now states the 40 to 90 kJ/mol activation range the Durham 1997 data support.
+- **8.0.3018**: The stand-in row for the ice rheology now states the 40 to 90 kJ/mol activation range the [R1190] data support.
 - **8.0.3017**: The test of the black-widow and redback spiders now expects the post-common-envelope history the generator gives them, which is the physics.
 - **8.0.3016**: The eight tide and surface-liquid functions that only tests called are wired, registered with the item that will call them, or deleted.
 - **8.0.3015**: The stand-ins for how much of each element a planet's volcanoes bring up point at a test that exists again.
@@ -87,7 +87,7 @@
 - **8.0.2950**: A world's atmosphere now shows in its picture: no air has no glow and a hard day and night line, thin air almost none, thick air a wide glow and a soft dusk.
 - **8.0.2949**: The wiring guard now also finds a stored column nothing reads and a public function only tests call, and today's findings are named in the register.
 - **8.0.2948**: The info panel's Colour line now says which stored values gave a body's colour and whether it is a partial estimate or the full account.
-- **8.0.2947**: The photometry library now has a published bolometric correction (Flower 1996 with Torres 2010's coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
+- **8.0.2947**: The photometry library now has a published bolometric correction ([R1392] with [R4407]'s coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
 - **8.0.2946**: New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
 - **8.0.2945**: The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
 - **8.0.2944**: A star's page, a system's overview and the star class pages are written in plain words: the star orbit sentences read one pair at a time, the heliosphere and edge lines drop "approximately", and the table labels are in sentence case.
@@ -146,8 +146,8 @@
 - **8.0.2891**: A planet has a ring only when something happened to make one, and the ring says how old it is.
 - **8.0.2890**: Superbubbles are off until the Menu's button shows them, the Key is a small corner box, every charted region is a point on the galaxy view with a link that zooms to it, the sector card's buttons stay in view, the sector page and 3D system view fill the window like the Galaxy Map, and an opened sector stands alone, close and full of systems.
 - **8.0.2889**: The planet architecture now keeps a record of every body it loses and says which ones end thrown out of the system, which collide and which stay bound.
-- **8.0.2888**: The reference table of the Milky Way's satellites now holds all 12 satellites above 100,000 solar masses, with Canes Venatici I added from McConnachie 2012.
-- **8.0.2887**: The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of Durham, Kirby and Stern 1997, not one guessed number for each.
+- **8.0.2888**: The reference table of the Milky Way's satellites now holds all 12 satellites above 100,000 solar masses, with Canes Venatici I added from [R2972].
+- **8.0.2887**: The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of [R1190], not one guessed number for each.
 - **8.0.2886**: The cloud feedback on a world's albedo now has a design: a thinning term sized to the published Earth feedback and a thick substellar deck for locked ocean worlds.
 - **8.0.2885**: The climate sensitivity test now measures the real Earth, not a random hot planet.
 - **8.0.2884**: The ice-albedo law now gives the Earth's measured surface albedo feedback instead of none.
@@ -156,7 +156,7 @@
 - **8.0.2881**: The birth-gas dispersion of 6.5 km/s now has its sources, and the young disc's height is pinned to the Milky Way's young stars.
 - **8.0.2880**: The stand-in registry rows for the roundness engine now cite all the papers read, and the porosity range is widened to 4 to 9.
 - **8.0.2879**: The roundness engine now knows that rock that took its shape hot is much weaker than cold rock, using the olivine creep laws, and the hot rubble-pile strength has a physical basis.
-- **8.0.2878**: The Milky Way satellite table the plausibility tests use is now checked against McConnachie (2012).
+- **8.0.2878**: The Milky Way satellite table the plausibility tests use is now checked against [R2972].
 - **8.0.2877**: The test that checks every generated planet is in a state the tide allows now samples systems with planets switched on, so it meets planets that are still turning freely.
 - **8.0.2876**: The orbits of the stars in a system are now drawn once from the room each pair has, instead of drawn and thrown away until one fits.
 - **8.0.2875**: A rocky world's tide now follows the temperature of its mantle: cold bodies barely flex, warm ones dissipate strongly, Io-like bodies melt and hold a heat pipe, and locking and circularisation times follow.
@@ -188,7 +188,7 @@
 - **8.0.2849**: Two more hand-tuned constants now name the measurements they should be held to.
 - **8.0.2848**: The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
 - **8.0.2847**: The star property sheet now says which stars have a widest stable orbit (the stars of a wide pair and the further members of a system, not a single star or a close pair), and the comet rule is confirmed.
-- **8.0.2846**: The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the Choukroun et al. 2020 paper has been read.
+- **8.0.2846**: The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the [R0776] paper has been read.
 - **8.0.2845**: `update.sh` says what it is doing and what it waits for, shows progress bars on the long steps, and pauses 5 seconds before the reload and 10 seconds after it.
 - **8.0.2844**: `update.sh` starts building the site's caches early and reloads the site only once the opening views are built.
 - **8.0.2843**: The stability test for a Mardling and Aarseth triple now stays inside its range, and the code to judge four-star systems level by level is in place.
@@ -350,9 +350,9 @@
 - **8.0.2690**: Every line of a Galaxy Map card that names a place now has its own Go to button.
 - **8.0.2689**: Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.
 - **8.0.2688**: A neutron star's radius now comes from 21 modelled equations of state, weighted by the NICER measurements, not from a normal band.
-- **8.0.2687**: Thin-disc oxygen now levels off at the metal-rich end as the Brewer and Fischer 2016 stars do, instead of falling on without end.
-- **8.0.2686**: The star-to-star scatter of carbon, oxygen and silicon in a star's composition is raised to the Brewer and Fischer 2016 level.
-- **8.0.2685**: Thin-disc stars of solar metallicity now carry the magnesium and silicon Brewer and Fischer 2016 measure, 0.06 and 0.03 dex under the Sun's.
+- **8.0.2687**: Thin-disc oxygen now levels off at the metal-rich end as the [R0535] stars do, instead of falling on without end.
+- **8.0.2686**: The star-to-star scatter of carbon, oxygen and silicon in a star's composition is raised to the [R0535] level.
+- **8.0.2685**: Thin-disc stars of solar metallicity now carry the magnesium and silicon [R0535] measure, 0.06 and 0.03 dex under the Sun's.
 - **8.0.2684**: Calcium, sulfur and argon now vary from star to star, as the other element abundances do.
 - **8.0.2683**: Giants are sized at their star's final age and the light of their real orbit, so their radius, density, gravity, interior and air agree.
 - **8.0.2682**: The Compact binaries panel of an unbuilt system now gives the X-ray luminosity of each accreting pair.
@@ -445,23 +445,23 @@
 - **8.0.2595**: The stand-in rows for the planet iron scatter, the rogue-planet volatile loss and the core light elements now state what the latest data says.
 - **8.0.2594**: The Sectors table reads any page of a large galaxy in a few milliseconds when sorted by distance from the core (the default) or by name.
 - **8.0.2593**: The ammonia photolysis activity factor now has a second-hand cross-check in the stand-in registry text.
-- **8.0.2592**: How long a star stays X-ray saturated is now tabulated by mass and initial rotation from Johnstone et al. 2021 (not yet used by the generator).
+- **8.0.2592**: How long a star stays X-ray saturated is now tabulated by mass and initial rotation from [R2183] (not yet used by the generator).
 - **8.0.2591**: The atmosphere recipe rows whose research was already built are now labelled as derived, not as a design.
 - **8.0.2590**: The aluminium-26 and iron-60 a star is born with are now derived from gamma-ray masses and the region's star formation (not yet used by the generator).
-- **8.0.2589**: The hottest a brown dwarf can be at each age is now read from the Baraffe 2015 table (not yet used by the generator).
+- **8.0.2589**: The hottest a brown dwarf can be at each age is now read from the [R0254] table (not yet used by the generator).
 - **8.0.2588**: The map-luminosity fill and the habitability re-score now run as stages of the shared run, with their finishing steps inside it.
 - **8.0.2587**: The search page can now find planets and moons that could support a given kind of life, with a minimum score.
 - **8.0.2586**: The planet architecture is built as a tested model, with the observed planet occurrence the generator will be held to.
 - **8.0.2585**: A white dwarf's page no longer lists flare, X-ray and lifespan rows that it can never have.
-- **8.0.2584**: The water share of a disk's solids by temperature is now computed from Lodders 2003 (not yet used by the generator).
+- **8.0.2584**: The water share of a disk's solids by temperature is now computed from [R2726] (not yet used by the generator).
 - **8.0.2583**: The generator can now name a star's evolutionary state and the age since a white dwarf stopped burning.
-- **8.0.2582**: A test now holds the generated star abundances to the Brewer and Fischer 2016 table of 1,615 dwarfs, and shows where they differ.
+- **8.0.2582**: A test now holds the generated star abundances to the [R0535] table of 1,615 dwarfs, and shows where they differ.
 - **8.0.2581**: The burn-down register names what each hand-tuned birth-spin stand-in needs before it can go.
 - **8.0.2580**: The generator can now read an alpha-enhanced star off a solar-scaled track and tie a disc star's metallicity to its age.
 - **8.0.2579**: The light of a star can now be looked up from model-atmosphere spectra by temperature and gravity, with the corona's far ultraviolet added from the MUSCLES stars.
 - **8.0.2578**: A neutron star's radius and layers can now be computed from the 21 equation-of-state tables by integrating the general-relativity structure equations.
 - **8.0.2577**: A birth-spin module gives a rocky planet's spin from the mass ratio of its last impacts, so a Mars-sized planet can turn in a day while an Earth turns in hours.
-- **8.0.2576**: A test now fails when something the app builds or downloads is never read, and setup downloads the Harris cluster catalog, the NOAA solar proton events and the Baraffe 2015 isochrones.
+- **8.0.2576**: A test now fails when something the app builds or downloads is never read, and setup downloads the Harris cluster catalog, the NOAA solar proton events and the [R0254] isochrones.
 - **8.0.2575**: A moon orbit module follows a planet's moons drifting out, spiralling in or falling into a ring under the planet's tide, ready for the tide chain to use.
 - **8.0.2574**: A new test keeps the generator from making a giant whose radius is read at the wrong light.
 - **8.0.2573**: A dynamo module gives a planet's magnetic moment from the power that drives its core and its spin, tested on Earth, Jupiter, Saturn, Ganymede, Mercury and a dead Mars; nothing uses it yet.

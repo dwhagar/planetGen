@@ -181,7 +181,7 @@
 - **8.0.3561**: The browser's sky and day counter read the parsec, the year and the hour from the unit registry instead of writing the numbers themselves.
 - **8.0.3560**: The citation guard passes on main: three leftover places that wrote a source's name or a bracket-wrapped ID now use the bare registry ID.
 - **8.0.3559**: The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
-- **8.0.3558**: Five sources named in code and docs (Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014, Fulton 2017) are written by their registry IDs, so the citation guard passes outside the TODO text.
+- **8.0.3558**: Five sources named in code and docs ([R2275], Simpson's limit, [R1307], a source, [R1478]) are written by their registry IDs, so the citation guard passes outside the TODO text.
 - **8.0.3557**: A New galaxy job no longer waits for ever on a generation run that nothing follows any more: a run left behind by a process that is still running is freed, and a run whose set-up fails ends instead of holding the machine.
 - **8.0.3556**: Helium-core and oxygen-neon white dwarfs now have layers of their own.
 - **8.0.3555**: The bright-star backfills, the special phenomena and the sky charting no longer stop a run on a MySQL deadlock.
@@ -209,7 +209,7 @@
 - **8.0.3533**: The sector map's gravity layer now says "not computed yet" when the galaxy has no shape, instead of failing with a "data unavailable" error, and a page whose data call is refused with a conflict now shows what the refusal said.
 - **8.0.3532**: The test that an oxygenic world holds oxygen once its oxygen has risen now checks the rise the generator decided, so it passes again, and its sample is a third smaller.
 - **8.0.3531**: A new galaxy no longer fails at stage 3 because the compiled kernels could not be cached.
-- **8.0.3530**: The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
+- **8.0.3530**: The references registry gained [R1248] (super-Earth outgassing), no generator output changes.
 - **8.0.3529**: Correction to the GEN.753 planets sweep: the ground gamma dose of an Earth-like body is not 100 times too low.
 - **8.0.3528**: Six checks that were red on main pass again: a bash 4 expansion in the deploy script that macOS's bash 3.2 cannot run, three test harnesses that missed the log library, seven item codes in text users see, and a variable the settings check did not know.
 - **8.0.3527**: `update.sh` no longer stops with `KeyError: 'stages'` when Redis holds a run record that has no stages; the update guard reads such a record as a run with none, and one unreadable record is skipped with a warning instead of aborting the update.

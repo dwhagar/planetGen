@@ -1,6 +1,6 @@
 # Items: ADM, Admin
 
-The life of every ADM item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every ADM item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## ADM.1
 
@@ -755,4 +755,23 @@ The life of every ADM item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: Docs: all real materials always exist (GEN.1420, GEN.1421, GEN.1377 to Lane 14); fiction answers applied (GEN.1416 to GEN.1419 withdrawn, ADM.145 to ADM.147 admin page, ADM.144 firm) (#5712)
+
+## ADM.148
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File DOC.114 to DOC.117 (docs consolidation and site) and ADM.148 to ADM.150 (admin cleanup, systems-so-far list); fix GEN.1466 path (#5793)
+
+## ADM.150
+
+2026-11-08 to 2026-11-08; 2 commits; open.
+
+- 2026-11-08: File DOC.114 to DOC.117 (docs consolidation and site) and ADM.148 to ADM.150 (admin cleanup, systems-so-far list); fix GEN.1466 path (#5793)
+- 2026-11-08: Retire DOC.116 (PR 5791), widen ADM.150, file ADM.151, rebuild global docs and site (#5798)
+
+## ADM.151
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: Retire DOC.116 (PR 5791), widen ADM.150, file ADM.151, rebuild global docs and site (#5798)
 

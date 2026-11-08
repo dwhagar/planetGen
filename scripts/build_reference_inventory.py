@@ -32,6 +32,17 @@ _COLUMN = re.compile(r"^\s{4}(\w+)\s+([A-Z]+(?:\([^)]*\))?(?:\s+UNSIGNED)?)(.*)$
 _KEYWORDS = {"CONSTRAINT", "UNIQUE", "PRIMARY", "KEY", "INDEX", "FOREIGN", "CHECK"}
 
 
+def _by_id(name, text):
+    """`text` with every source written by name replaced by its `[R0123]` ID (DOC.99)."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import rewrite_citations as rc
+    reg = rc.Registry(all_candidates=True)
+    text = rc.rewrite_file(name, text, reg, rc.Counter(), strings=True)
+    for _key, mention in reg.unresolved:  # a source the list does not hold stays unnamed
+        text = text.replace(mention, "a source")
+    return text
+
+
 def _cell(text):
     return text.replace("|", "\\|").strip()
 
@@ -131,7 +142,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     stale = []
     for name, build in PAGES.items():
-        text = build()
+        text = _by_id("docs/generated/" + name, build())
         path = os.path.join(OUT, name)
         current = open(path, encoding="utf-8").read() if os.path.exists(path) else None
         if current != text:

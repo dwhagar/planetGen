@@ -1,6 +1,6 @@
 # Items: OPS, Operations
 
-The life of every OPS item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every OPS item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## OPS.1
 
@@ -897,10 +897,11 @@ The life of every OPS item that a commit title names, from the git history as of
 
 ## OPS.130
 
-2026-11-08 to 2026-11-08; 2 commits; open.
+2026-11-08 to 2026-11-08; 3 commits; not open.
 
 - 2026-11-08: File OPS.130 fair-share task scheduler; fair-share rule in PERF.254, OPS.122, OPS.124, OPS.128, DOC.113 and lanes.md (#5753)
 - 2026-11-08: OPS.130: fair-share scheduler on the memory gate (#5763)
+- 2026-11-08: Boss approved the job design note (6:43 PM EST): build order on the OPS rows, retire DOC.113 and OPS.130 (#5799)
 
 ## OPS.131
 

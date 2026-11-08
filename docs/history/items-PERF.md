@@ -1,6 +1,6 @@
 # Items: PERF, Speed
 
-The life of every PERF item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every PERF item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## PERF.1
 
@@ -1997,7 +1997,7 @@ The life of every PERF item that a commit title names, from the git history as o
 
 ## PERF.253
 
-2026-11-08 to 2026-11-08; 1 commits; open.
+2026-11-08 to 2026-11-08; 1 commits; not open.
 
 - 2026-11-08: Docs: file TEST.698 (done, PR 5703) and PERF.253 (forced MOONS case past the timeout) (#5705)
 
@@ -2015,7 +2015,9 @@ The life of every PERF item that a commit title names, from the git history as o
 
 ## PERF.255
 
-2026-11-08 to 2026-11-08; 1 commits; open.
+2026-11-08 to 2026-11-08; 3 commits; not open.
 
 - 2026-11-08: Docs: file Lane 05's red causes as items (UX.294, TEST.701-705, DB.118-120, DOC.111-112, GEN.1439, PERF.255) (#5718)
+- 2026-11-08: PERF.255: keep the Anderson Gram matrix between passes; share and shorten the moon-heavy samples; split the barred-world census (#5787)
+- 2026-11-08: Retire PERF.255 (PR 5787) (#5789)
 
