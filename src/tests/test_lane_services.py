@@ -7,6 +7,7 @@ servers are fakes here: no test stops or starts the MySQL or Redis the other tes
 
 import json
 import threading
+import types
 
 import pytest
 
@@ -124,19 +125,24 @@ def test_a_nearly_full_disk_has_the_binlogs_purged(ordinary, monkeypatch):
 
 
 def test_packages_are_checked_by_version(monkeypatch):
-    versions = {"argon2-cffi": "25.1.0", "playwright": services.PLAYWRIGHT_VERSION}
+    versions = {"argon2-cffi": "25.1.0", "playwright": "1.63.0"}
 
     def version(name):
         if name not in versions:
             raise services.importlib.metadata.PackageNotFoundError(name)
         return versions[name]
 
+    missing = [None]
     monkeypatch.setattr(services.importlib.metadata, "version", version)
+    monkeypatch.setattr(services, "chromium_missing", lambda: missing[0])
+    monkeypatch.setattr(services, "installed_chromium_builds", lambda: ["1243"])
     assert services.package_problems(browser=True) == []
-    versions["playwright"] = "1.57.0"
+    missing[0] = "/opt/pw-browsers/chromium_headless_shell-1194/chrome-headless-shell"      # TEST.693: a Playwright whose Chromium is not there
     assert services.package_problems(browser=False) == []                    # not needed without browser tests
     problem, = services.package_problems(browser=True)
-    assert "1.57.0" in problem and services.PLAYWRIGHT_VERSION in problem and "playwright install" in problem
+    assert "1.63.0" in problem and "chromium_headless_shell-1194" in problem and "1243: playwright==1.63.0" in problem and "playwright install" in problem
+    versions.pop("playwright")
+    assert any("playwright is not installed" in text for text in services.package_problems(browser=True))
     del versions["argon2-cffi"]
     assert any("argon2-cffi is not installed" in text for text in services.package_problems(browser=False))
 
@@ -383,3 +389,36 @@ def test_a_dataset_the_machine_lacks_is_fetched_and_one_that_cannot_be_is_a_prob
 def test_the_preflight_fetches_every_dataset_the_math_check_reads():
     """OPS.119: a fresh machine fetched only the white-dwarf data, and the math check then stopped the run with 16 DataMissing failures."""
     assert {"white_dwarf_models", "isochrones", "stellar_spectra", "hhe_eos", "hyg_stars", "mamajek_dwarf_sequence"} <= set(services.TEST_DATASETS)
+
+# --- a browser that will not start fails the browser phase (TEST.693) -------------------------------------------------
+
+def _run_report_hook(monkeypatch, reason, required):
+    from tests import conftest
+
+    class Report:
+        skipped = True
+        outcome = "skipped"
+        longrepr = ("file.py", 10, f"Skipped: {reason}")
+
+    report = Report()
+    if required:
+        monkeypatch.setenv("PLANETGEN_REQUIRE_BROWSER", "1")
+    else:
+        monkeypatch.delenv("PLANETGEN_REQUIRE_BROWSER", raising=False)
+    hook = conftest.pytest_runtest_makereport.__wrapped__ if hasattr(conftest.pytest_runtest_makereport, "__wrapped__") else conftest.pytest_runtest_makereport
+    generator = hook(None, None)
+    next(generator)
+    outcome = types.SimpleNamespace(get_result=lambda: report)
+    try:
+        generator.send(outcome)
+    except StopIteration:
+        pass
+    return report
+
+
+def test_a_browser_that_will_not_start_fails_the_browser_phase_only(monkeypatch):
+    report = _run_report_hook(monkeypatch, "Playwright could not start (Playwright Sync API inside the asyncio loop)", required=True)
+    assert report.outcome == "failed" and "browser could not start" in report.longrepr
+    assert _run_report_hook(monkeypatch, "No Chromium for Playwright (Executable doesn't exist)", required=True).outcome == "failed"
+    assert _run_report_hook(monkeypatch, "Playwright could not start (x)", required=False).outcome == "skipped"       # other phases still skip
+    assert _run_report_hook(monkeypatch, "no WebGL in this Chromium", required=True).outcome == "skipped"            # an ordinary skip stays one
