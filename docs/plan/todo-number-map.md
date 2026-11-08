@@ -16,8 +16,8 @@ release is stamped.
 | UX | UX.294 |
 | MAP | MAP.409 |
 | NAV | NAV.78 |
-| GEN | GEN.1430 |
-| PERF | PERF.254 |
+| GEN | GEN.1439 |
+| PERF | PERF.255 |
 | DB | DB.118 |
 | API | API.43 |
 | ADM | ADM.148 |
@@ -2209,6 +2209,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1427 | Neutron-star nuclear pasta: the inner crust layer between the outer crust and the core, in the neutron star interior and radius model | none | open |
 | GEN.1428 | GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed | none | open |
 | GEN.1429 | GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report | GEN.1428 | open |
+| GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
+| GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | open |
+| GEN.1432 | Planet class one-liner and page sentence reconciled into one row: a phrase, and a number-free sentence with the numbers read from planet_class_fit.json through unit-aware formatting | none | open |
+| GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | open |
+| GEN.1434 | Derived sky and clock fields from physics: gravitational time dilation, the host's sky size, the eclipse calendar and the solar-lens focus distance | none | open |
+| GEN.1435 | Ancient works setting: tag the derelict, wreck, megastructure and signal lines (57 of 82) and a per-galaxy on/off choice at galaxy planning, on the same screen and storage as the fictional materials setting | GEN.1430, ADM.143 | open |
+| GEN.1436 | Natural signal resolution: sensor readings for unknown-origin signals that resolve to a cause (pulsars, giants with volcanic moons, masers) | GEN.1430 | open |
+| GEN.1437 | Design notes for the chaotic triple-star zone and the dimming star (debris stream or disintegrating planet with irregular transits) | none | open |
+| GEN.1438 | Flavor tree tests: classless gates, quantities exist, every line reachable, coverage per life class and scope, order independence, plain words, settings pruning | GEN.1430 | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | done, PR #5688 |
@@ -2249,6 +2258,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) | none | open |
 | PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) | none | open |
 | PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) | none | open |
+| PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step | PERF.226 | open |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) | none | done, PR #5688 |
 | ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | open |
 | ADM.144 | Fictional materials part 17: edit custom names after generation | DB.116, GEN.1412, ADM.145 | open |
