@@ -25725,6 +25725,11 @@
       "kind": "paper",
       "label": "Barklem and Collet 2016",
       "title": "Partition functions and equilibrium constants for diatomic molecules and atoms of astrophysical interest"
+    },
+    "R5148": {
+      "kind": "paper",
+      "label": "Wong et al. 2004",
+      "title": "Updated Galileo probe mass spectrometer measurements of carbon, oxygen, nitrogen, and sulfur on Jupiter"
     }
   }
 }

@@ -41461,6 +41461,128 @@
       "title": "Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air"
     },
     {
+      "key": "6.219",
+      "number": "6.219",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: the troilite of the sulfur (1 - SULFUR_AS_H2S of it) is rock and takes the rock-forming metals' scale enrichment, not the ices' sigma; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "giants formed below about 700 K (troilite stable)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured P/Fe or S/Fe in a giant's envelope off the rock's by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a model of how rock and troilite reach an envelope"
+            ],
+            [
+              "Evidence",
+              "the Galileo S is 2.75 +/- 0.66 times solar against 3.1 here ([R5148: Table 2]); the probe has no phosphorus (PH3 only as a mass-34 interference), so P is a choice, not a fit"
+            ]
+          ],
+          "id": "GE1",
+          "key": "6.219:GE1",
+          "kind": "P",
+          "slug": "6-219-ge1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: the troilite of the sulfur (1 - SULFUR_AS_H2S of it) is rock and takes the rock-forming metals' scale enrichment, not the ices' sigma; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (disk_noble), because the star's element set has no krypton or xenon"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "stars with the Sun's ratios of the noble gases"
+            ],
+            [
+              "What would show it wrong",
+              "a star with a measured krypton or xenon over argon off the Sun's by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the star's own krypton and xenon, if the element set gains them"
+            ],
+            [
+              "Evidence",
+              "[R0168] gives the Sun's krypton and xenon; no star sample here measures them"
+            ]
+          ],
+          "id": "GE2",
+          "key": "6.219:GE2",
+          "kind": "P",
+          "slug": "6-219-ge2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (disk_noble), because the star's element set has no krypton or xenon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same sigma (the planetesimals carry the disk's proportions of all species)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "giants whose heavy elements came mostly as planetesimals"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose nitrogen and sulfur enrichments differ from its carbon and oxygen by the ice split alone by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a model of which ices the planetesimals shed in the envelope (volatiles are lost on the way in)"
+            ],
+            [
+              "Evidence",
+              "nitrogen 3.0 and sulfur 3.1 against the probe's 2.96 and 2.75 times solar at one formation temperature and four times the star's heavy elements; one giant, so not a test of the split"
+            ]
+          ],
+          "id": "GE3",
+          "key": "6.219:GE3",
+          "kind": "P",
+          "slug": "6-219-ge3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same sigma (the planetesimals carry the disk's proportions of all species)"
+        }
+      ],
+      "slug": "6-219-stand-ins-of-the-nitrogen-sulfur-and-noble-gases-of-a-giant-s-envelope",
+      "title": "Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope"
+    },
+    {
       "key": "6.210",
       "number": "6.210",
       "rows": [

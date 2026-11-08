@@ -149,3 +149,37 @@ def test_the_oxygen_held_by_carbon_monoxide_and_dioxide_leaves_less_water_than_t
     assert dc.water_share_of_solids(150.0) < equilibrium - 0.1
     assert dc.water_share_of_solids(150.0, oxygen=1.5) > dc.water_share_of_solids(150.0) > dc.water_share_of_solids(150.0, oxygen=0.6)
     assert dc.water_share_of_solids(150.0, carbon=2.0) < dc.water_share_of_solids(150.0)       # a carbon-rich star: more of the oxygen sits in CO and CO2
+
+
+# --- GEN.1372: the nitrogen, sulfur and noble gases of a giant's envelope, element by element ---------------------------------------------------
+
+def test_a_jupiter_like_envelope_takes_its_nitrogen_and_sulfur_near_three_times_the_star_at_four_times_its_heavy_elements():
+    # The Galileo probe: NH3 2.96 +/- 1.13 and H2S 2.75 +/- 0.66 times solar ([R5148: Table 2]), at a formation temperature between the ammonia and hydrogen sulfide lines.
+    factors = dc.envelope_enrichments(110.0, 4.0)
+    assert factors["N"] == pytest.approx(2.96, abs=0.5)
+    assert factors["S"] == pytest.approx(2.75, abs=0.66 + 0.4)
+    assert factors["Ar"] == factors["Kr"] == factors["Xe"] == 1.0              # warmer than their lines: gas only, the model's known miss of the probe's 3 times solar
+
+
+def test_every_factor_is_one_in_a_pure_gas_and_follows_the_ice_lines_as_the_giant_forms_colder():
+    assert dc.envelope_enrichments(300.0, 1.0) == pytest.approx({"N": 1.0, "S": 1.0, "Ar": 1.0, "Kr": 1.0, "Xe": 1.0})      # enrichment 1: gas and solids in the disk's proportion
+    warm, cold = dc.envelope_enrichments(300.0, 4.0), dc.envelope_enrichments(60.0, 4.0)
+    assert warm["N"] == 1.0                                                      # all the nitrogen still gas above the ammonia line
+    assert cold["N"] > 2.0 and cold["S"] > warm["S"]
+    assert dc.envelope_enrichments(40.0, 4.0)["Ar"] > 1.0 == dc.envelope_enrichments(60.0, 4.0)["Ar"]      # argon freezes below 48 K
+    assert dc.envelope_enrichments(40.0, 4.0)["Xe"] == pytest.approx(dc.envelope_enrichments(40.0, 4.0)["Ar"])            # one noble ratio and one sigma
+
+
+def test_a_barely_enriched_envelope_holds_only_the_gas_and_so_misses_the_frozen_nitrogen():
+    low = dc.envelope_enrichments(100.0, 0.2)
+    assert low["N"] == pytest.approx(dc.NITROGEN_AS_N2)                                                    # only the N2 (the salts and ammonia are ice, none taken)
+    assert low["S"] == pytest.approx(dc.SULFUR_AS_H2S + (1.0 - dc.SULFUR_AS_H2S) * 0.2)                    # the H2S gas plus troilite at the rock's scale
+
+
+def test_the_stars_nitrogen_sulfur_and_noble_ratios_scale_the_split_not_the_factor_of_a_pure_gas_or_a_pure_ice():
+    assert dc.envelope_enrichments(300.0, 4.0, nitrogen=2.0, noble=3.0)["N"] == 1.0
+    assert dc.envelope_enrichments(30.0, 4.0, noble=3.0)["Ar"] == pytest.approx(dc.envelope_enrichments(30.0, 4.0)["Ar"])
+    with pytest.raises(ValueError):
+        dc.envelope_enrichments(0.0, 1.0)
+    with pytest.raises(ValueError):
+        dc.envelope_enrichments(100.0, -1.0)
