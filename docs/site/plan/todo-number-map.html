@@ -75,7 +75,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>GEN</td>
-<td>GEN.1464</td>
+<td>GEN.1471</td>
 </tr>
 <tr>
 <td>PERF</td>
@@ -91,7 +91,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>ADM</td>
-<td>ADM.148</td>
+<td>ADM.152</td>
 </tr>
 <tr>
 <td>SEC</td>
@@ -111,7 +111,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>DOC</td>
-<td>DOC.114</td>
+<td>DOC.118</td>
 </tr>
 <tr>
 <td>VIEW</td>
@@ -13168,6 +13168,48 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>open</td>
 </tr>
 <tr>
+<td>GEN.1464</td>
+<td>Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons</td>
+<td>GEN.1446</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1465</td>
+<td>The effect ledger: for every body and every effect (light, UV, tide, heating, Kozai and secular forcing, precession, eccentricity perturbation) the size of each source's contribution, stored as a fraction of the largest</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1466</td>
+<td>Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1467</td>
+<td>Mutual tides, spin and apsidal precession between the stars of a binary or triple</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1468</td>
+<td>An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only)</td>
+<td>GEN.1460</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1469</td>
+<td>Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1470</td>
+<td>Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug)</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
 <td>GEN.1459</td>
 <td>Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down</td>
 <td>none</td>
@@ -13291,13 +13333,13 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>TEST.691</td>
 <td>The ozone-loss radiation test fails on main (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>done, green on main (Lane 04 check, 2026-11-08)</td>
 </tr>
 <tr>
 <td>TEST.692</td>
 <td>src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>done, green on main (Lane 04 check, 2026-11-08)</td>
 </tr>
 <tr>
 <td>GEN.1386</td>
@@ -13537,7 +13579,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>PERF.253</td>
 <td>test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>done, PR #5787</td>
 </tr>
 <tr>
 <td>PERF.254</td>
@@ -13579,6 +13621,30 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>ADM.147</td>
 <td>Fictional materials admin page C: show how many bodies hold each material</td>
 <td>ADM.145, DB.117</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.148</td>
+<td>Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.149</td>
+<td>Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS)</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.150</td>
+<td>The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it)</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.151</td>
+<td>A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress</td>
+<td>ADM.150</td>
 <td>open</td>
 </tr>
 <tr>
@@ -21718,6 +21784,22 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <tr>
 <td>DOC.113</td>
 <td>Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps</td>
+</tr>
+<tr>
+<td>DOC.114</td>
+<td>Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text</td>
+</tr>
+<tr>
+<td>DOC.115</td>
+<td>One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept</td>
+</tr>
+<tr>
+<td>DOC.116</td>
+<td>A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/</td>
+</tr>
+<tr>
+<td>DOC.117</td>
+<td>History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents</td>
 </tr>
 <tr>
 <td>SEC.42</td>
