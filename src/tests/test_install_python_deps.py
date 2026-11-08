@@ -370,3 +370,17 @@ def test_the_scripts_macos_runs_use_no_bash_4_syntax():
             if bash4.search(code) and not text.lstrip().startswith("#"):
                 found.append(f"{name}:{number}: {text.strip()}")
     assert not found, "bash 4 syntax in a script macOS runs:\n" + "\n".join(found)
+
+
+def test_install_and_update_both_run_the_one_list():
+    """install.sh installs and update.sh --check checks the same REQUIREMENTS list, so neither can miss a library the other has."""
+    assert 'install-python-deps.sh"' in _code(_read("install.sh"))
+    assert 'install-python-deps.sh" --check' in _code(_read("update.sh"))
+    assert "psutil>=7.2.2" in _script_requirements()
+
+
+def test_every_requirement_is_pinned_in_both_lock_files():
+    for lock in ("requirements.lock", "requirements-server.lock"):
+        pinned = {m.lower().replace("_", "-") for m in re.findall(r"^([A-Za-z0-9_.-]+)==", _read(lock), re.M)}
+        for spec in _script_requirements():
+            assert re.match(r"[a-z0-9-]+", spec).group(0) in pinned, f"{spec} is not pinned in {lock}"
