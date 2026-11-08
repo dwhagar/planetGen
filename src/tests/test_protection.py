@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability as hab
 from planetgen.physics import habitability_world as hw
-from planetgen.physics import protection, protection_limits
+from planetgen.physics import planet_type, protection, protection_limits
 from planetgen.physics.habitability import World
 from planetgen.util import draw
 
@@ -238,7 +238,7 @@ def test_a_sample_of_generated_planets_and_moons_each_carry_the_ratings_block():
         bodies = planets + [moon for planet in planets for moon in planet.moons]
         for body in bodies:
             blocks = [b for b in by_name[body.name]["blocks"] if b["type"] == "ratings"]
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):         # a giant, or a planet under a deep envelope (GEN.1334): no ground, no ratings
                 assert blocks == []
                 continue
             values = hw.values_from_body(body)
