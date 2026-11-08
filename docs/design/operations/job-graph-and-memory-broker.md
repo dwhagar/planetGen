@@ -35,7 +35,7 @@ All [S] unless marked.
 
 **What already works and is kept.** Every command is already a registered, pure, restartable command with JSON in and JSON out (`CommandSpec`). Every draw already comes from a seed of the thing it draws, not from the worker or the chunk (`work.task_seed`, GEN.39), so results do not depend on worker count. A unit that runs twice counts once. The run record in Redis is the only store of a run, and a second process can follow it. Stage statistics, ETA, Stop All, pause and the update guard are all built on it. This design reuses all of that; it does not start over.
 
-**The earlier plan this continues.** Boss, 2026-10-17, 4:12 PM EDT (`redis-and-the-work-queue.md` 5.12): every part of generate is an individual command, a wrapper makes the list of commands and puts them into the queue individually, no command knows the order, "a chunk of a chunked stage is its own command". Built as PERF.106 to PERF.128 and PERF.172. PERF.247 (5.13) added "a job can require another job". PERF.254 (memory governor, assessment `perf254-dask-assessment-2026-11-08.md`) added the memory half. This design finishes the thought: the wrapper was meant to *select* commands from the request, but selection today is a fixed list with `if`s, and the "individual command" stopped at the chunk.
+**The earlier plan this continues.** Boss, 2026-10-17, 4:12 PM EDT (`redis-and-the-work-queue.md` 5.12): every part of generate is an individual command, a wrapper makes the list of commands and puts them into the queue individually, no command knows the order, "a chunk of a chunked stage is its own command". Built as PERF.106 to PERF.128 and PERF.172. PERF.247 (5.13) added "a job can require another job". PERF.254 (memory governor; the Dask assessment `perf254-dask-assessment-2026-11-08.md` is kept as the record) added the memory half. This design finishes the thought: the wrapper was meant to *select* commands from the request, but selection today is a fixed list with `if`s, and the "individual command" stopped at the chunk.
 
 A note on a reference in the brief: the 11-06 report "Review phases and trains for efficiency" (`phase-and-train-efficiency-2026-11-06.md`) is about build phases and merge trains (the test gate, sharding it), not the job queue. Nothing in it changes this design.
 
@@ -215,13 +215,10 @@ Every 2 to 5 seconds each running job reports its proportional size (psutil, or 
 
 Everything here is code in the program. Nothing asks you to change a systemd drop-in, Apache limit or MySQL setting.
 
-### 4.4 Relation to PERF.254 and to Dask
+### 4.4 Relation to PERF.254, and Dask is out
 
-* **PERF.254 step 1 (the psutil governor)** becomes the *reading and shedding half* of this broker, with the stage as the job. It is the right first slice: it fixes the kills with a small change and nothing in it is wasted. The cut as "its own measured step with its own cap" in PERF.254 is step 1 of the migration below.
-* **PERF.254 step 2 (Dask).** Lane 22's assessment says Dask can run our units, does not shrink a pass that wants too much, gives worker resources (a static claim) and retries, and would need us to re-attach pause, cancel, the run record and the Queue page. Its figures are from documentation as recalled, not read. [R] My view for this design:
-  * The **graph, the planner, the claims and the broker belong in our Redis**, because the run record is what the Queue page, the update guard, Stop All, pause and "finish a stopped run" all read, and it must survive a scheduler restart. Dask would hold a second copy of the graph in its scheduler's memory.
-  * Dask's strong parts are what it does *below* the graph: running a task in a long-lived worker, per-worker memory limits with pause and restart, and retries. Those can be adopted as an **engine under the broker** (the broker hands Dask an admitted job; Dask runs it) without changing the model. Dask can also spawn tasks from tasks (a task submits tasks, `secede` / `rejoin` [?]), but 20 million tasks in a scheduler is far past what it is built for, so windowing is needed there as well.
-  * So: model and broker first, on RQ; Dask only as an engine, only if the measured broker leaves a failure it would fix, behind `queue.engine`, one command at a time, byte for byte. That matches what Lane 22 concluded. You said Dask sounds most robust; the robustness I would take from it is the engine, and I would keep the graph ours.
+* **PERF.254 (rewritten by TODO, 2026-11-08, after Boss's decision)** is the first slice: RQ stays the job runner, and our own psutil reader plus a Redis memory gate admits and sheds workers from the live free memory. Boss's rule is that **all jobs of every kind** run under that gate (generation units, warm-up, checks, API jobs), not only the stages of a galaxy run. That is this broker: the claim, the live reading and the admission rule are the same code, and this note's per-job claims are what the gate takes in place of a per-stage figure once OPS.122 lands.
+* **Dask is dropped** (OPS.125 withdrawn). The graph, the planner, the claims and the broker live in our Redis, because the run record is what the Queue page, the update guard, Stop All, pause and finishing a stopped run all read. Lane 22's assessment (`perf254-dask-assessment-2026-11-08.md`) stays as the record of why it was considered. Nothing in this design needs it, and no step below depends on it.
 
 ## 5. How a galaxy run looks
 
@@ -249,8 +246,7 @@ Boss asks for a random-start galaxy of a given shape with all layers. This secti
 | **Observability** | A run of millions of jobs cannot be listed row by row. | The Queue page shows groups with counts and the slowest and the held; a job page by id; the run log keeps the same lines. |
 | **Progress, ETA, stage statistics** | They are keyed by stage. | A group is the old stage: same keys, same `stagetimes`, bars from group counters. |
 | **Redis becomes the graph** | The run record already lives there. | `appendonly yes` and the ACL set up under SEC.39 and the install notes; the run stays safe to rebuild: the plan is a pure function of the goal and the stored facts, so a lost graph is re-planned, not lost. |
-| **Replace, no shim** | Your standing rule. | Each step deletes the thing it replaces in the same change (the stage list, `REQUIRES`, `finished_by`, the hooks inside the horse). The one switch that stays for a while is `queue.engine` for the optional Dask engine, a choice of executor and not an old and new path. |
-| **Dask facts** | Taken from documentation as recalled in the PERF.254 assessment. | Open the pages and measure before any build. |
+| **Replace, no shim** | Your standing rule. | Each step deletes the thing it replaces in the same change (the stage list, `REQUIRES`, `finished_by`, the hooks inside the horse). No switch stays beside it. |
 
 ## 7. Migration, one step at a time
 
@@ -267,9 +263,8 @@ Every step: one change, old way deleted, compared byte for byte with the step be
 | 6. Narrow edges | Link and settle per sector, backfill per cell, so they start while sectors are still being generated. | Shorter runs (no idle workers at barriers); the link lock is per pair. | identical rows, a different order of writing: proven by content hashes |
 | 7. Overlap of independent commands | Allowed only for a pair of commands shown not to touch the other's data (the `makes`/`needs` table plus a test that fails a command that reads a fact it did not declare). First candidates: the skeleton-only group (sectors, mass scatter, phenomena). | Fewer idle minutes; more memory at once, which the broker meters. | identical |
 | 8. Split the whole commands | Population into its four effects first (step 1), then by sector; territories, run blocks by block, once the sectors are items. | Population gets bars and a memory claim per piece. | identical |
-| 9. Optional engine | Dask under the broker, one command at a time, behind `queue.engine`, kept only if it beats step 8 on a full run. | None unless it wins. | identical |
 
-Rough effort [A, not measured]: steps 1 and 2 are days (queue code, no output change; step 2 is PERF.254 step 1); step 3 is about one to two weeks; step 4 about a week; step 5 two to three weeks across the commands (one lane, sector generation first); steps 6 to 8 depend on what step 0 finds. Lane 22 estimated 2,500 to 3,500 of the 7,273 queue lines are in the path of a Dask change [R]; this design touches about the same lines (`wrapper`, `units`, `workers`, `runrecord`, `commands`, `stages`, `finish_run`, `followed`), so the cost is of that order whichever engine is chosen. The test suite has 36 files that touch the queue.
+Rough effort [A, not measured]: steps 1 and 2 are days (queue code, no output change; step 2 is PERF.254 step 1); step 3 is about one to two weeks; step 4 about a week; step 5 two to three weeks across the commands (one lane, sector generation first); steps 6 to 8 depend on what step 0 finds. Lane 22 estimated 2,500 to 3,500 of the 7,273 queue lines are in the path of a change to how jobs are submitted [R]; this design touches about the same lines (`wrapper`, `units`, `workers`, `runrecord`, `commands`, `stages`, `finish_run`, `followed`), so the cost is of that order. The test suite has 36 files that touch the queue.
 
 Done when: a full galaxy on a 16 GB host runs past stage 13 with no kernel kill, with groups overlapping where proven safe, output equal to the chunked run, and the cut of every command seen in the log as a job with its memory.
 
@@ -284,26 +279,27 @@ Done when: a full galaxy on a 16 GB host runs past stage 13 with no kernel kill,
 
 My recommendation is 1 for the reason in 3.5; nothing in the design prevents 2.
 
-Smaller choices I took, which you can overrule: the graph lives in our Redis and Dask is at most an engine under it; PERF.254 step 1 is the first slice, not a separate project; the planner takes a goal and subtracts stored facts, so there is no "skip" flag anywhere.
+Smaller choices I took, which you can overrule: the graph lives in our Redis and Dask is out; PERF.254 step 1 is the first slice, not a separate project; the planner takes a goal and subtracts stored facts, so there is no "skip" flag anywhere.
 
-## 9. Items (numbers from TODO, docs PR 5750, all proposed, build after Boss approves this note)
+## 9. Items (numbers from TODO, docs PRs 5750 and after; all proposed, build after Boss approves this note)
 
 | Item | What | Owner proposed | Steps of section 7 |
 |---|---|---|---|
 | DOC.113 | This design note | this thread | |
-| OPS.122 | Job model: job record, declared dependencies, subjob spawning, per-job memory claim, replacing the stage barrier | Lane 22 | 3 (and the plan record of 4) |
-| OPS.123 | Stage opening (the cut), conclude and finish hooks become jobs of their own | Lane 13 | 1 |
-| OPS.124 | Memory broker: per-job claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | Lane 22, after PERF.254 | 2 |
-| OPS.125 | Optional Dask engine behind a switch (PERF.254 step 2), only if Boss chooses | Lane 22 | 9 |
+| PERF.254 | Ships first. Rewritten by TODO: RQ stays; our own psutil reader plus a Redis memory gate admits and sheds workers; Boss's rule is that all jobs of every kind run under it | Lane 22 | 2 (first form) |
+| OPS.122 | Job model: job record, declared dependencies, subjob spawning, per-job memory claim, replacing the stage barrier | Lane 22 | 3 |
+| OPS.123 | Hooks (`prepare`, `expand`, `finish`, `conclude`) become single-purpose commands in the sequence | Lane 13 | 1 |
+| OPS.124 | Memory broker: per-job claim, measured and adjusted by load; the gate of PERF.254 grows into it | Lane 22, after PERF.254 | 2 |
 | OPS.126 | Sector generation as single-sector jobs fed by a spawner | Lane 13 | 5 (sectors first) |
 | OPS.127 | Migration stage by stage, each compared byte for byte | Lanes 22 and 13 | 0, 5 to 8 |
-| PERF.254 | Ships first: the psutil governor inside today's RQ | Lane 22 | 2 (first form) |
+| OPS.128 | Run planner: every task planned first as a stored command sequence, for every start path; takes over PERF.203's job spec | to be set by TODO | 4 |
+| OPS.129 | Split the bundled commands (the phenomena finish into about five, run-population into four, and the rest of section 3.0) | to be set by TODO | 1 and 8 |
+| OPS.125 | Optional Dask engine: **dropped** | | |
 
-**Not covered by an item yet (asked of TODO):** the planner and the stored command sequence for every start path (step 4: plan, then execute, taking over PERF.203's job spec), and the narrow-edge and overlap steps (6 and 7). OPS.122 may take the first if TODO wants it there; steps 6 and 7 would be filed later, after step 5 shows what the measurements say.
+Not covered by an item yet: the narrow-edge and overlap steps (6 and 7). They would be filed after step 5 shows what the measurements say, and only if Boss asks for overlap (Decision 2).
 
 ## 10. What I did not verify
 
-* Any Dask behavior (only recalled, as in the PERF.254 assessment).
 * The default galaxy's sector count and the time of one sector job; the commit rate at one sector a job; per-job cost for a link or a settle.
 * The `makes`/`needs` table beyond the four edges the code already declares and the comments I read.
 * Whether any current unit draws from a stream shared across its chunk, or takes row ids in completion order.
