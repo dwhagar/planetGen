@@ -54425,8 +54425,8 @@
       "title": "Stand-ins of the water and carbon a mantle stores"
     },
     {
-      "key": "6.233",
-      "number": "6.233",
+      "key": "6.237",
+      "number": "6.237",
       "rows": [
         {
           "burn_down": null,
@@ -54453,13 +54453,13 @@
             ],
             [
               "Evidence",
-              "[R5171: abstract]: the first single-crystal diffraction, one group so far (a preprint of 2026-11-04)"
+              "[R5180: abstract]: the first single-crystal diffraction, one group so far (a preprint of 2026-11-04)"
             ]
           ],
           "id": "NM1",
-          "key": "6.233:NM1",
+          "key": "6.237:NM1",
           "kind": "D",
-          "slug": "6-233-nm1",
+          "slug": "6-237-nm1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54491,13 +54491,13 @@
             ],
             [
               "Evidence",
-              "[R5172: abstract] for the diamond cell; the 2019 shock diffraction is not opened yet"
+              "[R5181: abstract] for the diamond cell; the 2019 shock diffraction is not opened yet"
             ]
           ],
           "id": "NM2",
-          "key": "6.233:NM2",
+          "key": "6.237:NM2",
           "kind": "D",
-          "slug": "6-233-nm2",
+          "slug": "6-237-nm2",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
@@ -54529,13 +54529,13 @@
             ],
             [
               "Evidence",
-              "[R5173: abstract]: synthesised, the peroxide ion seen by Raman"
+              "[R5182: abstract]: synthesised, the peroxide ion seen by Raman"
             ]
           ],
           "id": "NM3",
-          "key": "6.233:NM3",
+          "key": "6.237:NM3",
           "kind": "D",
-          "slug": "6-233-nm3",
+          "slug": "6-237-nm3",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54567,13 +54567,13 @@
             ],
             [
               "Evidence",
-              "[R5174: abstract]: predicted, then synthesised"
+              "[R5183: abstract]: predicted, then synthesised"
             ]
           ],
           "id": "NM4",
-          "key": "6.233:NM4",
+          "key": "6.237:NM4",
           "kind": "D",
-          "slug": "6-233-nm4",
+          "slug": "6-237-nm4",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54605,13 +54605,13 @@
             ],
             [
               "Evidence",
-              "[R5175: abstract]"
+              "[R5184: abstract]"
             ]
           ],
           "id": "NM5",
-          "key": "6.233:NM5",
+          "key": "6.237:NM5",
           "kind": "D",
-          "slug": "6-233-nm5",
+          "slug": "6-237-nm5",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54643,13 +54643,13 @@
             ],
             [
               "Evidence",
-              "[R5176: abstract]: made in a diamond cell"
+              "[R5185: abstract]: made in a diamond cell"
             ]
           ],
           "id": "NM6",
-          "key": "6.233:NM6",
+          "key": "6.237:NM6",
           "kind": "D",
-          "slug": "6-233-nm6",
+          "slug": "6-237-nm6",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54681,13 +54681,13 @@
             ],
             [
               "Evidence",
-              "[R5177: abstract] and [R5178: abstract]: two 2024 syntheses, Raman evidence"
+              "[R5186: abstract] and [R5187: abstract]: two 2024 syntheses, Raman evidence"
             ]
           ],
           "id": "NM7",
-          "key": "6.233:NM7",
+          "key": "6.237:NM7",
           "kind": "D",
-          "slug": "6-233-nm7",
+          "slug": "6-237-nm7",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -54695,7 +54695,7 @@
           "what": "cubic gauche polymeric nitrogen (cg-N) exists at ambient pressure: a status entry, no number"
         }
       ],
-      "slug": "6-233-stand-ins-of-the-materials-seen-since-the-textbooks",
+      "slug": "6-237-stand-ins-of-the-materials-seen-since-the-textbooks",
       "title": "Stand-ins of the materials seen since the textbooks"
     }
   ]

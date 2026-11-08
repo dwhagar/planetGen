@@ -96,6 +96,6 @@ def test_the_materials_the_report_names_are_ordinary_observed_rows():
     """GEN.1428: BC8 carbon, superionic ice, MgO2, Na2He, FeHe, Xe-Fe and Xe-Ni, ambient cg-N are observed, not predicted."""
     register = builder.evidence_rows(EVIDENCE)
     for fill_id in ("NM1", "NM2", "NM3", "NM4", "NM5", "NM6", "NM7"):
-        assert register[f"6.233:{fill_id}"][0] == "observed in a lab", fill_id
+        assert register[f"6.237:{fill_id}"][0] == "observed in a lab", fill_id
     assert register["6.229:CV1"][0] == "observed in a planet"
     assert register["6.229:CV4"][0] == "predicted only"

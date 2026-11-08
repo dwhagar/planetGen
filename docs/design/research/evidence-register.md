@@ -21,10 +21,10 @@ The note says what the source saw, so the next reader can check it. A row's owne
 | 6.229:CV2 | observed in a planet | sulfur dioxide is measured in the Venus air |
 | 6.229:CV3 | observed in a planet | hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide are measured in the Venus air |
 | 6.229:CV4 | predicted only | sulfur monoxide is observed on Venus, disulfur monoxide is predicted only; the row holds both, so it takes the weaker status |
-| 6.233:NM1 | observed in a lab | one group, a preprint of 2026-11-04 |
-| 6.233:NM2 | observed in a lab | diamond-cell diffraction; the shock experiment disagrees on where it starts |
-| 6.233:NM3 | observed in a lab | synthesised above 94 GPa, peroxide ion seen by Raman |
-| 6.233:NM4 | observed in a lab | predicted, then synthesised |
-| 6.233:NM5 | observed in a lab | made, survives release at room temperature |
-| 6.233:NM6 | observed in a lab | made in a diamond cell |
-| 6.233:NM7 | observed in a lab | two 2024 syntheses at ambient pressure |
+| 6.237:NM1 | observed in a lab | one group, a preprint of 2026-11-04 |
+| 6.237:NM2 | observed in a lab | diamond-cell diffraction; the shock experiment disagrees on where it starts |
+| 6.237:NM3 | observed in a lab | synthesised above 94 GPa, peroxide ion seen by Raman |
+| 6.237:NM4 | observed in a lab | predicted, then synthesised |
+| 6.237:NM5 | observed in a lab | made, survives release at room temperature |
+| 6.237:NM6 | observed in a lab | made in a diamond cell |
+| 6.237:NM7 | observed in a lab | two 2024 syntheses at ambient pressure |
