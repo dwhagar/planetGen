@@ -2744,6 +2744,7 @@ CREATE TABLE IF NOT EXISTS planet_isotopes (
     element     VARCHAR(3) NOT NULL,
     isotope     VARCHAR(8) NOT NULL,
     fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    initial_ratio DOUBLE NULL CHECK (initial_ratio IS NULL OR initial_ratio >= 0),
     origin      VARCHAR(12) NOT NULL,
 
     UNIQUE KEY uq_planet_isotopes (planet_id, isotope),
@@ -3273,6 +3274,7 @@ CREATE TABLE IF NOT EXISTS moon_isotopes (
     element     VARCHAR(3) NOT NULL,
     isotope     VARCHAR(8) NOT NULL,
     fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    initial_ratio DOUBLE NULL CHECK (initial_ratio IS NULL OR initial_ratio >= 0),
     origin      VARCHAR(12) NOT NULL,
 
     UNIQUE KEY uq_moon_isotopes (moon_id, isotope),
@@ -4667,6 +4669,7 @@ CREATE TABLE IF NOT EXISTS rogue_planet_isotopes (
     element     VARCHAR(3) NOT NULL,
     isotope     VARCHAR(8) NOT NULL,
     fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    initial_ratio DOUBLE NULL CHECK (initial_ratio IS NULL OR initial_ratio >= 0),
     origin      VARCHAR(12) NOT NULL,
 
     UNIQUE KEY uq_rogue_planet_isotopes (rogue_planet_id, isotope),

@@ -1088,6 +1088,8 @@ GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "m
 
 ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
 """dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",)
+"""tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
 
 
 def _gas_rows(conn, kind, object_id):

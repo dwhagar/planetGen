@@ -44,8 +44,8 @@ from planetgen.util import draw
 ATTRIBUTE = "isotopes"
 """str: The body attribute that holds the record, a list of `ROW_FIELDS` dicts (the child tables `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes`)."""
 
-ROW_FIELDS = ("element", "isotope", "fraction", "origin")
-"""tuple: The columns of an isotope row after the owner id: the element's symbol, the isotope's name (`H-2`), its atom fraction of the element, and where the value comes from."""
+ROW_FIELDS = ("element", "isotope", "fraction", "initial_ratio", "origin")
+"""tuple: The columns of an isotope row after the owner id: the element's symbol, the isotope's name (`H-2`), its atom fraction of the element, its atom ratio to the stable reference isotope at the body's formation (`None` where the isotope is not followed from formation), and where the value comes from."""
 
 NATURAL, PHYSICAL, DECAY, RADIOGENIC = "natural", "physical", "decay", "radiogenic"
 ORIGINS = (NATURAL, PHYSICAL, DECAY, RADIOGENIC)
@@ -328,16 +328,22 @@ def _two(symbol, light, heavy, heavy_fraction):
     return found
 
 
+REFERENCE_ISOTOPE = {"K": "K-39", "U": "U-238"}
+"""dict: The isotope each radioactive parent's `initial_ratio` is counted against (the stable, or far longer lived, isotope of its element)."""
+
+
 def _decayed(symbol, age_gy):
-    """`{isotope: atom fraction}` of `symbol`'s `RADIOACTIVE_PARENTS` at `age_gy`: the formation mix decayed."""
+    """`({isotope: atom fraction at age_gy}, {isotope: atom ratio to the reference isotope at formation})` of `symbol`'s `RADIOACTIVE_PARENTS`: the formation mix, then decayed."""
     mix, _factor = radiogenic.formation_mix(symbol)
+    born = {name: mix[name] / elements.isotope(name).mass_u for name in RADIOACTIVE_PARENTS[symbol]}
     atoms = {}
-    for name in RADIOACTIVE_PARENTS[symbol]:
+    for name, count in born.items():
         isotope = elements.isotope(name)
-        decay = 1.0 if isotope.stable else math.exp(-isotope.decay_constant * age_gy * _GY_S)
-        atoms[name] = mix[name] / isotope.mass_u * decay
+        atoms[name] = count * (1.0 if isotope.stable else math.exp(-isotope.decay_constant * age_gy * _GY_S))
     total = math.fsum(atoms.values())
-    return {name: value / total for name, value in atoms.items()}
+    reference = born[REFERENCE_ISOTOPE[symbol]]
+    return ({name: value / total for name, value in atoms.items()},
+            {name: count / reference for name, count in born.items() if name != REFERENCE_ISOTOPE[symbol] and not elements.isotope(name).stable})
 
 
 def _argon(share_40):
@@ -359,7 +365,7 @@ def record_of(body):
     age = _age_gy(getattr(body, "star", None))
     rows = []
     for symbol in held:
-        origin, mix = NATURAL, _natural(symbol)
+        origin, mix, initial = NATURAL, _natural(symbol), {}
         if symbol == "H" and "H-2" in mix:
             deuterium = deuterium_fraction(body, stream_of(body, "D"))
             if deuterium is not None:
@@ -373,9 +379,10 @@ def record_of(body):
             if share is not None:
                 origin, mix = RADIOGENIC, _argon(share)
         elif symbol in RADIOACTIVE_PARENTS and radiogenic.content_of(body) is not None:
-            origin, mix = DECAY, _decayed(symbol, age)
+            origin = DECAY
+            mix, initial = _decayed(symbol, age)
         for name in sorted(mix, key=lambda isotope_name: elements.isotope(isotope_name).a):
-            rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "origin": origin})
+            rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "initial_ratio": initial.get(name), "origin": origin})
     return rows
 
 

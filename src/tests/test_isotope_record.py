@@ -118,6 +118,7 @@ def test_a_generated_planet_carries_a_record_that_adds_up_per_element(sun):
     planet = _planet(sun)
     rows = planet.isotopes
     assert rows and all(set(row) == set(ir.ROW_FIELDS) and row["origin"] in ir.ORIGINS for row in rows)
+    assert {row["isotope"] for row in rows if row["initial_ratio"] is not None} == {"K-40", "U-235"}
     by_element = {}
     for row in rows:
         by_element.setdefault(row["element"], []).append(row["fraction"])
@@ -149,10 +150,13 @@ def test_an_earth_like_planets_deuterium_nitrogen_and_argon_are_of_the_order_of_
 
 def test_the_decaying_parents_fall_with_the_age_of_the_body(sun):
     young, old = _body(star=_star(0.0, 1.0)), _body(star=_star(0.0, 9.0))
-    assert ir._decayed("K", 9.0)["K-40"] < ir._decayed("K", 1.0)["K-40"]
-    assert ir._decayed("U", 9.0)["U-235"] < ir._decayed("U", 1.0)["U-235"]
-    assert math.fsum(ir._decayed("U", 4.5).values()) == pytest.approx(1.0)
-    assert ir._decayed("U", 4.568)["U-235"] == pytest.approx(0.00725, rel=0.2)    # today's 235U share of the natural mix, near the Earth's age
+    assert ir._decayed("K", 9.0)[0]["K-40"] < ir._decayed("K", 1.0)[0]["K-40"]
+    assert ir._decayed("U", 9.0)[0]["U-235"] < ir._decayed("U", 1.0)[0]["U-235"]
+    assert math.fsum(ir._decayed("U", 4.5)[0].values()) == pytest.approx(1.0)
+    assert ir._decayed("U", 4.568)[0]["U-235"] == pytest.approx(0.00725, rel=0.2)    # today's 235U share of the natural mix, near the Earth's age
+    initial = ir._decayed("U", 4.5)[1]
+    assert set(initial) == {"U-235"} and 0.2 < initial["U-235"] < 0.4                 # 235U/238U at the Solar System's birth, about 0.3
+    assert ir._decayed("K", 4.5)[1]["K-40"] > 1e-3
     assert young is not old
 
 

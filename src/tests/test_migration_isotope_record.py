@@ -67,7 +67,7 @@ def test_a_v234_galaxy_gets_the_three_tables_empty_and_a_second_run_changes_noth
     try:
         for table in TABLES:
             columns = [row["Field"] for row in conn.execute(f"SHOW COLUMNS FROM {table}").fetchall()]
-            assert columns[1:] == [table.replace("_isotopes", "") + "_id", "element", "isotope", "fraction", "origin"]
+            assert columns[1:] == [table.replace("_isotopes", "") + "_id", "element", "isotope", "fraction", "initial_ratio", "origin"]
             assert conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0
     finally:
         conn.close()

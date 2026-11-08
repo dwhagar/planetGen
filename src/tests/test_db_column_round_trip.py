@@ -235,7 +235,7 @@ NEVER_READ = {
                                           "top_radius_fraction", "water_liquid")),
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
         ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
-        ("rogue_planet_isotopes", ("element", "fraction", "id", "isotope", "origin", "rogue_planet_id")),
+        ("rogue_planet_isotopes", ("element", "fraction", "id", "initial_ratio", "isotope", "origin", "rogue_planet_id")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (

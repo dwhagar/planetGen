@@ -1138,10 +1138,12 @@ moon_isotopes = sa.Table(
     sa.Column('element', sa.String(3), nullable=False),
     sa.Column('isotope', sa.String(8), nullable=False),
     sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('origin', sa.String(12), nullable=False),
     sa.Index('uq_moon_isotopes', 'moon_id', 'isotope', unique=True),
     sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_isotopes_moon', ondelete='CASCADE'),
     sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='moon_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='moon_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
@@ -2231,10 +2233,12 @@ planet_isotopes = sa.Table(
     sa.Column('element', sa.String(3), nullable=False),
     sa.Column('isotope', sa.String(8), nullable=False),
     sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('origin', sa.String(12), nullable=False),
     sa.Index('uq_planet_isotopes', 'planet_id', 'isotope', unique=True),
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_isotopes_planet', ondelete='CASCADE'),
     sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='planet_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='planet_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
@@ -2898,10 +2902,12 @@ rogue_planet_isotopes = sa.Table(
     sa.Column('element', sa.String(3), nullable=False),
     sa.Column('isotope', sa.String(8), nullable=False),
     sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('origin', sa.String(12), nullable=False),
     sa.Index('uq_rogue_planet_isotopes', 'rogue_planet_id', 'isotope', unique=True),
     sa.ForeignKeyConstraint(['rogue_planet_id'], ['rogue_planets.id'], name='fk_rogue_planet_isotopes_rogue_planet', ondelete='CASCADE'),
     sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='rogue_planet_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='rogue_planet_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
