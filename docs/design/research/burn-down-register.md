@@ -260,3 +260,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.206:EC2 | no data | - | L3, the exponent 3 below 3.72 Earth masses was chosen so that the Earth and Venus come out bare and the 2 Earth-mass planets keep thin envelopes; no source was read for it, and a gas-capture model of a core in a disk of its own mass and temperature replaces it |
 | 6.206:EC7 | no data | - | L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime |
 | 6.36:PA15 | no data | - | L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems |
+| 6.215:ORE1 | replace | GEN.1383 | the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened |
+| 6.215:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
+| 6.215:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
+| 6.215:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |
