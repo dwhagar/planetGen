@@ -9635,19 +9635,19 @@
           "fields": [
             [
               "What it is",
-              "habitability_world.PHOSPHATE_UMOL_L (high 1000, limited 2.3, starved 0.01), habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
+              "habitability_world.AQUIFER_PHOSPHATE_UMOL_L 2.3, habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
             ],
             [
               "The range it moves in",
-              "each class value"
+              "each value"
             ],
             [
               "Where it holds",
-              "an ocean's phosphorus class as phosphate"
+              "the phosphate of an aquifer's water and of a non-aqueous medium, umol/L (an ocean's comes from the phosphorus budget, section 6.222)"
             ],
             [
               "What would show it wrong",
-              "an ocean-class survey"
+              "an aquifer or non-aqueous survey"
             ],
             [
               "What replaces it",
@@ -9655,7 +9655,7 @@
             ],
             [
               "Evidence",
-              "2.3 is Earth's ocean; high and starved are planetGen's; an aquifer is limited (DESIGN stand-in, GEN.654)"
+              "2.3 is Earth's ocean (phosphorus_budget.EARTH_OCEAN_UMOL_L); an aquifer takes it as a DESIGN stand-in (GEN.654)"
             ]
           ],
           "id": "LF16",
@@ -9666,7 +9666,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability_world.PHOSPHATE_UMOL_L (high 1000, limited 2.3, starved 0.01), habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
+          "what": "habitability_world.AQUIFER_PHOSPHATE_UMOL_L 2.3, habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L 2.3"
         },
         {
           "burn_down": [
