@@ -10,6 +10,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 - 12:39 AM, 2026-10-24 (class card, option 1): keep all 20 letters A to V, redefined by conditions, with K, L, Q, S and V kept; R, U, W, X, Y and Z stay in reserve. This is what the rule file already does.
 - 1:22 AM, 2026-10-24 (class B card, option 3; this replaces the 12:39 AM option 1 answer relayed earlier): class B never has hydrogen or helium, and a stripped giant core must be at least 5 Earth masses. At the class cut-over (C13) class B's text drops "helium" and the stripped-core line; the classifier rule for B (under 0.5 g, with air, above 210 K, no sealed ocean) does not change. Class I's note about hot-Neptune stripping is reworded to match.
 - Habitable is not a class: it is the overall habitability colour Blue or Green (GEN.643).
+- 10:21 AM EST, 2026-11-08 (class M rarity report, lever 9, option keep): the carbon dioxide limit for classes M, H, O, P and R stays at 1 kPa (judged by pressure, GEN.1321); class L's edge is unchanged. Raising it was not chosen: among 19 oxygen sea worlds a 2 kPa limit lets 5 pass and 10 kPa lets 8, but their temperature and ocean cover fail M anyway, so the lever is not where the rarity comes from.
 - Testing mode: new epochs, database versions and API versions are fine.
 
 ## The rule file
