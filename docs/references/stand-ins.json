@@ -41500,10 +41500,10 @@
               "Asplund and others 2021 Table 2 [R0168], read"
             ]
           ],
-          "id": "DC1",
-          "key": "6.213:DC1",
+          "id": "DSC1",
+          "key": "6.213:DSC1",
           "kind": "D",
-          "slug": "6-213-dc1",
+          "slug": "6-213-dsc1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -41538,10 +41538,10 @@
               "[R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix"
             ]
           ],
-          "id": "DC2",
-          "key": "6.213:DC2",
+          "id": "DSC2",
+          "key": "6.213:DSC2",
           "kind": "D",
-          "slug": "6-213-dc2",
+          "slug": "6-213-dsc2",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -41576,10 +41576,10 @@
               "[R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read"
             ]
           ],
-          "id": "DC3",
-          "key": "6.213:DC3",
+          "id": "DSC3",
+          "key": "6.213:DSC3",
           "kind": "P",
-          "slug": "6-213-dc3",
+          "slug": "6-213-dsc3",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
@@ -41614,10 +41614,10 @@
               "67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc"
             ]
           ],
-          "id": "DC4",
-          "key": "6.213:DC4",
+          "id": "DSC4",
+          "key": "6.213:DSC4",
           "kind": "P",
-          "slug": "6-213-dc4",
+          "slug": "6-213-dsc4",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -41656,10 +41656,10 @@
               "most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled"
             ]
           ],
-          "id": "DC5",
-          "key": "6.213:DC5",
+          "id": "DSC5",
+          "key": "6.213:DSC5",
           "kind": "P",
-          "slug": "6-213-dc5",
+          "slug": "6-213-dsc5",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
@@ -41694,10 +41694,10 @@
               "67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read"
             ]
           ],
-          "id": "DC6",
-          "key": "6.213:DC6",
+          "id": "DSC6",
+          "key": "6.213:DSC6",
           "kind": "P",
-          "slug": "6-213-dc6",
+          "slug": "6-213-dsc6",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",

@@ -13,13 +13,13 @@ Per 10^4 hydrogen atoms (the unit of [R3322: Table 1]), scaled by the star's ele
 | Species | Line (K) | Budget | Source and tier |
 |---|---|---|---|
 | H2O | 182 | the oxygen the rock (22.75 percent of the Sun's) and the CO and CO2 leave | [R2726], T1 |
-| NH3 (hydrate) | 131 | 30 percent of the nitrogen | [R2726] line, T1; split DC5, T3 |
-| NH4 salts | 131 | 10 percent of the nitrogen | DC5, T3 recalled |
-| H2S | 80 | 30 percent of the sulfur | line recalled DC2, T3; share from 67P DC6, T3 |
+| NH3 (hydrate) | 131 | 30 percent of the nitrogen | [R2726] line, T1; split DSC5, T3 |
+| NH4 salts | 131 | 10 percent of the nitrogen | DSC5, T3 recalled |
+| H2S | 80 | 30 percent of the sulfur | line recalled DSC2, T3; share from 67P DSC6, T3 |
 | Xe, Kr, Ar clathrate | 69, 53, 48 | all (equilibrium) | [R2726: Table 8], T1; amounts [R0168], T1 |
 | CO2 | 47 | volatile carbon, 1 part in 6 of what is not methane | [R3322: Table 1], T1 |
-| CH4 | 41 | 4.2 percent of the volatile carbon | line [R2726]; share from 67P [R3835], DC4, T3 |
-| N2 | 22 | 60 percent of the nitrogen, as molecules | line recalled DC2, T3; share DC5, T3 |
+| CH4 | 41 | 4.2 percent of the volatile carbon | line [R2726]; share from 67P [R3835], DSC4, T3 |
+| N2 | 22 | 60 percent of the nitrogen, as molecules | line recalled DSC2, T3; share DSC5, T3 |
 | CO | 20 | volatile carbon, 5 parts in 6 of what is not methane | [R3322: Table 1], T1 |
 | refractory carbon | 500 | 50 percent of the carbon | [R3321, R3322], T2 |
 

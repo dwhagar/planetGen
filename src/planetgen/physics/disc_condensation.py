@@ -26,7 +26,7 @@ ice shares of a body to it and part C the C/O of a giant).
 
 Limits. Equilibrium supply: every species freezes whole below its line. A body that formed warm and trapped a species in water ice (a comet) keeps a tiny
 share of it (`comet_ice_formation`, `comet_ice_budget.TRAPPED_FRACTION`), and that is for the body, not the disc. The lines do not move as the disc cools. The H2S and the
-ammonium-salt shares of the nitrogen and sulfur are stand-ins (registry rows DC4 to DC6).
+ammonium-salt shares of the nitrogen and sulfur are stand-ins (registry rows DSC4 to DSC6).
 """
 
 import dataclasses
@@ -37,7 +37,7 @@ from planetgen.physics import condensate_shares, constants as physical_constants
 from planetgen.util.checks import finite_domain
 
 NOBLE_LOG_EPS = {"Kr": 3.12, "Xe": 2.22}
-"""dict: The Sun's photospheric log eps (H = 12) of krypton and xenon ([R0168: Table 2]; argon is in `tuning.STELLAR_SOLAR_LOG_EPS`). [Stand-in DC1, tier T1, tweak L0.]"""
+"""dict: The Sun's photospheric log eps (H = 12) of krypton and xenon ([R0168: Table 2]; argon is in `tuning.STELLAR_SOLAR_LOG_EPS`). [Stand-in DSC1, tier T1, tweak L0.]"""
 
 LINES_K = {
     "H2O": condensate_shares.ICE_CONDENSATION_K["H2O"],
@@ -53,31 +53,31 @@ LINES_K = {
 }
 """dict: The temperature (K) below which each ice freezes, warmest first. Water, ammonia and methane are the repo's equilibrium values at 10^-4 bar; the noble-gas
 clathrates are [R2726: Table 8] (Xe 69, Kr 53, Ar 48); CO 20 and CO2 47 are [R3322: Table 1] (CO2 42 to 52 K there, 70 K in other discs); N2 22 K is recalled
-([R3321] section 1.2 puts CH4, CO and N2 near 20 to 40 K) and H2S 80 K is recalled (ice sublimates near 50 to 90 K by the matrix). [Stand-in DC2, tier T1 for the read
+([R3321] section 1.2 puts CH4, CO and N2 near 20 to 40 K) and H2S 80 K is recalled (ice sublimates near 50 to 90 K by the matrix). [Stand-in DSC2, tier T1 for the read
 lines and T3 for N2 and H2S, tweak L0.]"""
 
 REFRACTORY_LINE_K = 500.0
-"""float: The temperature below which the refractory carbon is a grain ([R3322: Table 1] adopt more than 150 K and 500 K in the model). [Stand-in DC3, tier T2, tweak L0.]"""
+"""float: The temperature below which the refractory carbon is a grain ([R3322: Table 1] adopt more than 150 K and 500 K in the model). [Stand-in DSC3, tier T2, tweak L0.]"""
 
 REFRACTORY_CARBON_SHARE = 0.5
 """float: The share of the carbon that is refractory grains: about half ([R3321] section 1.2, from the interstellar medium; [R3322: Table 1] has 0.6 of 2.4 of the carbon
-they account for in the disc). [Stand-in DC3, tier T2, tweak L1.]"""
+they account for in the disc). [Stand-in DSC3, tier T2, tweak L1.]"""
 
 CO_PER_CO2 = 1.5 / 0.3
-"""float: The CO over the CO2 of the volatile carbon that is not methane ([R3322: Table 1], CO 1.5 and CO2 0.3 molecules per 10^4 hydrogen). [Stand-in DC3, tier T2, tweak L0.]"""
+"""float: The CO over the CO2 of the volatile carbon that is not methane ([R3322: Table 1], CO 1.5 and CO2 0.3 molecules per 10^4 hydrogen). [Stand-in DSC3, tier T2, tweak L0.]"""
 
 CH4_SHARE_OF_VOLATILE_CARBON = 0.34 / (0.34 + 3.1 + 4.7)
 """float: The methane share of the volatile carbon: comet 67P's CH4 over CH4 plus CO plus CO2, 0.34, 3.1 and 4.7 percent of the water ([R3835: Table 2]), 4.2 percent.
-One comet, taken for the disc's methane. [Stand-in DC4, tier T3, tweak L1.]"""
+One comet, taken for the disc's methane. [Stand-in DSC4, tier T3, tweak L1.]"""
 
 NITROGEN_AS_N2 = 0.6
 NITROGEN_AS_SALTS = 0.1
 """float: The shares of the nitrogen that are N2 and ammonium salts, the rest being ammonia hydrate: most nitrogen is N2 and unobserved ([R3321] section 1.2) and the
-salts hold a minority ([R3321], citing the Rosetta result second-hand; the split is recalled). [Stand-ins DC5, tier T3, tweak L3.]"""
+salts hold a minority ([R3321], citing the Rosetta result second-hand; the split is recalled). [Stand-ins DSC5, tier T3, tweak L3.]"""
 
 SULFUR_AS_H2S = 0.3
 """float: The share of the sulfur that is H2S ice: 67P's H2S is 1.1 percent of the water ([R3835: Table 2]) against 3.5 percent for all the sulfur over the water (S 0.13 over the
-3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DC6, tier T3, tweak L2.]"""
+3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DSC6, tier T3, tweak L2.]"""
 
 MOLAR_MASS = {"H2O": 18.015, "NH3": 17.031, "NH4": 17.031, "H2S": 34.08, "Xe": 131.29, "Kr": 83.80, "Ar": 39.948, "CO2": 44.009, "CH4": 16.043, "N2": 28.014,
               "CO": 28.010, "C": 12.011}
