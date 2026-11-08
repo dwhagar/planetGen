@@ -1,7 +1,7 @@
 """A planet or moon keeps no description text (GEN.1212).
 
 Schema v208. `planets` and `moons` lose `description`, the sentence of the body's class that generation copied from `tuning.PLANET_CLASSES` into every
-row. The words are now read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`), so one change to the
+row. The words are now read at view time from `physics/data/planet_classes.json` (`physics/planet_class_text.py`), so one change to the
 wording reaches every stored body. A column already gone is skipped, so a stopped run can be started again.
 """
 

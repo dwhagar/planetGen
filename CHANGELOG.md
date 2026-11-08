@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3711] - 2026-11-08
+
+**Headline:** The vapor pressure of sulfuric acid and water over aqueous sulfuric acid, and the window a sulfuric acid cloud condenses in, are now computed from published thermodynamics.
+
+### Changed
+- **The curve that decides where sulfuric acid and water condense together (GEN.1424).** A new `physics/sulfuric_vapor.py` and `physics/data/sulfuric_vapor.json` give the activities of acid and water in the solution at any strength from 200 to 350 K (Zeleznik 1991, checked against its Table 7), the pure acid curve (Ayers with the Kulmala and Laaksonen correction, read from three open papers) and the water curve of Tabazadeh and others 1997, and `condensation_temperature_k` and `window` for the cloud base. A Venus-like air (30 ppm water, 3 to 10 ppm acid vapor, 1.3 bar) condenses at 356 to 370 K as a 97 to 99 percent solution and the strength falls to the 80s at the cloud top. Nothing stored changes: the cloud step of GEN.1425 will read it.
+
 ## [8.0.3710] - 2026-11-08
 
 **Headline:** The map menu test accepts the layer counts and the gravity slab label as text.

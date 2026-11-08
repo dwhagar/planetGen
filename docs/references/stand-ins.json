@@ -41847,7 +41847,7 @@
             ],
             [
               "Evidence",
-              "2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R2516] and [R0210]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
+              "2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R0210, R2516]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used"
             ]
           ],
           "id": "SV2",
@@ -42016,7 +42016,7 @@
           "burn_down": [
             "replace",
             "GEN.1425",
-            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates (Zeleznik 1991, Table 5 and Figure 1) is not yet a function; it rides the cloud step's cold edge"
+            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
           ],
           "fields": [
             [

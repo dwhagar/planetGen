@@ -4,45 +4,31 @@
 The one-line description of each planet class (UX.252, GEN.1212)
 ================================================================
 
-"a small icy body", "an ocean world with most of its surface covered in liquid water": the phrase the planet page and the system map
-put after "It is". The words are `physics/data/planet_class_text.json`, read when a page is built, so the text is the page's own and
+"a small, round, airless world", "an ocean world, its surface mostly liquid water": the phrase the planet page and the system map
+put after "It is". The words are the `phrase` of each row of `physics/data/planet_classes.json` (GEN.1432: one row holds a class's phrase and its page sentence), read when a page is built, so the text is the page's own and
 a body keeps no copy of it (GEN.1212 removes the stored `description` column and the text in `tuning.PLANET_CLASSES`).
 
 Use:
 
-    description("O")                # "an ocean world with most of its surface covered in liquid water"
+    description("O")                # "an ocean world, its surface mostly liquid water"
     description(None)               # the Asteroid type, which has no letter
     description("O", moon=True)     # the same with "planet" written as "moon"; a class text is written generically
 """
 
-import json
-import os
 import re
 
-from planetgen.physics import elements
-
-DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_class_text.json")
+from planetgen.physics import planet_classes
 
 
 class PlanetClassTextError(ValueError):
-    """The text file is malformed, or a class asked for does not exist."""
+    """A class asked for does not exist."""
 
 
-def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    descriptions = document["descriptions"]
-    for letter, text in descriptions.items():
-        if len(letter) != 1 or not letter.isupper() or not text.strip():
-            raise PlanetClassTextError(f"planet_class_text.json: a class is one capital letter and has words, not {letter!r}: {text!r}")
-    if not document["asteroid"].strip():
-        raise PlanetClassTextError("planet_class_text.json: the asteroid type has no words")
-    return descriptions, document["asteroid"]
+DESCRIPTIONS = {letter: planet_classes.BY_LETTER[letter].phrase for letter in planet_classes.LETTERS}
+"""dict: Class letter -> its description phrase (lower case, starting with its article), the `phrase` of its row in `planet_classes.json`. `ASTEROID_PHRASE` is
+the phrase of the Asteroid type, which has no letter (GEN.1160)."""
 
-
-DESCRIPTIONS, ASTEROID_PHRASE = _load()
-"""dict: Class letter -> its description phrase (lower case, starting with its article). `ASTEROID_PHRASE` is the phrase of the Asteroid
-type, which has no letter (GEN.1160)."""
+ASTEROID_PHRASE = planet_classes.ASTEROID.phrase
 
 
 def description(planet_class, moon=False):
