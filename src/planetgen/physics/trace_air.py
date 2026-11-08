@@ -21,7 +21,7 @@ A body that is drawn again (an edit, `validation.reapply_life`) loses the trace 
 """
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, mixture_subject, mixture_trace
+from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, mixture_subject, mixture_trace, planet_type
 from planetgen.util import draw
 
 TRACE_GASES = tuple(sorted({formula for row in mixture_trace.WIRED_ROWS for formula in mixture_trace.ABUNDANCES[row]}))
@@ -65,7 +65,7 @@ def apply(body):
     Gives the air of a rocky planet or moon the trace gases table m draws for it (and takes away the ones an earlier draw gave it). Run after the
     life stage, because the rows read it. Draws on a stream of the body's own, so the run's draws do not move. Returns the formulas added.
     """
-    if getattr(body, "body_type", "t") == "g":
+    if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334): its air is the envelope's, and has no trace gases of a rocky one
         return ()
     partials = _strip(atmosphere.gas_partials_pa(body))
     if not partials:

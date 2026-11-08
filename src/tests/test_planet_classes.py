@@ -240,11 +240,11 @@ def test_the_class_sweep_finds_every_stored_letter_is_the_derived_one():
     sys.path.insert(0, os.path.dirname(__file__))
     import class_sweep_cli
 
-    bodies = class_sweep_cli.sample_bodies(12, seed=3, habitable_share=0.4)
+    bodies = class_sweep_cli.sample_bodies(16, seed=3, habitable_share=0.4)
     assert sum(not is_moon for _, is_moon in bodies) > 20 and any(is_moon for _, is_moon in bodies)
     # GEN.646: the letter is derived from the stored conditions once the system is final, so classifying again changes nothing.
     assert class_sweep_cli.changed_letters(bodies) == []
-    report = class_sweep_cli.format_report(bodies, 12, 3)
+    report = class_sweep_cli.format_report(bodies, 16, 3)
     assert "Share of each letter" in report and "Planets by mass" in report
 
 
