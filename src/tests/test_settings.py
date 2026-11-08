@@ -232,8 +232,9 @@ NON_OPTION_VARIABLES = {
                                        "unset in production, the test suite sets it for the plain functions its queue tests run",
     "PLANETGEN_SYSTEMD_UNIT_DIR": "where the admin Update button looks for the planetgen-update path and service units (SEC.43; unset, /etc/systemd/system, which is "
                                   "where install.sh puts them; the test suite points it at a temporary folder)",
-    "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "
-                                      "test suite sets it, nothing else does)",
+    "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209, PERF.250; the test suite sets it; "
+                                      "unset, an install keeps it in the folder of its kept star tables, /var/cache/planetgen/band-tables, "
+                                      "which update.sh makes; set but empty, none is kept)",
 }
 
 
