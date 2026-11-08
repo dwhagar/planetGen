@@ -153,6 +153,9 @@ install_python() {
     else
         echo "SETUP INCOMPLETE: the datasets are not all downloaded; generation tests will raise DataMissing until" \
              "'python3 -m planetgen.cli.datasets fetch' succeeds (the test preflight fetches the ones the tests read)." >&2
+        # Boss (OPS.119): a warning with the download URL of each dataset that failed; `status` prints one line per missing file with its https URL
+        echo "warning: these files did not download (get them from the URL and put them in the dataset folder):" >&2
+        PYTHONPATH="$REPO/src" "$PY" -P -m planetgen.cli.datasets status 2>&1 | grep -E "https?://" >&2 || true
         touch /tmp/planetgen-datasets-incomplete
     fi
 }
