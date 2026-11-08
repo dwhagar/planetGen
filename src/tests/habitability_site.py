@@ -18,7 +18,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF
-from planetgen.db import block_stats, interests, objectindex, store
+from planetgen.db import block_stats, chart_ledger, interests, objectindex, store
 from planetgen.db.store import MySQLConfig
 from planetgen.galaxy import spherical
 from planetgen.generation.config import SystemConfig
@@ -128,6 +128,7 @@ def _add_sector(conn, name, address, center_pc, want_habitable):
     store.assign_uids(conn, system_ids=[system_id])
     store.recount_habitable_worlds(conn, [system_id])
     store.record_sector_stats(conn, sector_id, address, center_pc)
+    chart_ledger.record(conn, address, store.sector_run_id(conn), 1)     # MAP.402: a cell the ledger does not hold is an uncharted placeholder, which no block counts
     block_stats.refresh_chain(conn, address)
     name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
     return sector_id, system_id, name, tuple((kind, body_id, body) for kind, body_id, body, _tier in good)
