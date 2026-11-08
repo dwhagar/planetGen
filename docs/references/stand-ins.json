@@ -42861,6 +42861,364 @@
       "title": "Stand-ins of the phosphorus budget"
     },
     {
+      "key": "6.231",
+      "number": "6.231",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.PRIMORDIAL_D_H 2.527e-5"
+            ],
+            [
+              "The range it moves in",
+              "the printed 0.030e-5"
+            ],
+            [
+              "Where it holds",
+              "gas with no stars yet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured primordial D/H outside 2.4e-5 to 2.7e-5"
+            ],
+            [
+              "What replaces it",
+              "none (a measurement)"
+            ],
+            [
+              "Evidence",
+              "the abstract of the one percent determination: (D/H)P = (2.527 +- 0.030)e-5"
+            ]
+          ],
+          "id": "ISO1",
+          "key": "6.231:ISO1",
+          "kind": "T",
+          "slug": "6-231-iso1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.PRIMORDIAL_D_H 2.527e-5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.PROTOSOLAR_D_H 2.1e-5 and ASTRATION = ln(primordial / protosolar): ln D/H falls with the metals as 10^[Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "protosolar 1.6e-5 to 2.6e-5; the fall proportional to the metals or to their square root"
+            ],
+            [
+              "Where it holds",
+              "stars from [Fe/H] -1 to +0.4"
+            ],
+            [
+              "What would show it wrong",
+              "an old metal-poor star whose birth gas D/H is measured away from the law by more than 30 percent"
+            ],
+            [
+              "What replaces it",
+              "a galactic chemical evolution model of D/H with the star's age and place"
+            ],
+            [
+              "Evidence",
+              "the Jovian and solar-wind values quoted as 2.1e-5 in a review; the proportionality to the metals is the argument that deuterium is burned as metals are made"
+            ]
+          ],
+          "id": "ISO2",
+          "key": "6.231:ISO2",
+          "kind": "T",
+          "slug": "6-231-iso2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.PROTOSOLAR_D_H 2.1e-5 and ASTRATION = ln(primordial / protosolar): ln D/H falls with the metals as 10^[Fe/H]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.D_H_T0_K about 44 K: ice D/H = gas D/H * 7.43 * exp(T0 (1/T - 1/182 K)), clamped to 182 K above; fitted to the ocean 1.56e-4 at 182 K and the comet 67P water 5.3e-4 at 30 K; ICE_REFERENCE_K, COLD_ICE_K"
+            ],
+            [
+              "The range it moves in",
+              "T0 30 to 60 K; the cold point 20 to 40 K"
+            ],
+            [
+              "Where it holds",
+              "ice that formed from 30 K to the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a comet or an icy moon whose water D/H lies outside the law's band at its formation temperature by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a disk chemistry model of D/H in ice with the ionization and the CO freeze-out"
+            ],
+            [
+              "Evidence",
+              "the ocean 1.56e-4 (VSMOW) and the 67P water (5.3 +- 0.7)e-4 are read; two points fix an exponential in 1/T, the form is the exchange reaction's (H3+ + HD, forward at low temperature)"
+            ]
+          ],
+          "id": "ISO3",
+          "key": "6.231:ISO3",
+          "kind": "T",
+          "slug": "6-231-iso3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "isotope_record.D_H_T0_K about 44 K: ice D/H = gas D/H * 7.43 * exp(T0 (1/T - 1/182 K)), clamped to 182 K above; fitted to the ocean 1.56e-4 at 182 K and the comet 67P water 5.3e-4 at 30 K; ICE_REFERENCE_K, COLD_ICE_K"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.D_H_SCATTER_LN 0.3, FLOOR_ICE_K 20 K, GALACTOCENTRIC_RANGE_KPC (2, 20)"
+            ],
+            [
+              "The range it moves in",
+              "the scatter 0.15 to 0.5; the floor 10 to 30 K"
+            ],
+            [
+              "Where it holds",
+              "every body with water or ice"
+            ],
+            [
+              "What would show it wrong",
+              "a population of comets whose D/H spread is under 0.1 or over 0.7 in ln"
+            ],
+            [
+              "What replaces it",
+              "the measured scatter of D/H in comets and ices as more are measured"
+            ],
+            [
+              "Evidence",
+              "no source prints the spread of one body class about the law; the floor and the range keep the law inside the data it was fitted to"
+            ]
+          ],
+          "id": "ISO4",
+          "key": "6.231:ISO4",
+          "kind": "T",
+          "slug": "6-231-iso4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "isotope_record.D_H_SCATTER_LN 0.3, FLOOR_ICE_K 20 K, GALACTOCENTRIC_RANGE_KPC (2, 20)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.CARBON_GRADIENT (6.21, 18.71), NITROGEN_GRADIENT (21.1, 123.8), CARBON_RATIOS (68, 89), NITROGEN_RATIOS (400, 441), SOLAR_GALACTOCENTRIC_KPC 7.9: the gradient at the radius whose gas has the star's metallicity, over the gradient at the Sun's, times a ratio linear in age between the local interstellar and the birth value"
+            ],
+            [
+              "The range it moves in",
+              "the metallicity gradient 0.02 to 0.06 dex/kpc; the time interpolation linear or none"
+            ],
+            [
+              "Where it holds",
+              "stars from [Fe/H] -1 to +0.4 and 0 to 10 Gyr"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured 12C/13C or 14N/15N differs from the law's by more than 30 percent"
+            ],
+            [
+              "What replaces it",
+              "a chemical evolution model that gives each isotope ratio by the star's birth radius and time"
+            ],
+            [
+              "Evidence",
+              "the 12C/13C fit (6.21 +- 1.00) D + (18.71 +- 7.37), the local 68 and the solar 89 are printed in the paper; the 14N/15N relation (21.1 +- 5.2) D + (123.8 +- 37.1), the protosolar 441 +- 6 and the local ~400 in the review that quotes it; the star's metals are taken to stand for its birth radius, which radial migration breaks"
+            ]
+          ],
+          "id": "ISO5",
+          "key": "6.231:ISO5",
+          "kind": "T",
+          "slug": "6-231-iso5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.CARBON_GRADIENT (6.21, 18.71), NITROGEN_GRADIENT (21.1, 123.8), CARBON_RATIOS (68, 89), NITROGEN_RATIOS (400, 441), SOLAR_GALACTOCENTRIC_KPC 7.9: the gradient at the radius whose gas has the star's metallicity, over the gradient at the Sun's, times a ratio linear in age between the local interstellar and the birth value"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.N_T0_K about 24 K and NITROGEN_ENRICHMENT_REFERENCE 441/274, NITROGEN_ENRICHMENT_COLD 441/140: the 15N enrichment of solids over the gas, the same exponential in 1/T"
+            ],
+            [
+              "The range it moves in",
+              "T0 15 to 35 K"
+            ],
+            [
+              "Where it holds",
+              "solids that formed from 30 K to the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a comet or a rock whose 14N/15N is outside the law's band at its formation temperature by more than 30 percent"
+            ],
+            [
+              "What replaces it",
+              "a disk model of nitrogen exchange reactions"
+            ],
+            [
+              "Evidence",
+              "the terrestrial 274 is the table's IUPAC mix; the comets' about 140 is said to be very constant across the comets measured; the review that finds exchange reactions much less efficient than thought leaves the cause open"
+            ]
+          ],
+          "id": "ISO6",
+          "key": "6.231:ISO6",
+          "kind": "T",
+          "slug": "6-231-iso6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "isotope_record.N_T0_K about 24 K and NITROGEN_ENRICHMENT_REFERENCE 441/274, NITROGEN_ENRICHMENT_COLD 441/140: the 15N enrichment of solids over the gas, the same exponential in 1/T"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ARGON_36_OVER_38 5.501"
+            ],
+            [
+              "The range it moves in",
+              "the printed 0.005"
+            ],
+            [
+              "Where it holds",
+              "argon from the nebula"
+            ],
+            [
+              "What would show it wrong",
+              "a primordial argon whose ratio is measured away from 5.5 by more than 3 percent"
+            ],
+            [
+              "What replaces it",
+              "none (a measurement)"
+            ],
+            [
+              "Evidence",
+              "the abstract: 5.501 +- 0.005, 3.42 +- 0.09 percent above the air's"
+            ]
+          ],
+          "id": "ISO7",
+          "key": "6.231:ISO7",
+          "kind": "T",
+          "slug": "6-231-iso7",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ARGON_36_OVER_38 5.501"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ARGON_40_SHARE_MAX 0.9996 and SOLID_ICES (the organics taken as CH2O)"
+            ],
+            [
+              "The range it moves in",
+              "the cap 0.99 to 0.9999"
+            ],
+            [
+              "Where it holds",
+              "argon-bearing air; ices with an 'other' share"
+            ],
+            [
+              "What would show it wrong",
+              "an air whose argon is more than 0.04 percent primordial at the age of its star"
+            ],
+            [
+              "What replaces it",
+              "a model of the argon of an air from the nebula and the interior"
+            ],
+            [
+              "Evidence",
+              "a cap that keeps the primordial share a gas always holds; the organics' H, C and O are taken as a formaldehyde stand-in"
+            ]
+          ],
+          "id": "ISO8",
+          "key": "6.231:ISO8",
+          "kind": "T",
+          "slug": "6-231-iso8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "isotope_record.ARGON_40_SHARE_MAX 0.9996 and SOLID_ICES (the organics taken as CH2O)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
+            ],
+            [
+              "The range it moves in",
+              "the degassed share 0.5 to 2 times"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with an interior and argon in the air"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like body whose air is under 99 percent 40Ar, or a Mars-like one at the Earth's share"
+            ],
+            [
+              "What replaces it",
+              "a model that follows the argon between the mantle and the air"
+            ],
+            [
+              "Evidence",
+              "the branching is the table's NUBASE value; the degassing law is the one the air's outgassing already uses; the Earth's air holds about half of its 40Ar produced, which this law does not tune to"
+            ]
+          ],
+          "id": "ISO9",
+          "key": "6.231:ISO9",
+          "kind": "T",
+          "slug": "6-231-iso9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
+        }
+      ],
+      "slug": "6-231-stand-ins-of-the-isotope-record-of-a-body",
+      "title": "Stand-ins of the isotope record of a body"
+    },
+    {
       "key": "6.227",
       "number": "6.227",
       "rows": [

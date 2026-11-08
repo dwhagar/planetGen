@@ -25810,6 +25810,41 @@
       "kind": "web",
       "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
       "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"
+    },
+    "R5165": {
+      "kind": "paper",
+      "label": "Cooke et al. 2018",
+      "title": "One Percent Determination of the Primordial Deuterium Abundance*"
+    },
+    "R5166": {
+      "kind": "paper",
+      "label": "Colzi et al. 2018",
+      "title": "Nitrogen fractionation in high-mass star-forming cores across the Galaxy"
+    },
+    "R5167": {
+      "kind": "paper",
+      "label": "Altwegg et al. 2019",
+      "title": "Cometary Chemistry and the Origin of Icy Solar System Bodies: The View After Rosetta"
+    },
+    "R5168": {
+      "kind": "paper",
+      "label": "Nomura et al. 2022",
+      "title": "The Isotopic Links from Planet Forming Regions to the Solar System"
+    },
+    "R5169": {
+      "kind": "paper",
+      "label": "Milam et al. 2005",
+      "title": "The 12 C/ 13 C Isotope Gradient Derived from Millimeter Transitions of CN: The Case for Galactic Chemical Evolution"
+    },
+    "R5170": {
+      "kind": "paper",
+      "label": "Meshik et al. 2007",
+      "title": "Constraints on Neon and Argon Isotopic Fractionation in Solar Wind"
+    },
+    "R5171": {
+      "kind": "paper",
+      "label": "Adande and Ziurys 2011",
+      "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY"
     }
   }
 }

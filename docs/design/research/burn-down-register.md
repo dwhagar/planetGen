@@ -286,3 +286,5 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.223:SD8 | no data | - | no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case |
 | 6.223:SD9 | no data | - | the reference window is a design choice; only the Earth's deposits by era exist |
 | 6.213:DSC5 | no data | - | L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand |
+| 6.231:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
+| 6.231:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |

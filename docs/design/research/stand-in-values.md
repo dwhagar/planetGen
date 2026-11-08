@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1371 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1380 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 170 | 19 | 11 | 1 | 0 | 201 |
+| T1 | 172 | 19 | 11 | 1 | 0 | 203 |
 | T2 | 129 | 58 | 1 | 1 | 0 | 189 |
 | T3 | 103 | 44 | 9 | 10 | 0 | 166 |
-| T4 | 62 | 11 | 2 | 19 | 10 | 104 |
-| T5 | 62 | 22 | 4 | 1 | 0 | 89 |
-| T6 | 145 | 100 | 27 | 75 | 0 | 347 |
+| T4 | 62 | 11 | 2 | 21 | 10 | 106 |
+| T5 | 62 | 23 | 6 | 1 | 0 | 92 |
+| T6 | 147 | 100 | 27 | 75 | 0 | 349 |
 | T7 | 34 | 15 | 8 | 28 | 0 | 85 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 746 | 285 | 67 | 228 | 45 | 1371 |
+| All | 750 | 286 | 69 | 230 | 45 | 1380 |
 
 ## How the labels were given
 
@@ -1875,6 +1875,20 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PB8 | P | T6 | L1 | phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L | 100 to 1000 | oceans of the soda class | a soda lake whose phosphate stays near the neutral ocean's | a carbonate-apatite equilibrium of the lake's own pH and calcium | [R4399] (carbonate-rich lakes of the Archean, up to millimolar phosphate for want of free calcium), RECALLED; the factor is set so that the old `high` class (1000 umol/L) is the Earth-like soda value | - | - |
 | PB9 | B | T6 | L3 | phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor | ceiling 300 to 3000; floor 0.001 to 0.1 | oceans | a sealed ocean with a measured phosphate far above the floor | an ice-ocean exchange model for the sealed case | the old class values of `habitability_world` (GEN.654: high 1000, starved 0.01), kept as the two bounds | - | no data |
 | PB10 | T | T6 | L3 | phosphorus_budget.STARVED_BELOW_UMOL_L 0.1 and HIGH_FROM_UMOL_L 100: the bands of `phosphorus_class` | starved 0.03 to 0.3; high 30 to 300 | all oceans | a band that a life score does not follow | none; a label for a page, the number drives the score | research data file part 4: classes at 0.1 and 1 micromolar; the high band is the design's, a label for pages only | - | no data |
+
+## 6.231 Stand-ins of the isotope record of a body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ISO1 | T | T1 | L0 | isotope_record.PRIMORDIAL_D_H 2.527e-5 | the printed 0.030e-5 | gas with no stars yet | a measured primordial D/H outside 2.4e-5 to 2.7e-5 | none (a measurement) | the abstract of the one percent determination: (D/H)P = (2.527 +- 0.030)e-5 | - | - |
+| ISO2 | T | T5 | L1 | isotope_record.PROTOSOLAR_D_H 2.1e-5 and ASTRATION = ln(primordial / protosolar): ln D/H falls with the metals as 10^[Fe/H] | protosolar 1.6e-5 to 2.6e-5; the fall proportional to the metals or to their square root | stars from [Fe/H] -1 to +0.4 | an old metal-poor star whose birth gas D/H is measured away from the law by more than 30 percent | a galactic chemical evolution model of D/H with the star's age and place | the Jovian and solar-wind values quoted as 2.1e-5 in a review; the proportionality to the metals is the argument that deuterium is burned as metals are made | - | - |
+| ISO3 | T | T5 | L2 | isotope_record.D_H_T0_K about 44 K: ice D/H = gas D/H * 7.43 * exp(T0 (1/T - 1/182 K)), clamped to 182 K above; fitted to the ocean 1.56e-4 at 182 K and the comet 67P water 5.3e-4 at 30 K; ICE_REFERENCE_K, COLD_ICE_K | T0 30 to 60 K; the cold point 20 to 40 K | ice that formed from 30 K to the snow line | a comet or an icy moon whose water D/H lies outside the law's band at its formation temperature by more than a factor of 2 | a disk chemistry model of D/H in ice with the ionization and the CO freeze-out | the ocean 1.56e-4 (VSMOW) and the 67P water (5.3 +- 0.7)e-4 are read; two points fix an exponential in 1/T, the form is the exchange reaction's (H3+ + HD, forward at low temperature) | - | - |
+| ISO4 | T | T4 | L3 | isotope_record.D_H_SCATTER_LN 0.3, FLOOR_ICE_K 20 K, GALACTOCENTRIC_RANGE_KPC (2, 20) | the scatter 0.15 to 0.5; the floor 10 to 30 K | every body with water or ice | a population of comets whose D/H spread is under 0.1 or over 0.7 in ln | the measured scatter of D/H in comets and ices as more are measured | no source prints the spread of one body class about the law; the floor and the range keep the law inside the data it was fitted to | - | no data |
+| ISO5 | T | T6 | L0 | isotope_record.CARBON_GRADIENT (6.21, 18.71), NITROGEN_GRADIENT (21.1, 123.8), CARBON_RATIOS (68, 89), NITROGEN_RATIOS (400, 441), SOLAR_GALACTOCENTRIC_KPC 7.9: the gradient at the radius whose gas has the star's metallicity, over the gradient at the Sun's, times a ratio linear in age between the local interstellar and the birth value | the metallicity gradient 0.02 to 0.06 dex/kpc; the time interpolation linear or none | stars from [Fe/H] -1 to +0.4 and 0 to 10 Gyr | a star whose measured 12C/13C or 14N/15N differs from the law's by more than 30 percent | a chemical evolution model that gives each isotope ratio by the star's birth radius and time | the 12C/13C fit (6.21 +- 1.00) D + (18.71 +- 7.37), the local 68 and the solar 89 are printed in the paper; the 14N/15N relation (21.1 +- 5.2) D + (123.8 +- 37.1), the protosolar 441 +- 6 and the local ~400 in the review that quotes it; the star's metals are taken to stand for its birth radius, which radial migration breaks | - | - |
+| ISO6 | T | T5 | L2 | isotope_record.N_T0_K about 24 K and NITROGEN_ENRICHMENT_REFERENCE 441/274, NITROGEN_ENRICHMENT_COLD 441/140: the 15N enrichment of solids over the gas, the same exponential in 1/T | T0 15 to 35 K | solids that formed from 30 K to the snow line | a comet or a rock whose 14N/15N is outside the law's band at its formation temperature by more than 30 percent | a disk model of nitrogen exchange reactions | the terrestrial 274 is the table's IUPAC mix; the comets' about 140 is said to be very constant across the comets measured; the review that finds exchange reactions much less efficient than thought leaves the cause open | - | - |
+| ISO7 | T | T1 | L0 | isotope_record.ARGON_36_OVER_38 5.501 | the printed 0.005 | argon from the nebula | a primordial argon whose ratio is measured away from 5.5 by more than 3 percent | none (a measurement) | the abstract: 5.501 +- 0.005, 3.42 +- 0.09 percent above the air's | - | - |
+| ISO8 | T | T4 | L3 | isotope_record.ARGON_40_SHARE_MAX 0.9996 and SOLID_ICES (the organics taken as CH2O) | the cap 0.99 to 0.9999 | argon-bearing air; ices with an 'other' share | an air whose argon is more than 0.04 percent primordial at the age of its star | a model of the argon of an air from the nebula and the interior | a cap that keeps the primordial share a gas always holds; the organics' H, C and O are taken as a formaldehyde stand-in | - | no data |
+| ISO9 | T | T6 | L0 | isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (`surface_pressure.degassed_share`), over the moles of argon in the air | the degassed share 0.5 to 2 times | rocky bodies with an interior and argon in the air | an Earth-like body whose air is under 99 percent 40Ar, or a Mars-like one at the Earth's share | a model that follows the argon between the mantle and the air | the branching is the table's NUBASE value; the degassing law is the one the air's outgassing already uses; the Earth's air holds about half of its 40Ar produced, which this law does not tune to | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

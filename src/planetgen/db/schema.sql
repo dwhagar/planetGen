@@ -2737,6 +2737,20 @@ CREATE TABLE IF NOT EXISTS planet_deposit_types (
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The isotope record of a planet (v235, GEN.1377, GEN.1420): one row per isotope of each element it holds, its atom fraction of the element and where the value comes from.
+CREATE TABLE IF NOT EXISTS planet_isotopes (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id  BIGINT UNSIGNED NOT NULL,
+    element     VARCHAR(3) NOT NULL,
+    isotope     VARCHAR(8) NOT NULL,
+    fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    origin      VARCHAR(12) NOT NULL,
+
+    UNIQUE KEY uq_planet_isotopes (planet_id, isotope),
+    CONSTRAINT fk_planet_isotopes_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the planet, in Earth masses per material.
 CREATE TABLE IF NOT EXISTS planet_interior_layers (
     id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -3249,6 +3263,20 @@ CREATE TABLE IF NOT EXISTS moon_deposit_types (
 
     UNIQUE KEY uq_moon_deposit_types (moon_id, deposit_type),
     CONSTRAINT fk_moon_deposit_types_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The isotope record of a moon (v235, GEN.1377, GEN.1420): one row per isotope of each element it holds, its atom fraction of the element and where the value comes from.
+CREATE TABLE IF NOT EXISTS moon_isotopes (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id  BIGINT UNSIGNED NOT NULL,
+    element     VARCHAR(3) NOT NULL,
+    isotope     VARCHAR(8) NOT NULL,
+    fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    origin      VARCHAR(12) NOT NULL,
+
+    UNIQUE KEY uq_moon_isotopes (moon_id, isotope),
+    CONSTRAINT fk_moon_isotopes_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -4629,6 +4657,20 @@ CREATE TABLE IF NOT EXISTS rogue_planet_deposit_types (
 
     UNIQUE KEY uq_rogue_planet_deposit_types (rogue_planet_id, deposit_type),
     CONSTRAINT fk_rogue_planet_deposit_types_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The isotope record of a rogue planet (v235, GEN.1377, GEN.1420): one row per isotope of each element it holds, its atom fraction of the element and where the value comes from.
+CREATE TABLE IF NOT EXISTS rogue_planet_isotopes (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id  BIGINT UNSIGNED NOT NULL,
+    element     VARCHAR(3) NOT NULL,
+    isotope     VARCHAR(8) NOT NULL,
+    fraction    DOUBLE NOT NULL CHECK (fraction >= 0 AND fraction <= 1),
+    origin      VARCHAR(12) NOT NULL,
+
+    UNIQUE KEY uq_rogue_planet_isotopes (rogue_planet_id, isotope),
+    CONSTRAINT fk_rogue_planet_isotopes_rogue_planet
         FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
