@@ -68,6 +68,21 @@ def apply_life_data(planet, keep_stored=False):
             barred.add(frozen)
             vars(planet).clear()
             vars(planet).update(vars(_trial_copy(before)))
+    _remake_ground_if_thawed(planet, before)
+
+
+def _remake_ground_if_thawed(planet, before):
+    """
+    GEN.1385: the air the life made can warm the body past the freezing point of the ice its ground was drawn with (a frozen hydrosphere at 240 K that the
+    life's gases take to 408 K), and a ground of ice over a surface that hot is no ground. The water and the ground are made again at the temperature
+    the life left, on the body's own stream (`planets.refresh_at_final_age`, the same step the life pass runs before it), only when the ground held ice
+    that no longer stands: a body whose temperature the life did not move past that point keeps what it had, draw for draw.
+    """
+    from planetgen.physics import planets, surface_composition
+    if planet.body_type in ("g", "a") or (planet.surface_temperature or 0.0) <= (before.surface_temperature or 0.0):
+        return
+    if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= 273.15:
+        planets.refresh_at_final_age(planet)
 
 
 @dataclass
