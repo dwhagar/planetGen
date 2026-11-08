@@ -23,6 +23,9 @@
   {%- for message in messages %}
   <p class="hint" role="status">{{ message }}</p>
   {%- endfor %}
+  {%- if since is not none %}
+  <p class="hint" role="status">Only the systems made since {{ utc_time(since) }}, the start of a generation run. <a href="{{ systems_url }}">Show every system</a></p>
+  {%- endif %}
   {%- if show_uncharted %}
   <p class="hint">These stars were placed by the scatters and have no system yet. Open the sector on the Galaxy Map to
     see where each one is. {% if can_generate %}Generate builds only that one star's system and leaves the rest of its

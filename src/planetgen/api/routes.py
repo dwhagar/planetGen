@@ -622,6 +622,7 @@ def systems():
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
+    `since=<Unix seconds>` keeps the systems created at or after that time (ADM.150: what a run has made so far).
     """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
@@ -641,6 +642,10 @@ def systems():
     except ValueError as exc:
         raise ApiError(str(exc))
     filters["values"] = values
+    try:
+        filters["since"] = finite_float(request.args["since"]) if request.args.get("since") else None
+    except ValueError:
+        raise ApiError("since must be a number (Unix seconds)")
 
     limit, offset = _paginate(request.args)
     db = get_db()

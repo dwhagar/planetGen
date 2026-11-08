@@ -6,6 +6,7 @@ home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
 two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
+import math
 import re
 from urllib.parse import urlencode
 
@@ -112,13 +113,23 @@ def _system_value_ranges():
     return searchpage.SearchState.from_args(request.args).value_ranges()
 
 
+def _since_from_args():
+    """`?since=<Unix seconds>` of the Systems page (ADM.150: the systems a run has made so far), or `None` for a missing or bad value."""
+    try:
+        value = float(request.args.get("since") or "")
+    except ValueError:
+        return None
+    return value if math.isfinite(value) and value >= 0 else None
+
+
 def _all_systems_load(state, limit, offset, want_facets, after=None):
     placement = state.filters["placement"]
     envelope = apiclient.get_systems(
         db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         binary=_binary_filter(state.filters["binary"]),
         placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
-        octants=state.filters["octant"], facets=want_facets, start=state.start, ranges=_system_value_ranges())
+        octants=state.filters["octant"], facets=want_facets, start=state.start, ranges=_system_value_ranges(),
+        since=_since_from_args())
     facets = None
     if want_facets:
         facets = {
@@ -269,6 +280,7 @@ def systems():
     outside any sector) are a filter on the list (UX.55). `?uncharted=1`
     lists the scattered stars no system was built around instead (UX.87)."""
     show_uncharted = request.args.get("uncharted") == "1"
+    since = None if show_uncharted else _since_from_args()
     value_groups, value_chips = [], []
     if show_uncharted:
         table = tables.render(UNCHARTED_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=("uncharted",))
@@ -277,6 +289,8 @@ def systems():
         if changed:
             return redirect(f"{request.path}?{urlencode(pairs)}#all-systems" if pairs else f"{request.path}#all-systems")
         kept = {key: value for key, value in request.args.items() if key in searchpage.VALUE_FIELDS}
+        if since is not None:
+            kept["since"] = request.args["since"]   # rides in every link and on the table's JSON address
         table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=tuple(kept), **kept)
         state = searchpage.SearchState.from_args(request.args)
         value_groups = searchpage.value_form(state)
@@ -290,6 +304,7 @@ def systems():
         all_systems=table,
         value_groups=value_groups, value_chips=value_chips,
         show_uncharted=show_uncharted,
+        since=since,
         uncharted_url=page_url("systems", uncharted="1", _anchor="all-systems"),
         systems_url=page_url("systems", _anchor="all-systems"),
         can_generate=current_admin() is not None,

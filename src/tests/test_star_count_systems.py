@@ -50,3 +50,15 @@ def test_list_systems_in_the_database_layer_agrees_with_the_api(multiples, seede
         assert ordered == sorted(ordered, reverse=True)
     finally:
         conn.close()
+
+
+def test_the_systems_list_keeps_only_the_systems_made_since_a_time(multiples):  # noqa: F811
+    """ADM.150: `since` is the start of a run in Unix seconds; the list and the count follow it, and a bad value is a 400."""
+    every = multiples.get("/api/systems?limit=500").get_json()
+    assert every["total"] > 0
+    future = multiples.get("/api/systems?since=99999999999&facets=1").get_json()
+    assert future["items"] == [] and future["total"] == 0
+    assert multiples.get("/api/systems?since=0&limit=500").get_json()["total"] == every["total"]
+    bad = multiples.get("/api/systems?since=soon")
+    assert bad.status_code == 400 and "since" in bad.get_json()["error"]
+    assert multiples.get("/api/systems?since=nan").status_code == 400

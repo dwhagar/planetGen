@@ -1589,6 +1589,17 @@ def test_the_generate_form_reports_every_bad_field_at_once():
     assert "Minimum start density must be at least 0.001." in message
 
 
+def test_systems_url_only_for_a_galaxy_run_that_has_started(client):
+    """ADM.150: a started galaxy run links to the systems made since it started."""
+    now = time.time()
+    with client.application.test_request_context("/"):
+        base = {"created_at": now - 61, "steps": []}
+        started = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": False, "started_at": now - 60, **base})
+        assert started["systems_url"] == f"/systems?since={int(now - 60)}"
+        for job in ({"kind": "plan", "started_at": now}, {"kind": "galaxy", "started_at": None}):
+            assert generate_page._job_view({"id": "j2", "finished": False, **base, **job})["systems_url"] is None
+
+
 def test_random_start_argv_carries_the_neighborhood_count():
     """GEN.97: more than one neighborhood adds the count and the density bias."""
     assert generate_page.random_start_argv({"neighborhoods": "4", "neighborhood_gamma": "1.5"}) == [

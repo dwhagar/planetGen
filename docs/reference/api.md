@@ -181,6 +181,7 @@ connectivity to that specific schema rather than the default one.
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
   and `stars` (UX.239: how many stars a system holds, as in `/api/search`: a count `3`, `3+` for three or more, or `single`, `binary`, `trinary`,
   `quaternary`, `quintenary`; anything else is a 400; the `stars` sort orders by the same count and pages by `offset`),
+  and `since=<Unix seconds>` (ADM.150: only the systems created at or after that time, the start of a run; not a number is a 400),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
   but not its own). `total` counts the systems that pass the filters; where

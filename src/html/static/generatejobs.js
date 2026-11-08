@@ -89,6 +89,13 @@ function render(job) {
     error.hidden = !job.error;
   }
 
+  // ADM.150: the systems this run has made so far.
+  const systems = panel.querySelector("[data-job-systems]");
+  if (systems) {
+    systems.hidden = !job.systems_url;
+    if (job.systems_url) systems.href = job.systems_url;
+  }
+
   if (job.finished) {
     const cancel = panel.querySelector("[data-job-cancel]");
     if (cancel) cancel.remove();
