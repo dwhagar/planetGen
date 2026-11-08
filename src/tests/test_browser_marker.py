@@ -34,3 +34,19 @@ def test_the_import_forms_and_a_borrowed_fixture_count():
     here = os.path.abspath(__file__)
     assert conftest._uses_playwright(types.SimpleNamespace(fixturenames=("gl_browser", "page"), path=here))
     assert not conftest._uses_playwright(types.SimpleNamespace(fixturenames=("page",), path=here))
+
+
+def test_every_browser_fixture_that_starts_playwright_stops_it():
+    """TEST.696: `test_life_text_a11y_browser.py` started Playwright and never stopped it, so its asyncio loop stayed alive for every later module in the same xdist
+    worker and about 1,500 browser tests failed to start. A file that calls `.start()` on `sync_playwright()` must call `.stop()` in the `finally` after its `yield`; one that uses it as a
+    context manager is closed by that."""
+    import pathlib
+    import re
+
+    folder = pathlib.Path(__file__).resolve().parent
+    starters = []
+    for path in sorted(folder.glob("test_*.py")):
+        text = path.read_text(encoding="utf-8")
+        if re.search(r"sync_playwright\(\)\s*\.start\(\)", text) and not re.search(r"yield[^\n]*\n\s*finally:[\s\S]{0,300}?\.stop\(\)", text):
+            starters.append(path.name)
+    assert not starters, f"these files start Playwright and never stop it: {starters}"

@@ -41469,6 +41469,246 @@
       "title": "Stand-ins of the asteroid field two colliding rogue planets leave"
     },
     {
+      "key": "6.213",
+      "number": "6.213",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the Sun"
+            ],
+            [
+              "What would show it wrong",
+              "a revised photospheric abundance"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "Asplund and others 2021 Table 2 [R0168], read"
+            ]
+          ],
+          "id": "DSC1",
+          "key": "6.213:DSC1",
+          "kind": "D",
+          "slug": "6-213-dsc1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.NOBLE_LOG_EPS Kr 3.12 and Xe 2.22 (the Sun's log eps, H = 12)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+            ],
+            [
+              "The range it moves in",
+              "CO2 42 to 52 K or 70 K, CO 18 to 22 K"
+            ],
+            [
+              "Where it holds",
+              "a disc at about 10^-4 bar"
+            ],
+            [
+              "What would show it wrong",
+              "a measured line off these by more than the range"
+            ],
+            [
+              "What replaces it",
+              "a line computed at the disc's own pressure"
+            ],
+            [
+              "Evidence",
+              "[R2726, R3322], read; N2 22 K and H2S 80 K are recalled (T3, tweak L0): [R3321] puts CH4, CO and N2 near 20 to 40 K, and H2S ice sublimates near 50 to 90 K by the matrix"
+            ]
+          ],
+          "id": "DSC2",
+          "key": "6.213:DSC2",
+          "kind": "D",
+          "slug": "6-213-dsc2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.LINES_K: Xe 69, Kr 53, Ar 48 K ([R2726: Table 8]), CO 20 and CO2 47 K ([R3322: Table 1]); water 182, ammonia 131 and methane 41 K are the repo's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+            ],
+            [
+              "The range it moves in",
+              "share 0.25 to 0.6; CO per CO2 2 to 8"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "a disc with measured grain carbon outside the range"
+            ],
+            [
+              "What replaces it",
+              "a disc chemistry model"
+            ],
+            [
+              "Evidence",
+              "[R3321] section 1.2 (about half, from the interstellar medium), [R3322: Table 1] (0.6 grains of 2.4 carbon; CO 1.5 and CO2 0.3), read"
+            ]
+          ],
+          "id": "DSC3",
+          "key": "6.213:DSC3",
+          "kind": "P",
+          "slug": "6-213-dsc3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.REFRACTORY_CARBON_SHARE 0.5, REFRACTORY_LINE_K 500 and CO_PER_CO2 5: about half the carbon is grains; the volatile carbon is CO and CO2 in the ratio of Oberg's Table 1"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "the volatile carbon of a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a second comet or a disc measurement of methane"
+            ],
+            [
+              "What replaces it",
+              "the carbon chemistry of a disc"
+            ],
+            [
+              "Evidence",
+              "67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc"
+            ]
+          ],
+          "id": "DSC4",
+          "key": "6.213:DSC4",
+          "kind": "P",
+          "slug": "6-213-dsc4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+            ],
+            [
+              "The range it moves in",
+              "N2 0.4 to 0.9; salts 0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "the nitrogen of a disc"
+            ],
+            [
+              "What would show it wrong",
+              "measured N2 or ammonium in a disc or comet"
+            ],
+            [
+              "What replaces it",
+              "a nitrogen chemistry model"
+            ],
+            [
+              "Evidence",
+              "most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled"
+            ]
+          ],
+          "id": "DSC5",
+          "key": "6.213:DSC5",
+          "kind": "P",
+          "slug": "6-213-dsc5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L3",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "a comet with a different H2S over water"
+            ],
+            [
+              "What replaces it",
+              "a sulfur chemistry model"
+            ],
+            [
+              "Evidence",
+              "67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read"
+            ]
+          ],
+          "id": "DSC6",
+          "key": "6.213:DSC6",
+          "kind": "P",
+          "slug": "6-213-dsc6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": "GEN.1363",
+          "what": "disc_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock"
+        }
+      ],
+      "slug": "6-213-stand-ins-of-the-species-the-disc-condenses",
+      "title": "Stand-ins of the species the disc condenses"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
