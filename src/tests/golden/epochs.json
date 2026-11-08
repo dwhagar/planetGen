@@ -837,6 +837,13 @@
       "first_release": "8.0.3688",
       "reason": "Train 18: core composition split, dust species, mantle water and carbon, giant envelope species, disk condensation parts B and C, ore deposits, phosphorus budget, ground after life, no-life class list",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 141,
+      "first_release": null,
+      "pending": true,
+      "reason": "GEN.1425 part B: the sulfuric acid cloud in the aerosols with its base and strength from the sulfuric acid curves (GEN.1424, GEN.1019), the acid-medium strength from the same model (GEN.888), the cloud's ultraviolet absorber in the sky colour (V10)",
+      "affects": ["fill"]
     }
   ]
 }
