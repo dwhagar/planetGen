@@ -359,9 +359,10 @@ def test_a_lost_service_stops_the_run_with_a_resume_hint(monkeypatch, capsys):
 
 # --- the downloaded data ---------------------------------------------------------------
 
-def test_a_dataset_the_machine_lacks_is_fetched_and_one_that_cannot_be_is_a_problem():
+def test_a_dataset_the_machine_lacks_is_fetched_and_one_that_cannot_be_is_a_problem(monkeypatch):
     from types import SimpleNamespace
     calls, present = [], {"now": False}
+    monkeypatch.setattr(services, "TEST_DATASETS", ("white_dwarf_models",))
 
     def run(command):
         calls.append(command[-2:])
@@ -377,3 +378,8 @@ def test_a_dataset_the_machine_lacks_is_fetched_and_one_that_cannot_be_is_a_prob
     assert services.dataset_problems(said.append, run) == [] and calls == [["status", "white_dwarf_models"]]     # there: left alone
     problem, = services.dataset_problems(lambda text: None, lambda command: SimpleNamespace(returncode=1))
     assert "white_dwarf_models" in problem and "datasets fetch white_dwarf_models" in problem
+
+
+def test_the_preflight_fetches_every_dataset_the_math_check_reads():
+    """OPS.119: a fresh machine fetched only the white-dwarf data, and the math check then stopped the run with 16 DataMissing failures."""
+    assert {"white_dwarf_models", "isochrones", "stellar_spectra", "hhe_eos", "hyg_stars", "mamajek_dwarf_sequence"} <= set(services.TEST_DATASETS)
