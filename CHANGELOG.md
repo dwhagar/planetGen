@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3636] - 2026-11-08
+
+**Headline:** The moons of a giant lying on its side now go round in its tipped equator, not in the plane of its orbit.
+
+### Changed
+
+- **A moon's orbit is set against its planet's equator (GEN.1352).** A moon's inclination was drawn and kept against its planet's equator (a captured moon beyond 90 degrees is retrograde: `moon_history`, `tidal_heating`), but the moon was placed with that inclination in the system's frame, so the moons of a giant tipped by 98 degrees (Uranus) went round in the plane of the giant's orbit, across its equator. `planets.orient_moons` now turns each regular moon's position, velocity and spin axis from the equator onto the planet's spin axis (`spin.turn_to_axis`, a turn about `z x axis`; no draws), after the planet's spin is final and again whenever the history of the moons or an edit sets it afresh (`release_moons` undoes the turn first). The stored inclination and node of a moon are as they were. The day and night shares of a moon and the ocean tides (`daylight`, `ocean_tides`) read the moon's orbit normal through the same turn (`spin.moon_orbit_normal`). The irregular moons keep their own frame. The moons of a planet with no tilt go round in the plane of the planet's own orbit (its inclination, a degree or two, from the star's equator), so every moon's position in the system's frame changes a little; a moon system of a tipped giant lies in its equator.
+
+generation-output: changed
+
 ## [8.0.3635] - 2026-11-08
 
 **Headline:** A planet's tide can no longer spend more energy than its orbit has to give: a strong tide wears the eccentricity down as it heats the planet.
