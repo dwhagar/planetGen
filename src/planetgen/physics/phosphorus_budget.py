@@ -16,7 +16,7 @@ Phosphorus is one chain, and each link is a number a body already stores or this
    rain reaches (the land of a surface ocean; only the sea floor of one under ice), over the volume of the ocean the phosphate dissolves in.
 5. **The ocean's phosphate.** The Earth is the one calibration: its 2.3 umol/L comes from its 0.14 percent crust, its 29 percent of land and its 1.3e18 m3 of ocean, so a body's phosphate is
    2.3 times each of its ratios to the Earth's. A sealed ocean (liquid between ice shell and high-pressure ice) has no contact with rock and holds the floor of meteoritic and hydrothermal
-   supply, `FLOOR_UMOL_L`; a soda lake has no free calcium to precipitate apatite (Toner and Catling 2020), so its phosphate climbs until the ceiling of the ocean's solubility.
+   supply, `FLOOR_UMOL_L`; a soda lake has no free calcium to precipitate apatite [R4399], so its phosphate climbs until the ceiling of the ocean's solubility.
 
 Left out, and said so: the burial of phosphorus with iron oxides in an oxygenated ocean (the Earth's calibration has it, another oxidation state would change it), and the recycling by
 a biosphere (the life timeline of GEN.750 runs after this and does not feed back). The numbers that stand in are in the registry (GEN.725, `docs/design/research/gap-filling-plan.md` section 6.216).
