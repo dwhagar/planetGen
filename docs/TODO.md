@@ -13414,6 +13414,16 @@ clears each one.
   Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): a lock item for Train 21 or 22, built after GEN.1406 goes in since both change giant draws. Prerequisites: GEN.1363, GEN.1406. Related: GEN.1395, GEN.1268, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **TEST.711 A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug)**
+  Found by Lane 02 in the Train 20 gate on 2026-11-08 (also red on main 247a8c2c9, so not the train's): tests/test_validation.py::test_a_planet_built_with_its_climate_deferred_has_no_air_or_moons_until_it_is_finished. Do: find the commit that turned it red (git bisect on main), decide whether the code or the test is wrong, fix the one that is, and say which merge caused it so the lane that owns it knows; a test is never skipped or loosened to get green. Done: the test passes on main and the cause is named in the item's note.
+  Version 8.1. Owner (TODO, proposed Lane 04, confirm with TODO before taking): small, lock-free unless the fix touches the generator. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.712 The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug)**
+  Found by Lane 02 in the Train 20 gate on 2026-11-08 (also red on main 247a8c2c9, so not the train's): tests/test_wide_binary_reroll.py::test_an_unstable_wide_binary_is_made_again_and_the_console_says_which. Do: find the commit that turned it red (git bisect on main), decide whether the code or the test is wrong, fix the one that is, and say which merge caused it so the lane that owns it knows; a test is never skipped or loosened to get green. Done: the test passes on main and the cause is named in the item's note.
+  Version 8.1. Owner (TODO, proposed Lane 04, confirm with TODO before taking): small, lock-free unless the fix touches the generator. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

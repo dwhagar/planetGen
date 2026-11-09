@@ -22,7 +22,7 @@ release is stamped.
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.711 |
+| TEST | TEST.713 |
 | USR | USR.33 |
 | OPS | OPS.133 |
 | DOC | DOC.120 |
@@ -4423,6 +4423,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | done, PR #5765 |
 | TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row | none | done, PR #5758 |
 | TEST.710 | Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL | UX.296 | open |
+| TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | open |
+| TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
