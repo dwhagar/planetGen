@@ -230,17 +230,25 @@ def test_the_giant_mixture_is_deterministic_and_sums_to_one():
     assert all(st.SPECIES and value > 0 for value in first.mole_fractions.values())
 
 
+def made_median_keeps_the_disk(subject, recipe, disk):
+    from planetgen.physics import disk_condensation
+    median = dataclasses.replace(recipe, values={**recipe.values, "f7": disk_condensation.RECIPE_C_OVER_O_MEDIAN})
+    with draw.bound(6):
+        return mg.giant_mixture(subject, median).constants["c_over_o"] == pytest.approx(disk, rel=1e-6)
+
+
 def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_the_recipe():
     from planetgen.physics import disk_condensation
     subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disk_carbon=1.0, disk_oxygen=1.0)
     with draw.bound(5):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
-    disk = disk_condensation.envelope_c_over_o(100.0, recipe.values["f5"])
-    for f7 in (0.57, 0.4, 1.2):
+    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"])      # GEN.1471: the envelope carries a share of the bulk metals
+    for f7 in (disk_condensation.RECIPE_C_OVER_O_MEDIAN, 0.4, 1.2):
         shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
         with draw.bound(6):
             made = mg.giant_mixture(subject, shifted)
-        assert made.constants["c_over_o"] == pytest.approx(disk * f7 / 0.57, rel=1e-6)
+        assert made.constants["c_over_o"] == pytest.approx(disk * (f7 / disk_condensation.RECIPE_C_OVER_O_MEDIAN) ** disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT, rel=1e-6)
+    assert made_median_keeps_the_disk(subject, recipe, disk)
     bare = dataclasses.replace(recipe, values={**recipe.values, "f7": 0.9})
     with draw.bound(6):
         no_disk = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), bare)
@@ -372,3 +380,29 @@ def test_lithium_chloride_condenses_under_about_680_k_at_one_bar_and_takes_its_c
     assert mg.nasa_saturation_pa("LiCl", 700.0) == pytest.approx(5.6e-9 * 1e5, rel=0.1)
     assert mg.nasa_saturation_pa("H2O", 300.0) is None
     assert mg.nasa_saturation_pa("LiCl", 100.0) == mg.nasa_saturation_pa("LiCl", 300.0)      # under the fit read at its lower end
+
+
+def test_the_ice_caps_settle_when_the_oxygen_left_sits_in_a_species_that_does_not_condense():
+    """
+    A cold giant layer whose water, methane and ammonia have all condensed leaves 1e-37 of oxygen per hydrogen, and 1.5e-7 of lithium holds most of it as lithium hydroxide at the
+    chemistry's 300 K. Water is over its cap at 26 K by 40 orders, so each round took a sliver of the water and the equilibrium made it again from the hydroxide: 1000 rounds, then
+    `MixtureError`. Seed 533 of a G2V system with PLANETS and MAX_PLANETS (Lane 21's giant-density read, 2026-11-09) is this layer; the budget, 26.49 K, 0.3 bar and 300 K are its own.
+    What stays over the cap is under `MIN_CONDENSED` per hydrogen atom, the amount a condensate is dropped from the record at.
+    """
+    budget = {"H": 1.0, "He": 0.08203515443298177, "C": 0.007923251589436131, "N": 0.0022446996159850695, "O": 0.04823973997996018, "Ne": 0.009541950492118954,
+              "S": 2.168404344971009e-19, "Ar": 2.3988329190194897e-06, "P": 2.1361766269879255e-05, "Kr": 1.31825673855641e-09, "Xe": 2.0859830264783805e-08,
+              "Cl": 7.204043020470654e-06, "Li": 1.4778731499033949e-07}
+    without_co = tuple(name for name in st.GASES if name != "CO")      # the species of a layer whose carbon monoxide quenched (`mixture_giant.draw`)
+    result, left, ices = mg.cap_ices(budget, 26.487872842214287, 0.3, lambda trial: ge.solve(trial, 300.0, 0.3, species=without_co))
+    assert set(ices) >= {"H2O", "CH4", "NH3"} and ices["H2O"] == pytest.approx(0.04823973997996018, rel=1e-6)
+    assert left["O"] < mg.MIN_CONDENSED and result.mole_fractions.get("H2O", 0.0) * 0.3 < 1e-30
+
+
+def test_the_ice_caps_still_refuse_a_layer_that_cycles_with_oxygen_to_spare():
+    """The settling above is only for a species the budget cannot make more of than `MIN_CONDENSED`; a cycle with more to condense still raises."""
+    class Cycling:
+        mole_fractions = {"H2O": 1e-3}
+        moles = {"H2O": 1e-3}
+        total_moles = 1.0
+    with pytest.raises(MixtureError, match="did not settle"):
+        mg.cap_ices({"H": 1.0, "O": 0.5}, 100.0, 1.0, lambda trial: Cycling(), iterations=5)

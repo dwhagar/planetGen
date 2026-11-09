@@ -113,7 +113,7 @@ def disk_fraction(lower_au, upper_au, disk_inner_au, disk_edge_au, slope=DISK_SL
     return (integral(high) - integral(low)) / (integral(disk_edge_au) - integral(disk_inner_au))
 
 
-def scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_earth, migration_au, disk_inner_au, disk_edge_au, instability=0.0):
+def scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_earth, migration_au, disk_inner_au, disk_edge_au, instability=0.0, trojan_survival=1.0):
     """
     The shares of an outer disk's mass in each of `POPULATIONS`, summing to 1.
 
@@ -123,6 +123,7 @@ def scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_ear
         migration_au (float): How far outward the giant moved (0 or negative: it did not move outward).
         disk_inner_au, disk_edge_au (float): The disk's extent.
         instability (float): 0 to 1, how much the architecture's giants scattered each other (a Nice-type event is 1).
+        trojan_survival (float): 0 to 1, the share of the giant's trojan swarm that the other giants and the companion stars leave (`trojans.surviving_share`, GEN.1455); the rest is ejected. 1 for a lone giant.
     """
     shares = dict.fromkeys(POPULATIONS, 0.0)
     if giant_mass_earth <= 0.0:
@@ -143,7 +144,8 @@ def scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_ear
     bound = swept - ejected
     shares.update(cold_classical=left - hot, hot_classical=hot, resonant=resonant, ejected=ejected)
     for key, share in SWEPT_SPLIT:
-        shares[key] = bound * share
+        shares[key] = bound * share * (trojan_survival if key == "trojans" else 1.0)
+    shares["ejected"] += bound * dict(SWEPT_SPLIT)["trojans"] * (1.0 - trojan_survival)
     return shares
 
 

@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, contention, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
+from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -2187,7 +2187,7 @@ class NebulaFieldFollower(followed.Follower):
     """
     The nebula field as a stage of a run (DB.24): the `draw-nebula-field` command draws every kept cloud of classes M and N
     of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_unit`), after
-    the earlier table was emptied (`prepare_draw_nebula_field`). A nebula already stored from the field is linked back to
+    the earlier table was emptied (`empty_nebula_field_unit`, a stage of its own). A nebula already stored from the field is linked back to
     its row afterwards, and the Galaxy Map's nebula block totals are made again from the new field
     (`conclude_draw_nebula_field`).
 
@@ -2228,11 +2228,19 @@ class NebulaFieldFollower(followed.Follower):
         log.normal(f"Made {conclusion['blocks']:,} nebula block totals.")
 
 
-def prepare_draw_nebula_field(params):
+def expand_empty_nebula_field(params):
+    """The `empty-nebula-field` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def empty_nebula_field_unit(params, report):
     """
-    The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table. A galaxy with
-    no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an
-    earlier stage of the same run may be what builds the plan).
+    The `empty-nebula-field` command's unit (OPS.123; the `prepare` of `draw-nebula-field` before it, PERF.172): empties the earlier
+    table before the nebula field is drawn again. A galaxy with no outline has nothing to draw and nothing is emptied (PERF.203, checked
+    here and not when the run starts, because an earlier stage of the same run may be what builds the plan).
+
+    Returns:
+        dict: `emptied`, whether the table was emptied.
 
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
@@ -2241,10 +2249,19 @@ def prepare_draw_nebula_field(params):
     try:
         if store.get_galaxy_shape(conn) is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
-        if _outline(conn):
+        emptied = bool(_outline(conn))
+        if emptied:
             store.clear_nebula_field(conn)
     finally:
         conn.close()
+    return {"emptied": emptied}
+
+
+class EmptyNebulaFieldFollower(followed.Follower):
+    """The emptying of the nebula field table as a stage of a run (OPS.123): the `empty-nebula-field` command, one unit, before the draw."""
+
+    key = "nebula-clear"
+    label = "Clear the earlier nebula field"
 
 
 def conclude_draw_nebula_field(params, plan, results, seconds):
@@ -2321,10 +2338,17 @@ def fill_map_luminosity_unit(params, report):
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
+        # block light stage rolls the parts up instead of making them again from every object.
+        cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+            "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
+            " AND map_luminosity_sol IS NULL AND built_at IS NULL", (params["low"], params["high"])).fetchall()]
         cursor = conn.execute(
             f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
             " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
             (params["low"], params["high"]))
+        if cells:
+            block_lights.sync_cells(conn, cells)
         conn.commit()
         return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
     finally:
@@ -2404,19 +2428,30 @@ HABITABILITY_BATCH_SYSTEMS = 500
 
 
 def expand_rescore_habitability(params):
-    """The `rescore-habitability` command's stage (PERF.106): a unit per id range of `HABITABILITY_BATCH_SYSTEMS`
-    (a whole multiple of it past `units.MAX_UNITS` ranges) of `star_systems`, its cost the ids it covers; `detail` holds
-    the highest id and the systems to re-score."""
+    """The `rescore-habitability` command's stage (PERF.106, GEN.1479): a unit per id range of `HABITABILITY_BATCH_SYSTEMS`
+    (a whole multiple of it past `units.MAX_UNITS` ranges) of `star_systems`, its cost the ids it covers. Only the systems whose
+    `system_summary.habitability_stamp` is not the running code's count (`derived_stamp`), and the ranges run from the first of them
+    to the last, so a rerun after no change to the formula makes no unit; `params["all"]` takes every system, as the command always
+    did. `detail` holds the highest id, the systems to re-score and the systems left alone because they are current."""
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
         total = int(conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"])
+        if params.get("all"):
+            first, top = 1, int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
+            stale = total
+        else:
+            condition, values = derived_stamp.stale_condition("habitability", "sm")
+            row = conn.execute(
+                "SELECT COALESCE(MIN(ss.id), 0) AS first, COALESCE(MAX(ss.id), 0) AS top, COUNT(*) AS n FROM star_systems ss"
+                f" LEFT JOIN system_summary sm ON sm.star_system_id = ss.id WHERE {condition}", values).fetchone()
+            first, top, stale = int(row["first"]), int(row["top"]), int(row["n"])
     finally:
         conn.close()
+    size = units.coarsen(max(top - first + 1, 0), HABITABILITY_BATCH_SYSTEMS) if stale else HABITABILITY_BATCH_SYSTEMS
     return commands.Expansion(
-        [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
-         for low, high in _id_batches(top, units.coarsen(top, HABITABILITY_BATCH_SYSTEMS))],
-        {"top": top, "total": total})
+        [({"database": params["database"], "low": first + low - 1, "high": first + high - 1, "all": bool(params.get("all"))}, float(high - low + 1))
+         for low, high in (_id_batches(top - first + 1, size) if stale else [])],
+        {"top": top, "total": stale, "current": total - stale})
 
 
 def rescore_habitability_unit(params, report):
@@ -2440,13 +2475,20 @@ def rescore_habitability_unit(params, report):
             conn.commit()           # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")   # PERF.228: no gap locks between the ranges of other workers
             updated = 0
-            system_ids = [row["id"] for row in conn.execute(
-                "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+            if params.get("all"):
+                system_ids = [row["id"] for row in conn.execute(
+                    "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+            else:               # GEN.1479: the systems a formula change or an unfinished run left, not the ones the running code scored
+                condition, values = derived_stamp.stale_condition("habitability", "sm")
+                system_ids = [row["id"] for row in conn.execute(
+                    "SELECT ss.id FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
+                    f" WHERE ss.id BETWEEN ? AND ? AND {condition} ORDER BY ss.id", (params["low"], params["high"], *values)).fetchall()]
             for system_id in system_ids:
                 updated += store.refresh_habitability(conn, system_id)
-            store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
+            if system_ids:
+                store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
             conn.commit()
-            return {"updated": updated, "ids": params["high"] - params["low"] + 1}
+            return {"updated": updated, "ids": params["high"] - params["low"] + 1, "systems": len(system_ids)}
         except pymysql.err.OperationalError as exc:
             if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
                 raise
@@ -2466,7 +2508,13 @@ class HabitabilityFollower(BatchFollower):
     bar_label = "Re-scoring habitability"
     noun = "updated"
 
+    def params(self):
+        return {"all": bool(getattr(self.args, "all", False))}
+
     def plan_line(self, detail):
+        if detail.get("current"):
+            return (f"Habitability: {detail['total']:,} systems to re-score; {detail['current']:,} already hold the numbers of this code "
+                    "and are left alone (--all re-scores them too).")
         return f"Habitability: {detail['total']:,} systems to re-score."
 
     def on_done(self, conclusion):
@@ -2512,23 +2560,27 @@ BLOCK_LIGHTS_UNITS_SHARE, BLOCK_LIGHTS_ROLL_SHARE = 70.0, 15.0
 a rough guess of the time each takes on a full galaxy, here so none of them looks like a stage that stopped."""
 
 
-def make_block_lights(conn, report, say, run_id=None):
+def make_block_lights(conn, report, say, run_id=None, rebuild=False):
     """
     The block light totals and then the uncharted sector rows (MAP.259, MAP.402), on one bar (PERF.251): the units of shells, the levels above them added up and the
     index of the uncharted cells, one share each, so the bar moves in all three.
+
+    The totals are rolled up from the parts the scatter writers kept (`db.block_lights.roll`, GEN.1476), and the uncharted cells are the parts' too, so
+    neither reads the two scatter tables; the parts are checked first and made again from the objects when they do not match. `rebuild` makes them
+    again from the objects whatever the check says: `fill-block-totals` is the repair and the proof.
 
     Args:
         conn (Connection): A writable connection.
         report (callable): `report(done, total)` on the scale of `BLOCK_LIGHTS_BAR_TOTAL`.
         say (callable): `say(text)` for the phases of the work.
         run_id (int, optional): The run the uncharted rows are recorded under.
+        rebuild (bool): Make the parts and the totals again from the objects.
 
     Returns:
         tuple: The block light rows written, the uncharted sector rows made.
     """
     total = BLOCK_LIGHTS_BAR_TOTAL
     index_start = BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE
-    shells = uncharted_index.shells_with_objects(conn)       # counted first, so the index has its share of the bar before the lights end
 
     def units(done, count):
         report(BLOCK_LIGHTS_UNITS_SHARE * done / count, total)
@@ -2539,9 +2591,13 @@ def make_block_lights(conn, report, say, run_id=None):
     def indexed(done, count):
         report(index_start + (total - index_start) * done / count, total)
 
-    written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above)
+    if rebuild:
+        written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
+    else:
+        written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
     report(index_start, total)
-    made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells)
+    shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
+    made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells, from_parts=True)
     report(total, total)
     return written, made
 
@@ -2562,8 +2618,8 @@ def refresh_block_lights(mysql_config, args=None):
             with run_common._generation_progress() as progress:
                 log.set_console(progress.console)
                 try:
-                    log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and "
-                               "phenomenon again; a full galaxy takes a while)...")
+                    log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
+                               "made again from every pre-placed object only when they do not match)...")
                     last_line = [time.monotonic()]
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
@@ -2591,7 +2647,8 @@ def fill_block_totals(args):
     sectors hold (MAP.258, `db.block_stats.rebuild`, which nothing but a sector's deletion kept up to date before) and
     the light of the pre-placed stars and scattered phenomena (MAP.259, `db.block_lights.rebuild`, a unit of shells at a
     time). The sectors' masses are made again with the first (DB.108); a sector holding a body with no stored mass is
-    listed in the log, left out of the sums and never guessed.
+    listed in the log, left out of the sums and never guessed. The galaxy's running counts (`db.galaxy_counts`, DB.121) are made
+    again too.
 
     Returns:
         int: The block rows written, both tables together.
@@ -2603,8 +2660,10 @@ def fill_block_totals(args):
             f"{len(addresses):,} sectors hold a body with no stored mass and are left out of the mass sums: "
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
+        counted = galaxy_counts.rebuild(conn)    # DB.121: the sectors' counts and the galaxy's running totals
+        log.normal(f"Made the stored counts of {counted:,} sectors and the galaxy's totals.")
         lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
-                                              getattr(args, "generation_run_id", None))      # MAP.402
+                                              getattr(args, "generation_run_id", None), rebuild=True)      # MAP.402; the repair makes the parts again too (GEN.1476)
     finally:
         conn.close()
     log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
@@ -2774,7 +2833,7 @@ def redraw_nebula_field(args):
 def planned_nebula_field(args):
     """The nebula field table drawn again as a `followed.Planned`; its result is the rows written."""
     follower = NebulaFieldFollower(args)
-    return followed.Planned([follower], "Nebula field", lambda: follower.written)
+    return followed.Planned([EmptyNebulaFieldFollower(args), follower], "Nebula field", lambda: follower.written)
 
 
 def expand_refresh_block_lights(params):
@@ -2796,7 +2855,7 @@ def refresh_block_lights_unit(params, report):
     lines = []
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        written, _made = make_block_lights(conn, report, lines.append, params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
+        written, _made = make_block_lights(conn, report, lines.append, params.get("run_id"), rebuild=bool(params.get("rebuild")))      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
@@ -2811,16 +2870,18 @@ class BlockLightsFollower(followed.Follower):
     label = "Make the block light totals"
     repeatable = True
 
-    def __init__(self, args):
+    def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
+        self.rebuild = rebuild      # make the parts again from the objects whatever the check says (GEN.1476)
 
     def params(self):
-        return {"run_id": getattr(self.args, "generation_run_id", None)}      # the run the uncharted rows (MAP.402) are recorded under
+        return {"run_id": getattr(self.args, "generation_run_id", None),      # the run the uncharted rows (MAP.402) are recorded under
+                "rebuild": self.rebuild}
 
     def on_plan(self, plan):
-        log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and phenomenon again; "
-                   "a full galaxy takes a while)...")
+        log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept"
+                   + ("; made again from every pre-placed object)..." if self.rebuild else ")..."))
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 
@@ -2981,7 +3042,7 @@ def phenomena_followers(args, refuse=None, tag=""):
     book = _PhenomenaBook()
     followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
-                 NebulaFieldFollower(args)]
+                 EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return followers, book
 
 
@@ -3267,7 +3328,7 @@ def run_scatter(args):
     elif kind == "phenomena":
         scatter_phenomena(args, refuse=kind)
     elif kind == "nebula-field":
-        stages.enter(NEBULA_DRAW_KEY)
+        stages.enter("nebula-clear")
         redraw_nebula_field(args)
     else:
         scatter_bright_stars(args, passes=(kind,), refuse=kind)

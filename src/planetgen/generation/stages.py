@@ -77,8 +77,11 @@ def sectors_stages(args):
     return [Stage("sectors", "Generate the sectors")]
 
 
+NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
+"""Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
+
 PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
-                    Stage("nebula-draw", "Draw the nebula field"))
+                    NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
 
@@ -137,6 +140,8 @@ def scatter_stages(args):
         return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
     if kind in ("mass", "luminosity"):
         return [SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+    if kind == "nebula-field":
+        return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
     return [SCATTER_STAGE[kind]]
 
 

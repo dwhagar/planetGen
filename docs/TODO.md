@@ -13447,11 +13447,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, design first; lock item for a later train. Prerequisites: GEN.1453. Related: GEN.1440, GEN.1453, GEN.739.
   Filed by the TODO thread.
 
-- [ ] **GEN.1494 Giant planet density read: is the generated giants' median density (1.4 to 1.8 g/cm3) too dense against observed giants**
-  Found by Lane 04 while fixing the giants test (PR 5863, 2026-11-09): the generated giants' median density runs 1.4 to 1.8 g/cm3 against 1.3 for the Solar System giants, and the test ceiling was set at Neptune's 1.64 plus 0.4. Do: a read, no build: compare the density distribution of generated giants by mass band and by equilibrium temperature with the measured exoplanet giants (radius-mass relations of the Kepler and TESS samples, the inflated hot Jupiters of GEN.1470 and GEN.1480 kept separate), report whether the generated median is inside the observed spread (widest-range rule), and file a fix item only if it is not. Reuse the existing giant density tests and the radius-valley sweep.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 21 (planet types), lock-free read. Prerequisites: none. Related: GEN.1470, GEN.1480, GEN.920.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

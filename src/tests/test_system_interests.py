@@ -756,6 +756,7 @@ def test_the_life_filter_and_its_column_leave_out_a_class_with_no_life_stage_yet
         tags["life"] = {"1a"}
 
         def seen():
+            store.refresh_edited_sectors(conn, [sector_id])    # DB.121: the sector's stored counts follow an edit through this call, as the edit routes make it
             counted = {option["value"]: option["count"] for option in query._life_class_facet(conn, "planets")}
             rows = query.search(conn, {}, tags, limit=300)["results"]["planets"]["rows"]
             return counted.get("1a", 0), {row["id"] for row in rows if row["star_system_id"] == system_id}, rows

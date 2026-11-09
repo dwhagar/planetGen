@@ -80,8 +80,55 @@ SULFUR_AS_H2S = 0.3
 3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DSC6, tier T3, tweak L2.]"""
 
 RECIPE_C_OVER_O_CENTER = 0.57
-"""float: The center of the core of the giant recipe's C/O row `f7` (0.57, the median of LExACoM's 69 retrieved giants, pinned by tests/test_atmosphere_recipes.py); the drawn `f7` over this
-is the spread of a giant's C/O around its disk's value, which the disk alone (one place, one star) does not give (GEN.1363 part C, stand-in DSC7, tier T3, tweak L2)."""
+"""float: The center of the core of the giant recipe's C/O row `f7` (0.57, the median of LExACoM's 69 retrieved giants, pinned by tests/test_atmosphere_recipes.py)."""
+
+RECIPE_C_OVER_O_CORE_SIGMA_DEX = 0.21
+RECIPE_C_OVER_O_CORE_RANGE = (0.2, 0.8)
+RECIPE_C_OVER_O_TAIL_RANGE = (0.8, 1.5)
+RECIPE_C_OVER_O_TAIL_SHARE = math.sqrt(0.043 * 0.087)
+"""The rest of the shape of `f7` (the log-normal core cut to 0.2 to 0.8, the uniform tail to 1.5, the tail share log-uniform from 0.043 to 0.087; tests/test_atmosphere_recipes.py pins them
+against the recipe file): `recipe_c_over_o_median` works out the median of the draw from them."""
+
+
+def recipe_c_over_o_median():
+    """
+    The median of the drawn C/O row `f7`: the core is cut at 0.8, above its center's 0.57 by only 0.7 sigma, so the median of the draw is 0.48 and not the core's 0.57 (GEN.1471; GEN.1363
+    part C had divided by 0.57 and so lowered every giant by a sixth). Found by bisection on the mixture's distribution function at the geometric middle of the tail share.
+    """
+    center = math.log10(RECIPE_C_OVER_O_CENTER)
+    low, high = (math.log10(x) for x in RECIPE_C_OVER_O_CORE_RANGE)
+
+    def normal(x):
+        return 0.5 * (1.0 + math.erf((x - center) / (RECIPE_C_OVER_O_CORE_SIGMA_DEX * math.sqrt(2.0))))
+
+    inside = normal(high) - normal(low)
+    tail_low, tail_high = RECIPE_C_OVER_O_TAIL_RANGE
+
+    def cumulative(x):
+        core = (normal(min(max(math.log10(x), low), high)) - normal(low)) / inside
+        tail = min(max((x - tail_low) / (tail_high - tail_low), 0.0), 1.0)
+        return (1.0 - RECIPE_C_OVER_O_TAIL_SHARE) * core + RECIPE_C_OVER_O_TAIL_SHARE * tail
+
+    lo, hi = RECIPE_C_OVER_O_CORE_RANGE[0], tail_high
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if cumulative(mid) < 0.5 else (lo, mid)
+    return 0.5 * (lo + hi)
+
+
+RECIPE_C_OVER_O_MEDIAN = recipe_c_over_o_median()
+"""float: The median of the drawn `f7`, 0.477: the drawn `f7` over this is the spread of a giant's C/O around its disk's value, which the disk alone (one place, one star) does not give, without
+moving the center (GEN.1363 part C, stand-in DSC7, tier T3, tweak L2; the center was 0.57 before GEN.1471)."""
+
+RECIPE_C_OVER_O_SPREAD_EXPONENT = 0.5
+"""float: The power of that ratio that multiplies the disk's C/O. The recipe's spread (the history of what a giant swallowed) and the disk's own (the star's C/O, the place of formation)
+overlap, and the full ratio counted both (GEN.1471: 16 percent of the giants under 0.35 against the retrieved 17 with the half power; the full power puts 20 to 26 under it at the same median). [Stand-in DSC8, tier T6, tweak L2.]"""
+
+ENVELOPE_METAL_SHARE = 0.06
+"""float: The share of a giant's bulk heavy-element enrichment (`f5`, the planet's whole heavy-element mass over its star's, [R4352]) that its envelope carries when its C/O is set. The bulk
+metallicity is an upper limit on the atmosphere's ([R4350: Abstract]) and the water of gas giants is substellar ([R4663: Abstract]); the whole bulk enrichment, 18 times the star's for the
+median giant, is 90 percent solids whose C/O is 0.44 whatever their amount. At 0.06 (a median envelope enrichment of 1.1) the generated median is 0.57 and 16 percent of the giants sit under 0.35,
+the LExACoM figures (0.57 and 17). [Stand-in DSC9, tier T6, tweak L2.]"""
 
 MOLAR_MASS = {"H2O": 18.015, "NH3": 17.031, "NH4": 17.031, "H2S": 34.08, "Xe": 131.29, "Kr": 83.80, "Ar": 39.948, "CO2": 44.009, "CH4": 16.043, "N2": 28.014,
               "CO": 28.010, "C": 12.011}
