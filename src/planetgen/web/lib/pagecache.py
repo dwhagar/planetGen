@@ -73,10 +73,11 @@ DEFAULTS = PageCache().model_dump()
 built without any uses."""
 
 UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/nodes", "/galaxy/stage", "/galaxy/window", "/galaxy/near", "/galaxy/stamp", "/auth", "/admin",
-                     "/table-estimates", "/page-jobs")
+                     "/table-estimates", "/page-jobs", "/generated")
 """tuple: Paths never cached here: the stamp itself, the Galaxy Map's node
 and stage data (`tilecache.py` keeps those on disk), anything that
-depends on who is asking, and the slow-page mechanism's own reads (PERF.105)."""
+depends on who is asking, and the slow-page mechanism's own reads (PERF.105). `/generated` (ADM.151) is the admin page that follows a run: it must show the rows made a moment ago,
+which a cached answer would not, and it reads only the new rows by the key, so it is quick uncached."""
 
 MAX_BODY_FRACTION = 0.25
 """float: One body may use at most this share of `max_mb`, so a single
