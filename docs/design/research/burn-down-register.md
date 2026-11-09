@@ -157,6 +157,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.119:CP3 | no data | - | no source gives how many pieces a captured parent was made of; the Himalia group's four known members are the only guide, and a parent built from the disc's own bodies (belt design) replaces it |
 | 6.121:TJ4 | no data | - | no source read gives the leading share of a swarm; the capture history of the generated giant replaces it |
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
+| 6.121:TJ7 | no data | - | L4, no survey of how a swarm's stable share climbs past the neighbour limit exists; an N-body run of the survival of a swarm against separation would replace the ramp of 1.0 |
+| 6.121:TJ8 | no data | - | L4, Holman and Wiegert 1999 give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0 |
 | 6.41:TK6 | no data | - | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to |
 | 6.130:AB1 | replace | GEN.804 | the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |

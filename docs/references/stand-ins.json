@@ -33195,7 +33195,11 @@
           "what": "trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no survey of how a swarm's stable share climbs past the neighbour limit exists; an N-body run of the survival of a swarm against separation would replace the ramp of 1.0"
+          ],
           "fields": [
             [
               "What it is",
@@ -33233,7 +33237,11 @@
           "what": "trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: 1 - exp(-ramp (x - 1)) (GEN.1455)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, Holman and Wiegert 1999 give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0"
+          ],
           "fields": [
             [
               "What it is",
