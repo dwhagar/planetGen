@@ -1008,6 +1008,16 @@ TABLES = {
         "K": ("mean_temperature_k",),
         "Gyr": ("mean_age_gy",),
     },
+    "sector_facets": {
+        "index": ("shell_index", "band_index", "wedge_index"),
+        "count": ("n",),
+    },
+    "galaxy_totals": {
+        "id": ("id",),
+        "count": ("systems", "stars", "planets", "moons", "belts", "habitable_worlds"),
+        "kg": ("mass_kg",),
+        "Lsun": ("luminosity_sol",),
+    },
     "sector_system_counts": {
         "id": ("sector_id",),
         "count": ("system_count",),

@@ -2038,6 +2038,28 @@ Added in v201 (GEN.1127). One row for each sector cell that has been charted, ke
 | `charted_at` | TIMESTAMP(3) | NOT NULL | When the fill saved the sector (the old `sector_stats.filled_at`). |
 | `topped_up_at` | TIMESTAMP(3) | nullable | When the rogue top-up of its region run filled the cell (GEN.1120); NULL until it does. A cell keeps one top-up. |
 
+### `sector_facets` and `galaxy_totals`
+
+Added in v236 (DB.121, `db/galaxy_counts.py`). The galaxy's counts, kept as they change instead of counted again whenever a sector is added. Derived data: every row is made from the stored bodies, in the same transaction as the sector's save (`store.record_sector_stats`), edit (`store.refresh_edited_sectors`) or emptying (`store.forget_sector_fill`); `planetgen fill-block-totals` makes them all again and `check-counts` compares them with a full count. A page reads them only while they are whole (every sector with filled stats has its `total` rows, and no more) and counts the tables otherwise. Nothing in `star_systems` was changed: its FULLTEXT key makes an added column copy the whole table. What no sector holds (a system filed in no sector or in a sector with no grid address, a moon of a free planet) is counted when it is asked, so a read is the stored rows plus one small count.
+
+`sector_facets`: one row for each count of each generated sector, keyed by the sector's address like `sector_stats`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `shell_index`, `band_index`, `wedge_index` | INT | NOT NULL | Primary key with `facet` and `value`: the sector's address in the galaxy grid. |
+| `facet` | VARCHAR(16) | NOT NULL | `total` (values `systems`, `stars`, `planets`, `moons`, `belts`, `habitable`), or `binary` (`yes`, `no`), `octant`, `spectral`, `yerkes`, `class`, `body`, `life`, `moon_class`, `moon_body`, `moon_life`. |
+| `value` | VARCHAR(40) | NOT NULL | The facet's value. A facet value with no body is not stored; the six `total` rows always are. |
+| `n` | INT UNSIGNED | NOT NULL | How many. Indexed with the facet and value (`idx_sector_facets_facet`) so a sum over the galaxy reads the index alone. |
+
+`galaxy_totals`: the one row, `id` 1, that is the sum of every sector's `total` rows plus the mass and luminosity of `sector_stats`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | TINYINT UNSIGNED | NOT NULL | Primary key; always 1. |
+| `systems`, `stars`, `planets`, `moons`, `belts`, `habitable_worlds` | BIGINT | NOT NULL | The totals over the generated sectors. |
+| `mass_kg`, `luminosity_sol` | DOUBLE | NOT NULL | The sum of `sector_stats.total_mass_kg` and `total_luminosity_sol` over the filled sectors, moved by the difference at each change (a float sum, so `check-counts` allows a relative 1e-9). |
+| `updated_at` | TIMESTAMP | NOT NULL | When the row last moved. |
+
 ### `sky_tier_draws`
 
 Added in v216 (VIEW.25). One row for each sphere that charting has drawn for a tier of a system's sky (`generation/sky_charting.py`, `generation/sky_tiers.py`): a luminosity band or a mass ring, drawn with the star backfill over the sphere of its reach around the 50 parsec cell of the observer. A cell inside a complete sphere is complete down to the tier's floor without a `sector_stats` row of its own (a sky sphere holds billions of cells); the backfill and the fill settle the ledger's depth into the rows they read (`db/sky_tier_ledger.py`), and `db/sky_sphere.cell_levels` reads it for the sky's `filling`. A draw is committed in batches and goes on from the last one after a stop; only a `complete` row counts. `store.clear_bright_stars` and the by-part scatter reset delete the rows with the stars they drew.

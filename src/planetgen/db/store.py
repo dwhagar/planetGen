@@ -70,7 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
@@ -7396,12 +7396,14 @@ def refresh_edited_sectors(conn, sector_ids):
     from planetgen.db import block_stats
 
     done = []
+    counted = []
     for sector_id in sorted({int(i) for i in sector_ids if i is not None}):
         row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
         if row is None or row["shell_index"] is None:
             continue
         address = (row["shell_index"], row["band_index"], row["wedge_index"])
         figures = _content_figures(conn, sector_id)
+        figures_before = galaxy_counts.stats_figures(conn, address)
         found = conn.execute(
             "UPDATE sector_stats SET actual_systems = ?, actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?,"
             " mean_age_gy = ?, total_luminosity_sol = ?, habitable_worlds = ?"
@@ -7409,6 +7411,9 @@ def refresh_edited_sectors(conn, sector_ids):
         if found.rowcount:
             block_stats.refresh_chain(conn, address)
             done.append(address)
+        counted.append((sector_id, address, figures_before))    # a change of class or life moves no figure above, so `rowcount` says nothing here
+    for sector_id, address, before in counted:    # DB.121: the sectors' counts and the running totals, last (the totals row is locked last)
+        galaxy_counts.refresh(conn, sector_id, address, before)
     return done
 
 
@@ -7450,6 +7455,7 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     systems, star_count, temperature, luminosity, age, total_luminosity, habitable = _content_figures(conn, sector_id)
     mass = sector_mass.sector_mass_kg(conn, sector_id)
     record_system_interests(conn, "ss.sector_id = ?", (sector_id,))
+    figures_before = galaxy_counts.stats_figures(conn, address)    # DB.121: what the stats row held, for the totals' difference
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
@@ -7470,6 +7476,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
             " density_ratio_samples = density_ratio_samples + 1 WHERE id = 1",
             (ratio, ratio, DENSITY_RATIO_WINDOW),
         )
+    # DB.121: the sector's counts and the galaxy's running totals, last, so the totals row is locked only for the commit.
+    galaxy_counts.refresh(conn, sector_id, address, figures_before)
 
 
 def forget_sector_fill(conn, address):
@@ -7481,6 +7489,7 @@ def forget_sector_fill(conn, address):
     """
     if address is None or any(value is None for value in address):
         return
+    figures_before = galaxy_counts.stats_figures(conn, address)    # DB.121
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
@@ -7493,6 +7502,7 @@ def forget_sector_fill(conn, address):
 
     block_stats.refresh_chain(conn, address)
     block_lights.refresh_chain(conn, address)    # MAP.259: its stars that were built are pre-placed again
+    galaxy_counts.forget(conn, address, figures_before)    # DB.121: its counts leave the running totals, last
 
 
 SECTOR_DELETIONS_COUNTER = "sdel"
