@@ -116,8 +116,8 @@ def test_an_edit_keeps_the_history_of_the_bodies_it_keeps_and_drops_that_of_a_de
 
 
 @pytest.mark.fresh_database
-def test_a_v240_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 240)
+def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
+    load_old_schema(mysql_config, 242)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert "body_history" not in {next(iter(row.values())) for row in conn.execute("SHOW TABLES").fetchall()}

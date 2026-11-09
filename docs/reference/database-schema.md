@@ -2044,7 +2044,7 @@ Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id
 
 ### `body_history`
 
-Added in v241 (GEN.1497). The numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md` section 4): the eccentricity and the spin it was born with, and the draws that decided its spin. One row a body that has any; a number the body does not have is NULL. It changes no result: the generator keeps the draws on the body (`_orbit_birth`, `_birth_spin`) and this keeps them for the stored galaxy.
+Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md` section 4): the eccentricity and the spin it was born with, and the draws that decided its spin. One row a body that has any; a number the body does not have is NULL. It changes no result: the generator keeps the draws on the body (`_orbit_birth`, `_birth_spin`) and this keeps them for the stored galaxy.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2057,7 +2057,7 @@ Added in v241 (GEN.1497). The numbers a planet's or moon's history leaves that c
 | `capture_draw_1`, `capture_draw_2` | FLOAT | nullable | The uniforms (0 to 1) that decide whether the spin is caught in the first and the second resonance of `spin_torques.CAPTURE_RATIOS`. |
 | `formula_version` | TINYINT UNSIGNED | NOT NULL | `body_history.FORMULA_VERSION` when the row was written. |
 
-Primary key `(star_system_id, body_type, body_id)`; no other index. Left out of the fingerprint (it keeps draws, the results are what a fingerprint reads). A galaxy made before v241 has no rows, which reads as not kept; nothing is backfilled. An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted (`db/edits.py`).
+Primary key `(star_system_id, body_type, body_id)`; no other index. Left out of the fingerprint (it keeps draws, the results are what a fingerprint reads). A galaxy made before v243 has no rows, which reads as not kept; nothing is backfilled. An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted (`db/edits.py`).
 
 ### `chart_ledger`
 
@@ -2660,9 +2660,9 @@ Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading F
 Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a center of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
 
 
-### v241 (GEN.1497): `body_history`, the birth orbit and spin of planets and moons
+### v243 (GEN.1497): `body_history`, the birth orbit and spin of planets and moons
 
-Migration 0241 creates `body_history` (see the table section above). Nothing is backfilled: the draws of a body made before v241 are not stored anywhere.
+Migration 0243 creates `body_history` (see the table section above). Nothing is backfilled: the draws of a body made before v243 are not stored anywhere.
 
 ### v239 (GEN.1476): `galaxy_block_light_parts`, the block light sums kept as the scatter is written
 

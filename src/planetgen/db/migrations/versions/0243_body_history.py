@@ -1,15 +1,15 @@
 """The numbers a body's history leaves (GEN.1497).
 
-Schema v241. One table, `body_history`: for a planet or moon, the eccentricity and the spin it was born with, the two uniforms that decided its spin resonance captures and
-the version of the formulas that wrote the row (see `schema.sql` and `physics/body_history.py`). A galaxy made before v241 has no rows, which reads as 'not kept'; nothing is
+Schema v243. One table, `body_history`: for a planet or moon, the eccentricity and the spin it was born with, the two uniforms that decided its spin resonance captures and
+the version of the formulas that wrote the row (see `schema.sql` and `physics/body_history.py`). A galaxy made before v243 has no rows, which reads as 'not kept'; nothing is
 backfilled (the draws of a body made earlier are not stored anywhere). A table already there is skipped, so a stopped run can be started again.
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0241"
-down_revision = "0240"
+revision = "0243"
+down_revision = "0242"
 branch_labels = None
 depends_on = None
 
