@@ -123,6 +123,7 @@ SECTIONS = {
 _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tables}
 
 LEFT_OUT_TABLES = frozenset({
+    "galaxy_totals", "sector_facets",    # the running galaxy totals and stored facet counts the sector save, edit and delete keep (DB.121): counts of what the fingerprint already reads
     "galaxy_block_light_parts",    # the sums the scatter writers kept for the block light stage (GEN.1476): derived from the scatter, which the fingerprint reads
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
