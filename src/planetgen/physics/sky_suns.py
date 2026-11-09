@@ -23,7 +23,7 @@ planet's by at least `(R / d)^1.5`). A source with no stored place gives none.
 The light of a day is then `(1 - sum(shares)) Q_host(t) + sum(share Q_source(t))`, with `Q` the day's insolation in the units of the same source at its own distance, so the
 mean is the mean light the temperature solve already uses (GEN.1441).
 
-Stand-ins are the rows SS1 to SS3 of section 6.242 of the gap plan.
+Stand-ins are the rows SS1 to SS3 of section 6.246 of the gap plan.
 """
 
 import json

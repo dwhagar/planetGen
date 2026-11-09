@@ -186,3 +186,35 @@ def test_settling_covers_a_sector_and_its_neighbours_and_nothing_far(mysql_confi
         assert far_id in sector_paths.sector_ids_since(conn, "2000-01-01")
     finally:
         conn.close()
+
+
+def test_a_batch_reads_the_masses_around_its_sectors_once_and_saves_the_paths_each_sector_alone_would(mysql_config, monkeypatch):
+    """GEN.1477: sectors that sit together share their neighbours; the batch reads each sector's masses once, and every knot is bit-for-bit what a read of the sector's own neighbourhood saves."""
+    ids = []
+    for wedge in (700, 701, 702, 703):
+        monkeypatch.setattr(sys.modules[__name__], "ADDRESS", (1500, 2, wedge))
+        ids.append(_save(mysql_config, systems=2)[0])
+
+    def knots(conn):
+        return {sector_id: sorted((key, [(k.t_s, k.position, k.velocity) for k in path.knots], path.exited)
+                                  for key, path in sector_paths.load_sector_paths(conn, sector_id).items())
+                for sector_id in ids}
+
+    reads = []
+    real = sector_paths._read_masses
+    monkeypatch.setattr(sector_paths, "_read_masses", lambda conn, centers: reads.append(sorted(centers)) or real(conn, centers))
+    conn = store.get_connection(mysql_config)
+    try:
+        for sector_id in ids:   # alone: each sector reads its own neighbourhood
+            sector_paths.compute_sector_paths(conn, sector_id)
+        alone = knots(conn)
+        alone_reads = sum(len(read) for read in reads)
+        reads.clear()
+        order = sector_paths.sectors_in_cell_order(conn, ids)
+        assert sorted(order) == sorted(ids) and order == sector_paths.sectors_in_cell_order(conn, reversed(ids))
+        sector_paths.settle_sectors(conn, order, expand=False)
+        assert knots(conn) == alone and alone
+        assert len(reads) == 1 and len(set(reads[0])) == len(reads[0]), "one read of the union, each sector once"
+        assert len(reads[0]) < alone_reads
+    finally:
+        conn.close()

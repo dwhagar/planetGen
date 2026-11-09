@@ -1,9 +1,0 @@
-**Headline:** Every star of a system now lights every planet and moon of it, by where it is, not only the star the planet circles.
-
-### Added
-- **The radiation field of a system (GEN.1441).** `physics/radiation_field.py` gives, for any body, the light, XUV, flare index and far-ultraviolet of every star-like object of its system, each as a total and per source, from the position of each source against the body through both orbits (the source's orbit round the host averaged in time, the body's own orbit averaged in angle; coplanar orbits and a subtree of stars as one point are stated limits, rows RF1 to RF5). `planet_zones.companion_orbits` gives the orbit each other member moves in against a host, and each star gets its companions when the clearance ledger is built.
-
-### Changed
-- **The mean starlight of planets and moons counts every star.** The temperature and the air and greenhouse solve, the albedo and ice branches, the runaway greenhouse test, giants' radius and heat, the envelope law, the spin torques, the mixture subject, the haze temperature, the energy flux available to life and the zone letter (hot, ecosphere, cold) all take the total light. A lone star gives the same numbers as before to the last digit; a companion at 100 AU moves the temperature by under 0.1 percent; an equal companion at 5 AU adds about 10 percent of the light to a planet at 1.5 AU. `flux_variation` is worked out from the same mean. The simplification that left the companions' share out of the temperature is retired. In a census of 300 systems (seed 11, each system seeded alone) all 774 bodies of lone stars came out the same, and of 294 bodies of multi-star systems 259 got light from a companion, 100 moved their temperature by more than 0.1 percent, 2 changed class and 1 changed zone letter. New epoch, `--affects plan,scatter,fill,population`; no migration.
-
-generation-output: changed
