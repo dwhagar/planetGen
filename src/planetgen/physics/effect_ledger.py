@@ -10,13 +10,18 @@ changes no result: it records what the effect code computed so that "when a tiny
 (docs/design/generation/system-interactions.md, `reports/gravity-audit-2026-11-08.md` gap 2, `reports/gen1465-effect-ledger-design-2026-11-08.md`).
 
 **Every source is computed, whatever its size** (even 1e-12 of the largest). Only the writing is limited by a floor, `tuning.EFFECT_LEDGER_FLOOR`
-(1e-6): a source whose share is under it is not a row of its own; its share is added to the body's summary row (`source_type` 0, `source_id` 0), which also
+(0.1, Boss's choice): a source whose share is under it is not a row of its own; its share is added to the body's summary row (`source_type` 0, `source_id` 0), which also
 holds how many sources fell under the floor and the largest source's contribution in the effect's own unit. So the sum of the tail is never lost. A floor
 under 1e-37 stores every source.
 
 **In memory** a system holds an `EffectLedger` (`system.effect_ledger`): effect code by effect code, each receiving body with its list of
 `(source, value)` pairs, bodies and sources being the generator's own objects. **On save** `store.insert_star_system` gives every inserted body's `(table, id)`
 (`object_rows.insert_row` notes them) and `EffectLedger.rows(star_system_id, ids)` turns the contributions into the rows of the `effect_ledger` table.
+
+**The five gravity effects are on demand** (`ON_DEMAND_EFFECTS`, Boss 8:37 PM EST 11-08): tide, heating, secular, precession and eccentricity store only the largest
+source of each (body, effect) and the summary row (the rest's summed share, how many, the largest's value). Every source's share is recomputed from the stored
+masses and orbits when a page or a census needs it (a point mass sum, a few milliseconds a system, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`);
+only light and UV, whose sources are stars across the neighbourhood, keep rows above the floor.
 
 The effects and the unit each is stored in are `EFFECTS`; a lane that builds an effect calls `EffectLedger.add` for every (receiver, source) pair it
 computes, with the contribution in that unit (any monotone measure of the effect's size on the receiver works, the share only compares sources of one
@@ -37,6 +42,9 @@ EFFECTS = (
     ("eccentricity", 7, None, "the eccentricity a source adds to the body's orbit"),
 )
 """tuple: `(name, code, unit key of the unit registry or None for a plain number, what it measures)` for each effect; the code is what the table stores."""
+
+ON_DEMAND_EFFECTS = frozenset({"tide", "heating", "secular", "precession", "eccentricity"})
+"""frozenset: The effects whose sources are recomputed from stored masses and orbits and not stored: their (body, effect) keeps the largest source and the summary row only."""
 
 EFFECT_CODES = {name: code for name, code, *_rest in EFFECTS}
 """dict: Each effect's name to its code."""
@@ -139,7 +147,8 @@ class EffectLedger:
         Args:
             star_system_id (int): The system the receivers are in.
             ids (dict): `id(object)` to `(table, row id)` for the system's inserted bodies.
-            floor (float, optional): As in `split_sources`.
+            floor (float, optional): As in `split_sources`, for every effect; left out, `tuning.EFFECT_LEDGER_FLOOR` for light and UV and "largest only" for the
+                on-demand effects.
 
         Returns:
             list: One row per stored source of each (body, effect) and one summary row for it (`source_type` and `source_id` 0, `share` the sum of the shares under the floor,
@@ -147,6 +156,7 @@ class EffectLedger:
         """
         out = []
         for effect, code, *_rest in EFFECTS:
+            effect_floor = math.inf if floor is None and effect in ON_DEMAND_EFFECTS else floor
             for receiver, pairs in self.contributions(effect):
                 where = ids.get(id(receiver))
                 if where is None:
@@ -159,7 +169,7 @@ class EffectLedger:
                         self.missing += 1
                     else:
                         known.append((there, value))
-                split = split_sources(known, floor)
+                split = split_sources(known, effect_floor)
                 if split is None:
                     continue
                 body = {"star_system_id": star_system_id, "body_type": BODY_CODES[where[0]], "body_id": where[1], "effect": code}

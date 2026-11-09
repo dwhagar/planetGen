@@ -57451,11 +57451,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.EFFECT_LEDGER_FLOOR 1e-6: the share of the largest source under which a ledger source is added to its (body, effect) summary row and not stored as its own row"
+              "tuning.EFFECT_LEDGER_FLOOR 0.1: the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand)"
             ],
             [
               "The range it moves in",
-              "1e-37 (every source stored) to 1e-2"
+              "1e-37 (every source stored) to 1"
             ],
             [
               "Where it holds",
@@ -57471,7 +57471,7 @@
             ],
             [
               "Evidence",
-              "chosen so that the stored ledger is about a third to a half of the full one (60 to 99 GB at the 200 pc default against 156 GB, reports/gen1465-effect-ledger-design-2026-11-08.md); no source for the value"
+              "chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, reports/gen1465-ledger-store-vs-compute-2026-11-09.md); no source for the value"
             ]
           ],
           "id": "EL1",
@@ -57482,7 +57482,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.EFFECT_LEDGER_FLOOR 1e-6: the share of the largest source under which a ledger source is added to its (body, effect) summary row and not stored as its own row"
+          "what": "tuning.EFFECT_LEDGER_FLOOR 0.1: the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand)"
         }
       ],
       "slug": "6-246-stand-ins-of-the-effect-ledger",
