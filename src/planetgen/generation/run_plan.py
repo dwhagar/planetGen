@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, contention, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
+from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -2634,7 +2634,8 @@ def fill_block_totals(args):
     sectors hold (MAP.258, `db.block_stats.rebuild`, which nothing but a sector's deletion kept up to date before) and
     the light of the pre-placed stars and scattered phenomena (MAP.259, `db.block_lights.rebuild`, a unit of shells at a
     time). The sectors' masses are made again with the first (DB.108); a sector holding a body with no stored mass is
-    listed in the log, left out of the sums and never guessed.
+    listed in the log, left out of the sums and never guessed. The galaxy's running counts (`db.galaxy_counts`, DB.121) are made
+    again too.
 
     Returns:
         int: The block rows written, both tables together.
@@ -2646,6 +2647,8 @@ def fill_block_totals(args):
             f"{len(addresses):,} sectors hold a body with no stored mass and are left out of the mass sums: "
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
+        counted = galaxy_counts.rebuild(conn)    # DB.121: the sectors' counts and the galaxy's running totals
+        log.normal(f"Made the stored counts of {counted:,} sectors and the galaxy's totals.")
         lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
                                               getattr(args, "generation_run_id", None))      # MAP.402
     finally:

@@ -417,7 +417,7 @@ def check_values(ctx):
 
 
 def check_counts(ctx):
-    """A sector's stats count the systems it holds (a warning only)."""
+    """A sector's stats count the systems it holds, and the galaxy's stored counts (DB.121) the rows the tables hold (a warning only)."""
     scope_sql, params = ctx.scope.where("s.id")
     rows = ctx.rows(
         "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
@@ -426,11 +426,18 @@ def check_counts(ctx):
         " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
         f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
         " HAVING stated <> actual ORDER BY r, l, p", params)
-    if not rows:
-        return []
-    return [Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
-                    [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}"
-                     for row in rows], warning=True)]
+    problems = []
+    if rows:
+        problems.append(Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
+                                [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}"
+                                 for row in rows], warning=True))
+    if ctx.scope.everything:
+        # DB.121: the running totals and the sectors' facet rows against a full count of the tables (`planetgen fill-block-totals` repairs).
+        from planetgen.db import galaxy_counts
+        found = galaxy_counts.problems(ctx.conn)
+        if found:
+            problems.append(Problem("The stored galaxy counts differ from a full count.", found, warning=True))
+    return problems
 
 
 def check_object_index(ctx):

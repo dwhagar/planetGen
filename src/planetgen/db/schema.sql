@@ -5143,6 +5143,41 @@ CREATE TABLE IF NOT EXISTS sector_stats (
 
 
 -- ---------------------------------------------------------------------
+-- galaxy_totals and sector_facets (v236, DB.121): the galaxy's counts, kept as they change instead of counted again when a sector is
+-- added (`db.galaxy_counts`). `sector_facets` holds, for each sector whose stats are filled, one row for each of its `total` counts (systems,
+-- stars, planets, moons, belts and habitable worlds) and one for each value of each facet the lists and the search page offer (a star's
+-- spectral and Yerkes class, a planet's or moon's class, body type and life class, a system's binary state and octant); it is keyed by the
+-- sector's address, like `sector_stats`, so a sector row that is replaced keeps it. `galaxy_totals` is the one row, id 1, that is the
+-- sum of the `total` rows plus the mass and luminosity of `sector_stats`, moved by the difference in the same transaction as the sector's
+-- save (`store.record_sector_stats`), edit (`store.refresh_edited_sectors`) or emptying (`store.forget_sector_fill`). A page reads them while
+-- they are whole (`galaxy_counts.usable`) and counts the old way otherwise; `planetgen fill-block-totals` makes them again and `check-counts`
+-- compares them with a full count. What no sector holds (systems filed in no sector, a moon of a free planet) is counted when asked.
+CREATE TABLE IF NOT EXISTS sector_facets (
+    shell_index   INT NOT NULL,
+    band_index    INT NOT NULL,
+    wedge_index   INT NOT NULL,
+    facet         VARCHAR(16) NOT NULL,
+    value         VARCHAR(40) NOT NULL,
+    n             INT UNSIGNED NOT NULL,
+    PRIMARY KEY (shell_index, band_index, wedge_index, facet, value),
+    KEY idx_sector_facets_facet (facet, value, n)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS galaxy_totals (
+    id                 TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+    systems            BIGINT NOT NULL DEFAULT 0,
+    stars              BIGINT NOT NULL DEFAULT 0,
+    planets            BIGINT NOT NULL DEFAULT 0,
+    moons              BIGINT NOT NULL DEFAULT 0,
+    belts              BIGINT NOT NULL DEFAULT 0,
+    habitable_worlds   BIGINT NOT NULL DEFAULT 0,
+    mass_kg            DOUBLE NOT NULL DEFAULT 0,
+    luminosity_sol     DOUBLE NOT NULL DEFAULT 0,
+    updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- chart_ledger (v201, GEN.1127): which sector cells have been charted. A cell is a whole sector (the unit of randomness,
 -- docs/design/systems/region-object-store.md), so it is charted or it is not, and the uncharted remainder is the cells with no row.
 -- `run_id` is the generation run that charted it and `generator_epoch` the epoch it was charted under (a cell charted under an older
