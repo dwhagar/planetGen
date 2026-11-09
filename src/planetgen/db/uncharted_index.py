@@ -40,8 +40,16 @@ _INSERT_HEAD = ("INSERT IGNORE INTO sectors (name, edge_mpc, center_x_pc, center
                 " generator_epoch, run_id, uid, parity_dirty) VALUES ")
 
 
-def shells_with_objects(conn):
-    """The shell indexes that hold a waiting bright star or an unbuilt scattered phenomenon, as a sorted list."""
+_PARTS_CELLS = ("SELECT p.band_index, p.wedge_index FROM galaxy_block_light_parts p WHERE p.shell_index = ? AND NOT EXISTS "
+                "(SELECT 1 FROM sectors s WHERE s.shell_index = p.shell_index AND s.band_index = p.band_index AND s.wedge_index = p.wedge_index)")
+"""str: The cells of one shell that hold a part (a waiting object, GEN.1476) and have no sector row."""
+
+
+def shells_with_objects(conn, from_parts=False):
+    """The shell indexes that hold a waiting bright star or an unbuilt scattered phenomenon, as a sorted list. With `from_parts` they are
+    the parts' (`db.block_lights`), which the caller has made current: the two object tables are not read again (GEN.1476)."""
+    if from_parts:
+        return [int(row["shell_index"]) for row in conn.execute("SELECT DISTINCT shell_index FROM galaxy_block_light_parts ORDER BY shell_index").fetchall()]
     shells = set()
     for table, waiting in _OBJECTS:
         shells.update(row["shell_index"] for row in conn.execute(
@@ -49,9 +57,12 @@ def shells_with_objects(conn):
     return sorted(shells)
 
 
-def cells_without_a_row(conn, shell):
-    """The `(band, wedge)` of every cell of `shell` that holds a waiting object and has no sector row, sorted."""
+def cells_without_a_row(conn, shell, from_parts=False):
+    """The `(band, wedge)` of every cell of `shell` that holds a waiting object and has no sector row, sorted. With `from_parts` the cells with a
+    part are the cells that hold one (GEN.1476)."""
     cells = set()
+    if from_parts:
+        return sorted((row["band_index"], row["wedge_index"]) for row in conn.execute(_PARTS_CELLS, (shell,)).fetchall())
     for table, waiting in _OBJECTS:
         query = _WAITING_CELLS.format(table=table, waiting=waiting)
         cells.update((row["band_index"], row["wedge_index"]) for row in conn.execute(query, (shell,)).fetchall())
@@ -78,7 +89,7 @@ def _batch(conn, shell, cells, edge_pc, generator_epoch, run_id):
     return made
 
 
-def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shells=None):
+def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shells=None, from_parts=False):
     """
     Makes the placeholder sector row of every cell that holds a waiting bright star or an unbuilt scattered phenomenon and has none (module note).
 
@@ -89,6 +100,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
         on_phase (callable, optional): `on_phase(text)` with what the run says about itself.
         run_id (int, optional): The run the rows are recorded under; with none, the one run that saves made outside a run share (`store.sector_run_id`).
         shells (list, optional): `shells_with_objects(conn)` when the caller has it already (it sized a bar with it).
+        from_parts (bool): Take the shells and cells from the block light parts (GEN.1476), which the caller has just made current, and not from the two scatter tables.
 
     Returns:
         int: The rows made.
@@ -98,7 +110,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
 
     say = on_phase or (lambda text: None)
     say("Looking for the sector shells that hold waiting objects...")
-    shells = shells_with_objects(conn) if shells is None else shells
+    shells = shells_with_objects(conn, from_parts) if shells is None else shells
     made = 0
     if shells:      # nothing is read of the galaxy, and no run is recorded, until there is a cell to make a row for
         edge_pc = query.galaxy_edge_pc(conn) if edge_pc is None else edge_pc
@@ -106,7 +118,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
         run_id = store.sector_run_id(conn, run_id)
         conn.commit()
     for done, shell in enumerate(shells, start=1):
-        cells = cells_without_a_row(conn, shell)
+        cells = cells_without_a_row(conn, shell, from_parts)
         for start in range(0, len(cells), BATCH_CELLS):
             chunk = cells[start:start + BATCH_CELLS]
             write = lambda c, chunk=chunk: _batch(c, shell, chunk, edge_pc, epoch, run_id)      # noqa: E731
