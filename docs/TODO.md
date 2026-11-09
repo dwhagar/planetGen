@@ -13392,6 +13392,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health). Prerequisites: none. Related: PERF.146.
   Filed by the TODO thread.
 
+- [ ] **GEN.1501 Dark members of the orbit tree give light: draw a neutron star's cooling light (from age) and a black hole's accretion disk (from a feeding companion) into the radiation field and the sky text**
+  Split from GEN.1443 by TODO (2026-11-09) at Lane 11's request. Source: Lane 11's GEN.1443 slice 1 (PR 5889): a planet or moon page now names every other source of the radiation field that gives at least a full Moon's light, but the neutron stars, black holes with accretion disks and brown dwarfs of the orbit tree (dark members, GEN.1013) give no light in the field yet, so they are not named. Do: draw a dark member's luminosity (neutron star cooling from age, black hole disk from a feeding companion, brown dwarf cooling) from the physics and feed it into radiation_field and the sky text; reuse the radiation_field sources and the sky_suns light and width code, and add no second light model. Stand-ins registered in GEN.725. A system without dark members must give today's numbers. Done: a planet near a cooling neutron star or a fed black hole sees and reads its light; a sample shows which systems change. Lock item (epoch, golden) because stored light changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 with Lane 15. Prerequisites: GEN.1443. Related: GEN.1443, GEN.1013, GEN.1441, GEN.1465.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
