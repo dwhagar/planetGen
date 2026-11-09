@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3783] - 2026-11-09
+
+**Headline:** The known-red list no longer names test_work_units and test_gen_reach_groups, which pass on main.
+
+### Changed
+
+- `scripts/data/known_reds.json`: TEST.642 (test_work_units) and TEST.650 (test_gen_reach_groups) are removed; both pass on main after Train 21, so the gate treats a failure in them as new.
+
+generation-affects: none
+
 ## [8.0.3782] - 2026-11-09
 
 **Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
