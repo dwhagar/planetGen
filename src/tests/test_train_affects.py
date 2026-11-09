@@ -62,3 +62,10 @@ def test_a_note_with_no_line_counts_as_every_stage_and_is_named():
 def test_a_wrong_line_is_reported_and_does_not_widen_the_epoch():
     stages, undeclared, problems = train.stages_of_notes({"a.patch.md": NOTE + "generation-affects: nope\n"})
     assert stages == () and undeclared == [] and len(problems) == 1 and "a.patch.md" in problems[0]
+
+
+def test_the_affects_line_is_not_release_text():
+    """The line is for the train runner; the changelog entry made from a note leaves it out."""
+    body = "**Headline:** A thing.\n\n### Changed\n- It changed.\n\ngeneration-affects: fill\n"
+    merged = bump.merge_bodies(body, "")
+    assert "generation-affects" not in merged and "- It changed." in merged

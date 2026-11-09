@@ -364,7 +364,7 @@ def merge_bodies(new, old):
                 if name not in found:
                     order.append(name)
                     found[name] = []
-            elif name is not None:
+            elif name is not None and not GENERATION_AFFECTS_RE.match(line):     # a bookkeeping line for the train runner, not release text
                 found[name].append(line)
         return order, found
 
