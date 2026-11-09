@@ -13412,6 +13412,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health), after GEN.1468. Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
+- [ ] **GEN.1505 (bug) After GEN.1450's secular exchange moves an eccentricity, the air and temperature are refreshed only above a 1e-4 change, and a giant only when its radius moves, so the stored temperature no longer matches the formula**
+  Found by Lane 04 on test_sweep_atmosphere::test_every_body_of_the_sweep_obeys_every_rule, red on main since Train 21 (PR 5869) (2026-11-09). With the exchange disabled the rule is clean. The mean light moves a little (up to 4e-5 relative, 0.013 K), 11 bodies in systems 2, 33 and 47 (310.788 vs 310.774 K). Lane 04 tested a fix for planets and moons, refreshing the air when the eccentricity changes by any amount: failures go from 11 to 2, and the two left are giants (settle_giant leaves a giant alone under its radius tolerance). The diff is /mnt/project-files/data/gen1504-secular-air-refresh.proposal.diff. Do: apply that diff for planets and moons, and add an air refresh in settle_giant when the orbit moved; keep one air solve where the eccentricity did not move. Done: the sweep-atmosphere rule test passes on all bodies; a sample shows how many stored temperatures move. Lock item (epoch, generation-affects fill); the aerosol-cloud half of that test was a test-rule gap and is fixed (PR 5908).
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (GEN.1450 owner). Prerequisites: none. Related: GEN.1450, GEN.1504.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
