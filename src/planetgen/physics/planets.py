@@ -1191,7 +1191,7 @@ def zone_for(habitable_zone, distance_au, star=None):
     stars' light counts (GEN.1441): the body is placed at the distance of a body of a lone star that gets the same total light."""
     inner_bound, outer_bound = habitable_zone
     if star is not None:
-        distance_au = distance_au / math.sqrt(radiation_field.light_ratio(star, distance_au))
+        distance_au = radiation_field.lit_distance_au(star, distance_au)
     if distance_au < inner_bound:
         return 'h'
     if distance_au > outer_bound:

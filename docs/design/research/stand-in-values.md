@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1464 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1467 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1438 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1441 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
-| T6 | 170 | 104 | 27 | 76 | 0 | 377 |
+| T6 | 173 | 104 | 27 | 76 | 0 | 380 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 814 | 298 | 71 | 236 | 45 | 1464 |
+| All | 817 | 298 | 71 | 236 | 45 | 1467 |
 
 ## How the labels were given
 
@@ -2539,6 +2539,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RF3 | P | T7 | L0 | the source's orbit is averaged on `ORBIT_SAMPLES` = 96 points uniform in mean anomaly | 48 to 400 points | eccentricities under 0.9 | a result that moves by over 1e-4 between 96 and 400 points | an analytic average | numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits | predicted only | - | - |
 | RF4 | T | T6 | L0 | a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (`radiation_field.light_ratio`), against the host's habitable-zone edges | none | companions whose spectrum is like the host's | a companion of very different temperature, whose light the zone edges of the host do not describe | edges made from the combined spectrum | derived: the edges are fixed by the light a lone star gives at a distance | predicted only | - | - |
 | RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |
+| RF6 | T | T6 | L0 | a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (`radiation_field.ring_light_ratio`, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444) | annuli 8 to 64 | rings narrow against the companion's distance | a belt whose bodies sit in one part of the ring (a resonant clump, a narrow family) where the companion's share differs from the ring's mean by over a tenth | the light at each member's own distance | derived: the mean of a smooth ratio over the ring; the test compares the 16 annuli with a 2000-annulus sum | predicted only | - | - |
+| RF7 | T | T6 | L0 | whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (`belt_ledger.belt_state`) stay the formation ones, as for planets (`born_beyond_snow_line`) | none | companions that were present while the disk lasted or not at all | a belt past the snow line whose ice a companion's light would have sublimated, or one inside the line that a companion's disk truncation kept cold | a present-day ice line from the ring's temperature and the ice's sublimation (`condensate_shares.ICE_CONDENSATION_K`) | design; the same rule as the zone letter of a planet (RF4) | predicted only | - | - |
+| RF8 | T | T6 | L0 | a comet's chance of showing activity reads the light at its perihelion: `_activity_chance` of the perihelion over the square root of the total light over the host's own (`radiation_field.lit_distance_au`), against the fixed distance `COMET_ACTIVITY_PERIHELION_THRESHOLD_AU`, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444) | the threshold | comets of stars near the Sun's luminosity | a comet of a faint or bright star whose activity distance moves with its luminosity | an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light | design; a lone star unchanged | predicted only | - | - |
 
 ## 6.240 Stand-ins of the stellar wind of a system and a moon in its parent's field
 

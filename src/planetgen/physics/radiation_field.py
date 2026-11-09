@@ -238,6 +238,38 @@ def light_ratio(host, distance_au):
     return 1.0 + companions / own
 
 
+def lit_distance_au(host, distance_au):
+    """The distance from a lone star of `host`'s luminosity that is lit as much as a body `distance_au` from `host` (GEN.1441): the distance over the square root of the
+    total light over the host's own. The place a body takes against a line drawn for the host's light alone (a zone, a snow line, an activity distance); the distance
+    itself for a lone star."""
+    return distance_au / math.sqrt(light_ratio(host, distance_au))
+
+
+RING_SAMPLES = 16
+"""int: The annuli a ring is cut into for `ring_light_ratio` (design: the ratio is smooth across a ring, 16 equal-width annuli are exact to well under 0.1 percent)."""
+
+
+def ring_light_ratio(host, lower_au, upper_au):
+    """
+    The total starlight over the host's own, averaged over the ring between `lower_au` and `upper_au` from `host` (GEN.1444): 1.0 for a lone star.
+
+    The ring is cut into `RING_SAMPLES` annuli of equal width and each is weighted by its area (its distance), as the bodies of a belt fill it. The ratio is the
+    ring's mean total light over its mean host light, so a belt that takes a body's temperature or snow line from `luminosity x ratio` is lit by the mean of the
+    field it lies in, not by the field at one point of it. A lone star, or a host the system has not attached companions to, gives exactly 1.0.
+    """
+    if not companions_of(host) or not getattr(host, "luminosity", None) or not (upper_au >= lower_au > 0.0):
+        return 1.0
+    if upper_au == lower_au:
+        return light_ratio(host, lower_au)
+    width = (upper_au - lower_au) / RING_SAMPLES
+    own = total = 0.0
+    for index in range(RING_SAMPLES):
+        distance = lower_au + (index + 0.5) * width
+        own += distance * starlight_w_m2(Companionless(host), distance)
+        total += distance * starlight_w_m2(host, distance)
+    return total / own if own > 0.0 else 1.0
+
+
 def companion_share(host, distance_au):
     """The companions' light over the host's own at the body, 0 for a lone star: the number the tests of the geometry read."""
     own = starlight_w_m2(Companionless(host), distance_au)

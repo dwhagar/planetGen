@@ -56569,6 +56569,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (radiation_field.ring_light_ratio, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444)"
+            ],
+            [
+              "The range it moves in",
+              "annuli 8 to 64"
+            ],
+            [
+              "Where it holds",
+              "rings narrow against the companion's distance"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose bodies sit in one part of the ring (a resonant clump, a narrow family) where the companion's share differs from the ring's mean by over a tenth"
+            ],
+            [
+              "What replaces it",
+              "the light at each member's own distance"
+            ],
+            [
+              "Evidence",
+              "derived: the mean of a smooth ratio over the ring; the test compares the 16 annuli with a 2000-annulus sum"
+            ]
+          ],
+          "id": "RF6",
+          "key": "6.239:RF6",
+          "kind": "T",
+          "slug": "6-239-rf6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (radiation_field.ring_light_ratio, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (belt_ledger.belt_state) stay the formation ones, as for planets (born_beyond_snow_line)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions that were present while the disk lasted or not at all"
+            ],
+            [
+              "What would show it wrong",
+              "a belt past the snow line whose ice a companion's light would have sublimated, or one inside the line that a companion's disk truncation kept cold"
+            ],
+            [
+              "What replaces it",
+              "a present-day ice line from the ring's temperature and the ice's sublimation (condensate_shares.ICE_CONDENSATION_K)"
+            ],
+            [
+              "Evidence",
+              "design; the same rule as the zone letter of a planet (RF4)"
+            ]
+          ],
+          "id": "RF7",
+          "key": "6.239:RF7",
+          "kind": "T",
+          "slug": "6-239-rf7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (belt_ledger.belt_state) stay the formation ones, as for planets (born_beyond_snow_line)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+            ],
+            [
+              "The range it moves in",
+              "the threshold"
+            ],
+            [
+              "Where it holds",
+              "comets of stars near the Sun's luminosity"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a faint or bright star whose activity distance moves with its luminosity"
+            ],
+            [
+              "What replaces it",
+              "an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light"
+            ],
+            [
+              "Evidence",
+              "design; a lone star unchanged"
+            ]
+          ],
+          "id": "RF8",
+          "key": "6.239:RF8",
+          "kind": "T",
+          "slug": "6-239-rf8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
         }
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
