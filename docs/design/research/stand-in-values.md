@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1468 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1471 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1442 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1445 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
-| T2 | 138 | 59 | 1 | 1 | 0 | 199 |
+| T2 | 139 | 59 | 1 | 1 | 0 | 200 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
-| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
+| T4 | 73 | 11 | 3 | 21 | 12 | 120 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
 | T6 | 170 | 104 | 27 | 76 | 0 | 377 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 818 | 298 | 71 | 236 | 45 | 1468 |
+| All | 819 | 298 | 71 | 236 | 47 | 1471 |
 
 ## How the labels were given
 
@@ -1408,11 +1408,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TJ1 | D | T1 | L0 | trojans.MU_CRIT (1 - sqrt(23/27)) / 2 = 0.0385: the largest m2 / (m1 + m2) with stable L4 and L5 | none (exact) | every pair | an N-body run of a pair under 0.0385 that loses its trojan at once | none | [R3984] ([R3984], READ), quoting Gascheau 1843 and Routh 1875 | predicted only | GEN.1150 | - |
+| TJ1 | D | T1 | L0 | trojans.MU_CRIT (1 - sqrt(23/27)) / 2 = 0.0385: the largest m2 / (m1 + m2) with stable L4 and L5 | none (exact) | every pair | an N-body run of a pair under 0.0385 that loses its trojan at once | none | [R3984] ([R3984], READ), quoting Gascheau 1843 and Routh 1875 | predicted only | - | - |
 | TJ2 | P | T2 | L0 | trojans.stable: the secondary plus the trojan under MU_CRIT of the three masses | 0.035 to 0.042 | a trojan of planet mass or more | an N-body run of a pair at 3 percent whose trojan escapes in 1 Gyr | an N-body map of the generator's own pairs | TROY III ([R0248], abstract READ) and research/oddity-rates.md WR10; [R0919] ([R0919], READ) find pairs stable for 1 Gyr | predicted only | - | - |
-| TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | [R3220] ch. 3 (recalled, not opened) | predicted only | GEN.1150 | - |
-| TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | predicted only | GEN.1150 | no data |
-| TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans ([R4895], abstract READ) are stable under 15 degrees and between 24 and 37 degrees | predicted only | GEN.1150 | no data |
+| TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | [R3220] ch. 3 (recalled, not opened) | predicted only | - | - |
+| TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | predicted only | - | no data |
+| TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans ([R4895], abstract READ) are stable under 15 degrees and between 24 and 37 degrees | predicted only | - | no data |
+| TJ6 | P | T2 | L0 | trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455) | 2.0 to 3.5 | giants with another giant in the system | an N-body run of two giants 3.5 mutual Hill radii apart whose trojans stay for 1 Gyr | an N-body map of trojan survival beside a second giant | [R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii (Gladman 1993, recalled) | predicted only | - | - |
+| TJ7 | P | T4 | L4 | trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: `1 - exp(-ramp (x - 1))` (GEN.1455) | 0.5 to 2 | every swarm with a neighbour | a swarm kept whole at one separation of the limit or lost at three | an N-body run of the survival of a swarm against separation | none read; the ramp is a smooth rise between lost and kept | predicted only | - | - |
+| TJ8 | P | T4 | L4 | trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455) | 1.5 to 3 | giants of a star with a companion | an N-body run of a giant at half the stability limit that keeps its trojans | an N-body run of trojans inside the Holman and Wiegert limit | none read; Holman and Wiegert 1999 give the limit for a planet, not for its trojans | predicted only | - | - |
 
 ## 6.122 Stand-ins of the albedo colour of the star
 

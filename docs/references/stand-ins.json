@@ -32993,7 +32993,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1150",
+          "unread": null,
           "what": "trojans.MU_CRIT (1 - sqrt(23/27)) / 2 = 0.0385: the largest m2 / (m1 + m2) with stable L4 and L5"
         },
         {
@@ -33069,7 +33069,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1150",
+          "unread": null,
           "what": "trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit"
         },
         {
@@ -33111,7 +33111,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L4",
-          "unread": "GEN.1150",
+          "unread": null,
           "what": "trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4"
         },
         {
@@ -33153,8 +33153,122 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L4",
-          "unread": "GEN.1150",
+          "unread": null,
           "what": "trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455)"
+            ],
+            [
+              "The range it moves in",
+              "2.0 to 3.5"
+            ],
+            [
+              "Where it holds",
+              "giants with another giant in the system"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of two giants 3.5 mutual Hill radii apart whose trojans stay for 1 Gyr"
+            ],
+            [
+              "What replaces it",
+              "an N-body map of trojan survival beside a second giant"
+            ],
+            [
+              "Evidence",
+              "[R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii (Gladman 1993, recalled)"
+            ]
+          ],
+          "id": "TJ6",
+          "key": "6.121:TJ6",
+          "kind": "P",
+          "slug": "6-121-tj6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: 1 - exp(-ramp (x - 1)) (GEN.1455)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "every swarm with a neighbour"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm kept whole at one separation of the limit or lost at three"
+            ],
+            [
+              "What replaces it",
+              "an N-body run of the survival of a swarm against separation"
+            ],
+            [
+              "Evidence",
+              "none read; the ramp is a smooth rise between lost and kept"
+            ]
+          ],
+          "id": "TJ7",
+          "key": "6.121:TJ7",
+          "kind": "P",
+          "slug": "6-121-tj7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": null,
+          "what": "trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: 1 - exp(-ramp (x - 1)) (GEN.1455)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "giants of a star with a companion"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a giant at half the stability limit that keeps its trojans"
+            ],
+            [
+              "What replaces it",
+              "an N-body run of trojans inside the Holman and Wiegert limit"
+            ],
+            [
+              "Evidence",
+              "none read; Holman and Wiegert 1999 give the limit for a planet, not for its trojans"
+            ]
+          ],
+          "id": "TJ8",
+          "key": "6.121:TJ8",
+          "kind": "P",
+          "slug": "6-121-tj8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": null,
+          "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
