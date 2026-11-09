@@ -121,9 +121,12 @@ def test_a_shell_cut_when_the_stage_opens_is_the_sectors_the_outline_holds_less_
 
 def test_a_single_sector_that_exists_is_not_cut_again_and_one_beyond_the_reach_is_refused(mysql_config):
     _plan_wide_galaxy(mysql_config)
+    # A sector of 3 systems: with the density its profile gives, the wide galaxy puts about 350 in it, 15 minutes of physics that
+    # this test, which only needs the sector to exist, does not use (the gate's 900 s timeout hit it).
     args = _args("--shell", "1", "--band", "0", "--wedge", "0", *mysql_argv(mysql_config))
     [follower] = run_galaxy._plan_sectors(args, EDGE_PC, deferred=True)
     assert _cut(follower, mysql_config)[0] == [1, 0, 0]
+    args.num_systems = 3        # the command line refuses it with an address; the test sets it after the cut
     run_galaxy.generate_and_save_sector_at(
         run_galaxy._BatchDensity(mysql_config).resolve(args, (1, 0, 0), run_galaxy.sector_position_pc(1, 0, 0, EDGE_PC)),
         (1, 0, 0), run_galaxy.sector_position_pc(1, 0, 0, EDGE_PC), EDGE_PC)
