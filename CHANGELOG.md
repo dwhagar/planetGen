@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3784] - 2026-11-09
+
+**Headline:** Emptying the earlier bright stars is a step of its own in a scatter run, no longer a hook of the shell scatter commands (OPS.123 slice 3, bright-star verb).
+
+### Changed
+- **`clear-bright-stars` is its own command and stage.** The `prepare` of `scatter-mass` and `scatter-luminosity` is gone; `clear_bright_stars_unit` does the same work in one unit and reads the same deferred scatter settings as the pass it comes before. The stage is "Clear the earlier bright stars" (`mass-clear`) before a mass pass, which empties the whole scatter, and "Clear the earlier bright stars of the luminosity pass" (`luminosity-clear`) before a luminosity pass run alone, which empties that pass only. A galaxy run counts one more stage (16). `finish_run.REWIND_WITH` now names the commands a stopped stage is rewound with, nearest first, so a massive-star pass that stopped is carried on from its clearing and a luminosity pass of a run that draws both passes is carried on from the clearing before the massive pass; a luminosity pass of its own clears itself and stays apart, as before. Reused: `store.clear_bright_stars`, `store.clear_bright_star_pass`, the deferred `scatter-settings` parameter, the one-unit whole expansion of `clear-scatter`. `clear-scatter` itself was not reused: it refuses when the bright stars are stored, empties on the stored limits, refreshes the block lights and resets the scatter epoch.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3783] - 2026-11-09
 
 **Headline:** The known-red list no longer names test_work_units and test_gen_reach_groups, which pass on main.
