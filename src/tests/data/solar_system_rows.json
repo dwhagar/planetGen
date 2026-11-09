@@ -36,6 +36,9 @@
   },
   "atmosphere-b": {
    "b1": "the dry carbon bracket is derived from the carbon of non-carbonaceous building blocks, the share already differentiated and the core's share (dry_carbon, GEN.1005); the bulk silicate Earth in the row's text is a test value the bracket is compared with, no longer its anchor (GEN.813)"
+  },
+  "materials": {
+   "tholin": "the density is laboratory pycnometry of laboratory analogues (1.343 to 1.45 g/cm3, three groups), and the source id only names the haze they imitate: no Titan measurement is read, and the row is a material property, not a Solar System shape (GEN.1359)"
   }
  },
  "stand_ins": {
