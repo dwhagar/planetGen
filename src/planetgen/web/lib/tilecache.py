@@ -617,6 +617,32 @@ def validate_request(node_keys):
     return keys
 
 
+def stored_nodes(db, node_keys):
+    """
+    PERF.257: which of `node_keys` the disk cache already holds in the current generation, found from the stamp and the file names alone (no node is read,
+    built or sent; a file is written whole or not at all, `_write_bytes`). The stamp is checked first (`current_stamp`, as every fetch does), so a node a change
+    deleted is not among them. Empty when the disk cache is off.
+
+    Returns:
+        set: The keys of `node_keys` stored and current.
+    """
+    root = cache_dir()
+    if not root:
+        return set()
+    generation = current_stamp(db, root)["generation"]
+    if not generation:
+        return set()
+    generation_dir = os.path.join(_db_dir(root, db), generation)
+    found = set()
+    for key in node_keys:
+        try:
+            if os.stat(os.path.join(generation_dir, _node_filename(key))).st_size > 0:
+                found.add(key)
+        except OSError:
+            continue
+    return found
+
+
 def _collect(db, keys, known_stamp, ahead=False):
     """
     What `fetch_nodes` and `fetch_nodes_wire` share: the requested nodes' stored bytes, from the disk cache where
