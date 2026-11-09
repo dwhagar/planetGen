@@ -360,6 +360,9 @@ def test_a_unit_survives_a_warm_that_outlasts_an_execution_record(monkeypatch, c
     when it cleaned up. Here the warm drops every execution record of the job, as the expiry would."""
     from planetgen.cli import worker
     _handlers(monkeypatch, test=_square)
+    # TEST.713: the worker starts itself over (`os.execv`) for a unit that needs no star tables when its process holds them (PERF.226, `units.sheds_tables_for`). A test process that
+    # an earlier test left holding the tables (a parallel run's) was replaced by a worker there, and its pytest-xdist node went down; this test is about the warm, so none is held.
+    monkeypatch.setattr(units, "tables_held", lambda: False)
     seen = []
 
     def long_warm(job):
