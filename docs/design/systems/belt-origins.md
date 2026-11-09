@@ -115,6 +115,10 @@ The step is a rule over the architecture's own events; it needs no N-body run. A
 
 `belt_origin` has a shaping cause `planet-scattering`. A system with an instability level above 0 and two giants or more lost belt mass past its outermost giant: the stretch of the disk that starts at or beyond that giant and lies inside its reach (apoapsis plus 3 chaotic half-widths) loses the share `instability x (1 - exp(-Theta / 10))`, where Theta is the Safronov number of the giant (row SX3, the escape-speed-to-orbital-speed ratio squared, [R5138] [R5139] [R5141] [R5140]). No share is tuned to the observed cold share. A system with one giant, or none, or a stretch outside the reach, is untouched. Registry rows BG20 and BG21 in section 6.97 of the stand-in values.
 
+### 6.2 Built: a companion star cuts the disk (GEN.1451)
+
+A star with a bound companion (`radiation_field.companions_of`) holds a disk only inside the radius where the companion's tide takes over: `physics/disk_truncation.py` takes `0.733` of the host's Roche lobe at the companion's periastron (the lobe from the fit of Eggleton 1983), and the nearer of that and the stability limit `Star.a_crit_au` is `star_disk_limit_au`. `belt_origin.build(disk_limit_au=...)` cuts every candidate stretch there before its mass is worked out, so a belt inside a close companion holds the solids of the stretch that is left (before this, the stretch was cut after, and kept the mass of the whole disk). A lone star has no limit and gives the belts of before. The outer disk's scatter shares read the cut edge. Limits: registry rows DT1 to DT4 (section 6.246 of the gap plan): the companion's orbit as it is today, only giants clear spans (a smaller planet's chaotic zone lies inside its keep-out), and a companion's secular excitation of a belt is not built.
+
 ## 7. TODO items
 
 | Item | What | Owner and train (best guess, can move) |

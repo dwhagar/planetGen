@@ -11,6 +11,9 @@ For the systems whose belts and comets are the same in both runs, every belt is 
 its taxon makeup, and every comet on its chance of showing activity and on whether it does.
 
 The rule the census checks (`violations`): a belt or a comet of a lone star never changes.
+
+`python -m tests.audit.belt_light_census truncation` runs the same kind of before and after for GEN.1451 (`truncation_counts`): each seed with and without the companion's cut of the disk
+(`disk_truncation.star_disk_limit_au`), the belts matched by their inner limit, since the cut moves the outer one and can end a belt.
 """
 
 import collections
@@ -53,6 +56,7 @@ def _snapshot(seed):
     belts, comets = _bodies(system)
     return {
         "stars": len(system.stars),
+        "bound": len(system.stars) > 1 or bool(system.dark_members) or system.star.a_crit_au is not None,     # a companion of any kind, a dark one too, limits the star's orbits
         "belts": [(belt.distance, belt.lower_limit, belt.upper_limit, belt.mass_kg, belt.largest_body_km, belt.makeup.detail["temperature_k"], belt.density,
                    tuple(belt.makeup.detail.get("taxon_shares", {}).items()) if isinstance(belt.makeup.detail.get("taxon_shares"), dict) else ()) for belt in belts],
         "comets": [(comet.perihelion_distance_au, comet.is_active) for comet in comets],
@@ -106,10 +110,62 @@ def system_counts(seed):
     return counts
 
 
-def run(seeds=SEEDS, workers=None):
+def _no_truncation(module_birth):
+    saved = module_birth.disk_truncation
+    module_birth.disk_truncation = SimpleNamespace(star_disk_limit_au=lambda star: float("inf"))
+    return saved
+
+
+def truncation_counts(seed):
+    """GEN.1451, the companion's cut of a disk: counts for one seed, each seed generated with and without the cut. Belts are matched by their inner limit (the cut moves the outer one)."""
+    import collections as _collections
+
+    from planetgen.generation import belt_birth
+
+    after = _snapshot(seed)
+    saved = _no_truncation(belt_birth)
+    try:
+        before = _snapshot(seed)
+    finally:
+        belt_birth.disk_truncation = saved
+    group = "multi" if after["bound"] else "lone"     # a star with a dark companion is not alone: its stability limit cuts its belts
+    counts = _collections.Counter()
+    counts[(group, "systems")] += 1
+    old = {round(belt[1], 9): belt for belt in before["belts"]}
+    new = {round(belt[1], 9): belt for belt in after["belts"]}
+    counts[(group, "belts_before")] += len(old)
+    counts[(group, "belts_after")] += len(new)
+    counts[(group, "belts_lost")] += len(set(old) - set(new))
+    counts[(group, "belts_new")] += len(set(new) - set(old))
+    for key in set(old) & set(new):
+        if new[key][2] < old[key][2]:
+            counts[(group, "belts_cut")] += 1
+        if new[key][3] != old[key][3]:
+            counts[(group, "belts_mass_changed")] += 1
+    return counts
+
+
+TRUNCATION_ROWS = (("systems", "Systems"), ("belts_before", "Belts without the cut"), ("belts_after", "Belts with the cut"), ("belts_lost", "Belts that no longer exist"),
+                   ("belts_new", "Belts that did not exist"), ("belts_cut", "Belts whose outer limit is cut"), ("belts_mass_changed", "Belts whose mass changed"))
+
+
+def truncation_violations(counts):
+    """A lone star's belts never change with the cut."""
+    return [f"{counts[('lone', key)]} {key.replace('_', ' ')} among the lone stars" for key in ("belts_lost", "belts_new", "belts_cut", "belts_mass_changed") if counts[("lone", key)]]
+
+
+def format_truncation_report(counts, header=""):
+    lines = ["# Companion disk-cut census (GEN.1451)", "", header, "", "| measure | lone stars | multi-star systems |", "|---|---|---|"]
+    lines += [f"| {label} | {counts[('lone', key)]} | {counts[('multi', key)]} |" for key, label in TRUNCATION_ROWS]
+    found = truncation_violations(counts)
+    lines += ["", "Rule violations: " + ("none" if not found else ""), *[f"- {item}" for item in found], ""]
+    return "\n".join(lines)
+
+
+def run(seeds=SEEDS, workers=None, job=None):
     """The summed counts of seeds 1 to `seeds`."""
     with multiprocessing.get_context("fork").Pool(min(workers or os.cpu_count() or 1, seeds)) as pool:
-        parts = pool.map(system_counts, range(1, seeds + 1), chunksize=1)
+        parts = pool.map(job or system_counts, range(1, seeds + 1), chunksize=1)
     total = collections.Counter()
     for part in parts:
         total.update(part)
@@ -151,5 +207,9 @@ def write_report(text, directory=None, name=REPORT_NAME):
 
 
 if __name__ == "__main__":
-    result = run()
-    print(write_report(format_report(result, f"Seeds 1 to {SEEDS}, each generated before and after GEN.1444.")))
+    import sys
+
+    if "truncation" in sys.argv[1:]:
+        print(write_report(format_truncation_report(run(job=truncation_counts), f"Seeds 1 to {SEEDS}, each generated with and without the companion's cut of the disk."), name="belt-truncation-census-latest.md"))
+    else:
+        print(write_report(format_report(run(), f"Seeds 1 to {SEEDS}, each generated before and after GEN.1444.")))
