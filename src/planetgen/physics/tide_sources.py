@@ -34,7 +34,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy import special
 
-from planetgen.physics import constants, ocean_tides, radiation_field, spin_torques
+from planetgen.physics import constants, radiation_field, spin_torques
 
 _MIN_SEPARATION_SHARE = 0.01
 """float: Two circles closer than this share of the larger are held that far apart, so the mean cannot blow up (never in a stable system: neighbours stand several Hill radii apart)."""
@@ -51,6 +51,11 @@ class Source:
     mass_kg: float
     g3: float
     rate_rad_s: float
+    g6: float = 0.0
+    """float: The mean of `1 / d^6` (1/m^6) at the receiver, which a tidal torque and the heat it makes go by; 0 where it was not worked out (the host, a moon's planet), then `g3 ** 2` stands."""
+
+    def mean_inverse_sixth(self):
+        return self.g6 if self.g6 > 0.0 else self.g3 ** 2
 
 
 def circles_mean_inverse_cube(a, b):
@@ -60,6 +65,20 @@ def circles_mean_inverse_cube(a, b):
     gap = max(abs(a - b), _MIN_SEPARATION_SHARE * far)
     m = 4.0 * a * b / (a + b) ** 2
     return 2.0 * float(special.ellipe(m)) / (math.pi * (a + b) * gap ** 2)
+
+
+def circles_mean_inverse_sixth(a, b):
+    """`< 1 / d^6 >` of two circles of radii `a` and `b` in one plane, averaged over their phase difference: `((a^2 + b^2)^2 + 2 a^2 b^2) / |a^2 - b^2|^5` (the torque of a tide goes
+    as `1 / d^6`, and for neighbours it is far above the square of the mean of `1 / d^3`)."""
+    a, b = float(a), float(b)
+    gap2 = max(abs(a * a - b * b), _MIN_SEPARATION_SHARE * max(a, b) ** 2)
+    return ((a * a + b * b) ** 2 + 2.0 * a * a * b * b) / gap2 ** 5
+
+
+def orbit_mean_inverse_sixth(receiver_axis, source_axis, source_eccentricity):
+    """`< 1 / d^6 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity`, the circles' mean over the source's orbit."""
+    radii = radiation_field.separations_au(source_axis, source_eccentricity or 0.0)
+    return float(np.mean([circles_mean_inverse_sixth(receiver_axis, radius) for radius in radii]))
 
 
 def orbit_mean_inverse_cube(receiver_axis, source_axis, source_eccentricity):
@@ -99,15 +118,17 @@ def planet_sources(planet, siblings):
     for companion in radiation_field.companions_of(host):
         star = companion.star
         g3 = orbit_mean_inverse_cube(a_au, companion.axis_au, companion.eccentricity) / constants.AU_TO_M ** 3
+        g6 = orbit_mean_inverse_sixth(a_au, companion.axis_au, companion.eccentricity) / constants.AU_TO_M ** 6
         n_star = _rate(host.mass, star.mass, companion.axis_au * constants.AU_TO_M)
-        found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, n_star))
+        found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, n_star, g6))
     for other in siblings:
         if other is planet or not getattr(other, "distance", None):
             continue
         b_au = other.distance
         g3 = orbit_mean_inverse_cube(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
+        g6 = orbit_mean_inverse_sixth(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 6
         n_other = _rate(host.mass, other.mass, b_au * constants.AU_TO_M)
-        found.append(Source(other, getattr(other, "name", None) or "planet", "planet", _mass_of(other), g3, n_other if b_au > a_au else n_planet))
+        found.append(Source(other, getattr(other, "name", None) or "planet", "planet", _mass_of(other), g3, n_other if b_au > a_au else n_planet, g6))
     return found
 
 
@@ -128,8 +149,9 @@ def moon_sources(moon, planet, siblings):
             continue
         b_m = other.distance * constants.AU_TO_M
         g3 = orbit_mean_inverse_cube(moon.distance, other.distance, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
+        g6 = orbit_mean_inverse_sixth(moon.distance, other.distance, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 6
         n_other = _rate(planet.mass, other.mass, b_m)
-        found.append(Source(other, getattr(other, "name", None) or "moon", "moon", float(other.mass), g3, n_other if other.distance > moon.distance else n_moon))
+        found.append(Source(other, getattr(other, "name", None) or "moon", "moon", float(other.mass), g3, n_other if other.distance > moon.distance else n_moon, g6))
     return found
 
 
@@ -174,6 +196,7 @@ def raisers_of(sources, already):
     The `ocean_tides.Raiser`s for the `sources` that `ocean_tides` does not already count: those whose body is not among `already` (the bodies it uses: the host, the planet, the own moons).
     The raiser stands at the distance whose `1 / d^3` is the source's mean, on a circle, and goes round at the source's synodic rate.
     """
+    from planetgen.physics import ocean_tides      # here and not at the top: ocean_tides reads tidal_heating, which reads this module
     counted = {id(body) for body in already}
     made = []
     for source in sources:
@@ -201,7 +224,7 @@ def register(planets):
 def spin_raisers(body):
     """
     The `spin_torques.Raiser`s of the sources `body_spin` does not count for `body`: every companion star and sibling planet (and, for a moon, the host star at its planet's place and the
-    other moons of its planet), each at the distance whose `1 / d^3` is its mean and at the rate it turns the line to it. A planet's own host and a moon's planet are the first raiser
+    other moons of its planet), each at the distance whose `1 / d^6` is its mean (`circles_mean_inverse_sixth`, which the torque goes by) and at the rate it turns the line to it. A planet's own host and a moon's planet are the first raiser
     already, and a planet's own moons come with the moon history. `()` for a lone body.
     """
     parent = getattr(body, "_tide_parent", None)
@@ -211,5 +234,41 @@ def spin_raisers(body):
     except (AttributeError, TypeError, ZeroDivisionError):
         return ()
     skip = id(getattr(body, "star", None)) if parent is None else None
-    return tuple(spin_torques.Raiser(source.mass_kg, source.g3 ** (-1.0 / 3.0), source.rate_rad_s)
+    return tuple(spin_torques.Raiser(source.mass_kg, source.mean_inverse_sixth() ** (-1.0 / 6.0), source.rate_rad_s)
                  for source in sources if id(source.body) != skip and source.g3 > 0.0 and source.mass_kg > 0.0)
+
+
+NOMINAL_K2_OVER_Q = 0.01
+"""float: The `k2 / Q` the ledger's heating measure is worked at (every source of one body has the same one, so the share of each is what the ledger keeps). Source tier T7 (a share, not a power), tweak L0."""
+
+
+def spin_rate_rad_s(body):
+    """The spin of a planet or moon, rad/s (negative when its tilt is over 90 degrees), or `None` when its day is not stored."""
+    day_hours = getattr(body, "rotation_period_hours", None)
+    if not day_hours:
+        return None
+    return 2.0 * math.pi / (day_hours * 3600.0) * (-1.0 if (getattr(body, "axial_tilt_deg", None) or 0.0) > 90.0 else 1.0)
+
+
+def heating_by_source(body, sources, primary):
+    """
+    `[(source body, W)]`: the power each of `sources` puts into `body` (`primary` the body it orbits: its star, or a moon's planet) as tidal heating, at `NOMINAL_K2_OVER_Q` (the ledger keeps the share of each, GEN.1465). The body it orbits
+    heats it by its orbit's eccentricity (Peale: `(21/2) (k2/Q) G M^2 n R^5 e^2 / a^6`, as `tidal_heating.peale_power_w`); any other source heats it by the tide it raises against the body's spin,
+    `N |spin - rate|` with the torque `N` of `spin_torques.Torques.gravitational` at that source's mean `1 / d^6`. A body whose day is not stored takes the eccentricity term only.
+    """
+    spin = spin_rate_rad_s(body)
+    radius_m = body.radius * 1000.0
+    found = []
+    for source in sources:
+        if source.body is primary:
+            e = getattr(body, "eccentricity", 0.0) or 0.0
+            a_m = body.distance * constants.AU_TO_M
+            n = math.sqrt(constants.G * source.mass_kg / a_m ** 3)
+            power = 10.5 * NOMINAL_K2_OVER_Q * constants.G * source.mass_kg ** 2 * n * radius_m ** 5 * e * e / a_m ** 6
+        elif spin is None:
+            continue
+        else:
+            torque = spin_torques.GRAVITATIONAL_TORQUE_FACTOR * constants.G * source.mass_kg ** 2 * radius_m ** 5 * source.mean_inverse_sixth() * NOMINAL_K2_OVER_Q
+            power = torque * abs(spin - source.rate_rad_s)
+        found.append((source.body, power))
+    return found
