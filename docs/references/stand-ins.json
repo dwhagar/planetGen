@@ -59933,7 +59933,7 @@
           "fields": [
             [
               "What it is",
-              "the spin torque of a source other than the host or the own moons uses the raiser at the distance whose 1 / d^3 is its mean, so its torque goes as the square of that mean and not the mean of 1 / d^6; the line to it turns at the rate of the larger orbit radius"
+              "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
             ],
             [
               "The range it moves in",
@@ -59941,19 +59941,19 @@
             ],
             [
               "Where it holds",
-              "sources far from the receiver compared with its own orbit (companion stars, outer planets), whose torque is under 1e-9 of the host's in every census system"
+              "coplanar neighbours and companions"
             ],
             [
               "What would show it wrong",
-              "a sibling planet close enough that the 1 / d^6 mean is far above the square of the 1 / d^3 mean (a neighbour within two mutual Hill radii)"
+              "a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion"
             ],
             [
               "What replaces it",
-              "the mean of 1 / d^6 between the two orbits"
+              "the mean over both orbits with their nodes, and the tide at the synodic frequency"
             ],
             [
               "Evidence",
-              "derived: for circles the mean of 1 / d^6 exceeds the square of the mean of 1 / d^3, by under a factor of two at three mutual Hill radii; census over 40 systems (148 bodies): one rotation period moves, by 5e-9 of itself"
+              "derived: <(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2)) with A = a^2 + b^2, B = 2 a b (tested against quadrature); census over 30 systems in the last paragraph of the note"
             ]
           ],
           "id": "TS6",
@@ -59964,7 +59964,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "the spin torque of a source other than the host or the own moons uses the raiser at the distance whose 1 / d^3 is its mean, so its torque goes as the square of that mean and not the mean of 1 / d^6; the line to it turns at the rate of the larger orbit radius"
+          "what": "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
         }
       ],
       "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",
