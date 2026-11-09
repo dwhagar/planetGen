@@ -56893,6 +56893,394 @@
       ],
       "slug": "6-241-stand-ins-of-the-dose-from-the-radiation-field",
       "title": "Stand-ins of the dose from the radiation field"
+    },
+    {
+      "key": "6.242",
+      "number": "6.242",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+            ],
+            [
+              "The range it moves in",
+              "normalization 1e-5 to 1e-3; exponents fixed by the form"
+            ],
+            [
+              "Where it holds",
+              "a viscous disc of 0.01 to 0.1 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured pebble flux (drift in resolved discs), or a disc model with a different age law"
+            ],
+            [
+              "What replaces it",
+              "a chemistry and pebble-flux model such as the CHEMCOMP code of [R5210]"
+            ],
+            [
+              "Evidence",
+              "form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1)"
+            ]
+          ],
+          "id": "DE1",
+          "key": "6.242:DE1",
+          "kind": "T",
+          "slug": "6-242-de1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+            ],
+            [
+              "The range it moves in",
+              "60 to 250 AU at 1 Myr"
+            ],
+            [
+              "Where it holds",
+              "a disc of 10 to 300 AU"
+            ],
+            [
+              "What would show it wrong",
+              "a resolved disc whose dust ring front moves at another pace"
+            ],
+            [
+              "What replaces it",
+              "as DE1"
+            ],
+            [
+              "Evidence",
+              "[R5211], recalled; the number is computed from the two recalled efficiencies"
+            ]
+          ],
+          "id": "DE2",
+          "key": "6.242:DE2",
+          "kind": "T",
+          "slug": "6-242-de2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+            ],
+            [
+              "The range it moves in",
+              "step against a decay of one growth time at the edge"
+            ],
+            [
+              "Where it holds",
+              "all discs; the M dwarf rows are suspect (0.017 Myr)"
+            ],
+            [
+              "What would show it wrong",
+              "an M dwarf disc with pebbles at 1 Myr or more"
+            ],
+            [
+              "What replaces it",
+              "a gradual decay law from a disc model"
+            ],
+            [
+              "Evidence",
+              "my simplest form that conserves the dust; speculative, section 4 of the note"
+            ]
+          ],
+          "id": "DE3",
+          "key": "6.242:DE3",
+          "kind": "P",
+          "slug": "6-242-de3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+            ],
+            [
+              "The range it moves in",
+              "t_nu 0.2 to 2 Myr"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "accretion rates at 1 to 2 Myr outside 3e-9 to 3e-8 solar masses per year"
+            ],
+            [
+              "What replaces it",
+              "a measured accretion history by mass"
+            ],
+            [
+              "Evidence",
+              "standard viscous disc theory; the numbers are mine, sized to 1e-8 solar masses per year at 1 to 2 Myr"
+            ]
+          ],
+          "id": "DE4",
+          "key": "6.242:DE4",
+          "kind": "P",
+          "slug": "6-242-de4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+            ],
+            [
+              "The range it moves in",
+              "alpha 1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "gas between a line and a place inside it"
+            ],
+            [
+              "What would show it wrong",
+              "a measured turbulence of discs far from 1e-3"
+            ],
+            [
+              "What replaces it",
+              "a viscous-spreading model of the lines"
+            ],
+            [
+              "Evidence",
+              "steady-disc theory, alpha from the observed range; the boxcar is my simplest form, speculative"
+            ]
+          ],
+          "id": "DE5",
+          "key": "6.242:DE5",
+          "kind": "P",
+          "slug": "6-242-de5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+            ],
+            [
+              "The range it moves in",
+              "0.35 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the water line, other lines when asked"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ice-to-rock ratio just outside a snow line"
+            ],
+            [
+              "What replaces it",
+              "a diffusion model of the line"
+            ],
+            [
+              "Evidence",
+              "[R5209] abstract read: local vapor enhanced by more than an order of magnitude under nominal conditions, solids enhanced outside the front; the band width (a gas scale height) is mine"
+            ]
+          ],
+          "id": "DE6",
+          "key": "6.242:DE6",
+          "kind": "T",
+          "slug": "6-242-de6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "all ices"
+            ],
+            [
+              "What would show it wrong",
+              "none: it follows from the front"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "geometry of the front, section 2.1 of the note"
+            ]
+          ],
+          "id": "DE7",
+          "key": "6.242:DE7",
+          "kind": "D",
+          "slug": "6-242-de7",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "all discs"
+            ],
+            [
+              "What would show it wrong",
+              "E = 1 not reproducing the static gas (the build's test)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "disk_condensation._gas_and_solid_atoms, E = 1 recovers GEN.1363"
+            ]
+          ],
+          "id": "DE8",
+          "key": "6.242:DE8",
+          "kind": "D",
+          "slug": "6-242-de8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+            ],
+            [
+              "The range it moves in",
+              "core mass 10 to 20 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose age of gas gathering is measured or modelled otherwise"
+            ],
+            [
+              "What replaces it",
+              "a formation-history model per giant"
+            ],
+            [
+              "Evidence",
+              "my derivation to avoid a draw; speculative"
+            ]
+          ],
+          "id": "DE9",
+          "key": "6.242:DE9",
+          "kind": "P",
+          "slug": "6-242-de9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the open points of the note"
+            ],
+            [
+              "What would show it wrong",
+              "a measure in which the enrichment ratio is clearly lower in discs with giants"
+            ],
+            [
+              "What replaces it",
+              "each as its own item"
+            ],
+            [
+              "Evidence",
+              "listed in section 6 of the note as not modelled"
+            ]
+          ],
+          "id": "DE10",
+          "key": "6.242:DE10",
+          "kind": "P",
+          "slug": "6-242-de10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+        }
+      ],
+      "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disc",
+      "title": "Stand-ins of the drift and evaporation of the ices in the disc"
     }
   ]
 }
