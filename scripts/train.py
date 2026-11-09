@@ -11,8 +11,10 @@ The merge-train runner's steps as one command, the script rule 10 of the merge-t
                                                         (R5136 to R5140) to a free number, after its merge
     python scripts/train.py numbers                     renumber this branch's migrations and epochs after main's (allocate_numbers)
     python scripts/train.py rebuild                     rebuild the generated files (references, pages, stand-in values, spelling)
-    python scripts/train.py golden --reason "..." [--affects plan,scatter,fill,population]
-                                                        regenerate the golden files and the epoch's reason (about ten minutes)
+    python scripts/train.py affects                     the stages the train's release notes say they alter (their `generation-affects:` lines)
+    python scripts/train.py golden --reason "..." [--affects plan,scatter,fill,population|all]
+                                                        regenerate the golden files and the epoch's reason (about ten minutes); with no
+                                                        --affects, the stages are the union of the notes' `generation-affects:` lines
     python scripts/train.py checks                      the guards a train must pass before its PR: wiring, numbers, release note
     python scripts/train.py gate [--of N]               print the gate's file list, split over N machines when asked
 
@@ -29,6 +31,8 @@ import subprocess
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bump_version  # noqa: E402 -- the note rules (`generation-affects:`) live there
 GENERATED = re.compile(r"^(docs/design/research/stand-in-values\.md|docs/references/.*\.json|docs/REFERENCES\.(md|html)|"
                        r"docs/reference/references-data\.json|src/tests/golden/[^/]+)$")
 """re.Pattern: The files `rebuild` and `golden` write; a merge conflict in one takes this branch's side."""
@@ -195,8 +199,70 @@ def rebuild(args):
     print("rebuilt; commit what changed")
 
 
+def train_notes(ref="origin/main"):
+    """`{file name: text}` of the release notes this branch adds to (or changes in) `changes/` beyond `ref`: the train's items."""
+    names = sh("git", "diff", "--name-only", "--diff-filter=AM", ref, "HEAD", "--", "changes/", capture=True).split()
+    notes = {}
+    for name in names:
+        base = os.path.basename(name)
+        path = os.path.join(ROOT, name)
+        if base.endswith(".md") and base != "README.md" and os.path.exists(path):
+            notes[base] = open(path, encoding="utf-8").read()
+    return notes
+
+
+def stages_of_notes(notes):
+    """
+    The stages a train's epoch alters, from its notes' `generation-affects:` lines (the rule in `changes/README.md`).
+
+    A note with no such line says nothing, so it counts as every stage (what the train did for all of them before): it is named in
+    `undeclared` so the lane or TODO can add the line. `generation-affects: none` alters nothing and adds nothing.
+
+    Returns:
+        tuple: `(stages, undeclared, problems)`: the stages in epoch order, the notes without a line, and the notes whose line is wrong.
+    """
+    stages, undeclared, problems = set(), [], []
+    for name, text in sorted(notes.items()):
+        try:
+            declared = bump_version.parse_generation_affects(text)
+        except ValueError as exc:
+            problems.append(f"{name}: {exc}")
+            continue
+        if declared is None:
+            undeclared.append(name)
+        else:
+            stages.update(declared)
+    if undeclared:
+        stages.update(bump_version.GENERATION_STAGES)
+    return tuple(stage for stage in bump_version.GENERATION_STAGES if stage in stages), undeclared, problems
+
+
+def affects(args):
+    stages, undeclared, problems = stages_of_notes(train_notes())
+    for problem in problems:
+        print("PROBLEM " + problem)
+    for name in undeclared:
+        print(f"UNDECLARED {name}: no `generation-affects:` line, so it counts as every stage")
+    print("stages: " + (",".join(stages) if stages else "none declared"))
+    if problems:
+        raise SystemExit(1)
+
+
 def golden(args):
-    sh(sys.executable, "-m", "tests.golden_update", "--reason", args.reason, "--affects", args.affects, cwd=os.path.join(ROOT, "src"))
+    if args.affects in (None, ""):
+        stages, undeclared, problems = stages_of_notes(train_notes())
+        if problems:
+            raise SystemExit("train: fix these notes first:\n  " + "\n  ".join(problems))
+        if not stages:
+            raise SystemExit("train: every note says `generation-affects: none` (or there is no note), yet golden is being rewritten; "
+                             "give --affects by hand")
+        for name in undeclared:
+            print(f"train: {name} has no `generation-affects:` line, so every stage counts")
+        chosen = ",".join(stages)
+        print(f"train: the epoch alters {chosen}")
+    else:
+        chosen = ",".join(bump_version.GENERATION_STAGES) if args.affects == "all" else args.affects
+    sh(sys.executable, "-m", "tests.golden_update", "--reason", args.reason, "--affects", chosen, cwd=os.path.join(ROOT, "src"))
 
 
 def checks(args):
@@ -204,6 +270,9 @@ def checks(args):
     out = sh(sys.executable, "scripts/wiring_guard.py", "--check", capture=True)
     problems = [line for line in out.splitlines() if line.startswith("PROBLEM")]
     print(f"wiring guard: {len(problems)} problem(s)")
+    stages, undeclared, bad = stages_of_notes(train_notes())
+    print(f"notes: stages {','.join(stages) or 'none'}; {len(undeclared)} note(s) without a `generation-affects:` line, {len(bad)} wrong")
+    problems += [f"PROBLEM note {line}" for line in bad]
     for line in problems:
         print("  " + line)
     sh(sys.executable, "scripts/allocate_numbers.py", "--base", "origin/main", "--check")
@@ -243,8 +312,9 @@ def main(argv=None):
     sub.add_parser("rebuild").set_defaults(run=rebuild)
     p = sub.add_parser("golden")
     p.add_argument("--reason", required=True)
-    p.add_argument("--affects", default="plan,scatter,fill,population")
+    p.add_argument("--affects", default=None, help="stages, comma separated, or `all`; left out, the union of the notes' `generation-affects:` lines")
     p.set_defaults(run=golden)
+    sub.add_parser("affects").set_defaults(run=affects)
     sub.add_parser("checks").set_defaults(run=checks)
     p = sub.add_parser("gate")
     p.add_argument("--of", type=int, default=0)
