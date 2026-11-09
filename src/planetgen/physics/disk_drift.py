@@ -1,28 +1,28 @@
 # planetgen/physics/disk_drift.py
 
 """
-Pebble drift and evaporation at the ice lines of a protoplanetary disc (GEN.1473; docs/design/composition/disk-drift-evaporation.md)
+Pebble drift and evaporation at the ice lines of a protoplanetary disk (GEN.1473; docs/design/composition/disk-drift-evaporation.md)
 ====================================================================================================================================
 
-`disk_condensation` holds a disc that stays as it was born: the gas at a place has the composition the temperature there gives. Pebbles do not stay: they grow, drift inward
+`disk_condensation` holds a disk that stays as it was born: the gas at a place has the composition the temperature there gives. Pebbles do not stay: they grow, drift inward
 faster than the gas, and evaporate where they cross each ice line, so the gas inside a line gets that line's ice at a rate set by the pebble flux over the gas flux
 ([R5208], [R5209], [R5210]). One number does the work, the **enrichment ratio** `E` of a species: the flux of its ice that pebbles carry in, over the flux the static budget
 would carry with the gas. `E = 1` is the static budget (`disk_condensation`, GEN.1363) exactly; `E > 1` while the pebbles last; `E = 0` before the pebble front reaches the
 line and after the pebbles are gone.
 
 1. **The clocks.** The dust-growth front moves outward, `r_g = FRONT_AU_AT_1_MYR x (t / 1 Myr)^(2/3) x (M / Msun)^(1/3)` ([R5211: Eq. 10]); a line at `r_L` sees its pebbles from the time
-   the front reaches it (`arrival_myr`) to the time the front leaves the disc's edge (`pebble_end_myr`: the drawn snow line times
+   the front reaches it (`arrival_myr`) to the time the front leaves the disk's edge (`pebble_end_myr`: the drawn snow line times
    `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER`). The gas needs time to carry the vapor from the line to a place inside it (`lag_myr`).
 2. **The ratio.** `E(t) = Mdot_F(t) / (Mdot_g(t) x Z)` between the two times (`instant_ratio`): the pebble mass flux of [R5211: Eq. 14] over the viscous gas flux, in units of the
-   disc's solids over gas `Z`. Both fluxes are proportional to the disc's mass (`tuning.DISK_MASS_STELLAR_MASS_EXPONENT`), so the ratio does not depend on it; the star's mass
+   disk's solids over gas `Z`. Both fluxes are proportional to the disk's mass (`tuning.DISK_MASS_STELLAR_MASS_EXPONENT`), so the ratio does not depend on it; the star's mass
    enters through the front and through the times only.
-3. **The gas at a place.** The gas is the supply (the gas at the disc's edge) plus each ice whose line lies between the edge and the place, weighted by its `E` averaged over
+3. **The gas at a place.** The gas is the supply (the gas at the disk's edge) plus each ice whose line lies between the edge and the place, weighted by its `E` averaged over
    the lag (`ice_weights`). `disk_condensation._gas_and_solid_atoms(..., ice_weights=...)` takes the weights; weights of 1 give the static gas.
 4. **A giant.** It gathers its gas when its core is built from the pebbles that pass its place (`gathering_age_myr`), which needs no new random draw: the star's mass and
    metals, its stored snow line and the giant's formation temperature give everything (`giant_ice_weights`).
 
 Limits. The solids at a place stay the static ones; only the gas moves (DE8: the supply is the gas at the edge and each ice between the edge and the place is added with its weight; a
-species is carried only by pebbles that began beyond its line, DE7). The pebble flux ends as a step at the disc's edge (DE3). Not modelled (DE10): a formed giant that blocks the
+species is carried only by pebbles that began beyond its line, DE7). The pebble flux ends as a step at the disk's edge (DE3). Not modelled (DE10): a formed giant that blocks the
 pebbles (the isolation mass), planets that eat pebbles on the way, the soot line, photoevaporation of the gas, and the cold finger
 (the ice-to-rock ratio just outside a line; `COLD_FINGER_LEAK` and `cold_finger_enrichment` report it, nothing reads it yet). The nitrogen, sulfur and noble gases of
 `disk_condensation.envelope_enrichments` keep their static values. Stand-ins are rows DE1 to DE10 of the registry (section 6.242 of `docs/design/research/gap-filling-plan.md`).
@@ -38,12 +38,12 @@ MYR_YR = 1.0e6
 """float: Years in a megayear."""
 
 PEBBLE_FLUX_EARTH_MASSES_PER_YR = 9.5e-5
-"""float: The mass flux of pebbles through a Sun-like disc at 1 Myr, Earth masses per year, for solids over gas `REFERENCE_SOLIDS_OVER_GAS`. The flux follows `(Z / 0.01)^(5/3)` and
-`(t / 1 Myr)^(-1/3)` (`PEBBLE_FLUX_Z_EXPONENT`, `PEBBLE_FLUX_AGE_EXPONENT`), and the disc's mass (`disc_mass_scale`) in the place of the paper's star-mass term, so that the disc's
+"""float: The mass flux of pebbles through a Sun-like disk at 1 Myr, Earth masses per year, for solids over gas `REFERENCE_SOLIDS_OVER_GAS`. The flux follows `(Z / 0.01)^(5/3)` and
+`(t / 1 Myr)^(-1/3)` (`PEBBLE_FLUX_Z_EXPONENT`, `PEBBLE_FLUX_AGE_EXPONENT`), and the disk's mass (`disk_mass_scale`) in the place of the paper's star-mass term, so that the disk's
 mass cancels in the enrichment ratio (design note 2.1). The form and number are [R5211: Eq. 14] (9.5e-5 Earth masses per year for beta 500 g/cm2, Z0 0.01, a Sun-like star at 10^6 yr). [Stand-in DE1, tier T1, tweak L0.]"""
 
 PEBBLE_FLUX_Z_EXPONENT = 5.0 / 3.0
-"""float: The power of the disc's solids over gas in the pebble flux ([R5211: Eq. 14]). [Stand-in DE1, tier T1, tweak L0.]"""
+"""float: The power of the disk's solids over gas in the pebble flux ([R5211: Eq. 14]). [Stand-in DE1, tier T1, tweak L0.]"""
 
 PEBBLE_FLUX_AGE_EXPONENT = -1.0 / 3.0
 """float: The power of the age in the pebble flux ([R5211: Eq. 14]). [Stand-in DE1, tier T1, tweak L0.]"""
@@ -61,21 +61,21 @@ FRONT_AGE_EXPONENT = 2.0 / 3.0
 FRONT_MASS_EXPONENT = 1.0 / 3.0
 """float: The power of the star's mass in the front's distance ([R5211: Eq. 10]). [Stand-in DE2, tier T1, tweak L0.]"""
 
-DISC_MASS_SOLAR = 0.05
-"""float: The mass of a Sun-like star's disc at its birth, solar masses (scaled by `disc_mass_scale` for other stars). Standard disc theory; the number is chosen so the accretion rate at 1 to
+DISK_MASS_SOLAR = 0.05
+"""float: The mass of a Sun-like star's disk at its birth, solar masses (scaled by `disk_mass_scale` for other stars). Standard disk theory; the number is chosen so the accretion rate at 1 to
 2 Myr is the observed 1e-8 solar masses per year. [Stand-in DE4, tier T6, tweak L0.]"""
 
 VISCOUS_TIME_MYR = 0.5
-"""float: The viscous time of the disc, Myr: `Mdot_g = Mdot_0 x (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`. [Stand-in DE4, tier T6, tweak L0.]"""
+"""float: The viscous time of the disk, Myr: `Mdot_g = Mdot_0 x (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`. [Stand-in DE4, tier T6, tweak L0.]"""
 
 VISCOUS_GAS_EXPONENT = -1.5
 """float: The power of `(1 + t / t_nu)` in the gas flux (a viscosity linear in the radius). [Stand-in DE4, tier T6, tweak L0.]"""
 
 ALPHA = 1.0e-3
-"""float: The turbulence parameter of the disc, which sets the time the gas takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
+"""float: The turbulence parameter of the disk, which sets the time the gas takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
 
 LAG_MYR_PER_AU = 0.05
-"""float: The time the gas takes to cross one AU inward at `REFERENCE_ALPHA`, Myr: `tau = (r_L - r) / (3 nu_1)` with `nu = nu_1 x (r / 1 AU)` (a steady disc). [Stand-in DE5, tier T6, tweak L0.]"""
+"""float: The time the gas takes to cross one AU inward at `REFERENCE_ALPHA`, Myr: `tau = (r_L - r) / (3 nu_1)` with `nu = nu_1 x (r / 1 AU)` (a steady disk). [Stand-in DE5, tier T6, tweak L0.]"""
 
 REFERENCE_ALPHA = 1.0e-3
 """float: The `ALPHA` at which `LAG_MYR_PER_AU` holds; the lag scales as `REFERENCE_ALPHA / ALPHA`. [Stand-in DE5, tier T6, tweak L0.]"""
@@ -97,38 +97,38 @@ _SOLIDS_OVER_GAS_SUN = sum(disk_condensation.masses_percent(15.0).values()) / 10
 
 
 def solids_over_gas(metal_ratio=1.0):
-    """The disc's solids over gas (rock, grains and every ice, by mass): 1.43 percent for the Sun's composition, scaled by the star's metals over the Sun's (`metal_ratio`)."""
+    """The disk's solids over gas (rock, grains and every ice, by mass): 1.43 percent for the Sun's composition, scaled by the star's metals over the Sun's (`metal_ratio`)."""
     if not metal_ratio > 0.0:
         raise ValueError("the metal ratio must be positive")
     return _SOLIDS_OVER_GAS_SUN * metal_ratio
 
 
-def disc_mass_scale(mass_solar):
-    """The disc's mass over a Sun-like star's, `(M / Msun)^DISK_MASS_STELLAR_MASS_EXPONENT` (it multiplies both fluxes and cancels in `instant_ratio`)."""
+def disk_mass_scale(mass_solar):
+    """The disk's mass over a Sun-like star's, `(M / Msun)^DISK_MASS_STELLAR_MASS_EXPONENT` (it multiplies both fluxes and cancels in `instant_ratio`)."""
     return mass_solar ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT
 
 
 def edge_au(snow_line_au):
-    """The disc's outer edge, AU: `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` snow lines."""
+    """The disk's outer edge, AU: `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` snow lines."""
     return tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
 
 
 def line_au_of(species, snow_line_au):
-    """The distance of the line of `species` (`disk_condensation.LINES_K`), AU, from the star's drawn snow line (the water line): a disc's temperature falls as the square root of the distance."""
+    """The distance of the line of `species` (`disk_condensation.LINES_K`), AU, from the star's drawn snow line (the water line): a disk's temperature falls as the square root of the distance."""
     if species not in disk_condensation.LINES_K:
         raise ValueError(f"no line for {species!r}")
     return snow_line_au * (disk_condensation.LINES_K["H2O"] / disk_condensation.LINES_K[species]) ** 2
 
 
 def place_au(temperature_k, snow_line_au):
-    """The distance, AU, at which the disc is at `temperature_k` (the inverse of the square-root law `line_au_of` uses)."""
+    """The distance, AU, at which the disk is at `temperature_k` (the inverse of the square-root law `line_au_of` uses)."""
     if not temperature_k > 0.0:
         raise ValueError("the temperature must be positive")
     return snow_line_au * (disk_condensation.LINES_K["H2O"] / temperature_k) ** 2
 
 
 def edge_temperature_k():
-    """The temperature at the disc's edge, K (the water line over the square root of the edge's multiple of the snow line): 42.9 K."""
+    """The temperature at the disk's edge, K (the water line over the square root of the edge's multiple of the snow line): 42.9 K."""
     return disk_condensation.LINES_K["H2O"] / math.sqrt(tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)
 
 
@@ -148,32 +148,32 @@ def arrival_myr(distance_au, mass_solar=1.0):
 
 def pebble_end_myr(snow_line_au, mass_solar=1.0):
     """
-    The age at which the front leaves the disc's edge and the pebbles are gone, Myr: 0.2 for the Sun (edge 41 AU). The flux ends as a step there; speculative, the simplest form that conserves
-    the dust (a real disc loses its pebbles over a few Myr). [Stand-in DE3, tier T6, tweak L0.]
+    The age at which the front leaves the disk's edge and the pebbles are gone, Myr: 0.2 for the Sun (edge 41 AU). The flux ends as a step there; speculative, the simplest form that conserves
+    the dust (a real disk loses its pebbles over a few Myr). [Stand-in DE3, tier T6, tweak L0.]
     """
     return arrival_myr(edge_au(snow_line_au), mass_solar)
 
 
 def pebble_flux_earth_per_yr(age_myr, mass_solar=1.0, metal_ratio=1.0):
-    """The pebble mass flux, Earth masses per year, at `age_myr` ([R5211: Eq. 14], with the disc-mass term of `disc_mass_scale`)."""
+    """The pebble mass flux, Earth masses per year, at `age_myr` ([R5211: Eq. 14], with the disk-mass term of `disk_mass_scale`)."""
     if not age_myr > 0.0:
         raise ValueError("the age must be positive")
     z = solids_over_gas(metal_ratio)
     return (PEBBLE_FLUX_EARTH_MASSES_PER_YR * (z / REFERENCE_SOLIDS_OVER_GAS) ** PEBBLE_FLUX_Z_EXPONENT * age_myr ** PEBBLE_FLUX_AGE_EXPONENT
-            * disc_mass_scale(mass_solar))
+            * disk_mass_scale(mass_solar))
 
 
 def gas_flux_solar_per_yr(age_myr, mass_solar=1.0):
-    """The viscous gas flux, solar masses per year: `Mdot_0 (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`, `Md_0` scaled by `disc_mass_scale`."""
+    """The viscous gas flux, solar masses per year: `Mdot_0 (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`, `Md_0` scaled by `disk_mass_scale`."""
     if not age_myr >= 0.0:
         raise ValueError("the age must be zero or more")
-    initial = DISC_MASS_SOLAR * disc_mass_scale(mass_solar) / (2.0 * VISCOUS_TIME_MYR * MYR_YR)
+    initial = DISK_MASS_SOLAR * disk_mass_scale(mass_solar) / (2.0 * VISCOUS_TIME_MYR * MYR_YR)
     return initial * (1.0 + age_myr / VISCOUS_TIME_MYR) ** VISCOUS_GAS_EXPONENT
 
 
 def instant_ratio(age_myr, mass_solar=1.0, metal_ratio=1.0):
     """
-    The pebble flux over the gas flux in units of the solids over gas, at `age_myr`: `Mdot_F / (Mdot_g x Z)`. The disc's mass is in both fluxes and cancels. Not gated: see
+    The pebble flux over the gas flux in units of the solids over gas, at `age_myr`: `Mdot_F / (Mdot_g x Z)`. The disk's mass is in both fluxes and cancels. Not gated: see
     `enrichment_ratio` for the ratio between the arrival of a line's pebbles and their end. About 2.3 at 0.05 Myr for the Sun.
     """
     earth_per_solar = 1.0 / _EARTH_MASSES_PER_SOLAR_MASS
@@ -212,16 +212,16 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     """
     The enrichment ratio `E` of `species` at `age_myr`: the flux of its ice that the pebbles carry in over the flux the static budget carries with the gas.
 
-    Zero when the species' line is not inside the disc's edge, before the front reaches the line (`arrival_myr`) and from the time the pebbles end (`pebble_end_myr`); between,
+    Zero when the species' line is not inside the disk's edge, before the front reaches the line (`arrival_myr`) and from the time the pebbles end (`pebble_end_myr`); between,
     `instant_ratio`. With `to_au` (a place inside the line) the value is the mean over the window `[age - lag_myr, age]` that the gas needs to carry the vapor from the line to the
-    place, the window cut at the start of the disc (design note 2.1).
+    place, the window cut at the start of the disk (design note 2.1).
 
     Args:
         species (str): A key of `disk_condensation.LINES_K`.
-        age_myr (float): The disc's age, Myr.
+        age_myr (float): The disk's age, Myr.
         snow_line_au (float): The star's drawn snow line, AU.
         mass_solar (float): The star's mass.
-        metal_ratio (float): The star's metals over the Sun's (the disc's solids scale with it).
+        metal_ratio (float): The star's metals over the Sun's (the disk's solids scale with it).
         to_au (float): The place the vapor is carried to; `None` for no lag.
     """
     if not age_myr >= 0.0:
@@ -243,7 +243,7 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
 @finite_domain()
 def ice_weights(temperature_k, age_myr, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
     """
-    The weight `E` of each ice whose line lies between the disc's edge and `temperature_k`, as `{species: E}`, for the gas at the place where the disc is at `temperature_k` at
+    The weight `E` of each ice whose line lies between the disk's edge and `temperature_k`, as `{species: E}`, for the gas at the place where the disk is at `temperature_k` at
     `age_myr` (the lag from each line to the place included). These are the ices that evaporated on the way in; the supply (the gas at the edge) is not weighted. Empty for a place
     at or beyond the edge. `disk_condensation.envelope_c_over_o(..., ice_weights=...)` takes the result.
     """
@@ -259,8 +259,8 @@ def ice_weights(temperature_k, age_myr, snow_line_au, mass_solar=1.0, metal_rati
 @finite_domain()
 def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
     """
-    The age at which a giant that formed where the disc was at `temperature_k` gathers its gas, Myr (DE9): when the pebbles that pass its place have built `CRITICAL_CORE_EARTH`
-    from the front's arrival there, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`) and at the end of the pebbles (a core the pebbles cannot build in time gathers
+    The age at which a giant that formed where the disk was at `temperature_k` gathers its gas, Myr (DE9): when the pebbles that pass its place have built `CRITICAL_CORE_EARTH`
+    from the front's arrival there, capped at the disk's lifetime (`scatter.DISK_LIFETIME_YR`) and at the end of the pebbles (a core the pebbles cannot build in time gathers
     its gas as the pebbles end and sees the pebble-depleted gas).
     """
     place = place_au(temperature_k, snow_line_au)
@@ -271,7 +271,7 @@ def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1
         return cap
     z = solids_over_gas(metal_ratio)
     # mass(t) = K x (t^(2/3) - t0^(2/3)) with the flux K' t^(-1/3): the integral of t^(-1/3) is 1.5 t^(2/3)
-    coefficient = (PEBBLE_FLUX_EARTH_MASSES_PER_YR * (z / REFERENCE_SOLIDS_OVER_GAS) ** PEBBLE_FLUX_Z_EXPONENT * disc_mass_scale(mass_solar) * MYR_YR
+    coefficient = (PEBBLE_FLUX_EARTH_MASSES_PER_YR * (z / REFERENCE_SOLIDS_OVER_GAS) ** PEBBLE_FLUX_Z_EXPONENT * disk_mass_scale(mass_solar) * MYR_YR
                    / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
     needed = CRITICAL_CORE_EARTH / coefficient + arrived ** (PEBBLE_FLUX_AGE_EXPONENT + 1.0)
     age = needed ** (1.0 / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
@@ -279,7 +279,7 @@ def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1
 
 
 def giant_ice_weights(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
-    """The `ice_weights` of the gas a giant gathers where the disc was at `temperature_k`, at the age it gathers it (`gathering_age_myr`); one function of the star's mass and metals and its stored snow line, no draw."""
+    """The `ice_weights` of the gas a giant gathers where the disk was at `temperature_k`, at the age it gathers it (`gathering_age_myr`); one function of the star's mass and metals and its stored snow line, no draw."""
     age = gathering_age_myr(temperature_k, snow_line_au, mass_solar, metal_ratio)
     return ice_weights(temperature_k, age, snow_line_au, mass_solar, metal_ratio)
 

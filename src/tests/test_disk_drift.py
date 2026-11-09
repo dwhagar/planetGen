@@ -1,4 +1,4 @@
-"""Pebble drift and evaporation at the ice lines of a disc (GEN.1473, physics/disk_drift.py)."""
+"""Pebble drift and evaporation at the ice lines of a disk (GEN.1473, physics/disk_drift.py)."""
 
 import math
 
@@ -26,12 +26,12 @@ def test_the_enrichment_ratio_is_the_design_notes_two_to_three_for_the_sun():
     assert dd.instant_ratio(0.05) == pytest.approx(2.27, rel=0.03)
 
 
-def test_the_disc_mass_cancels_in_the_ratio_so_the_ratio_does_not_depend_on_the_star_mass():
+def test_the_disk_mass_cancels_in_the_ratio_so_the_ratio_does_not_depend_on_the_star_mass():
     assert dd.instant_ratio(0.3, mass_solar=0.3) == pytest.approx(dd.instant_ratio(0.3, mass_solar=1.0))
     assert dd.instant_ratio(0.3, mass_solar=1.5) == pytest.approx(dd.instant_ratio(0.3, mass_solar=1.0))
 
 
-def test_a_richer_disc_has_more_pebbles_per_gas_to_the_two_thirds():
+def test_a_richer_disk_has_more_pebbles_per_gas_to_the_two_thirds():
     assert dd.instant_ratio(0.1, metal_ratio=2.0) == pytest.approx(dd.instant_ratio(0.1) * 2.0 ** (2.0 / 3.0), rel=1e-6)
 
 
@@ -46,21 +46,21 @@ def test_a_species_has_no_pebbles_before_the_front_arrives_or_after_they_end():
     assert dd.enrichment_ratio("H2O", 0.01, SUN_SNOW_LINE_AU) > 1.0                  # the water line is crossed first
 
 
-def test_a_line_outside_the_disc_edge_gets_no_pebbles():
+def test_a_line_outside_the_disk_edge_gets_no_pebbles():
     assert dd.line_au_of("CO", SUN_SNOW_LINE_AU) > dd.edge_au(SUN_SNOW_LINE_AU)
     assert dd.enrichment_ratio("CO", 0.1, SUN_SNOW_LINE_AU) == 0.0
     with pytest.raises(ValueError):
         dd.enrichment_ratio("Unobtainium", 0.1, SUN_SNOW_LINE_AU)
 
 
-def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_the_disc():
+def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_the_disk():
     line = dd.line_au_of("CO2", SUN_SNOW_LINE_AU)
     place = 5.0
     lag = dd.lag_myr(line, place)
     assert lag == pytest.approx(dd.LAG_MYR_PER_AU * (line - place))
     assert dd.lag_myr(5.0, 35.0) == 0.0                                              # a place outside the line has no lag
     first, end = dd.arrival_myr(line), dd.pebble_end_myr(SUN_SNOW_LINE_AU)
-    # before the lagged signal could come (window start at the start of the disc, pebbles not yet at the line): zero
+    # before the lagged signal could come (window start at the start of the disk, pebbles not yet at the line): zero
     assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, to_au=place) == 0.0
     # after the pebbles end, the window still holds them: the lagged value is nonzero for as long as the window overlaps the epoch
     late = end + 0.5 * lag
@@ -86,7 +86,7 @@ def test_weights_of_one_give_the_static_gas_and_the_static_c_over_o_exactly(temp
         assert dc.envelope_c_over_o(temperature, enrichment, ice_weights=ones) == dc.envelope_c_over_o(temperature, enrichment)
 
 
-def test_no_weights_is_the_static_disc():
+def test_no_weights_is_the_static_disk():
     assert dc.envelope_c_over_o(120.0, 3.0, ice_weights=None) == dc.envelope_c_over_o(120.0, 3.0, ice_weights={})
 
 
@@ -116,7 +116,7 @@ def test_a_frozen_ice_is_not_put_in_the_gas_by_a_weight():
     assert dc._gas_and_solid_atoms(temperature, 1.0, 1.0, 1.0, 1.0, 1.0, {"H2O": 5.0}) == dc._gas_and_solid_atoms(temperature, 1.0, 1.0, 1.0, 1.0, 1.0)
 
 
-def test_the_carbon_and_oxygen_in_the_gas_and_the_solids_stay_the_budget_for_the_static_disc_and_the_envelope_holds_the_enrichment():
+def test_the_carbon_and_oxygen_in_the_gas_and_the_solids_stay_the_budget_for_the_static_disk_and_the_envelope_holds_the_enrichment():
     held = dc.inventory()
     gas_c, gas_o, solid_c, solid_o = dc._gas_and_solid_atoms(100.0, 1.0, 1.0, 1.0, 1.0, 1.0)
     assert gas_c + solid_c == pytest.approx(held.carbon) and gas_o + solid_o == pytest.approx(held.oxygen)
@@ -167,7 +167,7 @@ def test_a_core_the_pebbles_cannot_build_gathers_gas_as_the_pebbles_end_and_sees
     assert dd.enrichment_ratio("H2O", age, SUN_SNOW_LINE_AU) == 0.0
 
 
-def test_the_gathering_age_is_capped_at_the_disc_lifetime_and_is_a_function_of_the_inputs_only():
+def test_the_gathering_age_is_capped_at_the_disk_lifetime_and_is_a_function_of_the_inputs_only():
     from planetgen.physics import scatter
     for mass in (0.1, 0.3, 1.0, 1.5, 2.5):
         age = dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, mass)
@@ -189,7 +189,7 @@ def test_the_cold_finger_enrichment_is_one_over_one_minus_the_leak_cut_by_the_ic
         dd.cold_finger_enrichment(1.5)
 
 
-def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_without_keeps_the_static_disc():
+def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_without_keeps_the_static_disk():
     subject = {"formation_temperature_k": 300.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
     assert mixture_giant._disk_ice_weights(subject, 300.0)["H2O"] > 1.0
     assert mixture_giant._disk_ice_weights({"formation_temperature_k": 300.0}, 300.0) is None
