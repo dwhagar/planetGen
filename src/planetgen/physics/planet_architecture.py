@@ -473,6 +473,12 @@ def _loss(kind, count, mass_kg, core_kg, distance_au, formation_au, perturber_au
                 ice_rich, ejected, collided, bound)
 
 
+def _reaches(planet, distance_au, star_solar):
+    """Whether `distance_au` lies in the stretch `planet` reaches (`scatter.reach_band_au`: its chaotic zone, widened to the path it moved along)."""
+    low, high = scatter_rule.reach_band_au(planet.distance_au, planet.formation_au, planet.mass_kg / _EARTH_KG, star_solar)
+    return low <= distance_au <= high
+
+
 def losses(architecture):
     """
     Every loss of `architecture` as a `Loss` (module docstring, GEN.1119), none dropped: the mass the merges did not keep (collided), the chain bodies
@@ -493,8 +499,14 @@ def losses(architecture):
 
     if lost.capped:
         result.append(Loss("capped", lost.capped, lost.capped_kg, lost.capped_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))
+    def scatterer(seed, recorded):
+        """The planet that scatters `seed` (GEN.1456): the one of the highest Safronov number among those whose reach band holds the body, the neighbour the clearing recorded (`recorded`) among them and the first on a tie; every planet of the system acts on it, not the neighbour alone."""
+        reaching = [p for p in architecture.planets if p is not recorded and _reaches(p, seed.distance_au, star_solar)]
+        return max([recorded, *reaching], key=lambda p: encounter(p, seed.distance_au)[0])
+
     for kind, pairs in (("swept", lost.swept), ("thrown", lost.thrown)):
-        for seed, perturber in pairs:
+        for seed, recorded in pairs:
+            perturber = scatterer(seed, recorded)
             theta, fates = encounter(perturber, seed.distance_au)
             result.append(_loss(kind, 1, seed.mass_kg, seed.core_kg, seed.distance_au, seed.formation_au, perturber.distance_au, perturber.mass_kg, theta,
                                 scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, fates))

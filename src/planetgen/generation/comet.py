@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import body_strength, bulk_draw, comet_ice_budget, kepler, small_body_composition, spin
+from planetgen.physics import body_strength, bulk_draw, comet_control, comet_ice_budget, kepler, radiation_field, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -208,7 +208,7 @@ class Comet(SmallBody):
     """float: This comet's offset from its star, AU: the "system" frame of
     `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
 
-    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None):
+    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None, giant_au=None):
         """
         Initializes a Comet object.
 
@@ -230,6 +230,10 @@ class Comet(SmallBody):
             star (optional): The star (or binary proxy) the comet orbits: its luminosity, snow line, disk edge and carbon and oxygen put the comet's
                 formation in a zone of the disk, and the zone sets the median CO and CO2 of its ice (GEN.595). Without it the ice keeps the Solar
                 System population's medians.
+            giant_au (float, optional): The distance of the star's controlling giant (`comet_control.controlling_giant_au`, GEN.1457). A Jupiter-family comet
+                is then one whose Tisserand parameter about that giant is in the family's range: its elements are drawn again until it is (up to
+                `tuning.COMET_CEILING_ATTEMPTS` times), and a comet no orbit of which that giant can control is of another family. Without a giant the
+                orbit is as it was.
         """
         # The name is a placeholder: `store.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
@@ -260,14 +264,10 @@ class Comet(SmallBody):
                        f"weighted draw among {class_names} (weights {weights})")
             class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
 
-            low, high = class_data["eccentricity_range"]
-            if ceiling_au is not None:
-                # aphelion q (1 + e) / (1 - e) <= ceiling  <=>  e <= (ceiling - q) / (ceiling + q)
-                perihelion_au = self.perihelion_distance_au
-                high = max(min(high, (ceiling_au - perihelion_au) / (ceiling_au + perihelion_au)), 0.0)
-                low = min(low, high)
-            self.eccentricity = draw.uniform(low, high)
-            self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
+            self._draw_shape(class_data, ceiling_au)
+            if giant_au is not None and self.period_class == "jupiter_family":
+                self._place_under_giant(giant_au, ceiling_au, class_names, weights)
+                class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
 
             semi_major_axis_au = self.perihelion_distance_au / (1 - self.eccentricity)
             primary_mass_kg = _msun_to_kg(primary_mass_solar)
@@ -299,15 +299,47 @@ class Comet(SmallBody):
         body_strength.generate_comet(self)    # GEN.1159: its density, ice share, roundness ratio, strength and binding energy
 
         self.update_orbital_state()
-        activity_chance = _activity_chance(self.perihelion_distance_au)
+        lit_perihelion_au = self.perihelion_distance_au if star is None else radiation_field.lit_distance_au(star, self.perihelion_distance_au)    # GEN.1444: every star's light at q
+        activity_chance = _activity_chance(lit_perihelion_au)
         self.is_active = draw.random() < activity_chance
         log.choice("Comet activity", self.is_active,
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
-                   f"{self.perihelion_distance_au:.4g} AU")
+                   f"{self.perihelion_distance_au:.4g} AU (lit like {lit_perihelion_au:.4g} AU round a lone star)")
         # GEN.104: a small body's spin, YORP-tilted from its orbit normal.
         self.rotation_period_hours = spin.small_body_period_hours()
         spin.set_spin(self, spin.orbit_normal(self.inclination_deg, self.ascending_node_deg),
                       spin.yorp_tilt_deg())
+
+    def _draw_shape(self, class_data, ceiling_au):
+        """The eccentricity and inclination of a comet of the family `class_data` about its perihelion: the family's ranges, the eccentricity cut so that the aphelion stays inside `ceiling_au`."""
+        low, high = class_data["eccentricity_range"]
+        if ceiling_au is not None:
+            # aphelion q (1 + e) / (1 - e) <= ceiling  <=>  e <= (ceiling - q) / (ceiling + q)
+            perihelion_au = self.perihelion_distance_au
+            high = max(min(high, (ceiling_au - perihelion_au) / (ceiling_au + perihelion_au)), 0.0)
+            low = min(low, high)
+        self.eccentricity = draw.uniform(low, high)
+        self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
+
+    def _place_under_giant(self, giant_au, ceiling_au, class_names, weights):
+        """
+        Keeps a Jupiter-family comet where its controlling giant can hold it (GEN.1457): its Tisserand parameter about the giant must lie in the family's range, so the perihelion, eccentricity
+        and inclination are drawn again, in that order, until it does (`tuning.COMET_CEILING_ATTEMPTS` times). When no draw does, no orbit of this family fits the giant (one far outside the
+        comets' perihelion range, say): the comet is of another family, drawn among the others by their weights, with the shape drawn from that family.
+        """
+        class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
+        for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
+            if comet_control.controls(giant_au, self.perihelion_distance_au, self.eccentricity, self.inclination_deg):
+                return
+            draw.redrawn("comet.tisserand")
+            self.perihelion_distance_au = draw.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
+            self._draw_shape(class_data, ceiling_au)
+        if comet_control.controls(giant_au, self.perihelion_distance_au, self.eccentricity, self.inclination_deg):
+            return
+        others = [(name, weight) for name, weight in zip(class_names, weights) if name != "jupiter_family"]
+        self.period_class = draw.choices([name for name, _ in others], weights=[weight for _, weight in others], k=1)[0]
+        log.choice("Comet period class", self.period_class, f"no Jupiter-family orbit about a giant at {giant_au:.4g} AU; weighted draw among {[name for name, _ in others]}")
+        self._draw_shape(tuning.COMET_PERIOD_CLASSES[self.period_class], ceiling_au)
 
     def orbit_mu_au3_per_year2(self):
         """AU^3/yr^2 of the comet's host star: 4 pi^2 per solar mass."""

@@ -65,8 +65,6 @@ def test_the_block_lights_equal_a_rebuild_after_a_sector_is_deleted_and_made_aga
 
 # --- GEN.1479: a job run again with no change touches no row ---------------------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="GEN.1479 is not built: rescore-habitability recomputes and writes every scored body whether or not its formulas changed, so a second run "
-                                       "touches all 34 scored bodies of the small galaxy (the touch log counts them). When GEN.1479's stamp lands this passes; remove this mark then (strict, so it cannot be forgotten).")
 def test_a_rescore_run_again_with_nothing_changed_touches_no_row(mysql_config):
     proof.small_galaxy(mysql_config)
     with proof.connection(mysql_config) as conn:

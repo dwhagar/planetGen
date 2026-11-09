@@ -2,7 +2,7 @@
 GEN.1476: the parts of the block light totals (`galaxy_block_light_parts`). The scatter writers add each batch's light to its cells in the transaction that
 writes the rows, the block light stage rolls the parts up to the rows a rebuild from the objects gives (without reading the two scatter tables), the parts are
 checked before they are used and made again when they differ, a sector build or a clear puts a cell right, the uncharted index takes its cells from them, and
-a galaxy made before v236 gets the empty table.
+a galaxy made before v239 gets the empty table.
 """
 
 import struct
@@ -166,8 +166,8 @@ def test_the_uncharted_index_takes_its_cells_from_the_parts(conn):
 
 
 @pytest.mark.fresh_database
-def test_a_v235_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 235)
+def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothing(mysql_config):
+    load_old_schema(mysql_config, 238)
     config = mysql_config
     old = store.get_connection(config, ensure_schema=False)
     try:

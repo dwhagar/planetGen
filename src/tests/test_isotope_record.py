@@ -205,7 +205,8 @@ def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_sti
 def test_the_short_lived_isotopes_are_tracers_with_a_birth_ratio_that_has_decayed_away_by_the_age_of_an_old_star(sun):
     planet = _planet(sun)
     rows = {row["isotope"]: row for row in planet.isotopes if row["origin"] == ir.EXTINCT}
-    assert set(rows) == {"Al-26", "Fe-60", "Mn-53", "I-129", "Pu-244"}
+    assert set(rows) == {"Fe-60", "Mn-53", "I-129", "Pu-244"}                       # 26Al is the same isotope as the surface's cosmogenic one (GEN.1489): one row, which cosmic rays now dominate
+    assert {row["origin"] for row in planet.isotopes if row["isotope"] == "Al-26"} == {ir.COSMOGENIC}
     assert all(row["initial_ratio"] > 0.0 and row["fraction"] < 1.0e-30 for name, row in rows.items() if name != "Pu-244")     # 4.5 Gy is 199 mean lives of 129I at the least: e^-199
     assert rows["Pu-244"]["fraction"] < 1.0e-15 * rows["Pu-244"]["initial_ratio"]                                             # 4.5 Gy is 39 mean lives of 244Pu: e^-39
     assert 1e-10 < rows["Fe-60"]["initial_ratio"] < 1e-5 and rows["Pu-244"]["initial_ratio"] < 1.0
@@ -276,7 +277,7 @@ def test_a_body_with_no_air_has_no_cosmogenic_rows_and_a_dry_one_keeps_only_its_
 def test_a_generated_world_with_air_carries_cosmogenic_rows_inside_the_property_sheet_ratios(sun):
     planet = _planet(sun)
     rows = [row for row in planet.isotopes if row["origin"] == ir.COSMOGENIC]
-    assert {row["isotope"] for row in rows} <= {"H-3", "C-14"} and all(0.0 < row["fraction"] < 1e-9 for row in rows)
+    assert {row["isotope"] for row in rows} <= {"H-3", "C-14", "Al-26", "Be-10"} and all(0.0 < row["fraction"] < (1e-5 if row["element"] == "Be" else 1e-9) for row in rows)
 
 
 def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record():
@@ -287,16 +288,148 @@ def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_sti
         assert rows["H-2"]["fraction"] > 0.0
 
 
+def _ratios(*args, **kwargs):
+    return {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.small_body_record(*args, **kwargs))}
+
+
 def test_a_comets_ices_are_the_cold_anchor_and_a_belts_follow_the_distance_from_the_snow_line():
-    comet = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a"))
-    assert 0.5 * ir.COMET_D_H < comet["isotope_ice_d_h"] < 2.0 * ir.COMET_D_H                # comet 67P's 5.3e-4, scattered by the draw (sigma 0.3 in ln)
-    assert 1.0 / comet["isotope_ice_n15"] == pytest.approx(140.0, rel=0.05)
-    near = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 2.7 * 1.496e8, 2.7, "b"))
-    far = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 80.0 * 1.496e8, 2.7, "b"))
-    assert far["isotope_ice_d_h"] > 2.0 * near["isotope_ice_d_h"] and far["isotope_ice_n15"] > near["isotope_ice_n15"]     # colder, more enriched (same scatter: one seed)
-    assert ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a") == ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a")
+    comet = _ratios("comet", 0.0, 4.5, 0.4, seed="a")
+    assert 0.5 * ir.COMET_D_H < comet["isotope_D/H"] < 2.0 * ir.COMET_D_H                # comet 67P's 5.3e-4, scattered by the draw (sigma 0.3 in ln)
+    assert 1.0 / comet["isotope_15N/14N"] == pytest.approx(140.0, rel=0.05)
+    near = _ratios("belt", 0.0, 4.5, 0.1, 2.7 * 1.496e8, 2.7, "b")
+    far = _ratios("belt", 0.0, 4.5, 0.1, 80.0 * 1.496e8, 2.7, "b")
+    assert far["isotope_D/H"] > 2.0 * near["isotope_D/H"] and far["isotope_15N/14N"] > 0.0 and "isotope_15N/14N" not in near     # colder, more enriched (same scatter: one seed); nitrogen freezes only far out
+    assert ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a") == ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a")
+    assert ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a") != ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="b")      # a body always shows the same line, another body another scatter
 
 
-def test_a_body_with_no_ice_or_no_host_shows_no_ice_lines():
-    assert ir.ice_sheet_rows("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") == [] and ir.ice_sheet_rows("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") == []
-    assert ir.ice_sheet_rows("comet", None, 4.5, 0.4, None, None, "a") == [] and ir.ice_sheet_rows("comet", 0.0, None, 0.4, None, None, "a") == []
+def test_a_small_bodys_record_is_the_planets_law_on_the_same_row_fields():
+    record = ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a")
+    assert {row["origin"] for row in record} >= {"natural", "physical"} and all(set(row) == set(ir.ROW_FIELDS) for row in record)
+    by_isotope = {row["isotope"]: row["fraction"] for row in record}
+    assert by_isotope["H-2"] / by_isotope["H-1"] == pytest.approx(_ratios("comet", 0.0, 4.5, 0.4, seed="a")["isotope_D/H"])
+
+
+def test_a_member_with_its_own_fractions_and_an_interstellar_body_with_no_star_get_a_record():
+    member = ir.small_body_record("belt_member", 0.0, 4.5, 0.3, 60.0 * 1.496e8, 2.7, "m", rock_fraction=0.6, metal_fraction=0.1, water_fraction=0.25, ice_fraction=0.05)
+    assert member and {row["isotope"] for row in member} >= {"H-2", "N-15"}
+    outer = ir.galactic_gas_metallicity(12000.0)
+    inner = ir.galactic_gas_metallicity(4000.0)
+    assert inner > outer                                                                              # the gas is richer toward the center
+    assert ir.small_body_record("interstellar_comet", outer, None, 0.4, seed=7) and ir.small_body_record("asteroid_field", inner, None, 0.1, seed=8)
+    with pytest.raises(ValueError):
+        ir.small_body_record("planet", 0.0, 4.5, 0.4)
+
+
+def test_a_body_with_no_ice_shows_no_ice_lines():
+    assert not [key for key in _ratios("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") if key != "isotope_count"]
+    assert not [key for key in _ratios("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") if key != "isotope_count"]
+
+
+def test_a_star_surface_has_the_natural_mix_with_its_birth_gas_ratios_and_a_burned_deuterium():
+    surface = {"H": 0.7, "He": 0.28, "C": 0.003, "N": 0.001, "O": 0.01, "Fe": 0.002, "other metals": 0.004}
+    ratios = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 4.5))}
+    assert ratios["isotope_D/H"] == pytest.approx(ir.SURFACE_D_H, rel=1e-6)
+    assert 0.5 * ir.COMET_D_H > ratios["isotope_D/H"]                                        # far below any ice or gas value
+    protostar = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 0.01, deuterium_burned=False))}
+    assert protostar["isotope_D/H"] > 1.0e-5                                                 # a protostar keeps the birth gas's
+    giant = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 4.5, dredged_up=True))}
+    assert 1.0 / giant["isotope_13C/12C"] == pytest.approx(ir.DREDGED_C12_OVER_C13) and giant["isotope_13C/12C"] > ratios["isotope_13C/12C"]
+    assert ratios["isotope_15N/14N"] == pytest.approx(ir.gas_n15_over_n14(type("S", (), {"metallicity_fe_h": 0.0, "age": 4.5})()))
+    elements_held = {row["element"] for row in ir.star_surface_record(surface, 0.0, 4.5)}
+    assert elements_held == {"H", "He", "C", "N", "O", "Fe"}                                 # "other metals" is not an element
+    assert ir.star_surface_record({}, 0.0, 4.5) is None
+
+
+def test_a_rocky_bodys_mantle_lines_come_from_its_record_with_the_degassing_offsets(sun):
+    planet = _planet(sun)
+    lines = {key: ratio for key, _label, _text, ratio in ir.mantle_sheet_rows(planet.isotopes)}
+    own = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(planet.isotopes)}
+    assert set(lines) <= set(ir.MANTLE_SHEET_KEYS) and "isotope_mantle_129Xe/130Xe" in lines
+    if "isotope_D/H" in own:
+        assert lines["isotope_mantle_D/H"] == pytest.approx(own["isotope_D/H"] * (1.0 + ir.MANTLE_DELTA_D))
+    assert lines["isotope_mantle_13C/12C"] == pytest.approx(own["isotope_13C/12C"] * (1.0 + ir.MANTLE_DELTA_C13))
+    assert lines["isotope_mantle_15N/14N"] == pytest.approx(own["isotope_15N/14N"] * (1.0 + ir.MANTLE_DELTA_N15))
+    assert ir.SOLAR_XE_129_OVER_130 <= lines["isotope_mantle_129Xe/130Xe"] < ir.MANTLE_XE_129_OVER_130 * 3.0
+
+
+def test_the_mantle_xenon_excess_is_the_earths_at_the_early_solar_systems_iodine_and_scales_with_the_birth_ratio():
+    base = [{"isotope": "Mg-24", "fraction": 0.79, "initial_ratio": None}]
+    earthlike = base + [{"isotope": "I-129", "fraction": 1e-40, "initial_ratio": ir.ESS_INITIAL_RATIO["I-129"]}]
+    poor = base + [{"isotope": "I-129", "fraction": 1e-40, "initial_ratio": 0.5 * ir.ESS_INITIAL_RATIO["I-129"]}]
+    ratio = lambda rows: ir.mantle_sheet_rows(rows)[0][3]
+    assert ratio(earthlike) == pytest.approx(ir.MANTLE_XE_129_OVER_130)
+    assert ratio(poor) - ir.SOLAR_XE_129_OVER_130 == pytest.approx(0.5 * (ir.MANTLE_XE_129_OVER_130 - ir.SOLAR_XE_129_OVER_130))
+    assert ir.mantle_sheet_rows([{"isotope": "H-1", "fraction": 1.0, "initial_ratio": None}]) == [] and ir.mantle_sheet_rows(None) == []        # no rock, no mantle
+
+def _rock_world(**changes):
+    body = _Air()
+    body.rock_mass_fraction = 0.67
+    body.star = _star(0.0, 4.5)
+    for name, value in changes.items():
+        setattr(body, name, value)
+    return body
+
+
+def _moon_like(**changes):
+    return _rock_world(**{"gas_partials_pa": {}, "atmospheric_pressure": 0.0, "magnetic_moment_a_m2": 0.0, "ocean_fraction": 0.0, **changes})
+
+
+def _surface(body):
+    return {row["isotope"]: row["fraction"] for row in ir.surface_cosmogenic_rows(body)}
+
+
+def test_the_earths_air_gives_the_earths_10be_and_26al_production():
+    earth = _Air()
+    assert ir.cosmogenic_rate(earth, "Be-10") == pytest.approx(0.029, rel=0.02)
+    assert ir.cosmogenic_rate(earth, "Al-26") * ir.constants.SECONDS_PER_YEAR == pytest.approx(1280.0, rel=0.02)
+    atmospheric = ir.cosmogenic_rate(earth, "Al-26") / ir.cosmogenic_rate(earth, "Be-10")
+    assert 1.0e-3 < atmospheric < 2.8e-3  # around the measured 1.9e-3 [R5215: Sec. 3]
+    no_argon = _Air()
+    no_argon.gas_partials_pa = {"N2": 78000.0, "O2": 21000.0}
+    assert ir.cosmogenic_rate(no_argon, "Al-26") == 0.0 and ir.cosmogenic_rate(no_argon, "Be-10") > 0.0                 # 26Al needs argon
+
+
+def test_a_body_with_no_air_and_no_field_holds_the_lunar_10be_and_a_26al_that_follows_from_the_half_lives():
+    moon = _moon_like()
+    rows = _surface(moon)
+    pool = ir.REGOLITH_BERYLLIUM_G_G / (ir.elements.molar_mass("Be") * 1000.0) * ir.AVOGADRO
+    assert rows["Be-10"] == pytest.approx(ir.LUNAR_BE10_ATOMS_PER_G / pool, rel=0.01)                                   # 10 dpm/kg is 1e-7 of the beryllium
+    ratio = ir.surface_cosmogenic_atoms_per_g(moon, "Al-26") / ir.surface_cosmogenic_atoms_per_g(moon, "Be-10")
+    assert ratio == pytest.approx(ir.ROCK_AL26_OVER_BE10_PRODUCTION * ir.elements.isotope("Be-10").decay_constant / ir.elements.isotope("Al-26").decay_constant, rel=0.01)
+    assert 1e-12 < rows["Al-26"] < 1e-9                                                                                  # 26Al over 27Al of the regolith
+
+
+def test_the_air_over_a_surface_the_field_and_the_ocean_cut_the_in_situ_isotopes_and_a_young_surface_is_not_saturated():
+    moon, earth_like = _moon_like(), _rock_world()
+    neon = _rock_world(ocean_fraction=0.0, gas_partials_pa={"Ne": 101325.0}, magnetic_moment_a_m2=0.0)                    # an air with no spallation target: only the in-situ part is left
+    assert ir.surface_cosmogenic_atoms_per_g(neon, "Be-10") == pytest.approx(ir.surface_cosmogenic_atoms_per_g(moon, "Be-10") * math.exp(-1033.0 / 150.0), rel=0.05)
+    shielded = _moon_like(ocean_fraction=1.0)
+    assert ir.surface_cosmogenic_atoms_per_g(shielded, "Al-26") == 0.0                                                   # a world covered by ocean: no dry rock, and no air to let anything fall out
+    dry, wet = _rock_world(ocean_fraction=0.0), _rock_world(ocean_fraction=0.9)
+    assert ir.surface_cosmogenic_atoms_per_g(wet, "Be-10") < ir.surface_cosmogenic_atoms_per_g(dry, "Be-10")
+    strong = _rock_world(magnetic_moment_a_m2=10.0 * ir.EARTH_DIPOLE_A_M2)
+    assert ir.surface_cosmogenic_atoms_per_g(strong, "Be-10") < ir.surface_cosmogenic_atoms_per_g(earth_like, "Be-10")
+    young = _moon_like()
+    young.star = _star(0.0, 0.0005)                                                                                      # half a million years: a third of 10Be's mean life
+    assert ir.surface_cosmogenic_atoms_per_g(young, "Be-10") == pytest.approx(ir.surface_cosmogenic_atoms_per_g(moon, "Be-10") * (1.0 - math.exp(-0.0005e9 * ir.constants.SECONDS_PER_YEAR * ir.elements.isotope("Be-10").decay_constant)), rel=1e-6)
+
+
+def test_the_earths_surface_is_dominated_by_the_10be_that_fell_out_of_the_air_and_a_body_with_no_rock_has_none():
+    earth = _rock_world()
+    fallout = ir.cosmogenic_rate(earth, "Be-10") / ir.elements.isotope("Be-10").decay_constant / ir.ROCK_ATTENUATION_G_CM2
+    assert 0.9 < fallout / ir.surface_cosmogenic_atoms_per_g(earth, "Be-10") <= 1.0
+    assert _surface(earth)["Be-10"] > 1e-9 and ir.elements_held(earth).count("Be") == 1
+    gas_giant = _rock_world(envelope_mass_fraction=0.9)
+    assert ir.surface_cosmogenic_rows(gas_giant) == [] and "Be" not in ir.elements_held(gas_giant)
+    diamond = _rock_world(carbon_rock=True)
+    assert ir.surface_cosmogenic_rows(diamond) == []
+
+
+def test_the_record_holds_one_row_per_isotope_when_the_short_lived_and_the_cosmic_ray_26al_meet():
+    rows = ir.record_of(_rock_world(envelope_mass_fraction=0.0))
+    names = [row["isotope"] for row in rows]
+    assert len(names) == len(set(names)) and "Al-26" in names and "Be-10" in names and "Be-9" in names
+    merged = ir._one_row_per_isotope([{"element": "Al", "isotope": "Al-26", "fraction": 1e-40, "initial_ratio": 5e-5, "origin": ir.EXTINCT},
+                                      {"element": "Al", "isotope": "Al-26", "fraction": 3e-15, "initial_ratio": None, "origin": ir.COSMOGENIC}])
+    assert len(merged) == 1 and merged[0]["origin"] == ir.COSMOGENIC and merged[0]["initial_ratio"] == 5e-5 and merged[0]["fraction"] == pytest.approx(3e-15)

@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import model
+from planetgen.describe import influx_row, model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
@@ -588,6 +588,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
+    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -1088,7 +1089,7 @@ GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "m
 
 ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
 """dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
-ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",) + tuple(key for key, _label in isotope_record.ICE_SHEET_ROWS)
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",) + isotope_record.MANTLE_SHEET_KEYS
 """tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
 
 
@@ -1169,24 +1170,29 @@ def _star_distance_ly(conn, system_id):
     return scales.default_galactocentric_ly() if found is None or found["galactic_radius_pc"] is None else units.pc_to_ly(found["galactic_radius_pc"])
 
 
-def _chemistry_rows(conn, row):
+def _star_makeup(conn, row):
     """
-    The chemistry rows of a star (UX.254): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
-    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
-    generator keys its planets' host ratios (mass and the sector's distance from the center, not the age), so nothing is stored. A star with no [Fe/H],
-    one the composition does not cover or one whose downloaded data are missing has none.
+    The composition of a star (`stellar_composition.star_makeup`) from its stored class, mass, [Fe/H], and age, with the draws keyed as the generator keys its planets' host ratios (mass and the sector's distance from
+    the center, not the age), so nothing is stored. `None` for a star with no [Fe/H], one the composition does not cover or one whose downloaded data are missing.
     """
     if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
-        return []
+        return None
     mass_sol = _kg_to_msun(row["mass_kg"])
     key = stellar_composition.abundance_key(mass=row["mass_kg"], distance_ly=_star_distance_ly(conn, row["star_system_id"]))
     try:
         kind = stellar_composition.kind_of(row["yerkes_class"], mass_sol, row["state"], None)
         if kind not in stellar_composition.WITH_BIRTH_COMPOSITION:
-            return []
-        makeup = stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key,
-                                                 wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
+            return None
+        return stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key, wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
     except (stellar_composition.StarMakeupError, fetch.DataMissing):
+        return None
+
+
+def _chemistry_rows(makeup):
+    """
+    The chemistry rows of a star (UX.254, from `_star_makeup`): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the first dredge-up added.
+    """
+    if makeup is None:
         return []
     alpha = stellar_abundances.alpha_enhancement(makeup.birth)
     items = [("chemistry_branch", [_BRANCH_WORDS[makeup.branch]], None),
@@ -1199,16 +1205,38 @@ def _chemistry_rows(conn, row):
              "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
 
 
-def _ice_rows(conn, kind, row):
-    """The ice isotope lines of a belt or a comet (`isotope_record.ice_sheet_rows`) from its host star's [Fe/H] and age; none for a body with no host or no ice."""
+def _star_isotope_rows(makeup, row):
+    """The isotope lines of a star's surface (GEN.1488, `isotope_record.star_surface_record`) from its surface composition (`_star_makeup`) and its [Fe/H] and age; none for a star with no composition."""
+    if makeup is None or makeup.surface is None:
+        return []
+    record = isotope_record.star_surface_record(makeup.surface.elements, row["metallicity_fe_h"], row["age_gy"],
+                                                deuterium_burned=makeup.kind != stellar_composition.PROTOSTAR, dredged_up=makeup.kind == stellar_composition.RED_GIANT)
+    return isotope_record.sheet_rows(record)
+
+
+SMALL_BODY_SHEET_KINDS = ("belt", "comet", "interstellar_comet", "asteroid_field")
+"""tuple: The kinds whose isotope record the sheet works out from their stored values (GEN.1487: `isotope_record.small_body_record`), since no table holds one."""
+
+
+def _small_body_rows(conn, kind, object_id, row):
+    """
+    The isotope lines of a belt, a comet, an interstellar comet or an interstellar field (`isotope_record.small_body_record`, the planet's laws) from the values the row stores: its ice fraction, its
+    host star's [Fe/H] and age and the distance the ice formed at; an interstellar body (no host) takes the gas [Fe/H] of its galactic radius. None for a body with no ice or, where it has a host, no star.
+    """
+    if not row["ice_mass_fraction"] or row["ice_mass_fraction"] <= 0.0:
+        return []
+    if kind in ("interstellar_comet", "asteroid_field"):
+        if row["galactic_radius_pc"] is None:
+            return []
+        return isotope_record.sheet_rows(isotope_record.small_body_record(kind, isotope_record.galactic_gas_metallicity(row["galactic_radius_pc"]), None, row["ice_mass_fraction"], seed=object_id))
     star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE id = ?", (row["star_id"],)).fetchone() if row["star_id"] else None
     if star is None:
         star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (row["star_system_id"],)).fetchone()
-    if star is None:
+    if star is None or star["metallicity_fe_h"] is None or star["age_gy"] is None:
         return []
     distance = row["distance_km"] if kind == "belt" else row["perihelion_distance_km"]
     snow_line = row["formation_snow_line_au"] if kind == "belt" else None
-    return isotope_record.ice_sheet_rows(kind, star["metallicity_fe_h"], star["age_gy"], row["ice_mass_fraction"], distance, snow_line, f"{row['star_system_id']}:{distance!r}")
+    return isotope_record.sheet_rows(isotope_record.small_body_record(kind, star["metallicity_fe_h"], star["age_gy"], row["ice_mass_fraction"], distance, snow_line, f"{row['star_system_id']}:{distance!r}"))
 
 
 ECLIPSE_KEY = "longest_eclipse_hours"
@@ -1300,9 +1328,11 @@ def sheet(conn, kind, object_id):
         wanted.update(regional_temperature.BAND_COLUMNS)    # GEN.1108: the table of the bands
         wanted.add("temp_mean_swing_k")                      # the range on the mean temperature row
     if table in ("asteroid_belts", "comets"):
-        wanted.update(("star_system_id", "star_id", "ice_mass_fraction", "distance_km" if table == "asteroid_belts" else "perihelion_distance_km"))      # GEN.1420: the ices' isotope lines
+        wanted.update(("star_system_id", "star_id", "ice_mass_fraction", "distance_km" if table == "asteroid_belts" else "perihelion_distance_km"))      # GEN.1420, GEN.1487: the isotope lines of the ices
         if table == "asteroid_belts":
             wanted.add("formation_snow_line_au")
+    if table in ("interstellar_comets", "asteroid_fields"):
+        wanted.update(("ice_mass_fraction", "galactic_radius_pc"))      # GEN.1487: no host star, so the gas of the galaxy at its radius
     if table == "stars":
         wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"))    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
     columns = ", ".join(sorted(wanted))
@@ -1325,17 +1355,22 @@ def sheet(conn, kind, object_id):
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     if kind in ISOTOPE_TABLES:
-        recorded = conn.execute(f"SELECT isotope, fraction FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
-        for key, label, text, ratio in isotope_record.sheet_rows(recorded):
+        recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
+        for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):
             by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
-    if kind in ("belt", "comet"):
-        for key, label, text, ratio in _ice_rows(conn, kind, row):
+    if kind in SMALL_BODY_SHEET_KINDS:
+        for key, label, text, ratio in _small_body_rows(conn, kind, object_id, row):
             by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
     if eclipse:
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
+    if arriving:
+        value = [model.qty("mass", arriving, "kg")]
+        by_group["dust"].append({"key": influx_row.INFLUX_KEY, "label": "Belt dust and comets reaching it, a year", "value": value, "text": inline_text(value),
+                                 "raw": arriving, "stored": True, "absent": False, "source": None, "show_absent": False})
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
     if variable:
@@ -1357,7 +1392,10 @@ def sheet(conn, kind, object_id):
             by_group["physical"].append({"key": PECULIAR_FIELD_KEY, "label": "Polar magnetic field", "value": field, "text": inline_text(field),
                                          "raw": peculiar.field_gauss, "stored": True, "absent": False, "source": None, "show_absent": False})
     if kind == "star":
-        by_group["composition"].extend(_chemistry_rows(conn, row))
+        makeup = _star_makeup(conn, row)
+        by_group["composition"].extend(_chemistry_rows(makeup))
+        for key, label, text, ratio in _star_isotope_rows(makeup, row):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
