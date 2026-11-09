@@ -76,30 +76,52 @@ def frame(spin_axis, orbit_normal):
     return x, _cross(n, x), n, tilt
 
 
-def suns_of(host, spin_axis, orbit_normal, distance_au):
+@dataclass(frozen=True)
+class Placed:
+    """One companion with its place: `star`, the `light_w_m2` it puts on the planet (mean over its orbit) and its `offset_au` from the host in the equinox frame `(x, y, n)`."""
+
+    star: object
+    light_w_m2: float
+    offset_au: tuple
+
+
+def placed(host, spin_axis, orbit_normal, distance_au):
     """
-    The other suns of a planet that circles `host` at `distance_au` (the circle of its mean flux), as a tuple of `Sun`: one for each companion of `host`
-    (`radiation_field.companions_of`) that has a place and gives light. Empty for a lone star, and for a planet with no spin axis.
+    `(tilt_rad, total_w_m2, [Placed])` of a planet that circles `host` at `distance_au` (the circle of its mean flux): the folded tilt, the whole mean light there and each companion
+    of `host` (`radiation_field.companions_of`) that has a place and gives light. The list is empty for a lone star, and for a planet with no spin axis.
     """
     from planetgen.physics import radiation_field
     if spin_axis is None or orbit_normal is None or not distance_au:
-        return ()
+        return 0.0, 0.0, []
     companions = [c for c in radiation_field.companions_of(host) if c.offset_au is not None and any(c.offset_au)]
     if not companions:
-        return ()
-    x, y, n, _ = frame(spin_axis, orbit_normal)
+        return 0.0, 0.0, []
+    x, y, n, tilt = frame(spin_axis, orbit_normal)
     total = radiation_field.starlight_w_m2(host, distance_au)
     if total <= 0.0:
-        return ()
+        return tilt, 0.0, []
     found = []
     for companion in companions:
         light = radiation_field.companion_light_w_m2(_Only(host, companion), distance_au)
-        share = light / total
+        offset = tuple(companion.offset_au)
+        found.append(Placed(companion.star, light, (_dot(offset, x), _dot(offset, y), _dot(offset, n))))
+    return tilt, total, found
+
+
+def suns_of(host, spin_axis, orbit_normal, distance_au):
+    """
+    The other suns of a planet that circles `host` at `distance_au` (the circle of its mean flux), as a tuple of `Sun`: one for each companion of `host`
+    (`radiation_field.companions_of`) that has a place and gives enough light (`MIN_SHARE`). Empty for a lone star, and for a planet with no spin axis.
+    """
+    _, total, found = placed(host, spin_axis, orbit_normal, distance_au)
+    suns = []
+    for source in found:
+        share = source.light_w_m2 / total
         if share < MIN_SHARE:
             continue
-        u = _unit(companion.offset_au)
-        found.append(Sun(share, _dot(u, x), _dot(u, y), _dot(u, n)))
-    return tuple(found)
+        ux, uy, uz = _unit(source.offset_au)
+        suns.append(Sun(share, ux, uy, uz))
+    return tuple(suns)
 
 
 class _Only:
