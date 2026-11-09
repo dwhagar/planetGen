@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1533 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1507 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
 | T4 | 78 | 11 | 3 | 21 | 12 | 125 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 189 | 104 | 30 | 76 | 4 | 403 |
+| T6 | 189 | 104 | 30 | 79 | 4 | 406 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 868 | 300 | 74 | 236 | 52 | 1530 |
+| All | 868 | 300 | 74 | 239 | 52 | 1533 |
 
 ## How the labels were given
 
@@ -2689,7 +2689,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | GEN.1493 | replace (GEN.1493) |
-| LS2 | P | T6 | L4 | `late_supply.RELATIVE_SPEED_SHARE` 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor | 0.2 to 0.8 | bodies on near-circular orbits | a measured impact-speed distribution on a rocky planet that differs by more than a factor of two | the speed from the scattered orbits' eccentricities | no source: an eccentricity of a few tenths | predicted only | GEN.1493 | no data |
-| LS3 | P | T6 | L4 | `late_supply.OUTER_REACH` 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge | 2 to 6 | giants outside a belt | a giant at 4 times a belt's edge whose measured scattering of that belt is negligible | the giant's chaotic zone width (the Hill-radius law of the clearing) | no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters | predicted only | GEN.1493 | no data |
+| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | - | replace (GEN.1493) |
+| LS2 | P | T6 | L4 | `late_supply.RELATIVE_SPEED_SHARE` 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor | 0.2 to 0.8 | bodies on near-circular orbits | a measured impact-speed distribution on a rocky planet that differs by more than a factor of two | the speed from the scattered orbits' eccentricities | no source: an eccentricity of a few tenths | predicted only | - | no data |
+| LS3 | P | T6 | L4 | `late_supply.OUTER_REACH` 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge | 2 to 6 | giants outside a belt | a giant at 4 times a belt's edge whose measured scattering of that belt is negligible | the giant's chaotic zone width (the Hill-radius law of the clearing) | no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters | predicted only | - | no data |
 | LS4 | T | T6 | L0 | each body takes the scattered mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census) | none | bodies the planetesimals cross | a system whose measured veneer is set by the star's capture or by planetesimals outside any belt | an Opik collision probability per orbit with the lifetimes of the crossing population | design; the form is the Safronov focusing factor | predicted only | - | - |
+
+## 6.255 Stand-ins of the late accretion the air reads from the system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| LA1 | P | T6 | L3 | `late_accretion.FLOOR_SHARE` 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches) | 0.01 to 0.2 | rocky planets of 0.3 to 3 Earth masses | a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass | a model of the leftover planetesimals of a system with no belt | recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, `reports/gen1493-late-accretion-census-2026-11-09.md`: 43 percent of 246 planets take the floor) | predicted only | - | replace (GEN.1493) |
+| LA2 | T | T6 | L3 | a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do | none | rocky planets of single and multiple stars | a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains | a draw of the belt's mass and reach from the nebula | design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent | predicted only | - | no data |
+| LA3 | P | T6 | L3 | `planets.LATE_ACCRETION_GATE` 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does) | 0.1 to 1 | rocky planets of 0.3 to 3 Earth masses with an air | a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found | the full replay for every planet, when the cost allows | fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, `reports/gen1493-late-accretion-census-2026-11-09.md`); at 1.0 the worst of 60 planets was 29 percent | predicted only | - | replace (GEN.1493) |

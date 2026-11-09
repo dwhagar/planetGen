@@ -301,3 +301,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.254:LS1 | replace | GEN.1493 | L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it |
 | 6.254:LS2 | no data | - | L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one |
 | 6.254:LS3 | no data | - | L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3 |
+| 6.255:LA1 | replace | GEN.1493 | L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it |
+| 6.255:LA2 | no data | - | L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own |
+| 6.255:LA3 | replace | GEN.1493 | L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it |

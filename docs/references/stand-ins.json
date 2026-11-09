@@ -59777,7 +59777,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1493",
+          "unread": null,
           "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
         },
         {
@@ -59819,7 +59819,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L4",
-          "unread": "GEN.1493",
+          "unread": null,
           "what": "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
         },
         {
@@ -59861,7 +59861,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L4",
-          "unread": "GEN.1493",
+          "unread": null,
           "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
         },
         {
@@ -59905,6 +59905,140 @@
       ],
       "slug": "6-254-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
       "title": "Stand-ins of the late supply a planet takes from the reservoirs of its system"
+    },
+    {
+      "key": "6.255",
+      "number": "6.255",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass"
+            ],
+            [
+              "What replaces it",
+              "a model of the leftover planetesimals of a system with no belt"
+            ],
+            [
+              "Evidence",
+              "recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, reports/gen1493-late-accretion-census-2026-11-09.md: 43 percent of 246 planets take the floor)"
+            ]
+          ],
+          "id": "LA1",
+          "key": "6.255:LA1",
+          "kind": "P",
+          "slug": "6-255-la1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of single and multiple stars"
+            ],
+            [
+              "What would show it wrong",
+              "a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains"
+            ],
+            [
+              "What replaces it",
+              "a draw of the belt's mass and reach from the nebula"
+            ],
+            [
+              "Evidence",
+              "design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent"
+            ]
+          ],
+          "id": "LA2",
+          "key": "6.255:LA2",
+          "kind": "T",
+          "slug": "6-255-la2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses with an air"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found"
+            ],
+            [
+              "What replaces it",
+              "the full replay for every planet, when the cost allows"
+            ],
+            [
+              "Evidence",
+              "fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, reports/gen1493-late-accretion-census-2026-11-09.md); at 1.0 the worst of 60 planets was 29 percent"
+            ]
+          ],
+          "id": "LA3",
+          "key": "6.255:LA3",
+          "kind": "P",
+          "slug": "6-255-la3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+        }
+      ],
+      "slug": "6-255-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
+      "title": "Stand-ins of the late accretion the air reads from the system"
     }
   ]
 }
