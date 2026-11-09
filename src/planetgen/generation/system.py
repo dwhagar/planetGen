@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -567,12 +567,7 @@ class StarSystem:
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
-            for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
-                if obj.body_type == 'a':
-                    continue
-                ocean_tides.generate(obj)
-                for moon in obj.moons:
-                    ocean_tides.generate(moon, obj)
+            self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.
             wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
@@ -617,6 +612,21 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    def _tide_pass(self):
+        """
+        The ocean tide of every planet and moon from every body that pulls on it (GEN.1446, `tide_sources`): its host and companion stars, the other planets of
+        its host, its own moons or its planet, and the other moons of its planet. Each pull is also noted in the effect ledger (GEN.1465) as a tide-raising
+        acceleration, whatever its size.
+        """
+        planets = [obj for obj in self.all_planets if obj.body_type != 'a']
+        for obj in planets:
+            siblings = [other for other in planets if other is not obj and other.star is obj.star]
+            for body, parent in ((obj, None), *((moon, obj) for moon in obj.moons)):
+                sources = tide_sources.sources_of(body, parent, siblings)
+                ocean_tides.generate(body, parent, tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent)))
+                for source in sources:
+                    self.effect_ledger.add("tide", body, source.body, tide_sources.acceleration_m_s2(body, source))
 
     def _fill_light_ledger(self):
         """

@@ -29,7 +29,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | UV, X-ray, flare and particle dose, ozone, atmosphere loss | Host star alone | GEN.1442 |
 | Sky and day text | Host star alone | GEN.1443 |
 | Belt, asteroid and comet temperature, ice survival and dose | Built for temperature, taxa, the size law (icy or rocky) and comet activity: the ring's or the perihelion's light counts every star (GEN.1444, rows RF6 to RF8). Belts and comets store no surface dose or temperature, so there is no stored dose to change; a dose for them would be a new stored field | GEN.1444 |
-| Tide raisers of a planet (ocean tide, spin, locking) | The host star and the planet's own moons; no companion star, no sibling planet | GEN.1446 |
+| Tide raisers of a planet (ocean tide, spin, locking) | Ocean tide built (GEN.1446 part 1, `physics/tide_sources.py`): the host and companion stars, the sibling planets, the own moons or planet and the sibling moons, by the mean of `1 / d^3`, each noted in the effect ledger (stand-ins TS1 to TS5). Locking and spin-down still count the host and the own moons only | GEN.1446 |
 | Tidal heating and tidal locking of planets and moons | The host and the body's own moons; the eccentricity heating reads the host mass alone | GEN.1446 |
 | Kozai and secular pumping | Used for stellar triples only (physics/stability.py), not for planets or moons | GEN.1447 |
 | Moon stability, Hill limit and moon spin-down | The planet's Hill sphere from the star alone; torques from the star and the planet's moons only | GEN.1449 |
