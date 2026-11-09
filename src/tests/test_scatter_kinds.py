@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.generation import run_plan
+from planetgen.generation import run_plan, stages
 from planetgen.util import log
 from tests.test_bright_star_scatter import (  # noqa: F401
     EDGE_PC, EXTENTS, E_VALUE, SHAPE, THRESHOLD, SCATTER_KINDS, _clear_args, _scatter_args, light_steps)
@@ -207,7 +207,7 @@ def _recording_stats(monkeypatch):
 
     recorder = Recorder()
     monkeypatch.setattr(run_common, "_generation_stats", lambda args: recorder)
-    monkeypatch.setattr(run_plan, "_speed_stats", lambda mysql_config: recorder)    # the unit that completes a stage
+    monkeypatch.setattr(stages, "speed_stats", lambda mysql_config: recorder)    # the unit that completes a stage
     return recorder
 
 
