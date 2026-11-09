@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3781] - 2026-11-09
+
+**Headline:** `rescore-habitability` now re-scores only the systems whose stored numbers were not worked out by the running code, so a rerun after no change touches nothing.
+
+### Changed
+- **A system carries the stamp of the code that scored it (GEN.1479).** New narrow table `system_summary` (migration 0238) holds, for each star system, `habitability_stamp`: a hash of the physics source the habitability score is made from (`db/derived_stamp.py`). The system save and `store.refresh_habitability` write it; every system already stored starts with none, so the first run after the migration scores them all once, as the command always did.
+- **`planetgen rescore-habitability` takes only the stale systems.** A system whose stamp is the running code's is left alone, the units are cut from the first stale system to the last, and a run that stopped carries on where it stopped. `--all` re-scores every system as before. The plan line says how many were left alone. A side table, not columns of `star_systems`, because that table has a FULLTEXT key and a new column would copy every row.
+
+generation-affects: none
+
 ## [8.0.3780] - 2026-11-09
 
 **Headline:** Rocky worlds now carry cosmic-ray beryllium-10 and aluminum-26 in their surface layer, with or without air and under an ocean.
