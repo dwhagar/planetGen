@@ -13387,6 +13387,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (read done). Prerequisites: none. Related: GEN.1447, GEN.1467, GEN.1492, GEN.1499.
   Filed by the TODO thread.
 
+- [ ] **TEST.713 (bug) test_work_units::test_a_unit_survives_a_warm_that_outlasts_an_execution_record forks a real RQ worker inside an xdist worker and kills it ("node down: Not properly terminated") on every parallel run**
+  Found by Lane 03 gating PR 5876 (2026-11-09); it also failed on PR 5865 and passes alone in one second. It is a test-isolation fault from PERF.146, not a product fault. Do: give the test the real_queue marker or run it in its own process so a parallel scripts/test.py run does not lose a worker; check the other tests that fork a real queue worker for the same fault. Done: the full parallel run no longer shows the node-down failure, and scripts/test.py changed gates stop needing a note about it.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health). Prerequisites: none. Related: PERF.146.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
