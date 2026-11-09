@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -508,9 +508,9 @@ class StarSystem:
         with log.timed_phase("comet generation"):
             wide = self.binary_type == "wide"
             self.comets = self._generate_comets(
-                self.star, validation.orbit_ceiling_au(self.primary_star) if wide else None)
+                self.star, validation.orbit_ceiling_au(self.primary_star) if wide else None, self.planets)
             self.secondary_comets = self._generate_comets(
-                self.secondary_star, validation.orbit_ceiling_au(self.secondary_star)) if wide else []
+                self.secondary_star, validation.orbit_ceiling_au(self.secondary_star), self.secondary_planets) if wide else []
             # A wide pair a few AU apart leaves each star a stable limit under any comet's orbit (GEN.448): a forced
             # comet then has no room, like a forced habitable world or belt.
             if self.system_config.COMETS is True and not (self.comets or self.secondary_comets):
@@ -809,7 +809,7 @@ class StarSystem:
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
-    def _generate_comets(self, star, ceiling_au=None):
+    def _generate_comets(self, star, ceiling_au=None, planets=()):
         """
         Rolls this star's own native comet population (see
         `cometData.Comet` -- contrast the always-standalone, unbound
@@ -846,6 +846,9 @@ class StarSystem:
                  orbit stays inside the star's own Hill sphere
                  (`validation.orbit_ceiling_au`, GEN.591) and a parabolic
                  comet leaves it by design.
+            planets (list, optional): This star's planets and belts as they are final (GEN.1457). The most massive giant among them
+                 (`comet_control.controlling_giant_au`) is the planet the Jupiter-family comets belong to: their orbits are drawn
+                 about it (`Comet`'s `giant_au`). A star with no giant draws its comets as before.
 
         Returns:
             list: Newly generated `Comet` objects, zero or more.
@@ -860,14 +863,15 @@ class StarSystem:
 
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = _kg_to_msun(star.mass)
+        giant_au = comet_control.controlling_giant_au(planets)
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
-            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star) for _ in range(count)]
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star, giant_au=giant_au) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star)
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star, giant_au=giant_au)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
