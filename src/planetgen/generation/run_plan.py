@@ -2097,6 +2097,7 @@ SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'plane
 """str: What a stage that needs the plan says when the galaxy has none (said when the stage opens, PERF.203)."""
 
 NEBULA_DRAW_KEY = "nebula-draw"
+NEBULA_CLEAR_KEY = "nebula-clear"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
 
@@ -3310,7 +3311,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass", "luminosity"), "phenomena": ("phenomena", "phenomena-index"), "nebula-field": (NEBULA_DRAW_KEY,)}
+STORED_SCATTER_STAGES = {"stars": ("mass", "luminosity"), "phenomena": ("phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the two star passes, the phenomena shells with their indexes, the nebula field."""
 
 
