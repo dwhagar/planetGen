@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3757] - 2026-11-09
+
+**Headline:** The burn-down register now has a line for each of the two hand-fitted influx stand-ins, which fixes the red guard on main.
+
+### Changed
+
+- Rows IF1 (the share of a belt's loss that reaches the inner system) and IF2 (the lifetime of a comet reservoir) of section 6.247 are at tweak level L4 and had no line in the burn-down register; both now say `no data` and what would replace them (GEN.1453).
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3756] - 2026-11-09
 
 **Headline:** A star's property sheet now lists the isotopes of its surface: its deuterium, carbon and nitrogen ratios and the count of isotopes.
