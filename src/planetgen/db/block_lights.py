@@ -36,6 +36,7 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
 """
 
 import math
+import struct
 
 from planetgen.db import query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
@@ -107,12 +108,39 @@ _PARTS_HEAD = f"INSERT INTO galaxy_block_light_parts ({', '.join(PARTS_COLUMNS)}
 _PARTS_ADD = " ON DUPLICATE KEY UPDATE " + ", ".join(f"{name} = {name} + VALUES({name})" for name in SUMS)
 
 
+_STAR_VALUES = "luminosity_w, position_x_mpc, position_y_mpc, position_z_mpc, temperature_k"
+_POINT_VALUES = "map_luminosity_sol * 1e0 AS map_luminosity_sol, position_x_mpc, position_y_mpc, position_z_mpc"      # `* 1e0`: a FLOAT is sent as a short decimal, a DOUBLE as itself
+_FLOAT = struct.Struct("f")
+
+
+def _float32(value):
+    """`value` as a `FLOAT` column keeps it (the phenomena's map luminosity is one), so a part made from the rows being written equals the sum of the rows read back."""
+    return _FLOAT.unpack(_FLOAT.pack(value))[0]
+
+
+def cell_sums(stars, values):
+    """
+    The sums of one sector cell's objects, the one way every path makes them (GEN.1476): `values` is a list of `(light, x, y, z, temperature)` (`temperature`
+    unused and a `light` of `None` left out of the sums, as `SUM` leaves a NULL out, for the phenomena), each sum made with `math.fsum` so it does not depend on
+    the order the rows came in, and the same rows give the same bits whether they are summed as they are written, read back by a rebuild or read for a refresh.
+
+    Returns:
+        list: The six sums of the stars (the other five zero) or the five of the phenomena (the first six zero), in `SUMS` order.
+    """
+    lit = [v for v in values if v[0] is not None]
+    if stars:
+        scale = _SOL_W / _PC_PER_MPC
+        return [len(values), math.fsum(v[0] for v in lit) / _SOL_W, math.fsum(v[0] * v[1] for v in lit) / scale, math.fsum(v[0] * v[2] for v in lit) / scale,
+                math.fsum(v[0] * v[3] for v in lit) / scale, math.fsum(v[0] * v[4] for v in lit) / _SOL_W, 0, 0.0, 0.0, 0.0, 0.0]
+    return [0, 0.0, 0.0, 0.0, 0.0, 0.0, len(values), math.fsum(v[0] for v in lit), math.fsum(v[0] * v[1] for v in lit) * _PC_PER_MPC,
+            math.fsum(v[0] * v[2] for v in lit) * _PC_PER_MPC, math.fsum(v[0] * v[3] for v in lit) * _PC_PER_MPC]
+
+
 def note_rows(conn, table, columns, rows):
     """
     Adds the light of freshly scattered objects to their cells' parts (GEN.1476). Called by `store.insert_bright_stars` and
     `store.insert_phenomenon_scatter` in the transaction that writes `rows`, so a batch that is rolled back leaves no part and a retried one
-    adds once. The sums are the ones `_object_sums` makes, by cell, each batch's sum made with `math.fsum` so it does not depend on the order
-    the rows came in.
+    adds once. The sums are `cell_sums`, the ones a rebuild makes.
 
     Args:
         conn (Connection): The connection that wrote `rows`.
@@ -132,29 +160,13 @@ def note_rows(conn, table, columns, rows):
     temperature_at = columns.index("temperature_k") if stars else None
     cells = {}
     for row in rows:
-        cell = cells.setdefault((row[cell_at[0]], row[cell_at[1]], row[cell_at[2]]), {"n": 0, "light": [], "x": [], "y": [], "z": [], "t": []})
-        cell["n"] += 1
         light = row[light_at]
-        if light is None:      # a NULL luminosity is left out of the sums by `SUM`, and the row still counts
-            continue
-        cell["light"].append(light)
-        cell["x"].append(light * row[x_at])
-        cell["y"].append(light * row[y_at])
-        cell["z"].append(light * row[z_at])
-        if stars:
-            cell["t"].append(light * row[temperature_at])
-    out = []
-    for address, cell in sorted(cells.items()):
-        if stars:
-            scale = _SOL_W / _PC_PER_MPC
-            sums = [cell["n"], math.fsum(cell["light"]) / _SOL_W, math.fsum(cell["x"]) / scale, math.fsum(cell["y"]) / scale, math.fsum(cell["z"]) / scale,
-                    math.fsum(cell["t"]) / _SOL_W, 0, 0.0, 0.0, 0.0, 0.0]
-        else:
-            sums = [0, 0.0, 0.0, 0.0, 0.0, 0.0, cell["n"], math.fsum(cell["light"]), math.fsum(cell["x"]) * _PC_PER_MPC,
-                    math.fsum(cell["y"]) * _PC_PER_MPC, math.fsum(cell["z"]) * _PC_PER_MPC]
-        out.append(tuple(address) + tuple(sums))
-    _write_parts(conn, out, add=True)
-    return len(out)
+        if light is not None and not stars:
+            light = _float32(light)
+        cells.setdefault((row[cell_at[0]], row[cell_at[1]], row[cell_at[2]]), []).append(
+            (light, row[x_at], row[y_at], row[z_at], row[temperature_at] if stars else None))
+    _write_parts(conn, [tuple(address) + tuple(cell_sums(stars, values)) for address, values in sorted(cells.items())], add=True)
+    return len(cells)
 
 
 def _add(into, row, names):
@@ -164,20 +176,52 @@ def _add(into, row, names):
 
 def _object_sums(conn, where, params, by_address=False):
     """The sums of the unbuilt objects `where` picks (`params` its parameters): `{(shell, band, wedge): sums}` with
-    `by_address`, else one sums list."""
+    `by_address`, else one sums list. By cell, a cell holding one object has the sums the database gives and a cell holding more has `cell_sums` of
+    its rows read back, so a cell's sums are the same bits whatever order the database would have added them in (GEN.1476)."""
     group = " GROUP BY shell_index, band_index, wedge_index" if by_address else ""
     keys = "shell_index, band_index, wedge_index, " if by_address else ""
     found = {}
-    for table, selected, built, names in (
-            ("bright_stars", _STAR_SUMS, _STARS_WHERE, SUMS[:6]),
-            ("phenomenon_scatter", _POINT_SUMS, _POINTS_WHERE, SUMS[6:])):
+    for table, selected, built, names, values in (
+            ("bright_stars", _STAR_SUMS, _STARS_WHERE, SUMS[:6], _STAR_VALUES),
+            ("phenomenon_scatter", _POINT_SUMS, _POINTS_WHERE, SUMS[6:], _POINT_VALUES)):
+        stars = table == "bright_stars"
+        many = []
         for row in conn.execute(f"SELECT {keys}{selected} FROM {table} WHERE {built} AND ({where}){group}",
                                 params).fetchall():
-            if not row["star_count" if table == "bright_stars" else "point_count"]:
+            count = row["star_count" if stars else "point_count"]
+            if not count:
                 continue
             key = (row["shell_index"], row["band_index"], row["wedge_index"]) if by_address else None
             _add(found.setdefault(key, _zero()), row, names)
+            if by_address and count > 1:
+                many.append(key)
+        for start in range(0, len(many), 500):
+            chunk = many[start:start + 500]
+            rows = conn.execute(
+                f"SELECT shell_index, band_index, wedge_index, {values} FROM {table} WHERE {built} AND (shell_index, band_index, wedge_index) IN ("
+                + ", ".join("(?, ?, ?)" for _ in chunk) + ") ORDER BY id", [value for cell in chunk for value in cell]).fetchall()
+            by_cell = {}
+            for row in rows:
+                by_cell.setdefault((row["shell_index"], row["band_index"], row["wedge_index"]), []).append(
+                    (row["luminosity_w"] if stars else row["map_luminosity_sol"], row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"],
+                     row["temperature_k"] if stars else None))
+            for key, cell in by_cell.items():
+                exact = cell_sums(stars, cell)
+                into = found[key]
+                for index, value in enumerate(exact):
+                    if SUMS[index] in names:
+                        into[index] = value
     return found if by_address else found.get(None)
+
+
+def combine(parts):
+    """The sums of a block from the sums of the things it holds (its cells, or its child blocks): counts added, every other sum made with `math.fsum`, so the block's
+    row is the same bits whichever order they come in and whichever path (a rebuild, a roll or a refresh) made them (GEN.1476)."""
+    parts = list(parts)
+    return [sum(int(part[index]) for part in parts) if index in _COUNT_AT else math.fsum(part[index] for part in parts) for index in range(len(SUMS))]
+
+
+_COUNT_AT = (0, 6)
 
 
 def _row(block, sums):
@@ -188,24 +232,23 @@ def _row(block, sums):
 
 def block_sums(conn, block):
     """The sums of the pre-placed objects inside one block, or `None` for a block holding none. A level-3 block
-    adds up the objects of its sectors; a bigger one adds up the stored rows of its children."""
+    combines the cells of its sectors; a bigger one combines the stored rows of its children (`combine`)."""
     if block.m == DRILL_STEP:
         sectors = drill_block_sectors(block)
         if not sectors:
             return None
         where, params = query._sectors_where(sectors)
-        return _object_sums(conn, where, params)
+        cells = _object_sums(conn, where, params, by_address=True)
+        return combine(cells.values()) if cells else None
     children = [(c.shell, c.band, c.wedge) for _shell, group in drill_children(block) for c in group]
-    total = None
+    held = []
     for start in range(0, len(children), 500):
         chunk = children[start:start + 500]
-        for row in conn.execute(
-                f"SELECT {', '.join(SUMS)} FROM galaxy_block_lights WHERE m = ? AND (shell_index, band_index,"
-                " wedge_index) IN (" + ", ".join("(?, ?, ?)" for _ in chunk) + ")",
-                [block.m // DRILL_STEP] + [value for cell in chunk for value in cell]).fetchall():
-            total = _zero() if total is None else total
-            _add(total, row, SUMS)
-    return total
+        held.extend([row[name] for name in SUMS] for row in conn.execute(
+            f"SELECT {', '.join(SUMS)} FROM galaxy_block_lights WHERE m = ? AND (shell_index, band_index,"
+            " wedge_index) IN (" + ", ".join("(?, ?, ?)" for _ in chunk) + ")",
+            [block.m // DRILL_STEP] + [value for cell in chunk for value in cell]).fetchall())
+    return combine(held) if held else None
 
 
 def refresh_blocks(conn, blocks):
@@ -316,23 +359,23 @@ def _object_shells(conn):
 
 
 def _roll(cells, address, sums, parents):
-    """Adds the sums of the sector at `address` to each block above it in `cells` (`{m: {DrillBlock: sums}}`) up to
-    the unit's level; `parents` memoises a level-3 block's chain, which most sectors of a row share."""
+    """Notes the sums of the sector cell at `address` in its level-`DRILL_STEP` block in `cells` (`{m: {DrillBlock: [sums]}}`); `parents` memoises a block's
+    parent. A block combines what was noted in it when it is complete (`_complete`), and that is noted in its parent."""
     level3 = drill_parent((1,) + tuple(address))
-    chain = parents.get(level3)
-    if chain is None:
-        chain = parents[level3] = [block for block in chain_blocks(address) if block.m <= UNIT_LEVEL]
-    for block in chain:
-        into = cells[block.m].setdefault(block, _zero())
-        for index, value in enumerate(sums):
-            into[index] += value
+    cells[level3.m].setdefault(level3, []).append(sums)
 
 
 def _complete(cells, level):
-    """Takes the rows of the blocks of `level` out of `cells`, sorted; every one is complete because it is called
-    when the shells run past the block shell they all belong to (PERF.187)."""
+    """Takes the rows of the blocks of `level` out of `cells`, sorted, each block the `combine` of what it holds, and notes each block in its parent's list; every
+    one is complete because it is called when the shells run past the block shell they all belong to, smallest level first (PERF.187, GEN.1476)."""
     blocks = cells[level]
-    rows = [_row(block, sums) for block, sums in sorted(blocks.items(), key=lambda item: _order(item[0]))]
+    rows = []
+    for block, held in sorted(blocks.items(), key=lambda item: _order(item[0])):
+        sums = combine(held)
+        rows.append(_row(block, sums))
+        parent = drill_parent(block)
+        if parent is not None and parent.m in cells:
+            cells[parent.m].setdefault(parent, []).append(sums)
     blocks.clear()
     return rows
 
@@ -350,7 +393,7 @@ def _unit_batches(conn, shells, on_shell=None, from_parts=False, on_found=None):
     what is kept is the blocks of the current block shell of each level, not every block of the unit's millions of
     sectors (PERF.187). `on_shell(shell)` is called before each shell is read. With `from_parts` the cells' sums are the parts' (GEN.1476), not
     a grouped read of the two object tables; `on_found(shell, found)` gets each shell's `{address: sums}` (the rebuild writes the parts with it)."""
-    cells = {m: {} for m in LEVELS if m <= UNIT_LEVEL}
+    cells = {m: {} for m in sorted(LEVELS) if m <= UNIT_LEVEL}
     parents = {}
     previous = None
     for shell in shells:
@@ -393,21 +436,22 @@ def _above_unit(conn, on_progress=None):
         on_progress (callable, optional): `on_progress(fraction)` from 0 to 1 while the rows are added up and written, so the long
             roll-up of a full galaxy shows on a bar (PERF.251).
     """
-    cells = {}
     rows_in = conn.execute(f"SELECT m, shell_index, band_index, wedge_index, {', '.join(SUMS)} FROM"
                            " galaxy_block_lights WHERE m = ?", (UNIT_LEVEL,)).fetchall()
+    current = {}
     for done, row in enumerate(rows_in, start=1):
-        block = DrillBlock(UNIT_LEVEL, row["shell_index"], row["band_index"], row["wedge_index"])
-        sums = [row[name] for name in SUMS]
-        parent = drill_parent(block)
-        while parent is not None:
-            into = cells.setdefault(parent, _zero())
-            for index, value in enumerate(sums):
-                into[index] += value
-            parent = drill_parent(parent)
+        current[DrillBlock(UNIT_LEVEL, row["shell_index"], row["band_index"], row["wedge_index"])] = [row[name] for name in SUMS]
         if on_progress is not None and done % ABOVE_REPORT_ROWS == 0:
             on_progress(ABOVE_ROLL_SHARE * done / len(rows_in))
-    rows = [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: _order(item[0]))]
+    rows = []
+    while current:      # each level is the `combine` of its children's rows, the order `block_sums` makes a refresh in (GEN.1476)
+        held = {}
+        for block, sums in current.items():
+            parent = drill_parent(block)
+            if parent is not None:
+                held.setdefault(parent, []).append(sums)
+        current = {block: combine(children) for block, children in sorted(held.items(), key=lambda item: _order(item[0]))}
+        rows.extend(_row(block, sums) for block, sums in current.items())
     for start in range(0, len(rows), _WRITE_ROWS):
         _write_rows(conn, rows[start:start + _WRITE_ROWS])
         if on_progress is not None:
