@@ -485,7 +485,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | Lane 15 finding in GEN.1462, 2026-11-09. |
 | GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | Lane 13 read for GEN.1481, 2026-11-09. |
 | GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | Lane 13 read for GEN.1481, 2026-11-09. |
-| GEN.1488 | Isotope record for star surfaces | none | Lane 14 isotope leftovers, 2026-11-09. |
 | GEN.1489 | Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air | none | Lane 14 isotope leftovers, 2026-11-09. |
 | GEN.1490 | Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244 | none | Lane 14 isotope leftovers, 2026-11-09. |
 | GEN.1491 | Comet activity distance scales with the host's luminosity, not a fixed Sun-based constant | GEN.1444 | Lane 22 finding in GEN.1444, 2026-11-09. |

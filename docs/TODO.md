@@ -13422,11 +13422,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
   Filed by the TODO thread.
 
-- [ ] **GEN.1488 Isotope record for star surfaces**
-  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Stars get a surface isotope record (the natural mix of the elements the surface holds, from the star's metallicity and age) in the same record the bodies carry. Reuse isotope_record.py and the isotope table. Decided with Lane 14 (2026-11-09): derived at view time from stored values through the same record_of and fractionation law, not stored, so it is lock-free (generation output unchanged, no migration, no epoch).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1487.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1489 Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air**
   Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Extends the cosmogenic steady-state inventory of GEN.1421 to airless surfaces and ocean-covered surfaces (shielding by water) and adds beryllium-10 and aluminium-26 in air, from the cosmic-ray flux on the body. Reuse the GEN.1421 inventory, the radiation field of GEN.1441 and isotope_record.py. The result is part of the stored isotope record, so it is a lock item (epoch, golden).
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1490.

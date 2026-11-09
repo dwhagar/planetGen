@@ -2,6 +2,76 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3761] - 2026-11-09
+
+**Headline:** Emptying the earlier nebula field is a step of its own in a run, no longer a hook of the nebula draw (OPS.123 slice 3, nebula-field verb).
+
+### Changed
+- **`empty-nebula-field` is its own command and stage.** The `prepare` of `draw-nebula-field` is gone; `empty_nebula_field_unit` does the same work (refuses a galaxy with no skeleton, keeps the table of a galaxy with no outline, otherwise empties it) in one unit, and a stage "Clear the earlier nebula field" comes before "Draw the nebula field" in a nebula field redraw and in the phenomena run. A galaxy run now counts one more stage. `finish_run.REWIND_WITH` ties the draw to its clear, so a stopped draw that is carried on empties the table again first. Reused: `store.clear_nebula_field`, `_outline`, the one-unit whole expansion of `clear-scatter`. `clear-scatter` itself was not reused because it lacks the skeleton and no-outline checks.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3760] - 2026-11-09
+
+**Headline:** A cold giant layer whose last oxygen sits in lithium hydroxide no longer stops generation with "the ice caps did not settle".
+
+### Changed
+
+- `mixture_giant.cap_ices` cycled on a layer where water, methane and ammonia had all condensed and 1e-37 of oxygen per hydrogen was left, held mostly by lithium as hydroxide at the chemistry's temperature: water was over its cap by 40 orders, each round took a sliver of it and the equilibrium made it again, for 1000 rounds, then `MixtureError`. After the rounds, if every species still over its cap is one the budget cannot make more of than `MIN_CONDENSED` per hydrogen atom (the amount a condensate is dropped from the record at), the layer is returned as it stands; a cycle with more to condense still raises. One system in 700 of a default star mix hit it (seed 533 of a G2V system with PLANETS and MAX_PLANETS; the same error stopped a `test_db_column_round_trip` run). The rounds and arithmetic before the 1000th are unchanged, so every layer that settled before settles the same.
+
+generation-output: unchanged
+
+## [8.0.3759] - 2026-11-09
+
+**Headline:** The generation-mix test draws its 250 systems from a fixed seed and bounds the giants a sample holds per star, so it no longer fails on main by chance.
+
+### Changed
+
+- `tests/test_generation_mix.py`: the sample is a pure function of `SAMPLE_SEED` (`deterministic_entropy`). Eleven unseeded samples of the same code on 2026-11-09 held 26 to 58 giants (0.08 to 0.17 a star), and the flat bound of 50 giants and the 5 percent super-Jupiter floor failed on main about one run in three. Giants made per 200 systems were 40 before Train 18 and 45 after, so no generation change lies behind it.
+- The giant bound is per star, as the registry states the rate (PA2: 0.045 to 0.16 a star): over 0.045 and under a third more than 0.16 of the sample's stars.
+- The median density ceiling is Neptune's 1.64 plus 0.4: the median of a sample of 40 to 50 giants swings by about 0.2 (1.41, 1.69 and 1.84 on three samples, the same before Train 18 as after). The generated median sitting above the Solar System's 1.3 is left to the planet-type owners.
+
+generation-affects: none
+
+## [8.0.3758] - 2026-11-09
+
+**Headline:** A rocky world's property sheet now lists the isotope ratios of its mantle against its surface, including the xenon-129 excess that iodine-129 left.
+
+### Changed
+
+- A rocky planet or moon lists the D/H of its mantle's water (8 percent under the surface water's), the 15N/14N and 13C/12C of its mantle, and the 129Xe/130Xe of its mantle gas, worked out from its own isotope record (GEN.1490). The xenon excess is the Earth's scaled by the star's birth ratio of 129I, so a star that made less iodine-129 gives its worlds a smaller excess.
+- Nothing is stored and nothing generated changes. The 136Xe from 244Pu fission is not built (no size of the Earth's excess in hand) and a stored mantle reservoir would need a migration; both are noted open.
+- New stand-ins ISO23 to ISO28 in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3757] - 2026-11-09
+
+**Headline:** The burn-down register now has a line for each of the two hand-fitted influx stand-ins, which fixes the red guard on main.
+
+### Changed
+
+- Rows IF1 (the share of a belt's loss that reaches the inner system) and IF2 (the lifetime of a comet reservoir) of section 6.247 are at tweak level L4 and had no line in the burn-down register; both now say `no data` and what would replace them (GEN.1453).
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3756] - 2026-11-09
+
+**Headline:** A star's property sheet now lists the isotopes of its surface: its deuterium, carbon and nitrogen ratios and the count of isotopes.
+
+### Changed
+
+- A star lists D/H, 13C/12C and 15N/14N and the count of isotopes of its surface, worked out from the surface composition the chemistry rows already use and the star's [Fe/H] and age, through the same isotope record as the planets (GEN.1488). Before, a star showed none.
+- A star past its protostar stage has burned its deuterium (a tiny floor shows); a red giant's carbon is the 12C/13C of the first dredge-up; the rest take the birth gas's ratios.
+- Nothing is stored and nothing generated changes. New stand-ins ISO21 and ISO22 are in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3755] - 2026-11-09
 
 **Headline:** A rocky planet's sheet now shows how much belt dust and how many comets reach it each year, shielded by the giants in the way.

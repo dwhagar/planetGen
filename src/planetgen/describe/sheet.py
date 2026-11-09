@@ -1088,7 +1088,7 @@ GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "m
 
 ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
 """dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
-ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",)
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",) + isotope_record.MANTLE_SHEET_KEYS
 """tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
 
 
@@ -1354,8 +1354,8 @@ def sheet(conn, kind, object_id):
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     if kind in ISOTOPE_TABLES:
-        recorded = conn.execute(f"SELECT isotope, fraction FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
-        for key, label, text, ratio in isotope_record.sheet_rows(recorded):
+        recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
+        for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):
             by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     if kind in SMALL_BODY_SHEET_KINDS:
         for key, label, text, ratio in _small_body_rows(conn, kind, object_id, row):
