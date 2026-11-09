@@ -13471,6 +13471,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 12 (storage), after GEN.1476. Prerequisites: GEN.1476. Related: GEN.1476.
   Filed by the TODO thread.
 
+- [ ] **PERF.258 check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output**
+  Generation rescan audit (Boss, 8:49 PM EST on 2026-11-08: build the whole chain), Lane 14's second read for GEN.1482 (reports/gen1482-checks-and-web-reads-2026-11-09.md, 2026-11-09): of the 11 check-* commands 5 take a scope by shell and sector address, and check-values scans each big table many times (34 COUNT scans over planets, moons and stars). Do: one scan per table computing every count at once (34 scans to 5), identical output (the report text compared byte for byte before and after); no epoch. Also for the other whole-table checks: where a check can take the sector scope, give it one, but check-storage stays unscoped (its job is to catch damage in unchanged sectors; a rotating share is the right form, not a change scope). Reuse the check framework and its scope arguments; add no second one.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free, small. Prerequisites: none. Related: GEN.1482, GEN.1479.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13819,12 +13824,6 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
-
-- [ ] **PERF.249 A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug)**
-  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. High. A K00 hypergiant system: reconcile_moved_planet re-runs band_climate, which calls array_split about 152 million times. Same family: 900 s timeouts in seasonal_swing._anderson and detmath.matmul for a forced belt plus habitable world, test_barred_world, and the census and prevalence files. Do: find the loop, cache or vectorize it, keep the output bit-identical (or say it changes and ride an epoch), and make a test that bounds the time of a hypergiant system. Part 1 merged (PR 5634, Lane 15, 8:14 PM EST on 2026-11-07): band_climate no longer splits a fast-spinning world's record into one empty window per solar day; output bit-identical. Remaining: the 8.4 GB run and the 900 s timeouts in seasonal_swing._anderson and detmath.matmul (the slowest K00 seed Lane 15 found took 53 s in gas equilibrium and _anderson); the Bug Hunt lane holds the seed and the test that timed out. Owner (proposed by TODO): Lane 15. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.237.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
   REWORKED: folded into GEN.1397. The redraw storm comes from class E (deep-frozen, GEN.1142) and W still sitting on tuning.HABITABLE_PLANET_CLASSES; GEN.1397 deletes the list, so the storm and this item's test ceiling are fixed there. Close GEN.1387 when GEN.1397 merges and test_barred_world passes. Held for Boss's E/W question: no longer needed (the list goes).
