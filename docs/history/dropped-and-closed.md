@@ -1,10 +1,12 @@
 # Dropped, retired, closed and replaced
 
-Every commit title (as of `d02661568`) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, "as a finding", "not built", "no longer". A `Retire GEN.n` commit usually means the item shipped; read the title for "finding", "dropped" or "closed". Newest first.
+Every commit title (as of `27813f061`) that has one of these words in it: retire, drop, close, reject, revert, replace, supersede, abandon, withdraw, delete, remove, "as a finding", "not built", "no longer". A `Retire GEN.n` commit usually means the item shipped; read the title for "finding", "dropped" or "closed". Newest first.
 
 
 ## 2026-11
 
+- 2026-11-08: Delete the burn-down line for 6.21:BO3 (no longer hand-tuned after GEN.1405); red on main (#5808)
+- 2026-11-08: Retire TEST.711 and TEST.712 (PR 5804) (#5806)
 - 2026-11-08: Boss approved the job design note (6:43 PM EST): build order on the OPS rows, retire DOC.113 and OPS.130 (#5799)
 - 2026-11-08: Retire DOC.116 (PR 5791), widen ADM.150, file ADM.151, rebuild global docs and site (#5798)
 - 2026-11-08: Retire PERF.255 (PR 5787) (#5789)

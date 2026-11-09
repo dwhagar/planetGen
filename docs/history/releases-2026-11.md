@@ -1,7 +1,11 @@
 # Release headlines, 2026-11
 
-702 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).
+703 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).
 
+
+## 2026-11-09
+
+- **8.0.3732**: Two tests that failed about half the time on any machine, the deferred-climate moons test and the wide-binary re-roll console test, no longer depend on luck.
 
 ## 2026-11-08
 

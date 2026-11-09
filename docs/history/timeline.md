@@ -1,6 +1,6 @@
 # Timeline
 
-Commits per week, from the git history as of `d02661568` (2026-11-08). `Pull requests` counts squash-merged titles ending in `(#N)`; `Releases` counts `Release x.y.z` commits (one per changelog entry); `Filed` and `Retired` count commits whose title starts with `File` or `Retire` (an item opened or closed in docs/TODO.md); `Train` counts commits that name a merge train.
+Commits per week, from the git history as of `27813f061` (2026-11-08). `Pull requests` counts squash-merged titles ending in `(#N)`; `Releases` counts `Release x.y.z` commits (one per changelog entry); `Filed` and `Retired` count commits whose title starts with `File` or `Retire` (an item opened or closed in docs/TODO.md); `Train` counts commits that name a merge train.
 
 | Week starting | Commits | Pull requests | Releases | Filed | Retired | Train |
 |---|---|---|---|---|---|---|
@@ -22,7 +22,8 @@ Commits per week, from the git history as of `d02661568` (2026-11-08). `Pull req
 | 2026-10-12 | 2026 | 941 | 858 | 11 | 51 | 0 |
 | 2026-10-19 | 1882 | 870 | 519 | 8 | 64 | 0 |
 | 2026-10-26 | 2783 | 1311 | 742 | 93 | 186 | 186 |
-| 2026-11-02 | 2554 | 980 | 628 | 97 | 143 | 417 |
+| 2026-11-02 | 2560 | 988 | 628 | 100 | 144 | 418 |
+| 2026-11-09 | 1 | 0 | 1 | 0 | 0 | 0 |
 
 ## Work by category
 
@@ -30,18 +31,18 @@ Item IDs named in commit titles, by category: how many different items, how many
 
 | Category | What | Items | Commits | First | Last |
 |---|---|---|---|---|---|
-| UX | Web pages | 254 | 712 | 2026-10-01 | 2026-11-08 |
+| UX | Web pages | 255 | 713 | 2026-10-01 | 2026-11-08 |
 | MAP | Maps | 339 | 989 | 2026-10-01 | 2026-11-08 |
 | NAV | Navigation | 71 | 168 | 2026-10-01 | 2026-11-07 |
-| GEN | Generation and physics | 1266 | 3906 | 2026-10-01 | 2026-11-08 |
+| GEN | Generation and physics | 1269 | 3911 | 2026-10-01 | 2026-11-08 |
 | PERF | Speed | 241 | 816 | 2026-10-01 | 2026-11-08 |
 | DB | Database | 111 | 327 | 2026-10-01 | 2026-11-08 |
-| API | API | 27 | 79 | 2026-10-01 | 2026-11-08 |
-| ADM | Admin | 106 | 243 | 2026-10-01 | 2026-11-08 |
-| SEC | Security | 24 | 56 | 2026-10-01 | 2026-11-06 |
-| TEST | Tests | 640 | 1854 | 2026-10-01 | 2026-11-08 |
-| USR | Accounts | 6 | 8 | 2026-10-02 | 2026-11-07 |
+| API | API | 28 | 80 | 2026-10-01 | 2026-11-08 |
+| ADM | Admin | 107 | 244 | 2026-10-01 | 2026-11-08 |
+| SEC | Security | 25 | 57 | 2026-10-01 | 2026-11-08 |
+| TEST | Tests | 643 | 1861 | 2026-10-01 | 2026-11-08 |
+| USR | Accounts | 7 | 9 | 2026-10-02 | 2026-11-08 |
 | OPS | Operations | 121 | 312 | 2026-10-01 | 2026-11-08 |
-| DOC | Documentation | 95 | 260 | 2026-10-09 | 2026-11-08 |
+| DOC | Documentation | 96 | 261 | 2026-10-09 | 2026-11-08 |
 | VIEW | Views | 33 | 89 | 2026-10-08 | 2026-11-07 |
 | POP | Population | 15 | 34 | 2026-10-14 | 2026-11-07 |

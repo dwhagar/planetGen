@@ -1,6 +1,6 @@
 # Items: GEN, Generation and physics
 
-The life of every GEN item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every GEN item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## GEN.8
 
@@ -9902,9 +9902,10 @@ The life of every GEN item that a commit title names, from the git history as of
 
 ## GEN.1395
 
-2026-11-07 to 2026-11-07; 1 commits; open.
+2026-11-07 to 2026-11-08; 2 commits; open.
 
 - 2026-11-07: Docs: file GEN.1395 and GEN.1396, Boss's answers on the giant C/O and the snow-line solid density (#5655)
+- 2026-11-08: File GEN.1471: gas giant C/O center fix and envelope-share stand-in (from the GEN.1395 measure) (#5801)
 
 ## GEN.1396
 
@@ -9976,10 +9977,11 @@ The life of every GEN item that a commit title names, from the git history as of
 
 ## GEN.1405
 
-2026-11-08 to 2026-11-08; 2 commits; not open.
+2026-11-08 to 2026-11-08; 3 commits; not open.
 
 - 2026-11-08: Retire GEN.1353 (PR 5777) and GEN.1309 (step A in Train 19, step B closed as a finding, noted on GEN.1405) (#5778)
 - 2026-11-08: GEN.1405: oxygen store row BO3 is a stand-in set inside the published 0.3 to 1 Gyr delay (T3, L1; docs only) (#5783)
+- 2026-11-08: Delete the burn-down line for 6.21:BO3 (no longer hand-tuned after GEN.1405); red on main (#5808)
 
 ## GEN.1407
 
@@ -10213,4 +10215,22 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: File GEN.1470: puffed planets from obliquity-tide inflation escape the super-puff check (#5796)
+
+## GEN.1471
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1471: gas giant C/O center fix and envelope-share stand-in (from the GEN.1395 measure) (#5801)
+
+## GEN.1472
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1472 and GEN.1473: drift and evaporation of water in the disk (design note, then build) (#5805)
+
+## GEN.1473
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1472 and GEN.1473: drift and evaporation of water in the disk (design note, then build) (#5805)
 

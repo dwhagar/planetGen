@@ -247,11 +247,11 @@ export function plotUrl(href, values) {
   return parsed.pathname + parsed.search.replace(/%3A/gi, ":").replace(/%2C/gi, ",") + parsed.hash;
 }
 
-// What the address says about the course at this visit: "none", "other" (a course of its own, or a pick or a generate run on the
+// What the address says about the course at this visit: "none", "other" (a course of its own, or a pick on the
 // map: the waypoints leave the map alone), "plotted" (the course through exactly these waypoints), or "stale" (through others).
 export function plotState(search, values) {
   const params = new URLSearchParams(search || "");
-  if (params.get("course") || params.get("pick") || params.get("made")) return "other";
+  if (params.get("course") || params.get("pick")) return "other";
   const via = viaOf(search);
   if (!via.length) return "none";
   return sameList(via, values) ? "plotted" : "stale";

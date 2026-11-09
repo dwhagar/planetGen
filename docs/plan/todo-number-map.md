@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1474 |
-| PERF | PERF.256 |
-| DB | DB.121 |
+| GEN | GEN.1485 |
+| PERF | PERF.259 |
+| DB | DB.122 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
 | TEST | TEST.713 |
 | USR | USR.33 |
-| OPS | OPS.133 |
+| OPS | OPS.134 |
 | DOC | DOC.120 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2241,11 +2241,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1466 | Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions | none | open |
 | GEN.1467 | Mutual tides, spin and apsidal precession between the stars of a binary or triple | none | open |
 | GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) | GEN.1460 | open |
-| GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives | none | open |
+| GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives | none | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1470 | Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug) | none | open |
 | GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre (divide by the drawn f7 median) and add one stand-in, the share m of bulk heavy elements the envelope carries (m = 0.1 first) | GEN.1363, GEN.1406 | open |
 | GEN.1472 | Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age | GEN.1471, GEN.1396 | open |
 | GEN.1473 | Build the drift and evaporation model of water in the disc and let the giant's envelope carbon-to-oxygen ratio follow it, so the over-0.8 tail of the giants falls toward the retrieved 4 to 9 percent | GEN.1472 | open |
+| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | open |
+| GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) | none | open |
+| GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild | none | open |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | open |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
@@ -2269,7 +2272,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.691 | The ozone-loss radiation test fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | GEN.1386 | np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug) | none | done, PR #5688 |
-| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | open |
+| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | done, PR #5822 |
 | MAP.406 | The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug) | none | done, PR #5688 |
 | TEST.693 | One failing browser test leaves an asyncio loop and about 1,500 browser tests skip silently while the phase prints a pass; Playwright is pinned to 1.56.0 but the image has chromium 1243 (bug) | none | done, PR #5688 |
 | OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) | none | done, PR #5688 |
@@ -2315,10 +2318,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | open |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | open |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | open |
-| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | open |
-| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | open |
-| ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | open |
-| ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | open |
+| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | done, PR #5795 |
+| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | done, PR #5795 |
+| ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | done, PR #5795 |
+| ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | done, PR #5795 |
 | ADM.153 | The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line | none | open |
 | ADM.152 | An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit | SEC.47 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
@@ -2919,6 +2922,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too | none | done, PR #5579 |
 | OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) | none | done, PR #5584 |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) | none | open |
+| OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -3646,6 +3650,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.7.1 | GEN.21 |
 | GEN.7.2 | GEN.22 |
 | GEN.1439 | A plan stores no container for each globular cluster | none | done, PR #5775 |
+| GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | open |
+| GEN.1481 | Sky backfill and ring walks: cut the cell visits (8.3e9 at a 7.5 sky) by pruning mass rings by block or a recursive Poisson split (audit C11) | none | open |
+| GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | open |
+| GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | open |
+| GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | open |
+| GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | open |
+| GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
+| GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
 | MAP.2.1 | MAP.16 |
 | MAP.2.1.1 | MAP.17 |
 | MAP.2.1.2 | MAP.18 |
@@ -3689,6 +3701,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.1.8 | PERF.10 |
 | PERF.1.9 | PERF.11 |
 | PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
+| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | done, PR #5824 |
+| PERF.258 | check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output | none | open |
+| PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | open |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |
@@ -4504,6 +4519,7 @@ Each citation below resolves to one item by its date.
 | DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) | none | done, PR #5765 |
 | DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word | none | done, PR #5755 |
 | DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py | none | done, PR #5755 |
+| DB.121 | Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9) | none | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |

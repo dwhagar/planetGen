@@ -1,6 +1,6 @@
 # Items: TEST, Tests
 
-The life of every TEST item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every TEST item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## TEST.1
 
@@ -5044,4 +5044,26 @@ The life of every TEST item that a commit title names, from the git history as o
 - 2026-11-08: File TEST.709: flaky test_api_life_air history test (#5754)
 - 2026-11-08: TEST.709: the life and air history test draws seeded systems (#5758)
 - 2026-11-08: Boss answers: class M levers 3, 6, 7 released; GEN.1364 kept; GEN.1435 default on; retire TEST.709 (#5759)
+
+## TEST.710
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: Plan 9.1 wiki link: 11 items (API.43-47, SEC.47, ADM.152-153, UX.296, TEST.710, DOC.118-119) and USR.32 account sync (later), held until spakr has its API (#5800)
+
+## TEST.711
+
+2026-11-08 to 2026-11-08; 3 commits; not open.
+
+- 2026-11-08: File TEST.711 and TEST.712: two reds on main found by the Train 20 gate (#5802)
+- 2026-11-08: TEST.711, TEST.712: the deferred-climate moons test draws from fixed seeds until the planet has its two moons; the re-roll console test expects the problems the scan found (both failed on luck, not on a merge) (#5804)
+- 2026-11-08: Retire TEST.711 and TEST.712 (PR 5804) (#5806)
+
+## TEST.712
+
+2026-11-08 to 2026-11-08; 3 commits; not open.
+
+- 2026-11-08: File TEST.711 and TEST.712: two reds on main found by the Train 20 gate (#5802)
+- 2026-11-08: TEST.711, TEST.712: the deferred-climate moons test draws from fixed seeds until the planet has its two moons; the re-roll console test expects the problems the scan found (both failed on luck, not on a merge) (#5804)
+- 2026-11-08: Retire TEST.711 and TEST.712 (PR 5804) (#5806)
 

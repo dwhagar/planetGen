@@ -1,6 +1,6 @@
 # Items: UX, Web pages
 
-The life of every UX item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every UX item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## UX.0
 
@@ -1983,4 +1983,10 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: Docs: retire TEST.700 (PR 5736) and MAP.411 (PR 5737), file UX.295 (#5738)
+
+## UX.296
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: Plan 9.1 wiki link: 11 items (API.43-47, SEC.47, ADM.152-153, UX.296, TEST.710, DOC.118-119) and USR.32 account sync (later), held until spakr has its API (#5800)
 

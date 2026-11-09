@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3738] - 2026-11-09
+
+**Headline:** A new generator epoch no longer empties the map's stored nodes: they follow the stored rows, so only what was regenerated is fetched again.
+
+### Changed
+
+- OPS.133: the key the Galaxy Map's node cache follows (`tile_base` in `galaxy_content_state`) no longer holds the running generator epoch. It holds the epoch each scatter was drawn under (`scatter_epochs`) instead; the plan's own epoch was already in it through the stored shape. A node is read from stored rows, so an epoch bump with nothing regenerated changes no node. A regenerated sector bumps its own `modified_at` and so its own nodes only, and a scatter drawn again under a new epoch still empties every node.
+- Nothing stored changes. The first update after this lands empties the stored nodes once, as every epoch did before.
+
+generation-output: unchanged
+
+## [8.0.3737] - 2026-11-09
+
+**Headline:** An unchanged warm-up now takes minutes instead of 28: the workers keep the app and a node stage skips the nodes that are already stored.
+
+### Changed
+- **The warm-up app is built once per worker (PERF.257).** The five warm commands whose units visit pages (`warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-sectors`, `warm-systems`, `warm-phenomena`) build the app in the worker before the work horse is forked, so no unit pays the 7 s the app took to import. Measured: 7.1 s a horse before, 0.0 s after.
+- **A node stage opens with a stamp check.** The nodes the disk cache already holds in the current generation are left out of the units (`tilecache.stored_nodes`); an unchanged rerun is one empty unit that reports them as already stored, and a changed sector cuts only its own nodes. A failed check cuts every node as before.
+- Generated output is unchanged.
+
+generation-affects: none
+
+## [8.0.3736] - 2026-11-09
+
+**Headline:** The proof tests for the generation-rescan chain have their harness, and the first run already found that today's block-light refresh differs from a rebuild by one unit in the last place.
+
+### Changed
+
+- **Harness for the rescan-chain proofs (`tests/rescan_proof_support.py`, `tests/test_rescan_proofs.py`).** Rows compared as bytes (a float as its eight bytes) with the first difference named; a small seeded galaxy of three neighbouring sectors with bright stars and scattered phenomena (reusing `_save` of `test_sector_paths_db` and `_store_objects` of `test_block_lights`); a row-trigger touch log that counts every row a job processes, even one rewritten with the same value; the settled paths as bytes, and the rows the link stage writes (GEN.1482). Three proofs are in place: the block lights equal a rebuild after a delete and a regenerate (GEN.1476), a rescore run again touches no row (GEN.1479), and the settled paths are the same bytes every run (the harness for GEN.1477, whose own test settles with the neighbourhood read per sector and shared and compares). The first two are strict expected failures that name their item, because they fail today for the reasons the items fix: after a sector is deleted the stored block lights differ from a rebuild by one unit in the last place in star_luminosity_sol, star_lpy and star_lpz of every row (the refresh adds a block's sums in another order), and a second rescore touches all 34 scored bodies of the small galaxy. When the item lands the test passes and the strict mark fails the run until it is removed.
+
+generation-output: unchanged
+
+## [8.0.3735] - 2026-11-09
+
+**Headline:** A hypergiant system is bounded by a test, the belt-and-habitable-world cases of the heaviest stars no longer pass the 900 s limit, and the seasonal swing's cheaper fixed point has a byte-for-byte proof.
+
+### Changed
+
+- **PERF.249 part 2: tests that bound the hypergiant cost.** Part 1 (PR 5634) removed the 152 million `array_split` calls and PERF.255 (PR 5787) keeps the Anderson Gram matrix between passes; with both, the K00 hypergiant system of the first bug hunt (seed 0, every orbit flag forced) takes 28 s and 0.35 GB, where it took 311 s and 8.4 GB. `tests/test_hypergiant_time.py` bounds that system at 240 s, and `tests/test_seasonal_swing.py` compares the Anderson fixed point, its passes and its convergence byte for byte with the old form that built the whole Gram matrix every pass, on six stiff maps that wrap the six slots.
+- **The M3IA+ and M50 belt-and-habitable-world cases build two systems, like O5V.** Both took more than 900 s at fifteen systems (about 100 s a system beside other jobs). The test also lost its assertion that fifteen requests gave a habitable world at least once: since GEN.1397 a request has one in 0.069 of cases (`tuning.PREVALENCE_FORCED_HIT_RATES`), so fifteen had none a third of the time (M5V failed). The odds are the arithmetic of `tests/test_prevalence.py` and the count of `measure_habitable_count`. No code changes.
+
+generation-output: unchanged
+
+## [8.0.3734] - 2026-11-09
+
+**Headline:** A running generation job now links to the systems it has made so far.
+
+### Changed
+- **New admin page "Generated so far" (ADM.151, on the ADM.150 data read), `/admin/generated`.** It lists the sectors, systems, planets and moons a generation run has made, newest first, one tab per kind, from a start time (`?since=`, by default the start of the latest galaxy run). The job panel links to it as "Made so far this run", because the Galaxy Map is closed while a run goes. The API has `GET /api/generated` for it; it reads only the rows made since by the key, so it is quick on any galaxy and is never cached.
+
+## [8.0.3733] - 2026-11-09
+
+**Headline:** The admin pages lose the Compact checkbox and the Show on Galaxy Map button on generate jobs.
+
+### Changed
+- **Compact checkbox removed from the admin shell.** The compact layout is now always on; the switch, its script and its remembered browser setting are gone.
+- **"Show on Galaxy Map" removed from generate job pages.** The button, the `made_url` field, `GET /api/galaxy/made`, the Galaxy page's `?made=` view and the map's ring layer for a run's sectors are removed, since the map cannot be loaded while a run is in progress.
+
 ## [8.0.3732] - 2026-11-09
 
 **Headline:** Two tests that failed about half the time on any machine, the deferred-climate moons test and the wide-binary re-roll console test, no longer depend on luck.

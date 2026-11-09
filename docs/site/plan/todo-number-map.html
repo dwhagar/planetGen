@@ -63,7 +63,7 @@ release is stamped.</p>
 <tbody>
 <tr>
 <td>UX</td>
-<td>UX.296</td>
+<td>UX.297</td>
 </tr>
 <tr>
 <td>MAP</td>
@@ -75,7 +75,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>GEN</td>
-<td>GEN.1471</td>
+<td>GEN.1474</td>
 </tr>
 <tr>
 <td>PERF</td>
@@ -87,23 +87,23 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>API</td>
-<td>API.43</td>
+<td>API.48</td>
 </tr>
 <tr>
 <td>ADM</td>
-<td>ADM.152</td>
+<td>ADM.154</td>
 </tr>
 <tr>
 <td>SEC</td>
-<td>SEC.47</td>
+<td>SEC.48</td>
 </tr>
 <tr>
 <td>TEST</td>
-<td>TEST.710</td>
+<td>TEST.713</td>
 </tr>
 <tr>
 <td>USR</td>
-<td>USR.32</td>
+<td>USR.33</td>
 </tr>
 <tr>
 <td>OPS</td>
@@ -111,7 +111,7 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>DOC</td>
-<td>DOC.118</td>
+<td>DOC.120</td>
 </tr>
 <tr>
 <td>VIEW</td>
@@ -3205,6 +3205,36 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>API.42</td>
 <td>Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line</td>
 <td>DB.116</td>
+<td>open</td>
+</tr>
+<tr>
+<td>API.47</td>
+<td>The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block</td>
+<td>API.45</td>
+<td>open</td>
+</tr>
+<tr>
+<td>API.46</td>
+<td>GET /api/objects/<ref>/linked-pages: the wiki pages about an object, asked of the wiki lazily and returned short</td>
+<td>API.45</td>
+<td>open</td>
+</tr>
+<tr>
+<td>API.45</td>
+<td>The lookup client: one place that knows the contract GET <site>/api/v1/links?ref=..., with timeout, Redis cache, negative cache, breaker and a batch call</td>
+<td>ADM.153</td>
+<td>open</td>
+</tr>
+<tr>
+<td>API.44</td>
+<td>The short address /o/<Object ID> that finds the kind and redirects, and one stable answer from /api/objects/<ref> that tells 'no longer charted' from 'wrong map'; check the anonymous read rule</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>API.43</td>
+<td>A galaxy key and the site identity call: a short key made from the galaxy seed and the ID layout, stored with the galaxy and never changeable by hand, and GET /api/site returning it with the base address and API version</td>
+<td>none</td>
 <td>open</td>
 </tr>
 <tr>
@@ -13210,6 +13240,24 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>open</td>
 </tr>
 <tr>
+<td>GEN.1471</td>
+<td>Fix a gas giant's carbon-to-oxygen ratio centre (divide by the drawn f7 median) and add one stand-in, the share m of bulk heavy elements the envelope carries (m = 0.1 first)</td>
+<td>GEN.1363, GEN.1406</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1472</td>
+<td>Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age</td>
+<td>GEN.1471, GEN.1396</td>
+<td>open</td>
+</tr>
+<tr>
+<td>GEN.1473</td>
+<td>Build the drift and evaporation model of water in the disc and let the giant's envelope carbon-to-oxygen ratio follow it, so the over-0.8 tail of the giants falls toward the retrieved 4 to 9 percent</td>
+<td>GEN.1472</td>
+<td>open</td>
+</tr>
+<tr>
 <td>GEN.1459</td>
 <td>Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down</td>
 <td>none</td>
@@ -13645,6 +13693,18 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>ADM.151</td>
 <td>A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress</td>
 <td>ADM.150</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.153</td>
+<td>The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line</td>
+<td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>ADM.152</td>
+<td>An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit</td>
+<td>SEC.47</td>
 <td>open</td>
 </tr>
 <tr>
@@ -19432,6 +19492,12 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>done, PR #3083</td>
 </tr>
 <tr>
+<td>USR.32</td>
+<td>Optional account sync between PlanetGen and the wiki site (spakr): one sign-in for both, as a later feature</td>
+<td>SEC.47, USR.28</td>
+<td>open</td>
+</tr>
+<tr>
 <td>UX.0</td>
 <td>Bugs and small fixes (standing item)</td>
 <td>none</td>
@@ -21802,6 +21868,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <td>History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents</td>
 </tr>
 <tr>
+<td>DOC.119</td>
+<td>A request to the spakr owner: a typed planetgen_ref field on place pages, a links lookup for public pages with a batch form, and an API version header</td>
+</tr>
+<tr>
+<td>DOC.118</td>
+<td>A developer page for spakr's author: the identifier spec, the galaxy key, the stability rules, the site and object calls, the integration key rules and the lookup contract</td>
+</tr>
+<tr>
 <td>SEC.42</td>
 <td>Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml</td>
 </tr>
@@ -21820,6 +21894,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <tr>
 <td>SEC.44</td>
 <td>Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes</td>
+</tr>
+<tr>
+<td>SEC.47</td>
+<td>Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call</td>
 </tr>
 <tr>
 <td>TEST.1</td>
@@ -24606,6 +24684,18 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <td>test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row</td>
 </tr>
 <tr>
+<td>TEST.710</td>
+<td>Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL</td>
+</tr>
+<tr>
+<td>TEST.711</td>
+<td>A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug)</td>
+</tr>
+<tr>
+<td>TEST.712</td>
+<td>The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug)</td>
+</tr>
+<tr>
 <td>USR.1.1</td>
 <td>USR.2</td>
 </tr>
@@ -25272,6 +25362,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <td>UX.295</td>
 <td>The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting</td>
 <td>none</td>
+<td>open</td>
+</tr>
+<tr>
+<td>UX.296</td>
+<td>The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link</td>
+<td>API.46</td>
 <td>open</td>
 </tr>
 </tbody>
