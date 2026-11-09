@@ -3867,6 +3867,17 @@ What the end-of-making pass (`generation/late_accretion.py`) sets in place of th
 | LA2 | T | T6 | L3 | a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do | none | rocky planets of single and multiple stars | a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains | a draw of the belt's mass and reach from the nebula | design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent |
 | LA3 | P | T6 | L3 | `planets.LATE_ACCRETION_GATE` 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does) | 0.1 to 1 | rocky planets of 0.3 to 3 Earth masses with an air | a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found | the full replay for every planet, when the cost allows | fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, `reports/gen1493-late-accretion-census-2026-11-09.md`); at 1.0 the worst of 60 planets was 29 percent |
 
+
+
+### 6.257 Stand-ins of the flavor tree's line weights and chances (GEN.1430)
+
+`physics/flavor_tree.py` draws one line from the lines whose gates pass, by weight. The weights and the two chances are choices, not measurements.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| FW1 | P | T9 | L0 | flavor_tree.json line weight 1.0 for every line, as the old lists drew with equal chance | 0.1 to 10 per line | any line of the tree | a census showing one line shown far more than the others without a reason | weights set from the census when Boss asks for rarer lines | none: the old draws were uniform; the weight only keeps that |
+| FW2 | P | T9 | L0 | tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line | 0.01 to 0.2 | any body | Boss asking for more or fewer flavor lines | the chances by scope from a census | kept as it was |
+
 ### 6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple (GEN.1500)
 
 How well the orbit of a companion star lines up with the plane it is measured against: the plane of the pair it orbits, or for the first companion the plane of its star's planets (`physics/star_orbit_alignment.py`, drawn by `generation/multistar.py`). Tiers and tweaks are the lane's reading (Lane 21), for the owner to confirm.

@@ -57495,7 +57495,7 @@
           "fields": [
             [
               "What it is",
-              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
+              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
             ],
             [
               "The range it moves in",
@@ -57526,7 +57526,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
+          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
         }
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
@@ -57861,7 +57861,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
+              "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
             ],
             [
               "The range it moves in",
@@ -57881,25 +57881,25 @@
             ],
             [
               "Evidence",
-              "form and numbers read in [R5211: Eq. 14] (9.5e-5 Earth masses per year, exponents 5/3, 1/3 on the star mass, -1/3 on the age); the star-mass term is replaced by the disc-mass scale (see the section text); [R5210] abstract read for the use"
+              "form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1)"
             ]
           ],
           "id": "DE1",
           "key": "6.242:DE1",
           "kind": "T",
           "slug": "6-242-de1",
-          "tier": "T1",
-          "tier_code": "T1",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
+          "what": "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+              "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
             ],
             [
               "The range it moves in",
@@ -57919,25 +57919,25 @@
             ],
             [
               "Evidence",
-              "[R5211: Eq. 10] read: r_g = (3/16)^(1/3) (G M)^(1/3) (eps_d Z0)^(2/3) t^(2/3); eps_d 0.05 (sticking efficiency 0.5 over the ISM growth ratio 10, from the paper's text) and Z0 0.01 give 122.8 AU at 1 Myr"
+              "[R5211], recalled; the number is computed from the two recalled efficiencies"
             ]
           ],
           "id": "DE2",
           "key": "6.242:DE2",
           "kind": "T",
           "slug": "6-242-de2",
-          "tier": "T1",
-          "tier_code": "T1",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+          "what": "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+              "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
             ],
             [
               "The range it moves in",
@@ -57968,14 +57968,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+          "what": "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+              "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
             ],
             [
               "The range it moves in",
@@ -58006,14 +58006,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+          "what": "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+              "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
             ],
             [
               "The range it moves in",
@@ -58044,14 +58044,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+          "what": "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+              "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
             ],
             [
               "The range it moves in",
@@ -58082,14 +58082,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+          "what": "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+              "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
             ],
             [
               "The range it moves in",
@@ -58120,14 +58120,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+          "what": "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+              "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
             ],
             [
               "The range it moves in",
@@ -58158,14 +58158,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+          "what": "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+              "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
             ],
             [
               "The range it moves in",
@@ -58196,14 +58196,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+          "what": "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+              "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
             ],
             [
               "The range it moves in",
@@ -58234,7 +58234,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+          "what": "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
         }
       ],
       "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disk",
@@ -59733,571 +59733,6 @@
       ],
       "slug": "6-252-stand-ins-of-the-effect-ledger",
       "title": "Stand-ins of the effect ledger"
-    },
-    {
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "key": "6.254",
-      "number": "6.254",
-      "rows": [
-        {
-          "burn_down": [
-            "replace",
-            "GEN.1493",
-            "L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it"
-=======
-      "key": "6.258",
-      "number": "6.258",
-      "rows": [
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "the 30 and 1,000 AU edges and the log-linear line between are read off the trends of the review ([R3333]: close multiples aligned, wide ones random), not a fitted sample; a volume-limited sample of the mutual inclinations of triples and of planet-bearing binaries would replace the line; tier T4, tweak L3 stay"
->>>>>>> origin/pr-5887
-          ],
-          "fields": [
-            [
-              "What it is",
-<<<<<<< HEAD
-              "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
-            ],
-            [
-              "The range it moves in",
-              "0.03 to 0.5"
-            ],
-            [
-              "Where it holds",
-              "belts of a few to tens of Earth masses"
-            ],
-            [
-              "What would show it wrong",
-              "a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5"
-            ],
-            [
-              "What replaces it",
-              "a scattering integration of the belt against the system's planets"
-            ],
-            [
-              "Evidence",
-              "fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, reports/gen1493-late-supply-census-2026-11-09.md)"
-            ]
-          ],
-          "id": "LS1",
-          "key": "6.254:LS1",
-          "kind": "P",
-          "slug": "6-254-ls1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
-            ],
-            [
-              "The range it moves in",
-              "0.2 to 0.8"
-            ],
-            [
-              "Where it holds",
-              "bodies on near-circular orbits"
-            ],
-            [
-              "What would show it wrong",
-              "a measured impact-speed distribution on a rocky planet that differs by more than a factor of two"
-            ],
-            [
-              "What replaces it",
-              "the speed from the scattered orbits' eccentricities"
-            ],
-            [
-              "Evidence",
-              "no source: an eccentricity of a few tenths"
-            ]
-          ],
-          "id": "LS2",
-          "key": "6.254:LS2",
-          "kind": "P",
-          "slug": "6-254-ls2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L4",
-          "unread": null,
-          "what": "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
-            ],
-            [
-              "The range it moves in",
-              "2 to 6"
-            ],
-            [
-              "Where it holds",
-              "giants outside a belt"
-            ],
-            [
-              "What would show it wrong",
-              "a giant at 4 times a belt's edge whose measured scattering of that belt is negligible"
-            ],
-            [
-              "What replaces it",
-              "the giant's chaotic zone width (the Hill-radius law of the clearing)"
-            ],
-            [
-              "Evidence",
-              "no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters"
-            ]
-          ],
-          "id": "LS3",
-          "key": "6.254:LS3",
-          "kind": "P",
-          "slug": "6-254-ls3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L4",
-          "unread": null,
-          "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
-=======
-      "key": "6.253",
-      "number": "6.253",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
-            ],
-            [
-              "The range it moves in",
-              "the three numbers"
-            ],
-            [
-              "Where it holds",
-              "a comet lit like one round the Sun"
-            ],
-            [
-              "What would show it wrong",
-              "a measured share of active comets by perihelion that departs from the line by more than the scatter"
-            ],
-            [
-              "What replaces it",
-              "a chance from the sublimation rate of water at the nucleus's temperature"
-            ],
-            [
-              "Evidence",
-              "recalled from Comets II (the water-ice sublimation limit near 3 AU); not re-read here"
-            ]
-          ],
-          "id": "CA1",
-          "key": "6.253:CA1",
-          "kind": "P",
-          "slug": "6-253-ca1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
->>>>>>> origin/pr-5870
-=======
-              "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
-            ],
-            [
-              "The range it moves in",
-              "10 to 100 AU and 300 to 3000 AU"
-            ],
-            [
-              "Where it holds",
-              "every multiple"
-            ],
-            [
-              "What would show it wrong",
-              "a catalogue of triples or of planet hosts with a wide companion whose aligned share at 100 to 300 AU is far from the 66 to 34 percent the line gives"
-            ],
-            [
-              "What replaces it",
-              "a share fitted to the observed mutual inclinations of a volume-limited sample of triples and of planet-bearing binaries"
-            ],
-            [
-              "Evidence",
-              "recalled from [R3333] (the review of the origin of multiples: orbits and disks of close pairs align, wide ones are random), not read; the two edges and the line between are hand-set to those trends"
-            ]
-          ],
-          "id": "AL1",
-          "key": "6.258:AL1",
-          "kind": "T",
-          "slug": "6-258-al1",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L3",
-          "unread": null,
-          "what": "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
->>>>>>> origin/pr-5887
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-<<<<<<< HEAD
-<<<<<<< HEAD
-              "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
-=======
-              "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
->>>>>>> origin/pr-5870
-=======
-              "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
-            ],
-            [
-              "The range it moves in",
-              "2 to 10 degrees"
-            ],
-            [
-              "Where it holds",
-              "every multiple"
-            ],
-            [
-              "What would show it wrong",
-              "planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees"
-            ],
-            [
-              "What replaces it",
-              "the scale of the distribution of the tilts of aligned multiples"
-            ],
-            [
-              "Evidence",
-              "recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (orbit_elements.draw_planet_inclination_deg)"
-            ]
-          ],
-          "id": "AL2",
-          "key": "6.258:AL2",
-          "kind": "T",
-          "slug": "6-258-al2",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L2",
-          "unread": null,
-          "what": "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
->>>>>>> origin/pr-5887
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-<<<<<<< HEAD
-<<<<<<< HEAD
-              "bodies the planetesimals cross"
-            ],
-            [
-              "What would show it wrong",
-              "a system whose measured veneer is set by the star's capture or by planetesimals outside any belt"
-            ],
-            [
-              "What replaces it",
-              "an Opik collision probability per orbit with the lifetimes of the crossing population"
-            ],
-            [
-              "Evidence",
-              "design; the form is the Safronov focusing factor"
-            ]
-          ],
-          "id": "LS4",
-          "key": "6.254:LS4",
-          "kind": "T",
-          "slug": "6-254-ls4",
-=======
-              "comets with no atmosphere, so no greenhouse or conduction of heat that depends on more than the flux"
-            ],
-            [
-              "What would show it wrong",
-              "a comet of a bright or faint star whose activity begins at a distance that is not close to 3 AU sqrt(L / Lsun)"
-            ],
-            [
-              "What replaces it",
-              "the activity distance from the sublimation flux of water ice and the nucleus's albedo and rotation"
-            ],
-            [
-              "Evidence",
-              "derived: the same flux at d sqrt(Lsun / L); the disk's L^0.25 r^-0.62 is for a passively heated disk and is not used"
-            ]
-          ],
-          "id": "CA2",
-          "key": "6.253:CA2",
-          "kind": "T",
-          "slug": "6-253-ca2",
->>>>>>> origin/pr-5870
-=======
-              "random-orientation multiples (wide pairs formed by fragmentation)"
-            ],
-            [
-              "What would show it wrong",
-              "a sample of wide multiples whose planes prefer a direction against the planets' plane"
-            ],
-            [
-              "What replaces it",
-              "the measured distribution of the tilts of wide multiples"
-            ],
-            [
-              "Evidence",
-              "design: the draw Tree.place made before GEN.1500, kept for the share that is not aligned"
-            ]
-          ],
-          "id": "AL3",
-          "key": "6.258:AL3",
-          "kind": "T",
-          "slug": "6-258-al3",
->>>>>>> origin/pr-5887
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-<<<<<<< HEAD
-<<<<<<< HEAD
-          "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
-        }
-      ],
-      "slug": "6-254-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
-      "title": "Stand-ins of the late supply a planet takes from the reservoirs of its system"
-    },
-    {
-      "key": "6.255",
-      "number": "6.255",
-      "rows": [
-        {
-          "burn_down": [
-            "replace",
-            "GEN.1493",
-            "L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
-            ],
-            [
-              "The range it moves in",
-              "0.01 to 0.2"
-            ],
-            [
-              "Where it holds",
-              "rocky planets of 0.3 to 3 Earth masses"
-            ],
-            [
-              "What would show it wrong",
-              "a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass"
-            ],
-            [
-              "What replaces it",
-              "a model of the leftover planetesimals of a system with no belt"
-            ],
-            [
-              "Evidence",
-              "recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, reports/gen1493-late-accretion-census-2026-11-09.md: 43 percent of 246 planets take the floor)"
-            ]
-          ],
-          "id": "LA1",
-          "key": "6.255:LA1",
-          "kind": "P",
-          "slug": "6-255-la1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
-=======
-          "what": "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
-=======
-          "what": "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
->>>>>>> origin/pr-5887
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-<<<<<<< HEAD
-              "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
->>>>>>> origin/pr-5870
-=======
-              "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
->>>>>>> origin/pr-5887
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-<<<<<<< HEAD
-<<<<<<< HEAD
-              "rocky planets of single and multiple stars"
-            ],
-            [
-              "What would show it wrong",
-              "a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains"
-            ],
-            [
-              "What replaces it",
-              "a draw of the belt's mass and reach from the nebula"
-            ],
-            [
-              "Evidence",
-              "design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent"
-            ]
-          ],
-          "id": "LA2",
-          "key": "6.255:LA2",
-          "kind": "T",
-          "slug": "6-255-la2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
-        },
-        {
-          "burn_down": [
-            "replace",
-            "GEN.1493",
-            "L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
-            ],
-            [
-              "The range it moves in",
-              "0.1 to 1"
-            ],
-            [
-              "Where it holds",
-              "rocky planets of 0.3 to 3 Earth masses with an air"
-            ],
-            [
-              "What would show it wrong",
-              "a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found"
-            ],
-            [
-              "What replaces it",
-              "the full replay for every planet, when the cost allows"
-            ],
-            [
-              "Evidence",
-              "fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, reports/gen1493-late-accretion-census-2026-11-09.md); at 1.0 the worst of 60 planets was 29 percent"
-            ]
-          ],
-          "id": "LA3",
-          "key": "6.255:LA3",
-          "kind": "P",
-          "slug": "6-255-la3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": null,
-          "what": "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
-        }
-      ],
-      "slug": "6-255-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
-      "title": "Stand-ins of the late accretion the air reads from the system"
-=======
-              "comets of stars of any type"
-            ],
-            [
-              "What would show it wrong",
-              "a comet whose activity differs between a blackbody and a hot-star spectrum at the same flux"
-            ],
-            [
-              "What replaces it",
-              "an absorption of the nucleus's albedo in the star's band"
-            ],
-            [
-              "Evidence",
-              "design"
-            ]
-          ],
-          "id": "CA3",
-          "key": "6.253:CA3",
-          "kind": "T",
-          "slug": "6-253-ca3",
-=======
-              "triples and quadruples"
-            ],
-            [
-              "What would show it wrong",
-              "a census of the accepted triples whose mutual inclination shows the peaks without the planet screen"
-            ],
-            [
-              "What replaces it",
-              "the Kozai screen of GEN.1447 run on the planets"
-            ],
-            [
-              "Evidence",
-              "design; reuse of stability.mutual_inclination and kozai_verdict"
-            ]
-          ],
-          "id": "AL4",
-          "key": "6.258:AL4",
-          "kind": "T",
-          "slug": "6-258-al4",
->>>>>>> origin/pr-5887
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-<<<<<<< HEAD
-          "what": "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
-        }
-      ],
-      "slug": "6-253-stand-ins-of-the-distance-at-which-a-comet-turns-active",
-      "title": "Stand-ins of the distance at which a comet turns active"
->>>>>>> origin/pr-5870
-=======
-          "what": "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
-        }
-      ],
-      "slug": "6-258-stand-ins-of-the-mutual-inclination-of-the-orbits-of-the-stars-of-a-multiple",
-      "title": "Stand-ins of the mutual inclination of the orbits of the stars of a multiple"
->>>>>>> origin/pr-5887
     }
   ]
 }
