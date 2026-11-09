@@ -1,6 +1,6 @@
 # Design notes and the work behind them
 
-For each design note, the items it names, with the dates those items were worked (git history as of `d02661568`) and where they stand. Use it to jump from a note to the history of its items in [items-<category>.md](README.md).
+For each design note, the items it names, with the dates those items were worked (git history as of `27813f061`) and where they stand. Use it to jump from a note to the history of its items in [items-<category>.md](README.md).
 
 ## [README.md](../design/README.md)
 

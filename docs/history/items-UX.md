@@ -1,6 +1,6 @@
 # Items: UX, Web pages
 
-The life of every UX item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every UX item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## UX.0
 
@@ -1705,7 +1705,7 @@ The life of every UX item that a commit title names, from the git history as of 
 
 2026-10-30 to 2026-10-30; 1 commits; not open.
 
-- 2026-10-30: Record UX.248 (close pair planets drawn about the pair centre), done in PR #4268 (#4270)
+- 2026-10-30: Record UX.248 (close pair planets drawn about the pair center), done in PR #4268 (#4270)
 
 ## UX.249
 
@@ -1718,7 +1718,7 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-10-31 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-31: File UX.250 (planet render terminator crescent, to-star arrow overlap; Boss) (#4460)
-- 2026-10-31: Planet render: curved day and night line with more of the disc lit; arrow to the star off the disc (UX.250) (#4462)
+- 2026-10-31: Planet render: curved day and night line with more of the disk lit; arrow to the star off the disk (UX.250) (#4462)
 - 2026-10-31: UX.250 retired (PR #4462); file TEST.518 flaky bodyview rotation test (#4463)
 
 ## UX.251
@@ -1735,7 +1735,7 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-10-31 to 2026-11-04; 8 commits; not open.
 
 - 2026-10-31: Retire GEN.1205 and GEN.1206 (PRs #4469, #4473); burn-down lines for the best-fit shoulders; GEN.1207 and UX.252 notes (#4475)
-- 2026-10-31: File GEN.1212 (stored flavour text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
+- 2026-10-31: File GEN.1212 (stored flavor text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
 - 2026-10-31: UX.252, UX.253: American spelling rule (Boss) (#4480)
 - 2026-10-31: Retire DOC.87 (#4602) and note the banner contract and crawl entries on DOC.88, DOC.91 to DOC.93, UX.252 (#4604)
 - 2026-11-04: UX.252 part 1: American spelling and sentence-case labels in planet, moon and belt text (#4790)
@@ -1748,7 +1748,7 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-10-31 to 2026-10-31; 5 commits; not open.
 
 - 2026-10-31: File life readings and text readability items GEN.1210, UX.251 to UX.253, DOC.83, DOC.84; notes on UX.237, GEN.1209 (#4474)
-- 2026-10-31: File GEN.1212 (stored flavour text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
+- 2026-10-31: File GEN.1212 (stored flavor text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
 - 2026-10-31: UX.252, UX.253: American spelling rule (Boss) (#4480)
 - 2026-10-31: UX.253: plain-words rewrite of star, system and star class text (#4496)
 - 2026-10-31: Retire UX.253 (PR #4496); Boss confirmed class letters Y, U, X, Z (#4498)
@@ -1759,7 +1759,7 @@ The life of every UX item that a commit title names, from the git history as of 
 
 - 2026-10-31: docs: retire MAP.277 (PR 4515), file TEST.528 and UX.254 (#4517)
 - 2026-10-31: TEST.523: Star 2's wiring-guard shadow functions each get an owner (delete 3, VIEW.11 2, UX.254 1, by design 12) (#4519)
-- 2026-10-31: UX.254: a star's sheet and page show its chemistry (disc population, alpha enhancement, metal fraction, dredge-up helium) from stored values (#4540)
+- 2026-10-31: UX.254: a star's sheet and page show its chemistry (disk population, alpha enhancement, metal fraction, dredge-up helium) from stored values (#4540)
 - 2026-10-31: Retire UX.254 (#4542)
 
 ## UX.255
@@ -1775,7 +1775,7 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-10-31 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-31: File UX.256 (cancel from a job page returns to the page the visitor came from, bug) (#4654)
-- 2026-10-31: UX.256: cancelling a job from its own page returns to the page it was opened from (bug) (#4656)
+- 2026-10-31: UX.256: canceling a job from its own page returns to the page it was opened from (bug) (#4656)
 - 2026-10-31: Retire UX.256 (cancel from a job page returns to the page the visitor came from, #4656) (#4657)
 
 ## UX.257
@@ -1983,4 +1983,10 @@ The life of every UX item that a commit title names, from the git history as of 
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: Docs: retire TEST.700 (PR 5736) and MAP.411 (PR 5737), file UX.295 (#5738)
+
+## UX.296
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: Plan 9.1 wiki link: 11 items (API.43-47, SEC.47, ADM.152-153, UX.296, TEST.710, DOC.118-119) and USR.32 account sync (later), held until spakr has its API (#5800)
 

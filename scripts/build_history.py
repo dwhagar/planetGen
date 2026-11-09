@@ -49,6 +49,14 @@ DECISION = re.compile(r"(Boss[^.\n]{0,100}20\d\d-\d\d-\d\d|20\d\d-\d\d-\d\d[^.\n
 DATE = re.compile(r"20\d\d-\d\d-\d\d")
 
 
+def american(text):
+    """`text` in American spelling: the commit titles and decisions it quotes go through the word list of
+    `scripts/american_spelling_sweep.py` (DOC.103), so the page passes `test_american_spelling`."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import american_spelling_sweep as sweep
+    return sweep._fix(text)
+
+
 def citations_by_id(name, text):
     """`text` with every source written by name (author and year, DOI, arXiv number) replaced by its `[R0123]` ID (DOC.99:
     a citation is written only in the registry); a name the list does not hold is dropped by `rewrite_citations`."""
@@ -78,7 +86,8 @@ def commits():
 
 def write(name, lines):
     os.makedirs(OUT, exist_ok=True)
-    text = citations_by_id("docs/history/" + name, "\n".join(lines) + "\n")
+    text = american("\n".join(lines) + "\n")
+    text = citations_by_id("docs/history/" + name, text)
     with open(os.path.join(OUT, name), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
 
