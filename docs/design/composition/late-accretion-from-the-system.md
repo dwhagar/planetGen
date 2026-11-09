@@ -66,7 +66,7 @@ a heavy belt and no giant; a giant between the belt and the planet lowers it by 
    Recommended: yes; nothing else measures it.
 2. Is one extra air solve per rocky planet an acceptable cost for the end-of-making pass? Recommended: yes, with the skip when the fraction barely moves.
 
-## Slice 0 result (built: `physics/late_supply.py`, rows LS1 to LS4 of section 6.250, census `tests/audit/late_supply_census.py`)
+## Slice 0 result (built: `physics/late_supply.py`, rows LS1 to LS4 of section 6.254, census `tests/audit/late_supply_census.py`)
 
 The law is the shared-sink form: each body takes the scattered part of a belt's early mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`, so a giant next to a belt takes most of it and the planets
 inside take what is left (the ejection is the denominator, not a second shield). With a stand-in inward share of 0.1 an Earth-like planet inside a belt of a few to tens of Earth masses reaches the

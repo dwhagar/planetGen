@@ -48,10 +48,6 @@ def test_the_touch_log_counts_rows_a_statement_processes_even_when_it_changes_no
 
 # --- GEN.1476: the running block totals equal a rebuild, byte for byte -----------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="GEN.1476 is not built: the refresh the stored lights have now (`block_lights.refresh_chain`) adds a block's sums in another order than "
-                                       "`rebuild`, so after a sector is deleted every luminosity sum of the 11 rows differs from the rebuild by one unit in the last place "
-                                       "(star_luminosity_sol, star_lpy, star_lpz). GEN.1476 sums parts in unit-key order with math.fsum so the bits are identical; when it lands "
-                                       "this passes: remove this mark then (strict, so it cannot be forgotten).")
 def test_the_block_lights_equal_a_rebuild_after_a_sector_is_deleted_and_made_again(mysql_config):
     """Wired on the refresh the stored lights have now (a saved sector takes its stars out of its blocks, a deleted one puts them back); GEN.1476's scatter units and
     sector edits call `assert_totals_equal_a_rebuild` in the same three steps."""
@@ -69,8 +65,6 @@ def test_the_block_lights_equal_a_rebuild_after_a_sector_is_deleted_and_made_aga
 
 # --- GEN.1479: a job run again with no change touches no row ---------------------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="GEN.1479 is not built: rescore-habitability recomputes and writes every scored body whether or not its formulas changed, so a second run "
-                                       "touches all 34 scored bodies of the small galaxy (the touch log counts them). When GEN.1479's stamp lands this passes; remove this mark then (strict, so it cannot be forgotten).")
 def test_a_rescore_run_again_with_nothing_changed_touches_no_row(mysql_config):
     proof.small_galaxy(mysql_config)
     with proof.connection(mysql_config) as conn:

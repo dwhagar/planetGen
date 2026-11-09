@@ -74,3 +74,30 @@ def test_a_body_with_no_starlight_keeps_its_whole_envelope():
     left = envelope_escape.envelope_left_earth(10.0, 0.05, 0.0, 1.0, 0.0, 5.0)
     assert left == pytest.approx(0.05 * 10.0 / 0.95)
     assert envelope_escape.lost_fraction(10.0, 0.05, 0.0, 1.0, 0.0, 5.0) == 0.0
+
+
+def test_a_radius_ratio_of_one_changes_nothing_and_a_larger_one_loses_more_envelope():
+    """GEN.1480: the rate goes as a steep power of the radius, so a planet a tide has inflated keeps less."""
+    plain = ee.envelope_left_earth(6.0, 0.05, 15.0, **SUN)
+    assert ee.envelope_left_earth(6.0, 0.05, 15.0, radius_ratio=lambda mass, fraction, radius: 1.0, **SUN) == plain
+    puffed = ee.envelope_left_earth(6.0, 0.05, 15.0, radius_ratio=lambda mass, fraction, radius: 1.3, **SUN)
+    assert 0.0 <= puffed < plain
+
+
+def test_the_radius_ratio_is_given_the_planet_it_acts_on_at_each_step():
+    seen = []
+
+    def ratio(mass, fraction, radius):
+        seen.append((mass, fraction, radius))
+        return 1.0
+
+    ee.envelope_left_earth(6.0, 0.05, 15.0, radius_ratio=ratio, **SUN)
+    assert seen and all(mass >= 6.0 and 0.0 < fraction < 1.0 and radius > 0.0 for mass, fraction, radius in seen)
+    assert [m for m, _, _ in seen] == sorted((m for m, _, _ in seen), reverse=True)       # the planet only loses mass
+
+
+def test_a_planet_younger_than_the_onset_never_asks_for_a_ratio():
+    def ratio(mass, fraction, radius):
+        raise AssertionError("no loss before the onset")
+
+    assert ee.envelope_left_earth(6.0, 0.05, 15.0, host_mass_solar=1.0, luminosity_solar=1.0, age_gy=0.5, radius_ratio=ratio) > 0.0
