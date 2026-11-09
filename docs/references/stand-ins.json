@@ -46977,11 +46977,11 @@
           "fields": [
             [
               "What it is",
-              "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
+              "disk_condensation.RECIPE_C_OVER_O_MEDIAN 0.511 (worked out by recipe_c_over_o_median from the shape of f7): a giant's C/O is its disc's value times the recipe's drawn f7 over this median, to the power of DSC8"
             ],
             [
               "The range it moves in",
-              "spread of f7 (core 0.15 dex, tail to 1.5)"
+              "spread of f7 (core 0.21 dex, cut to 0.2 to 0.8, tail to 1.5)"
             ],
             [
               "Where it holds",
@@ -46997,7 +46997,7 @@
             ],
             [
               "Evidence",
-              "f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center"
+              "f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); GEN.1471: the ratio is taken to the median of the draw, 0.511, not to the core's center 0.57 (the core is cut at 0.8, so the draw's median is below it and the old ratio lowered every giant by a sixth), so the spread is kept and the disc sets the center"
             ]
           ],
           "id": "DSC7",
@@ -47008,7 +47008,83 @@
           "tier_code": "T3",
           "tweak": "L2",
           "unread": null,
-          "what": "disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn f7 over 0.57, the center of f7's core"
+          "what": "disk_condensation.RECIPE_C_OVER_O_MEDIAN 0.511 (worked out by recipe_c_over_o_median from the shape of f7): a giant's C/O is its disc's value times the recipe's drawn f7 over this median, to the power of DSC8"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT 0.5: the power of the ratio of f7 to its median that multiplies the disc's C/O"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a retrieved sample whose C/O spread is narrower than the disc's own (exponent 0) or wider than the sum of both (exponent 1)"
+            ],
+            [
+              "What replaces it",
+              "a model of what a giant swallows after the disc has set the place"
+            ],
+            [
+              "Evidence",
+              "the recipe's spread (what a giant swallowed) and the disc's own (the star's C/O, the place) overlap; GEN.1471 over 347 G2V giants with the share of DSC9: exponent 0.5 puts 16 percent under 0.35 where LExACoM has 12 of 69 (17 percent), the full power 20 to 26 percent"
+            ]
+          ],
+          "id": "DSC8",
+          "key": "6.213:DSC8",
+          "kind": "P",
+          "slug": "6-213-dsc8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT 0.5: the power of the ratio of f7 to its median that multiplies the disc's C/O"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.ENVELOPE_METAL_SHARE 0.06: the share of a giant's bulk heavy-element enrichment (f5) that its envelope carries when its C/O is set"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a retrieved sample whose C/O median is below 0.5 or above 0.65 once the share is changed within the range"
+            ],
+            [
+              "What replaces it",
+              "a model of how well a giant's metals are mixed (an interior and envelope model)"
+            ],
+            [
+              "Evidence",
+              "[R4350: Abstract] (read): the bulk metallicity is an upper limit on the atmosphere's, and comparing the two measures how well mixed the metals are; [R4663: Abstract] (read): the water abundance of gas giants is substellar, \"low oxygen abundances relative to other elements\"; tuned to LExACoM's median 0.57 and 17 percent under 0.35 [R5]: the whole bulk enrichment (18 times the star's for the median giant) is 90 percent solids of C/O 0.44 whatever the amount, so the enrichment range is not what moves the median and the share is; 0.06 gives 0.57 and 16 percent on the 347 giants it was chosen on and 0.59 and 14 percent on 331 fresh ones; the tail above 0.8 (22 to 26 percent against 4 to 9) stays: a gas-dominated giant takes the water-frozen gas C/O of 0.89 and the model has no drift and evaporation of water between"
+            ]
+          ],
+          "id": "DSC9",
+          "key": "6.213:DSC9",
+          "kind": "P",
+          "slug": "6-213-dsc9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "disk_condensation.ENVELOPE_METAL_SHARE 0.06: the share of a giant's bulk heavy-element enrichment (f5) that its envelope carries when its C/O is set"
         }
       ],
       "slug": "6-213-stand-ins-of-the-species-the-disk-condenses",
