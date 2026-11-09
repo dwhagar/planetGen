@@ -33177,7 +33177,7 @@
             ],
             [
               "Evidence",
-              "[R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii (Gladman 1993, recalled)"
+              "[R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii ([R1583], recalled)"
             ]
           ],
           "id": "TJ6",
@@ -33236,7 +33236,7 @@
           "burn_down": [
             "no data",
             "-",
-            "L4, Holman and Wiegert 1999 give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0"
+            "L4, [R1990] give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0"
           ],
           "fields": [
             [
@@ -33261,7 +33261,7 @@
             ],
             [
               "Evidence",
-              "none read; Holman and Wiegert 1999 give the limit for a planet, not for its trojans"
+              "none read; [R1990] give the limit for a planet, not for its trojans"
             ]
           ],
           "id": "TJ8",
@@ -58813,7 +58813,7 @@
           "fields": [
             [
               "What it is",
-              "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of Eggleton 1983)"
+              "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of [R1222])"
             ],
             [
               "The range it moves in",
@@ -58844,7 +58844,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of Eggleton 1983)"
+          "what": "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of [R1222])"
         },
         {
           "burn_down": null,
@@ -59557,7 +59557,7 @@
             ],
             [
               "Evidence",
-              "recalled from Levison and Duncan 1997 (the Solar System's family is 2 < T_J < 3), not read; registered in the second-hand list when read; 67P gives 2.75 (computed here)"
+              "recalled from [R5218] (the Solar System's family is 2 < T_J < 3), not read; registered in the second-hand list when read; 67P gives 2.75 (computed here)"
             ]
           ],
           "id": "CT1",

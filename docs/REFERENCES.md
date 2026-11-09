@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5096 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5097 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -2789,6 +2789,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r2652"></a>**R2652** Levesque, E. M., Massey, P., Plez, B., & Olsen, K. A. G. 2009, THE PHYSICAL PROPERTIES OF THE RED SUPERGIANT WOH G64: THE LARGEST STAR KNOWN?, AJ, 137, 4744, doi:10.1088/0004-6256/137/6/4744. [paper](https://doi.org/10.1088/0004-6256/137/6/4744) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-6256/137/6/4744/abstract)
 - <a id="paper-r2653"></a>**R2653** Levi, A., Sasselov, D., & Podolak, M. 2017, The Abundance of Atmospheric CO2 in Ocean Exoplanets: a Novel CO2 Deposition Mechanism, ApJ, 838, 24, doi:10.3847/1538-4357/aa5cfe, arXiv:1609.08185. [paper](https://doi.org/10.3847/1538-4357/aa5cfe) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/aa5cfe/abstract)
 - <a id="paper-r2654"></a>**R2654** LEVISON, H., MORBIDELLI, A., VANLAERHOVEN, C., GOMES, R., & TSIGANIS, K. 2008, Origin of the structure of the Kuiper belt during a dynamical instability in the orbits of Uranus and Neptune, Icarus, 196, 258, doi:10.1016/j.icarus.2007.11.035, arXiv:0712.0553. [paper](https://doi.org/10.1016/j.icarus.2007.11.035) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2007.11.035/abstract)
+- <a id="paper-r5218"></a>**R5218** Levison, H. F. & Duncan, M. J. 1997, From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets, Icarus, 127, 13, doi:10.1006/icar.1996.5637. [paper](https://doi.org/10.1006/icar.1996.5637) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1006/icar.1996.5637/abstract)
 - <a id="paper-r2655"></a>**R2655** Levison, H. F., Duncan, M. J., Brasser, R., & Kaufmann, D. E. 2010, Capture of the Sun's Oort Cloud from Stars in Its Birth Cluster, Science, 329, 187, doi:10.1126/science.1187535. [paper](https://doi.org/10.1126/science.1187535) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.1187535/abstract)
 - <a id="paper-r2656"></a>**R2656** Levison, H. F., Shoemaker, E. M., & Shoemaker, C. S. 1997, Dynamical evolution of Jupiter's Trojan asteroids, Nature, 385, 42, doi:10.1038/385042a0. [paper](https://doi.org/10.1038/385042a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/385042a0/abstract)
 - <a id="paper-r2657"></a>**R2657** Lewis, J. S. 1969a, Geochemistry of the volatile elements on Venus, Icarus, 11, 367, doi:10.1016/0019-1035(69)90069-4. [paper](https://doi.org/10.1016/0019-1035(69)90069-4) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/0019-1035(69)90069-4/abstract)

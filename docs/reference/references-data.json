@@ -76517,6 +76517,29 @@
    "volume": "124",
    "year": 1996
   },
+  "10.1006/icar.1996.5637": {
+   "authors": [
+    [
+     "Levison",
+     "H. F."
+    ],
+    [
+     "Duncan",
+     "M. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1996.5637",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "13",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets",
+   "type": "journal-article",
+   "volume": "127",
+   "year": 1997
+  },
   "10.1006/icar.1996.5653": {
    "authors": [
     [
@@ -282751,7 +282774,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5218,
+ "id_next": 5219,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282848,6 +282871,7 @@
   "10.1006/icar.1996.0113": "R3316",
   "10.1006/icar.1996.0117": "R1584",
   "10.1006/icar.1996.0190": "R3565",
+  "10.1006/icar.1996.5637": "R5218",
   "10.1006/icar.1996.5653": "R2730",
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
