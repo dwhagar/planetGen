@@ -582,6 +582,7 @@ class StarSystem:
                 self.unmet_requirements.remove(wanted)
         if self._drop_barred_bodies():    # GEN.1275
             self._refresh_wobble()
+        self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
         # see names/bodies.py.
@@ -615,6 +616,26 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    def _fill_light_ledger(self):
+        """
+        Notes in the effect ledger (GEN.1465) what each star puts on each planet and moon as light and as far ultraviolet: the parts of the field at the
+        distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
+        air-solved distance (a belt) has none.
+        """
+        for obj in self.all_planets:
+            for body in (obj, *getattr(obj, "moons", ())):
+                distance = getattr(body, "_air_light_au", None)
+                host = getattr(body, "star", None)
+                if not distance or host is None:
+                    continue
+                field = radiation_field.field_at(host, distance)
+                stars = {companion.member_no: companion.star for companion in radiation_field.companions_of(host)}
+                stars[None] = host
+                for effect, band in (("light", field.bolometric_w_m2), ("uv", field.far_uv_ratio)):
+                    for member_no, value in band.by_source.items():
+                        if value > 0.0 and member_no in stars:
+                            self.effect_ledger.add(effect, body, stars[member_no], value)
 
     @property
     def all_planets(self):

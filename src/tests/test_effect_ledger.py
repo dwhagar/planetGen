@@ -121,6 +121,7 @@ def test_a_saved_system_keeps_its_ledger_and_deleting_the_system_takes_the_rows(
     system, cfg = _system_with_a_moon()
     planet = next(p for p in system.planets if getattr(p, "moons", None))
     moon = planet.moons[0]
+    system.effect_ledger = ledger.EffectLedger()      # generation fills light and ultraviolet itself; this test sets its own numbers
     system.effect_ledger.add("light", planet, system.star, 1361.0)
     system.effect_ledger.add("tide", moon, planet, 1.0)
     system.effect_ledger.add("tide", moon, system.star, 1e-9)
@@ -145,6 +146,7 @@ def test_a_saved_system_keeps_its_ledger_and_deleting_the_system_takes_the_rows(
 @pytest.mark.fresh_database
 def test_a_system_with_no_contributions_writes_no_ledger_rows(mysql_config):
     system, cfg = _system_with_a_moon()
+    system.effect_ledger = ledger.EffectLedger()
     conn = store.get_connection(mysql_config)
     try:
         with conn:
@@ -171,4 +173,30 @@ def test_a_v235_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
         assert columns == list(ledger.ROW_FIELDS)
         assert conn.execute("SELECT COUNT(*) AS n FROM effect_ledger").fetchone()["n"] == 0
     finally:
+        conn.close()
+
+
+def test_a_generated_system_notes_the_light_and_ultraviolet_of_each_star_on_each_body_and_changes_nothing():
+    system, cfg = _system_with_a_moon()
+    light = {id(receiver): sources for receiver, sources in system.effect_ledger.contributions("light")}
+    bodies = [body for obj in system.all_planets for body in (obj, *getattr(obj, "moons", ())) if getattr(body, "_air_light_au", None)]
+    assert bodies and all(id(body) in light for body in bodies)
+    for receiver, sources in system.effect_ledger.contributions("light"):
+        assert all(value > 0.0 for _, value in sources)
+        assert system.star in [source for source, _ in sources]
+    again, _ = _system_with_a_moon()      # the same seeds: the ledger is a record, so the system is what it was
+    assert [p.distance for p in again.planets] == [p.distance for p in system.planets]
+
+
+@pytest.mark.fresh_database
+def test_a_saved_generated_system_keeps_its_light_and_ultraviolet_rows(mysql_config):
+    system, cfg = _system_with_a_moon()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        effects = {row["effect"] for row in conn.execute("SELECT DISTINCT effect FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchall()}
+        assert effects == {1, 2}      # light and ultraviolet only; the gravity effects are computed on demand
+    finally:
+        conn.rollback()
         conn.close()
