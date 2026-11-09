@@ -2517,7 +2517,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SI3 | T | T7 | L1 | superionic.AMMONIA_FLOOR_GPA_K (30.0, 1500.0): ammonia is superionic from 1500 K at 30 GPa upward, and melts on a line to 5500 K at 300 GPa | 1000 to 2500 K for the floor | ammonia at 30 to 300 GPa | a measured superionic onset of ammonia 1000 K away | the phase lines of [R5172] when opened in full | [R5172: Abstract] gives only the range (30 to 300 GPa, 300 to 7000 K), the superionic phase between the solid and the ionic liquid, and the metallic temperature of 5500 K; the onset of about 60 GPa and 1500 K is recalled, not opened | predicted only | - | - |
 | SI4 | T | T7 | L1 | superionic.FALLBACK_TEMPERATURE_K 2500.0 | 2000 to 5000 K | the deep ice layer of a body whose structure model carries no adiabat | an ice giant whose adiabat at its mantle bottom is outside 2000 to 5000 K | the adiabat of the model, which the body has whenever the hydrogen-helium tables are present | the planetary isentrope of [R5172: Abstract] runs inside the superionic and ionic fields at 30 to 300 GPa; the number is the middle of that range | predicted only | - | - |
 
-## 6.253 Stand-ins of the flavor tree's line weights and chances
+## 6.257 Stand-ins of the flavor tree's line weights and chances
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

@@ -459,7 +459,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.234", "6.234 Stand-ins of the superionic boundaries of water and ammonia",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.253", "6.253 Stand-ins of the flavor tree's line weights and chances",
+    ("6.257", "6.257 Stand-ins of the flavor tree's line weights and chances",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.237", "6.237 Stand-ins of the materials seen since the textbooks",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),

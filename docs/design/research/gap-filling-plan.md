@@ -3838,7 +3838,7 @@ The effect ledger changes no result; the floor under which a source is summed an
 
 
 
-### 6.253 Stand-ins of the flavor tree's line weights and chances (GEN.1430)
+### 6.257 Stand-ins of the flavor tree's line weights and chances (GEN.1430)
 
 `physics/flavor_tree.py` draws one line from the lines whose gates pass, by weight. The weights and the two chances are choices, not measurements.
 
