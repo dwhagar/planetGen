@@ -9,8 +9,8 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import climate_draws, orbit_elements, radiation_field
 from planetgen.util import draw
 
-PAIR_SEED = 100031
-"""int: A run seed whose first system is a close pair with three planets (seeds 100031 and 100051 of the census)."""
+PAIR_SEED = 100039
+"""int: A run seed whose first system is a close pair with three planets (seed 100039 of the census, found again on the Train 22 head after the draws moved)."""
 
 
 @pytest.fixture(scope="module")
