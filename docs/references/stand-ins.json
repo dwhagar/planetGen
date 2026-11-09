@@ -58451,6 +58451,48 @@
           "tweak": "L3",
           "unread": null,
           "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses with an air"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found"
+            ],
+            [
+              "What replaces it",
+              "the full replay for every planet, when the cost allows"
+            ],
+            [
+              "Evidence",
+              "fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, reports/gen1493-late-accretion-census-2026-11-09.md); at 1.0 the worst of 60 planets was 29 percent"
+            ]
+          ],
+          "id": "LA3",
+          "key": "6.251:LA3",
+          "kind": "P",
+          "slug": "6-251-la3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
         }
       ],
       "slug": "6-251-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",

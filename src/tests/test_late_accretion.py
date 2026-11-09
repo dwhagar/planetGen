@@ -51,7 +51,7 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
         if planet.body_type != "t" or getattr(planet, "_air_replay", None) is None:
             continue
         before = _air(planet)
-        assert planet_physics.remake_air(planet, percent)
+        assert planet_physics.remake_air(planet, percent, 0.0)
         after = _air(planet)
         assert after[0] == pytest.approx(before[0], rel=0.01)
         assert after[1] == pytest.approx(before[1], rel=0.01)
@@ -62,10 +62,10 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
 def test_making_the_air_again_twice_with_one_percent_is_the_same_air():
     planet, percent = _earth_like(4)
     state = planet._air_replay
-    assert planet_physics.remake_air(planet, percent)
+    assert planet_physics.remake_air(planet, percent, 0.0)
     first = _air(planet)
     planet._air_replay = state
-    assert planet_physics.remake_air(planet, percent)
+    assert planet_physics.remake_air(planet, percent, 0.0)
     assert _air(planet) == first
 
 
@@ -74,7 +74,7 @@ def test_a_different_late_accretion_changes_the_air_and_not_the_run_stream():
     before = _air(planet)
     draw.set_run_seed(77)
     state = draw.getstate()
-    assert planet_physics.remake_air(planet, percent * 3.0)
+    assert planet_physics.remake_air(planet, percent * 3.0, 0.0)
     assert draw.getstate() == state                      # no draw of the run's stream moved
     assert _air(planet) != before
 
@@ -120,3 +120,34 @@ def test_a_whole_system_has_its_rocky_planets_set_by_the_belts_and_leaves_the_ru
                 assert 0.0 < planet._late_accreted_percent <= impact_history.LATE_ACCRETED_PERCENT_MAX
                 assert planet._air_replay is None
     assert found > 5
+
+
+def _drawn_percent(settled):
+    """The late accretion percent the air was made with: the first draw of the stream where its late accretion began."""
+    from planetgen.physics import surface_air
+
+    setting, late_state = settled[0], settled[1]
+    stream = draw.Stream(0)
+    stream.setstate(late_state)
+    design = {}
+    with draw.bound(stream):
+        surface_air._late_accretion(setting, design)
+    return design["late_accreted_percent"]
+
+
+def test_the_gate_leaves_the_air_when_the_late_accretion_barely_moves_what_the_volcanoes_gave_and_makes_it_when_it_moves_it_much():
+    planet, percent = _earth_like(2)
+    before = _air(planet)
+    state = planet._air_replay
+    drawn = _drawn_percent(state[3])    # the percent the air was made with: it moves nothing
+    assert not planet_physics.remake_air(planet, drawn, 1.0e-9)
+    assert _air(planet) == before and planet._late_accreted_percent == drawn and planet._air_replay is None
+    planet._air_replay = state
+    assert planet_physics.remake_air(planet, percent * 100.0, 1.0e-9)    # a gate every change passes
+    assert _air(planet) != before
+
+
+def test_a_planet_with_no_air_is_not_made_again():
+    planet = types.SimpleNamespace(is_moon=False, _air_replay=(None, None, None, None))      # the air found nothing to hold, so it kept no setting
+    assert not planet_physics.remake_air(planet, 1.0, 0.0)
+    assert planet._air_replay is None and planet._late_accreted_percent == 1.0

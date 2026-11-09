@@ -620,7 +620,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
                                              kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
     if not planet.is_moon:
-        planet._air_replay = (draw.getstate(), distance_override, host_eccentricity)    # GEN.1493: kept, not stored; where this air's draws began, for `remake_air` once the system's belts are known
+        planet._air_replay = (draw.getstate(), distance_override, host_eccentricity, None)    # GEN.1493: kept, not stored; where this air's draws began, for `remake_air` once the system's belts are known
     envelope_share.restore(planet)      # GEN.1226: the drawn fractions, before the air is solved again (the air share is put in again at the end)
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
@@ -661,6 +661,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
+    if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
+        planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
     planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
@@ -743,11 +745,23 @@ def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
     return effective > orbits.runaway_greenhouse_flux(planet.star.temperature, units.converter("kg", "Mearth")(planet.mass))
 
 
-def remake_air(planet, late_accreted_percent):
+LATE_ACCRETION_GATE = 0.5
+"""float: The air is not made again for a new late accretion when it moves the carbon and the nitrogen the late accretion left by less than this share of what the volcanoes gave. The share is how far the
+inventory moves, not how far the air does (a carbonate sink holds the carbon of a wet world whatever is added): in 246 planets of 240 seeds 201 are identical to the full replay, 13 differ by more than 1 percent
+(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in LA3, tier Marginal educated guess from physics, tweak L3.]"""
+
+
+def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):
     """
-    Makes the air of a planet again with the late accretion the system's own belts give it (GEN.1493, `generation/late_accretion.py`): the whole of `calculate_atmospheric_conditions` is run again on the
+    Makes the air of a planet again with the late accretion the system's own belts give it (GEN.1493, `generation/late_accretion.py`): `calculate_atmospheric_conditions` is run again on the
     draws it began with (`planet._air_replay`, taken at its last call), in a stream of its own, so every other draw of the air, the water and the ground is the one it was, the late accretion is
-    `late_accreted_percent` of the planet's mass instead of the law's draw, and no draw of the run's stream moves. A planet whose air was never made here (a moon, a loaded one) is left as it is.
+    `late_accreted_percent` of the planet's mass instead of the law's draw, and no draw of the run's stream moves. A planet whose air was never made here (a moon, a loaded one) or has no air is left
+    as it is, and so is one whose new late accretion moves the carbon and the nitrogen it left by less than `gate` of what the volcanoes gave (it reaches the air only through them).
+
+    Args:
+        planet (Planet): The planet.
+        late_accreted_percent (float): The late accretion, percent of the planet's mass.
+        gate (float): The share of the degassed carbon or nitrogen the new late accretion moves it by, under which the air is left as it is; 0 makes it for every planet (the full replay the census compares with).
 
     Returns:
         bool: Whether the air was made again.
@@ -755,13 +769,18 @@ def remake_air(planet, late_accreted_percent):
     replay = getattr(planet, "_air_replay", None)
     if replay is None or planet.is_moon:
         return False
-    state, distance_override, host_eccentricity = replay
+    state, distance_override, host_eccentricity, settled = replay
+    planet._air_replay = None       # the replay is spent; the memory it held goes
+    planet._late_accreted_percent = late_accreted_percent
+    if settled is None:      # no air was made, so no late accretion reached one
+        return False
+    if gate > 0.0 and surface_air.late_accretion_moves(*settled, late_accreted_percent) < gate:
+        return False
     stream = draw.Stream(0)
     stream.setstate(state)
-    planet._late_accreted_percent = late_accreted_percent
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
-    planet._air_replay = None       # the replay is spent; the memory it held goes
+    planet._air_replay = None       # the air made again kept a replay of its own; the memory it held goes
     return True
 
 

@@ -50,15 +50,15 @@ def applies_to(planet):
             and bool(planet.mass) and bool(planet.radius) and planet_type.has_ground(planet) and getattr(planet, "_air_replay", None) is not None)
 
 
-def apply(planets):
-    """Makes the air again, with the late accretion the system gives, of every rocky planet of `planets` (every planet and belt of the system, `StarSystem.all_planets`). Returns how many."""
+def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
+    """Makes the air again, with the late accretion the system gives, of every rocky planet of `planets` (every planet and belt of the system, `StarSystem.all_planets`). A planet whose new late accretion moves its carbon and nitrogen by under `gate` of what its volcanoes gave keeps its air (`planets.remake_air`). Returns how many were made again."""
     made = 0
     for planet in planets:
         if planet.body_type == "a" or not applies_to(planet):
             continue
         siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
         star_mass_solar = planet.star.mass / constants.SOLAR_MASS_TO_KG
-        made += planet_physics.remake_air(planet, percent_for(planet, siblings, star_mass_solar))
+        made += planet_physics.remake_air(planet, percent_for(planet, siblings, star_mass_solar), gate)
     return made
 
 

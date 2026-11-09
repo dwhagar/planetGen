@@ -37,7 +37,7 @@ level radiates the absorbed starlight and the cooling-law heat of `giant_draw.ow
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from planetgen.physics import (
     aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw, orbits,
@@ -292,6 +292,9 @@ class Air:
             oxygen it adds inside it (`biogenic_oxygen.apply`, GEN.1340).
         knee (bool): The air did not settle and `temperature_k` is the knee its answers chatter across (`sliding_temperature`, GEN.1344), not the last answer.
         co2_sink (CarbonSink or None): The carbon sink of the last step (GEN.1309 A); `None` for a body whose air had no carbon to weather.
+        late (dict): The carbon and nitrogen the late accretion left, atoms per 100 g of mantle (`_late_accretion`); what `generation/late_accretion.py` compares a new late accretion to.
+        late_state: The state of the ambient stream where the late accretion's draws began (`late_accretion_moves` draws them again).
+        degassed (dict): The carbon and nitrogen the last step's volcanoes gave the surface, atoms per 100 g of mantle: the scale `late` is small or large against.
     """
 
     mixture: object
@@ -310,6 +313,9 @@ class Air:
     retention_cap_pa: object = None
     knee: bool = False
     co2_sink: object = None
+    late: dict = field(default_factory=dict)
+    degassed: dict = field(default_factory=dict)
+    late_state: object = None
 
     @property
     def greenhouse_factor(self):
@@ -579,6 +585,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
         if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
             shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
+        if record is not None:      # GEN.1493: what the volcanoes gave, to set a new late accretion against
+            record["degassed"] = {element: base * efficiencies[element] * inventory.get(element, 0.0) for element in late if element in efficiencies}
         for element, atoms in late.items():
             if inventory.get(element, 0.0) > 0.0:
                 shares_[element] = shares_.get(element, 0.0) + atoms / inventory[element]
@@ -638,6 +646,24 @@ def _late_accretion(setting, design):
     return {element: held[element] for element in ("C", "N")}
 
 
+def late_accretion_moves(setting, late_state, late, degassed, percent):
+    """
+    How far a late accretion of `percent` moves what the late accretion left (`_late_accretion`) from `late`, the answer of the air it was made with, as a share of what the volcanoes gave of each
+    element (`degassed`, the same units): the largest over the carbon and the nitrogen. The draws are the ones the air made (`late_state`, in a stream of its own), so only the percent differs.
+    `inf` when an element the volcanoes gave none of moves.
+    """
+    stream = draw.Stream(0)
+    stream.setstate(late_state)
+    with draw.bound(stream):
+        new = _late_accretion(replace(setting, late_accreted_percent=percent), {})
+    moved = 0.0
+    for element in set(new) | set(late):
+        change = abs(new.get(element, 0.0) - late.get(element, 0.0))
+        scale = degassed.get(element, 0.0)
+        moved = max(moved, change / scale if scale > 0.0 else (math.inf if change > 0.0 else 0.0))
+    return moved
+
+
 def _draw_stream(seed):
     return draw.bound(draw.Stream(seed))
 
@@ -674,6 +700,7 @@ def solve(setting, start_temperature_k):
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
     geology = long_lived_geology(setting.heat_flux_w_m2)
+    late_state = draw.getstate()        # GEN.1493: where the late accretion's draws began, for `late_accretion_moves`
     late = _late_accretion(setting, design)
 
     temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, start_temperature_k)
@@ -811,7 +838,7 @@ def solve(setting, start_temperature_k):
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
                condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
-               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"))
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state)
 
 
 def _retention_cap_pa(mixture, subject):
