@@ -13,14 +13,13 @@ rule that a Jupiter-family comet of a star that has a giant must have a value in
     controls(giant_au, perihelion_au, eccentricity, inclination_deg)      # whether the orbit is a Jupiter-family one about that giant
     controlling_giant_au(planets)                                           # the distance of the most massive giant, or None
 
-The Tisserand parameter of an orbit of semi-major axis `a`, eccentricity `e` and inclination `i` about a planet at `a_p` is `a_p / a + 2 cos i sqrt((a / a_p) (1 - e^2))` (Tisserand 1896;
-Carusi et al. 1987; Levison and Duncan 1997, recalled: the Jupiter family is 2 < T_J < 3). A star with no giant keeps the comets of before; the draws are the same.
+The Tisserand parameter of an orbit of semi-major axis `a`, eccentricity `e` and inclination `i` about a planet at `a_p` is `a_p / a + 2 cos i sqrt((a / a_p) (1 - e^2))` (the Tisserand criterion; the Jupiter family is 2 < T_J < 3 as the comet literature defines it, recalled, not registered). A star with no giant keeps the comets of before; the draws are the same.
 """
 
 import math
 
 JUPITER_FAMILY_TISSERAND = (2.0, 3.0)
-"""tuple: The Tisserand parameter range of a Jupiter-family comet about its controlling giant (Levison and Duncan 1997, recalled; the Solar System's Jupiter family is 2 < T_J < 3). [Stand-in CT1, tier T2, tweak level L0.]"""
+"""tuple: The Tisserand parameter range of a Jupiter-family comet about its controlling giant (recalled from the comet literature, not registered; the Solar System's Jupiter family is 2 < T_J < 3). [Stand-in CT1, tier T2, tweak level L0.]"""
 
 
 def tisserand(giant_au, perihelion_au, eccentricity, inclination_deg):

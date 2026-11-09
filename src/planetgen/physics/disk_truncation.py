@@ -9,7 +9,7 @@ window (`planet_zones`, Holman and Wiegert, stored as `Star.a_crit_au`) says how
 solids it carries are cut off by the companion at its closest approach. A belt's stretch is cut there before its mass is worked out (`belt_origin.build`), so a belt inside a close
 companion holds the solids of the cut stretch, not of the whole disk.
 
-**The law.** The truncation radius is a share `TRUNCATION_OF_ROCHE_LOBE` of the Roche lobe of the host at the companion's periastron, with the lobe from the fit of Eggleton (1983),
+**The law.** The truncation radius is a share `TRUNCATION_OF_ROCHE_LOBE` of the Roche lobe of the host at the companion's periastron, with the lobe from the fit of [R1222],
 `r_L / a = 0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3)))`, `q` the host's mass over the companion's and `a` the periastron separation `axis (1 - e)`. A disk round one star of an equal
 pair then ends near `0.28` of the pair's periastron, the third or so that disks of young binaries are seen cut at. The tightest companion sets the radius; a lone star, or a star the
 system has attached no companion to (`radiation_field.companions_of`), has no truncation (`math.inf`).
@@ -29,7 +29,7 @@ cut-off, read second-hand). [Stand-in DT1, tier Marginal unverified, tweak L0.]"
 
 
 def roche_lobe_share(mass_ratio):
-    """The Roche lobe of a star over the separation, for `mass_ratio` its mass over its companion's (Eggleton 1983)."""
+    """The Roche lobe of a star over the separation, for `mass_ratio` its mass over its companion's [R1222]."""
     if not mass_ratio > 0.0:
         raise ValueError("the mass ratio must be positive")
     third = mass_ratio ** (1.0 / 3.0)
