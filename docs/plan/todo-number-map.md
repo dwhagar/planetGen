@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1497 |
+| GEN | GEN.1501 |
 | PERF | PERF.259 |
 | DB | DB.122 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.713 |
+| TEST | TEST.714 |
 | USR | USR.33 |
 | OPS | OPS.134 |
 | DOC | DOC.120 |
@@ -3653,7 +3653,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | done, PR #5869 |
 | GEN.1481 | Sky backfill and ring walks: cut the cell visits (8.3e9 at a 7.5 sky) by pruning mass rings by block or a recursive Poisson split (audit C11) | none | done, step 1 read found no Poisson split needed; step 2 filed as GEN.1485 and GEN.1486 (Lane 13, 2026-11-09) |
 | GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | done, closed as a finding (Lane 14 retime, 2026-11-09) |
-| GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | open |
+| GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | done, closed as a finding (Lane 12 measured 2026-11-09: 1M nebulae 14 s and 314 MB, no change needed) |
 | GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | open |
 | GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | open |
 | GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | open |
@@ -3667,6 +3667,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1494 | Giant planet density read: is the generated giants' median density (1.4 to 1.8 g/cm3) too dense against observed giants | none | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1495 | (bug) Giant air: the ice caps do not settle for some giants (MixtureError in mixture_giant.cap_ices, seed 533), one in 700 systems | none | done, PR #5867 |
 | GEN.1496 | (bug) Rogue planets store a day and a daylight as if a star lit them: day share 0.5, daylight of half a rotation, latitude bands in 'polar day and night' | none | open |
+| GEN.1497 | The effect ledger's kind-4 per-body numbers: store the history numbers that cannot be recomputed | none | open |
+| GEN.1498 | The refill-effect-ledger job: fill ledger rows for systems drawn before the ledger existed, changing no result | GEN.1497 | open |
+| GEN.1499 | Planets forced by a companion star: the companion's stellar term in the planets' secular exchange | GEN.1492 | open |
+| GEN.1500 | Mutual inclination of the orbits of the stars in a binary or triple, so a companion can force inclination and Kozai pumping has an input | none | open |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
@@ -4454,6 +4458,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.710 | Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL | UX.296 | open |
 | TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
 | TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
+| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
