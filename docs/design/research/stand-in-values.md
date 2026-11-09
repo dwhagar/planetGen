@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1467 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1468 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1441 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1442 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 178 | 20 | 11 | 1 | 0 | 210 |
+| T1 | 181 | 20 | 11 | 1 | 0 | 213 |
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
-| T4 | 72 | 11 | 3 | 21 | 10 | 117 |
+| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
-| T6 | 173 | 104 | 27 | 76 | 0 | 380 |
+| T6 | 170 | 104 | 27 | 76 | 0 | 377 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 817 | 298 | 71 | 236 | 45 | 1467 |
+| All | 818 | 298 | 71 | 236 | 45 | 1468 |
 
 ## How the labels were given
 
@@ -2539,9 +2539,6 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RF3 | P | T7 | L0 | the source's orbit is averaged on `ORBIT_SAMPLES` = 96 points uniform in mean anomaly | 48 to 400 points | eccentricities under 0.9 | a result that moves by over 1e-4 between 96 and 400 points | an analytic average | numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits | predicted only | - | - |
 | RF4 | T | T6 | L0 | a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (`radiation_field.light_ratio`), against the host's habitable-zone edges | none | companions whose spectrum is like the host's | a companion of very different temperature, whose light the zone edges of the host do not describe | edges made from the combined spectrum | derived: the edges are fixed by the light a lone star gives at a distance | predicted only | - | - |
 | RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |
-| RF6 | T | T6 | L0 | a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (`radiation_field.ring_light_ratio`, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444) | annuli 8 to 64 | rings narrow against the companion's distance | a belt whose bodies sit in one part of the ring (a resonant clump, a narrow family) where the companion's share differs from the ring's mean by over a tenth | the light at each member's own distance | derived: the mean of a smooth ratio over the ring; the test compares the 16 annuli with a 2000-annulus sum | predicted only | - | - |
-| RF7 | T | T6 | L0 | whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (`belt_ledger.belt_state`) stay the formation ones, as for planets (`born_beyond_snow_line`) | none | companions that were present while the disk lasted or not at all | a belt past the snow line whose ice a companion's light would have sublimated, or one inside the line that a companion's disk truncation kept cold | a present-day ice line from the ring's temperature and the ice's sublimation (`condensate_shares.ICE_CONDENSATION_K`) | design; the same rule as the zone letter of a planet (RF4) | predicted only | - | - |
-| RF8 | T | T6 | L0 | a comet's chance of showing activity reads the light at its perihelion: `_activity_chance` of the perihelion over the square root of the total light over the host's own (`radiation_field.lit_distance_au`), against the fixed distance `COMET_ACTIVITY_PERIHELION_THRESHOLD_AU`, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444) | the threshold | comets of stars near the Sun's luminosity | a comet of a faint or bright star whose activity distance moves with its luminosity | an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light | design; a lone star unchanged | predicted only | - | - |
 
 ## 6.240 Stand-ins of the stellar wind of a system and a moon in its parent's field
 
@@ -2575,3 +2572,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE8 | D | T5 | L0 | planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
 | DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
+
+## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SE1 | T | T1 | L0 | MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step | the pressure: 0.75 TPa; Clapeyron slope -10 MPa/K at 5,000 K; the sequence holds to 10,000 K, while another study predicts a different sequence above about 6,000 K | mantles of rocky planets with a central pressure over 0.75 TPa (about 5 Earth masses and more) | a measurement or a second calculation that puts the first dissociation outside 0.6 to 0.9 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1, Section 5] | predicted only | - | - |
+| SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |

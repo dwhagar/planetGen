@@ -13444,13 +13444,13 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1487 Isotope record for comets, interstellar comets and belt members, from the ice fractionation law already built**
-  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Comets and belt members get the per-body isotope record the planets and moons carry, with D/H and the other ratios set by the ice fractionation law of the isotope work, including the interstellar comets and interstellar fields. Reuse the isotope table, isotope_record.py and the fractionation law; no second law. The result is part of the stored isotope record, so it is a lock item (epoch, golden).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1488.
+  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Comets and belt members get the per-body isotope record the planets and moons carry, with D/H and the other ratios set by the ice fractionation law of the isotope work, including the interstellar comets and interstellar fields. Reuse the isotope table, isotope_record.py and the fractionation law; no second law. Decided with Lane 14 (2026-11-09): derived at view time from stored values through the same record_of and fractionation law, not stored, so it is lock-free (generation output unchanged, no migration, no epoch).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1488.
   Filed by the TODO thread.
 
 - [ ] **GEN.1488 Isotope record for star surfaces**
-  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Stars get a surface isotope record (the natural mix of the elements the surface holds, from the star's metallicity and age) in the same record the bodies carry. Reuse isotope_record.py and the isotope table. The result is part of the stored isotope record, so it is a lock item (epoch, golden).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1487.
+  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Stars get a surface isotope record (the natural mix of the elements the surface holds, from the star's metallicity and age) in the same record the bodies carry. Reuse isotope_record.py and the isotope table. Decided with Lane 14 (2026-11-09): derived at view time from stored values through the same record_of and fractionation law, not stored, so it is lock-free (generation output unchanged, no migration, no epoch).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1487.
   Filed by the TODO thread.
 
 - [ ] **GEN.1489 Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air**
@@ -13461,6 +13461,11 @@ clears each one.
 - [ ] **GEN.1490 Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244**
   Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. The mantle and the ocean of a body hold different isotope mixes (partitioning during degassing and ocean formation), and the xenon isotopes carry the excess from the decay of iodine-129 and plutonium-244. Reuse isotope_record.py, the degassing code and the short-lived isotopes of GEN.1377; stand-ins registered in GEN.725 with tier and tweak level. The result is part of the stored isotope record, so it is a lock item (epoch, golden).
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1489.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1491 Comet activity distance scales with the host's luminosity, not a fixed Sun-based constant**
+  Found by Lane 22 in GEN.1444 (RF8, reports/gen1444-belt-light-census-2026-11-09.md, 2026-11-09): the distance inside which a comet turns active (water sublimation) is a fixed Sun-based constant in the code, so a comet around a bright or faint star turns active at the Sun's distance instead of where its ice line sits. Do: derive the activity distance from the light the comet receives (the radiation field of GEN.1441, or the host's luminosity for a lone star) with the ice's sublimation temperature, and register the stand-in in GEN.725; a Sun-like lone star must give today's numbers. This changes comet activity for every non-Sun-like host, so it is a lock item (epoch, golden). Reuse GEN.1441 light_ratio and disk_temperature_k as GEN.1444 does.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, lock item for a train after GEN.1444. Prerequisites: GEN.1444. Related: GEN.1444, GEN.1441.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
