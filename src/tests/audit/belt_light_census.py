@@ -22,6 +22,8 @@ from types import SimpleNamespace
 SEEDS = 240
 """int: Seeds 1 to this are generated."""
 REPORT_NAME = "belt-light-census-latest.md"
+PERCENTS = (0.1, 0.5, 1, 5)
+"""tuple: The temperature changes (percent) the report counts belts over."""
 
 
 def _before(module_belt, module_comet):
@@ -90,7 +92,7 @@ def system_counts(seed):
             counts[(group, "belts_changed")] += 1
         if new[5] != old[5]:
             counts[(group, "belts_temperature_changed")] += 1
-            for percent in (1, 5, 10):
+            for percent in PERCENTS:
                 if abs(warmer) > percent / 100.0:
                     counts[(group, f"belts_temperature_over_{percent}")] += 1
         if new[4] != old[4] or new[3] != old[3]:
@@ -125,7 +127,7 @@ def violations(counts):
 
 ROWS = (("systems", "Systems"), ("layout_changed", "Systems whose belts or comets differ in layout (left out below)"), ("belts", "Belts compared"),
         ("belts_changed", "Belts with any stored value changed"), ("belts_temperature_changed", "Belts whose temperature changed"),
-        ("belts_temperature_over_1", "... by over 1 percent"), ("belts_temperature_over_5", "... by over 5 percent"), ("belts_temperature_over_10", "... by over 10 percent"),
+        *((f"belts_temperature_over_{percent}", f"... by over {percent} percent") for percent in PERCENTS),
         ("belts_size_or_mass_changed", "Belts whose mass or largest body changed (the size law moved)"), ("belts_taxa_changed", "Belts whose taxon makeup changed"),
         ("comets", "Comets compared"), ("comets_changed", "Comets whose activity changed"))
 
