@@ -3836,9 +3836,9 @@ The effect ledger changes no result; the floor under which a source is summed an
 |---|---|---|---|---|---|---|---|---|---|
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value |
 
-### 6.256 Stand-ins of a companion star's secular forcing of a belt (GEN.1492 slice 0)
+### 6.256 Stand-ins of a companion star's secular forcing of a belt (GEN.1492 slices 0 and 1)
 
-The forced eccentricity a companion star gives a belt's members (`physics/belt_forcing.py`; built, read by nothing yet). Tiers and tweaks are the lane's reading (Lane 22), for the owner to confirm.
+The forced eccentricity a companion star gives a belt's members (`physics/belt_forcing.py`; read by `AsteroidBelt._force_by_companions`, GEN.1492 slice 1). Tiers and tweaks are the lane's reading (Lane 22), for the owner to confirm.
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
