@@ -503,9 +503,9 @@ This is a vocabulary of names the materials table resolves (a belt's or field's 
 # The share of the largest source, under which a source is not written as its own ledger row but added to its (body, effect)
 # summary row (every source is computed whatever this is; it limits storage only). A value under 1e-37 stores every source
 # (a FLOAT cannot hold less); Boss can change it here, and the stored galaxy keeps the floor it was made with in the summary.
-# Boss chose 0.1 (8:37 PM EST 11-08): the sources of light and UV that give a tenth or more of the largest are stored. The five gravity
+# Boss chose 0.1 percent (8:37 PM EST 11-08): the sources of light and UV that give a thousandth or more of the largest are stored. The five gravity
 # effects (`effect_ledger.ON_DEMAND_EFFECTS`) ignore it: they store only the largest source and a summary and compute the rest on demand.
-EFFECT_LEDGER_FLOOR = 0.1
+EFFECT_LEDGER_FLOOR = 1e-3
 
 # --- Space Sector Generation Parameters ---
 

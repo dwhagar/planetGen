@@ -5167,7 +5167,7 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
 -- effect_ledger (v236, GEN.1465): for every body of a system and every effect that acts on it (`physics/effect_ledger.py` `EFFECTS`: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing,
 -- 6 precession, 7 eccentricity perturbation), the share of each source's contribution in the largest source's (1.0 for the largest). `body_type` and `source_type` are the kind table's code
 -- (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars), `body_id` and `source_id` its row id. A source whose share is under
--- `tuning.EFFECT_LEDGER_FLOOR` (0.1; the gravity effects keep only the largest source) is not a row of its own: the (body, effect) has one summary row with `source_type` 0 and `source_id` 0, whose `share` is the sum of the shares under the floor, `n_below`
+-- `tuning.EFFECT_LEDGER_FLOOR` (1e-3; the gravity effects keep only the largest source) is not a row of its own: the (body, effect) has one summary row with `source_type` 0 and `source_id` 0, whose `share` is the sum of the shares under the floor, `n_below`
 -- how many they were and `largest_value` the largest source's contribution in the effect's unit. The ledger changes no result. It goes with its system (`ON DELETE CASCADE`); a body deleted on
 -- its own takes its rows through `db/edits.py`.
 CREATE TABLE IF NOT EXISTS effect_ledger (

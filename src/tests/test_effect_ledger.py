@@ -33,7 +33,7 @@ def test_every_source_is_computed_even_at_one_part_in_a_trillion_and_a_tiny_floo
     split = ledger.split_sources([("a", 1.0), ("b", 1e-12)], floor=1e-37)
     assert dict(split["stored"]) == {"a": 1.0, "b": pytest.approx(1e-12)} and split["n_below"] == 0
     default = ledger.split_sources([("a", 1.0), ("b", 1e-12)])
-    assert default["n_below"] == 1 and tuning.EFFECT_LEDGER_FLOOR == 0.1
+    assert default["n_below"] == 1 and tuning.EFFECT_LEDGER_FLOOR == 1e-3
 
 
 def test_light_keeps_the_sources_over_the_floor_and_gravity_effects_keep_only_the_largest_and_a_summary():
@@ -41,14 +41,14 @@ def test_light_keeps_the_sources_over_the_floor_and_gravity_effects_keep_only_th
     planet, a, b, c = object(), object(), object(), object()
     for effect in ("light", "tide"):
         book.add(effect, planet, a, 1.0)
-        book.add(effect, planet, b, 0.5)    # over the floor of 0.1
-        book.add(effect, planet, c, 0.01)    # under it
+        book.add(effect, planet, b, 0.5)    # over the floor of 1e-3
+        book.add(effect, planet, c, 0.0005)    # under it
     ids = {id(planet): ("planets", 1), id(a): ("stars", 1), id(b): ("stars", 2), id(c): ("stars", 3)}
     by_effect = {}
     for row in book.rows(1, ids):
         by_effect.setdefault(row["effect"], []).append((row["source_id"], row["share"]))
-    assert by_effect[1] == [(1, 1.0), (2, 0.5), (0, pytest.approx(0.01))]    # light: two stored, the third summed
-    assert by_effect[3] == [(1, 1.0), (0, pytest.approx(0.51))]    # tide: the largest and the rest summed
+    assert by_effect[1] == [(1, 1.0), (2, 0.5), (0, pytest.approx(0.0005))]    # light: two stored, the third summed
+    assert by_effect[3] == [(1, 1.0), (0, pytest.approx(0.5005))]    # tide: the largest and the rest summed
     assert {"tide", "heating", "secular", "precession", "eccentricity"} == ledger.ON_DEMAND_EFFECTS
     assert ledger.ON_DEMAND_EFFECTS <= set(ledger.EFFECT_CODES)
 

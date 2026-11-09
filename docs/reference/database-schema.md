@@ -2028,7 +2028,7 @@ row per sector address a backfill reached or a fill generated. See
 
 ### `effect_ledger`
 
-Added in v236 (GEN.1465). For every body of a system and every effect that acts on it, the share of each source's contribution in the largest source's (1.0 for the largest); it changes no result (`physics/effect_ledger.py`, `reports/gen1465-effect-ledger-design-2026-11-08.md`). The effects: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing, 6 precession, 7 eccentricity perturbation. Every source is computed; a source whose share is under `tuning.EFFECT_LEDGER_FLOOR` (0.1) is not a row of its own but is added to the (body, effect) summary row. The five gravity effects (tide, heating, secular, precession, eccentricity) store only their largest source and the summary row; the other sources are recomputed on demand from stored masses and orbits.
+Added in v236 (GEN.1465). For every body of a system and every effect that acts on it, the share of each source's contribution in the largest source's (1.0 for the largest); it changes no result (`physics/effect_ledger.py`, `reports/gen1465-effect-ledger-design-2026-11-08.md`). The effects: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing, 6 precession, 7 eccentricity perturbation. Every source is computed; a source whose share is under `tuning.EFFECT_LEDGER_FLOOR` (1e-3, 0.1 percent) is not a row of its own but is added to the (body, effect) summary row. The five gravity effects (tide, heating, secular, precession, eccentricity) store only their largest source and the summary row; the other sources are recomputed on demand from stored masses and orbits.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|

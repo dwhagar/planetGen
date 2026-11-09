@@ -10,7 +10,7 @@ changes no result: it records what the effect code computed so that "when a tiny
 (docs/design/generation/system-interactions.md, `reports/gravity-audit-2026-11-08.md` gap 2, `reports/gen1465-effect-ledger-design-2026-11-08.md`).
 
 **Every source is computed, whatever its size** (even 1e-12 of the largest). Only the writing is limited by a floor, `tuning.EFFECT_LEDGER_FLOOR`
-(0.1, Boss's choice): a source whose share is under it is not a row of its own; its share is added to the body's summary row (`source_type` 0, `source_id` 0), which also
+(1e-3, 0.1 percent, Boss's choice): a source whose share is under it is not a row of its own; its share is added to the body's summary row (`source_type` 0, `source_id` 0), which also
 holds how many sources fell under the floor and the largest source's contribution in the effect's own unit. So the sum of the tail is never lost. A floor
 under 1e-37 stores every source.
 
