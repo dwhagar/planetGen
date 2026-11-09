@@ -1,8 +1,0 @@
-**Headline:** An asteroid belt or a comet that lies near a companion star is now warmed by it, not only by the star it circles.
-
-### Changed
-- **Belts and comets take the light of every star of their system (GEN.1444).** A belt is lit by the radiation field (GEN.1441) averaged over its ring: `radiation_field.ring_light_ratio` is the mean total light over the mean host light across the ring (16 equal-width annuli weighted by area), and the host's luminosity times that ratio is what the belt's makeup is drawn at (the temperature of its bodies and the taxa of its members, `belt.lit_luminosity_w`, also read by the belt's page). A belt is on the icy or the rocky side of its star's snow line, and so under the icy or the rocky size law, by its distance over the square root of that ratio (`belt.size_law`, the rule the zone letter of a planet already uses; `radiation_field.lit_distance_au` now serves both). The snow line itself and the disk's solids the belt grew from stay the formation ones. A comet's chance of showing activity reads the light at its perihelion, so a comet that passes close to a companion is more likely to show a coma. A belt or a comet of a lone star gives the numbers of before to the last digit (tests, and the census `tests/audit/belt_light_census.py`: every seed is generated before and after). Belts and comets store no surface dose or temperature, so nothing of that kind changes; the registry rows RF6 to RF8 state the limits. Reused, not rebuilt: `light_ratio`, `starlight_w_m2`, the companions each star already carries (GEN.1441), `condensate_shares.disk_temperature_k` and the zone letter's lit distance. No migration.
-
-generation-affects: fill, population
-
-generation-output: changed
