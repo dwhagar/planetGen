@@ -295,7 +295,7 @@ hot path, which costs more than the timing itself. The plain <code>sector</code>
 <h2 id="perf88-the-sector-path-integrator-on-numba">PERF.88: the sector-path integrator on numba</h2>
 <p><code>physics/field_kernel.py</code> holds the integrator (mass selection, kick-drift-kick steps, exit bisection and the spline
 simplification) as one numba-compiled call, and <code>sector_path.integrate_path</code> calls it. Measured on this machine
-(<code>planetgen-env</code>, an idle box): 3,000 random bodies of one sector (edge 4 pc, 300 masses within 6 pc of its centre, speeds
+(<code>planetgen-env</code>, an idle box): 3,000 random bodies of one sector (edge 4 pc, 300 masses within 6 pc of its center, speeds
 of about 30 km/s) against the Python integrator it replaced, each with the body's own mass excluded:</p>
 <div class="table"><table>
 <thead>

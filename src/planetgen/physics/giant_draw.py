@@ -34,6 +34,7 @@ from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, compo
                                orbit_elements, rogue_surface)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -249,8 +250,9 @@ def settle(planet):
     core_earth = _table_core_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
     if core_earth is None:
         return False
-    flux_w_m2 = climate_draws.starlight_w_m2(
-        planet.star.luminosity, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity) * constants.AU_TO_KM)
+    light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
+    flux_w_m2 = climate_draws.starlight_w_m2(planet.star.luminosity, light_au * constants.AU_TO_KM) \
+        + radiation_field.companion_light_w_m2(planet.star, light_au)       # GEN.1441: the other stars' light too
     radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
     if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
         return False

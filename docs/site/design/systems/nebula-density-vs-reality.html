@@ -49,7 +49,7 @@ main{padding:16px 16px 60px}}
 <p>Status: partly built (2026-10-15). Built: the lowered field (GEN.152, #1239), the rate audit (TEST.136, #1239), the <code>nebula_field</code> table as recommended, classes M and N only (DB.24, #1317), and the redo of an existing galaxy's field (<code>plan --redo-nebula-field</code>, GEN.205, #1325). The row counts and sizes priced for the old plan (about 700,000 rows and 50 MB) describe what was avoided; the table holds about 163,000 rows. Open: the map-side items (MAP.172 to MAP.174, MAP.176 to MAP.178), scattered nebulae (GEN.202) and hosted H II regions (MAP.182). Evidence tags: [S] seen in the repo or in a cited source, [C] computed or measured in this research, [R] recalled and not re-checked (listed at the end).</p>
 <h2 id="summary">Summary</h2>
 <ul>
-<li><strong>The field is too dense in counts, about right in packaging, and the whole fix is a handful of constants.</strong> Against the Milky Way, class M (giant molecular clouds) is about 10 times too many (102,000 against 8,107 to 9,710 catalogued), class N (dark clouds) is in range by count (about half the Lynds catalogue's entries within 1 kpc) but its clouds are large, and classes P and Q (Bok globules, cores) are in the right range, and the sphere volume the field fills is 2% / 8% / 19% / 24% where the gas factor is 0.2 / 0.9 / 2.3 / 3.0, against 0.5% to 1% observed for the thin disc and 1% to 2% in arms [C, S]. (This corrects the first rate check, which said 3 / 13 / 35 / 46%: it gave the four classes equal weight, but the field draws them 1:3:2:1.)</li>
+<li><strong>The field is too dense in counts, about right in packaging, and the whole fix is a handful of constants.</strong> Against the Milky Way, class M (giant molecular clouds) is about 10 times too many (102,000 against 8,107 to 9,710 catalogued), class N (dark clouds) is in range by count (about half the Lynds catalogue's entries within 1 kpc) but its clouds are large, and classes P and Q (Bok globules, cores) are in the right range, and the sphere volume the field fills is 2% / 8% / 19% / 24% where the gas factor is 0.2 / 0.9 / 2.3 / 3.0, against 0.5% to 1% observed for the thin disk and 1% to 2% in arms [C, S]. (This corrects the first rate check, which said 3 / 13 / 35 / 46%: it gave the four classes equal weight, but the field draws them 1:3:2:1.)</li>
 <li><strong>Recommended generation rates, all in the GEN.152 &quot;about 1%&quot; default Boss approved:</strong> keep 9.5% of class M (9,700 galaxy-wide at the default scale), keep 50% of class N (153,000, a volume decision, see section 6), keep P and Q whole (192,000 and 99,000). The field then fills 0.2% / 1.1% / 2.8% / 3.6% of volume (bounding spheres) and holds 454,000 clouds instead of 700,000. Applying it as an acceptance test on the existing draw, so surviving clouds keep their cells and object IDs, costs one hash per cloud.</li>
 <li><strong>Storing the field costs far less if only classes M and N are in the table.</strong> P and Q make 291,000 of the 454,000 clouds, are 0.2 to 1.6 pc across (invisible beyond about 250 pc), and are cheap to derive from the seed when a sector or a near view needs them. <code>nebula_field</code> then holds about 163,000 rows (about 11 MB) instead of 700,000 (about 50 MB).</li>
 <li><strong>Lowering density does not shrink the map's tiles; the budget does.</strong> In a dense 4 kpc sample, regions at 16 px number 3,142 at 8 kpc in the current field and 2,917 after the cut, against a draw budget of 600 (MAP.176). Tile size is set by that budget and by the size law. The cut matters for the database, for how many sectors sit inside a cloud, and for how much sprite overlap the near views carry.</li>
@@ -134,7 +134,7 @@ main{padding:16px 16px 60px}}
 <th>0.2 (between arms)</th>
 <th>0.9 (midway)</th>
 <th>2.3 (arm crest)</th>
-<th>3.0 (cap: inner disc)</th>
+<th>3.0 (cap: inner disk)</th>
 </tr>
 </thead>
 <tbody>
@@ -182,13 +182,13 @@ main{padding:16px 16px 60px}}
 <td>[R1929], via [R2082]</td>
 </tr>
 <tr>
-<td>Cold medium volume filling, thin disc</td>
+<td>Cold medium volume filling, thin disk</td>
 <td>under 5% (a simulation cross-check, not a measurement)</td>
 <td>[R1028]</td>
 </tr>
 <tr>
 <td>Molecular volume filling</td>
-<td>about 0.5% inner Galaxy, about 1% thin disc; arms 1% to 2%</td>
+<td>about 0.5% inner Galaxy, about 1% thin disk; arms 1% to 2%</td>
 <td>the GEN.47 note [S/C] and <code>GMC_ARM_FILLING_FACTOR</code> = 0.015 in <code>tuning.py</code> [S]</td>
 </tr>
 <tr>
@@ -277,7 +277,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>Sphere volume filled, midway / crest</td>
 <td>8.0% / 19.2%</td>
-<td>0.5% to 1% disc, 1% to 2% arms</td>
+<td>0.5% to 1% disk, 1% to 2% arms</td>
 <td>about 8 to 10</td>
 <td>too full</td>
 </tr>
@@ -306,7 +306,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <p>The shape factor is why counts and volume do not agree in the real direction. At the catalogue count of M, a mean true cloud volume of 1.2e5 pc^3 x 0.12 = 1.45e4 pc^3 would fill only 0.13% at gas 0.9 [C], below the observed 0.5% to 1%. Real clouds are therefore either larger than ours at equal count or the observed filling is for a thinner layer. I cannot resolve that from the sources I have, so the recommendation anchors counts (well measured) and the sphere filling the project already targets (GEN.152's &quot;about 1%&quot;), and lists a radius increase as an option, not a default (section 4, option F).</p>
 <h2 id="4-the-options-measured">4. The options, measured</h2>
-<p>A 4 kpc box on the plane centred 6 kpc from the core holds 45,061 clouds (dense: it spans the solar circle and the inner arm; the mean gas factor is about 1.4). Poisson thinning by a per-class keep probability is exactly a Poisson draw at the lower rate, so each option thins that one sample [C, <code>density_options.py</code>].</p>
+<p>A 4 kpc box on the plane centered 6 kpc from the core holds 45,061 clouds (dense: it spans the solar circle and the inner arm; the mean gas factor is about 1.4). Poisson thinning by a per-class keep probability is exactly a Poisson draw at the lower rate, so each option thins that one sample [C, <code>density_options.py</code>].</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -445,7 +445,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>Galaxy view, 15 kpc and out</td>
 <td>Nebula cover shading; at most 600 regions</td>
-<td>no individual sprites; cover top bin (3% and up) only on arm crests and the inner disc, so under 10% of the lit disc</td>
+<td>no individual sprites; cover top bin (3% and up) only on arm crests and the inner disk, so under 10% of the lit disk</td>
 </tr>
 <tr>
 <td>Middle, 8 kpc to 1 kpc</td>
@@ -649,9 +649,9 @@ main{padding:16px 16px 60px}}
 </ul>
 <h2 id="limits-of-this-study">Limits of this study</h2>
 <ul>
-<li>Counts come from the in-memory field model and one 4 kpc sample box 6 kpc from the core (a dense case, mean gas factor about 1.4); outer arms and the inner disc differ. Galaxy-wide totals use the first study's 250 pc by 25 pc integral (700,133 clouds) and the class shares of one draw (14.6 / 43.8 / 27.5 / 14.1%).</li>
+<li>Counts come from the in-memory field model and one 4 kpc sample box 6 kpc from the core (a dense case, mean gas factor about 1.4); outer arms and the inner disk differ. Galaxy-wide totals use the first study's 250 pc by 25 pc integral (700,133 clouds) and the class shares of one draw (14.6 / 43.8 / 27.5 / 14.1%).</li>
 <li>Shape fill is the metaball shape's inside test over 6,000 points in the unit sphere for 500 generated clouds; it measures the shape, not whether real clouds are as hollow.</li>
-<li>The real filling of 0.5% to 1% (disc) and 1% to 2% (arms) is from the project's own GEN.47 note and <code>GMC_ARM_FILLING_FACTOR</code>, which I did not re-derive; the search did not return a primary number for molecular volume filling in the Milky Way disc.</li>
+<li>The real filling of 0.5% to 1% (disk) and 1% to 2% (arms) is from the project's own GEN.47 note and <code>GMC_ARM_FILLING_FACTOR</code>, which I did not re-derive; the search did not return a primary number for molecular volume filling in the Milky Way disk.</li>
 <li>The Lynds comparison (about 900 clouds within 1 kpc) uses a layer of 150 pc and a range of 1 kpc that I recalled, not read.</li>
 <li>The O-star count at default scale (270,000) scales the quarter-scale test galaxy's 4,217 by 64 [R]; the mass cut (14 solar masses, GEN.194) lowers it and the hosting ratio makes the nebula count follow.</li>
 <li>Row and byte sizes are estimates from column widths. The 2 KB figure for a stored nebula was not measured on a populated table.</li>

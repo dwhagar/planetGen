@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
@@ -54,7 +54,6 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
-from planetgen.util import generator_epoch
 from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
@@ -6673,9 +6672,14 @@ def galaxy_content_state(conn):
       depend on the shape, every node's `stars` on the scatter, so a new
       `base` means every page and count cached by the stamp is stale.
     - `tile_base`: the same without the release: the shape, the scatter's
-      seed, the naming key, `TILE_FORMAT` and the generator epoch. The
-      stored nodes follow this one, so a release that changes neither the
-      node format nor what the generator makes keeps every stored node
+      seed, the naming key, `TILE_FORMAT` and the epoch each scatter was
+      drawn under (OPS.133). The running generator epoch is not in it: a
+      node is read from stored rows (the plan row, whose own epoch is in
+      the shape, the scatter, each sector's figures), so a new epoch
+      changes no node until something is regenerated, and a regenerated
+      sector bumps its own `modified_at` and so its own nodes. The stored
+      nodes follow this one, so a release or an epoch that changes
+      neither the node format nor a stored row keeps every stored node
       (PERF.133).
     - `deletions`/`sector_max_id`: the deletion epoch (`store.
       note_sector_deleted`, PERF.38: it goes up with every sector deleted,
@@ -6715,7 +6719,7 @@ def galaxy_content_state(conn):
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "scatter_epochs": scatter_epochs(conn),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
@@ -6776,7 +6780,7 @@ def galaxy_changes(conn, since=None):
 
     Deletions leave no row behind, so a deleted sector can't be located;
     the deletion epoch moves, and the answer is `full` instead. So is a new
-    shape, node format or generator epoch (`tile_base`), an unreadable `since`, or more than
+    shape, node format or scatter epoch (`tile_base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors. A new release alone (`base`) makes `full` true for what is cached by
     `stamp` (pages, counts) but not `tile_full`, which is what the stored nodes follow (PERF.133).
 
@@ -6818,7 +6822,7 @@ def galaxy_changes(conn, since=None):
     if previous is None or previous["tile_base"] != state["tile_base"]:
         return everything()
     if previous["base"] != state["base"]:
-        # A release that changes neither the node format nor the generator epoch: whatever else is cached by
+        # A release that changes neither the node format nor a stored row: whatever else is cached by
         # `stamp` (pages, counts) is stale, the stored nodes are not (PERF.133). The nodes that changed are
         # still listed below.
         result["full"] = True

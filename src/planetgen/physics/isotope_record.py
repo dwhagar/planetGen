@@ -1,7 +1,7 @@
 # planetgen/physics/isotope_record.py
 
 """
-The isotope record of a body (GEN.1377 and GEN.1420, part 1)
+The isotope record of a body (GEN.1377, GEN.1420 and GEN.1421)
 ============================================================
 
 All real materials exist: a planet, moon or rogue planet carries, for every element it holds, the share of each of that element's isotopes (an atom fraction, the shares of one element add up to 1).
@@ -31,14 +31,26 @@ table's natural mix (origin `natural`) and are replaced where a physical value i
 * **Potassium, uranium** (`decay`): the isotopes that decay are those of the body's age, from the formation mix of `radiogenic` (today's natural mix decayed back to the Solar System's birth, a stand-in
   for every star) decayed over the star's age. 234U and the daughters (the lead, strontium and neodymium isotopes) stay at the natural mix.
 
-Left out, and where it goes: the short-lived isotopes (Fe-60, Mn-53, I-129, Pu-244) and the cosmogenic ones (tritium, C-14, Be-10, Al-26) are the second part (GEN.1377, GEN.1421); the xenon excess
+**The short-lived isotopes** (`extinct`, part 2): 26Al, 60Fe, 53Mn, 129I and 244Pu are tracers on the body. Each carries the ratio of the star's birth gas (`initial_ratio`: to 27Al, 56Fe, 55Mn, 127I and, for plutonium,
+238U) and `fraction`, the survivors per atom of that reference element at the star's age (nothing for a star of a hundred million years, since the longest mean life is 115 Myr). 26Al is the ratio `radiogenic` already
+draws; 60Fe is a sum of decayed additions about the gamma-ray mean of the galaxy (`birth_radioisotopes`, the way 26Al is); 53Mn, 129I and 244Pu take the same sampling about a tenth of the early Solar System's ratios
+([R2768: Table 2]). One stream per star and isotope, so the bodies of a star share them.
+
+**The cosmogenic isotopes** (`cosmogenic`, part 2): tritium and radiocarbon in a body with air. The production is the Earth's [R5203, R5204] times the share of the cascade the air column catches, the targets in a gram of
+the air (tritium from N and O, radiocarbon from N), and the field's shielding (a body with no dipole gets twice the Earth's, [R5204: Table 1]); the steady-state inventory is the production over the decay constant, spread
+over the pool the isotope mixes into (the air, and the surface ocean for hydrogen and, at the Earth's ratio, for carbon). The Earth's own air gives 1.6 and 0.345 atoms per cm2 per second, 14C/C of 1.3e-12 and 3H/H of 1e-20.
+A body with no air has none.
+
+Left out, and where it goes: 10Be and 26Al made in the air (no source in hand for a global rate; the pool for beryllium is the crust's); cosmic-ray production in an airless surface and an ocean-covered one; the xenon excess
 from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the natural mix); the isotope split of a body's reservoirs (a mantle against an ocean); belts, comets and stars.
 """
 
 import math
+from types import SimpleNamespace
 
 from planetgen import tuning
-from planetgen.physics import bulk_draw, elements, interior_heat, nebula_composition, radiogenic, surface_pressure
+from planetgen.galaxy import shape_draw
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -47,9 +59,11 @@ ATTRIBUTE = "isotopes"
 ROW_FIELDS = ("element", "isotope", "fraction", "initial_ratio", "origin")
 """tuple: The columns of an isotope row after the owner id: the element's symbol, the isotope's name (`H-2`), its atom fraction of the element, its atom ratio to the stable reference isotope at the body's formation (`None` where the isotope is not followed from formation), and where the value comes from."""
 
-NATURAL, PHYSICAL, DECAY, RADIOGENIC = "natural", "physical", "decay", "radiogenic"
-ORIGINS = (NATURAL, PHYSICAL, DECAY, RADIOGENIC)
-"""tuple: The `origin` of a row: the table's natural mix, a physical law of the star and the formation temperature, a radioactive isotope at the body's age, a daughter the body's own decays made."""
+NATURAL, PHYSICAL, DECAY, RADIOGENIC, EXTINCT, COSMOGENIC = "natural", "physical", "decay", "radiogenic", "extinct", "cosmogenic"
+ORIGINS = (NATURAL, PHYSICAL, DECAY, RADIOGENIC, EXTINCT, COSMOGENIC)
+"""tuple: The `origin` of a row: the table's natural mix, a physical law of the star and the formation temperature, a radioactive isotope at the body's age, a daughter the body's own decays made, a
+short-lived isotope the star's birth gas held (a tracer: its `fraction` is the survivors per atom of its reference isotope's element, `initial_ratio` the ratio at birth), an isotope the particles of space make in the air
+(a tracer: its `fraction` is the steady-state atoms per atom of its element in the pool they mix into)."""
 
 # --- the laws (stand-ins IS1 to IS8) -------------------------------------------------------------------------------------
 PRIMORDIAL_D_H = 2.527e-5
@@ -118,6 +132,48 @@ ARGON_40_SHARE_MAX = 0.9996
 ARGON_MOLAR_KG = 0.039948
 """float: The molar mass of argon, kg/mol (`elements` for the natural mix; written as the number the column of moles needs)."""
 
+EXTINCT_ISOTOPES = {"Al-26": ("Al", "Al-27", "Al26"), "Fe-60": ("Fe", "Fe-56", "Fe60"), "Mn-53": ("Mn", "Mn-55", "Mn53"), "I-129": ("I", "I-127", "I129"), "Pu-244": ("Pu", "U-238", "Pu244")}
+"""dict: The short-lived isotopes a body keeps a birth ratio of: `{isotope: (element, the stable isotope the ratio is taken to, key of birth_radioisotopes.MEAN_LIFE_YR)}`. 244Pu is taken to 238U, since plutonium has no stable isotope."""
+
+ESS_INITIAL_RATIO = {"Mn-53": 7.0e-6, "I-129": 1.28e-4, "Pu-244": 7.0e-3}
+"""dict: The ratios the early Solar System held at the formation of its first solids: 53Mn/55Mn (7 +- 1)e-6, 129I/127I (1.28 +- 0.03)e-4, 244Pu/238U (7 +- 1)e-3 ([R2768: Table 2], 2 sigma, statistical only).
+[Stand-in ISO10, tier T1, tweak L0.]"""
+
+EXTINCT_MEAN_OVER_ESS = 0.1
+"""float: The mean ratio of a short-lived isotope in the gas of a star's galaxy over the early Solar System's, for 53Mn, 129I and 244Pu, which no gamma-ray line measures. The interstellar 26Al/27Al is 3 to 25 times
+under the Solar System's ([R2768: Sec. 3.2]) and the birth-ratio sampling of `birth_radioisotopes` puts the Solar System's value in the upper tail of the draw for a mean a tenth of it; the same tenth is taken
+for the others, whose draw then spreads by the recurrence of the events that make them. [Stand-in ISO11, tier T6, tweak L1.]"""
+
+COMET_ICE_K = COLD_ICE_K
+"""float: The temperature a comet's ice formed at, K: comets form at the same distance in units of the star's snow line for every star, so at the temperature the cold calibration point has (comet 67P's, 30 K) whatever
+the star's luminosity. [Stand-in ISO17, tier T6, tweak L1.]"""
+
+COSMOGENIC_RATE_EARTH = {"H-3": 0.345, "C-14": 1.6}
+"""dict: The global mean production of each isotope in the Earth's atmosphere, atoms per cm2 per second, at a moderate solar activity (modulation potential 650 MV): tritium 0.345 ([R5204: Sec. 3, Table 1]; 0.32
+in [R5204] for [R5206]), radiocarbon 1.6 ([R5203: Table 1, quoted]; 2.36e26 atoms a year at 802 MV, about 1.5, [R5203: Sec. 3.2]; 1.6 to 2, [R5205: Sec. 2], quoting [R5207]).
+[Stand-in ISO12 (14C, tier T2, tweak L0) and ISO13 (3H, tier T1, tweak L0).]"""
+
+EARTH_COLUMN_G_CM2 = 1033.0
+"""float: The mass of the Earth's air over a square centimeter at sea level, g/cm2 ([R5203: Eq. 6]). [Stand-in ISO13, tier T1, tweak L0.]"""
+
+ATTENUATION_G_CM2 = 150.0
+"""float: The depth of air in which the nucleon cascade of a cosmic ray is mostly absorbed, g/cm2 (the Regener-Pfotzer maximum of tritium lies at about 40 g/cm2, [R5204: Sec. 3], and the cascade is spent
+within a few hundred); a column of mass X catches the share `1 - exp(-X / 150)` of the cascade, over the Earth's. [Stand-in ISO14, tier T5, tweak L0.]"""
+
+EARTH_TARGETS_PER_G = {"N": 3.22e22, "O": 8.67e21}
+"""dict: Atoms of the two spallation targets in a gram of the Earth's air ([R5204: Eq. 4], kappa_N and kappa_O). [Stand-in ISO13, tier T1, tweak L0.]"""
+
+EARTH_DIPOLE_A_M2 = 7.8e22
+"""float: The Earth's dipole moment, A m2 ([R5203: Sec. 3.2]). [Stand-in ISO13, tier T1, tweak L0.]"""
+
+NO_FIELD_FACTOR = 0.72 / 0.345
+"""float: How many times the Earth's global production a body with no field gets: the polar caps of the Earth (60 to 90 degrees), where no cutoff stops a particle, over the global mean, for tritium at 650 MV
+([R5204: Table 1], 0.72 and 0.345). [Stand-in ISO15, tier T1, tweak L0.]"""
+
+OCEAN_CARBON_OVER_AIR = 54.0
+"""float: The carbon of the air and the surface ocean together over that of the air alone, for a body with a surface ocean: the Earth's 41 000 Gt of exchangeable carbon (air, ocean, soil, biosphere) over its 760 Gt
+of air, taken for every ocean world. [Stand-in ISO16, tier T6, tweak L3.]"""
+
 RADIOACTIVE_PARENTS = {"K": ("K-39", "K-40", "K-41"), "U": ("U-238", "U-235")}
 """dict: The elements whose isotopes decay to the body's age, and the isotopes followed (`radiogenic.PARENTS`; 234U is left out)."""
 
@@ -133,6 +189,7 @@ CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_frac
 """dict: The light-element column of a core and the element it holds."""
 
 _EARTH_G = 9.80665
+AVOGADRO = 6.02214076e23
 _GY_S = radiogenic.GY_S
 
 
@@ -359,6 +416,155 @@ def stream_of(body, key):
     return draw.Stream(f"isotopes:{key}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
 
 
+def fe60_mean(body):
+    """The steady-state 60Fe/56Fe in the gas of the body's star's galaxy at its [Fe/H] (`birth_radioisotopes.mean_ratio`), the way `radiogenic.al26_mean` does for 26Al."""
+    shape = getattr(getattr(body, "system_config", None), "GALAXY_SHAPE", None)
+    shape = shape_draw.default_shape(None) if shape is None else shape
+    iron = stellar_abundances.PROTO_MASS_FRACTION["Fe"] * 10.0 ** _metallicity(getattr(body, "star", None))
+    return birth_radioisotopes.mean_ratio("Fe60", radiogenic._depletion_time_yr(shape), iron)
+
+
+def birth_ratio(body, isotope):
+    """
+    The ratio of a short-lived isotope to its stable reference in the gas the body's star was born from: 26Al/27Al is the one `radiogenic` already drew (`None` for a body with none, a giant), 60Fe/56Fe a sum of decayed
+    additions about the gamma-ray mean (`fe60_mean`), 53Mn, 129I and 244Pu the same about `ESS_INITIAL_RATIO` times `EXTINCT_MEAN_OVER_ESS`. One stream per star and isotope, so every body of a star shares it.
+    """
+    if isotope == "Al-26":
+        return getattr(body, "al26_ratio", None)
+    key = radiogenic._star_key(getattr(body, "star", None))
+    stream = stream_of(body, isotope) if key is None else draw.Stream(f"{isotope}-birth:{key}")
+    mean = fe60_mean(body) if isotope == "Fe-60" else ESS_INITIAL_RATIO[isotope] * EXTINCT_MEAN_OVER_ESS
+    return birth_radioisotopes.sample_ratio(EXTINCT_ISOTOPES[isotope][2], mean, stream)
+
+
+def extinct_rows(body, held, age_gy):
+    """The `EXTINCT` rows of a body: each short-lived isotope its element or a rock allows, with its birth ratio and what is left of it at the star's age (nothing in a few hundred million years)."""
+    rows = []
+    for isotope, (element, reference, key) in EXTINCT_ISOTOPES.items():
+        if (element in ("Al", "Fe") and element not in held) or "Si" not in held:
+            continue
+        initial = birth_ratio(body, isotope)
+        if initial is None:
+            continue
+        left = initial * math.exp(-age_gy * 1.0e9 / birth_radioisotopes.MEAN_LIFE_YR[key])
+        reference_fraction = _natural(reference.split("-")[0])[reference]
+        rows.append({"element": element, "isotope": isotope, "fraction": left * reference_fraction, "initial_ratio": initial, "origin": EXTINCT})
+    return rows
+
+
+def _air_atoms(body):
+    """`(atoms of each element in a gram of the air, the air's mean molar mass in g/mol, the air column in g/cm2)` from the gases the body holds, or `None` for a body with no air."""
+    partials = getattr(body, "gas_partials_pa", None)
+    pressure = getattr(body, "atmospheric_pressure", None)
+    gravity = getattr(body, "gravity", None)
+    if not partials or not pressure or not gravity or sum(partials.values()) <= 0.0:
+        return None
+    total = sum(partials.values())
+    mean_molar = 0.0
+    counts = {}
+    for gas, partial in partials.items():
+        try:
+            formula, molar = elements.parse_formula(gas), elements.molar_mass(gas) * 1000.0
+        except (KeyError, ValueError):
+            continue
+        mean_molar += partial / total * molar
+        for symbol, count in formula.items():
+            counts[symbol] = counts.get(symbol, 0.0) + partial / total * count
+    if mean_molar <= 0.0:
+        return None
+    column = float(pressure) / (float(gravity) * _EARTH_G) / 10.0
+    return {symbol: count / mean_molar * AVOGADRO for symbol, count in counts.items()}, mean_molar, column
+
+
+def _area_cm2(body):
+    return 4.0 * math.pi * (float(body.radius) * 1.0e5) ** 2
+
+
+def _ocean_water_kg(body):
+    """The water of the body's surface ocean, kg (its share of the surface times its depth), 0 when there is none."""
+    fraction, depth = getattr(body, "ocean_fraction", None), getattr(body, "ocean_depth_km", None)
+    if not fraction or not depth:
+        return 0.0
+    return float(fraction) * 4.0 * math.pi * (float(body.radius) * 1.0e3) ** 2 * float(depth) * 1.0e3 * 1000.0
+
+
+def cosmogenic_rate(body, isotope):
+    """
+    The production of `isotope` (`COSMOGENIC_RATE_EARTH`) in the body's air, atoms per cm2 per second: the Earth's rate times the share of the cascade the column catches (`ATTENUATION_G_CM2`), the
+    targets in a gram of the air over the Earth's (tritium from nitrogen and oxygen, radiocarbon from the nitrogen alone), and the field's shielding (`NO_FIELD_FACTOR` with no dipole, falling to 1 at the Earth's
+    moment and under it above). 0 for a body with no air. The galactic flux, the star's wind and the star's own flares are the Earth's.
+    """
+    air = _air_atoms(body)
+    if air is None:
+        return 0.0
+    atoms, _molar, column = air
+    caught = (1.0 - math.exp(-column / ATTENUATION_G_CM2)) / (1.0 - math.exp(-EARTH_COLUMN_G_CM2 / ATTENUATION_G_CM2))
+    if isotope == "H-3":
+        target = (atoms.get("N", 0.0) + atoms.get("O", 0.0)) / (EARTH_TARGETS_PER_G["N"] + EARTH_TARGETS_PER_G["O"])
+    else:
+        target = atoms.get("N", 0.0) / EARTH_TARGETS_PER_G["N"]
+    moment = float(getattr(body, "magnetic_moment_a_m2", None) or 0.0) / EARTH_DIPOLE_A_M2
+    field = NO_FIELD_FACTOR / (1.0 + (NO_FIELD_FACTOR - 1.0) * moment)
+    return COSMOGENIC_RATE_EARTH[isotope] * caught * target * field
+
+
+def _pool_atoms(body, element):
+    """The atoms of `element` in the pool the isotopes of the air mix into: the air's, and for carbon the surface ocean's (`OCEAN_CARBON_OVER_AIR`), for hydrogen the surface ocean's water."""
+    atoms, _molar, column = _air_atoms(body)
+    air = atoms.get(element, 0.0) * column * _area_cm2(body)                       # atoms per gram of air times grams of air
+    ocean_kg = _ocean_water_kg(body)
+    if element == "H":
+        return air + ocean_kg * 1000.0 / 18.015 * 2.0 * AVOGADRO
+    return air * OCEAN_CARBON_OVER_AIR if ocean_kg > 0.0 else air
+
+
+def cosmogenic_rows(body):
+    """The `COSMOGENIC` rows of a body with air: tritium and radiocarbon at their steady state, the production over the decay constant per cm2 times the body's area, over the atoms of the element in the pool (`_pool_atoms`)."""
+    rows = []
+    if _air_atoms(body) is None:
+        return rows
+    for isotope, element in (("H-3", "H"), ("C-14", "C")):
+        rate = cosmogenic_rate(body, isotope)
+        pool = _pool_atoms(body, element)
+        if rate <= 0.0 or pool <= 0.0:
+            continue
+        made = rate * _area_cm2(body) / elements.isotope(isotope).decay_constant
+        rows.append({"element": element, "isotope": isotope, "fraction": made / (pool + made), "initial_ratio": None, "origin": COSMOGENIC})
+    return rows
+
+
+ICE_SHEET_ROWS = (("isotope_ice_d_h", "Deuterium over hydrogen of the ices"), ("isotope_ice_n15", "Nitrogen-15 over nitrogen-14 of the ices"))
+"""tuple: The two derived lines a belt's or a comet's property sheet shows for its ices, `(key, label)`."""
+
+
+def ice_ratios(star, temperature_k, stream):
+    """`(D/H, 15N/14N)` of ices formed at `temperature_k` around `star` (`metallicity_fe_h`, `age`): the star's gas ratios raised by the ice laws, with one log-normal scatter on D/H."""
+    scatter = math.exp(D_H_SCATTER_LN * stream.gauss())
+    d_h = gas_d_h(star) * ice_factor(temperature_k, D_H_ENRICHMENT_REFERENCE, D_H_T0_K) * scatter
+    n15 = gas_n15_over_n14(star) * ice_factor(temperature_k, NITROGEN_ENRICHMENT_REFERENCE, N_T0_K)
+    return d_h, n15
+
+
+def ice_sheet_rows(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed):
+    """
+    The derived sheet lines for the ices of a belt or a comet, worked out from stored values, `[(key, label, text, ratio)]`; empty for a body with no ice or no star. A belt's ice formed at its
+    distance (`condensate_shares.ICE_CONDENSATION_K` water at the snow line, falling as the square root of the distance, held inside the ice law's range; the snow line when the belt stores none), a comet's at
+    `COMET_ICE_K`. The scatter is drawn on a stream named by `seed`, so one body always shows the same line.
+    """
+    if not ice_mass_fraction or ice_mass_fraction <= 0.0 or metallicity_fe_h is None or age_gy is None:
+        return []
+    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=float(age_gy))
+    if kind == "comet":
+        temperature = COMET_ICE_K
+    elif snow_line_au and distance_km and distance_km > 0.0:
+        temperature = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(float(snow_line_au) * constants.AU_TO_KM / float(distance_km))
+        temperature = min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
+    else:
+        temperature = ICE_REFERENCE_K
+    d_h, n15 = ice_ratios(star, temperature, draw.Stream(f"isotopes:ice:{kind}:{seed}"))
+    return [(ICE_SHEET_ROWS[0][0], ICE_SHEET_ROWS[0][1], f"D/H {d_h:.4g}", d_h), (ICE_SHEET_ROWS[1][0], ICE_SHEET_ROWS[1][1], f"15N/14N {n15:.4g}", n15)]
+
+
 def record_of(body):
     """The rows of `body`'s record (`ROW_FIELDS` dicts, by atomic number then mass number), or `None` for a body with no stored composition."""
     held = elements_held(body)
@@ -385,12 +591,13 @@ def record_of(body):
             mix, initial = _decayed(symbol, age)
         for name in sorted(mix, key=lambda isotope_name: elements.isotope(isotope_name).a):
             rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "initial_ratio": initial.get(name), "origin": origin})
-    return rows
+    return rows + extinct_rows(body, held, age) + cosmogenic_rows(body)
 
 
 SHEET_RATIOS = (("D/H", "H-2", "H-1", "Deuterium over hydrogen"), ("13C/12C", "C-13", "C-12", "Carbon-13 over carbon-12"), ("15N/14N", "N-15", "N-14", "Nitrogen-15 over nitrogen-14"),
                 ("40Ar/36Ar", "Ar-40", "Ar-36", "Argon-40 over argon-36"), ("235U/238U", "U-235", "U-238", "Uranium-235 over uranium-238"),
-                ("40K/39K", "K-40", "K-39", "Potassium-40 over potassium-39"))
+                ("40K/39K", "K-40", "K-39", "Potassium-40 over potassium-39"), ("3H/1H", "H-3", "H-1", "Tritium over hydrogen (of the air and ocean)"),
+                ("14C/12C", "C-14", "C-12", "Carbon-14 over carbon-12 (of the air and ocean)"))
 """tuple: The ratios a property sheet lists, `(short name, top isotope, bottom isotope, label)`: the ones the record moves away from the natural mix."""
 
 

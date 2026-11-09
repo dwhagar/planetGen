@@ -57,7 +57,7 @@ main{padding:16px 16px 60px}}
 <li>To the atmosphere lane (interface only, nothing designed here): a star's photospheric composition is the stored X, Y, Z plus the [X/Fe] vector; spectral-class chemistry of stellar atmospheres belongs to that lane.</li>
 <li>To the compact-remnant design notes: remnant composition class (WD core type, NS crust sequence), radius laws, mass distributions.</li>
 </ul>
-<p><strong>Current code (checked in <code>/home/user/planetGen/src/planetgen</code>).</strong> Only [Fe/H] is stored per star (<code>generation/star.py</code> <code>metallicity_fe_h</code>, drawn by <code>physics/metallicity.py:sample_fe_h</code>). Mean is population offset + disc gradient, normal scatter, clamp to <code>METALLICITY_RANGE_FE_H = (-3.5, 0.6)</code> (<code>tuning.py</code> lines 661-700): young (0.00, sigma 0.10), intermediate (0.00, 0.15), old (-0.20, 0.25), bulge (-0.05, 0.40, no gradient), nuclear cluster (+0.20, 0.40), nuclear disc (+0.20, 0.30), halo (-1.6 inside 25 kpc, -2.2 outside, sigma 0.5); gradient 0.06 dex/kpc zero at the Sun's distance, marked &quot;recalled, to verify&quot; in the source. [Fe/H] is used only for planet occurrence (<code>solids_factor</code> = 10^[Fe/H], giant factor 10^(2[Fe/H])) and disk surface density (<code>formation.py</code>). There is no X, Y, Z, no alpha enhancement, no element ratios, no age-metallicity link. White dwarfs already use the [R2230] IFMR (<code>tuning.py</code> 600-610, verified below); NS mass 1.1-2.2 Msun and radius 10-13 km, BH 5-20 Msun spin 0-0.998 are plain ranges (<code>tuning.py</code> 2023-2091).</p>
+<p><strong>Current code (checked in <code>/home/user/planetGen/src/planetgen</code>).</strong> Only [Fe/H] is stored per star (<code>generation/star.py</code> <code>metallicity_fe_h</code>, drawn by <code>physics/metallicity.py:sample_fe_h</code>). Mean is population offset + disk gradient, normal scatter, clamp to <code>METALLICITY_RANGE_FE_H = (-3.5, 0.6)</code> (<code>tuning.py</code> lines 661-700): young (0.00, sigma 0.10), intermediate (0.00, 0.15), old (-0.20, 0.25), bulge (-0.05, 0.40, no gradient), nuclear cluster (+0.20, 0.40), nuclear disk (+0.20, 0.30), halo (-1.6 inside 25 kpc, -2.2 outside, sigma 0.5); gradient 0.06 dex/kpc zero at the Sun's distance, marked &quot;recalled, to verify&quot; in the source. [Fe/H] is used only for planet occurrence (<code>solids_factor</code> = 10^[Fe/H], giant factor 10^(2[Fe/H])) and disk surface density (<code>formation.py</code>). There is no X, Y, Z, no alpha enhancement, no element ratios, no age-metallicity link. White dwarfs already use the [R2230] IFMR (<code>tuning.py</code> 600-610, verified below); NS mass 1.1-2.2 Msun and radius 10-13 km, BH 5-20 Msun spin 0-0.998 are plain ranges (<code>tuning.py</code> 2023-2091).</p>
 <h2 id="2-findings">2 Findings</h2>
 <p>Counting rule for section 7: one label per table row; a row that carries two labels (inputs READ, derived quantity COMPUTED) is counted once under each.</p>
 <h3 id="21-solar-abundance-sets-and-what-each-is-good-for">2.1 Solar abundance sets and what each is good for</h3>
@@ -748,7 +748,7 @@ main{padding:16px 16px 60px}}
 <td>READ</td>
 </tr>
 <tr>
-<td>Midplane radial gradient, linear fit of the bin means to bin centres 6-14 kpc</td>
+<td>Midplane radial gradient, linear fit of the bin means to bin centers 6-14 kpc</td>
 <td>-0.053</td>
 <td>dex/kpc</td>
 <td>H15 Table 1 means</td>
@@ -1216,7 +1216,7 @@ main{padding:16px 16px 60px}}
 <td>RECALLED</td>
 </tr>
 <tr>
-<td>[Eu/Fe] shape in the disc</td>
+<td>[Eu/Fe] shape in the disk</td>
 <td>Nd, Sm and Eu follow alpha-like trends</td>
 <td></td>
 <td>BB16 abstract</td>
@@ -1532,7 +1532,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Polluted WD geochemistry, 16 WDs with Al, Ca, Si, Mg, Fe, O all detected</td>
-<td>most oxidising; about 25% consistent with more reduced parent bodies</td>
+<td>most oxidizing; about 25% consistent with more reduced parent bodies</td>
 <td></td>
 <td>[R1152] as reported in Xu et al. 2024 sect. 4</td>
 <td>2ND-HAND</td>
@@ -1916,7 +1916,7 @@ main{padding:16px 16px 60px}}
 </ol>
 <h3 id="36-what-would-change-in-the-code">3.6 What would change in the code</h3>
 <ul>
-<li><code>physics/metallicity.py</code>: add a <code>sample_abundance_ratios</code> function taking [Fe/H], population, age and the RNG; keep <code>sample_fe_h</code> unchanged. The disc gradient 0.06 dex/kpc is 0.01 above the 0.053 dex/kpc COMPUTED from H15 (R &gt; 6 kpc); update the &quot;recalled&quot; comment with the source and change the constant to 0.053 once the decision is made.</li>
+<li><code>physics/metallicity.py</code>: add a <code>sample_abundance_ratios</code> function taking [Fe/H], population, age and the RNG; keep <code>sample_fe_h</code> unchanged. The disk gradient 0.06 dex/kpc is 0.01 above the 0.053 dex/kpc COMPUTED from H15 (R &gt; 6 kpc); update the &quot;recalled&quot; comment with the source and change the constant to 0.053 once the decision is made.</li>
 <li><code>tuning.py</code>: new tables holding the hinge parameters, sds and Cholesky matrix; solar-set constants (A21 log eps, atomic weights, Y_P, g); remnant tables.</li>
 <li><code>generation/star.py</code>: new fields (3.3); the <code>solids_factor</code> rule <code>10^[Fe/H]</code> can stay as the disk-solids law but should be re-based on <code>Z/Z0</code> once Z is available (see 2.5: the two differ by up to a factor 3 at low [Fe/H]).</li>
 <li>Database: one migration adding five floats and one enum to stars and bright_stars.</li>

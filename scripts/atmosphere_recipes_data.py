@@ -217,10 +217,10 @@ MACHINE = {
 
     # ---- e. sub-Neptune and super-Earth envelope ----
     "e1": dict(state="partly verified", limit="f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of [R2512] over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)", tunable=True, kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
-               weight="(1 - p('b4'))*f_lost", lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
+               weight="(1 - p('b4'))*f_lost", lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k, host_distance_au, xuv_companions)"}),
     "e2": dict(kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*(1 - f_lost)",
-               lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
+               lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k, host_distance_au, xuv_companions)"}),
     "e3": dict(state="partly verified", limit="the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*(1 - eta)"),
     "e4": dict(state="partly verified", limit="the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],

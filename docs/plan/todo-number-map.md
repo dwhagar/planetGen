@@ -16,8 +16,8 @@ release is stamped.
 | UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1481 |
-| PERF | PERF.258 |
+| GEN | GEN.1494 |
+| PERF | PERF.259 |
 | DB | DB.122 |
 | API | API.48 |
 | ADM | ADM.154 |
@@ -2144,7 +2144,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured | none | done, PR #5620 |
 | GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr | none | done, PR #5740 |
 | GEN.1348 | Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans | none | done, PR #5565 |
-| GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals | none | open |
+| GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals | none | done, PR #5786 |
 | GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) | none | done, PR #5620 |
 | GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) | none | done, PR #5620 |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values | none | done, PR #5688 |
@@ -2172,7 +2172,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1374 | Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition | GEN.1360 | done, PR #5697 |
 | GEN.1375 | Hot-atmosphere condensates and trace gases: Zn, Cr, Mn, Rb and Cs host-scaled, and GeH4, AsH3, H2Se, MgH, CaH, NaH, LiCl, LiF, AlCl, PN and HCP | GEN.1360 | done, PR #5688 |
 | GEN.1376 | Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles | GEN.1359 | done, PR #5697 |
-| GEN.1377 | Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244 | GEN.1363 | open |
+| GEN.1377 | Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244 | GEN.1363 | done, PR #5786 |
 | GEN.1378 | Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen | GEN.1366, GEN.1367 | done, PR #5697 |
 | GEN.1379 | Design: ore-forming processes for rocky planet and moon crusts (magmatic, hydrothermal, sedimentary, weathering, pegmatite, carbonatite, kimberlite, unconformity uranium) and the deposit-level fields 8.1 stores for the 8.2 resource scan | none | done, PR #5603 |
 | GEN.1380 | Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body | GEN.1379, GEN.1362, GEN.1355 | done, PR #5697 |
@@ -2204,19 +2204,19 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1417 | Fictional materials part 14: aliases for Pergium, Topaline and Kelbonite over existing rows | GEN.1412 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
 | GEN.1418 | Fictional materials part 16: Neutronium as neutron-star interior matter (only if a neutron-star interior description exists) | GEN.1408 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
 | GEN.1419 | Fictional materials part 18: add fictional materials to an existing galaxy  | GEN.1413 | withdrawn: not built (Boss, 10:41 AM EST on 2026-11-08, answered the fiction questions) |
-| GEN.1420 | Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top | GEN.1363 | open |
-| GEN.1421 | Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water | GEN.1420 | open |
+| GEN.1420 | Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top | GEN.1363 | done, PR #5786 |
+| GEN.1421 | Tritium and the cosmogenic trace isotopes exist: a steady-state inventory from production and decay for tritium, carbon-14, beryllium-10 and aluminium-26 on bodies and in air and water | GEN.1420 | done, PR #5786 |
 | GEN.1422 | Superionic water and ammonia boundary table: the deep-layer boundary of ice giants and water worlds from the observed superionic phases, replacing the weird-worlds G4 text line | none | done, PR #5740 |
 | GEN.1423 | Silicon carbide (moissanite) and cohenite (Fe3C) mineral rows for carbon-rich worlds | none | done, PR #5769 |
 | GEN.1424 | The H2SO4-H2O vapour-pressure curve and the sulfuric acid cloud condensation window (the missing prerequisite of the Venus chemistry set) | none | done, PR #5728 |
 | GEN.1425 | Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it | GEN.1424 | open |
-| GEN.1426 | Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets | none | open |
+| GEN.1426 | Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets | none | done, PR #5788 |
 | GEN.1427 | Neutron-star nuclear pasta: the inner crust layer between the outer crust and the core, in the neutron star interior and radius model | none | done, PR #5723 |
 | GEN.1428 | GEN.725 evidence-status column: every stand-in row says whether the thing is observed in a planet, observed in a lab, predicted only, or disputed | none | done, PR #5739 |
 | GEN.1429 | GEN.725 WATCH lines for the predicted-only and disputed materials of the unseen compounds report | GEN.1428 | done, PR #5741 |
 | GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) | none | open |
-| GEN.1441 | The radiation field of a system: the time-averaged light, UV, X-ray, flare and particle dose that every radiating object puts on any body, from 3D positions, and its use for the mean starlight of planets and moons | none | open |
-| GEN.1442 | Every radiating object's UV, X-ray, flare and particle dose joins the dose and ozone calculation of planets and moons | GEN.1441 | open |
+| GEN.1441 | The radiation field of a system: the time-averaged light, UV, X-ray, flare and particle dose that every radiating object puts on any body, from 3D positions, and its use for the mean starlight of planets and moons | none | done, PR #5786 |
+| GEN.1442 | Every radiating object's UV, X-ray, flare and particle dose joins the dose and ozone calculation of planets and moons | GEN.1441 | done, PR #5786 |
 | GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | open |
 | GEN.1444 | Belts, asteroids and comets get the same radiation field: temperature, ice survival and surface dose from all sources | GEN.1441 | open |
 | GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | open |
@@ -2226,7 +2226,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | open |
 | GEN.1450 | Planet chains under every body: mutual Hill spacing, resonance and Laplace-Lagrange secular exchange across all planets, with companion stars in the spacing | none | open |
 | GEN.1451 | Belts and disks under every body: companion truncation, resonance sweep and scattering by sibling planets in belt and disk edges | none | open |
-| GEN.1452 | Stellar wind, magnetopause and radiation belts from every star and from the planets for their moons | none | open |
+| GEN.1452 | Stellar wind, magnetopause and radiation belts from every star and from the planets for their moons | none | done, PR #5786 |
 | GEN.1453 | Impact and comet flux from the whole system: giants shield or scatter, companions stir the cloud, belts feed the inner bodies | none | open |
 | GEN.1454 | Spin and obliquity under every body: the torques of sibling planets, a companion star and the moons on a planet's spin axis over time | none | open |
 | GEN.1455 | Trojan and Lagrange stability under every giant and companion star | none | open |
@@ -2244,9 +2244,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives | none | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1470 | Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug) | none | open |
 | GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre (divide by the drawn f7 median) and add one stand-in, the share m of bulk heavy elements the envelope carries (m = 0.1 first) | GEN.1363, GEN.1406 | open |
-| GEN.1472 | Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age | GEN.1471, GEN.1396 | open |
+| GEN.1472 | Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age | GEN.1471, GEN.1396 | done, PR #5807 |
 | GEN.1473 | Build the drift and evaporation model of water in the disc and let the giant's envelope carbon-to-oxygen ratio follow it, so the over-0.8 tail of the giants falls toward the retrieved 4 to 9 percent | GEN.1472 | open |
-| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | open |
+| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) | none | open |
 | GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild | none | open |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
@@ -2272,7 +2272,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.691 | The ozone-loss radiation test fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | GEN.1386 | np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug) | none | done, PR #5688 |
-| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | open |
+| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | done, PR #5822 |
 | MAP.406 | The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug) | none | done, PR #5688 |
 | TEST.693 | One failing browser test leaves an asyncio loop and about 1,500 browser tests skip silently while the phase prints a pass; Playwright is pinned to 1.56.0 but the image has chromium 1243 (bug) | none | done, PR #5688 |
 | OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) | none | done, PR #5688 |
@@ -3651,6 +3651,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.7.2 | GEN.22 |
 | GEN.1439 | A plan stores no container for each globular cluster | none | done, PR #5775 |
 | GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | open |
+| GEN.1481 | Sky backfill and ring walks: cut the cell visits (8.3e9 at a 7.5 sky) by pruning mass rings by block or a recursive Poisson split (audit C11) | none | done, step 1 read found no Poisson split needed; step 2 filed as GEN.1485 and GEN.1486 (Lane 13, 2026-11-09) |
+| GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | done, closed as a finding (Lane 14 retime, 2026-11-09) |
+| GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | open |
+| GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | open |
+| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | open |
+| GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | open |
+| GEN.1487 | Isotope record for comets, interstellar comets and belt members, from the ice fractionation law already built | none | open |
+| GEN.1488 | Isotope record for star surfaces | none | open |
+| GEN.1489 | Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air | none | open |
+| GEN.1490 | Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244 | none | open |
+| GEN.1491 | Comet activity distance scales with the host's luminosity, not a fixed Sun-based constant | GEN.1444 | open |
+| GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system | GEN.1451, GEN.1450 | open |
+| GEN.1493 | The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed | GEN.1440, GEN.1453 | open |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | open |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
@@ -3697,7 +3710,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.1.8 | PERF.10 |
 | PERF.1.9 | PERF.11 |
 | PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
-| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | open |
+| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | done, PR #5824 |
+| PERF.258 | check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output | none | done, PR #5828 |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | open |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |

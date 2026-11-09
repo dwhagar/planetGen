@@ -59,13 +59,13 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <li>One <code>BIGINT UNSIGNED</code> column <strong><code>cell_key</code></strong> on every table that holds a position: a Morton key of 21 bits per axis at 0.25 pc, covering plus or minus 262,144 pc (exactly the 262 kpc reach of GEN.233), computed by MySQL itself as a <code>STORED</code> generated column from the position columns of GEN.223, so it can never disagree with them [M: equal to the Python key on all 1,000,000 test rows].</li>
 <li>One <strong>covering index</strong> <code>(cell_key, x, y, z)</code> on those tables. It answers the whole query without opening a table row [M: 2 to 4 times faster than a plain key index at 50 pc].</li>
 <li>Queries carry <strong>at most 256 key runs</strong>, joined as a <code>VALUES</code> table with a forced join order (<code>STRAIGHT_JOIN</code> and <code>FORCE INDEX</code>), then the exact distance test in the same statement. That shape is 1.5 to 4 times faster than a long <code>OR</code> list [M], and without the forced order MySQL once chose a full scan that took 4.2 seconds instead of 70 ms [M].</li>
-<li>Measured at 50 pc, about 56,000 systems at the Sun's density: <strong>42 ms at 10 million rows</strong>. The box over indexed x, y, z took 705 ms, the production path (box over sector centres, then join) took 426 ms, and walking the sectors took 201 ms. At 10 pc: 3 ms against 139, 40 and 5. At 1 pc: 1.8 ms against 18, 16 and 0.8 [M].</li>
+<li>Measured at 50 pc, about 56,000 systems at the Sun's density: <strong>42 ms at 10 million rows</strong>. The box over indexed x, y, z took 705 ms, the production path (box over sector centers, then join) took 426 ms, and walking the sectors took 201 ms. At 10 pc: 3 ms against 139, 40 and 5. At 1 pc: 1.8 ms against 18, 16 and 0.8 [M].</li>
 <li><strong>A key does not make a dense region cheap.</strong> Cost follows the number of systems inside the sphere, about 2 million candidate rows per second [M]. A 50 pc sphere at the core's 15 systems per cubic parsec holds 7.9 million systems [C], so dense areas need a count that stops early, a radius ladder for &quot;nearest first&quot;, and a cap (section 6.5).</li>
 <li>The key matters when a <strong>large dense region</strong> is generated, and does little for the sparse halo and intergalactic scatter, where a plain box on indexed x, y, z is already as fast [M: section 4.5]. It costs almost nothing to keep: a move of 0.01 mpc, the update system's threshold, changes the cell in 1.2 in 10,000 updates [M], and the nightly update only touches objects that are due.</li>
 </ul>
 <p>Eight working titles for TODO items are in section 9.</p>
 <h2 id="1-what-the-code-does-today">1. What the code does today</h2>
-<p>[S] <code>db/near.py</code> (<code>objects_within</code>, NAV.43) asks <code>sectors</code> for every sector whose centre lies in the box <code>centre ± (r + 1.5 edges)</code> (index <code>idx_sectors_center</code>), joins <code>star_systems</code> on <code>sector_id</code>, turns each system's sector-local position into the galaxy frame in Python (<code>local_to_galaxy_pc</code>) and measures the exact distance there. Phenomena and standalone facilities use their own <code>center_x_pc, center_y_pc, center_z_pc</code> columns with a box (<code>idx_*_center</code> composite indexes, e.g. <code>idx_black_holes_center</code>). Planets, moons, belts and comets are placed at their system's position and found through <code>star_system_id</code>.</p>
+<p>[S] <code>db/near.py</code> (<code>objects_within</code>, NAV.43) asks <code>sectors</code> for every sector whose center lies in the box <code>center ± (r + 1.5 edges)</code> (index <code>idx_sectors_center</code>), joins <code>star_systems</code> on <code>sector_id</code>, turns each system's sector-local position into the galaxy frame in Python (<code>local_to_galaxy_pc</code>) and measures the exact distance there. Phenomena and standalone facilities use their own <code>center_x_pc, center_y_pc, center_z_pc</code> columns with a box (<code>idx_*_center</code> composite indexes, e.g. <code>idx_black_holes_center</code>). Planets, moons, belts and comets are placed at their system's position and found through <code>star_system_id</code>.</p>
 <p>Two properties of that design set the limits:</p>
 <ul>
 <li><strong>A composite index on (x, y, z) is a slab scan.</strong> MySQL can use only the first column of the index as a range, so the box on <code>sectors</code> reads every sector row with the right x, however far away in y and z. In a generated region of radius R the slab holds about the fraction <code>r / R</code> of all rows. Measured on the 10 million row Sun dataset (R = 274 pc), a 50 pc box reads 2.1 million rows to return 56,000 (38 times too many), and a 5 pc box reads 215,000 to return 64 [M]. The slab grows with the generated area, so the cost of today's path grows as the galaxy fills.</li>
@@ -106,7 +106,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <tr>
 <td>e</td>
 <td>Walking the sectors</td>
-<td>Today: box over sector centres plus join (<code>sector_current</code>). Also: an <code>IN</code> list of every sector address the sphere touches (<code>sector_in</code>), and merged runs of the sector address as a key (<code>sector_ranges</code>).</td>
+<td>Today: box over sector centers plus join (<code>sector_current</code>). Also: an <code>IN</code> list of every sector address the sphere touches (<code>sector_in</code>), and merged runs of the sector address as a key (<code>sector_ranges</code>).</td>
 </tr>
 </tbody>
 </table></div>
@@ -140,7 +140,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <tr>
 <td>C1M</td>
 <td style="text-align:right">1,000,000</td>
-<td>a generated ball around the galactic centre</td>
+<td>a generated ball around the galactic center</td>
 <td>radius 25 pc</td>
 <td style="text-align:right">15.2</td>
 </tr>
@@ -163,7 +163,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <p>A generated galaxy grows as blobs around where Boss generates, so the S and C sets are the realistic shape; G1M is the shape of the halo and intergalactic scatter. A ball of 10 million systems at the Sun's density is a small generated area (a 274 pc radius is under 2% of the disk's 15,000 pc radius); the core set has the density of the densest cells.</p>
 <p><strong>Table</strong> [M]. Each row has <code>id</code> (assigned in sector order, as the fill order does), <code>x, y, z</code> (<code>DOUBLE</code>, parsecs), a 96-byte pad (a real <code>star_systems</code> row is far wider; section 10), the keys of every design, and the indexes of every design at once, so each query picks its index with <code>FORCE INDEX</code> against identical data. 238 bytes per row; a plain key index is 24 bytes per row and a covering index (key, x, y, z) is 50 [M, 10 million rows: 238 MB and 503 MB].</p>
 <p><strong>Machine and server</strong> [M]. 4 vCPU, 15 GB, Ubuntu 24.04, MySQL 8.0.46 (the Ubuntu package, the same MySQL 8.0 as <code>environment/setup-planetgen-env.sh</code>, not MariaDB), InnoDB buffer pool 7 GB, no binary log, performance schema off, client on a Unix socket on the same machine, one connection. Warm cache. The two 10-million-row tables are about 7 GB each with all test indexes, so their runs are at the edge of the buffer pool and include some page reads.</p>
-<p><strong>Queries</strong> [M]. Centres are drawn from the dataset's own objects (&quot;what is near this system&quot;): 24 centres at 1M, 16 at S10M, 6 at C10M. Six radii (1, 2, 5, 10, 25, 50 pc), the tables below show five. Each design/radius cell runs every centre once after a warm-up, stopping after 8 seconds (4 seconds for C10M) with at least 3 to 4 queries. The reported time is the median of <strong>planning in Python plus the statement</strong> (<code>SELECT COUNT(*)</code> with the exact distance test in SQL), so a design that needs a long plan pays for it. <strong>Every one of the thousands of counts was compared with a brute-force count in numpy and they all agree</strong> (column <code>wrong</code> in the logs is 0 throughout).</p>
+<p><strong>Queries</strong> [M]. Centers are drawn from the dataset's own objects (&quot;what is near this system&quot;): 24 centers at 1M, 16 at S10M, 6 at C10M. Six radii (1, 2, 5, 10, 25, 50 pc), the tables below show five. Each design/radius cell runs every center once after a warm-up, stopping after 8 seconds (4 seconds for C10M) with at least 3 to 4 queries. The reported time is the median of <strong>planning in Python plus the statement</strong> (<code>SELECT COUNT(*)</code> with the exact distance test in SQL), so a design that needs a long plan pays for it. <strong>Every one of the thousands of counts was compared with a brute-force count in numpy and they all agree</strong> (column <code>wrong</code> in the logs is 0 throughout).</p>
 <p><strong>Key code</strong> [M]. <code>keys.py</code>: Morton and Hilbert (Skilling's algorithm, vectorised; consecutive Hilbert keys are face neighbours, tested on a 16 by 16 by 16 lattice) at 0.25 pc, 18 bits per axis in the benchmark (a 65 kpc box; the recommendation uses 21 bits, section 6.1, which changes the constant and not the shape of the cost). The cover: start at the coarsest level whose cubes are at most 4 radii wide, then refine level by level (each cube is outside, wholly inside or crossing the sphere), keep emitting the whole inside cubes, stop when the merged run count would exceed the budget, emit the crossing cubes at the last level as runs, merge adjacent runs. The result always contains the whole sphere (tested against random points).</p>
 <h2 id="4-results">4. Results</h2>
 <p>Times are milliseconds, median, planning plus statement. The italic row is how many systems the sphere holds, so the work done is visible.</p>
@@ -213,7 +213,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <td style="text-align:right">1,724</td>
 </tr>
 <tr>
-<td>(e) today: box over sector centres, then join</td>
+<td>(e) today: box over sector centers, then join</td>
 <td style="text-align:right">16</td>
 <td style="text-align:right">24</td>
 <td style="text-align:right">40</td>
@@ -332,7 +332,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <td style="text-align:right">460</td>
 </tr>
 <tr>
-<td>(e) today: box over sector centres, then join</td>
+<td>(e) today: box over sector centers, then join</td>
 <td style="text-align:right">4.0</td>
 <td style="text-align:right">6.8</td>
 <td style="text-align:right">12</td>
@@ -451,7 +451,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <td style="text-align:right">2,377</td>
 </tr>
 <tr>
-<td>(e) today: box over sector centres, then join</td>
+<td>(e) today: box over sector centers, then join</td>
 <td style="text-align:right">34</td>
 <td style="text-align:right">109</td>
 <td style="text-align:right">261</td>
@@ -603,7 +603,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 </tr>
 </tbody>
 </table></div>
-<p>C10M was trimmed to the competitive designs and 6 centres: the three-index box, the spatial index and today's path took tens of seconds per query at 25 and 50 pc on the 1 million row core set, and the run only needed to show the trend.</p>
+<p>C10M was trimmed to the competitive designs and 6 centers: the three-index box, the spatial index and today's path took tens of seconds per query at 25 and 50 pc on the 1 million row core set, and the run only needed to show the trend.</p>
 <h3 id="45-thin-sample-of-the-whole-galaxy-1-million-rows-g1m">4.5 Thin sample of the whole galaxy, 1 million rows (G1M)</h3>
 <div class="table"><table>
 <thead>
@@ -650,7 +650,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <td style="text-align:right">0.7</td>
 </tr>
 <tr>
-<td>(e) today: box over sector centres, then join</td>
+<td>(e) today: box over sector centers, then join</td>
 <td style="text-align:right">0.5</td>
 <td style="text-align:right">0.8</td>
 <td style="text-align:right">1.1</td>
@@ -723,7 +723,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 </tr>
 </tbody>
 </table></div>
-<p>Almost every sphere here holds one system (the centre itself), so this measures overhead only.</p>
+<p>Almost every sphere here holds one system (the center itself), so this measures overhead only.</p>
 <h3 id="46-what-the-numbers-say">4.6 What the numbers say</h3>
 <ul>
 <li><strong>Sparse and thin: nothing needs a key.</strong> On G1M the composite-index box takes 0.5 to 4 ms because its slab is tiny (178 to 9,133 rows); the key designs cost 1.5 to 4 ms, almost all of it planning. The halo and intergalactic scatter (a few million rows over 524 kpc, [S] <code>intergalactic-and-halo-contents.md</code>) are in this regime; one query shape for every table is a convenience there, not a necessity.</li>
@@ -734,7 +734,7 @@ Status: research, 2026-10-15, partly built (DOC.51). Built: the cell key column 
 <li><strong>Hilbert versus Morton.</strong> Hilbert needs about 40% fewer runs for the same cover (44 against 55 at 64-run budgets, r = 50). With the <code>OR</code> list and 64 runs each, that makes Hilbert 0 to 50% faster at 50 pc (70 against 74, 84 against 124, 704 against 770 and 3,666 against 4,890 ms at S1M, S10M, C1M, C10M). With the <code>VALUES</code> join, where the run count stops mattering, and 256 runs each, the two tie and Morton is slightly ahead (Morton 36, 42, 460 and 1,900 ms; Hilbert 41, 46, 469 and 2,172 ms at the same four, 50 pc). Morton is also 2 to 3 times cheaper to plan (1.4 ms against 3.3 in numpy), 3.5 times cheaper to compute for a column (3.6 s against 12.5 s for 10 million rows), and MySQL can compute it by itself (section 6.2). Morton it is. The Hilbert order stays for the generator's fill order (GEN.101), which is a different job.</li>
 </ul>
 <h3 id="47-false-hits">4.7 False hits</h3>
-<p>The share of rows the index runs hand to the exact test, as candidates per true hit [M, first five centres]:</p>
+<p>The share of rows the index runs hand to the exact test, as candidates per true hit [M, first five centers]:</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -859,11 +859,11 @@ STRAIGHT_JOIN star_systems p FORCE INDEX (idx_cell)
 WHERE (p.x - :cx)*(p.x - :cx) + (p.y - :cy)*(p.y - :cy) + (p.z - :cz)*(p.z - :cz) &lt;= :r2
 ORDER BY d2 LIMIT 200;
 </code></pre>
-<p><code>:r2</code> is r squared. The run bounds are integers written into the statement, not bound parameters. For a table other than <code>star_systems</code>, the same text with its name. For extended objects (nebulae, remnants) the search radius is <code>r + the widest placed radius</code> (as <code>near.py</code> already does with <code>_widest_placed_phenomenon_radius_ly</code>) and the exact test measures to the edge, not the centre.</p>
+<p><code>:r2</code> is r squared. The run bounds are integers written into the statement, not bound parameters. For a table other than <code>star_systems</code>, the same text with its name. For extended objects (nebulae, remnants) the search radius is <code>r + the widest placed radius</code> (as <code>near.py</code> already does with <code>_widest_placed_phenomenon_radius_ly</code>) and the exact test measures to the edge, not the center.</p>
 <p><strong>Built (NAV.60, measured):</strong> <code>planetgen/db/region.py</code> writes the statement above for one table (the second branch, <code>UNION ALL ... WHERE cell_key IS NULL</code>, reads the same covering index), and <code>db/near.py</code> runs it for <code>star_systems</code> (on the <code>galaxy_*_pc</code> columns), <code>facilities</code> with no system, the eight phenomenon tables, and the <code>bright_stars</code> and <code>phenomenon_scatter</code> rows not built yet (counted, not listed). The union was measured first (three tables of 340,000 rows in a 200 pc cube, 0.13 systems per pc³ about the Sun, 196 runs, median of 9, the build machine with a load average near 6 on 4 cores, scripts <code>nav60_union_bench.py</code> and <code>nav60_count_top200_bench.py</code> in the research scripts): one statement per table 7.1 / 13 / 82 / 533 ms for 73 / 508 / 8,316 / 66,661 rows at 5 / 10 / 25 / 50 pc, one <code>WITH rg AS (VALUES ...) ... UNION ALL</code> 6.2 / 11 / 82 / 480 ms, so at most 10% from reading the run list once. The code keeps one statement per table, which lets each table be asked for only the kinds wanted and stop early (NAV.61). The statement alone, <code>COUNT(*)</code> / top 200 by distance: 9 / 10 ms at 10 pc, 47 / 44 ms at 25 pc, 260 / 253 ms at 50 pc under that load; most of the time returning every row to the client is the rows (66,661 at 50 pc), which is why NAV.61's capped counts and radius ladder are still needed for the dense core and for 50 pc. The plan-shape test (<code>test_the_statement_reads_the_covering_index_with_the_run_list_first</code>) reads <code>EXPLAIN FORMAT=JSON</code>: the run list first, then the table by its covering cell index (MySQL reports a range per run as &quot;range checked for each record&quot;), then the NULL-key branch on the same index.</p>
 <p>A search over every kind is one such statement per table with the same <code>VALUES</code> list. The best shape for that was not measured: a <code>WITH rg(lo, hi) AS (VALUES ...)</code> reused by a <code>UNION ALL</code> of the per-table selects, against one <code>located_object</code> side table that every kind writes to. A side table of (key, id, x, y, z) is as fast to read as a covering index on the table itself [M: side table 36 ms against 36 at S1M, 50 pc], but costs a second row to write for every move (section 6.6); Core measures the union first.</p>
 <h3 id="65-counts-nearest-first-and-the-dense-core">6.5 Counts, nearest first, and the dense core</h3>
-<p>[M, S10M and C1M, 256 runs, covering Morton, <code>STRAIGHT_JOIN</code>; median of 12 centres]</p>
+<p>[M, S10M and C1M, 256 runs, covering Morton, <code>STRAIGHT_JOIN</code>; median of 12 centers]</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -995,7 +995,7 @@ ORDER BY d2 LIMIT 200;
 <li><strong>The Hilbert key's cost in a pure-Python plan</strong> (3 times Morton in numpy).</li>
 </ul>
 <h3 id="81-measured-on-a-real-shaped-table-test165">8.1 Measured on a real-shaped table (TEST.165)</h3>
-<p><code>scripts/bench_region_queries.py</code> grows a scratch database to 3,000,000 <code>star_systems</code> rows (<code>grow</code>) and times the recommended statement against the box and the sector walk (<code>run</code>). The rows are copies of 120 real generated systems (the full 128-column row, <code>uid</code> NULL) placed in a ball of 181 pc around the Sun at 0.12 systems per pc³, each with its real sector address, its own <code>sectors</code> row and the real <code>cell_key</code> and covering index <code>idx_star_systems_cell</code> (1,211 MB of indexes, 1,076 MB of rows). Because the rows are copies, a row's neighbours in the table are not its neighbours in space (as in a galaxy built from several runs, but more so). Sixteen centres drawn from the table (eight for the cold run), one pass of every query before timing for the warm run, median of planning, statement and fetch in Python. Every design returned the same set of systems at every centre and radius. MySQL 8.0.46, 4 cores, 16 GB, the test container.</p>
+<p><code>scripts/bench_region_queries.py</code> grows a scratch database to 3,000,000 <code>star_systems</code> rows (<code>grow</code>) and times the recommended statement against the box and the sector walk (<code>run</code>). The rows are copies of 120 real generated systems (the full 128-column row, <code>uid</code> NULL) placed in a ball of 181 pc around the Sun at 0.12 systems per pc³, each with its real sector address, its own <code>sectors</code> row and the real <code>cell_key</code> and covering index <code>idx_star_systems_cell</code> (1,211 MB of indexes, 1,076 MB of rows). Because the rows are copies, a row's neighbours in the table are not its neighbours in space (as in a galaxy built from several runs, but more so). Sixteen centers drawn from the table (eight for the cold run), one pass of every query before timing for the warm run, median of planning, statement and fetch in Python. Every design returned the same set of systems at every center and radius. MySQL 8.0.46, 4 cores, 16 GB, the test container.</p>
 <p>Warm (4 GB buffer pool, everything resident), ms:</p>
 <div class="table"><table>
 <thead>
@@ -1051,7 +1051,7 @@ ORDER BY d2 LIMIT 200;
 </tr>
 </tbody>
 </table></div>
-<p>Cold (1 GB buffer pool against 2.3 GB of table and indexes, <code>O_DIRECT</code>, so most pages come from disk; 8 centres), ms:</p>
+<p>Cold (1 GB buffer pool against 2.3 GB of table and indexes, <code>O_DIRECT</code>, so most pages come from disk; 8 centers), ms:</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -1107,7 +1107,7 @@ ORDER BY d2 LIMIT 200;
 </ul>
 <p>Not covered: a generated galaxy of several runs (the copies repeat 120 systems), concurrent queries, <code>uid</code>-bearing rows, and a buffer pool of 128 MB (the setting did not take effect on the live server; the cold run used the 1 GB the configuration gives).</p>
 <h3 id="82-where-the-time-went-and-the-cheaper-statement-perf216">8.2 Where the time went, and the cheaper statement (PERF.216)</h3>
-<p>The 3 to 10 times gap of section 8.1 was not the index. On the 3 million row table, 50 pc, 219 runs, 87,000 candidate rows, 62,700 inside (median of six centres):</p>
+<p>The 3 to 10 times gap of section 8.1 was not the index. On the 3 million row table, 50 pc, 219 runs, 87,000 candidate rows, 62,700 inside (median of six centers):</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -1139,9 +1139,9 @@ ORDER BY d2 LIMIT 200;
 <ul>
 <li>The squared distance is <code>POW(axis - c, 2)</code> per axis (<code>x - c</code> once), worked out once per candidate, in the select list, and the test is <code>HAVING d2 &lt;= r²</code> on that column.</li>
 <li><code>capped_count</code> selects <code>1</code> and tests in <code>WHERE</code>; it does not compute <code>d2</code>.</li>
-<li>Nothing about the plan changes (the plan-shape test passes unchanged): same runs, same covering index, same join order, same loose test. Systems returned are identical to the product form's, including a system exactly <code>radius</code> away: <code>test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems</code> compares the id sets and the capped count on the test galaxy, and the benchmark's check of the three designs held at every one of the 16 centres and 5 radii.</li>
+<li>Nothing about the plan changes (the plan-shape test passes unchanged): same runs, same covering index, same join order, same loose test. Systems returned are identical to the product form's, including a system exactly <code>radius</code> away: <code>test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems</code> compares the id sets and the capped count on the test galaxy, and the benchmark's check of the three designs held at every one of the 16 centers and 5 radii.</li>
 </ul>
-<p>Warm, 3 million rows, ms (before from section 8.1, same machine; the median of 16 centres):</p>
+<p>Warm, 3 million rows, ms (before from section 8.1, same machine; the median of 16 centers):</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -1198,7 +1198,7 @@ ORDER BY d2 LIMIT 200;
 <li><strong>NAV.43 on the key</strong> (Core, then Interface). <code>objects_within</code> reads by the <code>VALUES</code>/<code>STRAIGHT_JOIN</code> statement for every kind with positions, including objects with no sector and the unbuilt scatter rows (&quot;not generated yet&quot; rows come from the same statement on the scatter tables); the sector-table path goes; extended objects use <code>r + widest radius</code>; counts stop early; a plan-shape test (<code>EXPLAIN FORMAT=JSON</code> names the covering index and the join order) so a MySQL upgrade that picks a full scan fails a test.</li>
 <li><strong>Nearest-first by radius ladder, dense-core guard</strong> (Core). NAV.12 and NAV.43's ordering use the doubling ladder; the API refuses an uncapped count above its limit with a clear message; NAV.44's page shows &quot;300+&quot; from the early-stop count.</li>
 <li><strong>Scatter rows keep both keys</strong> (Core, with the whole-sphere train). Point columns and cell key on <code>phenomenon_scatter</code> and <code>bright_stars</code>; the (shell, band, wedge) columns stay as the generator's lookup and the birth address.</li>
-<li><strong>Re-measure on a real galaxy</strong> (Quality, after 1 and 2). <strong>Done by TEST.165, section 8.1.</strong> The benchmark scripts become <code>scripts/bench_region_queries.py</code> (seed, centres, the recommended statement against the box and the sector walk) and run once on a generated galaxy of a few million systems, warm and cold; the numbers go into this note.</li>
+<li><strong>Re-measure on a real galaxy</strong> (Quality, after 1 and 2). <strong>Done by TEST.165, section 8.1.</strong> The benchmark scripts become <code>scripts/bench_region_queries.py</code> (seed, centers, the recommended statement against the box and the sector walk) and run once on a generated galaxy of a few million systems, warm and cold; the numbers go into this note.</li>
 <li><strong>Test: the key survives motion</strong> (Quality). The nightly update test moves objects across a cube boundary and asserts the key follows; a round trip bit for bit of the point columns and the key.</li>
 <li><strong>Docs</strong> (Docs). <code>galaxy-coordinate-system.md</code> and <code>database-schema.md</code> describe the cell key; this note moves to &quot;built&quot; when 1 to 3 land; the API reference states the cap and the ladder.</li>
 </ol>
