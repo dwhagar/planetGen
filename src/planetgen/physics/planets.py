@@ -785,7 +785,22 @@ def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
     planet._air_replay = None       # the air made again kept a replay of its own; the memory it held goes
+    _remake_what_reads_the_air(planet)
     return True
+
+
+def _remake_what_reads_the_air(planet):
+    """
+    The class, the spin and what ends it (the field, the dose, the ultraviolet index, the colour, the equipment and habitability scores; `generate_spin`) made again on the air that
+    `remake_air` just made, the way `remake_end_stages` follows the air (GEN.992), from a stream of the planet's own so the run's stream does not move, and the moons' day and night shares (no
+    draws) after the planet's new spin. The planet keeps its birth spin, so a planet whose air is made again with the same pressure and clouds keeps its day.
+    """
+    stream = draw.Stream(f"late-accretion-end:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:{float(planet.star.age)!r}:{float(planet.radius)!r}")
+    with draw.bound(stream):
+        apply_class(planet)
+        generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))
+    for moon in planet.moons:
+        daylight.generate(moon, planet)
 
 
 def refresh_at_final_age(body):
