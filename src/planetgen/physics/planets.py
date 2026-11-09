@@ -993,6 +993,35 @@ def stale_air(planet):
             body._age_drawn = 0.0
 
 
+def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
+    """
+    GEN.1504: the spin axis of a planet whose orbital plane the secular exchange has moved (the elements are already the new ones) follows the plane: the axis is turned with the orbit normal,
+    so the obliquity is kept (the planet's spin precesses about its orbit's normal far faster than the plane's nodes regress, so the obliquity is the adiabatic invariant; the angle round the normal
+    is kept too), and a locked or resonant body, whose obliquity is its Cassini state's share of the inclination (`tidal_spin.cassini_tilt_deg`), keeps that share of the new inclination.
+    The sky of the other suns follows the new normal, the day and night shares the new tilt, and the moons are set in the new equator again. No draws.
+    """
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    if any(c is None for c in axis):
+        return
+    new_inclination = planet.orbital_inclination_deg or 0.0
+    tilt = None
+    if spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant"):
+        fold = lambda inc: min(abs(inc), 180.0 - abs(inc))
+        if fold(old_inclination_deg) > 1.0e-12:
+            tilt = planet.axial_tilt_deg * fold(new_inclination) / fold(old_inclination_deg)
+    old_normal = spin.orbit_normal(old_inclination_deg, old_node_deg)
+    new_normal = spin.orbit_normal(new_inclination, planet.orbital_ascending_node_deg or 0.0)
+    planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.carry_axis(axis, old_normal, new_normal, tilt)
+    if tilt is not None:
+        planet.axial_tilt_deg = tilt
+        daylight.generate(planet)
+    planet.sky_suns = sky_suns.encode(sky_suns.suns_of(
+        planet.star, (planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), new_normal,
+        orbit_elements.flux_distance_au(planet.distance, getattr(planet, "eccentricity", 0.0))))
+    if getattr(planet, "moons", None):
+        orient_moons(planet)
+
+
 SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
 """tuple: What `secular_exchange` reports for a star's planets: the orbits took the exchange; some eccentricity was held short of what the exchange gave because the spacing would not hold;
 nothing moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`; or the planets or the result were beyond the first-order theory's limits."""
@@ -1058,8 +1087,12 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     for i in moved:
         body = bodies[i]
         phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+        old_inclination, old_node = body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0
+        if getattr(body, "moons", None):
+            release_moons(body)                  # the moons lie in the planet's equator: written back in it, turned onto the new axis below
         body.orbital_inclination_deg = math.degrees(result.inclination[i])
         body.orbital_ascending_node_deg = math.degrees(result.node_longitude[i])
+        carry_spin_with_orbit(body, old_inclination, old_node)
         update_orbital_position(body, phase, math.degrees((result.periapsis_longitude[i] - result.node_longitude[i]) % (2.0 * math.pi)))
         for moon in getattr(body, "moons", ()):
             moon.host_eccentricity = body.eccentricity

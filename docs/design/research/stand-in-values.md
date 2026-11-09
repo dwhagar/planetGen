@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1542 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1543 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1516 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1517 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 184 | 20 | 11 | 1 | 0 | 216 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
-| T4 | 78 | 11 | 4 | 22 | 12 | 127 |
+| T4 | 79 | 11 | 4 | 22 | 12 | 128 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
 | T6 | 194 | 104 | 30 | 79 | 4 | 411 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 875 | 300 | 75 | 240 | 52 | 1542 |
+| All | 876 | 300 | 75 | 240 | 52 | 1543 |
 
 ## How the labels were given
 
@@ -2597,7 +2597,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE1 | T | T1 | L0 | disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc | normalization 1e-5 to 1e-3; exponents fixed by the form | a viscous disc of 0.01 to 0.1 solar masses | a measured pebble flux (drift in resolved discs), or a disc model with a different age law | a chemistry and pebble-flux model such as the CHEMCOMP code of [R5210] | form and numbers read in [R5211: Eq. 14] (9.5e-5 Earth masses per year, exponents 5/3, 1/3 on the star mass, -1/3 on the age); the star-mass term is replaced by the disc-mass scale (see the section text); [R5210] abstract read for the use | predicted only | - | - |
 | DE2 | T | T1 | L0 | disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3) | 60 to 250 AU at 1 Myr | a disc of 10 to 300 AU | a resolved disc whose dust ring front moves at another pace | as DE1 | [R5211: Eq. 10] read: r_g = (3/16)^(1/3) (G M)^(1/3) (eps_d Z0)^(2/3) t^(2/3); eps_d 0.05 (sticking efficiency 0.5 over the ISM growth ratio 10, from the paper's text) and Z0 0.01 give 122.8 AU at 1 Myr | predicted only | - | - |
 | DE3 | P | T6 | L0 | disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER`) | step against a decay of one growth time at the edge | all discs; the M dwarf rows are suspect (0.017 Myr) | an M dwarf disc with pebbles at 1 Myr or more | a gradual decay law from a disc model | my simplest form that conserves the dust; speculative, section 4 of the note | predicted only | - | - |
-| DE4 | P | T6 | L0 | disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio | t_nu 0.2 to 2 Myr | a Sun-like disc | accretion rates at 1 to 2 Myr outside 3e-9 to 3e-8 solar masses per year | a measured accretion history by mass | standard viscous disc theory; the numbers are mine, sized to 1e-8 solar masses per year at 1 to 2 Myr | predicted only | - | - |
+| DE4 | P | T6 | L0 | disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio | t_nu 0.2 to 2 Myr | a Sun-like disc | accretion rates at 1 to 2 Myr outside 3e-9 to 3e-8 solar masses per year | a measured accretion history by mass | standard viscous disc theory; the numbers are mine, sized to 1e-8 solar masses per year at 1 to 2 Myr | predicted only | by design | - |
 | DE5 | P | T6 | L0 | disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag | alpha 1e-4 to 1e-2 | gas between a line and a place inside it | a measured turbulence of discs far from 1e-3 | a viscous-spreading model of the lines | steady-disc theory, alpha from the observed range; the boxcar is my simplest form, speculative | predicted only | - | - |
 | DE6 | T | T6 | L0 | disk_drift.COLD_FINGER_LEAK 0.9 (reported by `cold_finger_enrichment`, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged | 0.35 to 0.95 | the water line, other lines when asked | a measured ice-to-rock ratio just outside a snow line | a diffusion model of the line | [R5209] abstract read: local vapor enhanced by more than an order of magnitude under nominal conditions, solids enhanced outside the front; the band width (a gas scale height) is mine | predicted only | - | - |
 | DE7 | D | T5 | L0 | disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L) | none | all ices | none: it follows from the front | none | geometry of the front, section 2.1 of the note | predicted only | - | - |
@@ -2621,6 +2621,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SC3 | P | T4 | L0 | planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (`settle_orbit` keeps the lower of the tide's and the exchange's) | none (it is the order of the steps) | systems whose secular times are short against their age | a census in which running the tide before the exchange moves the eccentricity of a tide-circularised planet by more than a tenth | the tide and the exchange integrated together (the tidal damping added to the diagonal of the matrix), which needs a Q per planet at every step | the draws (`orbit_elements`) were made for the observed present-day orbits; taking them as the starting state is the reading that keeps the ensemble's total angular momentum deficit and lets the exchange share it out | predicted only | - | - |
 | SC4 | P | T4 | L0 | planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, `SECULAR_BISECTION_STEPS` 12); one it lowers is lowered | the screen is `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii between the inner apoapsis and the outer periapsis | chains packed to the screen | a census in which respacing the chain after the exchange (instead of holding the eccentricity) moves more than a tenth of the planets by a tenth of their distance | respacing after the exchange, which changes the semi-major axes the theory was run with | holding the spacing rule keeps the generator's invariant (`validation.check_star_system` is empty); the angular momentum deficit that cannot be raised is dropped, so the exchange cools a packed chain (the report counts the planets) | predicted only | - | - |
 | SC5 | P | T5 | L0 | secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets | none | held planets whose own secular time is longer than the others' | an N-body run in which the held giant's eccentricity changes by more than a tenth over the age | the full matrix with the giant's own motion, once the theory covers it | the held planet's AMD is far larger than the rocky planets', so its own change is small | predicted only | - | - |
+| SC6 | P | T4 | L0 | `planets.carry_spin_with_orbit`: a planet whose orbital plane the exchange moves keeps its obliquity and its angle round the orbit normal (the spin axis is turned with the normal), because its spin precesses about the normal far faster than the plane's nodes regress; a locked or resonant planet keeps its Cassini-state share of the inclination (`tidal_spin.cassini_tilt_deg`, tilt proportional to the folded inclination), its sky of other suns and day shares follow, and its moons are set in the new equator again | none | planets whose spin precession period is much shorter than the secular nodal period (most; a planet near the resonance of the two is chaotic) | a planet whose obliquity has measurably wandered with its plane's regression (the secular spin-orbit resonance) | an integration of the spin and the plane together | design, from the adiabatic invariance of the obliquity; reuse of `spin.tilted_axis`, `orient_moons`, `sky_suns` | predicted only | - | - |
 
 ## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
 

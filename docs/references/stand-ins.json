@@ -58089,7 +58089,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": null,
+          "unread": "by design",
           "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
@@ -58601,6 +58601,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.carry_spin_with_orbit: a planet whose orbital plane the exchange moves keeps its obliquity and its angle round the orbit normal (the spin axis is turned with the normal), because its spin precesses about the normal far faster than the plane's nodes regress; a locked or resonant planet keeps its Cassini-state share of the inclination (tidal_spin.cassini_tilt_deg, tilt proportional to the folded inclination), its sky of other suns and day shares follow, and its moons are set in the new equator again"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets whose spin precession period is much shorter than the secular nodal period (most; a planet near the resonance of the two is chaotic)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose obliquity has measurably wandered with its plane's regression (the secular spin-orbit resonance)"
+            ],
+            [
+              "What replaces it",
+              "an integration of the spin and the plane together"
+            ],
+            [
+              "Evidence",
+              "design, from the adiabatic invariance of the obliquity; reuse of spin.tilted_axis, orient_moons, sky_suns"
+            ]
+          ],
+          "id": "SC6",
+          "key": "6.244:SC6",
+          "kind": "P",
+          "slug": "6-244-sc6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.carry_spin_with_orbit: a planet whose orbital plane the exchange moves keeps its obliquity and its angle round the orbit normal (the spin axis is turned with the normal), because its spin precesses about the normal far faster than the plane's nodes regress; a locked or resonant planet keeps its Cassini-state share of the inclination (tidal_spin.cassini_tilt_deg, tilt proportional to the folded inclination), its sky of other suns and day shares follow, and its moons are set in the new equator again"
         }
       ],
       "slug": "6-244-stand-ins-of-the-secular-exchange-of-a-star-s-planets",
