@@ -920,9 +920,9 @@ def finish_orbit_oddities(planet):
     return True
 
 
-def remake_after_orbit_change(planet):
-    """What follows a planet's eccentricity having moved once the orbit is final: its moons' host eccentricity, its place on the new ellipse, the exposure at the new mean light and, for a
-    rocky planet, its air, class and spin (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities` and `secular_exchange`."""
+def follow_orbit_change(planet):
+    """What follows a planet's eccentricity having moved once the orbit is final, short of its air: its moons' host eccentricity, its place on the new ellipse and the exposure of it and its moons
+    at the new mean light."""
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = planet.eccentricity
     update_orbital_position(planet)
@@ -930,8 +930,24 @@ def remake_after_orbit_change(planet):
     for body in (planet, *getattr(planet, "moons", ())):
         if getattr(body, "_star_distance_au", None):
             magnetism.update_exposure(body, light_au)
+
+
+def remake_after_orbit_change(planet):
+    """`follow_orbit_change` and, for a rocky planet, its air, class and spin made again at once (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities`,
+    after which nothing moves the orbit again."""
+    follow_orbit_change(planet)
     if planet.body_type == "t":
         remake_end_stages(planet, planet)
+
+
+def stale_air(planet):
+    """`follow_orbit_change`, then the planet's and its moons' air marked as made on an orbit that has since moved: `age_moved` says so (the age stamp `_age_drawn` is zeroed), so the final-age refresh,
+    `refinish_rocky`, makes the air, class and spin again once, on the orbit the settle pass leaves (GEN.1450: the exchange comes first, the tide wears the eccentricity down after it,
+    and a planet made again at the exchange's eccentricity would be left on the wrong one)."""
+    follow_orbit_change(planet)
+    for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):        # a giant is not made again by the refresh (its moons are)
+        if getattr(body, "_age_drawn", None) is not None:
+            body._age_drawn = 0.0
 
 
 SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
@@ -1005,7 +1021,7 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         for moon in getattr(body, "moons", ()):
             moon.host_eccentricity = body.eccentricity
         if abs(body.eccentricity - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE:
-            remake_after_orbit_change(body)
+            stale_air(body)
     return "held by the spacing" if held else "exchanged"
 
 
