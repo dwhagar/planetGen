@@ -26020,6 +26020,41 @@
       "kind": "paper",
       "label": "Kovaltsov et al. 2012",
       "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere"
+    },
+    "R5208": {
+      "kind": "paper",
+      "label": "Booth et al. 2017",
+      "title": "Chemical enrichment of giant planets and discs due to pebble drift"
+    },
+    "R5209": {
+      "kind": "paper",
+      "label": "Cuzzi and Zahnle 2004",
+      "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts"
+    },
+    "R5210": {
+      "kind": "paper",
+      "label": "Schneider and Bitsch 2021",
+      "title": "How drifting and evaporating pebbles shape giant planets"
+    },
+    "R5211": {
+      "kind": "paper",
+      "label": "Lambrechts and Johansen 2014",
+      "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs"
+    },
+    "R5212": {
+      "kind": "paper",
+      "label": "Piso et al. 2015",
+      "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION"
+    },
+    "R5213": {
+      "kind": "paper",
+      "label": "Umemoto et al. 2017",
+      "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles"
+    },
+    "R5214": {
+      "kind": "paper",
+      "label": "Dauphas and Morbidelli 2014",
+      "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans"
     }
   }
 }

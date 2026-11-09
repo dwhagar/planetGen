@@ -57,3 +57,8 @@ Tests (`src/tests/test_impact_history.py`): the Brasser means inside their scatt
 ## 6. Registry
 
 Rows AM36 to AM44 of `docs/design/research/gap-filling-plan.md` (and the generated `stand-in-values.md`) list each constant with its source tier and tweak level, and the test that would falsify it.
+
+## The influx of the belts and comets of the system (GEN.1440, GEN.1453 slice A)
+
+The late accretion above is one Solar-System-sized leftover. What a planet's own system sends in is worked out separately by `physics/influx.py` as a pure function of stored data and shown as a derived row ("Belt dust and comets reaching it, a year") on the planet's sheet; nothing is stored. Each belt loses `M / t` to collisions, the share `BELT_DUST_SHARE` of that drifts inward, a comet reservoir sends its nucleus in over `COMET_LIFETIME_YR`; the planet takes the share `R^2 / (4 a^2)` of the stream, and every giant between the source and the planet ejects `1 - exp(-Theta / THETA_EJECT)` of it (the rule of `scatter.py`). Stand-ins: rows IF1 to IF6 (section 6.247 of the gap plan). The air reading this influx (so that a system's belts change a planet's veneer) needs the belts to exist before the planet's atmosphere is drawn, which they do not today; that is GEN.1493.
+

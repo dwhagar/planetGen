@@ -372,3 +372,29 @@ def test_lithium_chloride_condenses_under_about_680_k_at_one_bar_and_takes_its_c
     assert mg.nasa_saturation_pa("LiCl", 700.0) == pytest.approx(5.6e-9 * 1e5, rel=0.1)
     assert mg.nasa_saturation_pa("H2O", 300.0) is None
     assert mg.nasa_saturation_pa("LiCl", 100.0) == mg.nasa_saturation_pa("LiCl", 300.0)      # under the fit read at its lower end
+
+
+def test_the_ice_caps_settle_when_the_oxygen_left_sits_in_a_species_that_does_not_condense():
+    """
+    A cold giant layer whose water, methane and ammonia have all condensed leaves 1e-37 of oxygen per hydrogen, and 1.5e-7 of lithium holds most of it as lithium hydroxide at the
+    chemistry's 300 K. Water is over its cap at 26 K by 40 orders, so each round took a sliver of the water and the equilibrium made it again from the hydroxide: 1000 rounds, then
+    `MixtureError`. Seed 533 of a G2V system with PLANETS and MAX_PLANETS (Lane 21's giant-density read, 2026-11-09) is this layer; the budget, 26.49 K, 0.3 bar and 300 K are its own.
+    What stays over the cap is under `MIN_CONDENSED` per hydrogen atom, the amount a condensate is dropped from the record at.
+    """
+    budget = {"H": 1.0, "He": 0.08203515443298177, "C": 0.007923251589436131, "N": 0.0022446996159850695, "O": 0.04823973997996018, "Ne": 0.009541950492118954,
+              "S": 2.168404344971009e-19, "Ar": 2.3988329190194897e-06, "P": 2.1361766269879255e-05, "Kr": 1.31825673855641e-09, "Xe": 2.0859830264783805e-08,
+              "Cl": 7.204043020470654e-06, "Li": 1.4778731499033949e-07}
+    without_co = tuple(name for name in st.GASES if name != "CO")      # the species of a layer whose carbon monoxide quenched (`mixture_giant.draw`)
+    result, left, ices = mg.cap_ices(budget, 26.487872842214287, 0.3, lambda trial: ge.solve(trial, 300.0, 0.3, species=without_co))
+    assert set(ices) >= {"H2O", "CH4", "NH3"} and ices["H2O"] == pytest.approx(0.04823973997996018, rel=1e-6)
+    assert left["O"] < mg.MIN_CONDENSED and result.mole_fractions.get("H2O", 0.0) * 0.3 < 1e-30
+
+
+def test_the_ice_caps_still_refuse_a_layer_that_cycles_with_oxygen_to_spare():
+    """The settling above is only for a species the budget cannot make more of than `MIN_CONDENSED`; a cycle with more to condense still raises."""
+    class Cycling:
+        mole_fractions = {"H2O": 1e-3}
+        moles = {"H2O": 1e-3}
+        total_moles = 1.0
+    with pytest.raises(MixtureError, match="did not settle"):
+        mg.cap_ices({"H": 1.0, "O": 0.5}, 100.0, 1.0, lambda trial: Cycling(), iterations=5)

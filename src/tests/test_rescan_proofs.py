@@ -96,6 +96,22 @@ def test_the_paths_a_settle_saves_are_the_same_bytes_every_time_it_runs(mysql_co
     proof.assert_same_rows(first, second, "settled twice")
 
 
+def test_the_paths_a_settle_saves_do_not_depend_on_how_many_sectors_share_the_neighbourhood_read(mysql_config, monkeypatch):
+    """GEN.1477: the neighbourhood read per sector (a batch of one, the old way) and shared by a batch of 100 saves the same bytes, and so does the stage's cell-key order."""
+    galaxy = proof.small_galaxy(mysql_config)
+    ids = galaxy["sector_ids"]
+    rows = {}
+    for batch in (1, 2, 100):
+        monkeypatch.setattr(sector_paths, "SETTLE_BATCH", batch)
+        with proof.connection(mysql_config) as conn:
+            order = sector_paths.sectors_in_cell_order(conn, ids)
+            assert sector_paths.settle_sectors(conn, order, expand=False, workers=1) > 0
+            rows[batch] = proof.settled_rows(conn, ids)
+    assert rows[1]
+    proof.assert_same_rows(rows[1], rows[2], "a read for each sector against a read shared by two")
+    proof.assert_same_rows(rows[1], rows[100], "a read for each sector against a read shared by the batch")
+
+
 # --- GEN.1482: the link stage writes the same rows in any batch ---------------------------------------------------------------
 
 def test_the_link_rows_of_the_small_galaxy_are_there_and_are_bytes(mysql_config):

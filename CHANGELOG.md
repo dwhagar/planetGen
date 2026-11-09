@@ -2,6 +2,264 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3763] - 2026-11-09
+
+**Headline:** The repair test reads the inserted-row count as a whole number, so "90 inserted" no longer fails the check for "0 inserted".
+
+### Changed
+
+- `tests/test_repair.py`: the check that the reason does not say "0 inserted" matched inside "90 inserted" now that the repaired sector reports 90 rows; it uses a word boundary (`\b0 inserted`).
+
+generation-output: unchanged
+
+## [8.0.3762] - 2026-11-09
+
+**Headline:** A design note says how the air could read the belts, comets and giants of its own system for its late accretion; nothing is built.
+
+### Changed
+
+- New design note `docs/design/composition/late-accretion-from-the-system.md` (GEN.1493): why the single late-accretion number cannot see the system, the order options, a recommended second pass at the end of a planet's making, and the slices of the build. It finds that slice A's cross-section is the geometry of a single pass of a stream and cannot give a veneer, so the build needs a collision-probability law with focusing.
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3761] - 2026-11-09
+
+**Headline:** Emptying the earlier nebula field is a step of its own in a run, no longer a hook of the nebula draw (OPS.123 slice 3, nebula-field verb).
+
+### Changed
+- **`empty-nebula-field` is its own command and stage.** The `prepare` of `draw-nebula-field` is gone; `empty_nebula_field_unit` does the same work (refuses a galaxy with no skeleton, keeps the table of a galaxy with no outline, otherwise empties it) in one unit, and a stage "Clear the earlier nebula field" comes before "Draw the nebula field" in a nebula field redraw and in the phenomena run. A galaxy run now counts one more stage. `finish_run.REWIND_WITH` ties the draw to its clear, so a stopped draw that is carried on empties the table again first. Reused: `store.clear_nebula_field`, `_outline`, the one-unit whole expansion of `clear-scatter`. `clear-scatter` itself was not reused because it lacks the skeleton and no-outline checks.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3760] - 2026-11-09
+
+**Headline:** A cold giant layer whose last oxygen sits in lithium hydroxide no longer stops generation with "the ice caps did not settle".
+
+### Changed
+
+- `mixture_giant.cap_ices` cycled on a layer where water, methane and ammonia had all condensed and 1e-37 of oxygen per hydrogen was left, held mostly by lithium as hydroxide at the chemistry's temperature: water was over its cap by 40 orders, each round took a sliver of it and the equilibrium made it again, for 1000 rounds, then `MixtureError`. After the rounds, if every species still over its cap is one the budget cannot make more of than `MIN_CONDENSED` per hydrogen atom (the amount a condensate is dropped from the record at), the layer is returned as it stands; a cycle with more to condense still raises. One system in 700 of a default star mix hit it (seed 533 of a G2V system with PLANETS and MAX_PLANETS; the same error stopped a `test_db_column_round_trip` run). The rounds and arithmetic before the 1000th are unchanged, so every layer that settled before settles the same.
+
+generation-output: unchanged
+
+## [8.0.3759] - 2026-11-09
+
+**Headline:** The generation-mix test draws its 250 systems from a fixed seed and bounds the giants a sample holds per star, so it no longer fails on main by chance.
+
+### Changed
+
+- `tests/test_generation_mix.py`: the sample is a pure function of `SAMPLE_SEED` (`deterministic_entropy`). Eleven unseeded samples of the same code on 2026-11-09 held 26 to 58 giants (0.08 to 0.17 a star), and the flat bound of 50 giants and the 5 percent super-Jupiter floor failed on main about one run in three. Giants made per 200 systems were 40 before Train 18 and 45 after, so no generation change lies behind it.
+- The giant bound is per star, as the registry states the rate (PA2: 0.045 to 0.16 a star): over 0.045 and under a third more than 0.16 of the sample's stars.
+- The median density ceiling is Neptune's 1.64 plus 0.4: the median of a sample of 40 to 50 giants swings by about 0.2 (1.41, 1.69 and 1.84 on three samples, the same before Train 18 as after). The generated median sitting above the Solar System's 1.3 is left to the planet-type owners.
+
+generation-affects: none
+
+## [8.0.3758] - 2026-11-09
+
+**Headline:** A rocky world's property sheet now lists the isotope ratios of its mantle against its surface, including the xenon-129 excess that iodine-129 left.
+
+### Changed
+
+- A rocky planet or moon lists the D/H of its mantle's water (8 percent under the surface water's), the 15N/14N and 13C/12C of its mantle, and the 129Xe/130Xe of its mantle gas, worked out from its own isotope record (GEN.1490). The xenon excess is the Earth's scaled by the star's birth ratio of 129I, so a star that made less iodine-129 gives its worlds a smaller excess.
+- Nothing is stored and nothing generated changes. The 136Xe from 244Pu fission is not built (no size of the Earth's excess in hand) and a stored mantle reservoir would need a migration; both are noted open.
+- New stand-ins ISO23 to ISO28 in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3757] - 2026-11-09
+
+**Headline:** The burn-down register now has a line for each of the two hand-fitted influx stand-ins, which fixes the red guard on main.
+
+### Changed
+
+- Rows IF1 (the share of a belt's loss that reaches the inner system) and IF2 (the lifetime of a comet reservoir) of section 6.247 are at tweak level L4 and had no line in the burn-down register; both now say `no data` and what would replace them (GEN.1453).
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3756] - 2026-11-09
+
+**Headline:** A star's property sheet now lists the isotopes of its surface: its deuterium, carbon and nitrogen ratios and the count of isotopes.
+
+### Changed
+
+- A star lists D/H, 13C/12C and 15N/14N and the count of isotopes of its surface, worked out from the surface composition the chemistry rows already use and the star's [Fe/H] and age, through the same isotope record as the planets (GEN.1488). Before, a star showed none.
+- A star past its protostar stage has burned its deuterium (a tiny floor shows); a red giant's carbon is the 12C/13C of the first dredge-up; the rest take the birth gas's ratios.
+- Nothing is stored and nothing generated changes. New stand-ins ISO21 and ISO22 are in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3755] - 2026-11-09
+
+**Headline:** A rocky planet's sheet now shows how much belt dust and how many comets reach it each year, shielded by the giants in the way.
+
+### Added
+- **The dust and comet influx of a planet (GEN.1440, GEN.1453 slice A).** `physics/influx.py` works out, from the belts and comets stored for a star and the giants of its system, the mass a planet takes in each year: each belt loses `M / t` to collisions and a share of that drifts inward, a comet reservoir sends its nucleus in over its lifetime, the planet takes the share `R^2 / (4 a^2)` of the stream, and each giant between the source and the planet ejects the share `1 - exp(-Theta / THETA_EJECT)` of what drifts past (the rule the swept disk of the giants already uses). It is a pure function of stored data, derived when the sheet is made (`describe/influx_row.py`), so no column holds it and a rescan cannot leave a stale copy. A sample of 120 whole systems (`tests/audit/influx_sample.py`) shows the influx varying with the belts of the system and a giant shielding the planets inside it. Stand-ins IF1 to IF6 are registered (section 6.247). The air does not read it yet: that needs the belts built before the planet's atmosphere, GEN.1493. Reused, not rebuilt: `scatter.safronov_number` and `THETA_EJECT`, the stored belts, comets and giants, the sheet's derived-row pattern (the eclipse row). No migration.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3754] - 2026-11-09
+
+**Headline:** Belts, comets, interstellar comets and interstellar fields now show a full isotope record on their property sheet and in the API.
+
+### Changed
+
+- A belt, a comet, an interstellar comet and an interstellar field list D/H, 13C/12C and 15N/14N (where the ice holds the element) and the count of isotopes, worked out from their stored ice share, the host star's [Fe/H] and age and the temperature the ice formed at, through the same record and ice fractionation law as a planet's (GEN.1487). Before, a belt or comet showed only two ice lines.
+- Nothing is stored and nothing generated changes: the record is derived each time from stored values and a seeded stream named by the body, so a body always shows the same line.
+- New stand-ins ISO18 to ISO20 (the ices a small body holds, the budget margin at the water line, the formation temperature and metallicity of a body with no star) are in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3753] - 2026-11-09
+
+**Headline:** The four scatter commands no longer carry a finish hook: the work queue's executor records their speeds and counts from what each unit reports (OPS.123 slice 1).
+
+### Changed
+- **A unit reports what it drew and wrote; the executor records it.** `scatter_shells_unit` and `scatter_phenomena_unit` now return `samples` (kind, density, seconds, systems, stars) and `row` (objects written, shells touched), and the plan carries `row_totals` (the shell count only the cut knows). `finish_stage` calls `stages.record_unit_samples` and `stages.stage_row_metrics` for every stage, so the `finish=` hooks of `scatter-mass`, `scatter-luminosity`, `scatter-phenomena` and `scatter-backfill` (and `run_plan.finish_scatter`, `finish_scatter_phenomena`, `_speed_stats`) are gone. The five warm-family finish hooks stay until slice 2. The stored speeds and the stage rows are the same.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3752] - 2026-11-09
+
+**Headline:** Moons and the planets of a wide pair are held to every neighbour they have, not to the last or the outermost one alone.
+
+### Changed
+
+- A moon now clears every moon inside it by that moon's own five Hill radii (`moon_clearance_au`), where only the moon just inside it was checked: a massive moon two places in keeps its room even when a light moon sits between. This holds in the generated lunar system, in the stabiliser of an edited system, in the validator, and in the history of the moons' tidal drift.
+- The planets of the two stars of a wide pair are held to each other for every pair of bodies (`cross_star_violation`), by the criterion that was already there (Gladman's mutual Hill factor at the stars' closest approach), where only the outermost body of each star was checked. A heavy planet further in, that needs more room than a light outer one, can now be trimmed.
+- The planet-planet spacing already held every inner planet and belt (the clearance ledger), so nothing changes there. The circular Hill radius stays for `min_orbit_distance`, registered as SP1.
+- On 150 systems (69 wide pairs) and 202 further wide-pair builds no system changes and the pinned golden battery is unchanged: the rules now hold where no generated system broke them, so this is a guard and not a change of output.
+
+generation-affects: none
+
+## [8.0.3751] - 2026-11-09
+
+**Headline:** The calibration fence's list of reviewed rows now includes the tholin material row, so the fence test passes on main again.
+
+### Changed
+
+- The tholin density row (added with GEN.1359) names Titan only in its source id; its value is laboratory pycnometry of laboratory analogue tholins, not a measurement of a Solar System body. It is recorded in `tests/data/solar_system_rows.json` as reviewed and not a Solar System shape, with the reason.
+
+generation-affects: none
+
+## [8.0.3750] - 2026-11-09
+
+**Headline:** The dissociation steps of MgSiO3 in the mantles of massive rocky planets are registered as predicted rows, and the interior solver's mantle table is kept.
+
+### Changed
+
+- The stand-in registry lists the three terapascal dissociations of MgSiO3 post-perovskite (0.75, 1.31 and 3.10 TPa) as predicted watch entries (rows SE1 to SE3) with no density step, and states why the mantle table is kept (row SE4): the interior solver's radius for an Earth-like 5 to 10 Earth-mass planet is within 0.3 percent of the published curve. The source is added to the citation registry.
+
+generation-affects: none
+
+## [8.0.3749] - 2026-11-09
+
+**Headline:** The settle step reads the stars around a block of sectors once instead of once per sector, so it spends far less time reading the database (GEN.1477).
+
+### Changed
+- **`settle-sector-paths` settles sectors in cell-key order and reads each neighbourhood once per chunk.** Each sector's paths see the point masses of the sectors within 2.5 edges of it, about 125 sectors, and the step used to read all of them again for every sector it settled. The stage now cuts its sectors in the order of their centers' cell keys (the Morton order of `galaxy/cellkey.py`), so a chunk of 100 sectors is a block that sits together, and `sector_paths.settle_sectors` reads the union of the chunk's neighbourhoods one time (`_Neighbourhoods`) and builds each sector's mass table from it. The point masses are read in sector then id order and the paths saved are bit-for-bit those a read of the sector's own neighbourhood saves; the chunks differ only in which sectors they hold.
+
+## [8.0.3748] - 2026-11-09
+
+**Headline:** The design note for how pebbles drift in and evaporate at the ice lines of the disc is written, with its stand-ins registered and four new papers in the registry; no generated output changes.
+
+### Changed
+
+- **GEN.1472 is a design note, not code.** `docs/design/composition/disk-drift-evaporation.md` describes how the gas of the disc gets the ice that pebbles carry inward and evaporate at each line, as one enrichment ratio per ice that is exactly the static budget of GEN.1363 when it is 1, with the clocks (pebble front, flux, the edge, viscous lag), the cold finger, and the age a giant gathers its gas, which it derives without a new draw. Its first numbers for the Sun say the gas inside the water line has a C/O near 0.2 while the pebbles last (0.38 in the static budget) and near 1.0 afterward, and that outside the water line the effect is small and may not lower the giants' C/O above 0.8. Section 4 of the note says which parts are read, recalled or speculative. Ten stand-ins are registered (section 6.242, rows DE1 to DE10, tiers T3 to T6, tweak L0) and the registry gets [R5208], [R5209] and [R5210] (abstracts read), [R5211] (form recalled, not opened) and [R5212] (title only). The build is GEN.1473. No code changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3747] - 2026-11-09
+
+**Headline:** A merge train's epoch now alters only the stages its items say they alter, instead of all four.
+
+### Changed
+- **The train runner no longer defaults the epoch to every stage.** `scripts/train.py golden` with no `--affects` takes the union of the `generation-affects:` lines of the release notes the train adds (new command `train.py affects` prints it, and `train.py checks` reports it). A note with no line counts as every stage and is named; `generation-affects: none` counts as none; `--affects all` is the old default. Before this, the last 17 epochs (125 to 141) all said plan, scatter, fill and population, so each bring-to-epoch redrew every scatter and the block lights, and a plan stage meant a full regeneration.
+- The note check (`bump_version.py`) refuses a `generation-affects:` line that names no stage, an unknown stage, or `none` mixed with stages. The rule is in `changes/README.md`.
+
+## [8.0.3746] - 2026-11-09
+
+**Headline:** The stellar wind a planet's magnetic field holds off is now the wind of every star of its system, and a moon inside its planet's magnetosphere holds off the planet's field instead of the wind (GEN.1452).
+
+### Changed
+
+- `magnetism.wind_pressure_at` sums the host's wind (the number of before) and each companion's wind at 1 AU times the mean `1/d^2` between the body and the companion (the geometry GEN.1441 added for the light). The magnetopause, the field the star's wind induces in a rocky planet and the radiation belts (and so the dose of their moons) read the sum. A lone star gives the same numbers to the last digit.
+- A moon whose orbit lies inside its parent's magnetopause has its own magnetopause set against the pressure of the parent's field at its orbit (`magnetism.apply_parent_magnetosphere`, called from `generate_induced_field`), not the wind's. Jupiter and Ganymede give 2.4 Ganymede radii.
+- Stand-in section 6.240 (WN1 to WN4) in the registry; design note updated in `habitability/activity-magnetism-radiation-hydrosphere.md`.
+- Census (120 seeded systems, binary and wide-binary mix, `/tmp` script not kept): 164 planets store a magnetopause; with a companion attached, 2 of them move by more than 0.1 percent, by -0.17 to -0.28 percent (the companions of the draw sit far out, so their wind adds little); no planet of a lone star moves by any amount (0 changes). Of 81 moons, 2 have their own field with a field-holding parent and none lies inside the parent's magnetopause, so the moon rule changes none of them yet; it is covered by the Ganymede test. The golden digests of the phenomenon case move because of this change; the sector cases already moved with GEN.1441.
+
+generation-output: changed
+
+## [8.0.3745] - 2026-11-09
+
+**Headline:** Every star of a system now also adds its XUV, flares, particles and ultraviolet to the radiation of each planet and moon.
+
+
+### Changed
+- **The XUV, flare, particle, far-ultraviolet and DNA doses and the loss of air and envelope read every star of the system (GEN.1442).** A body's stored XUV flux, XUV exposure index and flare index are the host's value plus the other stars' parts by position (the time-averaged `1/d^2` of GEN.1441); the free-space particle dose adds each star's flare particles; the far-ultraviolet that breaks methane into haze adds each star's; the ground's DNA dose and UV index add each star's own spectrum through the one air and ozone column; and the thermal and envelope loss follow each star's XUV decay through time, with the host's XUV taking its own distance now that the light is the whole system's. A lone star gives the same numbers as before to the last digit. The ozone column is still drawn by the host's colour (registry rows DS1 to DS4, section 6.241). In a census of 300 systems (seed 11, each system seeded alone) all 774 bodies of lone stars came out the same, and of 276 bodies of multi-star systems 235 changed their stored XUV flux, 223 their flare index, 139 their particle dose, 150 their ultraviolet index and 59 their envelope. It shares the epoch of GEN.1441 (`--affects plan,scatter,fill,population`); no migration.
+
+generation-output: changed
+
+## [8.0.3744] - 2026-11-09
+
+**Headline:** Every star of a system now lights every planet and moon of it, by where it is, not only the star the planet circles.
+
+### Added
+- **The radiation field of a system (GEN.1441).** `physics/radiation_field.py` gives, for any body, the light, XUV, flare index and far-ultraviolet of every star-like object of its system, each as a total and per source, from the position of each source against the body through both orbits (the source's orbit round the host averaged in time, the body's own orbit averaged in angle; coplanar orbits and a subtree of stars as one point are stated limits, rows RF1 to RF5). `planet_zones.companion_orbits` gives the orbit each other member moves in against a host, and each star gets its companions when the clearance ledger is built.
+
+### Changed
+- **The mean starlight of planets and moons counts every star.** The temperature and the air and greenhouse solve, the albedo and ice branches, the runaway greenhouse test, giants' radius and heat, the envelope law, the spin torques, the mixture subject, the haze temperature, the energy flux available to life and the zone letter (hot, ecosphere, cold) all take the total light. A lone star gives the same numbers as before to the last digit; a companion at 100 AU moves the temperature by under 0.1 percent; an equal companion at 5 AU adds about 10 percent of the light to a planet at 1.5 AU. `flux_variation` is worked out from the same mean. The simplification that left the companions' share out of the temperature is retired. In a census of 300 systems (seed 11, each system seeded alone) all 774 bodies of lone stars came out the same, and of 294 bodies of multi-star systems 259 got light from a companion, 100 moved their temperature by more than 0.1 percent, 2 changed class and 1 changed zone letter. New epoch, `--affects plan,scatter,fill,population`; no migration.
+
+generation-output: changed
+
+## [8.0.3743] - 2026-11-09
+
+**Headline:** A world with sulfur dioxide, an oxidiser and water now has a sulfuric acid cloud whose base and strength come from the real acid and water curves of the air, not a fixed 367 K.
+
+### Changed
+
+- **The acid cloud base and strength come from the sulfuric acid curves (GEN.1425 part B, GEN.1424, GEN.1019).** The cloud sits at the warmest level of the air's dry adiabat where its own acid vapor and water condense (`sulfuric_vapor`), so a wetter air gets a weaker acid and a warmer base and a drier one a stronger acid and a cooler base. The fixed 367 K base (`sulfuric_cloud.json`) is gone. `aerosols.draw_aerosols` adds the acid cloud's depth (20 to 30) to the condensate cloud's, and its cover (the whole sky) is the larger of the two; it uses the stored `aerosol_draw`, so no column and no draw is added and airs without sulfur are unchanged to the digit. New epoch, `--affects fill`; no migration.
+- **The acid medium of life Classes 5 and 9 reads the same strength (GEN.888, GEN.1424).** `acid_medium` takes the acid's strength from the Gibbs-energy model of `sulfuric_vapor` and no longer from the water-activity line fitted through the Venus cloud levels (three numbers gone from `acid_medium.json`). A very wet Venus-like air still has only a dilute acid; one with a tenth of that water keeps a cloud layer.
+- **The cloud's ultraviolet absorber colours the sky (GEN.1425 V10).** A body with an acid cloud has the measured Gaussian absorber band (center 0.34 micron, width 0.14, moved inside its stated uncertainties by the stored `aerosol_draw`) in the cloud's single-scattering albedo, so the sky is a little yellower where the cloud is. Nothing is stored for it.
+- **For the infrared model.** `sulfuric_cloud.infrared_cloud` gives `radiative_convective.solve(cloud=)` the depth, droplet radius, base temperature and strength of the air's own cloud; `cloud_infrared.layer_depth` takes the base temperature from the caller.
+
+generation-output: changed
+
+## [8.0.3742] - 2026-11-09
+
+**Headline:** The sodium an early ocean leaches from the crust is the sodium of the crust's Na2O, not the Na2O's mass taken as sodium.
+
+### Changed
+
+- The leached crust's sodium came from the 0.028 that Kite and Ford quote for the crust's sodium; that figure is the Na2O of a mid-ocean ridge basalt (about 2.8 weight percent). The sodium in it is 0.0208 of the crust (74 percent). A sealed ocean now leaches that, and the crust's sodium oxide put back where a rock carries no alkalis is 2.8 percent instead of 3.8 percent. Of 2,323 sealed-ocean solutions logged on the earlier census, the share over pH 11.5 goes from 58.8 to 57.6 percent.
+- The calcium stays as it was (all of the crust's 8.5 weight percent leached, as Kite and Ford assume with no calcium-mineral formation): no source reachable gives a free-calcium share, and with none of the calcium free 37 percent of the sealed oceans would still sit over pH 11.5 (the sodium and the small carbon do it), so the calcium is not what sets the high-pH mode (report gen1349-sealed-ocean-calcium-2026-11-08).
+
+generation-output: changed
+
+## [8.0.3741] - 2026-11-09
+
+**Headline:** Every planet, moon and rogue planet now carries an isotope record: the shares of each isotope of each element it holds, with deuterium, carbon-13, nitrogen-15, argon-40 and the decaying potassium and uranium following physical laws, and the record shown on the property sheet (GEN.1377, GEN.1420, GEN.1421): also the short-lived isotopes of the star's birth gas and the tritium and radiocarbon the cosmic rays make in a body's air.
+
+### Changed
+
+- New `physics/isotope_record.py` builds the record from the body's stored composition on its own streams: the table's natural mix by default and, for hydrogen, carbon, nitrogen and argon, a law of the star's metals and age and of the temperature the ice formed at (D/H from the primordial value less the deuterium star formation burned, enriched in ice as the temperature falls, fitted to the ocean and comet 67P; 12C/13C and 14N/15N from the galactic gradients; 36Ar/38Ar from the solar wind; 40Ar from the potassium that decayed and the interior let out). Potassium and uranium isotopes are those of the body's age.
+- Schema v235 (migration 0235): the child tables `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes`. A body saved before it has no record and nothing is backfilled.
+- The property sheet of a planet or moon lists the ratios the record moves and the count of isotopes. `bulk_draw.formation_temperature_k` is now public.
+- Stand-in section 6.236 (ISO1 to ISO17) in the registry, design note `composition/isotope-record.md`, citations R5173 to R5179 and R5203 to R5207.
+- A belt's and a comet's property sheet list the D/H and 15N/14N of their ices, worked out from the stored ice share, the star's [Fe/H] and age and the temperature the ice formed at (a belt's from its distance, a comet's the cold anchor), nothing stored.
+- Rows of origin `extinct` (26Al, 60Fe, 53Mn, 129I, 244Pu: the star's birth ratio and what is left of it) and `cosmogenic` (3H and 14C: the steady-state share in the air and ocean from the production of cosmic rays, the air column, the targets and the field). 10Be and 26Al made in the air wait for a source.
+
+generation-output: changed
+
 ## [8.0.3740] - 2026-11-09
 
 **Headline:** The database check for impossible values reads each table once instead of once for every rule, 34 scans instead of 5, with the same findings.

@@ -297,6 +297,33 @@ def nasa_saturation_pa(formula, temperature_k):
     return math.exp(condensate.g_over_rt(t) - gas.g_over_rt(t)) * saturation.BAR_TO_PA
 
 
+def _over_cap(result, temperature_k, pressure_bar, tolerance):
+    """The species of `result` over their saturation cap by more than `tolerance` (relative) at `temperature_k`: `{name: moles per hydrogen atom to take out}`."""
+    takes = {}
+    for name, fraction in result.mole_fractions.items():
+        formula = species_thermo.SPECIES[name].formula
+        if fraction * pressure_bar < MIN_PARTIAL_BAR:
+            continue
+        if saturation.has(formula):
+            curve = saturation.saturation(formula, temperature_k)
+            if curve.status == saturation.ABOVE_CRITICAL:
+                continue
+            allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
+        else:
+            pascals = nasa_saturation_pa(formula, temperature_k)
+            if pascals is None:
+                continue
+            allowed = pascals / saturation.BAR_TO_PA / pressure_bar
+        if fraction > allowed * (1.0 + tolerance):
+            takes[name] = (result.moles[name] - allowed * result.total_moles) / (1.0 - min(allowed, 0.999999))
+    return takes
+
+
+def _condensable(name, budget):
+    """The most moles of species `name` the budget could ever make: its scarcest element over the atoms of it in a molecule."""
+    return min(budget.get(symbol, 0.0) / count for symbol, count in species_thermo.SPECIES[name].elements.items())
+
+
 def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=1000, tolerance=1e-4):
     """
     Caps every species with a saturation curve at its saturation pressure at `temperature_k`: the excess is taken out of the
@@ -312,28 +339,12 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
         tuple: `(Equilibrium, budget, condensed)` with `condensed` a dict of formula -> moles per hydrogen atom taken out.
 
     Raises:
-        MixtureError: The caps do not settle in `iterations` rounds.
+        MixtureError: The caps do not settle in `iterations` rounds, and what is left over the cap could still be a condensate worth recording.
     """
     condensed = {}
     for _ in range(iterations):
         result = equilibrium_at(budget)
-        takes = {}
-        for name, fraction in result.mole_fractions.items():
-            formula = species_thermo.SPECIES[name].formula
-            if fraction * pressure_bar < MIN_PARTIAL_BAR:
-                continue
-            if saturation.has(formula):
-                curve = saturation.saturation(formula, temperature_k)
-                if curve.status == saturation.ABOVE_CRITICAL:
-                    continue
-                allowed = curve.pressure_pa / saturation.BAR_TO_PA / pressure_bar
-            else:
-                pascals = nasa_saturation_pa(formula, temperature_k)
-                if pascals is None:
-                    continue
-                allowed = pascals / saturation.BAR_TO_PA / pressure_bar
-            if fraction > allowed * (1.0 + tolerance):
-                takes[name] = (result.moles[name] - allowed * result.total_moles) / (1.0 - min(allowed, 0.999999))
+        takes = _over_cap(result, temperature_k, pressure_bar, tolerance)
         if not takes:
             return result, budget, condensed
         budget = dict(budget)
@@ -343,6 +354,13 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
             formula = species_thermo.SPECIES[name].formula
             condensed[formula] = condensed.get(formula, 0.0) + moles
         condensed = {formula: moles for formula, moles in condensed.items() if moles > MIN_CONDENSED}
+    result = equilibrium_at(budget)
+    takes = _over_cap(result, temperature_k, pressure_bar, tolerance)
+    if all(_condensable(name, budget) < MIN_CONDENSED for name in takes):
+        # The caps cycle only on a species the layer's budget cannot make more of than a condensate worth recording: its element sits mostly in a species that does not condense
+        # (the lithium hydroxide of a layer with 1e-37 of oxygen per hydrogen), so each round takes a sliver of it and the equilibrium makes it again. What is left over the cap is
+        # under `MIN_CONDENSED` per hydrogen atom, the amount under which a condensate is dropped from the record above.
+        return result, budget, condensed
     raise MixtureError(f"the ice caps did not settle at {temperature_k} K and {pressure_bar} bar")
 
 

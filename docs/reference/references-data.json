@@ -86335,6 +86335,29 @@
    "volume": "",
    "year": 2014
   },
+  "10.1016/b978-0-08-095975-7.01301-2": {
+   "authors": [
+    [
+     "Dauphas",
+     "N."
+    ],
+    [
+     "Morbidelli",
+     "A."
+    ]
+   ],
+   "book": "Treatise on Geochemistry",
+   "doi": "10.1016/b978-0-08-095975-7.01301-2",
+   "editors": [],
+   "journal": "Treatise on Geochemistry",
+   "page": "1",
+   "publisher": "Elsevier",
+   "src": "crossref",
+   "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2014
+  },
   "10.1016/b978-0-12-066266-1.50009-0": {
    "authors": [
     [
@@ -89223,6 +89246,45 @@
    "title": "Noble gases recycled into the mantle through cold subduction zones",
    "type": "journal-article",
    "volume": "471",
+   "year": 2017
+  },
+  "10.1016/j.epsl.2017.08.032": {
+   "authors": [
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Ji",
+     "M."
+    ],
+    [
+     "Wang",
+     "C. Z."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2017.08.032",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "40",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles",
+   "type": "journal-article",
+   "volume": "478",
    "year": 2017
   },
   "10.1016/j.epsl.2018.05.033": {
@@ -137835,6 +137897,29 @@
    "volume": "570",
    "year": 2014
   },
+  "10.1051/0004-6361/201424343": {
+   "authors": [
+    [
+     "Lambrechts",
+     "M."
+    ],
+    [
+     "Johansen",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201424343",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A107",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs",
+   "type": "journal-article",
+   "volume": "572",
+   "year": 2014
+  },
   "10.1051/0004-6361/201424412": {
    "arxiv": "1409.0466",
    "authors": [
@@ -143701,6 +143786,29 @@
    "title": "The best place and time to live in the Milky Way",
    "type": "journal-article",
    "volume": "647",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202039640": {
+   "authors": [
+    [
+     "Schneider",
+     "A. D."
+    ],
+    [
+     "Bitsch",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202039640",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A71",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "How drifting and evaporating pebbles shape giant planets",
+   "type": "journal-article",
+   "volume": "654",
    "year": 2021
   },
   "10.1051/0004-6361/202040058": {
@@ -157327,6 +157435,29 @@
    "title": "The Origin of the Mass‐Metallicity Relation: Insights from 53,000 Star‐forming Galaxies in the Sloan Digital Sky Survey",
    "type": "journal-article",
    "volume": "613",
+   "year": 2004
+  },
+  "10.1086/423611": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Zahnle",
+     "K. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/423611",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "490",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts",
+   "type": "journal-article",
+   "volume": "614",
    "year": 2004
   },
   "10.1086/423697": {
@@ -171837,6 +171968,37 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "814",
+   "year": 2015
+  },
+  "10.1088/0004-637x/815/2/109": {
+   "authors": [
+    [
+     "Piso",
+     "A. M. A."
+    ],
+    [
+     "Öberg",
+     "K. I."
+    ],
+    [
+     "Birnstiel",
+     "T."
+    ],
+    [
+     "Murray-Clay",
+     "R. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/815/2/109",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "109",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION",
+   "type": "journal-article",
+   "volume": "815",
    "year": 2015
   },
   "10.1088/0004-637x/815/2/110": {
@@ -197517,6 +197679,37 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "Galaxy Zoo: finding offset discs and bars in SDSS galaxies★",
+   "type": "journal-article",
+   "volume": "469",
+   "year": 2017
+  },
+  "10.1093/mnras/stx1103": {
+   "authors": [
+    [
+     "Booth",
+     "R. A."
+    ],
+    [
+     "Clarke",
+     "C. J."
+    ],
+    [
+     "Madhusudhan",
+     "N."
+    ],
+    [
+     "Ilee",
+     "J. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stx1103",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3994",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemical enrichment of giant planets and discs due to pebble drift",
    "type": "journal-article",
    "volume": "469",
    "year": 2017
@@ -282446,7 +282639,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5208,
+ "id_next": 5215,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282913,6 +283106,7 @@
   "10.1016/b978-0-08-095975-7.00201-1": "R3417",
   "10.1016/b978-0-08-095975-7.00301-6": "R3842",
   "10.1016/b978-0-08-095975-7.00315-6": "R4687",
+  "10.1016/b978-0-08-095975-7.01301-2": "R5214",
   "10.1016/b978-0-12-066266-1.50009-0": "R0179",
   "10.1016/b978-0-12-066266-1.50016-8": "R0178",
   "10.1016/b978-0-12-434750-2.50049-6": "R2540",
@@ -283010,6 +283204,7 @@
   "10.1016/j.epsl.2016.09.013": "R0518",
   "10.1016/j.epsl.2017.03.008": "R1182",
   "10.1016/j.epsl.2017.04.046": "R4135",
+  "10.1016/j.epsl.2017.08.032": "R5213",
   "10.1016/j.epsl.2018.05.033": "R2936",
   "10.1016/j.epsl.2018.06.029": "R4725",
   "10.1016/j.epsl.2018.07.006": "R3356",
@@ -284272,6 +284467,7 @@
   "10.1051/0004-6361/201424171": "R5094",
   "10.1051/0004-6361/201424184": "R3294",
   "10.1051/0004-6361/201424299": "R0470",
+  "10.1051/0004-6361/201424343": "R5211",
   "10.1051/0004-6361/201424412": "R0864",
   "10.1051/0004-6361/201424692": "R1245",
   "10.1051/0004-6361/201424896": "R3134",
@@ -284370,6 +284566,7 @@
   "10.1051/0004-6361/202039037": "R4108",
   "10.1051/0004-6361/202039141": "R4528",
   "10.1051/0004-6361/202039507": "R4177",
+  "10.1051/0004-6361/202039640": "R5210",
   "10.1051/0004-6361/202040058": "R2433",
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
@@ -284776,6 +284973,7 @@
   "10.1086/422087": "R0700",
   "10.1086/422919": "R0362",
   "10.1086/423264": "R4423",
+  "10.1086/423611": "R5209",
   "10.1086/423697": "R2323",
   "10.1086/423912": "R0662",
   "10.1086/424372": "R1346",
@@ -285144,6 +285342,7 @@
   "10.1088/0004-637x/813/2/101": "R4484",
   "10.1088/0004-637x/813/2/82": "R3723",
   "10.1088/0004-637x/814/1/13": "R3002",
+  "10.1088/0004-637x/815/2/109": "R5212",
   "10.1088/0004-637x/815/2/110": "R3166",
   "10.1088/0026-1394/20/4/003": "R0310",
   "10.1088/0034-4885/56/2/001": "R4014",
@@ -285744,6 +285943,7 @@
   "10.1093/mnras/stx027": "R3740",
   "10.1093/mnras/stx076": "R0074",
   "10.1093/mnras/stx1026": "R2509",
+  "10.1093/mnras/stx1103": "R5208",
   "10.1093/mnras/stx1149": "R4778",
   "10.1093/mnras/stx1205": "R3496",
   "10.1093/mnras/stx1232": "R2110",
