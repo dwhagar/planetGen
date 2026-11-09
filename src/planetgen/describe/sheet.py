@@ -588,6 +588,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
+    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
