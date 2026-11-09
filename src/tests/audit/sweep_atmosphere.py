@@ -26,12 +26,11 @@ Rules (names as `RULES` lists them):
 import math
 
 from planetgen.describe import build as describe_build
-from planetgen.physics import aerosols, air_column, atmosphere, climate_draws, constants, gases, ozone, orbit_elements, radiation, surface_air
+from planetgen.physics import aerosols, air_column, atmosphere, constants, gases, ozone, orbit_elements, radiation, radiation_field, surface_air
 from tests.audit.sweep import Rule, broken_copy
 from tests.test_atmosphere_text_consistency import _text_names
 
 REL = 1e-9
-AU_KM = constants.AU_TO_KM
 
 
 def _partials(body):
@@ -51,7 +50,7 @@ def _starlight_w_m2(entry):
     host = entry.parent if entry.is_moon else entry.body
     eccentricity = entry.body.host_eccentricity if entry.is_moon else entry.body.eccentricity
     distance_au = orbit_elements.flux_distance_au(host.distance, eccentricity)
-    return climate_draws.starlight_w_m2(entry.star.luminosity, distance_au * AU_KM)
+    return radiation_field.starlight_w_m2(entry.star, distance_au)       # GEN.1441: the host's light and every other star's
 
 
 def _close(value, expected, rel=REL):
