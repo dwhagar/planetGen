@@ -310,6 +310,11 @@ item has no row there.</p>
 <td>Composition, atmosphere colour and the view from a planet</td>
 </tr>
 <tr>
+<td>9.1</td>
+<td><a href="plan/releases/version-9-1-wiki-integration.html">version-9-1-wiki-integration.md</a></td>
+<td>The game's manual, linked</td>
+</tr>
+<tr>
 <td>9.2</td>
 <td><a href="plan/releases/version-9-2-politics-and-territories.html">version-9-2-politics-and-territories.md</a></td>
 <td>Politics and territories</td>
@@ -1184,7 +1189,7 @@ Prerequisites: POP.50, POP.51. Related: POP.24.</p>
 </li>
 <li>
 <p>[ ] <strong>UX.286 Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt</strong>
-Boss (11:19 AM EST on 2026-11-07), on the Sensor (Rendered) view: &quot;use a dotted line through the middle of the object to show its axis of rotation&quot;. Do: in the Sensor view of a planet, moon or star, draw a dotted line through the centre along the stored spin axis (spin_axis_x, y, z, with axial_tilt_deg for the tilt against the orbit), extended a little past the poles; a body with no stored axis shows no line and no invented one; the readout line says &quot;axis from the stored spin&quot;. Done: the line is on every body kind that stores an axis, the direction matches the stored values (test with a tilted and a retrograde body), and a body without an axis shows none. Lock-free, no migration, no epoch. Goal issue #5430. Version 8.2. Owner: none yet (a waiting lane takes it, confirmed with TODO; Lane 13's sky and view work is the natural fit). Filed by the TODO thread.
+Boss (11:19 AM EST on 2026-11-07), on the Sensor (Rendered) view: &quot;use a dotted line through the middle of the object to show its axis of rotation&quot;. Do: in the Sensor view of a planet, moon or star, draw a dotted line through the center along the stored spin axis (spin_axis_x, y, z, with axial_tilt_deg for the tilt against the orbit), extended a little past the poles; a body with no stored axis shows no line and no invented one; the readout line says &quot;axis from the stored spin&quot;. Done: the line is on every body kind that stores an axis, the direction matches the stored values (test with a tilted and a retrograde body), and a body without an axis shows none. Lock-free, no migration, no epoch. Goal issue #5430. Version 8.2. Owner: none yet (a waiting lane takes it, confirmed with TODO; Lane 13's sky and view work is the natural fit). Filed by the TODO thread.
 Prerequisites: none. Related: UX.273, MAP.395, GEN.1350.</p>
 </li>
 <li>
@@ -1550,7 +1555,7 @@ Design: <a href="design/galaxy/intergalactic-and-halo-contents.html">docs/design
 Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
 has complete control; the world adjusts to what the admin wants, after
 the admin approves the generation plan. An admin draws or types a
-region (sphere by centre and radius, box, shell, band, wedge, or the
+region (sphere by center and radius, box, shell, band, wedge, or the
 sectors in view) on the Galaxy Map and the Sector Map, sees it
 outlined with a count of the systems and phenomena inside, and passes
 it to an admin action (a density edit, a regeneration). Done: the tool
@@ -1618,7 +1623,7 @@ over the system view (<code>systemview3d.js</code>); the design notes carry no
 label placement, collision or zoom rule. Done: through the label
 engine, the galaxy's large features show their names at the zooms
 where they are readable: the arms, the bar, the bulge, the halo and
-disc, the satellites and wanderers (MAP.207) and the clusters and
+disk, the satellites and wanderers (MAP.207) and the clusters and
 dwarfs of <code>galaxy_components</code> (GEN.237), with the names from the
 galaxy model and the component table (a small data table where the
 model has none), each a kind with its own toggle. A browser test
@@ -1631,7 +1636,7 @@ Split from MAP.234 (2026-10-16, 7:21 PM EDT). Superbubbles (GEN.254)
 are drawn always on as faint great circles with no toggle, no picking
 and no hover. Done: they are a layer on the MAP.217 registry (menu
 entry, URL key, legend row from the registry), on by default, off on
-request; hovering one names it and gives its radius and centre; it is
+request; hovering one names it and gives its radius and center; it is
 a picker layer so a click selects it. Needs the registry (MAP.217).
 The key text itself is MAP.234. Owner: Lane 12.
 Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): once the
@@ -1730,8 +1735,8 @@ on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -1740,8 +1745,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -2056,9 +2061,9 @@ nothing in 8.1.
 Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.</p>
 </li>
 <li>
-<p>[ ] <strong>MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer</strong>
+<p>[ ] <strong>MAP.354 Lagrange trojans T4: System Map icon at the center of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer</strong>
 Boss 7:48 PM EDT 10-30: objects around a Lagrange point get an icon at
-the centre of the point that says [host]-L# so the pair of objects is
+the center of the point that says [host]-L# so the pair of objects is
 clear. Rides with T2 (train 8). Shares the Lagrange geometry of
 MAP.169 and does not wait for the heat map.
 Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
@@ -2527,7 +2532,7 @@ solar-system plus exoplanet test table (design doc section 3.6); the
 XUV history and exposure index come from GEN.86's activity module,
 not the stand-in. (2) Classes follow in the PR order of section 5.2.
 Record the answer to &quot;when is an atmosphere possible&quot;: shoreline
-ratio below 30, species by lambda (30 kept), the cold side by vapour
+ratio below 30, species by lambda (30 kept), the cold side by vapor
 pressure, H<sub>2</sub> and water by energy-limited XUV. &quot;S and V in the other
 zones&quot; is mostly S itself with air plus a re-scoped N (hot) and an
 extended X or an R Hycean flag (cold). Letters: none are free after
@@ -2554,7 +2559,7 @@ each class) stand. Moved into 8.1. Owner: Lane 14.
 Lane 14 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): now an
 umbrella over GEN.355 and GEN.963 only (GEN.356 and GEN.145 dropped as
 fixed letter rules; GEN.90 dropped). The physics answer stands:
-shoreline ratio below 30, species by lambda, cold side by vapour
+shoreline ratio below 30, species by lambda, cold side by vapor
 pressure, H<sub>2</sub> and water by energy-limited XUV; that is GEN.355
 Prerequisites: GEN.963.
 Design: <a href="design/habitability/habitability-index.html">docs/design/habitability/habitability-index.md</a></p>
@@ -2693,7 +2698,7 @@ Gyr at the recommended step; a circular star keeps its radius to 1
 pc over 5 Gyr with dt &lt;= 1 Myr; Kz(1.1 kpc) about 75 Msun/pc2 and
 local density about 0.10 Msun/pc3 at 5%; finite acceleration at (0,
 0, 0). (e) Integration is kick-drift-kick with a per-star step (eta
-0.05 of the pericentre crossing time, dt_max 5 Myr, block steps, a
+0.05 of the pericenter crossing time, dt_max 5 Myr, block steps, a
 step cap with a flag); seeding uses Jeans asymmetric drift and a
 dispersion table from the potential; these could become sub-items. A
 facility has no dispersion and uses the same circular speed
@@ -2781,7 +2786,7 @@ collisions-and-mergers.md section 3.3 (bound or capture candidate,
 deflection of at least 1 degree, or same system), not a plain Hill
 entry (about 200 a day on a full-size galaxy; plain entries go to
 debug); hierarchy members are Kepler-tree nodes exempt from mutual
-warnings and captures, one point mass per system at its barycentre,
+warnings and captures, one point mass per system at its barycenter,
 and a flyby inside the outermost orbit's Hill zone is flagged
 &quot;disrupts hierarchy&quot;. Collision candidates are a separate mass-blind
 distance query. Extend the test per
@@ -2817,7 +2822,7 @@ no integrator of its own for stars (the stepper is child c of
 GEN.115).
 Precision note (GEN.372 audit, Boss card 2026-10-16, 7:36 to 7:38 PM EDT):
 the long force sums here use compensated summation (Neumaier or fsum,
-or mpmath for the long integrations from the galactic centre); the audit
+or mpmath for the long integrations from the galactic center); the audit
 decided they wait for this item, not before.
 Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
 EDT; GEN.105's Decided notes win where this item's older text
@@ -2891,7 +2896,7 @@ Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
 touched&quot;: the orbital update writes a motion vector and a next-update
 value for every object step 4 touches; positions stay derived lazily
 from the parent chain. Where GEN.197 says the update writes nothing
-but the top barycentre's point, this wins.
+but the top barycenter's point, this wins.
 Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
 and &quot;One function of metallicity&quot;, as the coordinator reported it):
 the hydrogen-burning limit is one function of metallicity
@@ -3039,7 +3044,7 @@ fill only.
 Reworded (Boss, 2026-10-15 5:51 PM EDT;
 docs/design/systems/multi-star-systems.md): companions of stars and star-like
 objects are generated at scatter time, planets, moons and belts at
-sector fill; a scatter row is a system with a barycentre, a total mass
+sector fill; a scatter row is a system with a barycenter, a total mass
 and stored members. This item's steps (a) to (d) are built as the
 member-tree generator GEN.261 (with the scatter columns GEN.260); what
 stays here is the scene and map work (e), the orbital update of built
@@ -3071,7 +3076,7 @@ One Alembic revision, no change to existing tables, and the data file
 checked against [R2972] (VizieR J/AJ/144/4) and NED. Hold
 absolute magnitude and distance, never a hand-keyed apparent magnitude
 (the draft's recalled values were off by 0.7 to 1.9 mag). The layout
-already has Mpc and Gpc units, so a galaxy's centre fits the 76-bit position ID (the position part of the 96-bit object ID); add type code 13 <code>galaxy</code> in <code>names/object_id.py</code> only if
+already has Mpc and Gpc units, so a galaxy's center fits the 76-bit position ID (the position part of the 96-bit object ID); add type code 13 <code>galaxy</code> in <code>names/object_id.py</code> only if
 the neighbours use it as their <code>uid</code>.
 Scope after the review (2026-10-16 review): the <code>neighbor_galaxies</code>
 table and data file for M31 and its group, the other Local Group
@@ -3200,7 +3205,7 @@ gives the same field twice.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.199 Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update</strong>
-Done: for a sector, the field (GEN.198) is sampled at the centre of
+Done: for a sector, the field (GEN.198) is sampled at the center of
 each zone (16 per edge by default, a setting), giving the pull, the
 potential and the tidal strength per zone, with Lagrange and saddle
 points flagged. The grid is derived data held in a cache like the
@@ -3725,9 +3730,9 @@ a group of points that then as orbits update the nebula changes
 shape?&quot; Answer given to him: yes in principle, it follows from GEN.294
 (every object one SpatialPosition3D with point mass and movement
 vector). Design and research only, nothing built, no lane. Today a
-nebula is one point (centre, one scalar galactic_orbital_speed_kms,
+nebula is one point (center, one scalar galactic_orbital_speed_kms,
 epoch_unix, radius_ly as a bounding sphere) plus a shape fixed when it
-was made: 4 to 8 metaballs in nebula_shape_balls (centre and radius,
+was made: 4 to 8 metaballs in nebula_shape_balls (center and radius,
 no mass, no velocity) and the ellipsoid, warp, noise and isovalue
 columns (GEN.75, galaxy/nebula_shape.py); it moves rigidly and never
 changes shape. Done: a design note
@@ -3746,7 +3751,7 @@ the isovalue, the bounding radius_ly and the containment tests
 sprites MAP.176/MAP.178) recomputed, and when a stored shape is
 rebuilt rather than carried; (3) what point-mass gravity cannot
 capture and what stands in for it: gas pressure and turbulence,
-magnetic fields, radiation pressure and photoionisation, shocks, star
+magnetic fields, radiation pressure and photoionization, shocks, star
 formation consuming the gas, stellar feedback, and the expansion of
 supernova remnants and planetary nebulae (analytic radius against age
 rather than gravity); (4) the timescale: a giant molecular cloud of 30
@@ -3801,7 +3806,7 @@ cluster (47 Tuc, Omega Centauri, M13) appears by name. Owner: Lane 13,
 in the cluster line. The file arrived 2026-10-16, 3:04 PM EDT. The
 file: [R1827] (2010 edition), December 2010 revision, 157 clusters
 in three parts. Part I has the name, RA and Dec, galactic longitude
-and latitude, the distance from the Sun and from the Galactic centre
+and latitude, the distance from the Sun and from the Galactic center
 (R0 = 8.0 kpc) and X, Y, Z; Part II the [Fe/H], reddening, V magnitude
 of the horizontal branch, distance modulus, integrated V, M_V, the
 colours, spectral type and ellipticity; Part III the radial velocity,
@@ -4324,7 +4329,7 @@ Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
 smaller chunks and shared work). Apply the rule table inside
 <code>apply_cloud</code>: the photoevaporation cut radius scales with host mass
 (200/50/10 AU is the solar-mass calibration); planetary nebulae H to L
-flag a circumbinary young disc only for a close-binary central star
+flag a circumbinary young disk only for a close-binary central star
 and never planets; an engulfed giant of over 5 Jupiter masses sets the
 'swallowed giant' flag; surviving planets near the engulfment radius
 get an eccentricity draw up to about 0.3; orbits expand by a (M_star +
@@ -4340,13 +4345,13 @@ after a save; this item or the habitability index decides whether to
 store it). Stored nebulae and remnants (classes C to L, R to W) still
 reach a system through the containment pass after the save (GEN.99
 hands them to StarSystem.apply_cloud). Host stars sit at the cloud
-centre (stand-in tuning.CLOUD_HOST_MIN_DISTANCE_PC); Wolf-Rayet hosts
+center (stand-in tuning.CLOUD_HOST_MIN_DISTANCE_PC); Wolf-Rayet hosts
 of class X add nothing yet.
 Research (2026-10-09, Lane 14 report 2026-10-28): Stand-ins from
 GEN.357 to enter in the stand-in registry
 (docs/design/stand-in-values.md, tweak levels to be set by the owner):
 CLOUD_FUV_FRACTION_BY_TEFF_K, CLOUD_G0_TIER_EDGES,
-CLOUD_HOST_MIN_DISTANCE_PC (every host at the cloud centre),
+CLOUD_HOST_MIN_DISTANCE_PC (every host at the cloud center),
 CLOUD_CLASS_RADIATION_TIER, CLOUD_ENRICHMENT_* (design-note rule
 table); HABING_FLUX_ERG_CM2_S is sourced; the O9V luminosity uses the
 MIST zero-age row (3.1e4 Lsun) instead of the design table (1e5).
@@ -4692,12 +4697,12 @@ validity range, knobs, target id, falsifier test, replaced-by research
 item, sources, licence, epoch). A lead such as Gemini may only widen a
 bracket, and on a contradiction the verified source wins. A stand-in
 replaced later changes stored output and rides the pending epoch.
-Galaxy gaps for this item: GR6 oldest thick disc and first-disc epoch
+Galaxy gaps for this item: GR6 oldest thick disk and first-disk epoch
 (class B search, prior over the GR10 epoch), GX2, GX3 (group X5; Boss
 items 1 and 2 of plan section 8).
 Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
 answers relayed in words by the coordinator;
-docs/design/research/gap-filling-plan.md section 8): GR6 thick-disc start in
+docs/design/research/gap-filling-plan.md section 8): GR6 thick-disk start in
 other galaxies: the halo formation epoch plus a 0 to 1 Gyr delay, a
 labelled placeholder (kind P), replaced when S0 histories are found.
 Papers list (2026-10-17, filed by the TODO thread;
@@ -4705,30 +4710,30 @@ docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
 papers he can download himself, the coordinator posted the list at
 11:32 AM EDT as it reported): [R1863], Bensby
 2014 [R0349, R3531] and b ([R3532],
-1904.01260) are readable by a thread, so the thick-disc start (GR6)
+1904.01260) are readable by a thread, so the thick-disk start (GR6)
 moves from class B to class A; the labelled placeholder stays until
 they are read.
 Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-clock reported; docs/design/research/gemini-batch1-check.md): thick-disc ages
+clock reported; docs/design/research/gemini-batch1-check.md): thick-disk ages
 (R6, partly): [R3532] has 12 to 13 Gyr for FCC 153 and FCC 177,
 FCC 170 peaking near 14 Gyr and stopping about 11 Gyr (three Fornax S0
-galaxies); [R3928] has mean thick-disc ages mostly below 8 Gyr,
-about 4 Gyr on average, in eight star-forming discs of 4e9 to 6e10;
-[R0860] predicts the youngest thick-disc stars at 4 to 6 Gyr
+galaxies); [R3928] has mean thick-disk ages mostly below 8 Gyr,
+about 4 Gyr on average, in eight star-forming disks of 4e9 to 6e10;
+[R0860] predicts the youngest thick-disk stars at 4 to 6 Gyr
 below 1e10 and about 10 Gyr at Milky Way mass. Gemini's start
-independent of host mass is contradicted. The oldest thick-disc age
-against host mass for low-mass star-forming discs stays open (needs
+independent of host mass is contradicted. The oldest thick-disk age
+against host mass for low-mass star-forming disks stays open (needs
 Sattler's star formation history table).
 Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
 the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
 summary in the gap plan section 4.10; V read, R recomputed, D
 digitized, FIG read off a plot): GR6 for the Milky Way: [R1863]:
-the thick disc forms from about 13 to about 8 Gyr ago (4 to 5 Gyr
-long, age scale uncertain by 1 to 1.5 Gyr); the inner thin disc starts
-about 8 Gyr ago and the outer thin disc 9 to 10 Gyr ago, so 'thin-disc
-start' is two numbers; Aumer and Binney's disc age is 12.6 Gyr. Pinna
+the thick disk forms from about 13 to about 8 Gyr ago (4 to 5 Gyr
+long, age scale uncertain by 1 to 1.5 Gyr); the inner thin disk starts
+about 8 Gyr ago and the outer thin disk 9 to 10 Gyr ago, so 'thin-disk
+start' is two numbers; Aumer and Binney's disk age is 12.6 Gyr. Pinna
 2019a covers one galaxy (FCC 170): star formation peaks at the 14 Gyr
-edge of its age grid (resolution about 3 Gyr), thick-disc history has
+edge of its age grid (resolution about 3 Gyr), thick-disk history has
 a second bump near 10 Gyr and stops about 11 Gyr. The plan's FCC 153,
 FCC 177 and '2 to 4 Gyr first phase' statements need [R0349, R3532] (not uploaded) and stay unverified.
 Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
@@ -4923,7 +4928,7 @@ factor over the band) for the populations a bubble touches, and
 <code>bright_stars._spots</code> multiplies its wanted density by the exact
 factor at the point, so its <code>wanted &lt;= bound</code> check still holds. The
 phenomena pass (<code>generation/phenomenon_scatter.py</code>), which has no
-certified bound and uses bin-centre values with positions uniform in
+certified bound and uses bin-center values with positions uniform in
 the wedge, thins every candidate by factor(x) / factor_max so a rim
 collects more and an interior fewer within one wedge. Done: the
 bright-star check passes over a galaxy with large bubbles and the
@@ -4946,7 +4951,7 @@ Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
 the regions and let them adjust the star density function for the
 space they occupy, so a sector builds following the bubbles without
 drawing them. A sector that a bubble cuts through gets the expected
-count from the cell mean of the factor (GEN.392), not the centre
+count from the cell mean of the factor (GEN.392), not the center
 value, and places each young and intermediate star by rejection
 against the cell's maximum so the stars crowd toward the side the
 factor favors and away from the cavity; old stars stay uniform.
@@ -5037,7 +5042,7 @@ owner line).
 Prerequisites: none. Related: GEN.319, GEN.320, GEN.134,
 GEN.254.
 Body composition research lane finding F6 (2026-10-17):
-<code>METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06</code> (tuning.py, marked
+<code>METALLICITY_DISK_FALL_DEX_PER_KPC = 0.06</code> (tuning.py, marked
 recalled) is 0.01 above the 0.053 dex/kpc computed from [R1856: Table 1] (R &gt; 6 kpc); the position-dependent metallicity of this item
 derives the gradient from the galaxy's laws, and the comment and
 constant go with it.
@@ -5045,7 +5050,7 @@ Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
 docs/design/galaxy/galaxy-laws-research.md, sections Q2 and Q4): the halo
 metallicity law and its offset ([R1816]: about -0.6 dex against
 the relation at the halo mass, about -0.9 dex against the host's own
-centre, derived there; [R1168] give a physical
+center, derived there; [R1168] give a physical
 alternative) and the ages of the components for the rates by
 population. Conflicts 9 (halo age: the code's 10 to 13 Gyr against
 [R1815]'s younger massive haloes) and 10 (the metallicity
@@ -5403,7 +5408,7 @@ point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H<sub>2</sub>SO<sub>4
 remarks carry no constants and stay unadopted until [R0210, R4289, R4877] are read.
 Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
 answers relayed in words by the coordinator;
-docs/design/research/gap-filling-plan.md section 8): AD7 vapour pressure:
+docs/design/research/gap-filling-plan.md section 8): AD7 vapor pressure:
 [R4289, R4877] are on Boss's own list; the nearest
 reachable fits stay meanwhile.
 Papers list (2026-10-17, filed by the TODO thread;
@@ -5427,12 +5432,12 @@ branches discontinuous at a_w 0.05 and 0.85 (steps of 0.2 to 1 weight
 percent); test at 200 K and 60 weight percent: P0 3.165e-3 mbar and
 a_w 0.0735 [R]. [R4877] gives the Gibbs energy function (Eq. 12
 to 13, 50 parameters, Table 6A) and activities and osmotic
-coefficients at 200 to 350 K: no vapour phase and no partial
+coefficients at 200 to 350 K: no vapor phase and no partial
 pressures; against Tabazadeh the water activity differs by 10 to 22
 percent at 60 to 70 weight percent and 200 to 220 K and under 5
 percent at 40 to 50 percent and 250 K. Printing faults: Zeleznik Eq.
 12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
-prints the acid vapour pressure: it needs [R0210] (paid) or the
+prints the acid vapor pressure: it needs [R0210] (paid) or the
 Kulmala-Laaksonen form already in the files; the stand-in stays.
 Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
 2026-10-18, as the coordinator reported them): fork 1, &quot;One bump for
@@ -5693,7 +5698,7 @@ zone kernel in a / a_snow of the system's own snow line, GEN.458; a
 flagged <code>stand-in</code> until GEN.473 replaces it), with the components
 following from the taxon's analogue chemistry, the 84-name list kept
 only as a vocabulary of names; (E2) the belt density follows the
-belt's mass per area from the disc and not a separate draw; (E3) the
+belt's mass per area from the disk and not a separate draw; (E3) the
 eight field families are a gated possibility table whose frequencies
 are flagged <code>stand-in</code> (no source), replaced under GEN.473 by the
 composition of the system whose bodies the field was stripped from, or
@@ -5763,7 +5768,7 @@ the belt half is confirmed against the Done line; Lane K to say what
 remains.
 Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
 lane reported): belt half remaining: (E2) belt density from mass per
-area, which needs a belt mass and a depletion factor against the disc
+area, which needs a belt mass and a depletion factor against the disk
 surface density and has no source yet (a design question), and the
 stored taxon-share and component columns (DB.70). Taxa, four-level
 words and fields are done.
@@ -5787,7 +5792,7 @@ Lock-free step first; the wiring step rides train 6. Brief:
 /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 E2 lock-free step merged (2026-10-29 10:51 PM EDT): Sources 2 merged
 the E2 lock-free step (#3855, as the lane reported 10:51 PM EDT): belt
-mass from the disc and collisional grinding, registry BM1 and BM2
+mass from the disk and collisional grinding, registry BM1 and BM2
 (section 6.43). The wiring step needs a DB.70 mass column plus a
 migration and moves belt density words only. GEN.477 stays open for
 the other parts and the wiring.</p>
@@ -5866,7 +5871,7 @@ DERIVED, and TEST.214 lists fewer <code>open</code> rows. Owner: unowned
 Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
 docs/design/composition/tunable-gaps.md): o2 Th scatter is 0.056 dex for solar
 twins (Botelho) to 0.19 dex mixed catalogues (Hypatia), not 0.14 to
-0.19 for the thin disc; o3 K/U depletion has only Solar System bodies
+0.19 for the thin disk; o3 K/U depletion has only Solar System bodies
 (Moon 0.032, Earth 0.18, Mercury 0.18, Mars 0.28) unless Boss accepts
 Na in 202 DZ white dwarfs as a proxy for formation temperature
 [R1832]: Solar System K/U must not be the
@@ -5911,7 +5916,7 @@ EDT): Owner: Sources 1 (claude/gen492); Sources 2 has not started it.
 Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 6.
 Sources 1 (step 1 merged as #4046, as the lane reported) (2026-10-30
 11:46 AM EDT): Lock-free step done: physics/potassium_depletion.py
-draws potassium depletion by body class from [R1003: Table 1] (planets of 0.03 Earth masses or more centre on 0.19 with 0.15 dex,
+draws potassium depletion by body class from [R1003: Table 1] (planets of 0.03 Earth masses or more center on 0.19 with 0.15 dex,
 smaller bodies on 0.015 with 0.94 dex); rows KD1 to KD4 in section
 6.61; report
 /mnt/project-files/reports/gen492-potassium-depletion-2026-10-30.md.
@@ -6205,7 +6210,7 @@ docs/design/research/gap-filling-plan.md), sizing and answers. Gemini batch 1
 holds about 110 distinct claims, about 45 checkable; the plan checked
 20 of them: 8 agree with verified sources, 7 are contradicted by a
 verified figure (the occupation mass, the occupation edges, the
-thick-disc formula, three age-velocity numbers, the nuclear cluster
+thick-disk formula, three age-velocity numbers, the nuclear cluster
 slope) and 5 are unsupported, misattributed or internally
 inconsistent. A separate checking thread for the other 25 checkable
 claims is recommended and waits on Boss's card answer. Already
@@ -6224,7 +6229,7 @@ loss fraction, sub-percent water, haze yield); 4 the licence for
 downloaded line lists and star catalogues (HITRAN, ExoMol, Brewer
 2016, Hypatia); 5 papers behind refused publishers; 6 the Courteau
 2007 64-galaxy table and the Comeron fit equations; 7 external-galaxy
-thick-disc histories ([R3531, R3532] and similar). Boss (11:17 AM EDT,
+thick-disk histories ([R3531, R3532] and similar). Boss (11:17 AM EDT,
 card tap &quot;One checking thread&quot; as the coordinator reported) chose a
 single read-only thread to check the other checkable claims of Gemini
 batch 1; &quot;Gemini batch 1 check (2026-10-17)&quot; started at 11:19 AM EDT
@@ -6251,7 +6256,7 @@ that need the originals wait for his files. 6 [R0908] (GR5) and
 [R0861], 2012, 2014 (GR3): ship the fills and run the quick
 VizieR search first (a short read-only thread; GEN.401 carries both
 gaps and GEN.402 carries GR5, so a result lands as a replacement after
-GEN.401 merges). 7 Thick-disc start in other galaxies (GR6): the halo
+GEN.401 merges). 7 Thick-disk start in other galaxies (GR6): the halo
 formation epoch plus a 0 to 1 Gyr delay, a labelled placeholder until
 S0 histories are found. Papers for Boss's own research list (decision
 5; titles from the Crossref record unless marked; stand-ins stay until
@@ -6313,10 +6318,10 @@ samples are 154, 24, 54 and 11 galaxies, there is no &quot;64&quot;). The raw
 scatter of log10(Vc/sigma0) of two source samples is 0.104 to 0.123
 dex ([R3619] J/A+A/366/68; [R3540]),
 inside or at the top of the plan's 0.06 to 0.12 bracket, so the fill
-stays. R3 (thick-disc formulas) is answered by the [R0865] table J/A+A/610/A5 [R0865]:
+stays. R3 (thick-disk formulas) is answered by the [R0865] table J/A+A/610/A5 [R0865]:
 log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc), scatter 0.27 dex,
 median height ratio 4.2, median length ratio 1.46. Corrections: A&amp;A
-562, A121 is the ARRAKIS ring atlas, the 2014 thick-disc paper is A&amp;A
+562, A121 is the ARRAKIS ring atlas, the 2014 thick-disk paper is A&amp;A
 571, A58 [R0864]; the [R0861] and 2012 tables are not
 on VizieR (superseded by 2018). Gemini batch 1 check (2026-10-17,
 finished 11:49 AM EDT as the lane clock reported;
@@ -6327,15 +6332,15 @@ Answered by a usable table: R2 (digitised [R3790] Fig 3,
 [R1169] Figs 13(b) and 16(b), [R0338] Figs
 10 and 11), R5 (Courteau scatter 0.097 dex about the paper's own line,
 79 markers digitised from its Fig 2; this supersedes the raw 0.104 to
-0.123 of the VizieR note as the centre candidate inside the plan's
+0.123 of the VizieR note as the center candidate inside the plan's
 0.06 to 0.12 bracket), R12 (the z_re table with Busha's spread of 6.3
 to 11.6), R13 ([R3209] ultra-faint sizes: 15 objects, 27.7 to 234
 pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with brightness)
 and parts of R3 ([R0865] fit), R6 [R0860, R3531, R3928], R10 ([R0894] analytic z50). Still open for Boss's
 list: R1, R4 beyond the Milky Way, R7, R8, R14, and parts of R6 (the
-oldest thick-disc ages), R9 (cluster ages), R10 (a simulation fit),
+oldest thick-disk ages), R9 (cluster ages), R10 (a simulation fit),
 R11 (the dwarf relation's scatter). Corrections carried on the items:
-the occupation centre is 10^9.33 Msun/h with width 0.21 dex (Gemini's
+the occupation center is 10^9.33 Msun/h with width 0.21 dex (Gemini's
 10^8.6 is the no-reionization limit); the 1.9 stellar-to-halo slope is
 [R1522, R1523] (1.92), not UniverseMachine; halo formation z50
 is 1.02 at 1e10 (not 1.9); the age-velocity normalisations are 21.1
@@ -6364,7 +6369,7 @@ labelled stand-ins stay: AD4 for SO<sub>2</sub>, H<sub>2</sub>S, H<sub>2</sub>, 
 AD1 (Karkoschka, paid), AD2 Titan (Tomasko, paid), AD8 (JPL 19 not
 uploaded), BC12 (Fray and Schmitt, paid), BC13 (ICRP tables missing
 from the extract), comet N<sub>2</sub>, O<sub>2</sub>, Ar, Kr, Xe, the mantle redox mass
-law, the acid vapour pressure [R0210], GR1, GR10, GR12, GR14, GX5
+law, the acid vapor pressure [R0210], GR1, GR10, GR12, GR14, GX5
 and the rows the Knapen book and Gowanlock leave untouched. Twelve
 places where the paper wins over our files are listed on the items
 that use them (report section 3). Wolff's Mars dust spectra are
@@ -6538,7 +6543,7 @@ or off, satellite galaxies on or off) is read by every scatter
 command, and each scatter kind checks only the switch that concerns
 it: the halo scatter kinds read the halo switch, the satellite and
 satellite-component scatter kinds read the satellite switch, the kinds
-that concern neither (the disc, bulge and core scatters) read neither;
+that concern neither (the disk, bulge and core scatters) read neither;
 either switch can be on without the other. The design settles which
 scatter kind reads which switch.
 Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, &quot;Migrate in 8.5&quot;,
@@ -6661,7 +6666,7 @@ setting (halo on or off, satellite galaxies on or off) is read by
 every scatter command, and each scatter kind checks only the switch
 that concerns it: the halo scatter kinds read the halo switch, the
 satellite and satellite-component scatter kinds read the satellite
-switch, the kinds that concern neither (the disc, bulge and core
+switch, the kinds that concern neither (the disk, bulge and core
 scatters) read neither; either switch can be on without the other.
 Done also: a test per scatter kind that it reads only its own switch.
 Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, &quot;Migrate in 8.5&quot;,
@@ -6938,7 +6943,7 @@ prerequisite of GEN.301.
 System design (Boss, 12:03 AM EDT, 2026-10-18; his nine cards S1 to
 S9, 12:10 to 12:15 AM EDT, as the coordinator relayed;
 docs/design/architecture/unified-system-barycentre.md): one System rule with the
-barycentre as the origin. Filed: SY1 as text edits to GEN.552, GEN.315
+barycenter as the origin. Filed: SY1 as text edits to GEN.552, GEN.315
 and GEN.264 (8.1, no new item), SY2 TEST.241, SY3 GEN.576, SY4 DB.78,
 SY5 GEN.577, SY6 GEN.578, SY7 MAP.253, SY8 GEN.579, SY9 GEN.580, SY10
 TEST.242, SY11 DOC.71. Moons are no longer the lowest level (card S6);
@@ -7206,7 +7211,7 @@ free one. Stand-ins for the gap registry that this slice adds: nesting
 of failure windows above the verified islands (stand-in); kick sigma
 265 km/s (recalled, [R1966], unverified); black hole unbound share
 2 percent (placeholder); a single Maxwellian instead of two
-components; birth only in the thin disc; ejecta speed not yet the kick
+components; birth only in the thin disk; ejecta speed not yet the kick
 tail above escape; <code>remnant_distribution</code> placement still empirical;
 the neutron star and black hole mass function unchanged (a later
 slice); magnetars still use the tuning rate as their stand-in.
@@ -7227,7 +7232,7 @@ docs/design/systems/explosion-islands.md and docs/design/systems/natal-kick.md:
 nesting of failure windows above the verified islands [stand-in]; kick
 sigma 265 km/s [recalled, [R1966]]; black hole unbound share 2
 percent [placeholder]; one Maxwellian [stand-in]; birth in the thin
-disc only [stand-in]; the black hole ejecta speed range [stand-in].
+disk only [stand-in]; the black hole ejecta speed range [stand-in].
 Still open in this item: the neutron star mass function, the placement
 of kicked remnants, the ejected neutron star speed (slice 4, merged
 below) and the magnetar rate stand-in.
@@ -7569,7 +7574,7 @@ including planetary and lunar, should both be built into the object
 mass functions (since they're all the same rules)&quot;. The mass object
 core carries the trajectory of every kind of motion with one set of
 rules: galactic motion, a planet's and a moon's orbit about its
-parent, a comet's Kepler state and a star's orbit about a barycentre.
+parent, a comet's Kepler state and a star's orbit about a barycenter.
 GEN.565a (#2274) covers only the galactic-motion fields and the save
 and load, so GEN.565b and the kinematic record of GEN.584 must bring
 the planetary and lunar trajectory into the same core functions; Core
@@ -7795,15 +7800,15 @@ Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, DB.74.
 Design: <a href="design/architecture/unified-unit-quantity.html">docs/design/architecture/unified-unit-quantity.md</a></p>
 </li>
 <li>
-<p>[ ] <strong>GEN.576 system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check</strong>
+<p>[ ] <strong>GEN.576 system(host): the one function that groups bodies by their parent link and returns the barycenter sums, the central object's offset and the valid-system check</strong>
 Part of the unified orbited-body plan (GEN.550; design note
 docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
 on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -7812,8 +7817,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -7853,15 +7858,15 @@ Design: <a href="design/architecture/unified-system-barycentre.html">docs/design
 Folded in (2026-11-07, Boss approved the TODO plan): TEST.242 Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit. Its Done line: all pass at several depths.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.577 Stored planet and moon states become the state of the barycentre of the body and its own members</strong>
+<p>[ ] <strong>GEN.577 Stored planet and moon states become the state of the barycenter of the body and its own members</strong>
 Part of the unified orbited-body plan (GEN.550; design note
 docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
 on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -7870,8 +7875,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -7882,7 +7887,7 @@ objects follow the same physics, so the origin of the system's space
 is the gravitational center and the central object may move around it.
 Item SY5 of the note (card S1). Proposed owner, not assigned by a
 card: Lane 14. Do: a re-expression of existing rows so a planet's
-stored state is the orbit of the barycentre of the planet and its
+stored state is the orbit of the barycenter of the planet and its
 moons about the central object, the same rule at every level as the
 scatter tree already stores; values change in the last digits, so it
 is one epoch with DB.78. Consumers that need the true separation
@@ -7894,15 +7899,15 @@ Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
 Design: <a href="design/architecture/unified-system-barycentre.html">docs/design/architecture/unified-system-barycentre.md</a></p>
 </li>
 <li>
-<p>[ ] <strong>GEN.578 The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star</strong>
+<p>[ ] <strong>GEN.578 The point class gets the local frame and the barycenter system frame, and the system anchor is no longer the nearest star</strong>
 Part of the unified orbited-body plan (GEN.550; design note
 docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
 on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -7911,8 +7916,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -7924,12 +7929,12 @@ is the gravitational center and the central object may move around it.
 Item SY6 of the note (section 4.3, card S7). Proposed owner, not
 assigned by a card: Lane 14 (with the position-class sweep of GEN.573).
 Do: in <code>physics/position.py</code>, the system frame becomes the offset from
-the barycentre of the top-level system of the body (was the nearest
+the barycenter of the top-level system of the body (was the nearest
 star) and a new local frame is the offset from the immediate parent's
-barycentre, both derived by walking the parent chain with the same
+barycenter, both derived by walking the parent chain with the same
 lazy forms as the sector and galactic frames; nothing else in the
 class changes. Done: the point class's tests pass and a body's
-absolute position equals the top barycentre plus the sum of the
+absolute position equals the top barycenter plus the sum of the
 offsets down its chain.
 Prerequisites: GEN.576. Related: GEN.550, GEN.552,
 GEN.315, GEN.565.
@@ -7984,10 +7989,10 @@ revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
 EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
 objects that orbit each other follow one rule; before a system is
 validated the heaviest object becomes the primary and the others are
-recalculated from their original values; the barycentre is always the
+recalculated from their original values; the barycenter is always the
 origin; coordinates are relative at every level, so a moon follows its
 planet and the planet follows the star; the point-in-space object
-updates the relative coordinates, knows its centre's position in wider
+updates the relative coordinates, knows its center's position in wider
 space and gives converted coordinates for any frame on demand; and it
 also stores the vector of motion, the spin and the other attributes of
 the object with a mass classification. Item SY12 of the note (sections
@@ -8000,12 +8005,12 @@ under 1e-9 relative keeps the draw order, so the step is stable and
 idempotent and does not depend on the order members are listed), nest
 by distance (members inside the demoted body's stable zone stay with
 it as a sub-system, members outside the pair's orbit orbit the pair's
-barycentre, members in the unstable gap are moved or dropped by the
+barycenter, members in the unstable gap are moved or dropped by the
 existing outermost-first rule), recompute everything that depends on
 the primary from the original values, then validate. Two bodies:
 re-primarying a pair is a relabel plus a sign (the relative position
 is negated, the phase moves by 180 degrees, the elements and the
-barycentre are unchanged) and every absolute position is identical.
+barycenter are unchanged) and every absolute position is identical.
 The four copies of the swap retire to it: <code>multistar._Builder.place</code>
 (line 620), <code>generation/system.py:299-308</code>,
 <code>generation/wide_binary.py:119-121</code> and <code>generation/binary.py</code>
@@ -8046,10 +8051,10 @@ revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
 EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
 objects that orbit each other follow one rule; before a system is
 validated the heaviest object becomes the primary and the others are
-recalculated from their original values; the barycentre is always the
+recalculated from their original values; the barycenter is always the
 origin; coordinates are relative at every level, so a moon follows its
 planet and the planet follows the star; the point-in-space object
-updates the relative coordinates, knows its centre's position in wider
+updates the relative coordinates, knows its center's position in wider
 space and gives converted coordinates for any frame on demand; and it
 also stores the vector of motion, the spin and the other attributes of
 the object with a mass classification. Item SY13 of the note (section
@@ -8102,10 +8107,10 @@ revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
 EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
 objects that orbit each other follow one rule; before a system is
 validated the heaviest object becomes the primary and the others are
-recalculated from their original values; the barycentre is always the
+recalculated from their original values; the barycenter is always the
 origin; coordinates are relative at every level, so a moon follows its
 planet and the planet follows the star; the point-in-space object
-updates the relative coordinates, knows its centre's position in wider
+updates the relative coordinates, knows its center's position in wider
 space and gives converted coordinates for any frame on demand; and it
 also stores the vector of motion, the spin and the other attributes of
 the object with a mass classification. Item SY14 of the note (sections
@@ -8120,7 +8125,7 @@ needs for a bound planet that becomes free; if the central object is
 ejected the remaining members re-rank and the heaviest remaining
 becomes central without any body moving. Done: absolute position and
 velocity, total linear momentum and the orbital angular momentum about
-the barycentre are unchanged by <code>reparent</code>.
+the barycenter are unchanged by <code>reparent</code>.
 Prerequisites: GEN.578. Related: GEN.550, GEN.565, GEN.576, GEN.578.
 Design: <a href="design/architecture/unified-system-barycentre.html">docs/design/architecture/unified-system-barycentre.md</a>
 Folded in (2026-11-07, Boss approved the TODO plan): TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change. Its Done line: all pass at several depths.</p>
@@ -8155,10 +8160,10 @@ revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
 EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
 objects that orbit each other follow one rule; before a system is
 validated the heaviest object becomes the primary and the others are
-recalculated from their original values; the barycentre is always the
+recalculated from their original values; the barycenter is always the
 origin; coordinates are relative at every level, so a moon follows its
 planet and the planet follows the star; the point-in-space object
-updates the relative coordinates, knows its centre's position in wider
+updates the relative coordinates, knows its center's position in wider
 space and gives converted coordinates for any frame on demand; and it
 also stores the vector of motion, the spin and the other attributes of
 the object with a mass classification. Item SY17 of the note (section
@@ -8303,13 +8308,13 @@ Prerequisites: none. Related: GEN.550, GEN.568, GEN.569.
 Design: <a href="design/architecture/unified-unit-quantity.html">docs/design/architecture/unified-unit-quantity.md</a></p>
 </li>
 <li>
-<p>[ ] <strong>GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets</strong>
+<p>[ ] <strong>GEN.593 Pulsar planets: the disk range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets</strong>
 Design gaps in GEN.317 found by Lane 13 while building it (reported
 11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
 EDT; branch claude/pr-gen317-pulsar-planets, epoch 32 pending, no
-migration), filed by the TODO thread. GEN.317 builds the disc origin
+migration), filed by the TODO thread. GEN.317 builds the disk origin
 of a millisecond pulsar's planets (25 percent), the spin-down power
-and the pulsar wind pressure on the magnetopause. Gap 1: the disc mass
+and the pulsar wind pressure on the magnetopause. Gap 1: the disk mass
 range 0.01 to 10 Earth masses is cut at planet class C's top radius,
 3.3 Earth masses, so planets as heavy as PSR B1257+12's 4.3 and 3.9
 Earth masses are never drawn (the test target, never an input: NO
@@ -8319,11 +8324,11 @@ masses, beyond class J's 13 Jupiter masses, with no stripped-core
 class) give the pulsar no planets, so 25 percent of the pulsars that
 roll planets hold them. Do: gap 1, either a larger carbon-rich class
 or raise class C's 10,000 km radius ceiling from the sources, so the
-disc range reaches its own top; gap 2, Lane 13 suggests the ablated
+disk range reaches its own top; gap 2, Lane 13 suggests the ablated
 companion rides GEN.555 (the pair builder, 8.4) and the captured giant
 waits for GEN.163, and the item says which stand-in the pulsar gets
 until then (a labelled placeholder, tunable, per the gap plan). Done:
-a disc-origin pulsar can draw planets up to the top of its mass range,
+a disk-origin pulsar can draw planets up to the top of its mass range,
 and each unbuilt path is named with its prerequisite and its stand-in.
 Owner: Lane 13 (proposed). Default (stands unless Boss overrules): not
 a prerequisite of GEN.301; value-changing, so it takes the next free
@@ -8349,7 +8354,7 @@ fallback. The datasets: AD1 (giant visible absorption, GEN.422), AD2
 (dust and haze spectra, GEN.423), AD3 (infrared opacity, GEN.413,
 GEN.414), AD4 (Rayleigh, GEN.422), AD5 (particle spectra, GEN.436,
 GEN.444), AD6 (hot-giant line lists, GEN.485, GEN.499), AD7 (acid
-vapour pressure, GEN.471, GEN.491) and AD8 (photochemistry rates,
+vapor pressure, GEN.471, GEN.491) and AD8 (photochemistry rates,
 GEN.496, GEN.501). Do: each AD item names the best possible fallback
 of its dataset (the labelled stand-in of the gap registry, section
 6.6, chosen as the closest honest value and labelled recalled,
@@ -8451,7 +8456,7 @@ fit with six coefficients). Do not use the [R0319] fit below
 range. Still unsourced: a size law below log M* 5.5 (ultra-faint
 dwarfs fall below the power law: Segue 1 is 0.37 dex under it), a
 stellar-to-halo formula below 5e5 solar masses, and any dwarf scale
-height as a disc (these are spheroids; the observed flattening is the
+height as a disk (these are spheroids; the observed flattening is the
 only height). Needs Boss: only those three gaps (or his word that a
 labelled placeholder bracket stands there). Until it lands, the lowest
 mass the Scale dial accepts is the lowest the laws cover and the lower
@@ -8498,11 +8503,11 @@ Dwarf-mass laws already worked out in docs/design/galaxy/galaxy-types.md
 sections 6.4 and 6.5 (the [R0655] fits, GEN.378, #2368): reuse
 them.
 Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
-relayed by the galaxy size research thread): the thick disc, the bar,
-the stellar halo and the nuclear cluster and disc switch off below 3e8
-solar masses of stars; below it a galaxy is one disc plus a bulge. The
+relayed by the galaxy size research thread): the thick disk, the bar,
+the stellar halo and the nuclear cluster and disk switch off below 3e8
+solar masses of stars; below it a galaxy is one disk plus a bulge. The
 structure laws of this item stop at the cut (GEN.615); below it a
-galaxy is one disc plus a bulge.
+galaxy is one disk plus a bulge.
 Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
 relayed by the galaxy size research thread): the scale length floor is
 28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
@@ -8557,13 +8562,13 @@ Catalog section 3.
 Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.380.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.619 A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold</strong>
+<p>[ ] <strong>GEN.619 A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disk scale length, with the one-star outline rule as a density threshold</strong>
 Boss (2026-10-21, 8:08 PM EDT, on the card &quot;Yes, file it as a later
 item&quot;, relayed by the galaxy size research thread; report
 /mnt/project-files/reports/density-limits-2026-10-21.md, section 7).
 Today every sector edge is 4 pc (a decision of 2026-10-08), so a
 galaxy under about 28 pc scale length has fewer than 7 cells across
-its scale length and the centre-point density is wrong there (plus 50
+its scale length and the center-point density is wrong there (plus 50
 to 184 percent systems at 7.1 pc, report section 2.1). Do: a galaxy
 gets an edge of 4, 2 or 1 pc chosen by its scale length, whole
 parsecs, so that about 7 cells span the scale length; the one-star
@@ -8660,7 +8665,7 @@ Split from GEN.631 (Lane 13's re-cut, relayed 2:20 PM EDT 2026-10-23 as
 the lane reported; TODO thread agreed). BinaryStarProxy and
 WideBinaryPair are the only code that hosts planets around a two-star
 system today (the circumbinary floor, each star's stability ceiling,
-the secondary's own planet list, the barycentre wobble). Giving those
+the secondary's own planet list, the barycenter wobble). Giving those
 planets back through physics/planet_zones.py is GEN.332's content, so
 the classes can go only after GEN.332. Do: delete BinaryStarProxy,
 WideBinaryPair and the writers of the binary_* columns (no shim), so
@@ -8681,7 +8686,7 @@ index 2.1 and saturation 9 Msun/pc2. Retune the index and the
 saturation, or the gas-thinning law, until the shares fall inside the
 observed range, with the choice named. (2) GEN.270 (close-binary
 types, in its gate): tight_tail_weight is 6.0 and the Algol share
-comes out at 0.09% of a constant-star-formation disc against the 0.1%
+comes out at 0.09% of a constant-star-formation disk against the 0.1%
 to 0.2% window (a lower limit; a higher weight would put over 1% of
 systems under one day). Decide the weight or add the missing physics,
 and record the residual in the generation-output line.
@@ -9573,7 +9578,7 @@ marked [R] in the design is read from its source by the lane that
 builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
 are test targets, never inputs. Lock work, train 7. Design section
 2.1 and 4 steps 1 to 3: the annulus from the architecture gap or tail,
-M0 from the disc solids, the formation snow line stored, the giants'
+M0 from the disk solids, the formation snow line stored, the giants'
 chaotic zones and resonance gaps removed, the early-depletion draw.
 The belt gap map is a clearance entry in the GEN.1014 ledger. Done:
 tests, a new epoch with --affects, the census re-baselined by the
@@ -9646,7 +9651,7 @@ table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
 density GEN.1093, resonance map GEN.1062, history GEN.1064); the
 wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
 built, train 8), GEN.1069, GEN.1070 (pages with Lane 12), GEN.1071
-(outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+(outer disk and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
 Lane 22 as owner, in that order, after GEN.1014 (train 8).
 Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
 Design: <a href="design/systems/belt-evolution.html">docs/design/systems/belt-evolution.md</a></p>
@@ -9752,7 +9757,7 @@ Prerequisites: GEN.1084. Related: GEN.1014.
 Design: <a href="design/systems/captured-asteroid-moons.html">docs/design/systems/captured-asteroid-moons.md</a></p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page</strong>
+<p>[ ] <strong>GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disk fed from the scatter step, origin and formation shown on the belt page</strong>
 Belt origins (Boss, 2026-10-30, plan the items so each belt says where
 we think it came from, we know because we made it; design
 docs/design/systems/belt-origins.md, goal #4130). Defaults pending
@@ -9762,8 +9767,8 @@ planets are listed on the system page as members of their belt, not in
 the planet list; the scatter phase is a rule over the architecture's
 events with stored mass shares, no N-body run. Stand-ins accepted when
 registered in GEN.725 with tier and tweak level; the Solar System is a
-test target, never an input. Lock work, train 7 with the outer-disc
-item (it extends the member storage and the outer disc). New epoch,
+test target, never an input. Lock work, train 7 with the outer-disk
+item (it extends the member storage and the outer disk). New epoch,
 API bump with the change note. Done: tests, harness, census
 re-baseline; every belt page says where it came from. Where we think
 it belongs (best guess, can move): Sources 2 with Lane 21, train 7.
@@ -9775,9 +9780,9 @@ GEN.1068 reads its result).
 Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
 4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
 Kuiper-type objects (classical cold and hot, resonant, scattered,
-detached) are generated from the cold outer disc and swept by the
+detached) are generated from the cold outer disk and swept by the
 scatter step, with dwarf planets drawn from the size law (GEN.1090),
-the outer disc being the belt of GEN.1071.
+the outer disk being the belt of GEN.1071.
 Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
 EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
 objects above a mass threshold, a scatter step in the system before
@@ -9787,7 +9792,7 @@ table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
 density GEN.1093, resonance map GEN.1062, history GEN.1064); the
 wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
 built, train 8), GEN.1069, GEN.1070 (pages with Lane 12), GEN.1071
-(outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+(outer disk and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
 Lane 22 as owner, in that order, after GEN.1014 (train 8).
 Prerequisites: GEN.1070.
 Design: <a href="design/systems/belt-origins.html">docs/design/systems/belt-origins.md</a></p>
@@ -9979,7 +9984,7 @@ secondary orbit, not an overlap.
 Prerequisites: GEN.1006. Related: GEN.1077.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1151 Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row</strong>
+<p>[ ] <strong>GEN.1151 Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disk formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row</strong>
 Epoch lock, train 8 or 9. Report
 /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
 repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
@@ -10013,7 +10018,7 @@ Prerequisites: none.</p>
 <p>[ ] <strong>GEN.1157 Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture</strong>
 Boss, relayed by Lane 22 (10:26 PM EDT 2026-10-30): file separately the
 case of planets as moons, Earth-type moons around gas giants. Decide
-from physics (circumplanetary disc formation, capture of a binary
+from physics (circumplanetary disk formation, capture of a binary
 planet, giant impact) how often a giant has a moon of planet size and
 how large it can be (mass range, with the satellite-to-planet mass
 ratio limit), draw it with the same generator as in-system planets and
@@ -10127,19 +10132,19 @@ API version) is lock work and needs GEN.1159 on main first.
 Prerequisites: GEN.1159.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low</strong>
+<p>[ ] <strong>GEN.1202 The generator's disk gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disk cluster maximum mass too low</strong>
 Finding from Lane 13's GEN.1196 build (as the lane reported, 4:52 AM
 EDT 2026-10-31), filed by the TODO thread. Kind: generation result
-against observation. Object: the disc gas profile of a drawn spiral
+against observation. Object: the disk gas profile of a drawn spiral
 galaxy (Milky Way shape) used for the cluster maximum mass. Result:
-the generator's disc gas at 8 kpc is 4.3 solar masses per pc2 against
+the generator's disk gas at 8 kpc is 4.3 solar masses per pc2 against
 about 13 measured (neutral plus molecular gas near the solar circle);
 the cluster maximum goes steeply with gas surface density, so with the
 sourced relation of [R3720] the heaviest Milky
-Way shape disc cluster comes out at 4.1e3 solar masses, below the 1e4
+Way shape disk cluster comes out at 4.1e3 solar masses, below the 1e4
 to 4e4 observed. Do: find the source of the 13 figure and the gas
 profile it belongs to (atomic plus molecular gas by radius), say why
-the generator's disc gas is low (law, star formation history
+the generator's disk gas is low (law, star formation history
 consumption or radius mapping), fix the profile or register the
 stand-in in GEN.725 with tier and tweak level; the measured profile is
 the plausibility target, never fixed Milky Way content. Lock work
@@ -10182,16 +10187,16 @@ species work).
 Prerequisites: GEN.1021.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1228 Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)</strong>
+<p>[ ] <strong>GEN.1228 Hematite (the oxidized ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)</strong>
 Finding from Aux 4's MAP.274 build (as the lane reported, 12:52 PM
 EDT 2026-10-31).
 The materials table's hematite_fine reflectance is flat across the
 three bands the land colour reads (0.092 at 450 nm, 0.086 at 550 nm,
-0.085 at 650 nm), so ground that is mostly oxidised iron renders dark
+0.085 at 650 nm), so ground that is mostly oxidized iron renders dark
 grey, where real hematite dust is red because it reflects far more at
 650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
 bands in the table (written in docs/design/interface/body-rendering.md
-section 4.1). Changes the colour of oxidised worlds on the map and
+section 4.1). Changes the colour of oxidized worlds on the map and
 body pages only; no stored generator value moves. Lock-free (the
 land colour, MAP.274, has merged).
 Prerequisites: none.</p>
@@ -10377,7 +10382,7 @@ Prerequisites: none. Related: GEN.1265, PERF.228.
 Folded in (2026-11-07, Boss approved the TODO plan): TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug). Its Done line: both pass on plain main under the narrow gate.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)</strong>
+<p>[ ] <strong>GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic center (later)</strong>
 Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
 recommendations, option 1 on all five questions
 (reports/view20-realistic-dust-2026-11-05.md): dust built from the
@@ -10385,10 +10390,10 @@ galaxy's own gas, nearly clear small galaxies are accepted,
 metallicity by galaxy mass, the gradient per scale length, and a
 smooth disk first with the central molecular zone as a later item. The
 first dust model is a smooth disk with a 40 pc floor, so the
-Sun-to-centre line (39 mag) is in range but depends on the floor. Do
+Sun-to-center line (39 mag) is in range but depends on the floor. Do
 (later, after the potential replaces the floor): add the central
 molecular zone, the gas ring of galaxy.core_gas (GEN.282), to the dust
-model so the centre's extinction is a feature and not a floor, and
+model so the center's extinction is a feature and not a floor, and
 check the Galactic Center column against 31 to 59 mag. Lock-free.
 Version: later. Owner: none yet. Filed by the TODO thread.
 Prerequisites: VIEW.46. Related: GEN.282, GEN.115.</p>
@@ -10919,8 +10924,8 @@ on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -10929,8 +10934,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -11743,8 +11748,8 @@ populated area, basically the spot that is farthest from everything
 that you can get within the sector.&quot; Done: from the sector page, an
 admin adds a new or existing stand-alone system by (1) the emptiest
 point (farthest from every object), (2) coordinates in Cartesian,
-cylindrical or spherical form relative to the sector centre or the
-galaxy centre (GEN.74), or (3) random; no placement may fall inside
+cylindrical or spherical form relative to the sector center or the
+galaxy center (GEN.74), or (3) random; no placement may fall inside
 another object's Hill sphere, nothing existing moves without the admin
 confirming, and a placement that can't be made fails with a message
 and changes nothing.
@@ -12035,7 +12040,7 @@ Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
 has complete control; the world adjusts to what the admin wants, after
 the admin approves the generation plan. The admin moves a star system
 or a phenomenon by new coordinates (the three coordinate forms of
-ADM.32, relative to the sector or the galaxy centre), by dragging on
+ADM.32, relative to the sector or the galaxy center), by dragging on
 the Sector Map, or to the emptiest spot: the plan checks Hill spheres
 and cover lists, changes the sector membership and the neighbours'
 cover lists, and never moves anything else unless the admin approves
@@ -12907,18 +12912,18 @@ switching on again regenerates the region from the seed with the same
 object IDs.</p>
 </li>
 <li>
-<p>[ ] <strong>TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid</strong>
+<p>[ ] <strong>TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's center with its sector's cell, but the cloud is filed by its centroid</strong>
 Observation by Lane 11 (2026-10-17, 7:07 PM EDT as the lane reported),
 filed by the TODO thread.
 <code>src/tests/test_galaxy_gen.py::test_stars_and_phenomena_fit_within_their_sectors_real_cells</code>
-compares a nebula's centre with its sector's cell, but a field cloud
+compares a nebula's center with its sector's cell, but a field cloud
 (class M to Q, nebula_type dark) is filed under the sector holding its
-centroid, so a large cloud near a cell face has its centre outside the
+centroid, so a large cloud near a cell face has its center outside the
 cell. It passed 4 of 4 on main (7f17820b) because no such cloud landed
 there; with GEN.532's changed gas it failed about 1 run in 3 with a
-random seed. Lane 11's PR excludes dark clouds from the centre check.
+random seed. Lane 11's PR excludes dark clouds from the center check.
 Do: replace that exclusion with the right check, the centroid of a
-dark cloud inside its sector's cell and the centre check for every
+dark cloud inside its sector's cell and the center check for every
 other nebula. Done: the test passes on random seeds for 30 runs and a
 dark cloud placed on a cell face is checked by its centroid. Fails on
 main: no (not reached by the current seeds). Frequency: about 1 run in
@@ -13678,7 +13683,7 @@ Prerequisites: GEN.1368. Related: GEN.477.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1425 Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it</strong>
-Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research, and his addition about Venus compounds): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus chemistry set, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md (sections 6, 7, 9 and 10). Papers cited from memory are opened before they enter the registry. Boss's addition (11:55 AM EST on 2026-11-08): add the theoretical Venus chemicals that are reasonably or near certain, or well supported by physics, as stand-in registered values that the evolution chain can add to any planet. Report section 10: V1 sulfuric acid droplets, V2 SO<sub>2</sub>, V3 OCS, CO, HCl, HF, V4 SO and S<sub>2</sub>O, V5 sulfur aerosol, V6 FeCl<sub>3</sub>, V7 ferric sulfates, V8 PAHs with iron (off by default), V9 sulfur-chlorine products (off by default), V10 the unidentified UV absorber as a measured curve (band centre 0.34 micron, width 0.14 micron, strength from the acid cloud depth times SO<sub>2</sub>, tier Unverified from needed output, always with V1); croconic acid and microbial pigments are not registered. Do: GEN.725 rows with tier, tweak level and the evidence status; the six gates of report section 10.2 in order (oxidising sulfur-supplied atmosphere; sulfuric acid cloud using GEN.1424; reduced sulfur from FUV and CO or OCS; chlorine from the star's [Cl/Fe] and volcanic HCl; iron and carbon supply from dust and comet influx; colour output replacing, not adding to, V10 if V8 or V9 are on); floors as stand-ins at L3 until a sweep sets them. Open the cited papers before entry. Done: a hot volcanic CO<sub>2</sub> world with a young active star gets V1 to V5, a cold sulfur-poor world gets none, and V6 to V9 appear only with their supplies, shown on a census sample; Venus is the only calibration point and the report says so. Lock item. The tiered Venus and cloud stand-in values are in /mnt/project-files/reports/venus-acid-cloud-standins-2026-11-08.md (sections 4 and 8, rule N6); read them with report section 10 of the unseen-compounds report. PART A MERGED (Lane 15, PR 5732, 12:45 PM EST on 2026-11-08, lock-free): the set V1 to V10 as registered stand-ins and the six gates as a function, nothing stored, no epoch. PART B REMAINS and is the lock item with an epoch: (a) the cloud step (sulfuric_cloud and cloud_infrared) takes its base and acid strength from the GEN.1424 window instead of the fixed 367 K and the weight percent line in acid_medium, which changes stored cloud depth and acid-medium life results; (b) the V10 band goes into the sky colour; (c) a per-planet cosmic dust supply for V8. The wiring register lines point at this item, so it stays open until part B merges.
+Boss, 11:55 AM EST on 2026-11-08 (as the coordinator relayed, cards 1 and 2 of the unseen-compounds research, and his addition about Venus compounds): add the evidence-status column to GEN.725; in 8.1 build the water-ice boundary table, the two carbon-world minerals and the Venus chemistry set, plus the super-Earth mantle density splits and neutron-star nuclear pasta; everything else is a registry note marked predicted. Report: /mnt/project-files/reports/unseen-compounds-ranked-2026-11-08.md (sections 6, 7, 9 and 10). Papers cited from memory are opened before they enter the registry. Boss's addition (11:55 AM EST on 2026-11-08): add the theoretical Venus chemicals that are reasonably or near certain, or well supported by physics, as stand-in registered values that the evolution chain can add to any planet. Report section 10: V1 sulfuric acid droplets, V2 SO<sub>2</sub>, V3 OCS, CO, HCl, HF, V4 SO and S<sub>2</sub>O, V5 sulfur aerosol, V6 FeCl<sub>3</sub>, V7 ferric sulfates, V8 PAHs with iron (off by default), V9 sulfur-chlorine products (off by default), V10 the unidentified UV absorber as a measured curve (band center 0.34 micron, width 0.14 micron, strength from the acid cloud depth times SO<sub>2</sub>, tier Unverified from needed output, always with V1); croconic acid and microbial pigments are not registered. Do: GEN.725 rows with tier, tweak level and the evidence status; the six gates of report section 10.2 in order (oxidizing sulfur-supplied atmosphere; sulfuric acid cloud using GEN.1424; reduced sulfur from FUV and CO or OCS; chlorine from the star's [Cl/Fe] and volcanic HCl; iron and carbon supply from dust and comet influx; colour output replacing, not adding to, V10 if V8 or V9 are on); floors as stand-ins at L3 until a sweep sets them. Open the cited papers before entry. Done: a hot volcanic CO<sub>2</sub> world with a young active star gets V1 to V5, a cold sulfur-poor world gets none, and V6 to V9 appear only with their supplies, shown on a census sample; Venus is the only calibration point and the report says so. Lock item. The tiered Venus and cloud stand-in values are in /mnt/project-files/reports/venus-acid-cloud-standins-2026-11-08.md (sections 4 and 8, rule N6); read them with report section 10 of the unseen-compounds report. PART A MERGED (Lane 15, PR 5732, 12:45 PM EST on 2026-11-08, lock-free): the set V1 to V10 as registered stand-ins and the six gates as a function, nothing stored, no epoch. PART B REMAINS and is the lock item with an epoch: (a) the cloud step (sulfuric_cloud and cloud_infrared) takes its base and acid strength from the GEN.1424 window instead of the fixed 367 K and the weight percent line in acid_medium, which changes stored cloud depth and acid-medium life results; (b) the V10 band goes into the sky colour; (c) a per-planet cosmic dust supply for V8. The wiring register lines point at this item, so it stays open until part B merges.
 Mutual-effects scope (Boss, 2:58 PM EST on 2026-11-08, 'everything in a system effects everything else in the system'; docs/design/generation/system-interactions.md): the flux, UV and dust the Venus chemistry set reads come from the radiation field of GEN.1441 and the influx of GEN.1440 and GEN.1453 once they land; part B may merge first and is repointed by GEN.1441.
 Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 (after GEN.1424). Prerequisites: GEN.1424. Related: GEN.1424, GEN.725.
 Filed by the TODO thread.</p>
@@ -13772,7 +13777,7 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1441 The radiation field of a system: the time-averaged light, UV, X-ray, flare and particle dose that every radiating object puts on any body, from 3D positions, and its use for the mean starlight of planets and moons</strong>
-Boss, 2:49 PM EST on 2026-11-08 (widening his earlier approval, 'build and ship it'; the code check found that only the size of the light swing counts the other stars, while mean light, temperature, climate, radiation, UV, sky and day use the host star alone): 'Use any sources of radiation in the entire system based on the 3D spatial position of star-like objects relative to all planetary or lunar or asteroidal bodies. We know system bounds already. I want a full proper not lazy fix.' Scope: every radiating object in the system (stars, white dwarfs, neutron stars, black holes with accretion disks, any other star-like object the system stores) counts for every body (planets, moons, belts and asteroids, comets), by its 3D position, time-averaged over the orbits; light, UV, X-ray, flares and particle dose; nothing host-star-only. Tides and Kozai pumping stay out unless he says otherwise. Replaces the first three-item split filed at 2:50 PM EST. Do: one function, with units in the registry, that takes a body (planet, moon, belt or asteroid body, comet; anything inside the system bounds) and returns, summed over every radiating object of the system, the time-averaged bolometric flux and the band fluxes (UV, X-ray) and the flare and particle dose, each as a total and per source. Sources: every star (its own spectrum and flare rate), white dwarfs, neutron stars (X-ray and spin-down power), black holes with an accretion disk (disk luminosity), and any other star-like object the system stores; where a source has no stored spectrum or luminosity use a stand-in registered in GEN.725 with tier, tweak level and evidence status. Geometry: the body's 3D position against each source's 3D position through both orbits (a companion's average of 1/d^2 over its orbit around the shared barycentre, the body's own orbit around its host, shadowing ignored and said so); a body circling a close pair sees the pair's combined light; use the existing planet_zones.flux_at and insolation maths, which already sum every star and have no production caller for climate. First consumer, in this item: the mean starlight of planets and moons feeds equilibrium temperature, the air and greenhouse solve, albedo and ice, the runaway greenhouse test and the habitable zone; flux_variation keeps working but is worked out from the same field. Retire the GEN.725 stand-in row for the simplification that the companion's share is small (multistar-and-compact-systems.md section 6.5). New generator epoch. Done: a lone star gives the same numbers as today; a companion at 100 AU moves temperature under 0.1 percent; an equal companion at 5 AU with a planet at 1.5 AU gives about 9 percent more flux; a cold outer planet of a dim host with a bright companion is no longer scored frozen; a sample shows how many bodies change class. Lock item.
+Boss, 2:49 PM EST on 2026-11-08 (widening his earlier approval, 'build and ship it'; the code check found that only the size of the light swing counts the other stars, while mean light, temperature, climate, radiation, UV, sky and day use the host star alone): 'Use any sources of radiation in the entire system based on the 3D spatial position of star-like objects relative to all planetary or lunar or asteroidal bodies. We know system bounds already. I want a full proper not lazy fix.' Scope: every radiating object in the system (stars, white dwarfs, neutron stars, black holes with accretion disks, any other star-like object the system stores) counts for every body (planets, moons, belts and asteroids, comets), by its 3D position, time-averaged over the orbits; light, UV, X-ray, flares and particle dose; nothing host-star-only. Tides and Kozai pumping stay out unless he says otherwise. Replaces the first three-item split filed at 2:50 PM EST. Do: one function, with units in the registry, that takes a body (planet, moon, belt or asteroid body, comet; anything inside the system bounds) and returns, summed over every radiating object of the system, the time-averaged bolometric flux and the band fluxes (UV, X-ray) and the flare and particle dose, each as a total and per source. Sources: every star (its own spectrum and flare rate), white dwarfs, neutron stars (X-ray and spin-down power), black holes with an accretion disk (disk luminosity), and any other star-like object the system stores; where a source has no stored spectrum or luminosity use a stand-in registered in GEN.725 with tier, tweak level and evidence status. Geometry: the body's 3D position against each source's 3D position through both orbits (a companion's average of 1/d^2 over its orbit around the shared barycenter, the body's own orbit around its host, shadowing ignored and said so); a body circling a close pair sees the pair's combined light; use the existing planet_zones.flux_at and insolation maths, which already sum every star and have no production caller for climate. First consumer, in this item: the mean starlight of planets and moons feeds equilibrium temperature, the air and greenhouse solve, albedo and ice, the runaway greenhouse test and the habitable zone; flux_variation keeps working but is worked out from the same field. Retire the GEN.725 stand-in row for the simplification that the companion's share is small (multistar-and-compact-systems.md section 6.5). New generator epoch. Done: a lone star gives the same numbers as today; a companion at 100 AU moves temperature under 0.1 percent; an equal companion at 5 AU with a planet at 1.5 AU gives about 9 percent more flux; a cold outer planet of a dim host with a bright companion is no longer scored frozen; a sample shows how many bodies change class. Lock item.
 Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 15 (air and climate). Prerequisites: none. Related: GEN.725, GEN.1442, GEN.1443, GEN.1444, GEN.1445.
 Filed by the TODO thread.</p>
 </li>
@@ -14053,6 +14058,102 @@ Version 8.1. Prerequisites: ADM.150. Related: ADM.149, ADM.150, OPS.122.
 Filed by the TODO thread.</p>
 </li>
 <li>
+<p>[ ] <strong>API.43 A galaxy key and the site identity call: a short key made from the galaxy seed and the ID layout, stored with the galaxy and never changeable by hand, and GET /api/site returning it with the base address and API version</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: compute 8 hex digits from SHA-256 of the galaxy seed plus the Object ID layout, store it with the galaxy (reuse the galaxy settings storage and the Alembic runner, a migration, the unit registry if any), never editable by hand; add GET /api/site (name proposed, TODO decides) returning the galaxy key, the base address, the API version and whether the lookup contract is on; a wiped database with a new seed gets a new key, so an old link reads as 'from another map'. Done: the key is stable for one seed and differs for another; the call answers for the right key; the docs list the route.
+Version 9.1, phase 1. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: none. Related: API.44, DOC.118.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>API.44 The short address /o/<Object ID> that finds the kind and redirects, and one stable answer from /api/objects/<ref> that tells 'no longer charted' from 'wrong map'; check the anonymous read rule</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: add /o/<ID> that looks up the kind and redirects to /object/<kind>:<ID> or /phenomenon/<type>/<id> (reuse the existing object routes and reference_link helper pattern); /api/objects/<ref> answers a missing body with 'no longer charted' and the parent system ID when it can, and a ref carrying another galaxy key with 'wrong map'; write down and test whether anonymous reads of /api/objects/<ref> are allowed (the audit found none documented). Done: tests for each answer; the rule is documented.
+Version 9.1, phase 1. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: none. Related: API.43, DOC.118.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>SEC.47 Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: reuse the account-token library (USR.28) and the secret rules of the config writer where they fit; a key is shown once, stored hashed, sent in a header over https only (never in a URL), limited to read-only calls on /api/objects/<ref>, /sheet and /api/site (no admin, no editing, no debug fields), with a last-used time, a rate limit and an audit entry; a wrong, revoked or expired key is refused and logged. Done: tests for scope, hashing, rotation, revocation and the rate limit; no key appears in a log or backup in clear.
+Version 9.1, phase 1. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: USR.28. Related: ADM.152, ADM.153.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>ADM.152 An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: one Owner page (after password re-entry, like the other Owner settings) on the admin settings pages, built from the existing admin page templates, listing each key's name, linked site, created and last-used time, and offering make, rotate and revoke; plain words, in-universe wording; a key failure shows as a warning here and never to visitors. Done: the page works end to end on the key store of SEC.47; admin-only users cannot open it; web and admin tests pass.
+Version 9.1, phase 1. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: SEC.47. Related: ADM.153.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>ADM.153 The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: a new wiki section in config.json (the removed one does not come back with its old fields) validated by the pydantic sections with the three tiers: enabled (off, admin), base_url and api_base_url (empty, Owner, https only), api_key (write-only secret), link_label ('Wiki', admin), timeout_seconds, cache_seconds, negative_cache_seconds (2, 300, 60, admin, with limits); PLANETGEN_* overrides; the request-forgery guard (https only, no redirect to another host, refuse private and loopback addresses unless set on the command line, response size cap, JSON only); add the admin settings entry; fix the wiki line in docs/design/interface/settings-seo-and-accounts.md. Done: the settings validate, secrets never print, the guard refuses each bad address in a test, and the doc line is correct.
+Version 9.1, phase 2. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: none. Related: SEC.47, ADM.152, API.45, OPS.69.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>API.45 The lookup client: one place that knows the contract GET <site>/api/v1/links?ref=..., with timeout, Redis cache, negative cache, breaker and a batch call</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: one module that knows the contract (like reference_urls), built on the shared outbound HTTP helper and the Redis cache; timeout about 2 seconds, one retry at most, a cache of a few minutes for a hit and less for a miss, a breaker that stops asking for a minute after a few failures in a row, and a batch call for a whole system; public pages only, title, kind and address; the answer lives only in Redis (never MySQL, never a backup, never read by a generator); a version header check; write it for a list of linked sites, each with a kind (wiki today, surface later), so a second site is one config entry, not a rewrite. Done: tests against a small stand-in server (a fixture, not shipped) for hit, miss, slow, down, wrong key, wrong galaxy key and the breaker.
+Version 9.1, phase 2. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: ADM.153. Related: API.46, API.47.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>API.46 GET /api/objects/<ref>/linked-pages: the wiki pages about an object, asked of the wiki lazily and returned short</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: the endpoint asks the lookup client (API.45) for the pages whose planetgen_ref matches the object's (galaxy key, Object ID), and for a system one batch call for all its bodies; returns title, kind and address, at most the list the panel shows and the rest on request; when the wiki is off, down or the key is bad it answers an empty list quickly; no visitor identity is sent to the wiki. Done: tests for each answer; the map and every page work with the wiki down.
+Version 9.1, phase 2. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: API.45. Related: API.43, API.44.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>UX.296 The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: after the property sheet on every star, planet, moon, belt, comet and phenomenon page, a lazy Wiki panel (up to five pages, Show more for the rest) filled from API.46; a small mark on system tree rows where a body has pages, fetched when the row opens; a plain link to the wiki's front page in the Help menu and footer when enabled and base_url are set (no call); wording from link_label, in-universe words (no 'model', 'generated' or 'seed'); nothing on map tiles, labels or the 3D views; the References section stays about sources of numbers. Reuse the existing panel, About and tree-row code. Done: pages show the panel when the wiki answers and nothing when it does not; the text-rule crawl passes; web tests pass.
+Version 9.1, phase 3. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: API.46. Related: ADM.153.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>TEST.710 Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: using the stand-in server of API.45: wiki down, slow and rate-limited; a wrong key; a ref from another galaxy key; a response with a GM-only page (never listed); a leak-style test that nothing from a lookup reaches the database or a backup; a test that a generator and the habitability and life code never read wiki data. Done: the tests pass and fail when each rule is broken on purpose.
+Version 9.1, phase 4. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: UX.296. Related: API.45, API.46, SEC.47.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>DOC.118 A developer page for spakr's author: the identifier spec, the galaxy key, the stability rules, the site and object calls, the integration key rules and the lookup contract</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: one page in the docs (reuse the generated route and column inventories) with the ID syntax (a regex), the galaxy key, what stays stable (a system ID is stable, a body number moves when the system is rebuilt, nothing is stable across seeds), GET /api/site, /o/<ID>, /api/objects/<ref>, the key rules and the lookup contract; a user-facing help line; and the version map note that 9.1 is reopened. Done: the page is linked from the docs index and the docs tests pass.
+Version 9.1, phase 4. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: none. Related: API.43, API.44, API.46, DOC.119.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>DOC.119 A request to the spakr owner: a typed planetgen_ref field on place pages, a links lookup for public pages with a batch form, and an API version header</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: write the request as a document for Boss to hand to the spakr repository (this repository does not edit spakr): the typed planetgen_ref field (galaxy key and Object ID) on the page types that sit in a place (Place first, replacing the free-text map_ref use), search by that field and GET /api/v1/links?ref=... returning public pages only with title, kind and address in a batch form, a narrow read-only API key for an integration (its AUTH.6), and a stable API version header; plus the suggestions for its own plan (a 'View on the map' link, a card from our API, a ref picker, a link checker for stale galaxy keys). Done: the document exists and Boss has it.
+Version 9.1, phase 4. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: none. Related: DOC.118.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>API.47 The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block</strong>
+Boss, 7:03 PM EST on 2026-11-08 (as the coordinator relayed): 'new feature for 9.1, have TODO build a plan, we will be interfacing with the following project as a wiki-style site to store information beyond what this stores. The idea being that a user will go to the main wiki site for game information, characters, and additional race information and such that won't get stored here. The info will be essentially the game's manual while this site (planetgen) is the game's starmap.' The project is github.com/dwhagar/spakr; a later, unstarted project will link a body to its terrain and map. Boss decided (7:06 PM EST): the two sites connect with API keys made by the owner of each side, each holding the other's API URL. Design: /mnt/project-files/design-drafts/wiki-integration-spakr-2026-11-08.md (D1 to D8). PlanetGen stores no wiki content and the wiki stores no map data; nothing from the removed wiki code (OPS.69) comes back; the spakr repository is not edited from here. Do: turn the single wiki entry into a list of linked sites, each with a kind and its own key and addresses, and show each kind in its own labelled block on the body page ('Wiki', later 'Surface map'), so the terrain and map project needs only to answer the same call keyed by (galaxy key, Object ID). Optional within 9.1; do it after the first entry works. Done: a second entry in the config (a stand-in) shows its own block; tests pass.
+Version 9.1, phase 4. Owner: waiting on spakr's public API and field search (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its API); nothing is started in PlanetGen. Prerequisites: API.45. Related: UX.296.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>USR.32 Optional account sync between PlanetGen and the wiki site (spakr): one sign-in for both, as a later feature</strong>
+Boss (7:08 PM EST on 2026-11-08, decision card on the wiki plan): the two sites keep separate accounts in 9.1, and an optional account sync between PlanetGen and spakr comes later. Do: after both sites have accounts working and 9.1 has shipped, design an opt-in link between a PlanetGen account and a spakr account (the user links them on purpose, from both sides, and can unlink at any time); no password or sign-in secret is ever shared, only a signed claim over the same owner-made integration keys of SEC.47; roles stay separate unless Boss decides otherwise. Write the design note first and show Boss before any code. Done: a design note, approved by Boss, then the build items.
+Version later (after 9.1). Owner: not started; waits for 9.1 and for the accounts of 8.2 (TODO proposes the accounts lane then). Prerequisites: SEC.47, USR.28. Related: DOC.118.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>GEN.1471 Fix a gas giant's carbon-to-oxygen ratio centre (divide by the drawn f7 median) and add one stand-in, the share m of bulk heavy elements the envelope carries (m = 0.1 first)</strong>
+Lane 14's read-and-measure of GEN.1395 (report /mnt/project-files/reports/gen1395-giant-co-measure-2026-11-08.md; base main 46a39875f plus the GEN.1406 branch; 347 giants of 1,000 G2V systems): generated C/O median 0.33 with 53 percent below 0.35 and 7 percent above 0.8, against retrieved giants (69 from LExACoM) median 0.57, 17 percent below 0.35 and 4 to 9 percent above 0.8. Three findings. (1) A fault in GEN.1363 part C: the multiplier f7 over 0.57 assumes f7's median is 0.57, but the drawn f7 median is 0.477, so every giant is lowered by a sixth; dividing by the drawn median moves the median from 0.33 to 0.39 with no tuning. (2) The enrichment range is not the lever: the envelope C/O is 0.44 to 0.47 for any enrichment above 5 times. (3) What moves it is the share m of the planet's bulk heavy elements that the envelope carries (bulk metallicity is only an upper limit on atmospheric metallicity); with m = 0.1 and half the f7 spread the median is 0.51, 21 percent are below 0.35 and 17 percent above 0.8; m = 0.07 gives median 0.57 but 23 percent above 0.8. The upper tail overshoots at any setting because a gas-dominated giant gets the water-frozen gas C/O of 0.89; fixing that needs the drift and evaporation model, which does not exist (note it as the open gap, not part of this item). Do: the centre fix (divide by the drawn f7 median, no tuning), then one stand-in m (start at 0.1, tier T6, tweak level L2), registered in GEN.725 with the published statistic it is tuned to; the median wins over the tail unless Boss says otherwise; re-run the measure and put the before and after in the item's report; a generator change, so a new epoch with --affects; scripts/test.py changed --resume.
+Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): a lock item for Train 21 or 22, built after GEN.1406 goes in since both change giant draws. Prerequisites: GEN.1363, GEN.1406. Related: GEN.1395, GEN.1268, GEN.725.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>GEN.1472 Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age</strong>
+Boss (7:44 PM EST on 2026-11-08, as the coordinator relayed): 'Build the model but you are pre-authorized to lower the research bar somewhat, accepting secondary and tertiary citations by default and allowing for more speculative theory that fits the physics.' It answers the open gap that Lane 14 wrote up after GEN.1471 (docs/design/composition/disk-condensation.md section 4): a gas-dominated giant gets the water-frozen gas carbon-to-oxygen ratio of 0.89, so the upper tail (over 0.8) is 22 to 26 percent of giants against 4 to 9 percent of the retrieved ones, and no choice of the envelope share removes it. Do: write docs/design/composition/disk-drift-evaporation.md first: solids that grow to pebbles drift inward, their water ice evaporates at the snow line and enriches the gas inside it in oxygen, the vapour diffuses back out and re-condenses just outside it (the cold finger), so the gas inside the snow line gets a low carbon-to-oxygen ratio early and a high one late while the gas outside it is driven the other way; the note gives the rates as functions of the star's mass and luminosity, the disc's accretion history and the age the giant gathers its gas (all already drawn), says which parts are secondary or speculative sources and registers every stand-in in GEN.725 with tier and tweak level. It reuses what exists: the species condensation and the snow-line solid jump of GEN.1396 (src/planetgen/physics/disk_condensation.py, snow_line_solid_jump, line_au, gas_and_solid_c_over_o), the disk budget and the planet mass law in generation/formation, the star's luminosity track and the disc lifetime already used for the giant's formation time; no new random draws unless the note shows one is needed (then through draw.py). Done: the note is approved by Boss in the PR for GEN.1473 or a card, the sources are in the registry, and the open points list names what is still a guess.
+Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): lock-free (a design note). Prerequisites: GEN.1471, GEN.1396. Related: GEN.1363, GEN.1395, GEN.725.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>GEN.1473 Build the drift and evaporation model of water in the disc and let the giant's envelope carbon-to-oxygen ratio follow it, so the over-0.8 tail of the giants falls toward the retrieved 4 to 9 percent</strong>
+Boss (7:44 PM EST on 2026-11-08, as the coordinator relayed): 'Build the model but you are pre-authorized to lower the research bar somewhat, accepting secondary and tertiary citations by default and allowing for more speculative theory that fits the physics.' It answers the open gap that Lane 14 wrote up after GEN.1471 (docs/design/composition/disk-condensation.md section 4): a gas-dominated giant gets the water-frozen gas carbon-to-oxygen ratio of 0.89, so the upper tail (over 0.8) is 22 to 26 percent of giants against 4 to 9 percent of the retrieved ones, and no choice of the envelope share removes it. Do: build the model of GEN.1472 in physics/disk_condensation.py (or a sibling module in physics/ if it grows past that file's size rule), as pure functions of the place, the age and the star; feed it into gas_and_solid_c_over_o and envelope_c_over_o so a giant that gathers its gas inside the snow line, outside it, or after the water has drained gets its own gas carbon-to-oxygen ratio; keep the median at the retrieved 0.57 by re-checking the envelope share m of GEN.1471 afterwards (retune it once, tier and level in GEN.725, if the drift moves the median); measure with the same 1,000 G2V systems and 331 fresh giants as the GEN.1395 report and put before and after in the PR: the target is the share over 0.8 near the retrieved 4 to 9 percent and the share under 0.35 near 17 percent; any simplification goes in GEN.725; a generator change, so a new epoch with --affects; scripts/test.py changed --resume. Name what is reused in the PR (the disk budget, the snow line and the jump of GEN.1396, the C/O functions of GEN.1363 and the share m of GEN.1471).
+Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): a lock item for Train 22 or later, after GEN.1471 is on main. Prerequisites: GEN.1472. Related: GEN.1471, GEN.1396, GEN.1363, GEN.725.
+Filed by the TODO thread.</p>
+</li>
+<li>
 <p>[ ] <strong>GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in</strong>
 Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
 2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -14098,7 +14199,7 @@ Size M; lock. Target: wave 3, train 20. The solar table gives the
 heavy elements; the s/r split is recalled. Do: add the split and the
 heavy elements to the star element set and partition the siderophiles
 between core and mantle with GEN.1364. Data:
-/mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+/mnt/project-files/research/real-material-data-1-stars-disk-and-ices-2026-11-07.md
 section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
 before taking; one lock-free item at a time while waiting): Lane 23.
 Rules: open the primary or an accepted secondary source of every
@@ -14276,7 +14377,7 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1420 Major isotopes exist on every body: the per-body isotope record carries the natural isotope mix of every element the body holds (deuterium included), from the isotope table, with the measured anomalies of GEN.1377 on top</strong>
-Boss, 10:38 AM EST on 2026-11-08 (as the coordinator relayed): all real, true, defined materials always exist: all isotopes, elements and compounds known to exist, or so likely to exist that we know they do. Deuterium is a share of hydrogen, not a fictional substance, and is never on the fictional list. Build the major isotopes for 8.1, including tritium and deuterium. What exists today (checked 2026-11-08): src/planetgen/physics/data/isotopes.json holds 395 isotopes with mass, natural abundance and half-life (hydrogen-1, hydrogen-2 and hydrogen-3 are rows), the radioisotope budget is built (radiogenic.py, birth_radioisotopes.py) and a formula may hold D and T (util/chem.py); the stellar side has the deuterium burning limit. What is missing: no body carries an isotope record (GEN.1377 is open and covers only D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon and four short-lived isotopes), so deuterium exists only as a table row and a share of hydrogen is never stored or shown. Do: for every element a body holds (planet, moon, belt member, comet, star surface where it applies) the record carries the isotope fractions, defaulting to the table's natural abundances (verified IUPAC and NUBASE values) and replaced by the physical value where GEN.1377 or the disc budget gives one (D/H from the ice and the disc, not the Earth value everywhere); heavy-water and other isotopologue shares follow from D/H. Nothing real is dropped: every stable or long-lived isotope in the table can be drawn. Done: a census over a generated sample finds each stable isotope of the elements present, D/H varies by body with a stated source, and the record is shown on the object page. Lock item. Build it together with GEN.1377 (one record, one migration); no fixed content from the Milky Way or the Solar System.
+Boss, 10:38 AM EST on 2026-11-08 (as the coordinator relayed): all real, true, defined materials always exist: all isotopes, elements and compounds known to exist, or so likely to exist that we know they do. Deuterium is a share of hydrogen, not a fictional substance, and is never on the fictional list. Build the major isotopes for 8.1, including tritium and deuterium. What exists today (checked 2026-11-08): src/planetgen/physics/data/isotopes.json holds 395 isotopes with mass, natural abundance and half-life (hydrogen-1, hydrogen-2 and hydrogen-3 are rows), the radioisotope budget is built (radiogenic.py, birth_radioisotopes.py) and a formula may hold D and T (util/chem.py); the stellar side has the deuterium burning limit. What is missing: no body carries an isotope record (GEN.1377 is open and covers only D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon and four short-lived isotopes), so deuterium exists only as a table row and a share of hydrogen is never stored or shown. Do: for every element a body holds (planet, moon, belt member, comet, star surface where it applies) the record carries the isotope fractions, defaulting to the table's natural abundances (verified IUPAC and NUBASE values) and replaced by the physical value where GEN.1377 or the disk budget gives one (D/H from the ice and the disk, not the Earth value everywhere); heavy-water and other isotopologue shares follow from D/H. Nothing real is dropped: every stable or long-lived isotope in the table can be drawn. Done: a census over a generated sample finds each stable isotope of the elements present, D/H varies by body with a stated source, and the record is shown on the object page. Lock item. Build it together with GEN.1377 (one record, one migration); no fixed content from the Milky Way or the Solar System.
 Version 8.1. Owner (TODO, 2026-11-08): Lane 14, with GEN.1377. Prerequisites: GEN.1363. Related: GEN.1377, GEN.1421, TEST.686, GEN.725.
 Filed by the TODO thread.</p>
 </li>
@@ -14319,9 +14420,9 @@ data index:
 /mnt/project-files/research/real-material-data-index-2026-11-07.md.
 Size M; lock. Target: wave 3, train 20. No body carries an isotope
 record. The Solar Crystal's 13C and 14C choices stay in 8.2 and read
-this record. Do: store the ratios from the disc budget and the star.
+this record. Do: store the ratios from the disk budget and the star.
 Data:
-/mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+/mnt/project-files/research/real-material-data-1-stars-disk-and-ices-2026-11-07.md
 section 5 (anchors recalled). Owner (proposed by TODO, 2026-11-07,
 confirm with TODO before taking; one lock-free item at a time while
 waiting): Materials 1 (new lane, proposed). Rules: open the primary or
@@ -14489,9 +14590,10 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1395 Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects</strong>
-Boss (9:43 PM EST on 2026-11-07, as the coordinator relayed), answering Lane 14's two findings from GEN.1363. Boss: yes, tune it as best we can to observed Sun-like giants and what physics expects. GEN.1363 part C makes a giant's C/O come from the disc where it formed; the disc alone puts sampled Sun-like giants' median near 0.34 where the retrieved giants' median is 0.57, because the recipe draws heavy-element enrichments of 3 to 80 times the star's and the solids are oxygen-rich (docs/design/composition/disc-condensation.md sections 3 and 4). Do: find which of the enrichment range, the solid accretion share, and the carbon-rich gas accretion window moves the median and the spread toward the retrieved distribution without leaving what the disc physics allows; register every tuned number in GEN.725 with tier and tweak level (L2 when tuned to a published statistic); keep the spread; census before and after. Lock (epoch). Size M. Target: train 19, after GEN.1363 merges. Owner (proposed by TODO): Lane 14. Rules: tests are
+Boss (9:43 PM EST on 2026-11-07, as the coordinator relayed), answering Lane 14's two findings from GEN.1363. Boss: yes, tune it as best we can to observed Sun-like giants and what physics expects. GEN.1363 part C makes a giant's C/O come from the disk where it formed; the disk alone puts sampled Sun-like giants' median near 0.34 where the retrieved giants' median is 0.57, because the recipe draws heavy-element enrichments of 3 to 80 times the star's and the solids are oxygen-rich (docs/design/composition/disk-condensation.md sections 3 and 4). Do: find which of the enrichment range, the solid accretion share, and the carbon-rich gas accretion window moves the median and the spread toward the retrieved distribution without leaving what the disk physics allows; register every tuned number in GEN.725 with tier and tweak level (L2 when tuned to a published statistic); keep the spread; census before and after. Lock (epoch). Size M. Target: train 19, after GEN.1363 merges. Owner (proposed by TODO): Lane 14. Rules: tests are
 scripts/test.py changed --resume.
-Prerequisites: GEN.1363. Related: GEN.1268.
+Measured by Lane 14 (report /mnt/project-files/reports/gen1395-giant-co-measure-2026-11-08.md); the build is GEN.1471, and GEN.1395 retires when GEN.1471 merges.
+Prerequisites: GEN.1363. Related: GEN.1268, GEN.1471.
 Filed by the TODO thread.</p>
 </li>
 <li>
@@ -15502,8 +15604,8 @@ on the System design, as the coordinator relayed with the wake times
 converted: S1, S<sub>2</sub>, S4, S5, S6, S7, S<sub>8</sub> and S9 tapped between 12:10 and
 12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
 stay binary'), every one the recommended option: S1 a member's stored
-orbit is its barycentre about the central object (a planet's stored
-state is the barycentre of the planet and its moons), S<sub>2</sub> the central
+orbit is its barycenter about the central object (a planet's stored
+state is the barycenter of the planet and its moons), S<sub>2</sub> the central
 object's offset is derived on read and never stored (the wobble
 columns go), S3 the most massive member is the central object and
 comparable-mass pairs stay binary nodes, S4 a system node takes a
@@ -15512,8 +15614,8 @@ km diameter for hosting satellites plus fit and stability checks, S6
 moons may have satellites through the same gate with a tidal-survival
 gate row first (the odds start at zero; this supersedes 'moons are the
 lowest level'), S7 the point class's system frame measures from the
-top-level barycentre with a new local frame from the immediate
-parent's barycentre, S<sub>8</sub> the stored values change in the 8.4 revision
+top-level barycenter with a new local frame from the immediate
+parent's barycenter, S<sub>8</sub> the stored values change in the 8.4 revision
 with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
 common parent link, cached sums)). Boss's message of 12:03 AM EDT,
 2026-10-18 (project chat): a System is unified rules around the
@@ -15846,7 +15948,7 @@ metallicity by galaxy mass, the gradient per scale length, and a
 smooth disk first with the central molecular zone as a later item. Do:
 replace the disk-only gravity in the layer thickness with
 galaxy.potential.vertical_force (the bulge and the dark halo
-included), drop the 40 pc floor and its stand-in DU4 once the centre's
+included), drop the 40 pc floor and its stand-in DU4 once the center's
 extinction is checked on a lane machine with datasets. Lock-free, no
 migration, no epoch. Version 8.3. Owner: none yet. Filed by the TODO
 thread.
@@ -16352,13 +16454,13 @@ it, confirmed with TODO, one lock-free item at a time.
 Boss decision G1 (5:44 PM EST on 2026-11-05): the option is a tilt,
 not a command (G1 option 1): the number asked for scales the odds that
 a species becomes space-faring so the expected count equals N, nothing
-is forced and nothing is cancelled, and the result is reported (asked
+is forced and nothing is canceled, and the result is reported (asked
 N, the dice gave M). Store the asked number and the result. The 9.2
 rule that nothing is created from nothing holds.
 Prerequisites: POP.16. Related: GEN.180, GEN.764, PERF.125.</p>
 </li>
 <li>
-<p>[ ] <strong>POP.26 Generate toward the requested number of space-faring governments by tilting the odds that a species becomes space-faring (nothing forced, nothing cancelled), homeworlds spread apart, and report what came out</strong>
+<p>[ ] <strong>POP.26 Generate toward the requested number of space-faring governments by tilting the odds that a species becomes space-faring (nothing forced, nothing canceled), homeworlds spread apart, and report what came out</strong>
 Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): &quot;For 8.2 we
 need an option to specify how many space-fairing governments there
 are, and have it generated so we can have those territories dynamic in
@@ -16406,7 +16508,7 @@ tilts the odds of a species becoming space-faring so the expected
 count equals N; the run reports what came out (natural, N met, or
 asked N and got M); a user who wants a different count repeats the run
 with another seed. The held-back and met_forced states are dropped.
-Spacing ruling (2026-11-07, 1:58 PM EST, read from Boss's decision G1 of 5:44 PM EST on 2026-11-05 that no civilization physics allowed is cancelled, and from his rule that a civilization is never forced): the homeworld spacing only lowers the odds of a new space-faring homeworld near an existing one and never removes a natural civilization; a hard minimum distance is not used.
+Spacing ruling (2026-11-07, 1:58 PM EST, read from Boss's decision G1 of 5:44 PM EST on 2026-11-05 that no civilization physics allowed is canceled, and from his rule that a civilization is never forced): the homeworld spacing only lowers the odds of a new space-faring homeworld near an existing one and never removes a natural civilization; a hard minimum distance is not used.
 Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.</p>
 </li>
 <li>

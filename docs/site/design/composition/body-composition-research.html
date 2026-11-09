@@ -87,7 +87,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>F</td>
 <td><a href="body-composition-parts/F-boss-note-check.html">F-boss-note-check.md</a></td>
-<td>Check of Boss's additional research note (1:22 AM EDT): vapour pressures of ices, magma-ocean redox, ICRP weights, comet ratios; new items F1 to F5</td>
+<td>Check of Boss's additional research note (1:22 AM EDT): vapor pressures of ices, magma-ocean redox, ICRP weights, comet ratios; new items F1 to F5</td>
 </tr>
 <tr>
 <td>H</td>
@@ -213,7 +213,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Any ground</td>
-<td>crust type (ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidised, metal), grain state</td>
+<td>crust type (ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidized, metal), grain state</td>
 <td>mantle oxides (B), ice inventory (C, D), heat flux, water state</td>
 <td>band albedo 0.4 to 0.7 um, regolith thermal inertia, K/Th/U, ground gamma</td>
 <td>E 2.2 to 2.9, 3</td>
@@ -318,9 +318,9 @@ main{padding:16px 16px 60px}}
 <p>The two values do not disagree about the chemistry. They count different things, and they start from different total ice to rock ratios.</p>
 <p><strong>Read ([R2726: Table 11], equilibrium condensation, solar-system composition, mass percent of the total nebular mass):</strong> silicates and oxides 0.303, metal and FeS 0.186 (rock 0.489); H<sub>2</sub>O ice 0.571, CH<sub>4</sub> ice 0.330, NH<sub>3</sub> ice 0.097 (ices 0.998); all condensate 1.487. Water ice over rock is 1.17 (2.09 for the [R0100] set, which the paper revised to about unity). Water ice condenses at 182 K at 10^-4 bar with 22.75 % of the oxygen already in rock. The photospheric composition gives the same ratios.</p>
 <p><strong>Computed from those numbers:</strong> the water share of the solids is 0.539 outside the water line (rock and water only), 0.494 once ammonia hydrate has condensed at 131 K, and 0.384 once methane has condensed too (all ices counted).</p>
-<p><strong>Read (the Bern model, [R1268, R1269], [R1268], section 3.3.3; [R4529] data, Zenodo 10527170):</strong> the model uses the [R2865] condensation model, notes that water is about 60 % of the ices by mass, and maps all ice species to water ice in the planet structure. The water mass fraction of its water-vapour planets tops out at 0.51 to 0.53 (median 0.509 at 10 to 30 AU, 95th percentile 0.529). So the convention of about 0.5 is the total ice share labelled as water; its water proper is about 0.3 of the solids, inside the Marboeuf-derived 0.14 to 0.39.</p>
+<p><strong>Read (the Bern model, [R1268, R1269], [R1268], section 3.3.3; [R4529] data, Zenodo 10527170):</strong> the model uses the [R2865] condensation model, notes that water is about 60 % of the ices by mass, and maps all ice species to water ice in the planet structure. The water mass fraction of its water-vapor planets tops out at 0.51 to 0.53 (median 0.509 at 10 to 30 AU, 95th percentile 0.529). So the convention of about 0.5 is the total ice share labelled as water; its water proper is about 0.3 of the solids, inside the Marboeuf-derived 0.14 to 0.39.</p>
 <p><strong>What is explained.</strong> (1) The convention counts water against rock plus water (or all ices lumped as water); the Marboeuf-derived range counts water against all solids. (2) What remains is a real factor of about two in the total ice to rock ratio: 2.04 for equilibrium chemistry with the carbon as CH<sub>4</sub> (Lodders), 1 +/- 0.5 calibrated on comets (Marboeuf, second-hand). No source read says which one planetesimals follow.</p>
-<p><strong>Decision for the default.</strong> The switch default stays the Marboeuf-derived sequence (Boss, 1:21 AM EDT on 10-17). The switch is defined as the water share of all solids, with the option &quot;0.5 convention&quot; read as the water share of rock plus water (0.49 to 0.54 from [R2726]), so the two settings no longer pretend to be the same quantity. The one overlap is 0.38 to 0.39, where both say the same thing for a disc with every ice condensed. The 170 K snow-line centre with 0.2 dex of scatter (Boss, 10-18) is unchanged. Extracted tables and arithmetic: <code>design-drafts/gen465-second-pass/README-gen465-gen468-findings.md</code> in the shared project folder.</p>
+<p><strong>Decision for the default.</strong> The switch default stays the Marboeuf-derived sequence (Boss, 1:21 AM EDT on 10-17). The switch is defined as the water share of all solids, with the option &quot;0.5 convention&quot; read as the water share of rock plus water (0.49 to 0.54 from [R2726]), so the two settings no longer pretend to be the same quantity. The one overlap is 0.38 to 0.39, where both say the same thing for a disk with every ice condensed. The 170 K snow-line center with 0.2 dex of scatter (Boss, 10-18) is unchanged. Extracted tables and arithmetic: <code>design-drafts/gen465-second-pass/README-gen465-gen468-findings.md</code> in the shared project folder.</p>
 <p>Lane-decidable, no card needed: neon following O or Mg and the O plateau at low [Fe/H] (A-R2); the super-Mercury branch probability (B, 0.05 to 0.23, a parametrisation); whether ages and metallicities are linked (A-D3, optional).</p>
 <h2 id="6-findings-against-the-existing-code-to-todo-as-bugs-or-design-items">6. Findings against the existing code (to TODO as bugs or design items)</h2>
 <p>All read from the repo main of 2026-10-17 by the parts. Each is a failure the research lane does not own.</p>
@@ -373,7 +373,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>F6</td>
 <td><code>tuning.py</code></td>
-<td>Disc metallicity gradient comment says 0.06 dex/kpc, [R1856] gives 0.053; the <code>solids_factor</code> uses 10^[Fe/H] where Z/Z0 reaches 2 to 3 at [Fe/H] of -1 or lower</td>
+<td>Disk metallicity gradient comment says 0.06 dex/kpc, [R1856] gives 0.053; the <code>solids_factor</code> uses 10^[Fe/H] where Z/Z0 reaches 2 to 3 at [Fe/H] of -1 or lower</td>
 <td>small</td>
 <td>A 3.6</td>
 </tr>
@@ -541,7 +541,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>11</td>
 <td><strong>[R1445]</strong> itself (Planet. Space Sci. 57, 2053; ScienceDirect refused)</td>
-<td>Range of each vapour-pressure polynomial, the choice between the two sets, and an independent cold-end check of the working table in part F</td>
+<td>Range of each vapor-pressure polynomial, the choice between the two sets, and an independent cold-end check of the working table in part F</td>
 <td>F, C, D</td>
 </tr>
 <tr>
@@ -735,11 +735,11 @@ main{padding:16px 16px 60px}}
 <p>Checked in <a href="body-composition-parts/F-boss-note-check.html">part F</a>. What changed:</p>
 <ul>
 <li><strong>Water-ice sublimation</strong> ([R1345] form with the note's coefficients) is correct: COMPUTED against IAPWS R14-08 to 0.06 percent from 60 K to 273.16 K.</li>
-<li><strong>Vapour pressures of the cold ices</strong> (N<sub>2</sub>, CO, CH<sub>4</sub>, CO<sub>2</sub>, NH<sub>3</sub>, H<sub>2</sub>S, SO<sub>2</sub>) now have a working table in bar ([R1445] form), transcribed from the image of the NASA/Icarus supplement, and checked against the NIST WebBook triple points (within 3 percent; the 4 percent case is the low-temperature CO<sub>2</sub> polynomial). The cold end below 50 K and the range of each polynomial are not independently verified; the primary paper is still unreachable. The older two-parameter fits are far off in the cold (CO six times too high at 40 K).</li>
+<li><strong>Vapor pressures of the cold ices</strong> (N<sub>2</sub>, CO, CH<sub>4</sub>, CO<sub>2</sub>, NH<sub>3</sub>, H<sub>2</sub>S, SO<sub>2</sub>) now have a working table in bar ([R1445] form), transcribed from the image of the NASA/Icarus supplement, and checked against the NIST WebBook triple points (within 3 percent; the 4 percent case is the low-temperature CO<sub>2</sub> polynomial). The cold end below 50 K and the range of each polynomial are not independently verified; the primary paper is still unreachable. The older two-parameter fits are far off in the cold (CO six times too high at 40 K).</li>
 <li><strong>Magma-ocean redox</strong> [R4154] is confirmed by reading it (0.037 plus or minus 0.005, IW + 0.5, f_H2O/f_H2 = 1.05, f_CO2/f_CO = 0.21 at 2173 K). Two corrections: about 35 percent of the CO<sub>2</sub> stays dissolved (the note says carbon goes to the gas), and everything is Earth's inventory, so the generator needs a drawn oxidation state per rocky planet (item F<sub>2</sub>) with Earth as a test target only.</li>
 <li><strong>ICRP 103 table</strong>: weights are right but tissue weights are not tied to particle types, and the neutron weighting spans 2.5 to about 20.7, not 5 to 20 (RECALLED; ICRP 103 not read).</li>
 <li><strong>Comet ratios</strong> are consistent with part D's READ values; <strong>Thorngren scatter</strong> stays 0.26 dex (the note's 0.3 to 0.5 is not in the paper as read); the <strong>Mars dust row</strong> attributes [R2645, R4395] to SO<sub>2</sub> aerosols, which is wrong (atmosphere lane).</li>
-<li>New work items F1 to F5 (vapour-pressure function and test, magma-ocean redox state, lava-planet vaporisation, clathrates and brines, data licence column) attach to clusters 2, 7, 8 and 11 of section 10.</li>
+<li>New work items F1 to F5 (vapor-pressure function and test, magma-ocean redox state, lava-planet vaporisation, clathrates and brines, data licence column) attach to clusters 2, 7, 8 and 11 of section 10.</li>
 <li>Everything else in the note (Tiers 2 and 3 atmospheric optics, haze, photochemistry, trapped particles) belongs to the atmosphere lane.</li>
 </ul>
 <h2 id="14-weighted-possibility-tables-the-draw-format-boss-140-am-edt">14. Weighted possibility tables: the draw format (Boss, 1:40 AM EDT)</h2>
@@ -782,7 +782,7 @@ main{padding:16px 16px 60px}}
 <p>Draw rule: take the rows whose gate passes, evaluate each weight, normalise so the weights sum to 1, draw one row with the seeded wrapper (<code>draw.py</code>). Two table kinds exist and each category says which it is:</p>
 <ol>
 <li><strong>Choice table</strong> (pick one row): ground type, mantle branch, asteroid taxon, moon origin, white-dwarf type, abundance branch.</li>
-<li><strong>Mixture table</strong> (all passing rows contribute, proportions add to 100 percent): the share of each taxon in a belt, the ice species set of a body, crust and mantle end-members. Proportions come from the weights directly (deterministic) or from a Dirichlet draw centred on them with a stated concentration (a parametrisation, flagged).</li>
+<li><strong>Mixture table</strong> (all passing rows contribute, proportions add to 100 percent): the share of each taxon in a belt, the ice species set of a body, crust and mantle end-members. Proportions come from the weights directly (deterministic) or from a Dirichlet draw centered on them with a stated concentration (a parametrisation, flagged).</li>
 </ol>
 <p>Invariants a test asserts: every table has at least one row for every object kind that uses it (a gate that leaves no row is a load-time error, never a silent fallback); weights are at least 0 and normalise to 1 after gating; every row has <code>weight_source</code> or the PARAMETRISATION flag; payload fractions sum to 1; the table file version is part of the generator epoch (any changed weight changes the epoch, as the plan already requires for generator changes). The continuous quantities (core mass fraction, X, Y, Z, water share, heavy-element mass) stay distributions drawn from stored inputs, not tables; where Boss wants them tabulated they can be binned into rows with a weight function per bin.</p>
 <h3 id="142-inventory-every-category-in-the-parts-in-this-format">14.2 Inventory: every category in the parts, in this format</h3>
@@ -874,7 +874,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>T8</td>
 <td>Mantle oxidation state (FeO, Fe3+/total Fe, delta-IW)</td>
-<td>reduced to oxidised</td>
+<td>reduced to oxidized</td>
 <td>rocky_planet, moon_rocky</td>
 <td>FeO 2 to 12 wt percent (median 7.7); delta-IW range IW - 4.5 to + 3.1 explored</td>
 <td>[R3626] (READ); [R4154] (READ); no distribution across planets exists</td>
@@ -943,7 +943,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>T15</td>
-<td>Comet formation flavour</td>
+<td>Comet formation flavor</td>
 <td>with or without refractory organics</td>
 <td>comet_kbo</td>
 <td>factor 0.67 on the ice-to-rock ratio, p = 0.5</td>
@@ -994,7 +994,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>T20</td>
 <td>Ground type</td>
-<td>ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidised, metal</td>
+<td>ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidized, metal</td>
 <td>rocky_planet, moon_rocky, moon_icy, moon_volcanic, asteroid, dwarf_planet (each row lists its own subset)</td>
 <td>decision rules on mobile-lid chance, ocean, ice inventory, heat flux, surface temperature; weights themselves not published</td>
 <td>Crust genealogy Hu 2012: READ; the weights: PARAMETRISATION</td>
@@ -1136,7 +1136,7 @@ main{padding:16px 16px 60px}}
 <td>dense, sparse, typical</td>
 <td>asteroid</td>
 <td>uniform</td>
-<td>G+N: no source; should follow belt mass (stored mass per area, from the disc) rather than a draw. Link to R1 and to the planetesimal-mass work in cluster 3</td>
+<td>G+N: no source; should follow belt mass (stored mass per area, from the disk) rather than a draw. Link to R1 and to the planetesimal-mass work in cluster 3</td>
 </tr>
 <tr>
 <td>E3</td>
@@ -1317,7 +1317,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>Stellar Th, U</td>
 <td>metal-poor stars have higher [Th/Fe], [U/Fe]</td>
-<td>Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope -0.338 +/- 0.049); U is not measured in disc stars</td>
+<td>Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope -0.338 +/- 0.049); U is not measured in disk stars</td>
 <td>READ</td>
 <td>G2</td>
 </tr>
@@ -1357,7 +1357,7 @@ main{padding:16px 16px 60px}}
 <td>G3</td>
 </tr>
 <tr>
-<td>Lava-world vapour</td>
+<td>Lava-world vapor</td>
 <td>Na and K dominate to 2200 K; mean mass 40 to 60 g/mol</td>
 <td>Na dominates to 2700 to 2800 K; mean molar mass about 25 near 2000 K and 33 near 3000 K</td>
 <td>COMPUTED</td>
@@ -1371,7 +1371,7 @@ main{padding:16px 16px 60px}}
 <td>G3</td>
 </tr>
 <tr>
-<td>Cold-ice vapour pressure</td>
+<td>Cold-ice vapor pressure</td>
 <td>[R0418, R1708], factor 1.6, &quot;9.2 kJ/mol&quot;</td>
 <td>[R0418] (O<sub>2</sub>, NH<sub>3</sub> only), [R1708] (N<sub>2</sub>, CO, CH<sub>4</sub>); a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; 9.2 percent is the enthalpy excess (about 10.1 kJ/mol), not 9.2 kJ/mol</td>
 <td>READ</td>
@@ -1410,9 +1410,9 @@ main{padding:16px 16px 60px}}
 <h3 id="152-what-changes-in-this-draft-and-in-parts-a-to-f">15.2 What changes in this draft and in parts A to F</h3>
 <ol>
 <li><strong>Part D 3.4.2, comet volatile draw:</strong> replace &quot;log-normal around 67P, sigma 0.5 dex&quot; by the comet-population table of G1 (CH<sub>3</sub>OH population geometric mean about 1.9 percent against 0.21 at 67P; CH<sub>4</sub> 0.68 against 0.34; real scatter 0.22 to 0.37 dex, CO 0.64 dex). 67P stays as a test target. Interstellar-object CO/H2O range widens (3I/ATLAS 1.65). Table T16 takes the G1 ranges.</li>
-<li><strong>Part F item F1 (vapour pressures):</strong> for N<sub>2</sub>, CO, CH<sub>4</sub>, O<sub>2</sub> and NH<sub>3</sub> take the cold end from the QCM-corrected tables of G4 (F&amp;S is up to about 15 times too high for CO near 25 K); CO<sub>2</sub> from Span and Wagner eq. 3.12 (F&amp;S set 1 is 7 percent off at 125 K and 41 percent at 100 K). The part F transcription of N<sub>2</sub>-1, CO-1 and CH<sub>4</sub>-1 agrees to 0.5 percent with the F&amp;S curves in the [R1708] data package (relabel READ + COMPUTED). Constants C and D2 to D4 for N<sub>2</sub>, CO and CH<sub>4</sub> are curve-fit reconstructions (COMPUTED, valid only inside the fitted range).</li>
+<li><strong>Part F item F1 (vapor pressures):</strong> for N<sub>2</sub>, CO, CH<sub>4</sub>, O<sub>2</sub> and NH<sub>3</sub> take the cold end from the QCM-corrected tables of G4 (F&amp;S is up to about 15 times too high for CO near 25 K); CO<sub>2</sub> from Span and Wagner eq. 3.12 (F&amp;S set 1 is 7 percent off at 125 K and 41 percent at 100 K). The part F transcription of N<sub>2</sub>-1, CO-1 and CH<sub>4</sub>-1 agrees to 0.5 percent with the F&amp;S curves in the [R1708] data package (relabel READ + COMPUTED). Constants C and D2 to D4 for N<sub>2</sub>, CO and CH<sub>4</sub> are curve-fit reconstructions (COMPUTED, valid only inside the fitted range).</li>
 <li><strong>Part F item F<sub>2</sub> (magma-ocean redox):</strong> the generator fixes one IW scale (the [R1951] one) and stores Delta-IW on it; Sossi's +0.5 for Earth is on his own scale. There is no published per-planet Delta-IW distribution; G3 F8 gives a labelled PARAMETRISATION built from [R1075, R1154, R1717] and the Rubie to Siebert range, and the stored quantities needed.</li>
-<li><strong>Part F item F3 (lava planets):</strong> use VapoRock-type chemical-potential vapour equilibria; species and the 25 to 33 g/mol mean mass from G3 replace the note's range. LavAtmos is [R4488] (van Buchem, Miguel, Zilinskas, van Westrenen; 9 oxides, GPL-3.0); VapoRock is AGPL-3.0. Both are tools to read, not code to copy into the repo.</li>
+<li><strong>Part F item F3 (lava planets):</strong> use VapoRock-type chemical-potential vapor equilibria; species and the 25 to 33 g/mol mean mass from G3 replace the note's range. LavAtmos is [R4488] (van Buchem, Miguel, Zilinskas, van Westrenen; 9 oxides, GPL-3.0); VapoRock is AGPL-3.0. Both are tools to read, not code to copy into the repo.</li>
 <li><strong>Part F item F5 (licences):</strong> the claim that NIST, PubChem and USGS data are public domain is wrong for NIST SRD and unproven for PubChem and USGS. (Boss, 2026-10-22: the licence is not a column of any table; it is recorded in <code>DATA-LICENSE.md</code>.) derived tables from NIST SRD, JPL 19-5, Leiden, Bremen and Karkoschka need permission or a re-derivation from the primary measurements. The full table is in G4.</li>
 <li><strong>Part E 3.3 (radiogenic draw):</strong> keep x_Th sigma 0.22 dex as an upper bound (solar-twin scatter 0.05, pooled Th/Mg 0.10, Eu 0.16); add a mean shift with [Fe/H] (Th/Fe slope -0.34 dex per dex, Eu/alpha -0.16 to -0.23). <code>d_K</code> log-uniform 0.03 to 1 stays (observed bodies lie at 0.03 to 0.28). Keep part E's N-MORB Th/U 3.04. K/U and Th/U by reservoir are calibration targets with the scatters of G2, not presets.</li>
 <li><strong>Part C 2.6 (giants):</strong> M_Z law unchanged; state that Z is bulk, not atmospheric; atmosphere Z is f Z_p with f about 0.2 for Jupiter and Saturn [R4350]; add the raw 0.32 dex rms next to the 0.26 dex intrinsic figure; the core-mass placeholder (log-uniform 5 to 20 Earth masses) is supported by [R0710] (14.7 Earth masses).</li>
@@ -1430,7 +1430,7 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>G-1 Comet population table</td>
-<td>Species ranges and log-normal scatters (G1) replace the 67P-centred draw; carbon-chain-depleted flag</td>
+<td>Species ranges and log-normal scatters (G1) replace the 67P-centered draw; carbon-chain-depleted flag</td>
 <td>cluster for D</td>
 <td>small</td>
 </tr>
@@ -1441,7 +1441,7 @@ main{padding:16px 16px 60px}}
 <td>small</td>
 </tr>
 <tr>
-<td>G-3 Cold-end vapour pressure</td>
+<td>G-3 Cold-end vapor pressure</td>
 <td>QCM-corrected N<sub>2</sub>, CO, CH<sub>4</sub>, O<sub>2</sub>, NH<sub>3</sub> and Span and Wagner CO<sub>2</sub>; extends F1 and its test (triple points plus the 1.19 correction as a switch)</td>
 <td>F1, cluster 2</td>
 <td>small</td>
@@ -1453,8 +1453,8 @@ main{padding:16px 16px 60px}}
 <td>small</td>
 </tr>
 <tr>
-<td>G-5 Vapour mean mass</td>
-<td>Lava-world vapour species and mean molar mass from T and composition</td>
+<td>G-5 Vapor mean mass</td>
+<td>Lava-world vapor species and mean molar mass from T and composition</td>
 <td>F3</td>
 <td>medium</td>
 </tr>
@@ -1477,8 +1477,8 @@ main{padding:16px 16px 60px}}
 <h2 id="16-where-the-todo-thread-placed-the-findings-and-the-clusters">16. Where the TODO thread placed the findings and the clusters</h2>
 <p>Findings of section 6: F1 and F<sub>2</sub> (radiogenic heat 37 to 50 percent high, the ground dose independent of the heat) are GEN.459 (8.4 phase 1); F3 (class D density) is a requirement and test target of GEN.428, GEN.429 and TEST.210; F4 (hydrosphere depth) is GEN.461 (8.4 phase 2); F5 (neutron-star radius floor, lifetime) are GEN.463 and GEN.467 (8.1 phase 1, with the stellar tables of GEN.407, Core 3 proposed); F6 is GEN.464 (solids law, 8.1 phase 3) and a note on GEN.405 (gradient); F7 (giant radius law) is GEN.460 (8.4 phase 1); F8 (snow line) is GEN.458 (8.4 phase 1); F9 (the Thorngren citation) is not in the repository; F10 is GEN.422.</p>
 <p>Clusters of section 10: 1 schema is DB.69 and DB.70; 2 materials table is GEN.427; 3 snow line is GEN.458; 4 radiogenic module is GEN.459; 5 structure solver is GEN.429; 6 giant and brown-dwarf radius is GEN.460; 7 star-side draws are GEN.439, GEN.440 and GEN.464; 8 hydrosphere is GEN.461; 9 ground, albedo and colour is GEN.441, GEN.462 and GEN.418; 10 surface radiation is GEN.444 and GEN.453; 11 tests are TEST.210 and TEST.211; 12 design docs are GEN.426, GEN.435, GEN.436 and GEN.457 (small bodies and moons); 13 research is done (GEN.432 and GEN.433 retired), with the second extraction pass GEN.465 and the water-share research GEN.468. Moons are GEN.466. Part D's drawings of taxa, comets and the compaction law are inside GEN.442. The supporting scripts and data of part C stay in /mnt/project-files/design-drafts/parts/C-volatile-and-giants-files/ and are not committed. Owners are proposals: Core 4 for the body chain, Core 3 for GEN.463 and GEN.467.</p>
-<p>Part F and section 13 (Boss's research note, checked by the lane at 1:28 AM EDT): F1 (the vapour-pressure function with its test) is GEN.470 (8.1 phase 2, with the tables) and GEN.452 reads it; F<sub>2</sub> (the magma-ocean redox state per rocky planet) is folded into GEN.451 with the stored field in DB.69; F3 (lava-planet vaporisation) is GEN.456, which now follows GEN.451; F4 (clathrates and brines) is GEN.471 (8.4 phase 3); F5 (the licence column) is a requirement of GEN.427, GEN.410 and GEN.438. The three gap rows ([R1445] itself, [R4154] beyond Earth with Gaillard and Hirschmann, ICRP 103) are on Boss's research list (section 8 rows 11 to 13). The supporting script and images of part F (<code>F-files/</code>) stay in /mnt/project-files/design-drafts/parts/ and are not committed.</p>
-<p>Section 14 (the weighted possibility tables, Boss, 1:40 AM EDT) is GEN.472 (the one gated format and loader) and TEST.214 (the sum test over every registered table), recorded in <a href="composition-model.html">composition-model.md</a> section 4b. Its two decisions (Boss, 1:43 AM EDT, &quot;Weights, Dirichlet where unsure&quot;, and 1:43 AM EDT, &quot;Stand-in only&quot;) are in the same note, and the five stand-in replacements R1 to R5 of section 14.4 are GEN.473 (R1, the belt composition derived), GEN.474 (R2, rock types derived from the bulk oxides), GEN.475 (R3, meteorite groups as outputs), GEN.476 (R4, Al-26 and Fe-60 from the formation environment) and TEST.215 (R5, the calibration rows fenced into tests). The T1 to T23 inventory of section 14.2 is the list of tables GEN.472's loader receives, with the gate and weight of each. The asteroid belt and field code of section 14.5 (finding F11, tables E1 to E4) is GEN.477, with E3's field families folded into GEN.473; its stored shares are DB.70. Section 14.6 (one component vocabulary for every body) is the shared table of GEN.427 with its loader and name mapping, the one mixture storage of DB.69 and DB.70, the gate evaluator with the condition predicates in GEN.472, and the one thresholded text writer of GEN.430 and GEN.446 (the notes on those items). Section 15 (the check of Boss's second note, 100 claims) is recorded on GEN.451, GEN.456, GEN.459, GEN.460, GEN.470 and the licence column of GEN.410, GEN.427 and GEN.438, with six new small items: G-1 is GEN.495 (the comet population table), G-2 is GEN.496 (the photolysis lifetime table), G-3 is GEN.497 (the cold-end vapour pressures), G-4 is GEN.498 (one IW scale), G-5 is GEN.499 (the lava-world vapour mean mass) and G-6 is GEN.500 (the licence audit, removed by Boss at 2:35 PM EDT).</p>
+<p>Part F and section 13 (Boss's research note, checked by the lane at 1:28 AM EDT): F1 (the vapor-pressure function with its test) is GEN.470 (8.1 phase 2, with the tables) and GEN.452 reads it; F<sub>2</sub> (the magma-ocean redox state per rocky planet) is folded into GEN.451 with the stored field in DB.69; F3 (lava-planet vaporisation) is GEN.456, which now follows GEN.451; F4 (clathrates and brines) is GEN.471 (8.4 phase 3); F5 (the licence column) is a requirement of GEN.427, GEN.410 and GEN.438. The three gap rows ([R1445] itself, [R4154] beyond Earth with Gaillard and Hirschmann, ICRP 103) are on Boss's research list (section 8 rows 11 to 13). The supporting script and images of part F (<code>F-files/</code>) stay in /mnt/project-files/design-drafts/parts/ and are not committed.</p>
+<p>Section 14 (the weighted possibility tables, Boss, 1:40 AM EDT) is GEN.472 (the one gated format and loader) and TEST.214 (the sum test over every registered table), recorded in <a href="composition-model.html">composition-model.md</a> section 4b. Its two decisions (Boss, 1:43 AM EDT, &quot;Weights, Dirichlet where unsure&quot;, and 1:43 AM EDT, &quot;Stand-in only&quot;) are in the same note, and the five stand-in replacements R1 to R5 of section 14.4 are GEN.473 (R1, the belt composition derived), GEN.474 (R2, rock types derived from the bulk oxides), GEN.475 (R3, meteorite groups as outputs), GEN.476 (R4, Al-26 and Fe-60 from the formation environment) and TEST.215 (R5, the calibration rows fenced into tests). The T1 to T23 inventory of section 14.2 is the list of tables GEN.472's loader receives, with the gate and weight of each. The asteroid belt and field code of section 14.5 (finding F11, tables E1 to E4) is GEN.477, with E3's field families folded into GEN.473; its stored shares are DB.70. Section 14.6 (one component vocabulary for every body) is the shared table of GEN.427 with its loader and name mapping, the one mixture storage of DB.69 and DB.70, the gate evaluator with the condition predicates in GEN.472, and the one thresholded text writer of GEN.430 and GEN.446 (the notes on those items). Section 15 (the check of Boss's second note, 100 claims) is recorded on GEN.451, GEN.456, GEN.459, GEN.460, GEN.470 and the licence column of GEN.410, GEN.427 and GEN.438, with six new small items: G-1 is GEN.495 (the comet population table), G-2 is GEN.496 (the photolysis lifetime table), G-3 is GEN.497 (the cold-end vapor pressures), G-4 is GEN.498 (one IW scale), G-5 is GEN.499 (the lava-world vapor mean mass) and G-6 is GEN.500 (the licence audit, removed by Boss at 2:35 PM EDT).</p>
 
 </main>
 </div>

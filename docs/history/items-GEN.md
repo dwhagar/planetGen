@@ -1,6 +1,6 @@
 # Items: GEN, Generation and physics
 
-The life of every GEN item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every GEN item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## GEN.8
 
@@ -542,7 +542,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-16 to 2026-10-16; 2 commits; not open.
 
-- 2026-10-16: GEN.101: neighbourhood fills start at the centre and fill outward in Hilbert-ordered blocks (#1807)
+- 2026-10-16: GEN.101: neighbourhood fills start at the center and fill outward in Hilbert-ordered blocks (#1807)
 - 2026-10-16: TODO: retire GEN.101 (#1807), file TEST.173 (#1809)
 
 ## GEN.102
@@ -1598,7 +1598,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-16 to 2026-10-16; 2 commits; not open.
 
-- 2026-10-16: GEN.265: a scattered system's barycentre moves, its members are placed from their stored orbits (#1766)
+- 2026-10-16: GEN.265: a scattered system's barycenter moves, its members are placed from their stored orbits (#1766)
 - 2026-10-16: TODO: retire GEN.265 (#1766) (#1767)
 
 ## GEN.266
@@ -1698,7 +1698,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-15: TODO: retire GEN.279 (#1728), file GEN.280 to GEN.285, queued stages go to the Core lanes (#1729)
 - 2026-10-15: TODO: file GEN.287 (giant-branch luminosity bug), record migration 0096 for GEN.280/281/283 (#1738)
-- 2026-10-16: GEN.280: the nuclear star cluster and nuclear stellar disc at the galactic centre (#1855)
+- 2026-10-16: GEN.280: the nuclear star cluster and nuclear stellar disk at the galactic center (#1855)
 - 2026-10-16: Retire GEN.280 after its merge (#1856)
 
 ## GEN.281
@@ -1941,7 +1941,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-18 to 2026-10-18; 2 commits; not open.
 
-- 2026-10-18: GEN.317: millisecond pulsar planets from the disc origin, the pulsar wind on a planet (#2265)
+- 2026-10-18: GEN.317: millisecond pulsar planets from the disk origin, the pulsar wind on a planet (#2265)
 - 2026-10-18: docs: retire GEN.317 (#2265), epoch 32 stamped, file TEST.252 (#2266)
 
 ## GEN.318
@@ -2406,7 +2406,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-16: TODO: file TEST.207 (a11y fixture fails on main); GEN.404/405 owner Core 4 (#1937)
 - 2026-10-17: TODO: file TEST.232 (a11y fixture answers 202 under load), TEST.233 (prevalence seed), TEST.234 (settings overflow); record GEN.404 'Mass sets count' decision (#2130)
-- 2026-10-17: TODO: file GEN.544 (disc vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
+- 2026-10-17: TODO: file GEN.544 (disk vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
 - 2026-10-18: GEN.404: the density from the stellar mass, every Sun radius the galaxy's own scale, no default distance from the Sun (#2270)
 - 2026-10-18: docs: retire GEN.404 (#2270), epoch 34 stamped, record Core 4's GEN.553 and GEN.565 plan and the DB.74 notes (#2271)
 - 2026-10-18: Tests: the age-law toy galaxy reads in relative units (GEN.404 left it holding the Milky Way's stars in 40 pc)
@@ -2725,9 +2725,9 @@ The life of every GEN item that a commit title names, from the git history as of
 - 2026-10-17: TODO: GEN.447 to GEN.450 filed from Core 4's citation re-check; GEN.301 waits for them (#1958)
 - 2026-10-23: Docs: TEST.196 (#2642) retired; GEN.450 card recorded (#2643)
 - 2026-10-23: Docs: retire GEN.253 (#2681), GEN.267 scope and migration, GEN.450 progress (#2682)
-- 2026-10-23: GEN.450 star-formation index rises where the disc's gas thins (#2776)
+- 2026-10-23: GEN.450 star-formation index rises where the disk's gas thins (#2776)
 - 2026-10-23: Docs: GEN.450 merged (#2776, epoch 64), file GEN.669 residuals and the body-rendering items MAP.270 to MAP.278, DB.96, GEN.670, TEST.308, UX.158 (#2777)
-- 2026-10-31: GEN.999: the disc's gas law steepens where the gas thins (the GEN.450 factor in the ring solve)
+- 2026-10-31: GEN.999: the disk's gas law steepens where the gas thins (the GEN.450 factor in the ring solve)
 
 ## GEN.451
 
@@ -2768,7 +2768,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-23 to 2026-10-23; 1 commits; not open.
 
-- 2026-10-23: Atmosphere mixture: vapour over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
+- 2026-10-23: Atmosphere mixture: vapor over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
 
 ## GEN.457
 
@@ -2831,7 +2831,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-23 to 2026-10-28; 3 commits; not open.
 
 - 2026-10-23: Docs: pipeline report gaps (GEN.650 to GEN.652, DOC.78), notes on GEN.464 and GEN.355 (#2715)
-- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disc solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
+- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disk solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
 - 2026-10-28: Retire GEN.742, GEN.464, GEN.723, UX.234, TEST.424, TEST.413; file TEST.425; release GEN.684; lock to Aux 8 (#3500)
 
 ## GEN.465
@@ -2934,7 +2934,7 @@ The life of every GEN item that a commit title names, from the git history as of
 - 2026-10-24: GEN.442, GEN.466, GEN.471, GEN.462, GEN.477 (fields): small-body composition from materials (#2956)
 - 2026-10-24: Docs: retire GEN.442, note GEN.477 field half and unwired GEN.466/471/462, file GEN.712, GEN.713, TEST.341 (#2957)
 - 2026-10-24: Docs: file GEN.714, note GEN.477, GEN.466 and GEN.712 from Lane K (#2958)
-- 2026-10-29: GEN.477: the mass left in a planetesimal belt after collisional grinding, from the disc (lock-free) (#3855)
+- 2026-10-29: GEN.477: the mass left in a planetesimal belt after collisional grinding, from the disk (lock-free) (#3855)
 - 2026-10-30: GEN.477 wiring: belt mass and density word from the collisional law, stand-in largest body LB1 (train 7)
 - 2026-10-30: GEN.477 wiring: tests, wiring register, belt page mass
 - 2026-10-30: TODO: record GEN.477 wiring ready, new red on TEST.463 (#3884)
@@ -2954,7 +2954,7 @@ The life of every GEN item that a commit title names, from the git history as of
 - 2026-10-23: Atmosphere chain: the rocky outgassed mixture drawn from the recipe regimes by equilibrium chemistry (GEN.451, GEN.479 rocky part)
 - 2026-10-23: Atmosphere chain: draw_mixture for rocky bodies, giants, brown dwarfs, hot Jupiters and envelopes; hot gases in the gas table; solver scaling (GEN.454, GEN.479)
 - 2026-10-23: Atmosphere mixture: Venus-like, Mars-like, abiotic-oxygen, Titan-like, Pluto-like and comet-coma families; planned rocky classes get the rocky tables (GEN.479)
-- 2026-10-23: Atmosphere mixture: vapour over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
+- 2026-10-23: Atmosphere mixture: vapor over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
 - 2026-10-23: Atmosphere mixture: trace gases of table m drawn after the life stage (GEN.479)
 - 2026-10-23: Atmosphere recipes: row a1 covers bodies under 0.01 Earth masses; a sweep test of draw_mixture over every rocky class (GEN.479)
 - 2026-10-28: Docs: owners for GEN.415, GEN.423, DB.67 (Core 4) and GEN.479 (Aux 9) (#3435)
@@ -3077,7 +3077,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-22 to 2026-10-23; 3 commits; not open.
 
 - 2026-10-22: Docs: GEN.470 retired (#2590); GEN.452 and GEN.497 unblocked (#2591)
-- 2026-10-23: GEN.497: laboratory-corrected cold-end vapour pressures and Span and Wagner carbon dioxide (#2671)
+- 2026-10-23: GEN.497: laboratory-corrected cold-end vapor pressures and Span and Wagner carbon dioxide (#2671)
 - 2026-10-23: Docs: retire GEN.497 (#2671), file GEN.638 (#2672)
 
 ## GEN.498
@@ -3094,7 +3094,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-23 to 2026-10-23; 2 commits; not open.
 
 - 2026-10-23: Atmosphere chain: NASA Glenn species thermodynamics and an ideal-gas equilibrium solver (GEN.451, GEN.454, GEN.499 groundwork), DOC.74 notes
-- 2026-10-23: Atmosphere mixture: vapour over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
+- 2026-10-23: Atmosphere mixture: vapor over a molten surface, white-dwarf silicate exospheres, supercooled liquid free energies; docs and release note (GEN.499, GEN.456, GEN.479)
 
 ## GEN.500
 
@@ -3312,7 +3312,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-17 to 2026-10-30; 3 commits; not open.
 
-- 2026-10-17: TODO: file GEN.542 (star_type_by_radius script) and TEST.228 (dark-cloud centre check) (#2120)
+- 2026-10-17: TODO: file GEN.542 (star_type_by_radius script) and TEST.228 (dark-cloud center check) (#2120)
 - 2026-10-30: GEN.542: star_type_by_radius.py takes the shape the plan draws from the seed (#4309)
 - 2026-10-30: Retire GEN.542 (#4309) and GEN.1004 (not reproducible) (#4311)
 
@@ -3328,7 +3328,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-17 to 2026-10-21; 4 commits; not open.
 
-- 2026-10-17: TODO: file GEN.544 (disc vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
+- 2026-10-17: TODO: file GEN.544 (disk vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
 - 2026-10-17: TODO: record Boss's approval of GEN.544 and GEN.545; keep the description meta and Docs index link on the execution plan page (#2133)
 - 2026-10-21: GEN.544: the disks' height is the exponential their scale heights are fitted with (#2323)
 - 2026-10-21: TODO: retire GEN.544 (#2323), note the density gap on GEN.545 (#2324)
@@ -3337,7 +3337,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-17 to 2026-10-22; 10 commits; not open.
 
-- 2026-10-17: TODO: file GEN.544 (disc vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
+- 2026-10-17: TODO: file GEN.544 (disk vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
 - 2026-10-17: TODO: record Boss's approval of GEN.544 and GEN.545; keep the description meta and Docs index link on the execution plan page (#2133)
 - 2026-10-21: TODO: retire GEN.544 (#2323), note the density gap on GEN.545 (#2324)
 - 2026-10-21: TODO: file GEN.596 (multistar cooling-track crash below 0.01 solar masses), note the GEN.545 mean system mass (#2328)
@@ -3731,8 +3731,8 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-21 to 2026-10-30; 3 commits; open.
 
 - 2026-10-21: Record Boss's sweep answers 1 to 16, Core 4's merges (GEN.553 slice, GEN.565b), the Owner stub USR.31 and the comet replacement GEN.595 (#2301)
-- 2026-10-29: GEN.595: comet ice zones from the disc's snow lines and carbon and oxygen budget (lock-free) (#3866)
-- 2026-10-30: GEN.595: comets take the median CO and CO2 of their ice from the disc zone they formed in (wiring step)
+- 2026-10-29: GEN.595: comet ice zones from the disk's snow lines and carbon and oxygen budget (lock-free) (#3866)
+- 2026-10-30: GEN.595: comets take the median CO and CO2 of their ice from the disk zone they formed in (wiring step)
 
 ## GEN.596
 
@@ -3857,7 +3857,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-21 to 2026-11-04; 2 commits; not open.
 
 - 2026-10-21: Docs: file GEN.614 to GEN.618 from the density limits report, retire GEN.378 (#2368), record the 3e8 structure cut (#2369)
-- 2026-11-04: GEN.614: the nuclear disc is off when it is shorter than the grid's core ball
+- 2026-11-04: GEN.614: the nuclear disk is off when it is shorter than the grid's core ball
 
 ## GEN.615
 
@@ -3967,7 +3967,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-23 to 2026-10-23; 3 commits; not open.
 
-- 2026-10-23: GEN.628: the nuclear disc is drawn from the galaxy's stellar mass (#2620)
+- 2026-10-23: GEN.628: the nuclear disk is drawn from the galaxy's stellar mass (#2620)
 - 2026-10-23: Docs: TEST.281 (#2619) and GEN.628 (#2620, epoch 53) retired; GEN.633 backfill order dependence and TEST.289 filed; MAP.146 children all done (#2621)
 - 2026-10-23: GEN.625: epoch 54 and the numbers measured with GEN.628
 
@@ -4001,7 +4001,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-23 to 2026-10-24; 3 commits; not open.
 
 - 2026-10-23: Docs: full progress documentation update after Blocker 2 finished; TEST.286 retired (#2612), GEN.632 filed (#2614)
-- 2026-10-24: One vapour-pressure function: rogue nitrogen frost and water boiling point read physics/saturation.py (GEN.632)
+- 2026-10-24: One vapor-pressure function: rogue nitrogen frost and water boiling point read physics/saturation.py (GEN.632)
 - 2026-10-24: Retire MAP.259, MAP.260 (#2937) and GEN.632 (#2938); next free migration 0148 and epoch 77 (#2939)
 
 ## GEN.633
@@ -4260,7 +4260,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-23 to 2026-10-23; 3 commits; not open.
 
 - 2026-10-23: Docs: lane M and lane G merges, GEN.565 to lane E, file GEN.663 to GEN.665, AD9 licence row (#2758)
-- 2026-10-23: GEN.663: thorium-to-uranium enrichment from the disc's star formation history (#2822)
+- 2026-10-23: GEN.663: thorium-to-uranium enrichment from the disk's star formation history (#2822)
 - 2026-10-23: Docs: GEN.501 (#2824) and GEN.663 (#2822) merged, retired; file GEN.676; 815 of 1211 (#2825)
 
 ## GEN.664
@@ -4679,7 +4679,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-24 to 2026-10-28; 3 commits; not open.
 
 - 2026-10-24: Docs: retire GEN.675, UX.152, UX.153; file TEST.347, TEST.348, GEN.723 (#3039)
-- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disc solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
+- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disk solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
 - 2026-10-28: Retire GEN.742, GEN.464, GEN.723, UX.234, TEST.424, TEST.413; file TEST.425; release GEN.684; lock to Aux 8 (#3500)
 
 ## GEN.724
@@ -4826,7 +4826,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-28 to 2026-10-28; 2 commits; not open.
 
-- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disc solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
+- 2026-10-28: GEN.742, GEN.464, GEN.723: white dwarf cooling, disk solids by Z/Z0, hot-Jupiter recipe edges (epoch 114) (#3493)
 - 2026-10-28: Retire GEN.742, GEN.464, GEN.723, UX.234, TEST.424, TEST.413; file TEST.425; release GEN.684; lock to Aux 8 (#3500)
 
 ## GEN.743
@@ -4841,8 +4841,8 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-29 to 2026-11-07; 6 commits; not open.
 
 - 2026-10-29: GEN.744: alpha-enhanced equivalent metallicity and the age-metallicity relation (lock-free step) (#3814)
-- 2026-10-30: GEN.744, GEN.944: a disc star's age follows its [Fe/H] by the age-metallicity relation
-- 2026-10-30: GEN.744, GEN.944: tilt only the disc's three populations; give a white dwarf above 1.30 solar masses a radius
+- 2026-10-30: GEN.744, GEN.944: a disk star's age follows its [Fe/H] by the age-metallicity relation
+- 2026-10-30: GEN.744, GEN.944: tilt only the disk's three populations; give a white dwarf above 1.30 solar masses a radius
 - 2026-10-30: TODO: file GEN.1024 and GEN.1025 (GEN.744 part B, GEN.944 part 1b) (#4078)
 - 2026-10-31: docs: PERF.188 profile and GEN.744 remainder notes (#4505)
 - 2026-11-07: GEN.743: layers for helium-core and oxygen-neon white dwarfs; GEN.744 and GEN.745 confirmed built; MAP.400 doc date format (#5391)
@@ -4901,7 +4901,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-24 to 2026-10-24; 3 commits; not open.
 
 - 2026-10-24: docs: retire MAP.261, MAP.262, TEST.343, GEN.674; file TEST.354 and GEN.751 (#3073)
-- 2026-10-24: Lava-vapour gases K2, KO, K2O, Na2O and Al in the species and gas tables (GEN.751) (#3222)
+- 2026-10-24: Lava-vapor gases K2, KO, K2O, Na2O and Al in the species and gas tables (GEN.751) (#3222)
 - 2026-10-24: Docs: unused stored values chains (POP.40-45, GEN.804-811, UX.224-228, PERF.195-197, OPS.72-74), air fixed point findings GEN.812-818, bugs ADM.134 and TEST.387; retire GEN.654, DB.92, GEN.751 (#3223)
 
 ## GEN.752
@@ -5344,7 +5344,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-24: Docs: unused stored values chains (POP.40-45, GEN.804-811, UX.224-228, PERF.195-197, OPS.72-74), air fixed point findings GEN.812-818, bugs ADM.134 and TEST.387; retire GEN.654, DB.92, GEN.751 (#3223)
 - 2026-10-25: Docs: queue Aux 4 (GEN.812) in the lock; file TEST.406 and GEN.837 (#3357)
-- 2026-10-28: GEN.812: the water vapour of the greenhouse thins with height and a grey cloud depth stands for the cloud longwave effect (epoch 118) (#3551)
+- 2026-10-28: GEN.812: the water vapor of the greenhouse thins with height and a grey cloud depth stands for the cloud longwave effect (epoch 118) (#3551)
 - 2026-10-28: Docs: retire GEN.812, file GEN.866 (interior-heat hang), lock to Core 1 (#3552)
 
 ## GEN.813
@@ -6275,8 +6275,8 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-29 to 2026-10-31; 6 commits; open.
 
 - 2026-10-29: Docs: file the star class audit as GEN.935-GEN.944 (#3741)
-- 2026-10-30: GEN.744, GEN.944: a disc star's age follows its [Fe/H] by the age-metallicity relation
-- 2026-10-30: GEN.744, GEN.944: tilt only the disc's three populations; give a white dwarf above 1.30 solar masses a radius
+- 2026-10-30: GEN.744, GEN.944: a disk star's age follows its [Fe/H] by the age-metallicity relation
+- 2026-10-30: GEN.744, GEN.944: tilt only the disk's three populations; give a white dwarf above 1.30 solar masses a radius
 - 2026-10-30: TODO: file GEN.1024 and GEN.1025 (GEN.744 part B, GEN.944 part 1b) (#4078)
 - 2026-10-31: GEN.944: a Variability row on the star sheet (Cepheid, Mira or semiregular, T Tauri, Herbig Ae/Be) (#4082)
 - 2026-10-31: GEN.944: note that the variability row merged (#4082) (#4398)
@@ -6511,8 +6511,8 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-31 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-31: Re-scope GEN.973, file TEST.509 for an Earth twin in the climate sweep (#4369)
-- 2026-10-31: GEN.973: test that the water vapour feedback is already in the surface-air fixed point (#4370)
-- 2026-10-31: Retire GEN.973 with the held-vapour test, file GEN.1194 runaway greenhouse opacity (#4375)
+- 2026-10-31: GEN.973: test that the water vapor feedback is already in the surface-air fixed point (#4370)
+- 2026-10-31: Retire GEN.973 with the held-vapor test, file GEN.1194 runaway greenhouse opacity (#4375)
 
 ## GEN.974
 
@@ -6736,7 +6736,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-29: TODO: file GEN.999, record Sources 2 GEN.473 ready for train 7 (#3877)
 - 2026-10-31: GEN.999 goes to Core 3 (#4541)
-- 2026-10-31: GEN.999: the disc's gas law steepens where the gas thins (the GEN.450 factor in the ring solve)
+- 2026-10-31: GEN.999: the disk's gas law steepens where the gas thins (the GEN.450 factor in the ring solve)
 - 2026-10-31: GEN.999 ready for train 8; file TEST.533 (#4550)
 - 2026-11-01: TEST.552: the outline test follows the density model (3.32 to 3.10 over epoch 123, 125, GEN.999 and GEN.1195) (#4726)
 - 2026-11-01: Retire GEN.999 and GEN.1200 (merged in #4549) (#4732)
@@ -6967,8 +6967,8 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-30: TODO: file GEN.1024 and GEN.1025 (GEN.744 part B, GEN.944 part 1b) (#4078)
-- 2026-10-31: GEN.1025 part 1: thick-disc ages for the old population (module and tests, not wired) (#4406)
-- 2026-10-31: GEN.1025 part 2: the old population's ages reach the thick disc's 13 Gy
+- 2026-10-31: GEN.1025 part 1: thick-disk ages for the old population (module and tests, not wired) (#4406)
+- 2026-10-31: GEN.1025 part 2: the old population's ages reach the thick disk's 13 Gy
 
 ## GEN.1026
 
@@ -7278,7 +7278,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-11-04 to 2026-11-04; 2 commits; not open.
 
-- 2026-11-04: GEN.1066: system body ledger and the barycentre that includes the belts (#4754)
+- 2026-11-04: GEN.1066: system body ledger and the barycenter that includes the belts (#4754)
 - 2026-11-04: Retire GEN.1066, file GEN.1241 (#4755)
 
 ## GEN.1067
@@ -7406,7 +7406,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-11-05: TODO: GEN.1082 and GEN.1083 branch notes (#5046)
 - 2026-11-05: GEN.1232 scope cut; INSTABILITY wiring moves to GEN.1082 (#5123)
-- 2026-11-05: GEN.1082: the architecture's capture windows (giant-giant instabilities and their encounters), the instability excites the outer disc
+- 2026-11-05: GEN.1082: the architecture's capture windows (giant-giant instabilities and their encounters), the instability excites the outer disk
 - 2026-11-06: GEN.1082, GEN.1083, GEN.1084: stand-in sections 6.189 and 6.190, the irregular orbits wiring lines go (the module is read now)
 
 ## GEN.1083
@@ -7459,7 +7459,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-30 to 2026-10-30; 2 commits; not open.
 
-- 2026-10-30: GEN.1089: the scatter step of an outer disc as pure functions of the giants and the disc, registry 6.83 rows SX1 to SX5 (#4160)
+- 2026-10-30: GEN.1089: the scatter step of an outer disk as pure functions of the giants and the disk, registry 6.83 rows SX1 to SX5 (#4160)
 - 2026-10-30: TODO: retire GEN.1089 and GEN.963, GEN.1118 follow-up, wiring rows repointed (#4174)
 
 ## GEN.1090
@@ -7480,7 +7480,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-01 to 2026-11-06; 5 commits; open.
 
 - 2026-11-01: TEST.551: rejoin the belt-source stand-in table a merge split (BR10 to BR23 were unread), rebuild the values list, wire BR22 and BR23 to GEN.1092 (#4710)
-- 2026-11-05: GEN.1092: stored members of an outer disc carry their scatter group and its orbit (belt_populations)
+- 2026-11-05: GEN.1092: stored members of an outer disk carry their scatter group and its orbit (belt_populations)
 - 2026-11-05: Merge GEN.1071 into GEN.1092
 - 2026-11-05: Merge origin/main into GEN.1071 and GEN.1092 part A
 - 2026-11-06: GEN.1092: the belt page says where an outer disk's mass went (the scatter shares) (#5357)
@@ -8255,7 +8255,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-30: Close GEN.1182, replace GEN.1181 with GEN.1188 (keep 6.5 km/s, record sources, pin band) (#4362)
-- 2026-10-31: GEN.1188: source the 6.5 km/s birth-gas dispersion; pin the Milky Way young-disc height to 35 to 70 pc (#4364)
+- 2026-10-31: GEN.1188: source the 6.5 km/s birth-gas dispersion; pin the Milky Way young-disk height to 35 to 70 pc (#4364)
 - 2026-10-31: Retire GEN.1188, close GEN.1187, file GEN.1190 (#4366)
 
 ## GEN.1189
@@ -8287,7 +8287,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-31 to 2026-10-31; 4 commits; not open.
 
-- 2026-10-31: GEN.1192: a satellite's gas is an exponential disc longer than its stars, forming stars by the law that steepens where the gas thins
+- 2026-10-31: GEN.1192: a satellite's gas is an exponential disk longer than its stars, forming stars by the law that steepens where the gas thins
 - 2026-10-31: GEN.1192: registry section 6.133 (6.130 to 6.132 are Core 4's in #4380)
 - 2026-10-31: GEN.1192: registry section 6.140 (6.134 to 6.139 are taken)
 - 2026-10-31: GEN.1192: stand-in values and plan on current main
@@ -8307,7 +8307,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-31 to 2026-11-06; 4 commits; not open.
 
-- 2026-10-31: Retire GEN.973 with the held-vapour test, file GEN.1194 runaway greenhouse opacity (#4375)
+- 2026-10-31: Retire GEN.973 with the held-vapor test, file GEN.1194 runaway greenhouse opacity (#4375)
 - 2026-10-31: GEN.1189: re-scope to ride the table refit with GEN.1194 (#4395)
 - 2026-11-06: GEN.1194: saturated and clear-sky options of the radiative-convective model; the runaway elbow and its cause (#5423)
 - 2026-11-06: Retire SEC.43 and GEN.1194 (#5426)
@@ -8326,7 +8326,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-31 to 2026-10-31; 1 commits; not open.
 
-- 2026-10-31: GEN.1196: disc cluster maximum mass per ring from its gas, rotation and dispersion
+- 2026-10-31: GEN.1196: disk cluster maximum mass per ring from its gas, rotation and dispersion
 
 ## GEN.1197
 
@@ -8367,7 +8367,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-31 to 2026-10-31; 1 commits; open.
 
-- 2026-10-31: File GEN.1202 (disc gas profile low against measured) (#4409)
+- 2026-10-31: File GEN.1202 (disk gas profile low against measured) (#4409)
 
 ## GEN.1203
 
@@ -8429,7 +8429,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-31: File GEN.1209 several life types per planet; notes on GEN.863, UX.237, TEST.435 (#4472)
 - 2026-10-31: File life readings and text readability items GEN.1210, UX.251 to UX.253, DOC.83, DOC.84; notes on UX.237, GEN.1209 (#4474)
-- 2026-10-31: File GEN.1212 (stored flavour text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
+- 2026-10-31: File GEN.1212 (stored flavor text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
 - 2026-10-31: File GEN.1213 air composition from the whole mix of living classes; note on GEN.1209 (#4484)
 - 2026-10-31: GEN.1209 part 1: several life classes on one body (own schedules, settle against the summed air, per-class kinds, planet_life and moon_life)
 - 2026-10-31: GEN.1209: rebase on train 7, schema v197 and migration 0197
@@ -8461,9 +8461,9 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-31 to 2026-11-06; 10 commits; not open.
 
-- 2026-10-31: File GEN.1212 (stored flavour text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
-- 2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavour branch head (#4501)
-- 2026-10-31: GEN.1212: rewrite the system flavour lines in plain words
+- 2026-10-31: File GEN.1212 (stored flavor text); GEN.1209 decisions; notes on UX.252, UX.253 (#4477)
+- 2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavor branch head (#4501)
+- 2026-10-31: GEN.1212: rewrite the system flavor lines in plain words
 - 2026-10-31: GEN.1212: note line format (generation-output: changed)
 - 2026-11-04: GEN.1212: a planet or moon keeps no description text (migration, API version 13)
 - 2026-11-04: GEN.1212 lock step: merge main (train 9, migrations through 0204), migration 0205
@@ -8626,7 +8626,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-31 to 2026-11-04; 4 commits; not open.
 
 - 2026-10-31: Oxford comma rule (DOC.86), References items (DOC.87 to DOC.95), retire PERF.221-223 and TEST.533, file GEN.1230 and TEST.536 (#4577)
-- 2026-11-04: GEN.1230, GEN.1242: the thin disc forms from an inside-out exponential infall, not the halo's stellar growth
+- 2026-11-04: GEN.1230, GEN.1242: the thin disk forms from an inside-out exponential infall, not the halo's stellar growth
 - 2026-11-04: GEN.1230: rebuild the reference pages; the cluster age test keeps parity with disruption
 - 2026-11-04: File TEST.558 and GEN.1246; GEN.1230 note (#4775)
 
@@ -8725,7 +8725,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-11-04: File PERF.231, GEN.1242, GEN.1243 (census findings on epoch 130) (#4758)
 - 2026-11-04: GEN.1242: Core 3 diagnosis note (#4761)
-- 2026-11-04: GEN.1230, GEN.1242: the thin disc forms from an inside-out exponential infall, not the halo's stellar growth
+- 2026-11-04: GEN.1230, GEN.1242: the thin disk forms from an inside-out exponential infall, not the halo's stellar growth
 - 2026-11-04: Train 9: regenerate pages after GEN.1242
 
 ## GEN.1243
@@ -8741,7 +8741,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-04 to 2026-11-04; 3 commits; not open.
 
 - 2026-11-04: File GEN.1244; retire TEST.557 and GEN.1243 (#4767)
-- 2026-11-04: GEN.1244: the regular moons of a giant form inside the centrifugal radius of its disc, outside the corotation radius of its spin
+- 2026-11-04: GEN.1244: the regular moons of a giant form inside the centrifugal radius of its disk, outside the corotation radius of its spin
 - 2026-11-04: Merge origin/main into GEN.1244 (train 9; registry section 6.167)
 
 ## GEN.1245
@@ -8757,7 +8757,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-04 to 2026-11-04; 3 commits; not open.
 
 - 2026-11-04: File TEST.558 and GEN.1246; GEN.1230 note (#4775)
-- 2026-11-04: Infall mass dependence: disc speed from mass and the Eq. 21 inflow factor (GEN.1246)
+- 2026-11-04: Infall mass dependence: disk speed from mass and the Eq. 21 inflow factor (GEN.1246)
 - 2026-11-04: Merge origin/main into GEN.1246 (reference IDs renumbered: Boissier and Prantzos papers are R5096 and R5097)
 
 ## GEN.1247
@@ -8881,12 +8881,12 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-11-05 to 2026-11-07; 10 commits; not open.
 
-- 2026-11-05: GEN.1261: cold-disc drift loss, isolation cap on a gap belt, belts in the planets' own disc
+- 2026-11-05: GEN.1261: cold-disk drift loss, isolation cap on a gap belt, belts in the planets' own disk
 - 2026-11-05: Merge origin/main into GEN.1261
 - 2026-11-05: GEN.1261: cite the registered paper by number, drop unregistered author-year names
 - 2026-11-05: TODO: GEN.1276 and GEN.1277 move to Planets 1; GEN.1261 branch note (#5078)
 - 2026-11-05: Merge main into GEN.1261; regenerate the stand-in tables and reference pages
-- 2026-11-05: Merge main (train 10) into GEN.1261; disc to disk, American spelling, tables regenerated
+- 2026-11-05: Merge main (train 10) into GEN.1261; disk to disk, American spelling, tables regenerated
 - 2026-11-05: GEN.1261: the change note names disk_scatter
 - 2026-11-06: Merge main into GEN.1261
 - 2026-11-06: Merge main (train 12) into GEN.1261: belt build takes both the giants' instability and the disk scatter; generated docs rebuilt
@@ -9686,14 +9686,14 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-11-08 to 2026-11-08; 15 commits; not open.
 
-- 2026-11-08: GEN.1363 part A: the species-by-species disc condensation budget, lines and C/O (nothing reads it yet)
+- 2026-11-08: GEN.1363 part A: the species-by-species disk condensation budget, lines and C/O (nothing reads it yet)
 - 2026-11-08: GEN.1363 part A: citations as one bracket, wiring and burn-down register lines
 - 2026-11-08: GEN.1363 part A: rename registry rows DC1-DC6 to DSC1-DSC6 (DC1 clashed with the dry-carbon rows)
-- 2026-11-07: GEN.1363 part A: species-by-species disc condensation budget, lines and C/O (#5641)
+- 2026-11-07: GEN.1363 part A: species-by-species disk condensation budget, lines and C/O (#5641)
 - 2026-11-08: Merge origin/main into train 17; stand-in sections 6.214 to 6.217 (main took 6.213 for GEN.1363), serialization fuzz lists the belt hand-on attributes
 - 2026-11-08: Train 17: sweep GEN.1363 to American spelling (disk), wiring register and plan names follow, modeled
 - ...
-- 2026-11-08: GEN.1363: American spelling (disc to disk): disk_condensation.py, tests and docs
+- 2026-11-08: GEN.1363: American spelling (disk to disk): disk_condensation.py, tests and docs
 - 2026-11-08: Merge GEN.1363 head 87218e9d5 (Lane 14) into GEN.1374
 - 2026-11-08: Merge main (train 17) into GEN.1363 parts B and C
 - 2026-11-08: GEN.1363: an icy body of an oxygen-poor disk holds no water instead of failing the draw
@@ -9902,16 +9902,17 @@ The life of every GEN item that a commit title names, from the git history as of
 
 ## GEN.1395
 
-2026-11-07 to 2026-11-07; 1 commits; open.
+2026-11-07 to 2026-11-08; 2 commits; open.
 
 - 2026-11-07: Docs: file GEN.1395 and GEN.1396, Boss's answers on the giant C/O and the snow-line solid density (#5655)
+- 2026-11-08: File GEN.1471: gas giant C/O center fix and envelope-share stand-in (from the GEN.1395 measure) (#5801)
 
 ## GEN.1396
 
 2026-11-07 to 2026-11-08; 6 commits; not open.
 
 - 2026-11-07: Docs: file GEN.1395 and GEN.1396, Boss's answers on the giant C/O and the snow-line solid density (#5655)
-- 2026-11-08: GEN.1396 WIP: snow-line solid jump from the disc budget, retuned giants
+- 2026-11-08: GEN.1396 WIP: snow-line solid jump from the disk budget, retuned giants
 - 2026-11-08: GEN.1396: jump of the solid density at the snow line from the disk budget; giants retuned (survival share 0.79, critical core 9)
 - 2026-11-08: GEN.1396: stand-in section 6.231
 - 2026-11-08: Merge origin/main into GEN.1396: the jump on main's disk_condensation, stand-in section 6.233
@@ -9976,10 +9977,11 @@ The life of every GEN item that a commit title names, from the git history as of
 
 ## GEN.1405
 
-2026-11-08 to 2026-11-08; 2 commits; not open.
+2026-11-08 to 2026-11-08; 3 commits; not open.
 
 - 2026-11-08: Retire GEN.1353 (PR 5777) and GEN.1309 (step A in Train 19, step B closed as a finding, noted on GEN.1405) (#5778)
 - 2026-11-08: GEN.1405: oxygen store row BO3 is a stand-in set inside the published 0.3 to 1 Gyr delay (T3, L1; docs only) (#5783)
+- 2026-11-08: Delete the burn-down line for 6.21:BO3 (no longer hand-tuned after GEN.1405); red on main (#5808)
 
 ## GEN.1407
 
@@ -10213,4 +10215,22 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: File GEN.1470: puffed planets from obliquity-tide inflation escape the super-puff check (#5796)
+
+## GEN.1471
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1471: gas giant C/O center fix and envelope-share stand-in (from the GEN.1395 measure) (#5801)
+
+## GEN.1472
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1472 and GEN.1473: drift and evaporation of water in the disk (design note, then build) (#5805)
+
+## GEN.1473
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1472 and GEN.1473: drift and evaporation of water in the disk (design note, then build) (#5805)
 

@@ -289,7 +289,12 @@ mass fraction c (Earth 0.325) and lid regime:
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
-   field and the wind, then divided by the body's own radius, GEN.843).
+   field and the wind, then divided by the body's own radius, GEN.843). The wind is the sum of the winds of every star of the system (GEN.1452,
+   `magnetism.wind_pressure_at`: the host's plus each companion's wind at 1 AU times the mean `1/d^2` between it and the body, the geometry that adds the
+   companions' light, `physics/radiation_field.py`); a lone star gives the number of before. A moon that orbits inside its parent's magnetopause
+   is not in the wind: its own standoff is set against the pressure of the parent's field at its orbit, `B^2 / (2 mu0)` with `B = mu0 M / (4 pi r^3)`
+   (`magnetism.apply_parent_magnetosphere`; Ganymede's standoff in Jupiter's field comes out at 2.4 radii). The belts of the parent already read the parent's
+   field and now the summed wind (`radiation_belts.belts_of_body`).
 
 **Lid regime, as built (GEN.177, GEN.721, GEN.838).** The regime is drawn once per planet from `mobile_lid_chance`: a liquid surface ocean
 (`hydrosphere == "surface ocean"`) is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth masses and 0.3 above (the

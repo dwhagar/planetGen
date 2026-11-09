@@ -142,3 +142,19 @@ def test_the_gate_numbers_are_those_the_report_proposes_and_the_floors_are_hand_
     for name in ("acid_vapor_share_of_so2", "cloud_water_min_share", "uv_c_min_w_m2", "reductant_min_share", "chlorine_min_share", "absorber_depth_per_cloud_depth"):
         assert sc.NUMBERS[name]["tweak"] == "L3", name
     assert math.isclose(sc.number("acid_vapor_share_of_so2") * 150.0e-6, 4.5e-6)
+
+
+def test_the_band_moves_inside_its_stated_uncertainties_with_the_stored_draw_and_not_beyond_two_sigma():
+    wavelengths = [0.30 + 0.01 * n for n in range(30)]
+    center_sigma, fwhm_sigma = sc.absorber_spread_um()
+    peaks = []
+    for draw in (0.01, 0.2, 0.5, 0.8, 0.99):
+        band = sc.absorber_band(20.0, 1.0e-3, wavelengths, draw)
+        peaks.append(wavelengths[band.index(max(band))])
+        assert max(band) > 0.0
+    assert max(peaks) - min(peaks) <= 4.0 * center_sigma + 0.01 + 1e-9, "the center stays within two sigma either way (to the grid step)"
+    assert sc.absorber_band(20.0, 1.0e-3, wavelengths, 0.3) == sc.absorber_band(20.0, 1.0e-3, wavelengths, 0.3), "repeats from the draw"
+
+
+def test_a_band_given_its_own_center_and_width_is_that_gaussian():
+    assert sc.absorber_depth(20.0, 1.0e-3, 0.4, center_um=0.4, fwhm_um=0.1) == pytest.approx(sc.number("absorber_depth_per_cloud_depth") * 20.0)

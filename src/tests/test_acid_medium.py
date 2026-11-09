@@ -32,7 +32,9 @@ def test_venus_like_air_holds_a_cloud_layer():
 
 
 def test_a_wet_venus_has_only_a_dilute_acid_so_none():
-    assert acid_medium.level(_venus(H2O=3e-3)) == acid_medium.NONE
+    """At 1 percent of water the cloud level's acid is dilute (GEN.1424's solution, not the old fitted line): a tenth of that still counts."""
+    assert acid_medium.level(_venus(H2O=1e-2)) == acid_medium.NONE
+    assert acid_medium.level(_venus(H2O=1e-3)) == acid_medium.CLOUD
 
 
 def test_earth_like_air_has_none():
@@ -70,10 +72,9 @@ def test_a_hot_dry_ground_is_outside_the_liquid_window():
 
 
 def test_strength_falls_as_the_air_wets():
-    strengths = [acid_medium.weight_percent(activity) for activity in (1e-6, 1e-4, 1e-3, 1e-2, 1.0)]
-    assert strengths == sorted(strengths, reverse=True)
-    assert acid_medium.weight_percent(0.0) == 100.0 and acid_medium.weight_percent(1.0) >= 0.0
-    assert acid_medium.weight_percent(acid_medium.number("reference_water_activity")) == pytest.approx(acid_medium.number("reference_wt_percent"))
+    """The strength at a level is the solution the air's water fixes (`sulfuric_vapor`, GEN.1424): wetter air, weaker acid."""
+    strengths = [acid_medium.medium(_venus(H2O=water)).weight_percent for water in (1e-5, 1e-4, 1e-3)]
+    assert all(s is not None for s in strengths) and strengths == sorted(strengths, reverse=True) and strengths[0] > strengths[-1]
 
 
 def test_the_skin_argument_lowers_the_cold_top_only():

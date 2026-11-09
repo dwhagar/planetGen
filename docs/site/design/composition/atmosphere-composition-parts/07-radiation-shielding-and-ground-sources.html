@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.html"><a href="../../../index.html">Site index</a></nav>
 <main>
-<h1 id="07-radiation-atmospheric-shielding-and-ground-sources">07 Radiation: atmospheric shielding and ground sources</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-how-the-numbers-feed-a-generator">1. Scope and how the numbers feed a generator</a></li><li style="margin-left:0px"><a href="#2-tables">2. Tables</a></li><li style="margin-left:14px"><a href="#21-current-code-constants-against-the-evidence">2.1 Current code constants against the evidence</a></li><li style="margin-left:14px"><a href="#22-photon-absorption-xuv-and-euv-10-to-100-nm-photoionisation-cross-sections">2.2 Photon absorption: XUV and EUV (10 to 100 nm) photoionisation cross sections</a></li><li style="margin-left:14px"><a href="#23-tau--1-columns-for-gas-mixtures-in-the-xuv-and-euv">2.3 Tau = 1 columns for gas mixtures in the XUV and EUV</a></li><li style="margin-left:14px"><a href="#24-x-ray-and-gamma-mass-attenuation-coefficients-murho-cm2g-01-kev-to-10-mev">2.4 X-ray and gamma mass attenuation coefficients mu/rho (cm2/g), 0.1 keV to 10 MeV</a></li><li style="margin-left:14px"><a href="#25-proton-stopping-power-and-range-nist-pstar-icru-49">2.5 Proton stopping power and range (NIST PSTAR, ICRU 49)</a></li><li style="margin-left:14px"><a href="#26-hadronic-electromagnetic-and-muon-properties-of-gases-and-solids-pdg">2.6 Hadronic, electromagnetic and muon properties of gases and solids (PDG)</a></li><li style="margin-left:14px"><a href="#27-dose-versus-column-simulations-measurements-and-the-codes-curve">2.7 Dose versus column: simulations, measurements and the code's curve</a></li><li style="margin-left:14px"><a href="#28-stellar-energetic-particles-and-flares">2.8 Stellar energetic particles and flares</a></li><li style="margin-left:14px"><a href="#29-natural-radionuclides-decay-data-heating-and-abundances">2.9 Natural radionuclides: decay data, heating and abundances</a></li><li style="margin-left:14px"><a href="#210-ground-gamma-dose-radon-and-noble-gas-outgassing">2.10 Ground gamma dose, radon and noble-gas outgassing</a></li><li style="margin-left:14px"><a href="#211-radiolysis-neutrons-muons-at-depth-europa-and-trapped-belts">2.11 Radiolysis, neutrons, muons at depth, Europa and trapped belts</a></li><li style="margin-left:14px"><a href="#212-energy-per-ion-pair-w-and-the-ionisation-profile">2.12 Energy per ion pair W and the ionisation profile</a></li><li style="margin-left:14px"><a href="#213-biological-dose-limits-and-tolerances">2.13 Biological dose limits and tolerances</a></li><li style="margin-left:0px"><a href="#3-formulas-and-parametrisations-with-validity-ranges">3. Formulas and parametrisations with validity ranges</a></li><li style="margin-left:0px"><a href="#4-surface-dose-recipe-and-code-status">4. Surface dose recipe and code status</a></li><li style="margin-left:0px"><a href="#5-boss-must-research">5. Boss must research</a></li><li style="margin-left:0px"><a href="#6-recalled--to-verify">6. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#7-cross-links-to-neighbouring-parts">7. Cross-links to neighbouring parts</a></li><li style="margin-left:0px"><a href="#8-domains-that-worked-in-this-part">8. Domains that worked in this part</a></li></ul></details>
+<h1 id="07-radiation-atmospheric-shielding-and-ground-sources">07 Radiation: atmospheric shielding and ground sources</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-how-the-numbers-feed-a-generator">1. Scope and how the numbers feed a generator</a></li><li style="margin-left:0px"><a href="#2-tables">2. Tables</a></li><li style="margin-left:14px"><a href="#21-current-code-constants-against-the-evidence">2.1 Current code constants against the evidence</a></li><li style="margin-left:14px"><a href="#22-photon-absorption-xuv-and-euv-10-to-100-nm-photoionization-cross-sections">2.2 Photon absorption: XUV and EUV (10 to 100 nm) photoionization cross sections</a></li><li style="margin-left:14px"><a href="#23-tau--1-columns-for-gas-mixtures-in-the-xuv-and-euv">2.3 Tau = 1 columns for gas mixtures in the XUV and EUV</a></li><li style="margin-left:14px"><a href="#24-x-ray-and-gamma-mass-attenuation-coefficients-murho-cm2g-01-kev-to-10-mev">2.4 X-ray and gamma mass attenuation coefficients mu/rho (cm2/g), 0.1 keV to 10 MeV</a></li><li style="margin-left:14px"><a href="#25-proton-stopping-power-and-range-nist-pstar-icru-49">2.5 Proton stopping power and range (NIST PSTAR, ICRU 49)</a></li><li style="margin-left:14px"><a href="#26-hadronic-electromagnetic-and-muon-properties-of-gases-and-solids-pdg">2.6 Hadronic, electromagnetic and muon properties of gases and solids (PDG)</a></li><li style="margin-left:14px"><a href="#27-dose-versus-column-simulations-measurements-and-the-codes-curve">2.7 Dose versus column: simulations, measurements and the code's curve</a></li><li style="margin-left:14px"><a href="#28-stellar-energetic-particles-and-flares">2.8 Stellar energetic particles and flares</a></li><li style="margin-left:14px"><a href="#29-natural-radionuclides-decay-data-heating-and-abundances">2.9 Natural radionuclides: decay data, heating and abundances</a></li><li style="margin-left:14px"><a href="#210-ground-gamma-dose-radon-and-noble-gas-outgassing">2.10 Ground gamma dose, radon and noble-gas outgassing</a></li><li style="margin-left:14px"><a href="#211-radiolysis-neutrons-muons-at-depth-europa-and-trapped-belts">2.11 Radiolysis, neutrons, muons at depth, Europa and trapped belts</a></li><li style="margin-left:14px"><a href="#212-energy-per-ion-pair-w-and-the-ionization-profile">2.12 Energy per ion pair W and the ionization profile</a></li><li style="margin-left:14px"><a href="#213-biological-dose-limits-and-tolerances">2.13 Biological dose limits and tolerances</a></li><li style="margin-left:0px"><a href="#3-formulas-and-parametrisations-with-validity-ranges">3. Formulas and parametrisations with validity ranges</a></li><li style="margin-left:0px"><a href="#4-surface-dose-recipe-and-code-status">4. Surface dose recipe and code status</a></li><li style="margin-left:0px"><a href="#5-boss-must-research">5. Boss must research</a></li><li style="margin-left:0px"><a href="#6-recalled--to-verify">6. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#7-cross-links-to-neighbouring-parts">7. Cross-links to neighbouring parts</a></li><li style="margin-left:0px"><a href="#8-domains-that-worked-in-this-part">8. Domains that worked in this part</a></li></ul></details>
 <p>Part 07 of the atmosphere series. Scope: derive the ATMOSPHERIC radiation environment (what the gas column stops and makes) and the SURFACE radiation environment (atmosphere plus ground composition) from composition, pressure, gravity, magnetic field and stellar activity. Earth, Moon, Mars and Europa appear only as labelled calibration points; nothing is taken from presets.</p>
 <p>Status labels: READ (original paper text), 2ND-HAND (read in a reachable document that cites the original), DATA (data file or static table, source named), COMPUTED (derived by me in Python from stated inputs), SNIPPET (search summary only), RECALLED (memory, also listed in section 7), NOT REACHED. A combined label such as &quot;COMPUTED (DATA)&quot; counts under its first word. Abbreviations: X = column mass P0/g in g/cm2; M = dipole moment in units of Earth's (7.768e22 A m2, project constant); mu/rho = mass attenuation coefficient in cm2/g; CSDA = continuous slowing down approximation; lambda_I = PDG nuclear interaction length; X0 = radiation length.</p>
 <h2 id="1-scope-and-how-the-numbers-feed-a-generator">1. Scope and how the numbers feed a generator</h2>
@@ -161,7 +161,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<h3 id="22-photon-absorption-xuv-and-euv-10-to-100-nm-photoionisation-cross-sections">2.2 Photon absorption: XUV and EUV (10 to 100 nm) photoionisation cross sections</h3>
+<h3 id="22-photon-absorption-xuv-and-euv-10-to-100-nm-photoionization-cross-sections">2.2 Photon absorption: XUV and EUV (10 to 100 nm) photoionization cross sections</h3>
 <p>Mb = 1e-18 cm2. Mean over a window of plus or minus 3% about each wavelength (smooths H<sub>2</sub> and N<sub>2</sub> line structure). Origin per cell: L = Leiden measured or evaluated file, H = Henke atomic sum sigma = 2 r0 lambda f2, V = [R4542] fit. Henke fails beyond about 70 nm (no outer-shell physics), so H entries at 70 nm or above are not given. Henke and Leiden agree within about 10 to 30% below 70 nm; Henke and Verner agree within 3 to 10% for He.</p>
 <div class="table"><table>
 <thead>
@@ -326,7 +326,7 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <p>Not tabulated: H<sub>2</sub>S (Leiden file exists, 41.6 to 238 nm). No cross-section source reached for HCN, H<sub>2</sub>CO, HCl, HF, CH<sub>3</sub>Cl, Ne, Kr, Xe, SiO, Na, K, TiO, VO, NOx (NOT REACHED); the Henke atomic sum covers their 5 to 60 nm part.</p>
-<p>Ionisation edges and thresholds ([R4542] fits, COMPUTED with the printed parameters; He I parameters E0 = 13.61 eV, s0 = 949.2 Mb, ya = 1.469, P = 3.188, yw = 2.039, y0 = 0.4434, y1 = 2.136):</p>
+<p>Ionization edges and thresholds ([R4542] fits, COMPUTED with the printed parameters; He I parameters E0 = 13.61 eV, s0 = 949.2 Mb, ya = 1.469, P = 3.188, yw = 2.039, y0 = 0.4434, y1 = 2.136):</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -836,7 +836,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Electronic stopping powers at the same energies are in the scratch data (DATA) and follow from F<sub>2</sub> within 1% above 30 MeV. PDG minimum-ionisation values (MeV cm2/g): H<sub>2</sub> 4.103, air 1.815, CO<sub>2</sub> 1.819, rock 1.688 (DATA, pdg.lbl.gov AtomicNuclearProperties).</p>
+<p>Electronic stopping powers at the same energies are in the scratch data (DATA) and follow from F<sub>2</sub> within 1% above 30 MeV. PDG minimum-ionization values (MeV cm2/g): H<sub>2</sub> 4.103, air 1.815, CO<sub>2</sub> 1.819, rock 1.688 (DATA, pdg.lbl.gov AtomicNuclearProperties).</p>
 <p>Bethe-Bloch check (COMPUTED, formula F<sub>2</sub> with PSTAR I values, no shell, Barkas, Bloch or density-effect terms): ratio PSTAR / simple Bethe at 10, 100, 1000, 10000 MeV: air 0.992, 0.999, 1.000, 1.000; H<sub>2</sub> 1.000 at all four; CO<sub>2</sub> 0.992, 0.999, 1.000, 1.000; Ar 0.980, 0.998, 1.000, 1.000; liquid water 0.993, 0.999, 0.999, 0.922; SiO<sub>2</sub> 0.988, 0.999, 0.996, 0.931; Fe 0.970, 0.994, 0.980, 0.920. Range ratio PSTAR / integrated Bethe (starting from PSTAR range at 10 MeV): within 0.4% for gases at all energies, within 6% for condensed matter at 10 GeV (the missing density-effect term). So for gases the plain Bethe formula is enough above 10 MeV; for ice, water, rock and iron above 3 GeV the density correction must be added (shell and Barkas corrections matter below 10 MeV, outside this table).</p>
 <p>Power-law fits R = a E^b (g/cm2, MeV), COMPUTED from PSTAR, maximum error against the table:</p>
 <div class="table"><table>
@@ -1176,7 +1176,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Muon CSDA range, g/cm2 (PDG muon tables, DATA; interpolated): air 508 (1 GeV), 4204 (10 GeV), 3.41e4 (100 GeV), 2.31e5 (1 TeV); water ice 472, 4268, 3.63e4, 2.43e5; standard rock 553, 4920, 4.08e4, 2.45e5; iron 640, 5532, 4.31e4, 2.06e5. Rock and ice stop a 1 GeV muon in 2.1 m and 5.1 m respectively with densities 2.65 and 0.92 (COMPUTED). Mean muon ionisation loss near minimum is about 2 MeV cm2/g (PDG a_mu).</p>
+<p>Muon CSDA range, g/cm2 (PDG muon tables, DATA; interpolated): air 508 (1 GeV), 4204 (10 GeV), 3.41e4 (100 GeV), 2.31e5 (1 TeV); water ice 472, 4268, 3.63e4, 2.43e5; standard rock 553, 4920, 4.08e4, 2.45e5; iron 640, 5532, 4.31e4, 2.06e5. Rock and ice stop a 1 GeV muon in 2.1 m and 5.1 m respectively with densities 2.65 and 0.92 (COMPUTED). Mean muon ionization loss near minimum is about 2 MeV cm2/g (PDG a_mu).</p>
 <p>Light-gas consequence (design inference F8, not a measurement): a nucleon interacts after 52 g/cm2 of H<sub>2</sub> but 90 g/cm2 of air, so hadronic cascades develop at smaller X in H<sub>2</sub> or CH<sub>4</sub>, while electromagnetic cascades need 1.7 times (H<sub>2</sub>) or 1.27 times (CH<sub>4</sub>) more g/cm2 (X0 ratio to air); the Pfotzer maximum, an electromagnetic and muon feature, should sit deeper in g/cm2 for light gases.</p>
 <h3 id="27-dose-versus-column-simulations-measurements-and-the-codes-curve">2.7 Dose versus column: simulations, measurements and the code's curve</h3>
 <p>[R1466] (1307.4704) Table XV, as tabulated by [R1687] (1603.06500) Table 2: total biological dose (mSv/yr) from muons, electrons, photons and neutrons in CORSIKA air showers. Primaries are protons only (20 million per run, READ); hadronic secondaries are modelled for primaries above 8 GeV, so low-column values are lower bounds and helium and heavier nuclei are absent. Planet columns use Earth-like N<sub>2</sub>/O2 air. Magnetic moment in Earth units; the code's curve is evaluated with its own function (COMPUTED).</p>
@@ -1300,7 +1300,7 @@ main{padding:16px 16px 60px}}
 <td>0.34</td>
 <td>0.37</td>
 <td>0.22</td>
-<td>sea-level cosmic 0.27 ionising + 0.05 neutron = 0.32 mSv/yr (UNSCEAR 2008 Table 5); UNSCEAR 2000: 31 nSv/h = 270 uSv/yr ionising plus 48 uSv/yr neutrons</td>
+<td>sea-level cosmic 0.27 ionizing + 0.05 neutron = 0.32 mSv/yr (UNSCEAR 2008 Table 5); UNSCEAR 2000: 31 nSv/h = 270 uSv/yr ionizing plus 48 uSv/yr neutrons</td>
 <td>UNSCEAR 2000, 2008</td>
 <td>READ</td>
 </tr>
@@ -1815,7 +1815,7 @@ main{padding:16px 16px 60px}}
 <td>READ</td>
 </tr>
 <tr>
-<td>Thin-disc solar twins: [Th/H] at ZAMS</td>
+<td>Thin-disk solar twins: [Th/H] at ZAMS</td>
 <td>mean +0.080 dex, scatter 0.058 dex, range -0.117 to +0.257 (53 stars)</td>
 <td>[R0479] (1810.10413)</td>
 <td>READ</td>
@@ -2096,7 +2096,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<h3 id="212-energy-per-ion-pair-w-and-the-ionisation-profile">2.12 Energy per ion pair W and the ionisation profile</h3>
+<h3 id="212-energy-per-ion-pair-w-and-the-ionization-profile">2.12 Energy per ion pair W and the ionization profile</h3>
 <p>DATA: xraydb 4.5.8 table ionization_potentials (from Knoll, Radiation Detection and Measurement, Table 5-1; fast electrons). Ion pairs per kg per Gy = 1/(W e), COMPUTED.</p>
 <div class="table"><table>
 <thead>
@@ -2180,7 +2180,7 @@ main{padding:16px 16px 60px}}
 <td>READ</td>
 </tr>
 <tr>
-<td>NH<sub>3</sub>, H<sub>2</sub>O vapour, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl</td>
+<td>NH<sub>3</sub>, H<sub>2</sub>O vapor, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl</td>
 <td>not available</td>
 <td></td>
 <td></td>
@@ -2195,7 +2195,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Reading: W varies by a factor 1.6 across the gases; the ionisation rate per unit absorbed dose is within 10% of air for H<sub>2</sub>, N<sub>2</sub>, O<sub>2</sub> and CO<sub>2</sub>, and differs by +24% (CH<sub>4</sub>), +28% (Ar) and -18% (He). Applying the Atri M = 1 value at X = 100 (171 mSv/yr, treated as an upper bound of 171 mGy/yr), air density 0.145 kg/m3 at that column gives q = D rho / (W e) of about 145 ion pairs cm-3 s-1 (COMPUTED), against 3 to 30 cm-3 s-1 for the middle stratosphere ([R4525], 2ND-HAND). The 5 to 50 times gap shows that the dose equivalent in mSv, which includes neutron and quality weighting, must be reduced to absorbed dose and that the stratospheric range refers to higher altitude (lower density); the factor needs a calibration with an absorbed-dose profile (Boss list item 7).</p>
+<p>Reading: W varies by a factor 1.6 across the gases; the ionization rate per unit absorbed dose is within 10% of air for H<sub>2</sub>, N<sub>2</sub>, O<sub>2</sub> and CO<sub>2</sub>, and differs by +24% (CH<sub>4</sub>), +28% (Ar) and -18% (He). Applying the Atri M = 1 value at X = 100 (171 mSv/yr, treated as an upper bound of 171 mGy/yr), air density 0.145 kg/m3 at that column gives q = D rho / (W e) of about 145 ion pairs cm-3 s-1 (COMPUTED), against 3 to 30 cm-3 s-1 for the middle stratosphere ([R4525], 2ND-HAND). The 5 to 50 times gap shows that the dose equivalent in mSv, which includes neutron and quality weighting, must be reduced to absorbed dose and that the stratospheric range refers to higher altitude (lower density); the factor needs a calibration with an absorbed-dose profile (Boss list item 7).</p>
 <h3 id="213-biological-dose-limits-and-tolerances">2.13 Biological dose limits and tolerances</h3>
 <div class="table"><table>
 <thead>
@@ -2282,7 +2282,7 @@ main{padding:16px 16px 60px}}
 <p>F10. Heating and age: h = rho (3.387e-3 K + 0.01139 Rb + 0.04595 Sm + 26.18 Th + 98.29 U) uW/m3 with abundances as mass fractions in kg/kg; evolve each element by exp(lambda t) using the half-lives in 2.9. The age law in 2.9 gives heating relative to 4.5 Gyr from 4.9 at 0.01 Gyr to 0.37 at 13 Gyr for BSE shares. Add Al-26 and Fe-60 for the first 20 Myr only.</p>
 <p>F11. Radon: J = C_Ra f rho_b sqrt(lambda D_e) (f = emanation 0.05 to 0.7, D_e effective diffusion coefficient, lambda = ln 2 / 3.824 d); C = J tau / h_mix with tau = 5.52 d; E [mSv/yr] = 9e-6 F C T_h with F = 0.6 outdoors, 0.4 indoors, T_h occupied hours. Validity: Earth-like soil and h_mix of order 1 km; D_e versus pressure is NOT REACHED, so treat it as an input with at least a factor-2 uncertainty.</p>
 <p>F12. Noble-gas outgassing: n(Ar-40) = n(K-40 at 4.5 Gyr) (exp(lambda_K t) - 1) x 0.1056; n(He-4) = 8 n(U-238)(exp(lambda_238 t) - 1) + 7 n(U-235)(exp(lambda_235 t) - 1) + 6 n(Th-232)(exp(lambda_232 t) - 1). The fraction released to the atmosphere is a calibration: Earth 0.43 for Ar-40 (COMPUTED from 2.10). Helium escapes thermally, so the atmospheric He inventory needs part 04.</p>
-<p>F13. Ionisation rate profile: q(z) = rho(z) D(z) / (W e), with D in Gy/s from the column curve D(X) (absorbed, not dose equivalent) and W from section 2.12; or q(z) = (dE/dz) / W for a single beam, with dE/dz from PSTAR in 2.5. NOx production is 1.25 per ion pair, HOx 2 per pair. Validity: Chapman-style, no recombination; calibrate (Boss item 7).</p>
+<p>F13. Ionization rate profile: q(z) = rho(z) D(z) / (W e), with D in Gy/s from the column curve D(X) (absorbed, not dose equivalent) and W from section 2.12; or q(z) = (dE/dz) / W for a single beam, with dE/dz from PSTAR in 2.5. NOx production is 1.25 per ion pair, HOx 2 per pair. Validity: Chapman-style, no recombination; calibrate (Boss item 7).</p>
 <p>F14. Radiolysis: n(H<sub>2</sub>) = G E_dep / 100 eV, with the SI conversion 0.1036 umol/J per unit G, and E_dep from the dose rates in 2.11 (Gy = J/kg).</p>
 <p>F15. Muon dose underground: Crouch fit (2.11), valid from about 1 km w.e. down; shallower, interpolate toward the surface muon dose of 0.13 to 0.18 mSv/yr (sea-level READ).</p>
 <h2 id="4-surface-dose-recipe-and-code-status">4. Surface dose recipe and code status</h2>
@@ -2369,7 +2369,7 @@ main{padding:16px 16px 60px}}
 <td>COMPUTED</td>
 </tr>
 <tr>
-<td>Ionisation profile</td>
+<td>Ionization profile</td>
 <td>F13</td>
 <td>new</td>
 <td>feeds NOx, HOx and ozone-loss chemistry (part 04)</td>
@@ -2400,7 +2400,7 @@ main{padding:16px 16px 60px}}
 <li>[R4687] (oceanic crust U, Th, K); measured K/U and Th/U for the Moon, Mars, Venus, Mercury and chondrite classes (K volatile depletion).</li>
 <li>Stellar Th/U/Eu and K trends: Frebel and Hill cosmochronometry; K versus [Fe/H] and [alpha/Fe] for K-40 scaling (Unterborn and Botelho cover Th only).</li>
 <li>CORSIKA or Geant4 runs for H<sub>2</sub>, He, CH<sub>4</sub>, NH<sub>3</sub> and CO<sub>2</sub> columns from 0.01 to 100 bar with helium and heavier primaries, to test F8; the helium and HZE share of the dose.</li>
-<li>Absorbed-dose (Gy) and ionisation-rate profiles in air to calibrate F13 (Bazilevskaya; [R4525]); W values for alphas and protons and for NH<sub>3</sub>, H<sub>2</sub>O vapour, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl.</li>
+<li>Absorbed-dose (Gy) and ionization-rate profiles in air to calibrate F13 (Bazilevskaya; [R4525]); W values for alphas and protons and for NH<sub>3</sub>, H<sub>2</sub>O vapor, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl.</li>
 <li>Photoabsorption cross sections 10 to 100 nm for Ar, Ne, Kr, Xe, HCN, H<sub>2</sub>CO, HCl, HF, CH<sub>3</sub>Cl, SiO, TiO, VO, Na, K, Mg, Fe (outer-shell data; Henke gives the inner-shell part only).</li>
 <li>ICRP 103 numeric limits (not in the free extract), ICRP 132 and 137, NCRP 153; primary sources for human LD50/30 and organism D10 values.</li>
 <li>Radon transport (effective diffusion, advective release) in thin and dense atmospheres and porous regolith; origin of the code's 1 kPa threshold.</li>
@@ -2443,7 +2443,7 @@ main{padding:16px 16px 60px}}
 <td>NNDC</td>
 </tr>
 <tr>
-<td>Ar first ionisation energy 15.76 eV (78.7 nm)</td>
+<td>Ar first ionization energy 15.76 eV (78.7 nm)</td>
 <td>Ar cross-section edge</td>
 <td>NIST ASD</td>
 </tr>
@@ -2463,7 +2463,7 @@ main{padding:16px 16px 60px}}
 <td>ICRU 31</td>
 </tr>
 <tr>
-<td>Bazilevskaya ionisation maximum near the Pfotzer layer</td>
+<td>Bazilevskaya ionization maximum near the Pfotzer layer</td>
 <td>section 2.12</td>
 <td>no source</td>
 </tr>
@@ -2481,7 +2481,7 @@ main{padding:16px 16px 60px}}
 <li>Part 03 (infrared, thermal): radiogenic heating F10 feeds interior heat flux.</li>
 <li>Part 04 (photochemistry, ozone, escape): XUV deposition altitude, ion-pair NOx and HOx (F13), SEP ozone loss (Segura, Tilley), escape of H<sub>2</sub> and He.</li>
 <li>Part 05 (mixing ratios): mole fractions for tables 2.3 and 2.4, Ar-40 and radon content, noble gases.</li>
-<li>Part 06 (condensates, hazes, dust): regolith and dust composition for F7 and F9; hazes do not shield ionising radiation at their column masses.</li>
+<li>Part 06 (condensates, hazes, dust): regolith and dust composition for F7 and F9; hazes do not shield ionizing radiation at their column masses.</li>
 <li>Repository: <code>docs/design/habitability/activity-magnetism-radiation-hydrosphere.md</code> sections 2 to 4, 6, 7; <code>src/planetgen/physics/radiation.py</code>.</li>
 </ul>
 <h2 id="8-domains-that-worked-in-this-part">8. Domains that worked in this part</h2>

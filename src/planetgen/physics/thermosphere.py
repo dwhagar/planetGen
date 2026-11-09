@@ -34,7 +34,7 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, gases, ion_escape
+from planetgen.physics import activity, constants, gases, ion_escape, radiation_field
 
 # --- the exobase temperature ------------------------------------------------------------------------------------------------
 
@@ -253,8 +253,12 @@ def xuv_flux_earth(subject):
     if not (mass_sol and age and luminosity and insolation):
         return 0.0
     luminosity_w = luminosity * constants.SOLAR_LUMINOSITY
-    distance_m = _AU_M * math.sqrt(luminosity / insolation)
-    return activity.coronal_xuv_at(mass_sol, age, luminosity_w) / (4.0 * math.pi * distance_m ** 2) / constants.EARTH_XUV_FLUX_W_M2
+    host_distance_au = subject.get("host_distance_au")      # GEN.1442: the light is the whole system's when the host has companions, so the host's own distance is stored
+    distance_m = _AU_M * (math.sqrt(luminosity / insolation) if host_distance_au is None else host_distance_au)
+    flux = activity.coronal_xuv_at(mass_sol, age, luminosity_w) / (4.0 * math.pi * distance_m ** 2) / constants.EARTH_XUV_FLUX_W_M2
+    for other_mass, other_luminosity_w, _, factor, _ in subject.get("xuv_companions") or ():
+        flux += activity.coronal_xuv_at(other_mass, age, other_luminosity_w) * factor / (4.0 * math.pi * _AU_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
+    return flux
 
 
 def xuv_ratio(mass_sol, luminosity_w, age_gy, at_gy, log_lx_lbol=None):
@@ -268,6 +272,15 @@ def xuv_ratio(mass_sol, luminosity_w, age_gy, at_gy, log_lx_lbol=None):
     return activity.coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat) / now if now > 0.0 else 1.0
 
 
+def _mixed_history(host_ratio, flux_now, companions, age_gy, at_gy):
+    """GEN.1442: the XUV of the whole field at `at_gy` over its present: the host's ratio `host_ratio` for the part of `flux_now` that is not the companions',
+    each companion's own ratio (`xuv_ratio` through its mass and luminosity) for its part."""
+    parts = [(radiation_field.emitter_flux_earth(other), xuv_ratio(other[0], other[1], age_gy, at_gy, other[2])) for other in companions]
+    others = sum(flux for flux, _ in parts)
+    host = max(flux_now - others, 0.0)
+    return (host * host_ratio + sum(flux * ratio for flux, ratio in parts)) / (host + others)
+
+
 # --- the share of an air that is kept --------------------------------------------------------------------------------------
 
 HISTORY_STEPS = 48
@@ -275,7 +288,7 @@ HISTORY_STEPS = 48
 
 
 def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_flux_now, host_mass_sol=None, luminosity_w=None, mesopause_k=None,
-                magnetopause_rp=None, log_lx_lbol=None):
+                magnetopause_rp=None, log_lx_lbol=None, companions=()):
     """
     The share of each species of an air that is left at `age_gy`, after thermal escape through the star's XUV history.
 
@@ -296,6 +309,8 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
             surface the field leaves open, 0 for a world with no field (open all over). `None` is a field not yet drawn: the ion loss is not followed.
         log_lx_lbol (float, optional): The star's own `log10 L_X/L_bol` at `age_gy`: the XUV history then follows the decay through it (a star that spun
             slowly or fast kept its saturation for a different time) instead of the table's nominal one.
+        companions (tuple, optional): The other stars' XUV sources at the body (`radiation_field.xuv_emitters`, GEN.1442). Each follows its own decay; the
+            history is the mix of the host's and theirs by the share each has in `xuv_flux_now`. None for a lone star.
 
     Returns:
         tuple: `(kept, present_exobase_k)`, `kept` the formula -> share 0..1 and the temperature that of the air as it is supplied.
@@ -323,6 +338,8 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
         now = {formula: n / count for formula, n in alive.items()}
         mean_now = mean_mass_kg(now)
         history = xuv_ratio(host_mass_sol, luminosity_w, age_gy, math.sqrt(t0 * t1), log_lx_lbol) if host_mass_sol and luminosity_w else 1.0
+        if companions and xuv_flux_now > 0.0:
+            history = _mixed_history(history, xuv_flux_now, companions, age_gy, math.sqrt(t0 * t1))
         flux = xuv_flux_now * history
         temperature = exobase_temperature_k(flux, meso, now.get("CO2", 0.0))
         r_exo, density, _ = exobase(radius_m, gravity, mean_now, temperature, meso)

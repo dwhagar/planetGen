@@ -1,6 +1,6 @@
 # Project history
 
-What was chosen, what was dropped and how the work moved, read from the repository as of commit `d02661568` (2026-11-08): 12144 commits, 3399 releases, 3349 items named in commit titles, 2034 dated decisions in the documents. Built by `scripts/build_history.py`; this folder is a snapshot (git history is not in a shallow clone, so no test compares it with its sources). Rebuild it in a full clone when it should catch up, and commit the result.
+What was chosen, what was dropped and how the work moved, read from the repository as of commit `27813f061` (2026-11-08): 12151 commits, 3400 releases, 3361 items named in commit titles, 2040 dated decisions in the documents. Built by `scripts/build_history.py`; this folder is a snapshot (git history is not in a shallow clone, so no test compares it with its sources). Rebuild it in a full clone when it should catch up, and commit the result.
 
 ## Where to look
 

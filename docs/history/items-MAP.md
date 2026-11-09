@@ -1,6 +1,6 @@
 # Items: MAP, Maps
 
-The life of every MAP item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every MAP item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## MAP.2
 
@@ -735,7 +735,7 @@ The life of every MAP item that a commit title names, from the git history as of
 
 2026-10-09 to 2026-10-23; 7 commits; not open.
 
-- 2026-10-09: File MAP.146: zoom drill-down centred on the clicked point (#872)
+- 2026-10-09: File MAP.146: zoom drill-down centered on the clicked point (#872)
 - 2026-10-09: Rewrite MAP.146 as the fly-through umbrella; file MAP.148 to MAP.152 (#880)
 - 2026-10-09: Move the fly-through Galaxy Map (MAP.146 to MAP.155) into Phase 1 as the headline of 8.1 (#883)
 - 2026-10-16: TODO: MAP.152 and MAP.146 go to Core 2 (Boss, 11:32 AM EDT) (#1822)
@@ -775,7 +775,7 @@ The life of every MAP item that a commit title names, from the git history as of
 
 - 2026-10-10: Galaxy Map wheel zooms toward the cursor (MAP.150, first stage) (#1182)
 - 2026-10-10: TODO: record MAP.150 first stage (PR #1182) (#1184)
-- 2026-10-14: Galaxy Map zooms where you click: plain galaxy, click-centred windows (MAP.150, MAP.151d part 2) (#1382)
+- 2026-10-14: Galaxy Map zooms where you click: plain galaxy, click-centered windows (MAP.150, MAP.151d part 2) (#1382)
 - 2026-10-14: Retire MAP.150 (#1382); add MAP.197 (#1398)
 - 2026-10-14: Record the MAP.152 plan change; drop retired MAP.150 from the lane (#1441)
 
@@ -801,7 +801,7 @@ The life of every MAP item that a commit title names, from the git history as of
 - 2026-10-16: TODO: MAP.152 and MAP.146 go to Core 2 (Boss, 11:32 AM EDT) (#1822)
 - 2026-10-16: Put Core 2's queue in Boss's order: MAP.152, MAP.146, then PERF.105 and UX.118 (#1830)
 - 2026-10-16: MAP.152: a sector's scene fades in as the camera comes up to it (#1832)
-- 2026-10-16: MAP.152: a star's system fades in as its disc comes to about 20 pixels (#1838)
+- 2026-10-16: MAP.152: a star's system fades in as its disk comes to about 20 pixels (#1838)
 - 2026-10-16: TODO: retire MAP.152 (#1832, #1838) (#1841)
 
 ## MAP.153
@@ -1139,7 +1139,7 @@ The life of every MAP item that a commit title names, from the git history as of
 2026-10-14 to 2026-10-15; 3 commits; not open.
 
 - 2026-10-14: Add MAP.198, MAP.199, MAP.200 galaxy-map selection bugs to the TODO list (#1415)
-- 2026-10-15: MAP.199: Galaxy Map zoom and turning share one centre, and Shift-click chooses it (#1513)
+- 2026-10-15: MAP.199: Galaxy Map zoom and turning share one center, and Shift-click chooses it (#1513)
 - 2026-10-15: Retire MAP.199 (PR #1513) (#1514)
 
 ## MAP.200
@@ -1471,7 +1471,7 @@ The life of every MAP item that a commit title names, from the git history as of
 
 2026-10-17 to 2026-10-17; 3 commits; not open.
 
-- 2026-10-17: Docs: file MAP.246 (a group of stars above the disc cannot be reached or selected, Boss 3:09 PM EDT) (#2079)
+- 2026-10-17: Docs: file MAP.246 (a group of stars above the disk cannot be reached or selected, Boss 3:09 PM EDT) (#2079)
 - 2026-10-17: Docs: MAP.246 seed, MAP.245 anchor case, TEST.213 cause (Bug Hunt) (#2081)
 - 2026-10-17: Docs: fold MAP.246 into MAP.243 (Bug Hunt reproduction on Boss's seed), split MAP.247 from MAP.245, OPS.60/61 to Bug Hunt (#2094)
 
