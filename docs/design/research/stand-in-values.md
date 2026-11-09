@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1479 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1498 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1453 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1472 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
-| T2 | 138 | 59 | 1 | 1 | 0 | 199 |
-| T3 | 105 | 46 | 9 | 10 | 0 | 170 |
-| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
-| T5 | 70 | 23 | 6 | 1 | 0 | 100 |
-| T6 | 172 | 104 | 27 | 76 | 0 | 379 |
+| T2 | 139 | 59 | 1 | 1 | 0 | 200 |
+| T3 | 108 | 47 | 9 | 10 | 0 | 174 |
+| T4 | 74 | 11 | 3 | 21 | 10 | 119 |
+| T5 | 73 | 24 | 6 | 1 | 1 | 105 |
+| T6 | 178 | 104 | 27 | 76 | 2 | 387 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 829 | 298 | 71 | 236 | 45 | 1479 |
+| All | 843 | 300 | 71 | 236 | 48 | 1498 |
 
 ## How the labels were given
 
@@ -1947,6 +1947,17 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO15 | T | T1 | L0 | isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's | m of 0 to 10 | rocky bodies with air | a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent | the geomagnetic cutoff integrated over the body (`R_c` from the dipole) | the polar and global values of tritium ([R5204: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none | predicted only | - | - |
 | ISO16 | T | T6 | L3 | isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean | 10 to 100 | bodies with a surface ocean | an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54 | the body's own dissolved inorganic carbon | the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet | predicted only | - | no data |
 | ISO17 | T | T6 | L1 | isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point) | 25 to 40 K | comets of any star | a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity | the comet's own formation distance and the disk model | comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174] | predicted only | - | - |
+| ISO18 | T | T6 | L0 | isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements | the five ices of `disk_condensation.masses_percent` | small bodies with a stored ice fraction and no stored species | a comet whose measured NH3, CO2, CH4, N2 or CO share differs from the budget's by over a factor of 3 | the species shares stored for each small body (comets carry a free-text summary only) | the budget is the disk model's own; the ices a stored summary names are not parsed | predicted only | - | - |
+| ISO19 | T | T6 | L0 | isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it | 0 to 1 K | belts at their snow line | a belt at the snow line whose ice is measured dry | a budget that carries the partial freeze at the line | water condenses below the line only, so a body at the line holds its water; the width is a numerical choice | predicted only | - | - |
+| ISO20 | T | T6 | L0 | isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at `COMET_ICE_K` like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age | the formation temperature 20 to 182 K; the gas gradient of `nebula_composition` | interstellar comets and fields (GEN.1487) | a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2 | the disk the body was thrown out of, once stored | an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored | predicted only | - | - |
+| ISO21 | T | T5 | L4 | isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage | 0 to 1e-8 | stars and remnants from the pre-main-sequence on | a measured surface deuterium of a main-sequence star over 1e-8 | a pre-main-sequence burning model of the envelope | deuterium burns above about 1e6 K and a young convective envelope is mixed through that; no measure of a surface D/H exists in the Sun, so the value is a floor, not a fit | predicted only | - | no data |
+| ISO22 | T | T3 | L1 | isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up | 15 to 30 | red giants of 1 to 3 solar masses | a red-giant sample whose median 12C/13C is outside 15 to 30 | the dredge-up grid of `stellar_abundances.first_dredge_up` extended to isotope ratios by mass and metallicity | the CN cycle turns the 12C of the dredged layers into 13C; the 20 is recalled from giant surveys, not read from a paper in hand; mass and metallicity dependence left out | predicted only | - | - |
+| ISO23 | T | T2 | L0 | isotope_record.MANTLE_DELTA_D -0.080: the mantle's water has D/H 8 percent under the surface water's | -60 to -125 per mil (Hawaiian plume minerals reach -125) | rocky bodies with water | a bulk mantle measure outside -50 to -130 per mil | a degassing and ocean-making model by temperature and oxidation | [R5214]: the mantle's dD of about -80 per mil; [R2923] gives down to -125 per mil in plume minerals | predicted only | - | - |
+| ISO24 | T | T3 | L0 | isotope_record.MANTLE_DELTA_N15 -0.005: the mantle's 15N/14N is 5 per mil under the air's | -30 to +3 per mil | rocky bodies with nitrogen | a mantle sample set whose mean is outside -30 to +5 per mil | a nitrogen budget with its own fractionation | [R2923] (-5 to -30 per mil); [R5214] ascribes +3 per mil to the whole mantle, the MORB source -5; the low end of the range is taken | predicted only | - | - |
+| ISO25 | T | T3 | L0 | isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's | 0 to +6 per mil | rocky bodies with carbon | a measured mantle-air carbon offset outside -3 to +10 per mil | a carbon cycle with its own fractionation | [R5214]: the mantle at -5 per mil, the air at -8 per mil (the Earth's air is moved by the biosphere, so the offset is its own) | predicted only | - | - |
+| ISO26 | T | T3 | L0 | isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas | 7.5 to 8.2 | the Earth | a mantle gas outside 7 to 9 | the mantle's own iodine over xenon and closure time | [R5214]: 7.9 from MORB and well gases (read from a model summary of the chapter, not verbatim) | predicted only | - | - |
+| ISO27 | T | T4 | L0 | isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from | 6.2 to 6.4 | any star's gas | a solar ratio outside 6.2 to 6.4 | the star's own gas by metallicity | recalled from the lunar-sample work, not opened | predicted only | - | - |
+| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 
@@ -2573,6 +2584,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
 
+## 6.243 Stand-ins of the spacing of orbits against every neighbour
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T5 | L0 | planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, `min_orbit_distance` is five of it | the Hill radius at periapsis is smaller by (1 - e) (0.7 of it at e = 0.3) | planets with eccentricity under 0.5 | a census in which releasing the belt keep-out to the periapsis Hill radius moves a belt or a planet by more than a tenth of its distance | none; the circular radius is the larger, so it only widens the keep-out, and the planet-planet spacing already uses the apoapsis and periapsis (`clearance_ledger.planet_exclusion`) and a moon's limit already carries the planet's eccentricity (`clearance_ledger.moon_hill_fraction`, [R1138]) | physics: the two other places an eccentric orbit enters the keep-out already do; the circular radius is the conservative one, so nothing is let through by it | predicted only | - | - |
+| SP2 | P | T5 | L0 | validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet | the factor (`constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR`) | wide pairs with the companion beyond about 50 AU | a companion at a few hundred AU that pumps an outer planet's eccentricity past the gap by the Kozai-Lidov law | the pumping of GEN.1447 (Lane 23) | the existing criterion of the cross-star check, kept as it was; only the set of pairs it is applied to changed (GEN.1460) | predicted only | - | - |
+
 ## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
@@ -2590,7 +2608,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SS2 | P | T7 | L0 | the share of each source's light is its mean part of the field (GEN.1441) and does not vary through the year | none | circular and moderately eccentric planet orbits | a planet whose distance from the host changes its share of the source's light by tens of percent through the year | the share worked at each step | derived: the source's light is the time-averaged `1/d^2` of the field; the host's `(a/r)^2` swing is kept in the host's own term | predicted only | - | - |
 | SS3 | T | T6 | L0 | a source with a share under `sky_suns.MIN_SHARE` = 1e-4 of the light is left out; moons, rogue planets and rings (the shade of a ring takes the host's sun only) read the host's sun alone | 1e-4 | all planets of a system with companions | a moon or a ringed planet whose seasons a companion decides | suns for moons (the moon's own axis against the planet's orbit) and the ring's shadow for every sun | design: the temperature changes by under one part in 10^4 below the share; moons and rings are the next slices | predicted only | - | - |
 
-## 6.247 Stand-ins of the day with every sun
+## 6.247 Stand-ins of the belt dust and comet influx of a planet
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| IF1 | P | T6 | L4 | `influx.BELT_DUST_SHARE` 0.1: the share of a belt's collisional mass loss (`M / t`) that reaches the inner system as dust and small bodies | 0.01 to 0.5 | belts that have ground down along `M = A / t` | a measured share of a debris belt's loss that drifts inward past its edge | a grain-size cascade with radiation-force and drag lifetimes | no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing | predicted only | - | no data |
+| IF2 | P | T6 | L4 | `influx.COMET_LIFETIME_YR` 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets | 1e6 to 1e8 | comets of the short-period and Halley kinds | dynamical lifetimes of the comets of a system that differ by over a factor of ten | lifetime from the comet's period class | no source: the tens-of-millions-of-years order of dynamical lifetimes | predicted only | - | no data |
+| IF3 | T | T5 | L0 | a planet takes `R^2 / (4 a^2)` of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted | none | streams much faster than the planet's escape speed | a planet whose escape speed is comparable to the stream's | the focused cross-section `R^2 (1 + v_esc^2 / v^2)` | derived: a cross-section over a sphere's area | predicted only | - | - |
+| IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
+| IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
+| IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+
+## 6.248 Stand-ins of the day with every sun
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -2599,7 +2628,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DY3 | P | T7 | L0 | each counted sun stands where the planet's place against it puts it, the planet taken on its circle of mean flux at the year's longitude and the companion fixed at its offset from the host at the orbit nodes' epoch | none | a companion whose period is longer than the planet's year | a companion whose orbit moves it by tens of degrees in the planet's year | the companion at its own place for each step of the year | derived: the planet-to-companion direction is the offset plus the planet's displacement from the host, which this keeps; the companion's period is at least `(R / d)^1.5` of the planet's | predicted only | - | - |
 | DY4 | P | T7 | L0 | a moon reads its planet's suns and the parent's shadow as before (the share of the moon's day the planet takes is multiplied on the union), its own spin axis against the planet's orbit decides the arcs | none | a moon that stands in no sibling's shadow | a moon whose sibling blocks one of two suns (GEN.1462) | the eclipse calendar of GEN.1462 | design: the shadow share is the parent's disk against the star in the union's mean | predicted only | - | - |
 
-## 6.248 Stand-ins of the eclipses of a star by a body of the system
+## 6.249 Stand-ins of the eclipses of a star by a body of the system
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
