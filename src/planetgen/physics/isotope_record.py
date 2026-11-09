@@ -646,6 +646,56 @@ def star_surface_record(surface_elements, metallicity_fe_h, age_gy, deuterium_bu
     return rows or None
 
 
+MANTLE_DELTA_D = -0.080
+"""float: How far the deuterium over hydrogen of the water in a rocky body's mantle lies from its surface water's, as a fraction: -80 per mil, the mantle's value against seawater [R5214: Sec. 4], as the heavy isotope stays with the water that left. [Stand-in ISO23, tier T2, tweak L0.]"""
+
+MANTLE_DELTA_N15 = -0.005
+"""float: How far the 15N/14N of a rocky body's mantle nitrogen lies from its air's, as a fraction: -5 per mil, the MORB source against air ([R5214]; the mantle's estimates run from -5 to +3 per mil, and [R2923] gives -5 to -30 per mil). [Stand-in ISO24, tier T3, tweak L0.]"""
+
+MANTLE_DELTA_C13 = 0.003
+"""float: How far the 13C/12C of a rocky body's mantle carbon lies from its air's, as a fraction: the mantle's -5 per mil against the air's -8 per mil is +3 per mil [R5214: Sec. 4]. [Stand-in ISO25, tier T3, tweak L0.]"""
+
+MANTLE_XE_129_OVER_130 = 7.9
+"""float: The 129Xe/130Xe of the Earth's upper-mantle gas, 7.9 ([R5214], MORB and well gases). [Stand-in ISO26, tier T3, tweak L0.]"""
+
+SOLAR_XE_129_OVER_130 = 6.286
+"""float: The 129Xe/130Xe of the solar gas the radiogenic excess is counted from, 6.286 (the solar value of the lunar-sample work, recalled, not opened). The excess of another body's mantle is the Earth's times the body's birth 129I/127I over the early Solar System's (`ESS_INITIAL_RATIO`), the closure time (40 to 50 Myr, [R2923]) and the iodine over xenon of the mantle being the Earth's. [Stand-in ISO27 (the solar value, tier T4, tweak L0) and ISO28 (the scaling, tier T5, tweak L1).]"""
+
+MANTLE_SHEET_KEYS = tuple(f"isotope_mantle_{short}" for short in ("D/H", "13C/12C", "15N/14N", "129Xe/130Xe"))
+"""tuple: The keys of the lines `mantle_sheet_rows` gives."""
+
+
+def mantle_sheet_rows(rows):
+    """
+    The derived lines for the mantle of a rocky body (GEN.1490), `[(key, label, text, ratio)]`, from its stored record `rows` (`{"isotope", "fraction", "initial_ratio"}` mappings): the ratios of the water, nitrogen
+    and carbon in the mantle, which differ from the body's own by the fractionation of degassing and of the ocean's making (`MANTLE_DELTA_D`, `MANTLE_DELTA_N15`, `MANTLE_DELTA_C13`), and the 129Xe/130Xe of its
+    gas, the solar value plus the 129Xe that the decay of 129I made (the Earth's excess times the body's birth ratio of 129I over the early Solar System's). Empty for a body with no rock (no Mg in the record).
+    """
+    fractions = {row["isotope"]: row["fraction"] for row in rows or ()}
+    if "Mg-24" not in fractions:
+        return []
+    shown = []
+
+    def add(key, label, text, ratio):
+        shown.append((f"isotope_mantle_{key}", label, text, ratio))
+
+    if fractions.get("H-1") and "H-2" in fractions:
+        ratio = fractions["H-2"] / fractions["H-1"] * (1.0 + MANTLE_DELTA_D)
+        add("D/H", "Deuterium over hydrogen of the mantle's water", f"D/H {ratio:.4g}", ratio)
+    if fractions.get("C-12") and "C-13" in fractions:
+        ratio = fractions["C-13"] / fractions["C-12"] * (1.0 + MANTLE_DELTA_C13)
+        add("13C/12C", "Carbon-13 over carbon-12 of the mantle", f"13C/12C {ratio:.4g}", ratio)
+    if fractions.get("N-14") and "N-15" in fractions:
+        ratio = fractions["N-15"] / fractions["N-14"] * (1.0 + MANTLE_DELTA_N15)
+        add("15N/14N", "Nitrogen-15 over nitrogen-14 of the mantle", f"15N/14N {ratio:.4g}", ratio)
+    birth = next((row.get("initial_ratio") for row in rows if row["isotope"] == "I-129"), None)
+    if birth:
+        excess = (MANTLE_XE_129_OVER_130 - SOLAR_XE_129_OVER_130) * birth / ESS_INITIAL_RATIO["I-129"]
+        ratio = SOLAR_XE_129_OVER_130 + excess
+        add("129Xe/130Xe", "Xenon-129 over xenon-130 of the mantle's gas", f"129Xe/130Xe {ratio:.4g}", ratio)
+    return shown
+
+
 def record_of(body):
     """The rows of `body`'s record (`ROW_FIELDS` dicts, by atomic number then mass number), or `None` for a body with no stored composition."""
     held = elements_held(body)

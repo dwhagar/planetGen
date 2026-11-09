@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1481 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1455 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1461 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
-| T2 | 138 | 59 | 1 | 1 | 0 | 199 |
-| T3 | 104 | 47 | 9 | 10 | 0 | 170 |
-| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
-| T5 | 73 | 23 | 6 | 1 | 1 | 104 |
+| T2 | 139 | 59 | 1 | 1 | 0 | 200 |
+| T3 | 107 | 47 | 9 | 10 | 0 | 173 |
+| T4 | 74 | 11 | 3 | 21 | 10 | 119 |
+| T5 | 73 | 24 | 6 | 1 | 1 | 105 |
 | T6 | 176 | 104 | 27 | 76 | 2 | 385 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 827 | 299 | 71 | 236 | 48 | 1481 |
+| All | 832 | 300 | 71 | 236 | 48 | 1487 |
 
 ## How the labels were given
 
@@ -1952,6 +1952,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO20 | T | T6 | L0 | isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at `COMET_ICE_K` like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age | the formation temperature 20 to 182 K; the gas gradient of `nebula_composition` | interstellar comets and fields (GEN.1487) | a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2 | the disk the body was thrown out of, once stored | an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored | predicted only | - | - |
 | ISO21 | T | T5 | L4 | isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage | 0 to 1e-8 | stars and remnants from the pre-main-sequence on | a measured surface deuterium of a main-sequence star over 1e-8 | a pre-main-sequence burning model of the envelope | deuterium burns above about 1e6 K and a young convective envelope is mixed through that; no measure of a surface D/H exists in the Sun, so the value is a floor, not a fit | predicted only | - | no data |
 | ISO22 | T | T3 | L1 | isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up | 15 to 30 | red giants of 1 to 3 solar masses | a red-giant sample whose median 12C/13C is outside 15 to 30 | the dredge-up grid of `stellar_abundances.first_dredge_up` extended to isotope ratios by mass and metallicity | the CN cycle turns the 12C of the dredged layers into 13C; the 20 is recalled from giant surveys, not read from a paper in hand; mass and metallicity dependence left out | predicted only | - | - |
+| ISO23 | T | T2 | L0 | isotope_record.MANTLE_DELTA_D -0.080: the mantle's water has D/H 8 percent under the surface water's | -60 to -125 per mil (Hawaiian plume minerals reach -125) | rocky bodies with water | a bulk mantle measure outside -50 to -130 per mil | a degassing and ocean-making model by temperature and oxidation | [R5214]: the mantle's dD of about -80 per mil; [R2923] gives down to -125 per mil in plume minerals | predicted only | - | - |
+| ISO24 | T | T3 | L0 | isotope_record.MANTLE_DELTA_N15 -0.005: the mantle's 15N/14N is 5 per mil under the air's | -30 to +3 per mil | rocky bodies with nitrogen | a mantle sample set whose mean is outside -30 to +5 per mil | a nitrogen budget with its own fractionation | [R2923] (-5 to -30 per mil); [R5214] ascribes +3 per mil to the whole mantle, the MORB source -5; the low end of the range is taken | predicted only | - | - |
+| ISO25 | T | T3 | L0 | isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's | 0 to +6 per mil | rocky bodies with carbon | a measured mantle-air carbon offset outside -3 to +10 per mil | a carbon cycle with its own fractionation | [R5214]: the mantle at -5 per mil, the air at -8 per mil (the Earth's air is moved by the biosphere, so the offset is its own) | predicted only | - | - |
+| ISO26 | T | T3 | L0 | isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas | 7.5 to 8.2 | the Earth | a mantle gas outside 7 to 9 | the mantle's own iodine over xenon and closure time | [R5214]: 7.9 from MORB and well gases (read from a model summary of the chapter, not verbatim) | predicted only | - | - |
+| ISO27 | T | T4 | L0 | isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from | 6.2 to 6.4 | any star's gas | a solar ratio outside 6.2 to 6.4 | the star's own gas by metallicity | recalled from the lunar-sample work, not opened | predicted only | - | - |
+| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

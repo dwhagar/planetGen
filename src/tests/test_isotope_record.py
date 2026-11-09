@@ -338,3 +338,25 @@ def test_a_star_surface_has_the_natural_mix_with_its_birth_gas_ratios_and_a_burn
     elements_held = {row["element"] for row in ir.star_surface_record(surface, 0.0, 4.5)}
     assert elements_held == {"H", "He", "C", "N", "O", "Fe"}                                 # "other metals" is not an element
     assert ir.star_surface_record({}, 0.0, 4.5) is None
+
+
+def test_a_rocky_bodys_mantle_lines_come_from_its_record_with_the_degassing_offsets(sun):
+    planet = _planet(sun)
+    lines = {key: ratio for key, _label, _text, ratio in ir.mantle_sheet_rows(planet.isotopes)}
+    own = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(planet.isotopes)}
+    assert set(lines) <= set(ir.MANTLE_SHEET_KEYS) and "isotope_mantle_129Xe/130Xe" in lines
+    if "isotope_D/H" in own:
+        assert lines["isotope_mantle_D/H"] == pytest.approx(own["isotope_D/H"] * (1.0 + ir.MANTLE_DELTA_D))
+    assert lines["isotope_mantle_13C/12C"] == pytest.approx(own["isotope_13C/12C"] * (1.0 + ir.MANTLE_DELTA_C13))
+    assert lines["isotope_mantle_15N/14N"] == pytest.approx(own["isotope_15N/14N"] * (1.0 + ir.MANTLE_DELTA_N15))
+    assert ir.SOLAR_XE_129_OVER_130 <= lines["isotope_mantle_129Xe/130Xe"] < ir.MANTLE_XE_129_OVER_130 * 3.0
+
+
+def test_the_mantle_xenon_excess_is_the_earths_at_the_early_solar_systems_iodine_and_scales_with_the_birth_ratio():
+    base = [{"isotope": "Mg-24", "fraction": 0.79, "initial_ratio": None}]
+    earthlike = base + [{"isotope": "I-129", "fraction": 1e-40, "initial_ratio": ir.ESS_INITIAL_RATIO["I-129"]}]
+    poor = base + [{"isotope": "I-129", "fraction": 1e-40, "initial_ratio": 0.5 * ir.ESS_INITIAL_RATIO["I-129"]}]
+    ratio = lambda rows: ir.mantle_sheet_rows(rows)[0][3]
+    assert ratio(earthlike) == pytest.approx(ir.MANTLE_XE_129_OVER_130)
+    assert ratio(poor) - ir.SOLAR_XE_129_OVER_130 == pytest.approx(0.5 * (ir.MANTLE_XE_129_OVER_130 - ir.SOLAR_XE_129_OVER_130))
+    assert ir.mantle_sheet_rows([{"isotope": "H-1", "fraction": 1.0, "initial_ratio": None}]) == [] and ir.mantle_sheet_rows(None) == []        # no rock, no mantle
