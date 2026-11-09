@@ -252,6 +252,46 @@ def recording_enabled():
     return os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false")
 
 
+def speed_stats(mysql_config):
+    """The stored speeds, read fresh (a worker lives across runs, so a copy kept from an earlier one would write older buckets back), or
+    nothing to record to when statistics are off."""
+    from planetgen.db import store
+    from planetgen.generation import stats as generation_stats
+    if not recording_enabled():
+        return generation_stats.GenerationStats()
+    return generation_stats.GenerationStats(store.control_mysql_config(mysql_config))
+
+
+def record_unit_samples(mysql_config, workers, results):
+    """
+    Records the speed samples the units of a stage reported (OPS.123: the executor's bookkeeping, no longer a hook of each command): a
+    unit's result may carry `samples`, a list of `{"kind", "density", "seconds", "systems", "stars"}` (a unit that drew nothing reports
+    none, PERF.53), each recorded in the generation stats under its kind and `workers`, in unit order, then flushed once.
+    """
+    samples = [(sample, result) for result in results for sample in result.get("samples", ())]
+    if not samples:
+        return
+    stats = speed_stats(mysql_config)
+    for sample, _result in samples:
+        stats.record(sample["kind"], sample["density"], sample["seconds"], systems=sample["systems"], stars=sample["stars"],
+                     workers=workers)
+    stats.flush()
+
+
+def stage_row_metrics(detail, results):
+    """
+    The metrics the stage's row is stored with, from what the stage and its units report (OPS.123): the plan's `row_totals` (counts only the
+    cut knows, `shells`), and from the units' `row` the `objects` they wrote (summed) and the `shells_modified` they touched (the number of
+    distinct `touched` ids). A stage whose plan and units report none has no metrics.
+    """
+    metrics = dict((detail or {}).get("row_totals") or {})
+    rows = [result["row"] for result in results if result.get("row") is not None]
+    if rows:
+        metrics["shells_modified"] = len({touched for row in rows for touched in row.get("touched", ())})
+        metrics["objects"] = sum(row.get("objects", 0) for row in rows)
+    return metrics
+
+
 def _recording_on():
     return _state["args"] is not None and recording_enabled()
 
