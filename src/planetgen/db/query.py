@@ -1189,6 +1189,9 @@ GENERATED_KINDS = ("sectors", "systems", "planets", "moons")
 """tuple[str]: What `generated_since` lists (ADM.150)."""
 
 
+_MYSQL_LAST_UNIX_SECOND = 32536799999  # FROM_UNIXTIME's upper limit (year 3001)
+
+
 def generated_since(conn, kind, since, limit=50, offset=0):
     """
     The sectors, systems, planets or moons made at or after `since` (Unix seconds), newest first (ADM.150: what a generation run has
@@ -1206,6 +1209,9 @@ def generated_since(conn, kind, since, limit=50, offset=0):
     """
     if kind not in GENERATED_KINDS:
         raise ValueError(f"unknown kind {kind!r}")
+    if since > _MYSQL_LAST_UNIX_SECOND:
+        # FROM_UNIXTIME gives NULL for times past its range (year 3001 at the widest, 2038 on older builds), which would make `created_at < NULL` match nothing and list everything.
+        return {"kind": kind, "total": 0, "items": []}
     table = "sectors" if kind == "sectors" else "star_systems"
     previous = conn.execute(f"SELECT id FROM {table} WHERE created_at < FROM_UNIXTIME(?) ORDER BY id DESC LIMIT 1", (since,)).fetchone()
     start = previous["id"] if previous is not None else 0

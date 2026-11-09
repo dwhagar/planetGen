@@ -401,6 +401,7 @@ def test_deleting_a_sector_with_facilities(admin_client, mysql_config):
     assert all(s["id"] != sector_id for s in admin_client.get("/api/galaxy/sectors").get_json()["items"])
 
 
+@pytest.mark.parametrize("spelling", ["nan", "NaN", "inf", "-inf", "Infinity", "-Infinity", "+inf"])
 def test_the_cloud_volume_refuses_numbers_that_are_not_finite(client, spelling):
     """SEC.41: `float()` takes "nan" and "inf"; they used to reach MySQL as parameters and answer an anonymous 500."""
     for query in (f"x={spelling}&y=2&z=3&radius_pc=4&family=diffuse", f"x=1&y=2&z=3&radius_pc={spelling}&family=diffuse"):

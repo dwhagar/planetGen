@@ -8,7 +8,7 @@ from planetgen.db import query
 from planetgen.web.lib import apiclient
 from tests.test_api import client, seeded_sector  # noqa: F401
 from tests.test_web_admin import _logged_in, fake  # noqa: F401
-from tests.test_web_admin import app as admin_app  # noqa: F401
+from tests.test_web_admin import app  # noqa: F401
 from tests.test_web_admin import client as admin_client  # noqa: F401
 
 
