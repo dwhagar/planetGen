@@ -72,3 +72,28 @@ def test_a_belt_just_short_of_its_keep_out_is_pushed_and_one_on_the_limit_is_not
     assert validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05 - 1e-6), last)
     last.eccentricity = 0.01        # a raised eccentricity moves the apoapsis out, and the belt is then short of its keep-out
     assert validation.belt_needs_pushing(SimpleNamespace(body_type="a", distance=1.05), last)
+
+
+def test_a_rocky_planet_the_exchange_moved_has_its_air_made_on_its_final_orbit(systems):
+    """The tide wears an eccentricity down after the exchange, so the air has to be made after both: the stored temperature follows from the stored albedo, greenhouse and the light at the
+    final orbit (the check of test_surface_air, over full systems where the exchange acts)."""
+    from planetgen.physics import climate_draws, orbit_elements, radiation_field
+    checked = 0
+    moved = 0
+    for system in systems:
+        for planet in system.planets:
+            if getattr(planet, "body_type", None) != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
+                continue
+            flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity))
+            assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6), planet.name
+            checked += 1
+            moved += system.secular_outcomes.get(planet.star.name) in ("exchanged", "held by the spacing")
+    assert checked > 0 and moved > 0
+
+
+def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
+    for system in systems:
+        for planet in system.planets:
+            for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):      # (a giant is not made again by the refresh)
+                if getattr(body, "_age_drawn", None) is not None:
+                    assert not planetPhysics.age_moved(body), (body.name, body._age_drawn)
