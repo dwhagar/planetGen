@@ -59736,6 +59736,7 @@
     },
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
       "key": "6.254",
       "number": "6.254",
       "rows": [
@@ -59744,10 +59745,21 @@
             "replace",
             "GEN.1493",
             "L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it"
+=======
+      "key": "6.258",
+      "number": "6.258",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the 30 and 1,000 AU edges and the log-linear line between are read off the trends of the review ([R3333]: close multiples aligned, wide ones random), not a fitted sample; a volume-limited sample of the mutual inclinations of triples and of planet-bearing binaries would replace the line; tier T4, tweak L3 stay"
+>>>>>>> origin/pr-5887
           ],
           "fields": [
             [
               "What it is",
+<<<<<<< HEAD
               "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
             ],
             [
@@ -59906,6 +59918,40 @@
           "unread": null,
           "what": "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
 >>>>>>> origin/pr-5870
+=======
+              "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100 AU and 300 to 3000 AU"
+            ],
+            [
+              "Where it holds",
+              "every multiple"
+            ],
+            [
+              "What would show it wrong",
+              "a catalogue of triples or of planet hosts with a wide companion whose aligned share at 100 to 300 AU is far from the 66 to 34 percent the line gives"
+            ],
+            [
+              "What replaces it",
+              "a share fitted to the observed mutual inclinations of a volume-limited sample of triples and of planet-bearing binaries"
+            ],
+            [
+              "Evidence",
+              "recalled from [R3333] (the review of the origin of multiples: orbits and disks of close pairs align, wide ones are random), not read; the two edges and the line between are hand-set to those trends"
+            ]
+          ],
+          "id": "AL1",
+          "key": "6.258:AL1",
+          "kind": "T",
+          "slug": "6-258-al1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "star_orbit_alignment.ALIGNED_FULL_AU 30 and ALIGNED_NONE_AU 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple)"
+>>>>>>> origin/pr-5887
         },
         {
           "burn_down": null,
@@ -59913,10 +59959,52 @@
             [
               "What it is",
 <<<<<<< HEAD
+<<<<<<< HEAD
               "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
 =======
               "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
 >>>>>>> origin/pr-5870
+=======
+              "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10 degrees"
+            ],
+            [
+              "Where it holds",
+              "every multiple"
+            ],
+            [
+              "What would show it wrong",
+              "planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees"
+            ],
+            [
+              "What replaces it",
+              "the scale of the distribution of the tilts of aligned multiples"
+            ],
+            [
+              "Evidence",
+              "recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (orbit_elements.draw_planet_inclination_deg)"
+            ]
+          ],
+          "id": "AL2",
+          "key": "6.258:AL2",
+          "kind": "T",
+          "slug": "6-258-al2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "star_orbit_alignment.ALIGNED_SCALE_DEG 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
+>>>>>>> origin/pr-5887
             ],
             [
               "The range it moves in",
@@ -59924,6 +60012,7 @@
             ],
             [
               "Where it holds",
+<<<<<<< HEAD
 <<<<<<< HEAD
               "bodies the planetesimals cross"
             ],
@@ -59965,10 +60054,32 @@
           "kind": "T",
           "slug": "6-253-ca2",
 >>>>>>> origin/pr-5870
+=======
+              "random-orientation multiples (wide pairs formed by fragmentation)"
+            ],
+            [
+              "What would show it wrong",
+              "a sample of wide multiples whose planes prefer a direction against the planets' plane"
+            ],
+            [
+              "What replaces it",
+              "the measured distribution of the tilts of wide multiples"
+            ],
+            [
+              "Evidence",
+              "design: the draw Tree.place made before GEN.1500, kept for the share that is not aligned"
+            ]
+          ],
+          "id": "AL3",
+          "key": "6.258:AL3",
+          "kind": "T",
+          "slug": "6-258-al3",
+>>>>>>> origin/pr-5887
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
+<<<<<<< HEAD
 <<<<<<< HEAD
           "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
         }
@@ -60034,14 +60145,21 @@
               "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
 =======
           "what": "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
+=======
+          "what": "the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before"
+>>>>>>> origin/pr-5887
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
+<<<<<<< HEAD
               "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
 >>>>>>> origin/pr-5870
+=======
+              "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
+>>>>>>> origin/pr-5887
             ],
             [
               "The range it moves in",
@@ -60049,6 +60167,7 @@
             ],
             [
               "Where it holds",
+<<<<<<< HEAD
 <<<<<<< HEAD
               "rocky planets of single and multiple stars"
             ],
@@ -60140,16 +60259,45 @@
           "key": "6.253:CA3",
           "kind": "T",
           "slug": "6-253-ca3",
+=======
+              "triples and quadruples"
+            ],
+            [
+              "What would show it wrong",
+              "a census of the accepted triples whose mutual inclination shows the peaks without the planet screen"
+            ],
+            [
+              "What replaces it",
+              "the Kozai screen of GEN.1447 run on the planets"
+            ],
+            [
+              "Evidence",
+              "design; reuse of stability.mutual_inclination and kozai_verdict"
+            ]
+          ],
+          "id": "AL4",
+          "key": "6.258:AL4",
+          "kind": "T",
+          "slug": "6-258-al4",
+>>>>>>> origin/pr-5887
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
+<<<<<<< HEAD
           "what": "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
         }
       ],
       "slug": "6-253-stand-ins-of-the-distance-at-which-a-comet-turns-active",
       "title": "Stand-ins of the distance at which a comet turns active"
 >>>>>>> origin/pr-5870
+=======
+          "what": "the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (stability.mutual_inclination); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn"
+        }
+      ],
+      "slug": "6-258-stand-ins-of-the-mutual-inclination-of-the-orbits-of-the-stars-of-a-multiple",
+      "title": "Stand-ins of the mutual inclination of the orbits of the stars of a multiple"
+>>>>>>> origin/pr-5887
     }
   ]
 }

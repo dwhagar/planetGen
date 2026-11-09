@@ -5,10 +5,14 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 There are 1533 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 =======
 There are 1529 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 >>>>>>> origin/pr-5870
+=======
+There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/pr-5887
 
 ## The source tiers
 
@@ -45,10 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
 <<<<<<< HEAD
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1507 |
 =======
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1503 |
 >>>>>>> origin/pr-5870
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
+>>>>>>> origin/pr-5887
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -57,6 +65,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 184 | 20 | 11 | 1 | 0 | 216 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
+<<<<<<< HEAD
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 78 | 11 | 3 | 21 | 12 | 125 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
@@ -73,6 +82,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
 | All | 870 | 300 | 74 | 235 | 50 | 1529 |
 >>>>>>> origin/pr-5870
+=======
+| T3 | 110 | 47 | 9 | 10 | 0 | 176 |
+| T4 | 78 | 11 | 4 | 22 | 12 | 127 |
+| T5 | 75 | 24 | 6 | 1 | 1 | 107 |
+| T6 | 190 | 104 | 30 | 75 | 2 | 401 |
+| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
+| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T9 | 41 | 16 | 5 | 90 | 34 | 186 |
+| All | 869 | 300 | 75 | 236 | 50 | 1530 |
+>>>>>>> origin/pr-5887
 
 ## How the labels were given
 
@@ -2702,6 +2721,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value | predicted only | - | - |
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## 6.254 Stand-ins of the late supply a planet takes from the reservoirs of its system
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
@@ -2727,3 +2747,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CA2 | T | T6 | L0 | a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over `sqrt(L / Lsun)`, the equal-flux law of an airless body in starlight (`comet_activity.solar_equivalent_au`); a host of exactly the Sun's luminosity, or no star, gives the numbers of before | none | comets with no atmosphere, so no greenhouse or conduction of heat that depends on more than the flux | a comet of a bright or faint star whose activity begins at a distance that is not close to `3 AU sqrt(L / Lsun)` | the activity distance from the sublimation flux of water ice and the nucleus's albedo and rotation | derived: the same flux at `d sqrt(Lsun / L)`; the disk's `L^0.25 r^-0.62` is for a passively heated disk and is not used | predicted only | - | - |
 | CA3 | T | T6 | L0 | a star's spectrum and the comet's size do not change the distance: only the luminosity does | none | comets of stars of any type | a comet whose activity differs between a blackbody and a hot-star spectrum at the same flux | an absorption of the nucleus's albedo in the star's band | design | predicted only | - | - |
 >>>>>>> origin/pr-5870
+=======
+## 6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AL1 | T | T4 | L3 | `star_orbit_alignment.ALIGNED_FULL_AU` 30 and `ALIGNED_NONE_AU` 1000: the share of companion orbits drawn aligned is 1 at 30 AU and inside, 0 at 1,000 AU and beyond, linear in the logarithm of the separation between (the separation is the companion's own axis for the first companion, the axis of the pair it orbits for the inner pair of a triple) | 10 to 100 AU and 300 to 3000 AU | every multiple | a catalogue of triples or of planet hosts with a wide companion whose aligned share at 100 to 300 AU is far from the 66 to 34 percent the line gives | a share fitted to the observed mutual inclinations of a volume-limited sample of triples and of planet-bearing binaries | recalled from [R3333] (the review of the origin of multiples: orbits and disks of close pairs align, wide ones are random), not read; the two edges and the line between are hand-set to those trends | predicted only | - | no data |
+| AL2 | T | T4 | L2 | `star_orbit_alignment.ALIGNED_SCALE_DEG` 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde | 2 to 10 degrees | every multiple | planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees | the scale of the distribution of the tilts of aligned multiples | recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (`orbit_elements.draw_planet_inclination_deg`) | predicted only | - | - |
+| AL3 | T | T6 | L0 | the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before | none | random-orientation multiples (wide pairs formed by fragmentation) | a sample of wide multiples whose planes prefer a direction against the planets' plane | the measured distribution of the tilts of wide multiples | design: the draw `Tree.place` made before GEN.1500, kept for the share that is not aligned | predicted only | - | - |
+| AL4 | T | T6 | L0 | the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (`stability.mutual_inclination`); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn | none | triples and quadruples | a census of the accepted triples whose mutual inclination shows the peaks without the planet screen | the Kozai screen of GEN.1447 run on the planets | design; reuse of `stability.mutual_inclination` and `kozai_verdict` | predicted only | - | - |
+>>>>>>> origin/pr-5887
