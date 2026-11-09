@@ -201,6 +201,9 @@ def save_system_edits(conn, system_id, system, stars=()):
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)
     _delete_missing(conn, "asteroid_belts", "star_system_id", system_id, kept_belts)
+    conn.execute(      # GEN.1497: the birth draws of an edited body stay what they were; those of a planet or moon the edit deleted go
+        "DELETE h FROM body_history h LEFT JOIN planets p ON h.body_type = 2 AND p.id = h.body_id LEFT JOIN moons m ON h.body_type = 3 AND m.id = h.body_id"
+        " WHERE h.star_system_id = ? AND p.id IS NULL AND m.id IS NULL", (system_id,))
     for star in stars:
         save_star(conn, star)
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):

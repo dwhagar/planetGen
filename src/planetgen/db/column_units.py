@@ -1001,6 +1001,14 @@ TABLES = {
         "index": ("generator_epoch",),
         "flag": ("complete",),
     },
+    "body_history": {
+        "id": ("star_system_id", "body_id"),
+        "key": ("body_type",),
+        "frac": ("birth_eccentricity", "capture_draw_1", "capture_draw_2"),
+        "deg": ("birth_obliquity_deg",),
+        "rad_s": ("birth_spin_rate",),
+        "count": ("formula_version",),
+    },
     "effect_ledger": {
         "id": ("star_system_id", "body_id", "source_id"),
         "key": ("body_type", "effect", "source_type"),

@@ -5266,6 +5266,26 @@ CREATE TABLE IF NOT EXISTS system_summary (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- body_history (v241, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with
+-- (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version`
+-- of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no
+-- result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
+CREATE TABLE IF NOT EXISTS body_history (
+    star_system_id      BIGINT UNSIGNED NOT NULL,
+    body_type           TINYINT UNSIGNED NOT NULL,
+    body_id             BIGINT UNSIGNED NOT NULL,
+    birth_eccentricity  DOUBLE NULL CHECK (birth_eccentricity IS NULL OR birth_eccentricity >= 0),
+    birth_spin_rate     DOUBLE NULL,
+    birth_obliquity_deg DOUBLE NULL CHECK (birth_obliquity_deg IS NULL OR birth_obliquity_deg BETWEEN 0 AND 180),
+    capture_draw_1      FLOAT NULL CHECK (capture_draw_1 IS NULL OR capture_draw_1 BETWEEN 0 AND 1),
+    capture_draw_2      FLOAT NULL CHECK (capture_draw_2 IS NULL OR capture_draw_2 BETWEEN 0 AND 1),
+    formula_version     TINYINT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (star_system_id, body_type, body_id),
+    CONSTRAINT fk_body_history_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
 -- mass rings under it) over spheres centered on the system's 50 parsec cell (the cell the glow band is kept for) with the star backfill, and records each sphere here: `kind` (luminosity or mass),
