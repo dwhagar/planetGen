@@ -25,8 +25,8 @@ because it is drawn when the planet is made and the belts and comets of the syst
 
 * **The slice A cross-section is the wrong geometry for a veneer.** `cross_section_share = R^2 / (4 a^2)` is the share of an isotropic stream that crosses the planet's orbit sphere once. For a
   planetesimal on a crossing orbit that is not lost, the chance of hitting the planet over gigayears is the sum over many encounters (an Opik/Wetherill collision probability with gravitational
-  focusing, `R^2 (1 + v_esc^2/v^2) / (pi ...)` per orbit), several orders larger. With the direct share the primordial asteroid-belt-sized reservoir of the Sun gives about 1e14 kg to Earth against
-  the published 0.2 to 0.7 percent of its mass (about 1e22 kg): eight orders short. So the build needs the cumulative collision probability of a reservoir's planetesimals with the planet over the
+  focusing, `R^2 (1 + v_esc^2/v^2) / (pi ...)` per orbit), several orders larger. By a back-of-envelope with the slice A law (a primordial reservoir of a few Earth masses, share 0.1, Earth's radius at 1 AU: 4.5e-10 of the stream) the direct share gives about 1e14 kg to an Earth-like planet against
+  the published 0.2 to 0.7 percent of its mass (about 1e22 kg): some eight orders short. So the build needs the cumulative collision probability of a reservoir's planetesimals with the planet over the
   reservoir's decline, not the stream share. That is a new stand-in row set, and the calibration target is the published veneer range, not a Solar-System copy.
 * **The giants cut both ways.** A giant between the reservoir and the planet ejects (slice A's shield, `scatter.THETA_EJECT`) but also scatters bodies inward (row IF6, not built). A first build keeps
   the shield only; the inward scattering is a named second step, because it is the part with no source in hand.
