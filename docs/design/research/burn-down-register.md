@@ -294,3 +294,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.236:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
 | 6.236:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |
 | 6.236:ISO16 | no data | - | L3, the carbon of an ocean world's air and surface ocean over the air's is the Earth's single value; the body's dissolved carbon is not stored |
+| 6.236:ISO21 | no data | - | no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same |
+| 6.247:IF1 | no data | - | L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1 |
+| 6.247:IF2 | no data | - | L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years |

@@ -42,6 +42,6 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | Comet orbits | Two-body about the host | GEN.1457 |
 | Seasonal swing, eclipses and a moon's extra night | One sun's declination; a moon darkened by its planet only | GEN.1458, GEN.1461, GEN.1462 |
 | Settled eccentricity | Tidal wearing-down by the host; no pumping set against it | GEN.1459 |
-| Orbit spacing and Hill checks | Circular Hill radius, the last neighbour only, the outermost planet of each star of a pair | GEN.1460 |
+| Orbit spacing and Hill checks | Planets: held to every planet and belt inside them by mutual Hill radii at apoapsis and periapsis (clearance ledger, GEN.1014, GEN.1023). Moons: every moon inside (`moon_clearance_au`, GEN.1460). Wide pairs: every planet of one star against every planet of the other (`cross_star_violation`, GEN.1460). The circular Hill radius of `min_orbit_distance` stays, registered as SP1 (the conservative one); the companion's tide on a moon's limit is GEN.1449, the secular pumping of an outer planet GEN.1447 and GEN.1450 | GEN.1460 (done), GEN.1449, GEN.1450 |
 
 The full audit, with 35 entries, files and guessed sizes, is /mnt/project-files/reports/host-only-audit-2026-11-08.md (Lane 05). It lists what it did not read: planet mass and giant draw from the host's disk (a companion's truncation of the disk), hydrosphere and interior heat, web page text, and companion placement; a second pass is needed there.
