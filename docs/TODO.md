@@ -13387,11 +13387,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (read done). Prerequisites: none. Related: GEN.1447, GEN.1467, GEN.1492, GEN.1499.
   Filed by the TODO thread.
 
-- [ ] **TEST.713 (bug) test_work_units::test_a_unit_survives_a_warm_that_outlasts_an_execution_record forks a real RQ worker inside an xdist worker and kills it ("node down: Not properly terminated") on every parallel run**
-  Found by Lane 03 gating PR 5876 (2026-11-09); it also failed on PR 5865 and passes alone in one second. It is a test-isolation fault from PERF.146, not a product fault. Do: give the test the real_queue marker or run it in its own process so a parallel scripts/test.py run does not lose a worker; check the other tests that fork a real queue worker for the same fault. Done: the full parallel run no longer shows the node-down failure, and scripts/test.py changed gates stop needing a note about it.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health). Prerequisites: none. Related: PERF.146.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1501 Dark members of the orbit tree give light: draw a neutron star's cooling light (from age) and a black hole's accretion disk (from a feeding companion) into the radiation field and the sky text**
   Split from GEN.1443 by TODO (2026-11-09) at Lane 11's request. Source: Lane 11's GEN.1443 slice 1 (PR 5889): a planet or moon page now names every other source of the radiation field that gives at least a full Moon's light, but the neutron stars, black holes with accretion disks and brown dwarfs of the orbit tree (dark members, GEN.1013) give no light in the field yet, so they are not named. Do: draw a dark member's luminosity (neutron star cooling from age, black hole disk from a feeding companion, brown dwarf cooling) from the physics and feed it into radiation_field and the sky text; reuse the radiation_field sources and the sky_suns light and width code, and add no second light model. Stand-ins registered in GEN.725. A system without dark members must give today's numbers. Done: a planet near a cooling neutron star or a fed black hole sees and reads its light; a sample shows which systems change. Lock item (epoch, golden) because stored light changes.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 with Lane 15. Prerequisites: GEN.1443. Related: GEN.1443, GEN.1013, GEN.1441, GEN.1465.
@@ -13405,6 +13400,11 @@ clears each one.
 - [ ] **GEN.1503 Tidal heating from every body of a system (GEN.1446 part 3)**
   Split from GEN.1446 by TODO (2026-11-09) at Lane 23's request. Do: tidal heating of a planet or moon sums the tidal dissipation raised by every body that pulls on it (companion stars, sibling planets, sibling moons, resonant partners), reusing tide_sources, the existing tidal heating code, the GEN.842 results and effect_ledger.add; no second heating model. Stand-ins registered in GEN.725. Done: a lone star with no sibling gives today's numbers; a sample shows which bodies gain or lose heat and the ledger holds the heating pulls. Lock item (epoch).
   Version 8.1. Owner (TODO, 2026-11-09): Lane 23. Prerequisites: GEN.1446 part 1 on main. Related: GEN.1446, GEN.1502, GEN.842, GEN.1465.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1504 (bug) The secular exchange of GEN.1450 changes a planet's orbital inclination and node but leaves its stored spin tilt and axis, so axial_tilt_deg no longer matches the orbit normal**
+  Found by Lane 04 bisecting test_spin::test_every_generated_system_body_spins[0,4,5], red on main since Train 21 (PR 5869); it passes on the parent commit and with the exchange disabled (2026-11-09). Example: seed 0, Esgiisitor II, inclination 0.078 to 0.473 degrees after planets.secular_exchange, spin tilt and axis unchanged. Do: after the exchange, re-derive the tilt and axis from the new orbit normal, or keep the obliquity and rotate the axis with the orbit (decide from the physics: a spin axis precesses slowly, so the obliquity is kept against the orbit normal over secular times; register the choice in GEN.725); then test_spin passes on all seeds. This changes stored spin, so it is a lock item (epoch, generation-affects fill).
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (GEN.1450 owner) with Lane 23 (spin). Prerequisites: none. Related: GEN.1450, GEN.842.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

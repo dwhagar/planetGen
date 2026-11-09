@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1504 |
+| GEN | GEN.1505 |
 | PERF | PERF.259 |
 | DB | DB.122 |
 | API | API.48 |
@@ -3674,6 +3674,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1501 | Dark members of the orbit tree give light: neutron star cooling, black hole accretion disk, brown dwarf cooling, into the radiation field and the sky text | GEN.1443 | open |
 | GEN.1502 | Tidal locking and spin-down torques from every body of a system, not only the host (GEN.1446 part 2) | GEN.1446 | open |
 | GEN.1503 | Tidal heating from every body of a system (GEN.1446 part 3) | GEN.1446 | open |
+| GEN.1504 | (bug) The secular exchange changes a planet's inclination and node but leaves its spin tilt and axis; test_spin red on main | none | open |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
@@ -4461,7 +4462,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.710 | Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL | UX.296 | open |
 | TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
 | TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
-| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | open |
+| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | done, PR #5894 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
