@@ -3000,3 +3000,7 @@ Baseline: PR #1817.
 | OPS.130 | 8.1 | Bugs and flaky tests |
 | TEST.711 | 8.1 | Stand-in replacements |
 | TEST.712 | 8.1 | Stand-in replacements |
+| ADM.148 | 8.1 | Bugs and flaky tests |
+| ADM.149 | 8.1 | Bugs and flaky tests |
+| ADM.150 | 8.1 | Bugs and flaky tests |
+| ADM.151 | 8.1 | Bugs and flaky tests |
