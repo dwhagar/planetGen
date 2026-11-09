@@ -482,6 +482,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1502 | Tidal locking and spin-down torques from every body of a system (GEN.1446 part 2) | GEN.1446 | Split from GEN.1446 at Lane 23's request, 2026-11-09. |
 | GEN.1503 | Tidal heating from every body of a system (GEN.1446 part 3) | GEN.1446 | Split from GEN.1446 at Lane 23's request, 2026-11-09. |
 | GEN.1504 | (bug) The secular exchange changes a planet's inclination and node but leaves its spin tilt and axis | none | Lane 04 bisect after Train 21, 2026-11-09. |
+| GEN.1505 | (bug) After the secular exchange moves an eccentricity, air and temperature are refreshed only above a 1e-4 change; test_sweep_atmosphere red | none | Lane 04 finding after Train 21, 2026-11-09. |
+| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123 | Generation rescan audit, 2026-11-09. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |

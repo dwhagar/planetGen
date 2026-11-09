@@ -13407,6 +13407,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (GEN.1450 owner) with Lane 23 (spin). Prerequisites: none. Related: GEN.1450, GEN.842.
   Filed by the TODO thread.
 
+- [ ] **TEST.714 Tests that pin a seed for a rare case find the case by searching seeds instead, so a generation change stops breaking them**
+  From the Train Manager's Train 22 report (reports/train22/train-manager-input-2026-11-09.md, 2026-11-09): 5 of the first 9 gate reds were tests that pin one seed (a close pair at seed 100031, a moon in the first seeded system, stored values at a seed) and broke when an unrelated generation change moved that seed's draw. Each red costs a gate round, about half a day. Do: list the tests that pin a seed to get a rare case (a circumbinary pair, a system with a moon, a ring, a belt with a companion, a giant with caps) and give each a small helper that searches a bounded number of seeds for the case and uses the first found, failing with a clear message if none exists in the bound; reuse any seed-search helper already in src/tests (read first). Start with the files that failed on Train 21 and 22 (test_circumbinary_light, test_describe_render, test_moon_history, test_spin, test_belt_light), then the rest by how often they changed in git history. Done: those tests no longer pin a seed for a rare case; a unit test of the helper; no generation change. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (test health), after GEN.1468. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1505 (bug) After GEN.1450's secular exchange moves an eccentricity, the air and temperature are refreshed only above a 1e-4 change, and a giant only when its radius moves, so the stored temperature no longer matches the formula**
+  Found by Lane 04 on test_sweep_atmosphere::test_every_body_of_the_sweep_obeys_every_rule, red on main since Train 21 (PR 5869) (2026-11-09). With the exchange disabled the rule is clean. The mean light moves a little (up to 4e-5 relative, 0.013 K), 11 bodies in systems 2, 33 and 47 (310.788 vs 310.774 K). Lane 04 tested a fix for planets and moons, refreshing the air when the eccentricity changes by any amount: failures go from 11 to 2, and the two left are giants (settle_giant leaves a giant alone under its radius tolerance). The diff is /mnt/project-files/data/gen1504-secular-air-refresh.proposal.diff. Do: apply that diff for planets and moons, and add an air refresh in settle_giant when the orbit moved; keep one air solve where the eccentricity did not move. Done: the sweep-atmosphere rule test passes on all bodies; a sample shows how many stored temperatures move. Lock item (epoch, generation-affects fill); the aerosol-cloud half of that test was a test-rule gap and is fixed (PR 5908).
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 21 (GEN.1450 owner). Prerequisites: none. Related: GEN.1450, GEN.1504.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
