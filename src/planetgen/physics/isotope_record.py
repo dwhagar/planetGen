@@ -539,9 +539,6 @@ def cosmogenic_rows(body):
     return rows
 
 
-"""tuple: The two derived lines a belt's or a comet's property sheet shows for its ices, `(key, label)`."""
-
-
 SMALL_BODY_KINDS = ("belt", "belt_member", "comet", "interstellar_comet", "asteroid_field", "field_member")
 """tuple: The kinds of small body `small_body_record` takes (GEN.1487): the belt and its members, a comet, an interstellar comet, an interstellar field and its members."""
 
