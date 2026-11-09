@@ -8,3 +8,5 @@
 - Nothing stored about a system, planet or star changes.
 
 generation-output: unchanged
+
+generation-affects: none
