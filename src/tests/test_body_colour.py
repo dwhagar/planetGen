@@ -121,3 +121,45 @@ def test_a_bright_ground_lightens_the_sky_of_a_thick_air_and_the_colour_is_repea
     again.atmospheric_pressure, again.ozone_column_du = 101325.0, 0.0
     body_colour.generate(again)
     assert again.atmosphere_colour == bright.atmosphere_colour
+
+
+# ---- the acid cloud's ultraviolet absorber (GEN.1425 V10) ----
+
+def _venus_like(sulfur=True):
+    """A warm carbon-dioxide body with sulfur dioxide and a trace of water, with the aerosols its own air draws (a test body, not stored anywhere)."""
+    import random
+    from planetgen.physics import air_column
+    pressure = 2.0e5
+    gas = {"CO2": 0.9 * pressure, "N2": 0.1 * pressure, "H2O": 5.0e-4 * pressure}
+    if sulfur:
+        gas["SO2"] = 2.0e-4 * pressure
+    body = _body(gravity=1.0, atmospheric_pressure=pressure, planet_class="V", ozone_column_du=0.0, surface_temperature=400.0,
+                 greenhouse_factor=3.0, star=SimpleNamespace(temperature=5772.0))
+    setattr(body, atmosphere.GAS_FIELD, gas)
+    column = air_column.column_of(body)
+    drawn = aerosols.draw_aerosols(column, 400.0, random.Random(5), aerosols.NO_HAZE, skin_k=aerosols.skin_of(body))
+    body.tau_haze, body.tau_dust, body.tau_cloud, body.cloud_cover, body.aerosol_draw = (drawn.tau_haze, drawn.tau_dust, drawn.tau_cloud,
+                                                                                          drawn.cloud_cover, drawn.aerosol_draw)
+    return body, column
+
+
+def test_an_acid_cloud_world_gets_the_ultraviolet_absorber_and_an_earth_like_one_does_not():
+    body, column = _venus_like()
+    assert body.tau_cloud >= 20.0
+    absorption = body_colour._acid_absorption(body, column)
+    assert absorption is not None and max(absorption) > 0.0
+    assert body_colour._acid_absorption(_body(), None) is None
+
+
+def test_the_absorber_makes_the_acid_cloud_sky_yellower():
+    body, column = _venus_like()
+    with_absorber = body_colour.colour_of(body)
+    plain = aerosols.colour_layers(aerosols.of_body(body), body_colour._CENTERS)
+    assert plain[2].omega == 1.0, "the cloud is white without the absorber"
+    original = body_colour._acid_absorption
+    body_colour._acid_absorption = lambda *_: None
+    try:
+        without_absorber = body_colour.colour_of(body)
+    finally:
+        body_colour._acid_absorption = original
+    assert with_absorber[2] < without_absorber[2] and with_absorber[0] == without_absorber[0], "less blue, the same red: the sky goes yellower"

@@ -77,7 +77,7 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
 surveys quote, and the profile is that exponential, <code>exp(-|z|/h)</code> (GEN.544): its midplane density is the one the
 fits give, and its column is <code>2 h</code> times it. It replaced the isothermal sheet <code>sech^2(z/2h)</code>, whose tail is the same
 but whose column is <code>4 h</code> times its midplane, so for one mass its midplane was half the fits'. Only the thin disk
-carries the arms. The nuclear stellar disc keeps the isothermal sheet (<code>_sech_vertical</code>).</li>
+carries the arms. The nuclear stellar disk keeps the isothermal sheet (<code>_sech_vertical</code>).</li>
 <li><strong>Thick disk</strong> (<code>shape.structure</code>, <code>galaxy/structure_draw.py</code>, GEN.532). Its mass, scale length and scale height are
 ratios to the thin disk's drawn from the galaxy seed: the mass (0.14 to 0.99 at the circular speeds of 3e9 to 2e11
 solar masses of stars) between the fits of [R0865, R4824], the length by Comeron
@@ -96,20 +96,20 @@ the galaxy stores no home or Sun position). <code>R0 = 3.15 L</code> (8.2 / 2.6 
 is a test reference only. <code>model_terms(shape)</code> returns the derived values; the
 Galaxy Map's prisms read them with the shape.</li>
 </ul>
-<p>The nuclear disc's <code>sech^2</code> is computed as <code>4e / (1 + e)^2</code> with <code>e = exp(-2|x|)</code>
+<p>The nuclear disk's <code>sech^2</code> is computed as <code>4e / (1 + e)^2</code> with <code>e = exp(-2|x|)</code>
 (<code>_sech_squared</code>), because <code>1 / cosh(x)^2</code> overflows once <code>|x|</code> passes about
 710. The disks' <code>exp(-|z|/h)</code> is clamped at 700 scale heights.</p>
 <p><strong>Normalization (GEN.404).</strong> <code>build_galaxy_shape</code> computes <code>k_norm</code> so the density, in units of the real local
 stellar density (<code>LOCAL_STELLAR_DENSITY_LY3</code>), integrates to the systems the galaxy's stellar mass makes
 (<code>structure.stellar_mass_solar</code> over <code>density.mean_system_mass_solar</code>, GEN.545): <code>density.total_mass</code> is the integral of the
-unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disc and the stellar halo, each in
+unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disk and the stellar halo, each in
 closed form). No point of the galaxy is the calibration point and no Sun position is read. A galaxy of the reference
 structure (5e10 solar masses) held 1.25e11 systems at the recalled 0.4 solar masses a system (1.03e11 at the derived mean, below), and the density at the reference radius was 0.38 of the local
-density the earlier calibration pinned there (2.6 times sparser): the model's disc was a <code>sech^2</code> sheet whose midplane
+density the earlier calibration pinned there (2.6 times sparser): the model's disk was a <code>sech^2</code> sheet whose midplane
 density is half the exponential fits quote for the same column. <strong>GEN.544</strong> made the vertical profile the exponential
 the scale heights are fitted with, with the column (the mass) unchanged: the density at the reference radius is now 0.75
-of the old pinned value (twice the GEN.404 value, 0.376 to 0.750), the thin disc's column is the same, and the
-reference galaxy's bulge amplitude is 3.11/2 because BHG16's 3.11 was measured against the <code>sech^2</code> disc and the bulge
+of the old pinned value (twice the GEN.404 value, 0.376 to 0.750), the thin disk's column is the same, and the
+reference galaxy's bulge amplitude is 3.11/2 because BHG16's 3.11 was measured against the <code>sech^2</code> disk and the bulge
 keeps its 31% of the mass (<code>mathcheck.REFERENCE_BULGE_AMPLITUDE</code>). The model's fixed parts are ratios to the shape's own lengths,
 so the same formulas work for a galaxy of any size.</p>
 <p><strong>The mean system mass (GEN.545).</strong> The galaxy's number of systems is its stellar mass over the mean mass of a system, and
@@ -126,7 +126,7 @@ with a birth mass of the primary's times a uniform 0.1 to 1, taken to its own st
 <p>The mean over a population's ages weights each by the star formation there (the disk's three populations by their history,
 <code>galaxy.age_law</code>; the others uniformly over their windows), and the mean over a galaxy or a cell weights each population by
 its systems (<code>density.population_units</code>: the thin disk shared among its populations, the thick disk in <code>old</code>, the bulge, the
-nuclear cluster and disc, the halo). By systems and not by mass because the density counts systems. For the reference
+nuclear cluster and disk, the halo). By systems and not by mass because the density counts systems. For the reference
 galaxy: young 0.72, intermediate 0.57, old 0.51, bulge 0.50, halo 0.49, so <strong>0.508 solar masses</strong> a system overall, a
 primary drawn from the primary mass function (GEN.928: the Chabrier function less the companions of heavier primaries; the
 Kroupa function gave 0.483 with these words: a placed star of 0.35 times 1.42 stars a system) times 1.43 stars a system. The
@@ -230,7 +230,7 @@ population, the halo term the halo population (10 to 13 Gyr, [Fe/H] about -1.6 i
 thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster components (GEN.237) add their
 density. The thin disk is shared by each population's share of star
 formation, its own scale height (<code>structure.population_height_ratios</code>, GEN.532: the squared vertical
-dispersion of the population over the old disc's, thinner for younger stars) and its own arm contrast
+dispersion of the population over the old disk's, thinner for younger stars) and its own arm contrast
 (<code>STELLAR_POPULATION_ARM_AMPLITUDE</code>, strongest for young stars: 0.75, 0.42 and 0.10 for the young, intermediate and old,
 GEN.931; the old disk is the observed contrast of about 10% [R1158, R1231], the young one the
 gas ratio of 4 to the Kennicutt-Schmidt index 1.4, and the intermediate one falls with the log of the age between them;
@@ -291,7 +291,7 @@ components, is built: GEN.119.)</li>
 the other candidate for GEN.118): the observed bulge is a bar, boxy
 edge on, so the COBE fit was used. Not modelled: the long thin bar
 beyond the bulge and the stellar halo's inner structure. The nuclear star
-cluster and nuclear stellar disc are modelled (GEN.280, schema v99,
+cluster and nuclear stellar disk are modelled (GEN.280, schema v99,
 <a href="realistic-galactic-core.html">realistic-galactic-core.md</a> section 3); see
 <a href="fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>, section 4.</li>
 </ul>
@@ -306,11 +306,11 @@ since GEN.118) until GEN.404 normalized the whole galaxy to its stellar mass.</l
 none of which are used now.</li>
 </ul>
 <h2 id="adm49-user-set-arm-inter-arm-core-and-bulge-densities">ADM.49: user-set arm, inter-arm, core and bulge densities</h2>
-<p>The thin disk's arm factor is <code>arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))</code>. The user sets the density on an arm crest <code>a</code> and between arms <code>i</code> (the disk's own units, usual 1.4 and 0.6), and <code>density.arm_terms(a, i)</code> gives <code>arm_amplitude = (a - i) / (a + i)</code> and <code>arm_level = (a + i) / 2</code>. The Gaussian core this item added was replaced by the nuclear star cluster and nuclear stellar disc (GEN.280, schema v99, <a href="realistic-galactic-core.html">realistic-galactic-core.md</a> section 3); <code>core_amplitude</code> became <code>nuclear_amplitude</code>. The bulge density is <code>bulge_amplitude</code>. Superseded (GEN.404; Boss, 2026-10-16, 9:43 PM EDT): no point is the calibration point and no Sun position is read; the total is set by the galaxy's stellar mass, so a denser arm or core raises those places against the rest of the galaxy (8.2 kpc is a test reference only). The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.</p>
+<p>The thin disk's arm factor is <code>arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))</code>. The user sets the density on an arm crest <code>a</code> and between arms <code>i</code> (the disk's own units, usual 1.4 and 0.6), and <code>density.arm_terms(a, i)</code> gives <code>arm_amplitude = (a - i) / (a + i)</code> and <code>arm_level = (a + i) / 2</code>. The Gaussian core this item added was replaced by the nuclear star cluster and nuclear stellar disk (GEN.280, schema v99, <a href="realistic-galactic-core.html">realistic-galactic-core.md</a> section 3); <code>core_amplitude</code> became <code>nuclear_amplitude</code>. The bulge density is <code>bulge_amplitude</code>. Superseded (GEN.404; Boss, 2026-10-16, 9:43 PM EDT): no point is the calibration point and no Sun position is read; the total is set by the galaxy's stellar mass, so a denser arm or core raises those places against the rest of the galaxy (8.2 kpc is a test reference only). The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.</p>
 <h2 id="gen625-the-all-auto-window-of-the-size-and-the-flatness">GEN.625: the all-Auto window of the size and the flatness</h2>
-<p>A galaxy with the mass, size (or compactness), flatness, bulge share and bulge size all on Auto draws its disc size and flatness through <code>shape_draw._auto_size</code>: the seed's draws of the size-mass relation ([R4048], median half-light radius over 1.678 for the scale length, scatter 0.47 falling to 0.34 in ln) and of the flatness ([R2484], median 7.3, 0.13 dex), and then again from the same two streams, one more draw each, until the shape raises none of <code>dials.shape_warnings</code> (the thin disc's crest at least 20 times the one-star density, a scale height of at least 8 pc, a bulge of at least 4 pc) and the flatness is inside the Structure dial's 3 to 20. The crest tested is the plan's own (<code>plan_figures.crest</code>, GEN.626) of the shape built at every dial's Auto value and the default sector edge, which costs one density normalization a draw (the disc history is cached, so the accepted draw's build is free). At most 32 draws are made; the shape with the best crest is kept if none passes (it does not happen at the Auto masses). The first draw is the unchanged one, so a seed that did not warn keeps its galaxy; one seed in five drew a shape that warned and gets a later draw. Pin any of the five and the draws are the seed's own first ones, as before, and the grid's warnings fire for what the pin makes.</p>
+<p>A galaxy with the mass, size (or compactness), flatness, bulge share and bulge size all on Auto draws its disk size and flatness through <code>shape_draw._auto_size</code>: the seed's draws of the size-mass relation ([R4048], median half-light radius over 1.678 for the scale length, scatter 0.47 falling to 0.34 in ln) and of the flatness ([R2484], median 7.3, 0.13 dex), and then again from the same two streams, one more draw each, until the shape raises none of <code>dials.shape_warnings</code> (the thin disk's crest at least 20 times the one-star density, a scale height of at least 8 pc, a bulge of at least 4 pc) and the flatness is inside the Structure dial's 3 to 20. The crest tested is the plan's own (<code>plan_figures.crest</code>, GEN.626) of the shape built at every dial's Auto value and the default sector edge, which costs one density normalization a draw (the disk history is cached, so the accepted draw's build is free). At most 32 draws are made; the shape with the best crest is kept if none passes (it does not happen at the Auto masses). The first draw is the unchanged one, so a seed that did not warn keeps its galaxy; one seed in five drew a shape that warned and gets a later draw. Pin any of the five and the draws are the seed's own first ones, as before, and the grid's warnings fire for what the pin makes.</p>
 <p>Why a window and not a shifted law: the crest goes as the mass over the scale length cubed times the flatness, and the size-mass scatter is a log-normal with no upper bound, so a bounded sourced law cannot keep every draw clear of the warning; the Auto mass is already a window (3e9 to 6e9, Boss, 10-21) and this is the same kind of statement, the galaxies the 4 pc plan represents well. The sourced medians and scatters are untouched; the window removes the large, thick tail the plan cannot hold.</p>
-<p>Measured over 1,000 seeds before and after, against the plan's own crest (with the nuclear disc of GEN.628): the share of Auto draws that warn 17.5 percent to 0, the mean disc scale length 1,470 pc to 1,224 pc (47 percent of the 2.6 kpc a Milky Way disc has, [R0422], used only as a test yardstick), the mean stellar mass 4.3e9 solar masses (8 percent of a Milky Way's 5.4e10), the mean flatness 7.6 to 7.8, the 5th percentile of the crest 6.1 to 23.6.</p>
+<p>Measured over 1,000 seeds before and after, against the plan's own crest (with the nuclear disk of GEN.628): the share of Auto draws that warn 17.5 percent to 0, the mean disk scale length 1,470 pc to 1,224 pc (47 percent of the 2.6 kpc a Milky Way disk has, [R0422], used only as a test yardstick), the mean stellar mass 4.3e9 solar masses (8 percent of a Milky Way's 5.4e10), the mean flatness 7.6 to 7.8, the 5th percentile of the crest 6.1 to 23.6.</p>
 
 </main>
 </div>

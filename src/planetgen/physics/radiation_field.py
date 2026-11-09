@@ -150,6 +150,57 @@ def field_at(host, distance_au):
     return Field(**bands)
 
 
+def sources_of(host, distance_au):
+    """`[(member_no, star, g)]` of the host (member `None`, `g = 1 / d^2`) and each companion at `distance_au`: the geometry every band is read through
+    (`g` in 1/AU^2). A caller that sums a quantity of its own over the sources (a surface spectrum, a dose) takes them from here."""
+    return _geometry(host, distance_au)
+
+
+def companion_part(host, distance_au, band):
+    """
+    What the companions of `host` put on a body at `distance_au` in `band` (a name of `Field`), in the unit the band is in; 0.0 for a lone star. A companion
+    with no stored value of the band gives none of it. The caller adds this to the host's own value (kept by its own expression, so a lone star gives the
+    numbers it always did).
+    """
+    total = 0.0
+    for companion in companions_of(host):
+        value = _per_au(companion.star)[band]
+        if value is not None:
+            total += value * mean_inverse_square(distance_au, companion.axis_au, companion.eccentricity)
+    return total
+
+
+def companion_far_uv(host, distance_au):
+    """`[(star, far_uv_ratio)]` for the companions that give far ultraviolet at `distance_au` (the ratio is each one's part of the field, the Sun's quiet flux at
+    1 AU the unit)."""
+    found = []
+    for companion in companions_of(host):
+        value = _per_au(companion.star)["far_uv_ratio"]
+        if value:
+            found.append((companion.star, value * mean_inverse_square(distance_au, companion.axis_au, companion.eccentricity)))
+    return found
+
+
+def xuv_emitters(host, distance_au):
+    """
+    `[(mass_solar, luminosity_w, log_lx_lbol, g, l_xuv_w)]` for the companions of `host` that put XUV on a body at `distance_au`: what the loss of air and of envelope
+    needs to follow each one's XUV through time (`thermosphere.weighted_xuv_ratio`, `envelope_escape`). Mass in solar masses.
+    """
+    found = []
+    for companion in companions_of(host):
+        star = companion.star
+        if getattr(star, "l_xuv_w", None) is None or not getattr(star, "luminosity", None) or not getattr(star, "mass", None):
+            continue
+        found.append((star.mass / constants.SOLAR_MASS_TO_KG, star.luminosity, getattr(star, "log_lx_lbol", None),
+                      mean_inverse_square(distance_au, companion.axis_au, companion.eccentricity), star.l_xuv_w))
+    return found
+
+
+def emitter_flux_earth(emitter):
+    """The XUV flux of an `xuv_emitters` entry at the body now, in units of Earth's today."""
+    return emitter[4] * emitter[3] / (4.0 * math.pi * _AU2_M2) / constants.EARTH_XUV_FLUX_W_M2
+
+
 def companion_light_w_m2(host, distance_au):
     """The light the companions of `host` put on a body at `distance_au` from it, W/m2 (0 for a lone star): what a caller that already has the host's own
     light by its own expression adds to it."""
