@@ -131,10 +131,21 @@ def kept(body, start, tides=False):
     The envelope `body` (a rocky planet with its star, mass, orbit and the star's final age) still has after the loss of a starting
     envelope of `start` of its mass, and the radius it gives the planet. With `tides` the radius is multiplied by the obliquity-tide inflation
     (GEN.1347, `super_puff.tidal_inflation_ratio`) of the planet's own tilt (`axial_tilt_deg`) and tidal quality (`tidal_q_prime`), where its tilt is known and the tidal power
-    over its starlight reaches `super_puff.TIDAL_MIN_LUMINOSITY_RATIO`; a planet with no tilt yet has none.
+    over its starlight reaches `super_puff.TIDAL_MIN_LUMINOSITY_RATIO`; a planet with no tilt yet has none. The inflation is also in the loss: the XUV takes
+    the envelope at the radius the planet has (GEN.1480, `envelope_escape.envelope_left_earth` with `radius_ratio`).
 
     Returns:
         tuple or None: `(fraction of the mass, radius in Earth radii)`, or `None` for a planet that is a bare core (nothing kept).
+    """
+    result = kept_with_tide(body, start, tides)
+    return None if result is None else result[:2]
+
+
+def kept_with_tide(body, start, tides=False):
+    """
+    `kept` with the factor the tide put on the radius as a third number: `(fraction of the mass, radius in Earth radii, tide ratio)` (the ratio is 1.0 for a
+    planet it did not inflate), or `None` for a bare core. The caller that has to know whether a planet was inflated reads the ratio here and does not work
+    out a second, uninflated envelope to compare with (that one would keep more envelope than the tide's loss leaves).
     """
     if start <= 0.0:
         return None
@@ -143,15 +154,20 @@ def kept(body, start, tides=False):
     luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
     insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
+    flux_floor = bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0]       # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
+    flux = max(insolation, flux_floor)
+    step_ratio = None
+    if tides and getattr(body, "axial_tilt_deg", None) is not None:
+        def step_ratio(mass, fraction, radius):
+            return tidal_ratio(body, mass, fraction, flux, radius)
     left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, distance_au=distance_au if radiation_field.companions_of(star) else None,
-                                               emitters=radiation_field.xuv_emitters(star, distance_au))      # GEN.1442: the other stars' XUV too
+                                               emitters=radiation_field.xuv_emitters(star, distance_au), radius_ratio=step_ratio)      # GEN.1442: the other stars' XUV too
     if left <= 0.0:
         return None
     fraction = left / (mass_earth + left)
-    flux = max(insolation, bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0])     # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
     radius = super_puff.radius_earth(mass_earth, fraction, flux, star.age)
     ratio = tidal_ratio(body, mass_earth, fraction, flux, radius) if tides else 1.0
-    return fraction, radius * ratio
+    return fraction, radius * ratio, ratio
 
 
 def tidal_ratio(body, mass_earth, fraction, flux_earth, radius_earth):

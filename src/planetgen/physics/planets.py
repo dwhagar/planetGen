@@ -419,7 +419,7 @@ def apply_envelope(planet):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
             start = puff or start
-    result = envelope_capture.kept(planet, start, tides=True)       # GEN.1347: the obliquity tide of the planet's own tilt, once it has one (the settle pass)
+    result = envelope_capture.kept_with_tide(planet, start, tides=True)       # GEN.1347: the obliquity tide of the planet's own tilt, once it has one (the settle pass)
     held = getattr(planet, "_captured_envelope", 0.0)
     if result is None and not held:
         return False                    # a bare core, as drawn: nothing is touched
@@ -444,7 +444,7 @@ def apply_envelope(planet):
         planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
-        fraction, radius_earth = result
+        fraction, radius_earth, tide_ratio = result
         planet._bare_core = {"radius": planet.radius, "fractions": {name: getattr(planet, name) for name in (*envelope_share.SOLIDS, "envelope_mass_fraction")}}
         solids = sum(getattr(planet, name, None) or 0.0 for name in envelope_share.SOLIDS)
         keep = (1.0 - fraction) / solids if solids > 0.0 else 1.0       # the solids as drawn may already have made room for a hydrogen air's share: they give the envelope its share of the whole
@@ -456,8 +456,7 @@ def apply_envelope(planet):
         planet._captured_envelope = fraction
         envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
-        plain = envelope_capture.kept(planet, start)[1] * constants.EARTH_RADIUS_KM
-        planet._tidal_radius_km = planet.radius if planet.radius > plain * (1.0 + 1e-9) else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate
+        planet._tidal_radius_km = planet.radius if tide_ratio > 1.0 + 1e-9 else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate (GEN.1480: the ratio itself; the loss follows the tide, so an uninflated envelope is not the one to compare with)
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     planet.density = planet.mass / (planet.volume * 1.0e9) / 1000.0     # g/cm3: kg per km3 over 1e9 m3 per km3, then to g/cm3
     calculate_surface_gravity(planet)
