@@ -78,3 +78,10 @@ published 0.2 to 0.7 percent of its mass (test). In a census of 581 generated ro
   from the planets' own accretion tail); the single number gave them all something, so leaving them at zero would be a step backwards;
 * the spread across planets (10th to 90th percentile a factor of about 1,500) is far wider than the log-normal scatter of the law (sigma 0.65 in ln, `impact_history.LATE_ACCRETED_LN_SIGMA`), which comes from belts that differ by orders of
   magnitude in mass; slice 1 either accepts it or narrows it with a floor, a call for Boss with the sample in hand.
+
+## Slice 1 result (built: `generation/late_accretion.py`, `planets.remake_air`, rows LA1 and LA2 of section 6.251, census `tests/audit/late_accretion_census.py`)
+
+- The pass runs once the system is whole, before the snow line pass, over the rocky planets of a star (not moons, giants or starless bodies). Each planet's percent is the supply of the system's belts and planets (`late_supply.veneer_fraction`), at least `FLOOR_SHARE` (0.05) of the law's mean for its mass, at most the old ceiling (3 percent).
+- The air is made again by replaying `calculate_atmospheric_conditions` from the stream state saved at its last call (`planet._air_replay`, kept, not stored) in a private `draw.Stream`, so no draw of the run's stream moves. The air solves twice inside, each with its own draw of the late accretion; the replay holds both to the one percent, so a planet comes back as it was within about 1 percent in pressure and temperature when it drew nearly the same twice, and replaying twice with one percent is identical.
+- Census (240 seeds, 246 planets of 0.3 to 3 Earth masses): 43 percent take the floor, 22 percent sit at the ceiling, the median is 0.13 of the law's mean (10th and 90th: 0.05 and 4.36). The pass is 18 percent of generation time (`reports/gen1493-late-accretion-census-2026-11-09.md`).
+- Open: the cost. Skipping the replay for planets whose percent is within a few percent of the first draw would save little (the draw is a log-normal), so a cheaper replay (the second solve only) is the lever if the time matters.

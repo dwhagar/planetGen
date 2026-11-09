@@ -204,6 +204,8 @@ class Setting:
         albedo_law (IceAlbedoLaw or None): The Bond albedo as a function of the surface temperature of a body with surface water (GEN.972,
             `climate_branches`): each step of the fixed point takes its absorbed flux at the albedo of the last step's temperature. `None` holds the
             albedo in `absorbed_flux_w_m2`, as a dry body, a giant and a setting built by hand do.
+        late_accreted_percent (float or None): The mass accreted after the last giant impact, percent of the body's mass, when the system's own belts have set it (GEN.1493,
+            `generation/late_accretion.py`); `None` takes the law's draw (`impact_history.late_accreted_fraction`).
         orbital_speed_ms (float or None): The speed of the body round its star, m/s, which sets how hard the leftover planetesimals hit
             (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
         steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
@@ -234,6 +236,7 @@ class Setting:
     orbital_speed_ms: object = None
     cloud_law: object = None
     steam_possible: bool = True
+    late_accreted_percent: object = None
 
     def albedo_at(self, temperature_k, ocean=True):
         """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
@@ -620,7 +623,10 @@ def _late_accretion(setting, design):
     if setting.giant or setting.orbital_speed_ms is None or setting.mantle_kg <= 0.0:
         return {}
     mass_kg = setting.gravity_m_s2 * setting.radius_m ** 2 / constants.G
-    fraction = impact_history.late_accreted_fraction(_kg_to_mearth(mass_kg), design)
+    fraction = impact_history.late_accreted_fraction(_kg_to_mearth(mass_kg), design)      # the draw is made either way, so a replay keeps its place in the stream
+    if setting.late_accreted_percent is not None:       # GEN.1493: the system's own belts set it
+        design["late_accreted_percent"] = setting.late_accreted_percent
+        fraction = setting.late_accreted_percent / 100.0
     volatiles = impact_history.veneer_volatiles(design)
     temperature_k = setting.effective_temperature_k
     caps = {}
@@ -934,4 +940,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         star_temperature_k=getattr(star, "temperature", None), orbital_speed_ms=orbital_speed,
         far_uv=aerosols.far_uv_of(star, star_distance_au),
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
-        cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au))
+        cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
+        late_accreted_percent=getattr(body, "_late_accreted_percent", None))

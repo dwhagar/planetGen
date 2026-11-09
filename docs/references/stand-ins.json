@@ -58363,6 +58363,98 @@
       ],
       "slug": "6-250-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
       "title": "Stand-ins of the late supply a planet takes from the reservoirs of its system"
+    },
+    {
+      "key": "6.251",
+      "number": "6.251",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.3 to 3 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass"
+            ],
+            [
+              "What replaces it",
+              "a model of the leftover planetesimals of a system with no belt"
+            ],
+            [
+              "Evidence",
+              "recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, reports/gen1493-late-accretion-census-2026-11-09.md: 43 percent of 246 planets take the floor)"
+            ]
+          ],
+          "id": "LA1",
+          "key": "6.251:LA1",
+          "kind": "P",
+          "slug": "6-251-la1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "late_accretion.FLOOR_SHARE 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of single and multiple stars"
+            ],
+            [
+              "What would show it wrong",
+              "a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains"
+            ],
+            [
+              "What replaces it",
+              "a draw of the belt's mass and reach from the nebula"
+            ],
+            [
+              "Evidence",
+              "design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent"
+            ]
+          ],
+          "id": "LA2",
+          "key": "6.251:LA2",
+          "kind": "T",
+          "slug": "6-251-la2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+        }
+      ],
+      "slug": "6-251-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
+      "title": "Stand-ins of the late accretion the air reads from the system"
     }
   ]
 }

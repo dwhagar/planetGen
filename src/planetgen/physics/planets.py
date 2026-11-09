@@ -619,6 +619,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
                                              kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
+    if not planet.is_moon:
+        planet._air_replay = (draw.getstate(), distance_override, host_eccentricity)    # GEN.1493: kept, not stored; where this air's draws began, for `remake_air` once the system's belts are known
     envelope_share.restore(planet)      # GEN.1226: the drawn fractions, before the air is solved again (the air share is put in again at the end)
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
@@ -739,6 +741,28 @@ def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
         return False
     effective = starlight_w_m2 / tuning.RUNAWAY_FLUX_REFERENCE_W_M2
     return effective > orbits.runaway_greenhouse_flux(planet.star.temperature, units.converter("kg", "Mearth")(planet.mass))
+
+
+def remake_air(planet, late_accreted_percent):
+    """
+    Makes the air of a planet again with the late accretion the system's own belts give it (GEN.1493, `generation/late_accretion.py`): the whole of `calculate_atmospheric_conditions` is run again on the
+    draws it began with (`planet._air_replay`, taken at its last call), in a stream of its own, so every other draw of the air, the water and the ground is the one it was, the late accretion is
+    `late_accreted_percent` of the planet's mass instead of the law's draw, and no draw of the run's stream moves. A planet whose air was never made here (a moon, a loaded one) is left as it is.
+
+    Returns:
+        bool: Whether the air was made again.
+    """
+    replay = getattr(planet, "_air_replay", None)
+    if replay is None or planet.is_moon:
+        return False
+    state, distance_override, host_eccentricity = replay
+    stream = draw.Stream(0)
+    stream.setstate(state)
+    planet._late_accreted_percent = late_accreted_percent
+    with draw.bound(stream):
+        calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
+    planet._air_replay = None       # the replay is spent; the memory it held goes
+    return True
 
 
 def refresh_at_final_age(body):

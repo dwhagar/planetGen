@@ -249,7 +249,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
 | row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
-| module | planetgen.physics.late_supply | GEN.1493 | the late supply of the system's belts to a rocky planet (calibration slice, read by the census and the tests); slice 1 wires it into the end-of-making pass in place of the single late-accretion number |
-| row | 6.250:LS1 | GEN.1493 | the inward share is read with the late supply module when slice 1 wires it |
-| row | 6.250:LS2 | GEN.1493 | the relative speed share is read with the late supply module when slice 1 wires it |
-| row | 6.250:LS3 | GEN.1493 | the outer reach is read with the late supply module when slice 1 wires it |
