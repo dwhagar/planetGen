@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3751] - 2026-11-09
+
+**Headline:** The calibration fence's list of reviewed rows now includes the tholin material row, so the fence test passes on main again.
+
+### Changed
+
+- The tholin density row (added with GEN.1359) names Titan only in its source id; its value is laboratory pycnometry of laboratory analogue tholins, not a measurement of a Solar System body. It is recorded in `tests/data/solar_system_rows.json` as reviewed and not a Solar System shape, with the reason.
+
+generation-affects: none
+
+## [8.0.3750] - 2026-11-09
+
+**Headline:** The dissociation steps of MgSiO3 in the mantles of massive rocky planets are registered as predicted rows, and the interior solver's mantle table is kept.
+
+### Changed
+
+- The stand-in registry lists the three terapascal dissociations of MgSiO3 post-perovskite (0.75, 1.31 and 3.10 TPa) as predicted watch entries (rows SE1 to SE3) with no density step, and states why the mantle table is kept (row SE4): the interior solver's radius for an Earth-like 5 to 10 Earth-mass planet is within 0.3 percent of the published curve. The source is added to the citation registry.
+
+generation-affects: none
+
 ## [8.0.3749] - 2026-11-09
 
 **Headline:** The settle step reads the stars around a block of sectors once instead of once per sector, so it spends far less time reading the database (GEN.1477).
