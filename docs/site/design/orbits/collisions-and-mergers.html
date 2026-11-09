@@ -123,7 +123,7 @@ R1 + R2, entering at tau_impact = (-B - sqrt(B^2 - 4A(C - (R1+R2)^2))) / 2A.
 Section 5.2 computes the same quantities in a form that survives floating point.</p>
 <p><strong>Kept: the inelastic merger.</strong> M_new = M1 + M2 and v_new = (M1 v1 + M2 v2) /
 M_new; right for the cases that merge (section 5.1). Additions: the merged body
-sits at the centre of mass at impact, (M1 p1(t) + M2 p2(t)) / M_new, not at
+sits at the center of mass at impact, (M1 p1(t) + M2 p2(t)) / M_new, not at
 body 1's position (orbital-updates.md section 10.6), and the momentum check goes
 in the admin report (section 7).</p>
 <p><strong>Kept: Roche (tidal) disruption.</strong> A smaller body of density rho_2 within
@@ -409,7 +409,7 @@ beyond that radius.</li>
 </tbody>
 </table></div>
 <p>In empty space the set is empty and only the gradient acts; near a star it is a
-dozen or so; in a cluster or the galactic centre it is unbounded and needs a
+dozen or so; in a cluster or the galactic center it is unbounded and needs a
 cap. Recommended: the 64 nearest by distance, with the 1 pc Plummer softening
 GEN.115 already specifies, otherwise the cost is O(N^2).</p>
 <h3 id="32-how-big-the-effect-is">3.2 How big the effect is</h3>
@@ -431,7 +431,7 @@ Sun). Left as written, a full real-size galaxy would raise about 200 warnings a
 day (6.5e11 rogues x 6.1e-8 x 3.9 / 2 / 365), and 0.3 a day for 1e9 rogues [C].</p>
 <p>So GEN.109 and GEN.111 should not warn on &quot;inside the Hill radius&quot; alone. Warn
 (and mail the admin) only when the pair can interact: v_rel^2 &lt; 2 G M_tot / d
-(bound or capture candidate), or the straight-line pericentre gives a
+(bound or capture candidate), or the straight-line pericenter gives a
 deflection of at least about 1 degree, or the pair is in the same system. Log
 plain Hill-sphere entries at debug level.</p>
 <h2 id="4-what-happens-in-a-collision">4. What happens in a collision</h2>
@@ -519,7 +519,7 @@ interacting fraction (3 R_p l^2 - l^3) / (4 R_p^3), l = (R_t + R_p)(1 - b)
 </tr>
 </tbody>
 </table></div>
-<p>Protoplanets in a disc meet at a few km/s, below v_esc, so mergers dominate
+<p>Protoplanets in a disk meet at a few km/s, below v_esc, so mergers dominate
 there. Rogues meet at the galactic dispersion (mean v_inf about 56 km/s for 25
 km/s per axis in each body), 2 to 5 times the catastrophic speed for comparable
 terrestrial bodies. A small body hitting a big one is not disruptive even at 100
@@ -593,7 +593,7 @@ merge, 15% disruption or worse. These are design-grade shares, not predictions.<
 <h3 id="42-gas-giant-mergers">4.2 Gas giant mergers</h3>
 <ul>
 <li><strong>Mass loss is small.</strong> SPH simulations find that quick Jupiter-Jupiter mergers
-(pericentre below 2 Rjup) keep at least 97% of the mass, give fast-spinning
+(pericenter below 2 Rjup) keep at least 97% of the mass, give fast-spinning
 puffy remnants, and can be treated as perfect inelastic collisions [S:
 https://academic.oup.com/mnras/article/501/2/1621/6027698, search snippets
 only]; a gas giant hit by an Earth-mass embryo kept about 90% of its envelope
@@ -602,7 +602,7 @@ to 12% mean loss across the galactic speed range, in line with Boss's &quot;smal
 <li><strong>The remnant spins near breakup.</strong> A grazing merger (b = 0.5) of two Jupiters
 at v_inf = 0 to 30 km/s spins at 1.0 to 1.1 times breakup (moment of inertia
 0.25 M R^2); at b = 0.8 and 50 km/s about 2 times [C]. Flag a merged giant
-&quot;rapidly rotating, inflated, hot&quot;; it may shed a disc (rings or moons, the
+&quot;rapidly rotating, inflated, hot&quot;; it may shed a disk (rings or moons, the
 existing <code>has_moons</code> field).</li>
 <li><strong>Radius</strong> comes from the relation (section 2.2).</li>
 </ul>
@@ -711,7 +711,7 @@ rogue brown dwarf is involved; write the check for any two substellar bodies.</p
 <h3 id="44-what-a-newly-lit-star-looks-like">4.4 What a newly lit star looks like</h3>
 <p>A 0.075 to 0.08 Msun merger remnant is a very late M dwarf (T_eff about 2,500 to
 2,800 K, L about 1e-4 to 1e-3 Lsun, radius about 0.1 Rsun [R]) and makes
-essentially no ionising radiation. A transient is plausible but unobserved for
+essentially no ionizing radiation. A transient is plausible but unobserved for
 planets: the analogues are luminous red novae (V1309 Sco, about 1e45 erg [S])
 and the planet-engulfment transient ZTF SLRN-2020 (about 6.5e41 erg [S:
 https://www.nature.com/articles/s41586-023-05842-x]), against about 6e46 erg of
@@ -871,7 +871,7 @@ metallicity; a result within 3 percent of the hydrogen limit is <code>borderline
 <tbody>
 <tr>
 <td>A (recommended)</td>
-<td>No nebula. Star flagged &quot;merger remnant&quot;; event log and admin report carry the story; optional flavour line &quot;a faint infrared flare was recorded&quot;</td>
+<td>No nebula. Star flagged &quot;merger remnant&quot;; event log and admin report carry the story; optional flavor line &quot;a faint infrared flare was recorded&quot;</td>
 <td>Physically honest; no new object type; no conflict with <code>PLANETARY_NEBULA_CENTRAL_STAR_TYPES</code> (O3VII to B0VII, 30,000 K and up)</td>
 </tr>
 <tr>
@@ -890,8 +890,8 @@ metallicity; a result within 3 percent of the hydrogen limit is <code>borderline
 <ul>
 <li>Mass: M_tot minus any surviving bodies. <code>asteroid_fields</code> has no mass column
 today; add <code>mass_kg</code>, <code>formed_at</code>, <code>origin_event_id</code> and a velocity (the
-centre-of-mass velocity at impact; the update needs one to move the field).</li>
-<li>Position: the centre of mass at impact, (M1 p1(t_hit) + M2 p2(t_hit)) / M_tot,
+center-of-mass velocity at impact; the update needs one to move the field).</li>
+<li>Position: the center of mass at impact, (M1 p1(t_hit) + M2 p2(t_hit)) / M_tot,
 advanced to now.</li>
 <li>Composition: stony by default; carbonaceous or icy if the parents were
 water-rich (<code>ROGUE_WATER_RICH_CHANCE</code>); mixed if they differ. Class letter U,
@@ -1006,7 +1006,7 @@ this formula gives 1.26e17 yr [C]. Inputs are the project's densities
 (<code>tuning.PHENOMENON_DENSITY_PC3</code>, <code>tuning.ROGUE_PLANET_MASS_BINS</code>): terrestrial
 0.78, sub-Neptune 0.10, Saturn-class 0.024, Jupiter-bin 0.0039, brown dwarf 0.03,
 neutron star 7e-4, star 0.14 per pc^3, and 1e15 pc^-3 for comets and debris
-(<code>INTERSTELLAR_DEBRIS_DENSITY_PC3</code>). The thin disc has (sigma_U, sigma_V,
+(<code>INTERSTELLAR_DEBRIS_DENSITY_PC3</code>). The thin disk has (sigma_U, sigma_V,
 sigma_W) about (33, 28, 23) km/s overall [S: [R0119];
 https://www.aanda.org/articles/aa/full_html/2024/08/aa49445-24/aa49445-24.html,
 search snippets]; rogues are ejected at a few km/s [R], so they inherit it.
@@ -1098,14 +1098,14 @@ Default 25 km/s per axis per body (mean relative speed 56 km/s).</p>
 </tbody>
 </table></div>
 <p>The galaxy-wide column is N1 x per-object rate x 3.9 (the density weighting of
-an exponential disc, exp(R0/L)/6 with L = 2.6 kpc, R0 = 8.2 kpc, no bulge), with
+an exponential disk, exp(R0/L)/6 with L = 2.6 kpc, R0 = 8.2 kpc, no bulge), with
 a factor 1/2 for identical species [C]. The five rogue-rogue lines sum to about
 1.4e-12 per day, one event per 2e9 years for a real-size galaxy; rates scale as
 N^2, so a generated galaxy of 1e9 rogues is smaller by a further 3e-6. Comet
 hits are craters, not events to model, which is why comets must not be rows.
 Dense places do not change the picture: a terrestrial rogue pair waits about
 1.3e17 years in a globular cluster core and 1e14 to 1e15 years at the galactic
-centre [S/R: [R4980];
+center [S/R: [R4980];
 https://iopscience.iop.org/article/10.3847/2041-8213/ad251f; the central density
 is recalled]. Belt and moon collisions (main belt: 2.85 +/- 0.66 e-18 km^-2
 yr^-1 at 5.81 km/s [S: [R1327]]) are the orbit code's concern,
@@ -1147,9 +1147,9 @@ design value; Genda et al.'s formula was not retrieved.</li>
 R ~ M^0.27 and isotropic encounters; giant behaviour extrapolates rocky
 scaling. They are order-of-magnitude.</li>
 <li>Merger-star properties (T_eff, luminosity, radius), ejecta speeds, the galactic
-centre density (1e6 to 1e7 stars per pc^3 inside 0.1 pc), open cluster inputs,
-thick disc (60, 40, 35) and bulge (about 110 km/s) dispersions are recalled.</li>
-<li>The galaxy-wide factor 3.9 ignores the bulge and thick disc.</li>
+center density (1e6 to 1e7 stars per pc^3 inside 0.1 pc), open cluster inputs,
+thick disk (60, 40, 35) and bulge (about 110 km/s) dispersions are recalled.</li>
+<li>The galaxy-wide factor 3.9 ignores the bulge and thick disk.</li>
 <li>The Jacobi radius (G m / 2 Omega^2)^(1/3) is the standard tidal radius in a
 logarithmic potential; no source was found.</li>
 <li>The giant radii in section 2.2 are in equatorial Jupiter radii (71,492 km);

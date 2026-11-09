@@ -398,8 +398,9 @@ class Column:
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
         depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
         if self.cloud is not None:
-            tau_550, radius_um = self.cloud
-            depth = depth + cloud_infrared.layer_depth(self.layer_pressure, self.layer_mass, layer_temperature, tau_550, radius_um)[:, :, None]
+            tau_550, radius_um, base_temperature_k, weight_percent = self.cloud
+            depth = depth + cloud_infrared.layer_depth(self.layer_pressure, self.layer_mass, layer_temperature, tau_550, radius_um,
+                                                       base_temperature_k, weight_percent)[:, :, None]
         return depth, water
 
     def cloud_share(self, surface_temperature):
@@ -648,8 +649,9 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
         layers (int): The number of layers.
         water_fraction (ndarray or None): Hold the water vapor mole fraction of each layer (top first, `layers` long) at these values instead of
             the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapor fixed).
-        cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
-            Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
+        cloud (tuple or None): `(tau_550, radius_um, base_temperature_k, weight_percent)` of a sulfuric acid cloud (`sulfuric_cloud.infrared_cloud`): its depth at
+            550 nm, droplet radius, base temperature and strength. Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the
+            cloud base temperature and its top.
         saturated (bool): Hold the relative humidity at the surface's value up the whole troposphere (to the cold trap) instead of Manabe and
             Wetherald's, which falls to nothing aloft: the saturated air the published runaway limits are worked for (Simpson's limit as given in [R1608], Nakajima and
             others 1992, Kasting's work [R2275], Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in IR17.

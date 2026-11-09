@@ -78,7 +78,7 @@ L  later group: nothing waits on it
 <h2 id="4-stage-m-multi-star-and-star-like-systems-at-scatter-time">4. Stage M: multi-star and star-like systems at scatter time</h2>
 <p>Approved by Boss (2026-10-15, 5:51 PM EDT, widened 6:08 PM EDT to every observed and theoretical type of multi-star or star-like-object system, built throughout the generator). Design: <a href="../design/systems/multi-star-systems.html">multi-star-systems.md</a>, now with the catalogue of about sixty system types (sections 13 to 16). Twenty items are filed and approved (the defaults of the note stand: compact pairs promoted to the scatter, black hole companion 1.25%, hierarchical trees only, a row's members deleted when its sector builds it, pair rates from the middle of the evidence; the cap is now 12 stars, not 7).</p>
 <ul>
-<li><strong>Stored form</strong> (GEN.260): a scatter row becomes a system key: barycentre point, total mass, members and orbit nodes in two child tables, one column per value, no JSON. The same migration adds <code>state</code>, <code>flags</code>, <code>interaction</code>, a SMALLINT <code>slot</code>, the <code>group</code> and <code>compact</code> node kinds, and the offset, velocity and decay-age columns of young groups. It is the shared migration 0093 (GEN.223, GEN.230, GEN.260, DB.34, DB.35), so there is one migration.</li>
+<li><strong>Stored form</strong> (GEN.260): a scatter row becomes a system key: barycenter point, total mass, members and orbit nodes in two child tables, one column per value, no JSON. The same migration adds <code>state</code>, <code>flags</code>, <code>interaction</code>, a SMALLINT <code>slot</code>, the <code>group</code> and <code>compact</code> node kinds, and the offset, velocity and decay-age columns of young groups. It is the shared migration 0093 (GEN.223, GEN.230, GEN.260, DB.34, DB.35), so there is one migration.</li>
 <li><strong>Generator</strong> (GEN.261, GEN.266, GEN.267, GEN.268): <code>draw_member_tree</code> (GEN.129's steps a to d plus member kinds and the Peters, Kozai and wide-companion checks), the compact-binary orbit laws, the cap setting and <code>--stars N</code> directive, and <code>SYSTEM_TYPE_RATES</code>, one entry per catalogue type with a completeness test.</li>
 <li><strong>Scatter and fill</strong> (GEN.262, GEN.263, GEN.264, GEN.265): companions in the scatter passes with a rate correction so pairs are not double counted, promotion of bound compact pairs, the fill building from stored members (GEN.251's system pass shrinks to planets, moons and belts), and the nightly motion of a system with its total mass.</li>
 <li><strong>The catalogue of types</strong> (GEN.269 to GEN.275, TEST.164): GEN.269 the star model (Roche classifier, <code>interaction</code> on every pair, flags, rejuvenated age, the kinds <code>stripped-helium</code>, <code>thorne-zytkow</code> and <code>wolf-rayet</code>); GEN.270 close binaries (contact, Algol, Be, merger products); GEN.271 white-dwarf binaries (double white dwarfs, cataclysmic variables, AM CVn, symbiotic and barium stars); GEN.272 accreting compact binaries (X-ray binaries, microquasars, spider pulsars); GEN.273 young groups and trapezia; GEN.274 runaway origins and cluster-hosted compact binaries; GEN.275 brown-dwarf, planetary-mass and circumbinary types; TEST.164 the type audit.</li>
@@ -199,7 +199,7 @@ L  later group: nothing waits on it
 </tr>
 <tr>
 <td>GEN.260</td>
-<td>Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members</td>
+<td>Scatter member columns and tables: a scatter row is a system with a barycenter, a total mass and a stored tree of members</td>
 <td>Core</td>
 <td>GEN.223</td>
 <td>DOC.50, GEN.262, GEN.264, GEN.265, GEN.269, GEN.273, UX.114</td>
@@ -381,7 +381,7 @@ L  later group: nothing waits on it
 <tbody>
 <tr>
 <td>GEN.265</td>
-<td>Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read</td>
+<td>Nightly motion of a system: the barycenter moves with the system mass, members are computed from their stored phase on read</td>
 <td>Core</td>
 <td>GEN.223, GEN.260</td>
 <td>(leaf)</td>

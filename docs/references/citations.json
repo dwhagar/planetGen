@@ -25995,6 +25995,56 @@
       "kind": "paper",
       "label": "Umemoto and Wentzcovitch 2021",
       "title": "Ab initio prediction of an order-disorder transition in    Mg 2  Ge  O 4    : Implication for the nature of super-Earth's mantles"
+    },
+    "R5203": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2016",
+      "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions"
+    },
+    "R5204": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2020",
+      "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)"
+    },
+    "R5205": {
+      "kind": "paper",
+      "label": "Pavlov et al. 2013",
+      "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst"
+    },
+    "R5206": {
+      "kind": "paper",
+      "label": "Masarik and Beer 2009",
+      "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere"
+    },
+    "R5207": {
+      "kind": "paper",
+      "label": "Kovaltsov et al. 2012",
+      "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere"
+    },
+    "R5208": {
+      "kind": "paper",
+      "label": "Booth et al. 2017",
+      "title": "Chemical enrichment of giant planets and discs due to pebble drift"
+    },
+    "R5209": {
+      "kind": "paper",
+      "label": "Cuzzi and Zahnle 2004",
+      "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts"
+    },
+    "R5210": {
+      "kind": "paper",
+      "label": "Schneider and Bitsch 2021",
+      "title": "How drifting and evaporating pebbles shape giant planets"
+    },
+    "R5211": {
+      "kind": "paper",
+      "label": "Lambrechts and Johansen 2014",
+      "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs"
+    },
+    "R5212": {
+      "kind": "paper",
+      "label": "Piso et al. 2015",
+      "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION"
     }
   }
 }

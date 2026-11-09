@@ -32,7 +32,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
 from planetgen.queue import units as units_module
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-from planetgen.util import logrecord
+from planetgen.util import log, logrecord
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_nodes, fetch_stage
@@ -329,6 +329,27 @@ def build_app(config=None):
     return app
 
 
+_KEPT = {}
+"""dict: The warm-up app a worker keeps (`keep_app`), under `None`; empty in every process that did not ask to keep one."""
+
+
+def keep_app(unit_args=None):
+    """
+    PERF.257: a `warm` function (`units.warm_unit`) of the warm commands whose units visit pages through the app: builds the warm-up app once, in the worker, before RQ
+    forks a horse for the unit. Building it is nearly all imports (8.6 s the first time in a process, 0.06 s the second, measured 2026-11-09), and a unit that built it in its own
+    horse paid the 8.6 s for every chunk (an unchanged rerun spent 22 min 48 s of 28 min there). The horse starts with the app and its imports, so `app_for` costs it nothing.
+    No connection is opened by building it, so none is shared with a horse.
+    """
+    _KEPT[None] = build_app()
+
+
+def app_for(config=None):
+    """The warm-up app for `config`: the one the worker kept (`keep_app`) when `config` is not given, else a new one (`build_app`)."""
+    if config is None and None in _KEPT:
+        return _KEPT[None]
+    return build_app(config)
+
+
 class _Visitor:
     """Visits pages through the app the way a browser does, counting what answered from the cache."""
 
@@ -517,7 +538,7 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None, report
     if family not in _WARMERS:
         raise WarmupFailed(f"no such cache family {family!r}; one of {', '.join(FAMILIES)}")
     started = time.monotonic()
-    app = app or build_app(config)
+    app = app or app_for(config)
     visitor = _Visitor(app, db)
     visitor.report = report
     with app.test_request_context("/"):
@@ -635,7 +656,7 @@ def _expand_objects(params, family):
     """
     database = params["database"]
     cap = _cap(params.get("cap"))
-    app = build_app()
+    app = app_for()
     with app.test_request_context("/"):
         total = int(getattr(apiclient, _OBJECT_TOTALS[family])(database, limit=1)["total"])
     wanted = min(total, cap)
@@ -713,33 +734,66 @@ def _warm_node_chunk(args, report, family):
 
     Args:
         args (dict): `database` (the site's) and `keys` (the chunk: `NODE_CHUNK` node keys, or a whole multiple of that on a galaxy too big for
-            the stage's unit cap, see `units.coarsen`).
+            the stage's unit cap, see `units.coarsen`); `stored`, on the stage's first unit, the nodes the stage's opening found stored and current and left out of every
+            unit's keys (PERF.257), which count as warmed and already stored here.
         report (callable): Called with `(done, estimate)` when the chunk is built.
         family (str): The family the chunk belongs to, for its line.
     """
     started = time.monotonic()
     count = len(args["keys"])
+    stored = int(args.get("stored", 0))
     if not count:
-        report(0, 0)
+        report(stored, stored)
+        if stored:
+            return {"family": family, "warmed": stored, "noun": "nodes", "cached": stored, "built": 0, "left_out": 0, "seconds": 0.0,
+                    "line": f"{family}: {stored} nodes warmed (0 built, {stored} already stored)"}
         return {"family": family, "warmed": 0, "noun": "nodes", "cached": 0, "built": 0, "left_out": 0,
                 "seconds": 0.0, "line": f"{family}: no node to warm" + (
                     ", no block is stored yet" if family == "galaxy-nodes" else "")}
     if tilecache.cache_is_full():
         report(count, count)
-        return {"family": family, "warmed": 0, "noun": "nodes", "cached": 0, "built": 0, "left_out": count,
+        return {"family": family, "warmed": stored, "noun": "nodes", "cached": stored, "built": 0, "left_out": count,
                 "seconds": 0.0,
                 "line": f"{family}: {count} nodes left out, " + (
                     "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
                     f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
-    app = build_app()
+    app = app_for()
     cached, left_out = _fetch_in_requests(app, args, report)
     seconds = time.monotonic() - started
     warmed = count - left_out
     built = warmed - cached
-    return {"family": family, "warmed": warmed, "noun": "nodes", "cached": cached, "built": built,
+    return {"family": family, "warmed": warmed + stored, "noun": "nodes", "cached": cached + stored, "built": built,
             "left_out": left_out, "seconds": seconds,
-            "line": f"{family}: {warmed} nodes warmed ({built} built, {cached} already stored) in {seconds:.1f} s"
+            "line": f"{family}: {warmed + stored} nodes warmed ({built} built, {cached + stored} already stored) in {seconds:.1f} s"
                     + (f", {left_out} left out as the cache filled" if left_out else "")}
+
+
+def _node_units(database, keys, family):
+    """
+    PERF.257: the units of a node stage and how many nodes it left out. The stage opens with a check of the stamp (`tilecache.stored_nodes`): the nodes the cache holds in
+    the current generation are not given to any unit, so an unchanged rerun cuts one empty unit that says how many were stored, in place of hundreds of chunks that each find
+    their nodes stored. A check that fails is no reason to skip a node: every node is then cut as before.
+
+    Returns:
+        tuple: `(units, stored)`: the `(args, cost)` pairs, and the number of nodes left out because they are stored.
+    """
+    stored = set()
+    if keys:
+        try:
+            with app_for().test_request_context("/"):
+                stored = tilecache.stored_nodes(database, keys)
+        except Exception as exc:  # noqa: BLE001 -- best effort: without the check every node is cut, as before
+            log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units", area="cache")
+    todo = [key for key in keys if key not in stored]
+    size = units_module.coarsen(len(todo), NODE_CHUNK)
+    units = [({"database": database, "keys": todo[start:start + size]}, ITEM_SECONDS[family] * len(todo[start:start + size]))
+             for start in range(0, len(todo), size)]
+    if stored:
+        if units:
+            units[0][0]["stored"] = len(stored)
+        else:
+            units = [({"database": database, "keys": [], "stored": len(stored)}, NODE_SECONDS)]
+    return units or [({"database": database, "keys": []}, NODE_SECONDS)], len(stored)    # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
 
 
 def warm_galaxy_nodes_unit(args, report):
@@ -753,16 +807,11 @@ def warm_galaxy_deep_nodes_unit(args, report):
 
 
 def expand_warm_galaxy_nodes(params):
-    """The units of the `warm-galaxy-nodes` stage: the populated blocks of `NODE_WARM_FLOOR` and above, in chunks of
+    """The units of the `warm-galaxy-nodes` stage: the populated blocks of `NODE_WARM_FLOOR` and above that the cache does not already hold in chunks of
     `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
-    database = params["database"]
-    keys = _populated_nodes(database)
-    size = units_module.coarsen(len(keys), NODE_CHUNK)
-    units = [({"database": database, "keys": keys[start:start + size]},
-              ITEM_SECONDS["galaxy-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
-    if not units:       # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
-        units = [({"database": database, "keys": []}, NODE_SECONDS)]
-    return commands.Expansion(units, {"nodes": len(keys), "floor": NODE_WARM_FLOOR})
+    keys = _populated_nodes(params["database"])
+    units, stored = _node_units(params["database"], keys, "galaxy-nodes")
+    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "floor": NODE_WARM_FLOOR})
 
 
 def finish_warm_galaxy_nodes(params, plan, results, seconds):
@@ -772,19 +821,14 @@ def finish_warm_galaxy_nodes(params, plan, results, seconds):
 
 def expand_warm_galaxy_deep_nodes(params):
     """The units of the `warm-galaxy-deep-nodes` stage: `deep_nodes_to_warm` for the galaxy's shape and
-    `tile_cache.warm_zoom_floor`, in chunks of `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
+    `tile_cache.warm_zoom_floor`, less the nodes the cache already holds, in chunks of `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
     database = params["database"]
     floor = get_settings().tile_cache.warm_zoom_floor
-    app = build_app()
-    with app.test_request_context("/"):
+    with app_for().test_request_context("/"):
         shape = apiclient.get_galaxy_shape(database)
     keys = deep_nodes_to_warm(shape, floor)
-    size = units_module.coarsen(len(keys), NODE_CHUNK)
-    units = [({"database": database, "keys": keys[start:start + size]},
-              ITEM_SECONDS["galaxy-deep-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
-    if not units:
-        units = [({"database": database, "keys": []}, NODE_SECONDS)]
-    return commands.Expansion(units, {"nodes": len(keys), "zoom_floor": floor})
+    units, stored = _node_units(database, keys, "galaxy-deep-nodes")
+    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "zoom_floor": floor})
 
 
 def _finish_nodes(params, results, seconds, family):

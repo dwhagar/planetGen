@@ -90,6 +90,37 @@ def test_an_impossible_value_is_found(saved):
     assert "radius_km = -5" in text and "galactic_orbital_phase_deg = 400" in text
 
 
+def test_the_value_check_counts_every_rule_of_a_table_in_one_scan_and_matches_one_scan_a_rule(saved, monkeypatch):
+    """PERF.258: 34 rules are counted in one scan per table, not one scan per rule, with the same counts and the same rows listed."""
+    _sql(saved, "UPDATE planets SET radius_km = -5, mass_kg = 0, core_ni_fraction = 1.5, dipole_tilt_deg = 91",
+         "UPDATE stars SET galactic_orbital_phase_deg = 360, temperature_k = -1")
+    conn = store.get_connection(saved)
+    try:
+        expected = {}
+        for table, column, low, high, low_in, high_in in check.VALUE_RULES:
+            where = check._bad_value_sql(column, low, high, low_in, high_in)
+            expected[(table, column)] = conn.execute(f"SELECT COUNT(*) AS n FROM `{table}` t WHERE {where}").fetchone()["n"]
+    finally:
+        conn.close()
+    assert sum(1 for n in expected.values() if n) >= 5
+    statements = []
+    real = check._Context.rows
+
+    def spy(self, sql, params=()):
+        statements.append(sql)
+        return real(self, sql, params)
+
+    monkeypatch.setattr(check._Context, "rows", spy)
+    text = _problem_text(_run(saved, names=("values",)), "values")
+    for (table, column), n in expected.items():
+        if n:
+            assert f"{n} row(s) of {table} have {column} out of range." in text
+        else:
+            assert f"of {table} have {column} out of range" not in text
+    assert sum(1 for sql in statements if "SUM(CASE WHEN" in sql) == len({rule[0] for rule in check.VALUE_RULES})
+    assert not any(sql.startswith("SELECT COUNT(*)") for sql in statements)
+
+
 def test_scoping_to_another_sector_skips_the_damage(saved):
     _sql(saved, "UPDATE planets SET radius_km = -5")
     elsewhere = check.Scope(addresses=((1, 0, 0),))

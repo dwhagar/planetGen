@@ -71,7 +71,7 @@ sectors are added or deleted. A new naming key renames every region (the search 
 <p>Two blocks 324 pc apart sharing a first word is harmless; neighbours doing so is what the salt prevents.</p>
 <h2 id="anchor-framing-sphere-extent">Anchor, framing sphere, extent</h2>
 <ul>
-<li><strong>Anchor</strong> (<code>anchor_pc</code>): the centre of the cell's analytic bounds (<code>drill_block_bounds</code>).</li>
+<li><strong>Anchor</strong> (<code>anchor_pc</code>): the center of the cell's analytic bounds (<code>drill_block_bounds</code>).</li>
 <li><strong>Framing sphere</strong> (<code>framing_radius_pc</code>): radius <code>min(12 pc, inscribed radius)</code>. 12 pc is <code>REGION_RADIUS_PC</code>, the sphere a standard
 fill of one anchor fills (<code>tuning.DEFAULT_GENERATE_RADIUS_PC</code>, about 109 sectors). The inscribed radius is the distance from the
 anchor to the nearest face. Measured at the default edge over the first 1,500 block shells: 14.6 billion 9-blocks, 2,190 with
@@ -79,7 +79,7 @@ an inscribed radius under 12 pc (next to the polar axis) and 336 under 8 pc, non
 So every cell has a framing sphere of at least 7.8 pc, no cell is dropped, and fewer than 1 cell in 6 million is framed by less
 than 12 pc.</li>
 <li><strong>Extent</strong> (<code>region_extent</code>, GEN.827): the bounding sphere of the <strong>largest face-connected clump</strong> of the cell's generated
-sectors (neighbours by <code>spherical.neighbor_addresses</code>; ties by the smallest address): the clump's centres plus a sector's
+sectors (neighbours by <code>spherical.neighbor_addresses</code>; ties by the smallest address): the clump's centers plus a sector's
 circumradius (sqrt(3)/2 edges), the radius within 5 percent of the smallest sphere that holds them, never under the framing
 radius (a lone sector gets the 12 pc sphere about itself). The other clumps count toward the share charted but are not inside
 the sphere. Why the largest clump and not one sphere over all: in a model of a cell of 9 by 9 by 9 sectors, two ad hoc fills of
