@@ -57397,6 +57397,90 @@
       "title": "Stand-ins of the drift and evaporation of the ices in the disk"
     },
     {
+      "key": "6.243",
+      "number": "6.243",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, min_orbit_distance is five of it"
+            ],
+            [
+              "The range it moves in",
+              "the Hill radius at periapsis is smaller by (1 - e) (0.7 of it at e = 0.3)"
+            ],
+            [
+              "Where it holds",
+              "planets with eccentricity under 0.5"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which releasing the belt keep-out to the periapsis Hill radius moves a belt or a planet by more than a tenth of its distance"
+            ],
+            [
+              "What replaces it",
+              "none; the circular radius is the larger, so it only widens the keep-out, and the planet-planet spacing already uses the apoapsis and periapsis (clearance_ledger.planet_exclusion) and a moon's limit already carries the planet's eccentricity (clearance_ledger.moon_hill_fraction, [R1138])"
+            ],
+            [
+              "Evidence",
+              "physics: the two other places an eccentric orbit enters the keep-out already do; the circular radius is the conservative one, so nothing is let through by it"
+            ]
+          ],
+          "id": "SP1",
+          "key": "6.243:SP1",
+          "kind": "P",
+          "slug": "6-243-sp1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, min_orbit_distance is five of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet"
+            ],
+            [
+              "The range it moves in",
+              "the factor (constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR)"
+            ],
+            [
+              "Where it holds",
+              "wide pairs with the companion beyond about 50 AU"
+            ],
+            [
+              "What would show it wrong",
+              "a companion at a few hundred AU that pumps an outer planet's eccentricity past the gap by the Kozai-Lidov law"
+            ],
+            [
+              "What replaces it",
+              "the pumping of GEN.1447 (Lane 23)"
+            ],
+            [
+              "Evidence",
+              "the existing criterion of the cross-star check, kept as it was; only the set of pairs it is applied to changed (GEN.1460)"
+            ]
+          ],
+          "id": "SP2",
+          "key": "6.243:SP2",
+          "kind": "P",
+          "slug": "6-243-sp2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet"
+        }
+      ],
+      "slug": "6-243-stand-ins-of-the-spacing-of-orbits-against-every-neighbour",
+      "title": "Stand-ins of the spacing of orbits against every neighbour"
+    },
+    {
       "key": "6.245",
       "number": "6.245",
       "rows": [

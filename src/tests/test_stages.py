@@ -656,3 +656,38 @@ def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys
     finally:
         log.configure(log.NORMAL)
     assert "=== Stage 1 of 1 failed after 0 s: RuntimeError: the sky fell ===" in capsys.readouterr().out
+
+
+def test_the_executor_records_the_speeds_the_units_report_and_builds_the_rows_counts_from_them(monkeypatch):
+    """OPS.123 slice 1: a unit says what it drew (`samples`) and wrote (`row`); the executor records the speeds under the stage's workers
+    and sums the counts, so no command carries a hook for either."""
+    class Recorder:
+        def __init__(self):
+            self.seen, self.flushed = [], 0
+
+        def record(self, kind, density, seconds, **kwargs):
+            self.seen.append((kind, density, seconds, kwargs))
+
+        def flush(self):
+            self.flushed += 1
+
+    recorder = Recorder()
+    monkeypatch.setattr(stages, "speed_stats", lambda mysql_config: recorder)
+    results = [
+        {"samples": [{"kind": "scatter-mass", "density": 0.5, "seconds": 2.0, "systems": 10, "stars": 12}],
+         "row": {"objects": 12, "touched": [3, 4]}},
+        {"row": {"objects": 0, "touched": []}},                           # a unit that drew nothing reports no sample (PERF.53)
+        {"samples": [{"kind": "scatter-mass", "density": 0.7, "seconds": 3.0, "systems": 20, "stars": 21},
+                     {"kind": "phenomena-write", "density": 0.0, "seconds": 1.0, "systems": 5, "stars": 5}],
+         "row": {"objects": 21, "touched": [4, 5]}},
+    ]
+    stages.record_unit_samples(object(), 3, results)
+    assert [(kind, density, seconds, kwargs["systems"], kwargs["stars"], kwargs["workers"])
+            for kind, density, seconds, kwargs in recorder.seen] == [
+        ("scatter-mass", 0.5, 2.0, 10, 12, 3), ("scatter-mass", 0.7, 3.0, 20, 21, 3), ("phenomena-write", 0.0, 1.0, 5, 5, 3)]
+    assert recorder.flushed == 1
+    stages.record_unit_samples(object(), 3, [{"row": {"objects": 1, "touched": [1]}}])
+    assert recorder.flushed == 1, "nothing to record, nothing flushed"
+    assert stages.stage_row_metrics({"row_totals": {"shells": 9}}, results) == {"shells": 9, "shells_modified": 3, "objects": 33}
+    assert stages.stage_row_metrics({"row_totals": {"shells": 9}}, [{}]) == {"shells": 9}
+    assert stages.stage_row_metrics(None, []) == {}
