@@ -70,7 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
@@ -4960,6 +4960,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     for comet in star_system.secondary_comets:
         insert_comet(conn, comet, star_system_id, star_id=secondary_star_id)
 
+    stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
     return star_system_id
 
 
@@ -5271,6 +5272,25 @@ def _refresh_cloud_doses(conn, system_changes):
     block_stats.refresh_sectors(conn, recount_habitable_worlds(conn, [change[0] for change in system_changes]))
 
 
+def stamp_habitability(conn, system_ids):
+    """
+    GEN.1479: records that the planets and moons of the systems `system_ids` hold the habitability numbers the running code works out
+    (`derived_stamp.current("habitability")` in `system_summary`), so `rescore-habitability` leaves them alone. Called where the numbers are
+    written for a whole system: the save of a new one and `refresh_habitability`.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        system_ids (iterable): `star_systems` ids.
+    """
+    stamp = derived_stamp.current("habitability")
+    ids = sorted(set(system_ids))
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        conn.execute("INSERT INTO system_summary (star_system_id, habitability_stamp) VALUES "
+                     + ", ".join("(?, ?)" for _ in chunk) + " ON DUPLICATE KEY UPDATE habitability_stamp = VALUES(habitability_stamp)",
+                     tuple(value for system_id in chunk for value in (system_id, stamp)))
+
+
 def refresh_habitability(conn, system_id):
     """
     GEN.217: re-derives the stored habitability numbers of every scored rocky planet and moon of one system from
@@ -5322,6 +5342,7 @@ def refresh_habitability(conn, system_id):
         if rows:
             _update_by_id(conn, table, columns, rows, touch=True)
             updated += len(rows)
+    stamp_habitability(conn, [system_id])           # GEN.1479, whether or not a body was scored: the system is current
     return updated
 
 

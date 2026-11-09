@@ -1648,8 +1648,14 @@ def build_parser():
         description="Re-derive the stored habitability numbers (the flux swing of a planet in a double-star "
                     "system, the PHI-6 index, the six domains, the equipment tier and the note) of every planet and "
                     "moon from its stored conditions, so a galaxy generated before a change to the rules agrees with "
-                    "a new one. Only those columns change; it can be stopped and run again.",
-        help="Re-score the stored habitability of every planet and moon.")
+                    "a new one. Only those columns change; it can be stopped and run again, and it takes only the "
+                    "systems whose stamp is not the running code's (--all takes every one).",
+        help="Re-score the stored habitability of the planets and moons that this code has not scored.")
+    rescore_habitability_parser.add_argument(
+        '--all', action='store_true',
+        help="Re-score every system, including the ones that already hold the numbers of the running code. Without it a system is "
+             "re-scored only when its stamp (`system_summary.habitability_stamp`, a hash of the physics source) is not the code's, "
+             "so a rerun after no change to the rules touches nothing and a run that stopped carries on where it stopped.")
     add_fill_arguments(rescore_habitability_parser)
 
     fill_nebula_blocks_parser = subparsers.add_parser(

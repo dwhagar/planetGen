@@ -4070,6 +4070,16 @@ system_owners = sa.Table(
 )
 
 
+system_summary = sa.Table(
+    'system_summary',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('habitability_stamp', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_summary_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 vessels = sa.Table(
     'vessels',
     metadata,
