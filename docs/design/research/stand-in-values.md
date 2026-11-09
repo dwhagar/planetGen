@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1464 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1466 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1438 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1440 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 170 | 104 | 27 | 76 | 0 | 377 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 814 | 298 | 71 | 236 | 45 | 1464 |
+| T9 | 43 | 16 | 5 | 90 | 34 | 188 |
+| All | 816 | 298 | 71 | 236 | 45 | 1466 |
 
 ## How the labels were given
 
@@ -2494,6 +2494,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SI2 | T | T6 | L1 | superionic.CEILING_INTERPOLATION_GPA (20.0, 105.0): the ceiling of water is a straight line from the triple point at 20 GPa and 900 K to the point at 105 GPa and 4000 K | the line within 700 K, the spread [R5181: Abstract] gives for the melting line near 50 GPa | water at 20 to 105 GPa | a melting line of water measured at 50 GPa that is 700 K off the line | the melting line of Table S3 of [R5181] when opened | the end points are read [R5181: Abstract]; the line between them is interpolated, and the melting-line points of other experiments (up to 700 K apart) are not opened | predicted only | - | - |
 | SI3 | T | T7 | L1 | superionic.AMMONIA_FLOOR_GPA_K (30.0, 1500.0): ammonia is superionic from 1500 K at 30 GPa upward, and melts on a line to 5500 K at 300 GPa | 1000 to 2500 K for the floor | ammonia at 30 to 300 GPa | a measured superionic onset of ammonia 1000 K away | the phase lines of [R5172] when opened in full | [R5172: Abstract] gives only the range (30 to 300 GPa, 300 to 7000 K), the superionic phase between the solid and the ionic liquid, and the metallic temperature of 5500 K; the onset of about 60 GPa and 1500 K is recalled, not opened | predicted only | - | - |
 | SI4 | T | T7 | L1 | superionic.FALLBACK_TEMPERATURE_K 2500.0 | 2000 to 5000 K | the deep ice layer of a body whose structure model carries no adiabat | an ice giant whose adiabat at its mantle bottom is outside 2000 to 5000 K | the adiabat of the model, which the body has whenever the hydrogen-helium tables are present | the planetary isentrope of [R5172: Abstract] runs inside the superionic and ionic fields at 30 to 300 GPa; the number is the middle of that range | predicted only | - | - |
+
+## 6.243 Stand-ins of the flavor tree's line weights and chances
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FW1 | P | T9 | L0 | flavor_tree.json line weight 1.0 for every line, as the old lists drew with equal chance | 0.1 to 10 per line | any line of the tree | a census showing one line shown far more than the others without a reason | weights set from the census when Boss asks for rarer lines | none: the old draws were uniform; the weight only keeps that | predicted only | - | - |
+| FW2 | P | T9 | L0 | tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line | 0.01 to 0.2 | any body | Boss asking for more or fewer flavor lines | the chances by scope from a census | kept as it was | predicted only | - | - |
 
 ## 6.237 Stand-ins of the materials seen since the textbooks
 

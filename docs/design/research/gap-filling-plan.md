@@ -3706,3 +3706,12 @@ The XUV, flare, particle and far-ultraviolet doses, the DNA dose and the loss of
 | DE8 | D | T5 | L0 | planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 |
 | DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative |
 | DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled |
+
+### 6.243 Stand-ins of the flavor tree's line weights and chances (GEN.1430)
+
+`physics/flavor_tree.py` draws one line from the lines whose gates pass, by weight. The weights and the two chances are choices, not measurements.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| FW1 | P | T9 | L0 | flavor_tree.json line weight 1.0 for every line, as the old lists drew with equal chance | 0.1 to 10 per line | any line of the tree | a census showing one line shown far more than the others without a reason | weights set from the census when Boss asks for rarer lines | none: the old draws were uniform; the weight only keeps that |
+| FW2 | P | T9 | L0 | tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line | 0.01 to 0.2 | any body | Boss asking for more or fewer flavor lines | the chances by scope from a census | kept as it was |

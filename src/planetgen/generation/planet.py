@@ -200,8 +200,8 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavor lists (`flavor_text` reads it).
+        flavor_key (str or None): The id of the flavor line `life.decide_flavor_text` drew from the tree
+                                  `physics/flavor_tree.py` (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 

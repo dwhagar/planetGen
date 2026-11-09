@@ -31,7 +31,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
+from planetgen.physics import flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
@@ -527,12 +527,14 @@ class StarSystem:
         # system_flavor_count on every render.
         self.system_flavor_text = None
         if draw.random() < tuning.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL:
-            self.system_flavor_text = draw.choice(tuning.SYSTEM_FLAVOR)
-            self.system_config.system_flavor_count += 1
-            log.choice("System flavor text", self.system_flavor_text,
-                       f"roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
-                       f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
-                       f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
+            option = flavor_tree.draw_line("system", None, star=self.primary_star)     # GEN.1430: the system scope of the flavor tree, drawn on the system's own stream
+            if option is not None:
+                self.system_flavor_text = option.text
+                self.system_config.system_flavor_count += 1
+                log.choice("System flavor text", option.text,
+                           f"line {option.id}; roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
+                           f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
+                           f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 

@@ -463,7 +463,7 @@ def test_system_config_round_trip_with_arbitrary_values(values, extra):
     for key in extra:
         if key not in out and key.isidentifier():
             assert not hasattr(config, key) or hasattr(defaults, key)
-    assert config.system_flavor_count == 0 and config.recent_flavor_texts == []
+    assert config.system_flavor_count == 0 and config.used_flavor_ids == []
     assert SystemConfig.from_dict(json.loads(json.dumps(out))).to_dict() == json.loads(json.dumps(out))
 
 
