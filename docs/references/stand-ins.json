@@ -57495,7 +57495,7 @@
           "fields": [
             [
               "What it is",
-              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
             ],
             [
               "The range it moves in",
@@ -57526,7 +57526,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444)"
         }
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
@@ -59735,6 +59735,7 @@
       "title": "Stand-ins of the effect ledger"
     },
     {
+<<<<<<< HEAD
       "key": "6.254",
       "number": "6.254",
       "rows": [
@@ -59863,13 +59864,59 @@
           "tweak": "L4",
           "unread": null,
           "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+=======
+      "key": "6.253",
+      "number": "6.253",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
+            ],
+            [
+              "The range it moves in",
+              "the three numbers"
+            ],
+            [
+              "Where it holds",
+              "a comet lit like one round the Sun"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of active comets by perihelion that departs from the line by more than the scatter"
+            ],
+            [
+              "What replaces it",
+              "a chance from the sublimation rate of water at the nucleus's temperature"
+            ],
+            [
+              "Evidence",
+              "recalled from Comets II (the water-ice sublimation limit near 3 AU); not re-read here"
+            ]
+          ],
+          "id": "CA1",
+          "key": "6.253:CA1",
+          "kind": "P",
+          "slug": "6-253-ca1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU 3.0, COMET_ACTIVITY_MAX_CHANCE 0.9 and COMET_ACTIVITY_MIN_CHANCE 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water"
+>>>>>>> origin/pr-5870
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
+<<<<<<< HEAD
               "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+=======
+              "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
+>>>>>>> origin/pr-5870
             ],
             [
               "The range it moves in",
@@ -59877,6 +59924,7 @@
             ],
             [
               "Where it holds",
+<<<<<<< HEAD
               "bodies the planetesimals cross"
             ],
             [
@@ -59896,10 +59944,32 @@
           "key": "6.254:LS4",
           "kind": "T",
           "slug": "6-254-ls4",
+=======
+              "comets with no atmosphere, so no greenhouse or conduction of heat that depends on more than the flux"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a bright or faint star whose activity begins at a distance that is not close to 3 AU sqrt(L / Lsun)"
+            ],
+            [
+              "What replaces it",
+              "the activity distance from the sublimation flux of water ice and the nucleus's albedo and rotation"
+            ],
+            [
+              "Evidence",
+              "derived: the same flux at d sqrt(Lsun / L); the disk's L^0.25 r^-0.62 is for a passively heated disk and is not used"
+            ]
+          ],
+          "id": "CA2",
+          "key": "6.253:CA2",
+          "kind": "T",
+          "slug": "6-253-ca2",
+>>>>>>> origin/pr-5870
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
+<<<<<<< HEAD
           "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
         }
       ],
@@ -59962,6 +60032,16 @@
             [
               "What it is",
               "a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do"
+=======
+          "what": "a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over sqrt(L / Lsun), the equal-flux law of an airless body in starlight (comet_activity.solar_equivalent_au); a host of exactly the Sun's luminosity, or no star, gives the numbers of before"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
+>>>>>>> origin/pr-5870
             ],
             [
               "The range it moves in",
@@ -59969,6 +60049,7 @@
             ],
             [
               "Where it holds",
+<<<<<<< HEAD
               "rocky planets of single and multiple stars"
             ],
             [
@@ -60039,6 +60120,36 @@
       ],
       "slug": "6-255-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
       "title": "Stand-ins of the late accretion the air reads from the system"
+=======
+              "comets of stars of any type"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose activity differs between a blackbody and a hot-star spectrum at the same flux"
+            ],
+            [
+              "What replaces it",
+              "an absorption of the nucleus's albedo in the star's band"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "CA3",
+          "key": "6.253:CA3",
+          "kind": "T",
+          "slug": "6-253-ca3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a star's spectrum and the comet's size do not change the distance: only the luminosity does"
+        }
+      ],
+      "slug": "6-253-stand-ins-of-the-distance-at-which-a-comet-turns-active",
+      "title": "Stand-ins of the distance at which a comet turns active"
+>>>>>>> origin/pr-5870
     }
   ]
 }

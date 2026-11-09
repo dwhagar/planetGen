@@ -491,6 +491,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.252", "6.252 Stand-ins of the effect ledger",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.253", "6.253 Stand-ins of the distance at which a comet turns active",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.254", "6.254 Stand-ins of the late supply a planet takes from the reservoirs of its system",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.255", "6.255 Stand-ins of the late accretion the air reads from the system",
