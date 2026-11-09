@@ -84,7 +84,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.26:GS4 | no data | - | the distribution of the last impactor by planet mass is in [R0036, R2432] as figures and fits we do not hold as a table; a table of the last impact's mass ratio by planet mass replaces the isolation mass and steepness (the planet-formation train can give the isolation mass of the disc, formation.isolation_mass_kg) |
 | 6.26:GS5 | no data | - | the same N-body table replaces the log-uniform range of the last giant impact |
 | 6.26:GS6 | no data | - | the same N-body table (the planetesimal-built embryos) replaces the log-uniform range |
-| 6.36:PA1 | no data | - | no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU [R1479], and a measured pebble-flux model replaces them |
 | 6.36:PA2 | no data | - | the share of cores that find gas is tuned to the giant occurrence and its rise with [Fe/H] [R2172]; no survey measures the disc lifetime it stands for |
 | 6.36:PA3 | no data | - | the starting count of the inner chain is tuned to the [R4898] multiplicities after the formation-era dynamics build (GEN.730); the starting count of a real disc is not observed |
 | 6.36:PA4 | no data | - | the masses of the Kepler planets are measured for few; the scale is tuned to the 1 to 10 Earth-mass range of [R4897] and its trend with host mass and metallicity |
