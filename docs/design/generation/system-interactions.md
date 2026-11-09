@@ -33,7 +33,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | Kozai and secular pumping | Used for stellar triples only (physics/stability.py), not for planets or moons | GEN.1447 |
 | Moon stability, Hill limit and moon spin-down | The planet's Hill sphere from the star alone; torques from the star and the planet's moons only | GEN.1449 |
 | Planet chain stability and secular exchange | Mutual Hill spacing of neighbours and, since GEN.1450, the Laplace-Lagrange exchange of eccentricity and inclination among all the planets of a star (`physics/secular_chain.py`, kept inside the spacing); the companion star is in the spacing at its 3D place (GEN.1460) and its secular pumping is the Kozai screen's (GEN.1447), which reads `precession_rates`; stand-ins SC1 to SC5 | GEN.1450 |
-| Belt and disk edges | Belt birth reads the planet chain and the host mass; truncation by a companion star and the sweep of sibling planets are partial | GEN.1451 |
+| Belt and disk edges | Built: a companion star cuts the disk and its belts at its truncation radius before their mass is worked out (`physics/disk_truncation.py`, rows DT1 to DT4). Every planet's chaotic zone is already inside the keep-out (DT3); a companion's secular excitation of a belt is not built (DT4) | GEN.1451 |
 | Stellar wind, magnetopause, radiation belts | The host star's wind alone | GEN.1452 |
 | Impact and comet flux | The host star's debris disk and its own belts; no scattering by other giants, no companion-stirred cloud | GEN.1453 |
 | Obliquity and spin-orbit secular drift | Torques of the host star and own moons; no sibling planet or companion | GEN.1454 |

@@ -479,6 +479,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.246", "6.246 Stand-ins of the other suns in a planet's sky",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.250", "6.250 Stand-ins of a companion star's cut of a disk and its belts",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.247", "6.247 Stand-ins of the belt dust and comet influx of a planet",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.248", "6.248 Stand-ins of the day with every sun",
