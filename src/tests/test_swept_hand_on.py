@@ -75,8 +75,12 @@ def test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system():
 
 
 def test_an_inner_belt_that_receives_an_implant_grows_by_it_and_says_so():
-    system = _system(9)
-    [inner] = [body for body in system.planets if body.body_type == 'a' and body.origin != "outer-disk"]
+    for seed in range(1, 60):                  # the first system with exactly one belt that is not the outer disk (the draws behind a seed move with every change to the generator)
+        system = _system(seed)
+        inners = [body for body in system.planets if body.body_type == 'a' and body.origin != "outer-disk"]
+        if len(inners) == 1:
+            break
+    [inner] = inners
     star = belt_module._STARS[inner]
     before = inner.primordial_mass_earth
     plain = belt_module.present_state(star, inner.distance, inner.lower_limit, inner.upper_limit, before - inner.cleared_mass_earth - inner.scattered_mass_earth)[1]
