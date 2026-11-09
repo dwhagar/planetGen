@@ -70,6 +70,8 @@ LANE RENAME (Boss 9:15 PM EDT 2026-10-28): the active lanes are renumbered with 
 
 ## All-objects gravity plan (Boss approved 6:17 PM EST on 2026-11-08; reports/gravity-audit-2026-11-08.md)
 
+
+**Top priority (Boss, 8:47 PM EST on 2026-11-08): the pipeline rescan fixes** (audit reports/generation-rescans-and-stored-fields-2026-11-09.md), because they affect every epoch and train. They go ahead of the gravity set below: OPS.133 (Lane 02: trains stamp the union of their items' stages, a 'derived' stage, epoch out of the node-cache key), then GEN.1476 (Lane 12 with Lane 13 reviewing: running block totals through a small parts table; no epoch, so it need not wait for a train), then GEN.1477 (Lane 13: settle reads each neighbourhood once per chunk), GEN.1478 and GEN.1479 (Lane 12: stored system fields, derived stamp), PERF.256 and PERF.257 (Lane 13: a rerun skips current scatters, warm-up keeps its app) and DB.121 (Lane 12: running galaxy totals). Each is timed before and after in its PR. Boss's reason: the block-light stage is where the memory kills have been, and a rescan costs hours.
 Every object in a system acts on every other by 3D position (docs/design/generation/system-interactions.md). Boss: build for Train 21. The set is larger than one train can carry, so each lock window takes every lock item that is ready when it opens (train plan v2); items that miss ride the next train. Order and lanes (TODO, 2026-11-08):
 
 1. **First: the effect ledger GEN.1465** (Lane 12 with Lane 23: table design, column units, migration), so every later item fills it as it lands. Lane 12 posts the design to TODO before the build; Boss's okay for the storage size is asked then.
