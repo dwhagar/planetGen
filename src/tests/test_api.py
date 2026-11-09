@@ -1476,17 +1476,37 @@ def test_a_release_alone_still_lists_the_nodes_an_edit_touched(client, mysql_con
     assert after["nodes"] == _node_keys_over(address)
 
 
-@pytest.mark.parametrize("what", ["node_format", "epoch"])
-def test_a_new_node_format_or_generator_epoch_makes_every_node_stale(client, mysql_config, monkeypatch, what):
+@pytest.mark.parametrize("what", ["node_format", "scatter_epoch"])
+def test_a_new_node_format_or_a_scatter_drawn_again_makes_every_node_stale(client, mysql_config, monkeypatch, what):
     _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
     before = _galaxy_changes(client, "")
     if what == "node_format":
         monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
     else:
-        monkeypatch.setattr(query.generator_epoch, "generator_epoch", lambda: 10 ** 6)
+        newer = generator_epoch.generator_epoch() + 1
+        monkeypatch.setattr(generator_epoch, "generator_epoch", lambda: newer)
+        conn = _db.get_connection(mysql_config)
+        try:
+            _db.record_scatter_epoch(conn, "mass")
+            conn.commit()
+        finally:
+            conn.close()
     after = _galaxy_changes(client, before["state"])
     assert after["tile_stamp"] != before["tile_stamp"]
     assert after["full"] is True and after["tile_full"] is True and after["nodes"] == []
+
+
+def test_a_new_generator_epoch_alone_keeps_every_stored_node(client, mysql_config, monkeypatch):
+    """OPS.133: a node is read from stored rows, so an epoch bump with nothing regenerated changes none of them. A
+    sector that is regenerated bumps its own `modified_at` and so its own nodes, and a scatter drawn again records its
+    epoch (above)."""
+    _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
+    before = _galaxy_changes(client, "")
+    newer = generator_epoch.generator_epoch() + 1
+    monkeypatch.setattr(generator_epoch, "generator_epoch", lambda: newer)
+    after = _galaxy_changes(client, before["state"])
+    assert after["tile_stamp"] == before["tile_stamp"]
+    assert after["tile_full"] is False and after["nodes"] == []
 
 
 def test_galaxy_changes_lists_a_new_sectors_nodes(client, mysql_config):

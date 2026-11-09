@@ -7,8 +7,8 @@ camera moves.
 
 A node's contents (see `planetgen.db.nodes.galaxy_nodes`) depend only on its key and on the
 database's contents, which `planetgen.db.query.galaxy_tile_stamp` summarizes as a
-short "stamp" (it leaves the release number out: a release that changes neither `query.TILE_FORMAT` nor the generator
-epoch keeps every stored node, PERF.133). Nodes are cached as `<cache dir>/<db>/<generation>/
+short "stamp" (it leaves the release number and the generator epoch out: a release or an epoch that changes neither `query.TILE_FORMAT` nor a stored row
+keeps every stored node, PERF.133, OPS.133). Nodes are cached as `<cache dir>/<db>/<generation>/
 n<m>_<shell>_<band>_<wedge>.bin` (the finished, trimmed and packed bytes, see `trim_node` and `tilepack`), where the
 generation is the stamp at the last time every node went stale. `fetch_nodes` asks the API only for the nodes it doesn't
 already have, and when every node is cached it doesn't call the API for
@@ -20,7 +20,7 @@ with one cheap API call (`GET /api/galaxy/changes`, see
 columns and answers which nodes changed since the last check. Only those
 node files are deleted, so renaming a sector refetches the few dozen nodes
 over it rather than the whole map. A change that can't be pinned to
-nodes (a deleted sector, a re-planned galaxy, a new format or generator epoch)
+nodes (a deleted sector, a re-planned galaxy, a new format or a scatter drawn again under a new epoch)
 answers `full`, and a new generation starts with nothing cached.
 
 A request is answered by joining those stored bytes, never by unpacking and
