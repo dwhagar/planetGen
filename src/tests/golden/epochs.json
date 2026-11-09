@@ -846,8 +846,7 @@
     },
     {
       "epoch": 142,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3741",
       "reason": "Train 20: isotopes part 2, spin-axis frame work, radiation field, wind, dose, vapour stand-ins",
       "affects": ["plan", "scatter", "fill", "population"]
     }
