@@ -34,6 +34,7 @@ ID_PATHS = {
         "phenomena[].nearest[].id": "system",
     },
     "api.systems": {"items[].id": "system"},
+    "api.generated": {"items[].id": "by-kind"},
     "api.system_detail": {
         "id": "system",
         "nearest_neighbors[].id": "system",
@@ -98,7 +99,6 @@ ID_PATHS = {
     "api.uncharted_systems": {},
     "api.uncharted_system": {},
     "api.galaxy_phenomena": {"items[].id": "phenomenon"},
-    "api.galaxy_made": {"items[].id": "sector"},
     "api.galaxy_locate_route": {"matches[].id": "by-kind"},
     "api.search": {
         "results.sectors.rows[].id": "sector",

@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendering bodies from composition (design draft, 2026-10-24) - planetGen docs</title>
+<meta name="description" content="Asked by Boss, 10:15 PM EDT 2026-10-23: the 3D rendered objects get texture, colour and atmospheric glow from composition and the other computed factors.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/body-rendering.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/body-rendering.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="rendering-bodies-from-composition-design-draft-2026-10-24">Rendering bodies from composition (design draft, 2026-10-24)</h1><p class="meta">docs/design/interface/body-rendering.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-renders-today-read-from-the-repo">1. What renders today (read from the repo)</a></li><li style="margin-left:0px"><a href="#2-principles">2. Principles</a></li><li style="margin-left:0px"><a href="#3-one-architecture-for-all-bodies">3. One architecture for all bodies</a></li><li style="margin-left:0px"><a href="#4-solid-worlds-planets-and-moons-same-classes">4. Solid worlds (planets and moons, same classes)</a></li><li style="margin-left:14px"><a href="#41-inputs">4.1 Inputs</a></li><li style="margin-left:14px"><a href="#42-painter-rough-vector-look">4.2 Painter (rough vector look)</a></li><li style="margin-left:14px"><a href="#43-moons">4.3 Moons</a></li><li style="margin-left:0px"><a href="#5-gas-and-ice-giants">5. Gas and ice giants</a></li><li style="margin-left:0px"><a href="#6-stars">6. Stars</a></li><li style="margin-left:0px"><a href="#7-phenomena">7. Phenomena</a></li><li style="margin-left:0px"><a href="#8-dependencies-on-unfinished-work">8. Dependencies on unfinished work</a></li><li style="margin-left:0px"><a href="#9-performance-on-the-zoom-map">9. Performance on the zoom map</a></li><li style="margin-left:0px"><a href="#10-decisions-boss-1026-pm-edt-2026-10-23">10. Decisions (Boss, 10:26 PM EDT 2026-10-23)</a></li><li style="margin-left:0px"><a href="#11-full-plan-items-by-version-todo-assigns-numbers">11. Full plan, items by version (TODO assigns numbers)</a></li><li style="margin-left:14px"><a href="#81-groundwork-nothing-here-needs-the-spine-or-a-new-stored-value">8.1 groundwork (nothing here needs the spine or a new stored value)</a></li><li style="margin-left:14px"><a href="#84-new-worlds-and-composition">8.4 (new worlds and composition)</a></li><li style="margin-left:14px"><a href="#90-composition-and-atmosphere-colour">9.0 (composition and atmosphere colour)</a></li><li style="margin-left:14px"><a href="#90-view-from-a-planet">9.0 (view from a planet)</a></li><li style="margin-left:14px"><a href="#not-built-boss-decision">Not built (Boss decision)</a></li><li style="margin-left:0px"><a href="#12-first-81-groundwork-to-start">12. First 8.1 groundwork to start</a></li><li style="margin-left:0px"><a href="#13-first-on-page-use-the-object-page-ux171">13. First on-page use: the object page (UX.171)</a></li></ul></details>
+<p>Asked by Boss, 10:15 PM EDT 2026-10-23: the 3D rendered objects get texture, colour and atmospheric glow from composition and the other computed factors. Planets with oceans get a very rough vector-style picture of ocean, cloud and land colours; gas giants show colour and layers like Jupiter and Saturn, roughly; all rendered planets and moons are replaced with newly rendered surfaces; stars get a full paint job from luminosity and spectral class; phenomena (comets, rogue planets, nebulae, remnants) use as much of the calculated data as possible.</p>
+<p>Status: approved by Boss (10:28 PM EDT 2026-10-23, decisions in section 10). Built so far: R1 <code>bodylook.py</code> (MAP.271), R3 <code>bodytexture.js</code> (MAP.272), R4a <code>solidpaint.js</code> (MAP.273), R5 land colour from the stored ground types (MAP.274, section 4.1) and R7 <code>starpaint.js</code> (MAP.276) on the System Map, and R9a (MAP.278: rogue planet, comet, black hole, neutron star and asteroid field looks from stored data; MAP.286: remnant shells by age on the Sector Map, shell hollow, density, opacity and colour interpolated on a log age scale across the generator's 50 yr to 100 kyr span, a stand-in look at tweak scale L0, the shell texture and emission-class colour still open); the rest follows the plan in section 11. Items: MAP.270 to MAP.285, DB.96, DB.99, GEN.670, UX.158.</p>
+<h2 id="1-what-renders-today-read-from-the-repo">1. What renders today (read from the repo)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>File</th>
+<th>What it does now</th>
+<th>Data it reads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System map spheres (stars, planets, moons)</td>
+<td><code>src/html/static/systemmap.js</code></td>
+<td>One scissored shared canvas. Solid worlds are a flat <code>MeshStandardMaterial</code> tinted by <code>data-color</code>. Gas giants get <code>giantpaint.js</code> (belts, zones, wavy edges and storms from the spin, the cloud-top temperature and the stored gases, painted like the solid worlds) and a ring texture. Glow is a back-face shell from <code>bodyRendering.js</code>, coloured by <code>glowColorForTemp</code> (surface temperature text parsed from a label).</td>
+<td><code>data-color</code>, <code>data-bodytype</code>, <code>data-hasatmosphere</code>, <code>data-surfacetemp</code></td>
+</tr>
+<tr>
+<td>Planet colour on the page</td>
+<td><code>src/planetgen/web/maps/systemmap.py</code> <code>_CLASS_COLORS</code></td>
+<td>A hand-picked colour per class letter. This is a fixed table, not computed.</td>
+<td>the class letter only</td>
+</tr>
+<tr>
+<td>Star spheres</td>
+<td><code>bodyRendering.js</code> <code>makeStarSurfaceTexture</code></td>
+<td>128 px sine granulation, one base colour.</td>
+<td>one colour</td>
+</tr>
+<tr>
+<td>Sector scene</td>
+<td><code>src/html/static/sectorscene.js</code></td>
+<td>Stars are points of light; nebulae, asteroid fields, black holes, neutron stars are radial sprites or small spheres with fixed recipes.</td>
+<td>kind, a few colours</td>
+</tr>
+<tr>
+<td>Phenomenon page</td>
+<td><code>src/html/static/phenomenonrender.js</code></td>
+<td>Neutron star, black hole, quasar, rogue planet, interstellar comet. Rogue planet texture is a hard-coded blue-grey (<code>hsl(210, ...)</code>) with random craters or a grey-blue band; comet is a lumpy icosahedron.</td>
+<td><code>view</code> JSON (<code>gas</code>, <code>heat</code>, a few numbers)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The key finding: the colour work is built in Python but not stored or sent.</p>
+<ul>
+<li><code>physics/atmosphere_colour.py</code> (GEN.416 to GEN.418) returns an <code>AtmosphereColour</code> (sRGB, a colour word, ozone, haze, dust, cloud) from the air column, the star's spectrum and the ground albedo.</li>
+<li><code>physics/giant_colour.py</code> (GEN.419) does the same for a giant at the cloud-top reference level.</li>
+<li><code>models.py</code> has no colour, albedo, haze or cloud columns on <code>planets</code> or <code>moons</code>; the marker fill still uses <code>_CLASS_COLORS</code>. The limb glow is derived (MAP.244, built): <code>bodylook.air_colour</code> works the atmosphere colour of the stored mixture and ozone column under the body's own star (<code>_star_temperature_k</code>, put on each row by <code>systemmap.put_star_temperatures</code>) at render time, about 3 ms a body, and the look record's <code>glow</code> is its hex; a giant's is the colour of the air above 1 bar (no stored cloud deck yet). A row with no star temperature or no stored mixture has no <code>glow</code>. Storing the colour as a column (R2) is still open and would only cache this. MAP.277 (R8, built): the look record also carries <code>glowStrength</code>, <code>glowWidth</code> and <code>twilight</code> from <code>bodylook.air_glow</code>. The strength is <code>0.85 (1 - exp(-column / (0.6 Earth columns)))</code> of the air's column <code>P / g</code> (the Earth's air 0.69, Mars's 0.02, Venus's and Titan's the most; under 0.01 the air has no glow fields and the body is drawn bare), a giant's is a fixed 0.7, the width is the scale height <code>k T / (m g)</code> over the radius times 50 held to 0.03 to 0.2 radii (left out when the gases are not stored, and each view then takes its own default), and the twilight (0 to 0.2 of a cosine) moves the day and night line that far onto the night side and softens it by the same amount in the body view (<code>lit</code> in <code>bodyview.js</code>) and sets the night-side fill of the System Map and the 3D system view (0.15 and 0.04 for no air, the old 0.35 and 0.12 for the Earth's). The numbers are display choices (a picture, not physics), picked so thin air shows almost nothing and thick air most.</li>
+<li>Stored today and usable: <code>ocean_fraction</code>, <code>land_fraction</code>, <code>ocean_depth_km</code>, <code>ocean_class</code>, <code>ice_shell_km</code>, <code>hydrosphere</code> (dry, vapor, ice, ice-covered ocean, surface ocean, hycean), <code>water_mass_fraction</code>, the partial pressures <code>p_*_kpa</code>, <code>uv_surface_index</code>, surface temperature, radius, mass, rotation and obliquity where stored, magnetic data (<code>dipole_class</code>), and the planet class.</li>
+<li>MAP.350 (built): the surface is seen through the air. For a solid world with air the look record also carries <code>veil</code> (<code>1 - exp(-tau_550)</code> of the air, <code>AtmosphereColour.tau_550</code>), <code>haze</code> (<code>1 - exp(-(tau_haze + tau_dust))</code>), <code>cloudCover</code> and <code>cloudTau</code> (the stored <code>cloud_cover</code> and <code>tau_cloud</code>). <code>solidpaint.js</code> tints the ground toward <code>glow</code> at the same brightness (up to 55 percent), lowers its contrast (up to 40 percent for the veil and 60 percent for the haze), takes a second blur pass past a haze of 0.5 or a veil of 0.8, and draws the cloud as a seeded layer thresholded to the cover, whiter with the depth (up to 85 percent opaque). The constants are display choices. A body with none of the fields paints as it did.</li>
+<li>Not yet stored: cloud cover, albedo (GEN.412), haze/dust/cloud depths (GEN.414), ground (surface) colour, ice fraction (the polar cap size), mineral surface type.</li>
+</ul>
+<h2 id="2-principles">2. Principles</h2>
+<ol>
+<li>Everything is a pure function of stored values plus the body's Object ID (96-bit) as the seed. Same body, same picture, on every visit and every machine.</li>
+<li>No fixed Solar System content: no Earth continent shapes, no Jupiter Great Red Spot image. Shapes come from seeded noise; colours come from the computed composition.</li>
+<li>No raw datasets in the repo. The only tables the renderer needs are small derived ones (blackbody colour by temperature, a mineral colour table, a few dozen numbers), each labelled stand-in in the gap plan registry where not sourced.</li>
+<li>Rough on purpose. Boss asked for &quot;very rough vector-style&quot;: flat or two-tone fills, soft edges, no photoreal shading. That also keeps it cheap.</li>
+<li>Where the data does not exist yet, fall back to today's look and say so in the info panel (a &quot;colour estimate&quot; note) rather than inventing.</li>
+<li>A planet shows the colour of the thing it is, not of its class letter. <code>_CLASS_COLORS</code> is retired when the new path lands (no shim, per the standing rule).</li>
+</ol>
+<h2 id="3-one-architecture-for-all-bodies">3. One architecture for all bodies</h2>
+<p><strong>Server side (Python, new module <code>planetgen/web/maps/bodylook.py</code>)</strong> turns a stored row into a small &quot;look&quot; record, a few dozen numbers, and puts it in a single <code>data-look</code> JSON attribute (replacing <code>data-color</code>, <code>data-bodytype</code>, <code>data-hasatmosphere</code>, <code>data-surfacetemp</code>, which were parsed from labels). Doing the physics server-side keeps the JS thin and testable, and the same record serves the map, the page, and later the view from a planet (9.1).</p>
+<p><strong>Client side (<code>bodyRendering.js</code>, split into <code>bodytexture.js</code> for painters)</strong> turns a look record plus a seed into one equirectangular texture (and a few uniforms). One painter per body family, all deterministic from the seed.</p>
+<p><strong>Texture generation:</strong> painted once per body when it first becomes visible, on an offscreen canvas, 128 x 64 for the far tier, 256 x 128 for the near tier (see section 9), then cached by Object ID in an LRU. Painting is 2D canvas, not WebGL noise, so it works in the same scissored-canvas setup used today, with a later option to move to a fragment shader (section 9).</p>
+<p><strong>Shared shader pieces:</strong> the existing <code>GLOW_*</code> shell stays. A new small planet material adds (a) a day/night terminator from the star direction, (b) a cloud layer as a second slightly larger sphere with its own alpha texture, (c) the atmosphere limb colour from the computed atmosphere colour instead of <code>glowColorForTemp</code>.</p>
+<p><strong>Seeding:</strong> <code>look.seed</code> is the low 32 bits of the Object ID hash; the existing <code>makeRandom</code> LCG in <code>phenomenonrender.js</code> is moved to the shared module. (Server-side the draw.py wrapper is the one random source for anything generation-time; this is display-only noise, so a JS LCG is fine, but it must not change between releases without a note, since a changed look is a visible change.)</p>
+<h2 id="4-solid-worlds-planets-and-moons-same-classes">4. Solid worlds (planets and moons, same classes)</h2>
+<h3 id="41-inputs">4.1 Inputs</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Look element</th>
+<th>Computed from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ocean colour</td>
+<td><code>ocean_class</code> (ice-sealed, chloride brine, acid sulfate, soda, neutral), <code>ocean_depth_km</code>, atmosphere colour (the sky tints a shallow sea), <code>ocean_ph</code> as a minor hue shift</td>
+</tr>
+<tr>
+<td>Land colour</td>
+<td>built (MAP.274): the stored areal mix of the land ground types (ultramafic, anorthositic, basaltic, felsic, clay, oxidized, carbon, evaporite, sulfur) weighted by their lab reflectance in the 450, 550 and 650 nm bands (<code>surface_composition.band_albedo</code>), read as blue, green and red and converted to sRGB; metal and the intermediate mixes have no measured spectrum and are left out (<code>landKnown</code>); with no stored ground, no land or under half the land known, the temperature and class estimate stays. The materials table's <code>hematite_fine</code> is nearly flat across the three bands (0.092, 0.086, 0.085), so an oxidized world comes out dark grey, not red: the broad bands average over the iron absorption edge, and a red tone needs finer bands or a sourced hematite spectrum (open)</td>
+</tr>
+<tr>
+<td>Life tint</td>
+<td>only if <code>phi_bio</code> / life scores are Yellow or better. Green for chlorophyll-type life; where the life chemistry differs, the tint is the colour of that life's pigment chemistry (Boss 10-24 answer to card 5), mixed in on land at a faint strength. Pigment colour follows the host star's spectrum (stand-in, flagged) and the life type, so the life type must be read from the stored life data (check what the four life scores and the class lane store; a gap item if the pigment is not derivable)</td>
+</tr>
+<tr>
+<td>Ice and snow</td>
+<td>surface temperature by latitude (a simple energy-balance band from obliquity and mean temperature), <code>hydrosphere</code>; polar caps, or full ice for <code>ice</code></td>
+</tr>
+<tr>
+<td>Cloud cover and colour</td>
+<td>cloud depth and cover (GEN.414), cloud material (water, sulfuric acid, CO<sub>2</sub>, dust) from the dominant condensable in the mixture, hence white, pale yellow, or grey-tan</td>
+</tr>
+<tr>
+<td>Atmosphere limb glow</td>
+<td>the computed atmosphere colour (GEN.418) scaled by column thickness: thin air (Mars, under ~10 kPa) gets almost no glow; no atmosphere gets none (a real change from today, where <code>hasAtmosphere</code> is a flag)</td>
+</tr>
+<tr>
+<td>Night side</td>
+<td>emitted heat for lava worlds and hot bodies (the <code>heat</code> cracks idea in <code>phenomenonrender.js</code>), a dim city layer is NOT proposed (no population data on this surface until 9.2)</td>
+</tr>
+<tr>
+<td>Brightness</td>
+<td>geometric albedo (GEN.412) sets overall lightness so a dark carbonaceous moon is dark</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-painter-rough-vector-look">4.2 Painter (rough vector look)</h3>
+<ol>
+<li>Seeded low-frequency noise (3 to 4 octaves of value noise, wrapped in longitude) gives an elevation field. The sea level is chosen so the area under it equals <code>ocean_fraction</code> (a histogram quantile, so the numbers on the page and the picture agree exactly). Land is the rest, matching <code>land_fraction</code>.</li>
+<li>Posterise to 3 or 4 flat tones, with a thin lighter coast outline: ocean deep, ocean shallow (<code>ocean_depth_km</code> sets contrast), lowland, highland. Soft edges via a 1 to 2 px blur. This is the &quot;very rough vector&quot; look; no hillshade.</li>
+<li>Land tones come from the land colour; polar caps and high-altitude snow overlay by latitude where cold enough.</li>
+<li>Cloud layer: a second texture, seeded noise with latitude banding (Hadley-style bands: more cloud near the equator and 50 to 60 degrees, clear near 25 to 30 degrees), thresholded to cover fraction, white or tinted, alpha 0.7. It rotates slightly faster than the surface for a cheap sense of depth. A world with an opaque cloud deck (Venus-like) skips the surface entirely and paints the cloud deck as the visible surface.</li>
+<li>A dry world has no sea level step: elevation tones only, with crater speckle scaled by surface age (when the age is known) and gravity.</li>
+<li>A world in vapor or <code>hycean</code> state shows the cloud or haze deck as the surface, tinted by the atmosphere colour.</li>
+</ol>
+<h3 id="43-moons">4.3 Moons</h3>
+<p>Same painter, same classes (&quot;moons same classes as planets&quot;, Boss 10-23). Tidally locked bodies put the large-scale land/ocean split by the sub-stellar point (an &quot;eyeball&quot; gradient: ice-free patch facing the star on cold locked worlds) as a later refinement, not first pass. Small irregular moons and asteroids use a lumpy mesh (as <code>interstellarComet</code> does) instead of a sphere, scaled by the tri-axial shape if one is stored.</p>
+<h2 id="5-gas-and-ice-giants">5. Gas and ice giants</h2>
+<p>Built (display only, no schema change): <code>static/giantpaint.js</code> paints a giant from its look record (<code>gas</code>, the mole fractions of CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>O and H<sub>2</sub>S in the stored mixture, plus <code>tempK</code>, <code>spinH</code>, <code>radiusKm</code>, <code>color</code> and <code>seed</code>) in the System Map, the 3D system view and the body page. The band count is <code>clamp(round(120 * (R / R_Jupiter) / P_hours), 4, 24)</code> (8 with no stored spin; made odd, see below); the edge sharpness grows with the band count; the belt and zone contrast comes from the cloud-top temperature (nearly none under 130 K where methane covers the air, most from 160 to 240 K under ammonia cloud, less under water cloud, almost none for a cloudless or silicate-hot giant); methane tints the air blue-green, ammonia makes the zones cream, hydrogen sulfide warms the belts and reddens the storms, water whitens the zones. These coefficients and tables are stand-ins for the R10 research item (tweak scale L3, display only); Great Red Spot style storms are seeded ovals, one to four, more with more bands. Rings (MAP.275 part 1) are built: the look record carries the stored ring (<code>web/maps/ringlook.py</code>: edges in the body's radii, opacity from the optical depth, a colour from the ice share by the GEN.670 rules, and a gap at each moon's 2:1, 3:2, 3:1 and 4:3 resonance, wider for a heavier moon) and <code>static/ringpaint.js</code> paints a strip along the radius that the System Map maps onto a ring mesh; a giant that stores no ring draws none (stand-in rows RNG1 to RNG8). Thermal glow (MAP.275 part 3) is built: a body hotter than about 800 K carries <code>thermal</code> {hex, strength} on its look record (the blackbody colour of its temperature, strength 0 at 800 K to 1 at 2400 K, rows RNG9 and RNG10), the System Map adds it as the body's own emissive light over its picture and the object page's picture adds it to the shade, so the night side of a hot giant or a molten world is not black. Bands and storms (MAP.275 part 2) follow the GEN.670 research: bands laid out from the equator outward (an equatorial zone of 15 to 30 degrees half-width, then belts and zones by turns, odd in number; an ice giant 5 or 7), storms 1 to 6.3 Rossby deformation radii long (2000 km at Jupiter, scaled by cloud-top temperature, gravity and spin), 1.2 to 1.9 times as long as high, nine in ten anticyclones, one to four large ones and a field of small ones (rows RNG11 to RNG19). Band strengths from the k-tables (GEN.422) are still open.</p>
+<p>Inputs: the giant colour (GEN.419) as the base tint at the reference level; the mixture (methane gives the blue-green of the ice giants, ammonia clouds the cream of the Jupiter class, sulfur and phosphorus the browns and yellows when present, silicate and iron cloud at the hot end); equilibrium temperature and the Sudarsky label (text only, never read for colour, as the code states); rotation period and radius (fast rotators have more, thinner bands; the band count scales with the rotation and the Rossby deformation scale, a one-line law with a seeded range, stand-in); internal heat; obliquity; ring data if present.</p>
+<p>Painter: latitude bands only in the base texture (as now) but driven by data, not a fixed sine pair.</p>
+<ol>
+<li>Band count from rotation: <code>n ~ clamp(round(a * (R / R_J)^b / P_hours), 4, 24)</code> with a seeded jitter (stand-in coefficients to be fitted in the research item, not taken from Jupiter's image).</li>
+<li>Alternating belt/zone tones: two lightness steps around the base colour, with chemistry shifting hue (more saturation of the minor chromophore where the mixture has it).</li>
+<li>Zonal wind shear is drawn as a sinusoidal longitude displacement of each band edge (small), so edges are wavy; a few seeded oval storms (1 to 4, more with fast rotation and high internal heat), tinted by the minor chromophore, are the only 2D features.</li>
+<li>A cold giant with a clear upper atmosphere (Neptune-like, methane absorbing red) is nearly featureless: low band contrast, as the optics predict, a deliberately different look from a cream, ammonia-clouded one.</li>
+<li>Hot giants: very low contrast, the glow replaced by a night-side thermal emission shell; the very hottest get a visible thermal glow tinted from the blackbody colour.</li>
+<li>Rings: today's gradient texture is replaced by a radial density profile from the stored ring data (inner and outer radius, optical depth, ring colour by composition: water ice pale, silicate dark red-brown). The Cassini-style gaps come from resonances with the moons that are already computed (a gap at a moon's 2:1 resonance radius), so gaps are real consequences of the system, not a cosmetic sine.</li>
+</ol>
+<h2 id="6-stars">6. Stars</h2>
+<p>Inputs: effective temperature and spectral class (colour), luminosity and radius (apparent size and corona), age and evolutionary stage (giant, white dwarf, main sequence), [Fe/H] (line blanketing nudges colour redder, a tiny effect, optional), activity/flare data (<code>flare_irradiation_index</code> is stored for the host), rotation, magnetic star flag.</p>
+<p>Colour: a single blackbody-to-sRGB function (Planck spectrum integrated against the CIE matching functions; <code>atmosphere_colour.star_spectrum</code> already builds a stellar spectrum and <code>_xyz</code> an XYZ conversion, so reuse it so the star's rendered colour and the colour the sky function assumed are the same number). This replaces <code>SPECTRAL_CLASS_COLORS</code> words and the per-star hex.</p>
+<p>Texture by class (rough, all two or three octaves):</p>
+<ul>
+<li>O/B/A: nearly featureless, very bright, tiny granulation contrast, limb darkening mild.</li>
+<li>F/G: fine granulation cells, a few dark spots scaled by activity; limb darkening coefficient from temperature.</li>
+<li>K/M: larger cooler cells, more and bigger spots (M dwarfs especially), contrast higher because cool; flare stars get an occasional bright patch.</li>
+<li>Giants and supergiants: few, huge convection cells (the cell size scales with radius over gravity, a ratio the code has), very soft limb.</li>
+<li>White dwarfs: a smooth hot disk, with a faint photospheric tint set by the atmosphere type (the stored pollution flag lets a polluted dwarf get a faint line-colour tint); no granulation.</li>
+<li>Brown dwarfs: banded like a gas giant plus a dull red or magenta glow from the brown-dwarf type (T dwarfs methane blue-grey), reusing the giant painter with an emissive material.</li>
+<li>Neutron stars and black holes keep their current special builders in <code>phenomenonrender.js</code>, with the sizes and magnetic geometry tied to stored values.</li>
+</ul>
+<p>Glow: the corona shell is sized from luminosity (bright stars get a wider, brighter glow, capped), tinted by the star colour, with the existing back-face shader. Fix MAP.269 first (stars beyond ~3 sectors are 1.5 px with no halo and a white core): the far-star point sprite should take the blackbody colour and a luminosity-scaled halo sprite, which is the same data and the same function.</p>
+<h2 id="7-phenomena">7. Phenomena</h2>
+<p>Use the <code>view</code> JSON the server builds (<code>phenomenonrender.py</code>) enriched from the stored phenomenon row:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phenomenon</th>
+<th>Painted from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rogue planet</td>
+<td>the same planet/giant painters, lit only by a very dim ambient light plus internal heat; surface temperature is low, so no ocean (frozen or none) unless a heat source is stored; ice, rock or giant look from its composition, not the fixed blue-grey; the <code>heat</code> crack layer stays and scales by internal heat flux</td>
+</tr>
+<tr>
+<td>Interstellar comet</td>
+<td>nucleus colour from the comet composition (GEN.488 coma classes, <code>comet-composition-tuning.md</code>): dark organics and red for volatile-poor, grey-white for ice-rich; coma colour from the dominant emitting species (CN and C2 green, ion tail blue from CO+, dust tail yellow-white), brightness and tail length from the activity and distance to the nearest star (zero tail far from any star, as is true); lumpy shape from the stored axis ratio</td>
+</tr>
+<tr>
+<td>Nebula</td>
+<td>the sprite colours from the nebula class (<code>nebula-and-asteroid-field-classes.md</code>): emission red/pink for H II, blue for reflection, dark for absorption, green-teal for planetary nebula O III, with the star inside setting the bright core; turbulence texture layers from seed; size and density from the stored values</td>
+</tr>
+<tr>
+<td>Supernova remnant</td>
+<td>an expanding shell texture with the age setting shell radius and filament contrast (<code>remnant-age.md</code>), colour by the dominant emission class</td>
+</tr>
+<tr>
+<td>Pulsar and neutron star</td>
+<td>spin rate and field strength set the beam cone geometry and the glow tint</td>
+</tr>
+<tr>
+<td>Black hole</td>
+<td>accretion disk colour and brightness from the accretion rate if stored (else off), jets only if the stored flag says so</td>
+</tr>
+<tr>
+<td>Asteroid field</td>
+<td>grain colour from the belt composition (carbonaceous dark, silicate tan, metal grey), density from the stored count</td>
+</tr>
+<tr>
+<td>Quasar</td>
+<td>unchanged shape; colour and jet scale from stored luminosity</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-dependencies-on-unfinished-work">8. Dependencies on unfinished work</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Needs</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any colour from composition on the page</td>
+<td>colour stored or derived and sent to the page (new <code>bodylook</code> module); GEN.418 and GEN.419 produce it but nothing wires it</td>
+<td>GEN.418/419 functions exist; wiring is new work</td>
+</tr>
+<tr>
+<td>Planet land colour from bulk composition</td>
+<td>the composition spine (GEN.411, GEN.428, GEN.429)</td>
+<td>open; the spine is the biggest blocker in the report <code>top-5-blockers-direct-2026-10-24.md</code></td>
+</tr>
+<tr>
+<td>Cloud cover and cloud material</td>
+<td>GEN.414 stored values</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Albedo to set brightness</td>
+<td>GEN.412</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Ocean and land picture</td>
+<td><code>ocean_fraction</code>, <code>land_fraction</code>, <code>ocean_class</code></td>
+<td>stored (GEN.88), usable now</td>
+</tr>
+<tr>
+<td>Ocean fraction accuracy</td>
+<td>GEN.441, GEN.461, GEN.462</td>
+<td>open (Blocker 4 lane)</td>
+</tr>
+<tr>
+<td>Gas giant bands by chemistry</td>
+<td>GEN.419 done; band strengths for CH<sub>4</sub>/NH3/H2O are still coarse (GEN.422), so colour carries <code>colour_quality = partial</code></td>
+<td>partial</td>
+</tr>
+<tr>
+<td>Heavy-element/chromophore colours (sulfur, phosphorus, tholins)</td>
+<td>atmosphere remainder (lane L) and sky colour (lane M, 9.0)</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Atmosphere glow thickness</td>
+<td>atmospheric pressure and mixture</td>
+<td>stored</td>
+</tr>
+<tr>
+<td>Star spectral colour</td>
+<td><code>star_spectrum</code> and temperature</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>Star surface activity</td>
+<td>host activity (<code>host-activity-tuning.md</code>)</td>
+<td>mostly stored</td>
+</tr>
+<tr>
+<td>Comet composition</td>
+<td>GEN.488 (sourcing) and comet admission</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Ring profile and resonance gaps</td>
+<td>ring data and moon periods</td>
+<td>check which are stored; ring generation may be a gap</td>
+</tr>
+<tr>
+<td>MAP.269 far-star glow</td>
+<td>independent bug</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Colours of the 9.0 headline (atmosphere colour as sky)</td>
+<td>9.0</td>
+<td>the planet-from-space look here is the &quot;from outside&quot; half of the same function</td>
+</tr>
+</tbody>
+</table></div>
+<p>What can start now with stored data alone: the ocean/land/ice painter, the new star colour, the glow tied to pressure, the comet and nebula tints from class, the data attribute plumbing. What waits: land composition colour (spine), cloud and albedo (GEN.412/414), chemistry bands for giants (GEN.422), comet species (GEN.488).</p>
+<h2 id="9-performance-on-the-zoom-map">9. Performance on the zoom map</h2>
+<p>Budget facts: the system map uses one shared canvas with scissored spheres; the sector scene draws many bodies at once; the infinite-zoom camera (MAP.146, done) cuts detail by projected size.</p>
+<ul>
+<li><strong>Tiers by projected pixel diameter:</strong> under ~3 px a point sprite coloured by the look (no texture); 3 to ~24 px a flat tinted disk with a baked limb glow (the current thin sprite path, but with the right colour and brightness); 24 to ~120 px the 128 x 64 texture; over ~120 px the 256 x 128 texture plus the cloud layer plus the terminator; over ~500 px (a planet filling the screen, relevant to the view from a planet in 9.1) a procedural fragment shader for detail instead of a bigger canvas texture.</li>
+<li><strong>Texture memory:</strong> 256 x 128 x 4 bytes = 128 KB per body. An LRU of 128 textures is about 16 MB; far less than the per-frame budget concerns. The painter takes an estimated 2 to 6 ms for a 256 x 128 canvas, so it is queued: at most one paint per frame, nearest to the camera first, with the tinted-disk tier shown until the texture is ready.</li>
+<li><strong>No texture work per frame:</strong> rotation is a uniform, the cloud layer rotation is a uniform, everything else is baked.</li>
+<li><strong>Draw calls:</strong> a system with a dozen planets and moons is a dozen meshes, trivial. A sector scene with thousands of stars stays on the single <code>THREE.Points</code> plus a halo points layer; only the nearest few stars get a sphere.</li>
+<li><strong>Server cost:</strong> the <code>bodylook</code> record is computed from stored columns in the page build; no new queries beyond columns the page already reads, once the colour columns exist. Storing the computed colour (rather than re-running the two-stream model per request) is recommended: three small columns per body (RGB as an integer, haze and cloud cover are already in GEN.414), with a unit entry in <code>db/column_units.py</code> in the same PR.</li>
+<li><strong>Reduced motion:</strong> one still frame, as <code>phenomenonrender.js</code> does today.</li>
+<li><strong>Determinism test:</strong> a Python-side test that the look record for a fixed row is stable, and a JS test (the repo's <code>fakedom.mjs</code> setup) that the painter returns the same pixel hash for a fixed seed and look. This guards against accidental changes to how a world looks.</li>
+</ul>
+<h2 id="10-decisions-boss-1026-pm-edt-2026-10-23">10. Decisions (Boss, 10:26 PM EDT 2026-10-23)</h2>
+<ol>
+<li>Version: not 9.0 only. A full plan spread across versions, the first groundwork in 8.1 and the rest in later versions (section 11).</li>
+<li>Painter: 2D canvas textures cached per body.</li>
+<li>Colour: computed on the server, stored next to the body, sent as one look record.</li>
+<li>Spine: the finished land-colour feature waits for the composition spine, but at least one task is done before it (R1, R3, R7, R9a, R0 and R10 below need no spine).</li>
+<li>Life tint: yes on Yellow-or-better worlds, but not always green: the tint is the pigment colour of that life's chemistry.</li>
+<li>Small bodies: lumpy meshes under about 400 km.</li>
+<li>Night side: thermal glow on hot worlds only, no city lights until 9.2.</li>
+</ol>
+<h2 id="11-full-plan-items-by-version-todo-assigns-numbers">11. Full plan, items by version (TODO assigns numbers)</h2>
+<p>The version rule is the roadmap's: a blocker is done earlier in the same phase or an earlier version.</p>
+<h3 id="81-groundwork-nothing-here-needs-the-spine-or-a-new-stored-value">8.1 groundwork (nothing here needs the spine or a new stored value)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Item</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td>(bug) Far stars on the maps take the blackbody colour and a luminosity halo (extends MAP.269)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>R1</td>
+<td><code>bodylook</code> record: server builds one <code>data-look</code> JSON per body from stored columns, replacing <code>data-color</code>, <code>data-bodytype</code>, <code>data-hasatmosphere</code> and <code>data-surfacetemp</code>. In 8.1 it carries what is stored today (water fractions, ocean class, hydrosphere, pressure, temperature, class); fields for later data stay empty</td>
+<td>none</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Shared painter module: seeded noise, LRU texture cache, one-paint-per-frame queue, size tiers, determinism hash tests (R11 for these)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>R7</td>
+<td>Star painter: blackbody colour shared with <code>star_spectrum</code>, class texture, spots by activity, luminosity glow, white and brown dwarf variants</td>
+<td>R1, R3</td>
+</tr>
+<tr>
+<td>R9a</td>
+<td>Phenomena painted from classes: nebula class tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry from stored values; rogue planet and comet get the shared painters with today's data</td>
+<td>R1, R3</td>
+</tr>
+<tr>
+<td>R4a</td>
+<td>Ocean, land, ice painter on stored data (sea level from <code>ocean_fraction</code>, caps from temperature), land hues from temperature and class family, &quot;estimate&quot; line in the info panel. This is the pre-spine task for card 4; it ships dark behind the look record if Boss wants the planet change held until the spine</td>
+<td>R1, R3</td>
+</tr>
+<tr>
+<td>R10</td>
+<td>Research: giant band, storm and Rossby laws, life pigment colour by life chemistry and host spectrum, ring colour by composition (stand-ins registered in the gap plan)</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="84-new-worlds-and-composition">8.4 (new worlds and composition)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Item</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R5</td>
+<td>Land colour from bulk composition (oxidation, rock type, mineral colour table) replaces the R4a estimate, finishing the planet look</td>
+<td>spine GEN.411, GEN.428, GEN.429; R4a</td>
+</tr>
+<tr>
+<td>R2a</td>
+<td>Store the ground colour and ice fraction on planets and moons (migration, epoch, <code>db/column_units.py</code>)</td>
+<td>R5</td>
+</tr>
+<tr>
+<td>R6a</td>
+<td>Giant painter: bands, storms and thermal glow from rotation, temperature and the GEN.419 colour; rings with resonance gaps from the moons</td>
+<td>R1, R3, R10, GEN.419</td>
+</tr>
+<tr>
+<td>R13</td>
+<td>Small bodies: lumpy meshes for moons and asteroids under about 400 km, from stored shape</td>
+<td>R3</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="90-composition-and-atmosphere-colour">9.0 (composition and atmosphere colour)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Item</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R2</td>
+<td>Store the atmosphere colour (RGB integer) and cloud cover from GEN.418 and GEN.419; MAP.244 follows</td>
+<td>GEN.414, GEN.418, GEN.419</td>
+</tr>
+<tr>
+<td>R4b</td>
+<td>Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface</td>
+<td>R2, GEN.414</td>
+</tr>
+<tr>
+<td>R8</td>
+<td>Atmosphere limb glow from pressure and composition (none for no air, thin for thin air)</td>
+<td>R2</td>
+</tr>
+<tr>
+<td>R6b</td>
+<td>Giant chemistry bands once band strengths exist</td>
+<td>GEN.422</td>
+</tr>
+<tr>
+<td>R14</td>
+<td>Life tint: the pigment colour of the life chemistry, faint, on Yellow-or-better worlds</td>
+<td>R10, R4b, life data</td>
+</tr>
+<tr>
+<td>R9b</td>
+<td>Comet colour from coma species</td>
+<td>GEN.488</td>
+</tr>
+<tr>
+<td>R12</td>
+<td>Info panel line: how the colour was worked out (inputs, partial or full)</td>
+<td>R1</td>
+</tr>
+<tr>
+<td>R15</td>
+<td>Night-side thermal glow on hot worlds</td>
+<td>R4b</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="90-view-from-a-planet">9.0 (view from a planet)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Item</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R16</td>
+<td>Close-up tier: fragment-shader detail over about 500 px, shared with the sky view</td>
+<td>R3, 9.0 sky data</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="not-built-boss-decision">Not built (Boss decision)</h3>
+<p>City lights wait for 9.2.</p>
+<h2 id="12-first-81-groundwork-to-start">12. First 8.1 groundwork to start</h2>
+<p>R0 and R3 start first and in parallel (no blockers). R1 starts with them (it only needs the data attribute change). R7 and R9a follow as soon as R1 and R3 merge; R4a and R10 can start in parallel from the first day. R11 tests ride with each item.</p>
+<h2 id="13-first-on-page-use-the-object-page-ux171">13. First on-page use: the object page (UX.171)</h2>
+<p>The object page of a star, planet or moon (see <a href="object-pages.html">object-pages.md</a>) paints a body with the System Map's own
+painters, so what the page shows and what the map shows agree: <code>web/lib/bodyview.py</code> makes the look record from the body's
+row, <code>static/bodyview.js</code> paints it (<code>solidpaint.js</code>, <code>starpaint.js</code>) and shades it as a sphere lit from the upper left on a
+2D canvas (no WebGL needed), with the atmosphere's limb glow or a star's corona around it. Giants, small bodies and phenomena
+arrive on the page as their painters merge. The caption is the look note; the colour account (UX.158) replaces it.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

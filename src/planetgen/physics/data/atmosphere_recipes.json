@@ -1140,7 +1140,7 @@
    "group": "e",
    "weight": "(1 - p('b4'))*f_lost",
    "lets": {
-    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"
+    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k, host_distance_au, xuv_companions)"
    }
   },
   {
@@ -1175,7 +1175,7 @@
    "group": "e",
    "weight": "(1 - p('b4'))*(1 - f_lost)",
    "lets": {
-    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"
+    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k, host_distance_au, xuv_companions)"
    }
   },
   {

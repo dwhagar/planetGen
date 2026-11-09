@@ -201,21 +201,29 @@ def test_stabilizing_an_untouched_system_moves_nothing():
 
 
 def test_a_planet_built_with_its_climate_deferred_has_no_air_or_moons_until_it_is_finished(star):
-    """GEN.1282: the spacing of the orbits is settled before any air is worked out, so a planet that is pushed is built once."""
+    """GEN.1282: the spacing of the orbits is settled before any air is worked out, so a planet that is pushed is built once.
+
+    `moon_count=2` asks for up to two moons: a moon that cannot stay is not made (a planet built the usual way with the same request has one about a third of the time),
+    so the planet is drawn from fixed seeds until one is given its two, and the state before `finish_climate` is checked for every one."""
     mass = EARTH * constants.EARTH_MASS_TO_KG
-    planet = Planet(star.system_config, star, star.habitable_zone, star.habitable_zone[0] * 1.1, mass=mass, moon_count=2, defer_climate=True)
-    assert not planet.moons and not planet.planet_class
-    before = planet.distance
-    planet.distance = before * 1.2
-    validation.reconcile_moved_planet(planet)
-    assert not planet.moons and not planet.planet_class
-    assert planet.period == pytest.approx(planetPhysics.calculate_orbital_period_years(planet.distance, star.mass))
-    planet.finish_climate()
-    assert planet.planet_class and len(planet.moons) == 2
-    assert validation.check_planet(planet) == []
-    moons = planet.moons
-    planet.finish_climate()          # a planet that is finished does nothing
-    assert planet.moons is moons
+    for seed in range(20):
+        draw.set_run_seed(seed)
+        planet = Planet(star.system_config, star, star.habitable_zone, star.habitable_zone[0] * 1.1, mass=mass, moon_count=2, defer_climate=True)
+        assert not planet.moons and not planet.planet_class
+        before = planet.distance
+        planet.distance = before * 1.2
+        validation.reconcile_moved_planet(planet)
+        assert not planet.moons and not planet.planet_class
+        assert planet.period == pytest.approx(planetPhysics.calculate_orbital_period_years(planet.distance, star.mass))
+        planet.finish_climate()
+        assert planet.planet_class and len(planet.moons) <= 2
+        assert validation.check_planet(planet) == []
+        moons = planet.moons
+        planet.finish_climate()          # a planet that is finished does nothing
+        assert planet.moons is moons
+        if len(moons) == 2:
+            return
+    pytest.fail("no seed of 20 gave the planet its two moons")
 
 
 def test_a_system_makes_fewer_airs_when_the_climate_waits_for_the_spacing(monkeypatch):

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every command does one thing: the command inventory - planetGen docs</title>
+<meta name="description" content="Status: plan (Boss, 2026-10-17, 4:19 PM EDT: &quot;redesign ALL the commands like that so we can build whatever sequences we want&quot;; the principle is Boss&#x27;s of 4:18 PM EDT, in redis-and-the-work-queue.md section 5.12).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/command-inventory.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/command-inventory.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="every-command-does-one-thing-the-command-inventory">Every command does one thing: the command inventory</h1><p class="meta">docs/design/architecture/command-inventory.md</p>
+<p>Status: plan (Boss, 2026-10-17, 4:19 PM EDT: &quot;redesign ALL the commands like that so we can build whatever sequences we want&quot;; the principle is Boss's of 4:18 PM EDT, in <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a> section 5.12). Read from the code on main on 2026-10-17 (4:30 PM EDT); the items that reshape each command are named in the last column.</p>
+<h2 id="the-principle">The principle</h2>
+<p>Modular commands: each command does one and only one thing and does it exceptionally well, and never worries about anything but what it does. No command knows about another stage, about what ran before it or what runs after it, or about the order. A list of steps is built from what the user asked for and handed to the wrapper (PERF.118), which alone handles the sequence; the order lives only in the wrapper's step list, kept as data, so any sequence can be built and changed without touching a command. Each command has its own parameters, set by the UX when it runs the command through the API and by Boss on the command line.</p>
+<p>Naming (decided by Boss, 5:14 to 5:16 PM EDT on 2026-10-18, cards F1 to F7): one root command per kind of work and exactly one kind chosen per run, as in Boss's example <code>scatter --mass</code>. A run of <code>scatter</code> takes one of <code>--mass</code>, <code>--luminosity</code>, <code>--phenomena</code>, <code>--nebula-field</code>, <code>--band</code>, and only that kind's parameters. The map-luminosity fill, the habitability re-score and the nebula-field clean-up are one root command each, named like the registered commands: <code>fill-map-luminosity</code>, <code>rescore-habitability</code> and <code>clean-nebula-field</code> (with <code>--apply</code>). Redoing a scatter is a separate <code>clear-scatter</code> command, not a <code>--redo</code> flag, and <code>--redo-scatters</code> is removed with no shim. Every start path (the Generate page, the API jobs, <code>planetgen sector</code> and <code>planetgen system</code>) builds a step list and hands it to the wrapper: the Generate page builds the list and one wrapper run follows it (<code>job_runner</code> only starts it detached), each API job is a small run of its own, and reset, check-math and the like are one-unit registry commands.</p>
+<h2 id="rules-for-a-new-command-perf120">Rules for a new command (PERF.120)</h2>
+<p>A command is added only if it follows all of these. <code>src/tests/test_command_rules.py</code> holds the structural ones for every kind in <code>queue/commands.REGISTRY</code>.</p>
+<ol>
+<li><strong>One job.</strong> It does one thing and nothing else, and it is named for it (<code>scatter-mass</code>, <code>run-territories</code>). If a change makes a command do a second job, the second job is a command of its own.</li>
+<li><strong>Its own parameters.</strong> It takes only the settings its job needs, as plain JSON in the step's <code>params</code>; it never reads another stage's settings.</li>
+<li><strong>No knowledge of the order.</strong> It does not know what ran before it, what runs after it or where it sits in the list; it does not call another command. The order lives only in the step list <code>commands.build_steps</code> makes, which is data.</li>
+<li><strong>A registered kind.</strong> An entry in <code>commands.REGISTRY</code> with a <code>unit(params, report)</code> that returns a JSON-able result and an <code>expand(params)</code> that cuts its stage into units (one unit, with <code>whole=True</code>, when the job is one by nature; otherwise <code>unit_seconds</code> says how long the longest unit runs). There is no inline command and no second way to run it.</li>
+<li><strong>Runnable alone.</strong> <code>planetgen command-run KIND ARGS</code> runs one unit from its JSON, and the command-line verb (<code>planetgen &lt;verb&gt;</code>) is a run of that one command through the wrapper, with the same rows stored as a run inside a longer list.</li>
+<li><strong>A test that runs it alone,</strong> with the arguments it takes and the result it gives.</li>
+<li><strong>A docs line:</strong> its kind name in this inventory or in the document that describes its job, and the command-line reference if it has a verb.</li>
+<li><strong>Work around its units belongs to the command too (PERF.172).</strong> What a command must do once before its units (empty the table they refill) is its <code>prepare(params)</code>, and what it must do once after them (store the record the later stages read, build the indexes) is its <code>conclude(params, plan, results, seconds)</code>; both are named in the registry, run in a worker when the stage opens and when its last unit is done, and fail the run, naming the stage, when they raise. The process that started the run does no work of a stage: it only follows (<code>generation/followed.py</code>). The commands PERF.172 added are <code>finish-phenomena</code> (the special phenomena, the indexes and the epoch stamp of a phenomena scatter), <code>refresh-block-lights</code> (the Galaxy Map's block light totals made again after a scatter) and <code>refresh-run-blocks</code> (the map's block totals brought up to what a galaxy run stored).</li>
+</ol>
+<h2 id="what-exists-today-planetgen-and-python3--m-planetgencli">What exists today (<code>planetgen</code> and <code>python3 -m planetgen.cli.*</code>)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does today</th>
+<th>One thing?</th>
+<th>Reshape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planetgen plan</code></td>
+<td>The skeleton and nothing else (PERF.121, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen scatter</code></td>
+<td>One kind of scatter per run: <code>--mass</code>, <code>--luminosity</code>, <code>--phenomena</code>, <code>--nebula-field</code> or <code>--band --down-to N</code>, with only that kind's parameters; refuses to draw over stored rows (PERF.121, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen clear-scatter</code></td>
+<td>Empties one kind of scatter's stored rows: <code>--mass</code>, <code>--luminosity</code>, <code>--phenomena</code> or <code>--nebula-field</code>, run before <code>scatter</code> to redo it (PERF.121, Boss's F7, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen fill-map-luminosity</code>, <code>rescore-habitability</code>, <code>clean-nebula-field</code></td>
+<td>One fill or clean-up each, with no setting of a scatter (PERF.122, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen galaxy</code></td>
+<td>Builds one step list (the sectors in the mode asked for, the link, the mass and luminosity scatters, the phenomena, their indexes and the nebula field, the backfill, the population pass, the territories, the settle, the map's block totals and, last, the block light totals, PERF.251) and hands it to the wrapper as one run, with no option to leave one out (PERF.123, PERF.172, done)</td>
+<td>Yes: each stage is its own command; this only builds the list</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen sector</code></td>
+<td>Generates sectors and nothing else (<code>--population</code> is gone, PERF.124, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen phenomenon</code></td>
+<td>Generates one phenomenon and saves it (<code>--no-settle</code> is gone; the settle is <code>planetgen settle --sector-id ID</code>, PERF.124, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen system</code></td>
+<td>Generates one system and prints or writes it</td>
+<td>Yes</td>
+<td>none (registered by PERF.118)</td>
+</tr>
+<tr>
+<td><code>planetgen population</code></td>
+<td>The population pass: species, civilizations and polities (<code>--rescan</code>); <code>--territories-only</code> is gone (PERF.125, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen territories</code></td>
+<td>The territories pass: which polity owns which system (PERF.125, done)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen bring-to-epoch</code></td>
+<td>Brings a stored galaxy to the running generator epoch: draws a stale scatter again (GEN.845), generates again the sectors whose fill is behind, makes the stale species again, makes again the wide binaries that break the stability rule (GEN.229), runs the population pass (GEN.764)</td>
+<td>One purpose, a fixed sequence of its own like <code>benchmark</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen finish-run</code></td>
+<td>Carries on the newest generation run that stopped before it was done (<code>--run ID</code> names another), from the first stage that did not finish, on the same galaxy, build and database (PERF.182)</td>
+<td>One purpose, its steps are the stopped run's own</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen refresh-parity</code></td>
+<td>Makes the sector parity file current for the whole database: marked and never-sealed sectors, sealed sectors the file lacks, members whose sector is gone; <code>--compact</code> drops the file's dead space (DB.46)</td>
+<td>One purpose, a serial sweep with its own locking of the parity file, no generation</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen repair-db</code></td>
+<td>Rebuilds the sectors that no longer hash to their stored checksum from the parity file (<code>--shell</code>, <code>--sector</code> limit it, <code>--dry-run</code> writes nothing); makes a damaged parity file again from the database (DB.47). <code>--salvage TABLE</code> and <code>--reload TABLE</code> are the two steps of rebuilding a table whose clustered index has an unreadable page (DB.48)</td>
+<td>One purpose, a serial pass over the sectors in scope, no generation; writes only the covered columns of the damaged sectors' rows, and with the two table steps drops and refills one table</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen check-db</code></td>
+<td>Builds the list of the nine <code>check-*</code> commands (one per check: revision, tables, extended tables, orphans, ids, values, counts, version keys, systems) the arguments name, and hands it to the wrapper as a check run</td>
+<td>Yes: each check is its own command; this only builds the list (PERF.126, done)</td>
+<td>PERF.126</td>
+</tr>
+<tr>
+<td><code>planetgen check-math</code></td>
+<td>The math check (TEST.68), a check run of the <code>check-math</code> command (one unit, PERF.119)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen versions</code>, <code>fingerprint</code></td>
+<td>List the version history; print the content digests</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.datasets status</code></td>
+<td>The data check in front of every Generate job (GEN.590), a check run of the <code>check-datasets</code> command (one unit, PERF.119); <code>fetch</code> is a setup step and stays a direct download</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen benchmark</code></td>
+<td>Runs <code>plan</code>, then <code>galaxy</code> over a small shell (the scatters, backfill, population and settle are stages of that run), in child processes over scratch databases, and prints the stage timings read from the runs' records in Redis</td>
+<td>One purpose; the order is the commands' own step lists (PERF.128, done)</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>cli.reset</code></td>
+<td>Wipes the generated rows: after the typed confirmation, a run of the <code>reset-galaxy</code> command (one unit, PERF.119)</td>
+<td>Yes</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>cli.migrate</code>, <code>cli.worker</code>, <code>cli.query</code>, <code>cli.maintenance</code>, <code>cli.update_guard</code>, <code>cli.config</code>, <code>cli.backup</code></td>
+<td>Bring the schema up; wipe the generated rows; run a queue worker; list stored rows; switch maintenance mode; close the site for an update; check and edit settings; take, list, verify and restore archives</td>
+<td>Yes (one verb each)</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>planetgen warm</code> (was <code>cli.warm_map</code>)</td>
+<td>Builds the list of the seven <code>warm-*</code> commands (one per cache family) and the closing <code>end-map-rebuild-maintenance</code>, and hands it to the wrapper as a maintenance run</td>
+<td>Yes: each family is its own command; this only builds the list (PERF.127, done)</td>
+<td>PERF.127</td>
+</tr>
+<tr>
+<td><code>cli.lockouts</code>, <code>cli.version_history</code></td>
+<td>List or lift login lockouts by flags; record the version key, or <code>--list</code> it (which <code>planetgen versions</code> already does)</td>
+<td>Yes, done (OPS.60, 2026-10-17, 4:36 PM EDT): <code>cli.lockouts</code> only lists, <code>lift_lockout.py</code> lifts, <code>cli.version_history</code> only records</td>
+<td>OPS.60</td>
+</tr>
+<tr>
+<td><code>cli.render_parity</code>, <code>cli.dedupe</code></td>
+<td>One-off checks for a schema (v29) and a naming rule long since migrated</td>
+<td>Done, removed (OPS.61, 2026-10-17, 4:36 PM EDT): <code>render_parity.py</code> and <code>dedupe.py</code> are deleted</td>
+<td>OPS.61</td>
+</tr>
+<tr>
+<td><code>cli.orbits</code></td>
+<td>Advances every planet, moon, star and binary by the real time since the last run</td>
+<td>Replaced by the nightly orbital update of GEN.105 (8.3), which follows this principle</td>
+<td>note on GEN.105</td>
+</tr>
+<tr>
+<td><code>update.sh</code>, <code>install.sh</code></td>
+<td>Shell sequences of the commands above</td>
+<td>They are wrappers by nature and stay shell scripts that call the commands</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Generate page, API jobs, one-off pages</td>
+<td>Start runs</td>
+<td>Each must build a step list for the wrapper</td>
+<td>PERF.119</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>scripts/*.py</code> are development tools (the test runner, the docs builder, the version bump, the lock files), not product commands, and are out of this scope.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

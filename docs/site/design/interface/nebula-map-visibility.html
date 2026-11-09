@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Making nebulae visible on the Galaxy Map - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-10 21:46Z): &quot;I also want nebula should be visible, even if they just change the color of the sector shading on the galactic map, we create them, I want to see them somehow, maybe by color maybe by combined region (if like 5...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/nebula-map-visibility.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/nebula-map-visibility.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="making-nebulae-visible-on-the-galaxy-map">Making nebulae visible on the Galaxy Map</h1><p class="meta">docs/design/interface/nebula-map-visibility.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-nebula-data-exists">1. What nebula data exists</a></li><li style="margin-left:0px"><a href="#2-why-they-cannot-be-seen-today">2. Why they cannot be seen today</a></li><li style="margin-left:0px"><a href="#3-the-design-three-scales-one-grid">3. The design: three scales, one grid</a></li><li style="margin-left:14px"><a href="#31-cover-shading-bosss-change-the-colour-of-the-sector-shading">3.1 Cover shading (Boss's "change the colour of the sector shading")</a></li><li style="margin-left:14px"><a href="#32-regions-bosss-combined-region">3.2 Regions (Boss's "combined region")</a></li><li style="margin-left:14px"><a href="#33-individual-nebulae">3.3 Individual nebulae</a></li><li style="margin-left:0px"><a href="#4-colour-and-legend">4. Colour and legend</a></li><li style="margin-left:0px"><a href="#5-data-storage-and-the-wire-format">5. Data, storage and the wire format</a></li><li style="margin-left:14px"><a href="#51-foundations">5.1 Foundations</a></li><li style="margin-left:14px"><a href="#52-why-not-compute-the-field-on-demand">5.2 Why not compute the field on demand</a></li><li style="margin-left:0px"><a href="#6-cost-on-big-galaxies">6. Cost on big galaxies</a></li><li style="margin-left:0px"><a href="#7-picking-and-hover">7. Picking and hover</a></li><li style="margin-left:0px"><a href="#8-how-it-behaves-under-a-fill-and-what-the-visitor-sees-while-it-loads">8. How it behaves under a fill, and what the visitor sees while it loads</a></li><li style="margin-left:0px"><a href="#9-build-items-phase-and-order">9. Build items (phase and order)</a></li><li style="margin-left:0px"><a href="#10-defaults-and-the-one-open-dependency">10. Defaults and the one open dependency</a></li><li style="margin-left:0px"><a href="#limits-of-this-study">Limits of this study</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#11-nebula-shapes-from-the-density-map365">11. Nebula shapes from the density (MAP.365)</a></li></ul></details>
+<p>Boss (2026-10-10 21:46Z): &quot;I also want nebula should be visible, even if they just change the color of the sector shading on the galactic map, we create them, I want to see them somehow, maybe by color maybe by combined region (if like 5 nebulas are close enough together to appear like 1 on a bigger map we could do that perhaps). ... let's add this to phase 2, with foundations in phase 1.&quot;</p>
+<p>Informs: MAP.132 (overlay markers), MAP.142 (fuzzy boundaries), MAP.151 (region data layer and its per-level aggregates), MAP.153 to MAP.155 (rank fade, nested lists, other objects fade in), MAP.157 to MAP.161 (wire format), MAP.131 and MAP.143 (Color by), MAP.123 (per-kind toggles), GEN.47 (the molecular cloud field), GEN.99 and GEN.150 (hosted nebulae). Builds on <a href="../systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>, <a href="zoom-star-visibility.html">zoom-star-visibility.md</a>, <a href="galaxy-map-wire-format.html">galaxy-map-wire-format.md</a> and <a href="../operations/slow-reads-and-timeouts.html">slow-reads-and-timeouts.md</a>.</p>
+<p>Status: partly built (2026-10-15). Built: the <code>nebula_field</code> table (DB.24, #1317, schema v83; <code>run_plan.build_nebula_field</code> at plan time, <code>store.insert_nebula_field</code>), with these differences from the text below: it holds only classes M and N (as the density note recommended), its rows carry no object ID until a sector stores the cloud, and the flag is <code>is_stored</code>. Built beside it: the density cut (GEN.152, #1239) and <code>plan --redo-nebula-field</code> (GEN.205, #1325). Built since: the per-level cell aggregates (MAP.172) and the tile nebula layer (MAP.173, 2026-10-28: a node's <code>nebula_regions</code>, its child blocks that hold nebulae, ranked by volume, 600 at most; the singles stay in <code>clouds</code>; <code>galaxy-map-wire-format.md</code> section 0.2). The nebula regions are drawn (MAP.176, 2026-10-29: <code>galaxynebulae.js</code> chooses and <code>galaxyglowlayer.js</code> draws a soft sprite for each group a drawn node lists, in its dominant family's colour with a ring, 600 at most, a Menu layer and legend line for each family under &quot;Nebulae&quot;; the fixed grid is the block ladder, so a node hands its groups to its children's as the cut does for stars). Open: the nebula cover (MAP.174), the overlay markers (MAP.132) and fuzzy boundaries (MAP.142). Evidence tags: [S] seen in the repo, [C] computed or measured in this research, [R] recalled and not confirmed (listed at the end).</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Four separate reasons you cannot see them, and each is real.</strong> (1) Most nebulae are not rows anywhere: the molecular-cloud field is <em>derived</em> from the galaxy seed and stored only when a generated sector reaches a cloud, and emission and reflection nebulae are created only when a system with an O or B star is built [S]. The default galaxy's field holds about 700,000 clouds [C]; the quarter-scale test galaxy had 7 stored nebulae in 44 sectors [C]. (2) A cloud is a sprite hidden under 2 px (<code>CLOUD_MIN_PX</code>) [S]; the field's median cloud is 2.7 pc across in radius, and at the opening view one pixel is 31 pc, so none draws until the camera is within about 12 kpc for the biggest and 4 kpc for the common dark cloud [C]. (3) Dark clouds are painted <code>#1c1c24</code> at 0.91 opacity on a transparent canvas [S], which on a dark page is 1.17:1 contrast (MAP.142's own figure). (4) A tile lists at most 200 clouds, largest first [S].</li>
+<li><strong>Recommended: three scales that hand over to each other, all keyed to pixel size.</strong> Far: a <strong>nebula cover</strong> shading (the share of each block's volume inside a nebula), as a new &quot;Color by&quot; choice. Middle: <strong>regions</strong>, one soft sprite for each group of nebulae that would be under about 16 px apart, splitting into their members as you zoom in. Near: <strong>individual</strong> nebulae, drawn as today (sprite, then shape mesh). The same fixed grid carries all three, so panning never reshuffles a group.</li>
+<li><strong>Foundations (Phase 1) are data, not drawing:</strong> a thin stored <code>nebula_field</code> table made once from the seed (about 700,000 rows, about 50 MB [C by estimate]), per-level cell aggregates in MAP.151's pyramid, the nebula layer in the tile wire format, and a contrast fix for the dark cloud colour. <strong>The visible feature (Phase 2)</strong> is the region layer, the cover shading, individual field clouds, picking and the legend.</li>
+<li><strong>Grouping by itself does not make the counts small.</strong> Scale-relative cells at 16 px give 144 regions at 30 kpc and 574 at 15 kpc, but 3,238 at 8 kpc and 6,122 at 2 kpc in a dense arm [C]. So regions also need a budget (about 600) and the rank-birth fade MAP.153 already defines for stars; the cover shading carries what is not drawn.</li>
+<li><strong>Reading all of this from the database is cheap only if it is stored and indexed.</strong> Computing the field on demand costs 0.07 to 0.55 ms per 50 pc cell [C], which is 1 minute for one level-3 tile; so precompute once, at plan time, and read it with a primary-key range, as <a href="../operations/slow-reads-and-timeouts.html">slow-reads-and-timeouts.md</a> asks of every page.</li>
+<li><strong>One real dependency, not a question:</strong> the field is probably 10 to 40 times too full (the GEN.47 note's own rate check). Cover shading at today's rate is about 11% nearly everywhere in an arm and would carry little signal; at the recommended rate (about 1e-7 pc^-3) clouds become rare and the individual and region layers matter most. The design works at either rate; the rate is Boss's separate decision.</li>
+<li>Fourteen build items, with their phase, are in section 9. Defaults in section 10.</li>
+</ul>
+<h2 id="1-what-nebula-data-exists">1. What nebula data exists</h2>
+<p>[S] unless marked.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What</th>
+<th>Where it lives</th>
+<th>Created when</th>
+<th>How many [C]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Molecular cloud field, classes M, N, P, Q (dark)</td>
+<td>center, radius, class, shape parameters</td>
+<td>derived from the galaxy seed, 50 pc cells (<code>galaxy/nebula_field.py</code>); a row in <code>nebulae</code> once a sector reaches it</td>
+<td>stored when the first generated sector whose sphere reaches it is saved (<code>_db.insert_sector</code>)</td>
+<td>about 700,000 over the default galaxy: 14.6% class M (radius 35 / 81 / 137 ly at p10 / median / p90), 43.8% N (5.5 / 26 / 45 ly), 27.5% P (0.6 / 1.6 / 2.7 ly), 14.1% Q (0.2 / 0.5 / 0.9 ly)</td>
+</tr>
+<tr>
+<td>Emission and reflection nebulae, classes C to G</td>
+<td>around an O star (always), B0 to B2 (half), later B and A (rarely)</td>
+<td><code>nebulae</code> row with the star's system</td>
+<td>when the system is generated (<code>add_star_hosted_nebulae</code>, <code>NEBULA_HOST_RULES</code>)</td>
+<td>none until built; the pre-placed bright stars hold about 4,200 O and 10,000 B0 to B2 stars at quarter scale, so about 270,000 and 640,000 at default scale</td>
+</tr>
+<tr>
+<td>Planetary nebulae, classes H to L</td>
+<td>around a young white dwarf</td>
+<td><code>phenomenon_scatter</code> kind <code>planetary-nebula</code>, and <code>nebulae</code> once built</td>
+<td>scattered galaxy-wide; built with the sector</td>
+<td>445 scatter rows at quarter scale (about 28,000 at default) [R scaling]</td>
+</tr>
+<tr>
+<td>Supernova remnants, classes R to W</td>
+<td>shells</td>
+<td><code>phenomenon_scatter</code> kind <code>supernova-remnant</code>, <code>supernova_remnants</code> once built</td>
+<td>same</td>
+<td>306 scatter rows at quarter scale (about 20,000 at default) [R scaling]; <code>supernova_remnants</code> empty in the test galaxy</td>
+</tr>
+<tr>
+<td>Diffuse gas, classes A and B</td>
+<td>not generated</td>
+<td></td>
+<td></td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Per record the map receives: <code>type</code>, <code>id</code>, <code>name</code>, <code>descriptor</code> (the family), <code>class</code>, <code>radius_pc</code>, <code>x/y/z</code> (<code>galaxy_clouds_in_box</code>). A shape (<code>nebula_shape</code>: axes, warp, iso level) is served separately per nebula and fetched when the nebula is big enough on screen (<code>NEBULA_MESH_MIN_PX</code>). Families and look: diffuse <code>#e3a6c8</code>, emission <code>#ff6f91</code>, reflection <code>#6fa8ff</code>, planetary <code>#5be8c9</code>, dark <code>#1c1c24</code>, remnants orange with a blue rim (<code>NEBULA_LOOKS</code>, <code>cloudTexture</code>).</p>
+<p>The scatter rows (planetary nebulae, remnants) are not drawn at all today: the tile's scattered points are only black holes, neutron stars and quasars (<code>SCATTERED_POINT_CLASSES</code>).</p>
+<h2 id="2-why-they-cannot-be-seen-today">2. Why they cannot be seen today</h2>
+<ol>
+<li>
+<p><strong>Not stored.</strong> <code>galaxy_clouds_in_box</code> reads the <code>nebulae</code> and <code>supernova_remnants</code> tables. A galaxy that has generated only a small part of itself has almost none of its field there (7 nebulae in the 44-sector test galaxy [C]). The field, the O/B nebulae and the scatter nebulae are all implicit.</p>
+</li>
+<li>
+<p><strong>Too small to draw.</strong> A sprite shows only when its radius is at least 2 px (<code>CLOUD_MIN_PX</code>). At camera radius R the map shows about <code>0.001 R</code> parsecs per pixel (900 px high, 50 degree field) [C], so a cloud of radius r appears at about R = 480 r:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Cloud</th>
+<th>Median radius</th>
+<th>First drawn (camera radius)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Class M</td>
+<td>25 pc</td>
+<td>about 12 kpc</td>
+</tr>
+<tr>
+<td>Class N</td>
+<td>8 pc</td>
+<td>about 4 kpc</td>
+</tr>
+<tr>
+<td>Class P</td>
+<td>0.5 pc</td>
+<td>about 240 pc</td>
+</tr>
+<tr>
+<td>Class Q</td>
+<td>0.15 pc</td>
+<td>about 70 pc</td>
+</tr>
+</tbody>
+</table></div>
+<p>The opening view (34 kpc, 31 pc a pixel) draws none [C].</p>
+</li>
+<li>
+<p><strong>Colour.</strong> The dark family is the field, which makes it two thirds of all nebulae by number; its fill is near-black on a transparent canvas, so on the dark theme it is invisible, and MAP.142 already counts a 1.17:1 contrast against a 3:1 target.</p>
+</li>
+<li>
+<p><strong>The cap.</strong> 200 per tile, largest first, then nothing for small ones. In the sample dense arm, 15,049 clouds are 2 px or bigger at a 4 kpc camera and the four view tiles show 800 [C].</p>
+</li>
+</ol>
+<h2 id="3-the-design-three-scales-one-grid">3. The design: three scales, one grid</h2>
+<p>A nebula's visibility is a <strong>size law</strong>, not a brightness law: it is drawn when its angular size reaches a threshold, the way a star is drawn when its apparent magnitude reaches one (MAP.148). That gives each scale a clean hand-over.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Camera radius (pc per pixel)</th>
+<th>What is drawn</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Far (at or above about 8 kpc, 8 pc per pixel and up)</td>
+<td><strong>Cover shading</strong> in the block fill, and <strong>region sprites</strong> for the largest groups</td>
+<td>individual clouds are under 2 px; the cover says where gas is</td>
+</tr>
+<tr>
+<td>Middle (about 100 pc to 8 kpc)</td>
+<td><strong>Regions</strong>, splitting into <strong>individual</strong> nebulae as they pass 2 to 4 px</td>
+<td>the member nebulae sit within a few pixels of each other</td>
+</tr>
+<tr>
+<td>Near (under about 100 pc)</td>
+<td><strong>Individual</strong> nebulae: sprite from 2 px (with MAP.155's 1 to 4 px opacity ramp), shape mesh from <code>NEBULA_MESH_MIN_PX</code>; the focused one as the 3D field</td>
+<td>the existing behaviour, now for field clouds that are not yet stored</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="31-cover-shading-bosss-change-the-colour-of-the-sector-shading">3.1 Cover shading (Boss's &quot;change the colour of the sector shading&quot;)</h3>
+<p>The cover of a block is the share of its volume inside some nebula. It is a number per cell of the pyramid MAP.151 builds (&quot;per-level aggregates&quot;), so it can colour every cell the map draws, including <strong>planned and unfilled cells</strong>, because it comes from the seed and not from generated sectors. It is offered as a new choice in MAP.131's <strong>Color by</strong> switch, &quot;Nebula cover&quot;, beside Density, Mean age, Luminosity, Star count (and MAP.143's Habitable worlds). That is how it avoids clashing with the existing sector colouring: the default (age hue, density opacity, luminosity brightness) is untouched, and &quot;Nebula cover&quot; replaces it for as long as it is chosen, the way every other statistic does. Sector space on the Sector Map is not tinted, as before.</p>
+<p>Ramp and legend: a single hue that survives greyscale, 5 bins (0, under 5%, 5 to 15%, 15 to 30%, 30% and up), the dust brown of section 4 from pale to deep, with the legend line &quot;share of the block inside a nebula&quot;. Measured on the sample arm: the cover is 11% median and 17% at p90 per 256 pc block at today's rate, and per 64 pc block 69% hold none and p90 is 40% [C]; so use the 256 pc cell and larger for shading and let the regions and individuals show the small structure. Across the galaxy it follows the gas, which is the arms and the inner disk (expected clouds by ring: 111,000 inside 2.5 kpc, 236,000 at 2.5 to 5, 211,000 at 5 to 7.5, 99,000 at 7.5 to 10, 33,000 at 10 to 12.5, 11,000 beyond) [C].</p>
+<h3 id="32-regions-bosss-combined-region">3.2 Regions (Boss's &quot;combined region&quot;)</h3>
+<p><strong>Rule.</strong> At a given zoom, take the pyramid level whose cell edge is about 16 pixels across (MAP.151's 3-ary levels, so 0.84 to 1.25 of that). Every nebula whose center is in a cell belongs to that cell's group. A group of one is drawn as itself; a group of two or more is drawn as one <strong>region</strong>: a soft sprite at the volume-weighted centroid, radius reaching the outer edge of its members (and never past the cell), coloured by the family with the most volume, with the member count in its tooltip. A region is drawn when it is 2 px across, like any cloud.</p>
+<p><strong>Why a fixed grid and not &quot;friends within 5 px&quot;.</strong> A distance-linkage cluster chains: neighbours of neighbours join until a whole arm is one blob, and the grouping depends on the camera, so panning reshuffles it. A fixed grid cell gives the same groups at the same zoom for everyone, nests exactly (a parent's group is the union of its children's), and is the same structure MAP.154 uses for stars. It is also what the cell pyramid stores, so there is no clustering computation at request time.</p>
+<p><strong>Splitting as you zoom in.</strong> The parent region fades out and its child regions (or members) fade in over one octave of zoom, the same cross-fade MAP.153 gives a star between its tile ranks; nothing pops. Birth radius of a group is the camera radius at which its cell edge passes 16 px.</p>
+<p><strong>Measured on the sample arm</strong> (45,061 field clouds in a 4 kpc box 6 kpc from the core; 900 px view) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Camera radius (pc)</th>
+<th>pc per px</th>
+<th>Individual clouds at 2 px or more</th>
+<th>After today's 200 per tile</th>
+<th>Regions at 16 px (cell edge)</th>
+<th>Largest region</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>30,000</td>
+<td>31</td>
+<td>0</td>
+<td>0</td>
+<td>144 (512 pc)</td>
+<td>14 px</td>
+</tr>
+<tr>
+<td>15,000</td>
+<td>16</td>
+<td>2,425</td>
+<td>800</td>
+<td>574 (256 pc)</td>
+<td>20 px</td>
+</tr>
+<tr>
+<td>8,000</td>
+<td>8.3</td>
+<td>4,683</td>
+<td>800</td>
+<td>3,238 (128 pc)</td>
+<td>22 px</td>
+</tr>
+<tr>
+<td>4,000</td>
+<td>4.1</td>
+<td>15,049</td>
+<td>800</td>
+<td>10,981 (64 pc)</td>
+<td>23 px</td>
+</tr>
+<tr>
+<td>2,000</td>
+<td>2.1</td>
+<td>20,700</td>
+<td>1,191</td>
+<td>6,122 (32 pc)</td>
+<td>29 px</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>1.0</td>
+<td>14,404</td>
+<td>1,600</td>
+<td>685 (16 pc) + 13,713 single</td>
+<td>47 px</td>
+</tr>
+<tr>
+<td>500</td>
+<td>0.5</td>
+<td>4,416</td>
+<td>1,600</td>
+<td>25 + 4,395 single</td>
+<td>69 px</td>
+</tr>
+<tr>
+<td>250</td>
+<td>0.3</td>
+<td>1,405</td>
+<td>1,204</td>
+<td>1 + 1,405 single</td>
+<td>12 px</td>
+</tr>
+</tbody>
+</table></div>
+<p>(The 8 px and 32 px versions give about 3 times more and 4 times fewer regions; 16 px is the middle.) The sample is a dense case; the 45,061 clouds are the view sphere's content, more than the frustum shows. Three conclusions:</p>
+<ul>
+<li>A region is never large: 14 to 69 px at 16 px cells, so it reads as a soft blob, not a wall.</li>
+<li>Counts stay in the thousands from 8 kpc to 1 kpc, so <strong>a budget is required</strong>: draw the largest 600 groups by volume, the rest folded into the cover. Use MAP.153's rank-birth rule with the group's volume as the rank, and the 600 is the same kind of number as the 400 stars per tile.</li>
+<li>Below about 250 pc the clouds are single again, so the near layer is the individual one, as today.</li>
+</ul>
+<h3 id="33-individual-nebulae">3.3 Individual nebulae</h3>
+<p>Unchanged in look. What changes is that they come from the field index, not only from stored <code>nebulae</code> rows, so a field cloud is drawn before its sector is generated. A cloud that is stored is the same object (its id is the stored object id; <code>cloud_object_id</code> gives a field cloud its id from the seed alone, GEN.176), so the map shows it once, and its page opens when it is picked. Emission, reflection, planetary and remnant objects appear as they are generated; the scatter's planetary nebulae and remnants are listed as points from level 8 like MAP.155's other point objects (section 9 item 11).</p>
+<h2 id="4-colour-and-legend">4. Colour and legend</h2>
+<p>The sector fill's colours carry age (hue), density (transparency) and luminosity (brightness); Color by modes use a purple, teal, yellow ramp. Nebulae are an <strong>overlay layer of translucent sprites</strong>, so their colours need to differ from the fill's hues and stay legible on top of it:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Colour (existing)</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Emission</td>
+<td><code>#ff6f91</code></td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Reflection</td>
+<td><code>#6fa8ff</code></td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Planetary</td>
+<td><code>#5be8c9</code></td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Diffuse</td>
+<td><code>#e3a6c8</code></td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Remnant</td>
+<td>orange with a pale blue rim</td>
+<td>keep</td>
+</tr>
+<tr>
+<td><strong>Dark</strong></td>
+<td><code>#1c1c24</code> at 0.91</td>
+<td><strong>replace with a dust colour that clears 3:1 on both themes</strong> (proposal: a warm umber, about <code>#a9805a</code> at 0.45, with a thin light rim <code>#d9b48a</code> on the dark theme; keep the dark fill on the light theme). Checked with the project's contrast test, not by eye. <strong>Done (MAP.181):</strong> the map is black in either theme (UX.255), so there is one colour: <code>#a9805a</code> at 0.45 with a <code>#d9b48a</code> rim at 0.6 (<code>NEBULA_LOOKS</code>, <code>NEBULA_RIMS</code>); the rim reaches 3:1, the fill alone does not.</td>
+</tr>
+<tr>
+<td>Cover shading</td>
+<td>none yet</td>
+<td>the same umber, pale to deep, 5 bins</td>
+</tr>
+</tbody>
+</table></div>
+<p>A region takes its dominant family's colour with a thin outline to separate it from a single nebula. The legend is a small &quot;Nebulae&quot; block under the existing Color by legend with one swatch per kind and a toggle each (MAP.123), plus the line &quot;grouped when close together; zoom in to separate&quot;. Colour is never the only cue (MAP.142 asks for a non-colour cue per class): regions get the outline, dark clouds the rim, remnants their ring.</p>
+<h2 id="5-data-storage-and-the-wire-format">5. Data, storage and the wire format</h2>
+<h3 id="51-foundations">5.1 Foundations</h3>
+<ul>
+<li><strong><code>nebula_field</code>, a thin table made once.</strong> One row per field cloud: object id, cell index, center (mpc), radius, class, a flag set when its <code>nebulae</code> row exists. Made at plan time from the seed by iterating the 50 pc cells (3.4 million cells in the thin disk, 0.07 ms in sparse cells and 0.55 ms in dense ones, so about 4 to 30 minutes on one core and a few minutes over the RQ workers [C estimate]). About 700,000 rows at about 70 bytes: roughly 50 MB with indexes [C estimate]. It is immutable: the seed fixes it, so there is no refresh and no write contention with a fill. A stored <code>nebulae</code> row and its field row share the object id.</li>
+<li><strong>Cell aggregates in the MAP.151 pyramid.</strong> For every cell from 1 kpc down to about 8 pc: count, summed volume, volume-weighted centroid, bounding radius, volume share per family, dominant class, <strong>cover</strong> (volume of member spheres inside the cell over the cell's volume; overlaps double-counted and capped at 1, which at 11% fill is within a few percent of the true union). From <code>nebula_field</code> by one <code>GROUP BY</code> per level; the levels from 1 kpc to 64 pc total well under a million rows (about 700 cells at 1 kpc, 11,000 at 256 pc, 170,000 at 64 pc over the thin disk [C estimate]). Stored non-field nebulae (emission, reflection, planetary, remnants) are added to the cells they sit in when stored.</li>
+<li><strong>The nebula layer in the tile.</strong> Each tile gains <code>nebulae: {regions: [...], singles: [...]}</code>, nested the way MAP.154 nests stars (a child omits what its parent already sent); records are tile-relative integers in the packed format of MAP.159 (about 14 bytes a region: position as three 16-bit values, radius and volume as log bytes, member count, family shares as four 4-bit values, class letter), and ordinary JSON until then (about 120 bytes). 600 regions are 72 KB of JSON and about 9 KB packed, against 30 KB for today's 200 clouds. The cover value rides in the stage view's cell stats beside density and luminosity.</li>
+<li><strong>Reads.</strong> A primary-key range on <code>(level, ix, iy, iz)</code> for aggregates and <code>(cell index, x)</code> for singles; both examine only the rows returned, and a query-budget test (slow-reads item 11) fails when they do not. No scan of the nebula tables, no sort of a large set.</li>
+</ul>
+<h3 id="52-why-not-compute-the-field-on-demand">5.2 Why not compute the field on demand</h3>
+<p>Drawing a level-3 tile (8 kpc across, 300 pc thick) by calling <code>cell_clouds</code> over its cells is 307,000 cells, about one minute [C]. The coarse levels are exactly where regions and cover live, so they cannot be derived per request. Precomputing is also the only way the cover can colour unfilled cells.</p>
+<h2 id="6-cost-on-big-galaxies">6. Cost on big galaxies</h2>
+<ul>
+<li>Build once: 4 to 30 minutes on one core (a few minutes in parallel), about 50 MB of rows and under a million aggregate rows [C estimate].</li>
+<li>Per tile: a handful of primary-key lookups, no scan; at the 600-region budget about 72 KB JSON or 9 KB packed.</li>
+<li>Browser: 600 sprites plus the existing meshes; the cloud sprite path already handles several hundred. The cover shading adds no objects, only a colour on cells.</li>
+<li>A fill does not touch <code>nebula_field</code> or the aggregates (they are seed-fixed); a stored nebula added by a fill updates one aggregate cell per level. No effect on the statement limit.</li>
+<li>Cache stamp: the nebula layer changes the tile format, so it bumps the stamp with MAP.147 and MAP.151 (one bump for all of them).</li>
+</ul>
+<h2 id="7-picking-and-hover">7. Picking and hover</h2>
+<ul>
+<li><strong>Individual</strong> (unchanged): <code>cloudAtRay</code> picks the smallest visible cloud under the pointer that is at most 150 px across; inside its core (half the radius) a click opens its page, up close clicks go to the sectors inside it.</li>
+<li><strong>Region:</strong> hover outlines it and shows &quot;5 nebulae, largest Orion-class giant molecular cloud, dark 80% / emission 20%&quot;; click flies to a camera radius at which the region splits (MAP.150's double-click flight), not to a page, because a region has no page. A region under the pointer yields to an individual nebula inside it once that is 2 px.</li>
+<li><strong>Cover:</strong> hover on a cell shows the percentage (the same hover the other Color by modes use).</li>
+<li><strong>Touch:</strong> tap shows the tooltip; a second tap flies. <strong>Keyboard:</strong> the legend's per-kind toggles and a &quot;Nebulae&quot; entry in the focus list.</li>
+<li>A region or cloud never blocks picking a sector: the pick order is the existing one (sector first at sector zoom, cloud first at galaxy zoom).</li>
+</ul>
+<h2 id="8-how-it-behaves-under-a-fill-and-what-the-visitor-sees-while-it-loads">8. How it behaves under a fill, and what the visitor sees while it loads</h2>
+<p>The nebula layer is seed-fixed and read by key, so a fill neither slows it nor stales it (except one aggregate cell when a stored nebula appears). A late tile only delays nebulae that are still at zero opacity under the rank fade (the visitor sees fewer, not different, nebulae); the cover shading is in the stage view, which is already fetched once. If the nebula part of a tile times out, the tile is served without it and refilled (slow-reads section 3.3, per-piece budgets).</p>
+<h2 id="9-build-items-phase-and-order">9. Build items (phase and order)</h2>
+<p>Numbers are placeholders; the TODO thread assigns IDs.</p>
+<p><strong>Phase 1: foundations</strong></p>
+<ol>
+<li><strong>Nebula field table.</strong> <code>nebula_field</code> made at plan time from the seed (immutable, one row per field cloud with its object id and a stored flag); an RQ job over the cell grid; a test that its rows equal <code>clouds_reaching</code> for sampled sectors and that stored nebulae match by id. Schema migration with the previous-version fixture.</li>
+<li><strong>Nebula cell aggregates.</strong> Per-level count, volume, centroid, bounding radius, family shares, dominant class and cover for MAP.151's cells, from item 1 and from stored nebulae; incremental update when a nebula is stored; a test that cover agrees with a Monte Carlo estimate within 5%.</li>
+<li><strong>Nebula layer in the tile format.</strong> <code>regions</code> and <code>singles</code> per tile, nested like MAP.154, in JSON first and the packed form with MAP.159; the budget (600 regions) and rank (volume); cache stamp bumped with MAP.147 and MAP.151.</li>
+<li><strong>Nebula cover in the stage-view cell stats</strong>, next to density and luminosity, for filled and unfilled cells.</li>
+<li><strong>Scatter nebulae into the same index.</strong> Planetary nebulae and remnants from <code>phenomenon_scatter</code> listed with their stored counterparts, deduplicated by object id; an index for the query (see slow-reads item 4).</li>
+<li><strong>Dark nebula contrast (bug).</strong> The dark family's fill is near-black on a dark page; add per-theme tokens and a contrast test (3:1), the part of MAP.142 that does not need the shape work.</li>
+<li><strong>Big-galaxy query test for the nebula reads</strong> (rides slow-reads item 11).</li>
+</ol>
+<p><strong>Phase 2: the visible feature</strong></p>
+<ol start="8">
+<li><strong>Region layer.</strong> Fixed-grid groups at 16 px, soft sprite in the dominant family colour with an outline, split by fade (MAP.153 rule) as you zoom, budget 600, per-kind toggles (MAP.123), legend block.</li>
+<li><strong>Color by: Nebula cover.</strong> The new choice in MAP.131's switch, single-hue 5-bin ramp and legend, hover percentage, applied to unfilled cells too.</li>
+<li><strong>Field clouds as individuals.</strong> Draw nebulae from <code>nebula_field</code> as sprites (1 to 4 px ramp, MAP.155) and meshes, deduplicated with stored ones by id; a browser test finds one of each family on a seeded galaxy.</li>
+<li><strong>Scatter nebulae as markers</strong> from level 8 (MAP.132's far-zoom nebula markers), planetary nebulae and remnants.</li>
+<li><strong>Picking, hover and flight</strong> for regions and cover (section 7); a keyboard path.</li>
+<li><strong>Dust colour</strong> for the dark family on both themes, chosen with the contrast checker (replaces item 6's temporary value if needed).</li>
+<li><strong>Optional: hosted H II and reflection nebulae for pre-placed O and B stars</strong>, drawn before their sector exists, from the same seeded draw the sector fill will use (GEN.99's conditional redraw keyed by star seed and nebula id) so the two agree. This would show about 590,000 more nebulae at default scale [C scaling]; default is <strong>not to build it</strong> until the O and B star counts and GEN.150's radii are settled.</li>
+</ol>
+<h2 id="10-defaults-and-the-one-open-dependency">10. Defaults and the one open dependency</h2>
+<ul>
+<li><strong>Store the field, do not derive it per request.</strong> Default: store (section 5.2).</li>
+<li><strong>16 px cells, budget 600 regions.</strong> Default as stated; tunable constants.</li>
+<li><strong>Cover shading is a Color by choice, off by default.</strong> Default: off; the regions and individuals are on.</li>
+<li><strong>Dust colour for the dark family</strong> replaces the near-black. Default: yes (it is a bug).</li>
+<li><strong>Hosted H II for pre-placed stars: no</strong> (item 14) until the star counts and radii are settled.</li>
+<li><strong>The field's rate</strong> (GEN.47 note: 5e-6 pc^-3 is 10 to 40 times the catalogues) is a separate decision of Boss's and stays one. The design needs nothing from it; at a lower rate the cover shading shows sparse gas and the region layer shows hundreds, not tens of thousands, of groups.</li>
+</ul>
+<h2 id="limits-of-this-study">Limits of this study</h2>
+<ul>
+<li>Counts are from the in-memory field model on the default shape (<code>nebula_field.cell_clouds</code>, <code>gas_factor</code>), 250 pc by 25 pc integration grid for the totals and one 4 kpc sample box for grouping; arms and the inner disk differ from the sample.</li>
+<li>The sample view counts the clouds inside a sphere of 1.6 times the camera radius, which is larger than the frustum; real counts in view are lower, so the budget bites later than the table shows.</li>
+<li>Pixel sizes assume a 900 px high canvas and the 50 degree field of the page [S]; a phone is smaller and meets thresholds at higher camera radii.</li>
+<li>Row and byte sizes of the new tables are estimates from column widths, not a built table.</li>
+<li>The O and B and scatter counts are quarter-scale test-galaxy figures scaled by the 64-times volume the generation-performance study gives [R].</li>
+<li>The colour proposal is not tested on the real themes; the contrast checker settles it.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<ul>
+<li>[S] <code>galaxy/nebula_field.py</code>, <code>db/query.py</code> (<code>galaxy_clouds_in_box</code>, <code>GALAXY_TILE_MAX_CLOUDS</code>, <code>SCATTERED_POINT_CLASSES</code>), <code>static/galaxymap3d.js</code> (<code>NEBULA_LOOKS</code>, <code>cloudTexture</code>, <code>CLOUD_MIN_PX</code>, <code>cloudAtRay</code>, <code>CLOUD_PICK_MAX_PX</code>, <code>renderer.setClearColor</code>), <code>static/galaxyblocks.js</code> (<code>COLOR_MODES</code>, <code>STAT_RAMP</code>), <code>tuning.py</code> (<code>NEBULA_CLASSES</code>, <code>NEBULA_HOST_RULES</code>, <code>PHENOMENON_DENSITY_PC3</code>), TODO items MAP.131, MAP.132, MAP.142, MAP.143, MAP.151, MAP.153 to MAP.155, MAP.171.</li>
+<li>[C] scripts and outputs in <code>/mnt/project-files/research/nebula-map-visibility/</code> (<code>field_counts.py</code>, <code>cluster_by_zoom.py</code>).</li>
+<li>[R] the 64-times scaling of quarter-scale counts; the dust colour values; Kennicutt and Evans and the catalogue counts are from the GEN.47 note, not re-checked.</li>
+</ul>
+<h2 id="11-nebula-shapes-from-the-density-map365">11. Nebula shapes from the density (MAP.365)</h2>
+<p>Boss (2026-11-04): the nebulae on the Galaxy Map are irregular, bulbous, wispy shapes from the galaxy's gas and star-forming density, never a circle and never a random blob per object ID; a subtle tint, denser cores tint more; coarse blobs far out and more filaments as you zoom in; overlaps add their colors, capped so the sum never washes to white.</p>
+<ul>
+<li><strong>The density</strong> is <code>galaxy/nebula_density.py</code> (<code>density_at</code>), a pure function of an absolute position, the galaxy seed and the stored shape.</li>
+<li><strong>The sample</strong> is <code>galaxy/nebula_volume.py</code>: a node's volume is every lattice point (whole multiples of one spacing, <code>LATTICE_BASE_PC</code> times a power of two, from the galaxy's origin) that lies in the node and that a nebula reaching the node holds; the nebula nearest to a point in its own radii owns it; the strength is the density through a soft threshold at <code>FORM_LEVEL</code> and a window that fades at the radius (a shell profile for a planetary nebula and a remnant). The lattice level follows the volume-weighted radius of the node's nebulae, and the number of noise octaves follows the lattice, so coarse blobs stay put as filaments are added. <code>db/nebula_volumes.py</code> reads the nebulae, <code>GET /api/galaxy/nebula-volume</code> serves the packed points, nothing is stored.</li>
+<li><strong>The drawing</strong> is <code>static/nebulavolume.js</code> (which nodes to ask for, decoding, the cap formula) and <code>static/nebulavolumelayer.js</code>: soft splats added into a half-resolution target, then one full-screen pass that bends the sum under <code>CAP</code> keeping its hue. The MAP.176 group circle and the nebula's own circle and mesh fade as its node's volume shows.</li>
+<li><strong>The edge</strong> (MAP.142, Galaxy Map part): the strength is <code>smoothstep(FORM_LEVEL - w / 2, FORM_LEVEL + w / 2, density)</code> with <code>w</code> for each family (<code>EDGE_WIDTH</code>), so the extent is the half-strength contour and a reflection nebula fades over the longest way; shells keep a ring profile.</li>
+<li><strong>The tint</strong> (MAP.215): the star shader, the star glow and the charted-region layer read the nebulae's raw sum (<code>nebulavolume.tinted</code>, <code>NEBULA_TINT_GLSL</code>) and lean toward its hue, at most 0.6 of the way and with a fifth of the light lost at full tint.</li>
+<li><strong>The default view</strong> (MAP.191, with MAP.214 and MAP.215): no density, age or luminosity fill (the blocks are not drawn unless the cell grid, Charted only or a Color by choice asks); the only shading is the nebulae's, which tint the stars and regions behind them. The Color by menu's first choice is called &quot;No fill&quot;.</li>
+<li><strong>The nebula window</strong> (MAP.222): choosing a nebula (a double click, Enter with its card up, its name, or the card's &quot;Open nebula window&quot; button) opens a group window, <code>static/groupwindow.js</code>: a kind (<code>nebula</code> today; a globular cluster plugs in with <code>registerKind</code>, MAP.223), a title, a bounding sphere and its members (the nebula and every nebula whose sphere reaches it, never more than three times its radius across). The camera flies to frame the sphere; <code>drawnByTheGalaxy</code> then draws only what lies inside (stars, names, markers, nebula sprites), the glow, the charted regions and the group sprites give way, and the nebulae's shape is faded out to the sphere in the volume shader. The bar over the map names the window and holds &quot;Back to the Galaxy Map&quot; (Escape and Backspace do the same before they step out), which flies back to the center and distance the camera had. The window is bounded by its sphere, so the sectors it crosses do not matter.</li>
+<li><strong>The caps</strong> (MAP.367, Boss 2026-11-04): what the Galaxy Map draws at once is about half what it was, so a view is lighter: the stars held on the screen 20,000 to 10,000 (8,000 to 4,000 on a phone), the marks 240 to 120, the nebula regions 600 to 300, the named stars and objects offered to the labels 400 to 200. A sector opened in place keeps the old star numbers and has its own mark budget (1,500), so it shows every system that fits. The node budget (1200) stays: halving it was tried and makes the blocks hand over in bursts of stars (<code>starfade.test.mjs</code> saw a 100% rise in one 9% zoom step), which is the square chunks of MAP.366; the nodes are a data cap, not a count of things drawn. The names' budget is by the screen's area (<code>labelBudget</code>) and the glow and the region tokens follow the stars and regions, so they are not capped separately.</li>
+<li><strong>The Sector Map</strong> (MAP.142 part 2): a nebula of an opened sector (or a sector page) is drawn from its own cloud of points, <code>GET /galaxy/nebula/&lt;id&gt;/volume</code> (<code>db/nebula_volumes.single_nebula_volume</code>, the same sampler and density as a node's volume, over that nebula's sphere at the level its own radius asks for), by the same layer: <code>sectorscene.nebulaSources()</code> hands the layer a <code>nebulavolume.singleSource</code> for each nebula (key <code>nebula:&lt;id&gt;</code>, weight the scene's fade, none for a hidden kind), which the layer draws whether or not the nodes' volumes show. The sphere stays in the scene only to be picked (its material is not drawn), and no shape mesh is asked for. Where the layer is not there (no float target) the sphere draws as before; the per-ID shape mesh (MAP.103, <code>nebulamesh.js</code>, <code>/galaxy/nebula/&lt;id&gt;/shape</code>) is gone from the maps and the nebula page (MAP.142 part 4), on the Galaxy Map too, where a nebula is its sprite until the volume layer covers it.</li>
+<li><strong>The nebula page</strong> (MAP.142 part 3): a nebula's page draws it from its own cloud of points too (<code>static/nebulaview.js</code>): the scene is in the galaxy's frame in parsecs, one <code>nebulavolume.singleSource</code> is handed to the same layer, and the camera turns round the center that <code>GET /galaxy/nebula/&lt;id&gt;/surroundings</code> now gives (<code>center_pc</code>; null for a nebula never placed, which keeps its still drawing, as does a browser with no float target). The dimmed bright stars sit at their offsets from that center. The shape mesh is no longer asked for by the page.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

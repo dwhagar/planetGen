@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cache warm-up and invalidation (PERF.104) - planetGen docs</title>
+<meta name="description" content="Informs: PERF.104, PERF.2 (the page cache), PERF.64 (stored counts), MAP.134 (the Galaxy Map warm-up), PERF.86 (Redis rules), OPS.51 (maintenance) Status: built (Core 2, 2026-10-16).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/cache-warm-up.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/cache-warm-up.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="cache-warm-up-and-invalidation-perf104">Cache warm-up and invalidation (PERF.104)</h1><p class="meta">docs/design/operations/cache-warm-up.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#the-problem">The problem</a></li><li style="margin-left:0px"><a href="#design">Design</a></li><li style="margin-left:0px"><a href="#the-warm-up">The warm-up</a></li><li style="margin-left:0px"><a href="#the-warm-up-log-ops96">The warm-up log (OPS.96)</a></li><li style="margin-left:0px"><a href="#the-whole-map-build-perf233">The whole-map build (PERF.233)</a></li><li style="margin-left:0px"><a href="#done-when">Done when</a></li><li style="margin-left:0px"><a href="#not-in-this-slice">Not in this slice</a></li><li style="margin-left:0px"><a href="#without-redis">Without Redis</a></li></ul></details>
+<p>Informs: PERF.104, PERF.2 (the page cache), PERF.64 (stored counts), MAP.134 (the Galaxy Map warm-up), PERF.86 (Redis rules), OPS.51 (maintenance)
+Status: built (Core 2, 2026-10-16). Nothing here changes a table; no migration.</p>
+<h2 id="the-problem">The problem</h2>
+<p>After <code>update.sh</code> the first visit to a page builds it from the database, and today the warm-up covers one thing, the Galaxy Map's opening tiles. The page cache (<code>web/lib/pagecache.py</code>) is a dict inside each WSGI process, so no outside script can fill it, and it drops a database's whole cache whenever the galaxy's content stamp moves. A warm-up therefore needs a store every process shares, and &quot;changing one sector rebuilds only the caches that read it&quot; needs the cache to know what each answer read.</p>
+<h2 id="design">Design</h2>
+<p><strong>One shared store, Redis (PERF.86 rules).</strong> The page cache keeps its in-process copy for speed and adds Redis behind it. Redis is the only place a warm-up can write for every worker to read. It runs with AOF <code>everysec</code> and <code>noeviction</code>, so every key carries a TTL and every value is capped (one body at most a quarter of <code>page_cache.max_mb</code>). A cold Redis is an empty cache, never wrong: a read that cannot reach Redis is a miss and the answer is not stored.</p>
+<p><strong>Every entry names what it read (tags), and every change bumps tags.</strong> Redis holds one hash per database, <code>planetgen:ver:&lt;db&gt;</code>, of tag name to counter, and a field <code>_id</code> (an incarnation token made when the hash is first written, so a flushed Redis cannot revive an old in-process copy). An entry stores the counters of its tags at the time it was fetched; it is served only when every counter still matches. A stale copy is therefore never served as current, in this process or another.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Bumped when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>epoch</code></td>
+<td>the plan, the galaxy shape, the naming key, a release, a bulk delete, or a write the table below cannot place. Every entry carries it.</td>
+</tr>
+<tr>
+<td><code>sector:&lt;id&gt;</code></td>
+<td>that sector is edited, regenerated, has systems added or removed, or a system in it is edited (ids as printed, API.23)</td>
+</tr>
+<tr>
+<td><code>system:&lt;id&gt;</code></td>
+<td>that system is edited or deleted</td>
+</tr>
+<tr>
+<td><code>phenomenon:&lt;type&gt;:&lt;id&gt;</code></td>
+<td>that phenomenon is edited or deleted</td>
+</tr>
+<tr>
+<td><code>sector-set</code>, <code>system-set</code>, <code>phenomena-set</code></td>
+<td>an object of that kind is added or deleted (who is next to whom, counts)</td>
+</tr>
+<tr>
+<td><code>sector-data</code>, <code>system-data</code>, <code>phenomena-data</code></td>
+<td>any object of that kind is added, deleted or edited (what a list shows)</td>
+</tr>
+<tr>
+<td><code>system-any</code></td>
+<td>a star, planet, moon or facility is edited and the route does not name its system</td>
+</tr>
+<tr>
+<td><code>population</code></td>
+<td>the population pass ran, or a species, polity or territory was edited</td>
+</tr>
+<tr>
+<td><code>positions</code></td>
+<td>the orbital update moved objects</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every bump also adds one to <code>_n</code>, which <code>begin</code>/<code>put</code> compare so an answer fetched while data changed is not stored.</p>
+<p><strong>What an answer reads</strong> (<code>web/lib/pagetags.py</code>, the one place that says; the ids come from the answer's body):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Answer</th>
+<th>Tags</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sector page</td>
+<td><code>epoch</code>, <code>sector:&lt;its id&gt;</code>, <code>sector:&lt;each neighbour's id&gt;</code>, <code>sector-set</code>, <code>phenomena-data</code>, <code>population</code>, <code>positions</code></td>
+</tr>
+<tr>
+<td>System page, text, sections, scene</td>
+<td><code>epoch</code>, <code>system:&lt;id&gt;</code>, <code>sector:&lt;its sector&gt;</code>, <code>system-any</code>, <code>phenomena-data</code>, <code>population</code>, <code>positions</code> (the two set tags when the body names no sector)</td>
+</tr>
+<tr>
+<td>Phenomenon page</td>
+<td><code>epoch</code>, <code>phenomenon:&lt;type&gt;:&lt;id&gt;</code>, <code>sector-data</code>, <code>phenomena-set</code></td>
+</tr>
+<tr>
+<td>Sector list</td>
+<td><code>epoch</code>, <code>sector-data</code>, <code>system-set</code>, <code>phenomena-set</code>, <code>population</code>, <code>positions</code></td>
+</tr>
+<tr>
+<td>System lists</td>
+<td><code>epoch</code>, <code>sector-data</code>, <code>system-data</code>, <code>system-any</code>, <code>population</code>, <code>positions</code></td>
+</tr>
+<tr>
+<td>Phenomena list</td>
+<td><code>epoch</code>, <code>sector-data</code>, <code>phenomena-data</code></td>
+</tr>
+<tr>
+<td>Polities, species</td>
+<td><code>epoch</code>, <code>population</code>, <code>system-data</code></td>
+</tr>
+<tr>
+<td>Anything not listed (search, near, nav, galaxy)</td>
+<td><code>epoch</code> plus every tag above except the per-object ones</td>
+</tr>
+</tbody>
+</table></div>
+<p>So renaming one sector bumps <code>sector:&lt;id&gt;</code> and <code>sector-data</code>: its page, its neighbours' pages and its systems' pages are rebuilt, and the lists; no other sector's page and no other system's. Renaming one system bumps <code>system:&lt;id&gt;</code>, <code>system-data</code> and <code>sector:&lt;its sector&gt;</code>: its page, its sector's page and its siblings' pages are rebuilt, no other sector.</p>
+<p><strong>Who bumps.</strong> (1) A write through the API (<code>web/__init__.py</code>) maps the route to a change kind (<code>pagetags.change_for_write</code>) and bumps its tags before the response goes out; for a system the sector is looked up before the write runs; a route it cannot place bumps <code>epoch</code>. (2) The command line records its change when it finishes (<code>cli/generate.py</code>: <code>plan</code> is <code>everything</code>, <code>population</code> is <code>population</code>, every other writing command <code>generated</code>; <code>cli/orbits.py</code>: <code>orbits</code>). (3) The backstop for everything else, as before: the content stamp (<code>GET /api/galaxy/changes</code>, checked every <code>page_cache.stamp_seconds</code>). The first process to see a new state claims it in Redis (<code>dataversion.claim_state</code>) and bumps <code>sector:&lt;id&gt;</code> for each sector named (<code>galaxy_changes</code> now lists them, placed or not) and <code>sector-data</code>, plus every set and data tag when something was added; a change it cannot place (<code>full</code>) bumps <code>epoch</code>. The state the last claim recorded is what the next check asks about, so a change made while no web process ran is found by the first check after. While a fill makes the galaxy <code>busy</code> (PERF.38) nothing is bumped from the second busy check on and entries age out, the one documented case where an answer can be up to <code>max_age_seconds</code> old. The age limit stays the last backstop.</p>
+<p><strong>Counts.</strong> <code>db/countcache.py</code> already keys its answers by the stamp and refreshes them in the background; the warm-up asks for each table page's counts once, which stores them.</p>
+<h2 id="the-warm-up">The warm-up</h2>
+<p>Superseded in part (Boss, 2026-10-18, 5:43 PM EDT, PERF.139): the flat family order below is to be replaced by budgeted warm-up phases in place of the level cap.</p>
+<p><code>planetgen warm</code> (PERF.127; it was <code>python -m planetgen.cli.warm_map</code>), run after <code>update.sh</code> as the web server's user. It covers these families, each its own command on the work queue (<code>warm-cluster-field</code>, <code>warm-object-index</code>, <code>warm-galaxy-map</code>, <code>warm-galaxy-nodes</code>, <code>warm-galaxy-deep-nodes</code>, <code>warm-lists</code>, <code>warm-sectors</code>, <code>warm-systems</code>, <code>warm-phenomena</code>, <code>warm-search</code>; <code>queue/commands.py</code>) that warms that family and nothing else and can run alone (<code>planetgen command-run</code>). <code>planetgen warm</code> builds the list of them and the wrapper runs them in order as a maintenance run (<code>runrecord.MAINTENANCE</code>: its own place in Redis, so it does not block a generation run and the visitors' banner never shows it):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>What it warms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cluster-field</code></td>
+<td>the galaxy's cluster field (PERF.225): the globular clusters, satellites and young open clusters as one field the density model reads. Building it takes 20 to 60 s on a galaxy of tens of thousands of open clusters, nearly all of it the mean system mass of each distinct age, so it is a stage of small units (<code>galaxy/field_job.py</code>): one unit per <code>PART_AGES</code> (1000) ages writes its part as a file in <code>&lt;state folder&gt;/galaxy-field/&lt;signature&gt;.parts/</code>; when the last is in, the stage's conclusion makes the field from the rows and the parts and writes <code>&lt;signature&gt;.field</code> by a rename, then removes the parts and all but the newest two fields. A run that stopped is carried on from the parts that are there. The signature names the rows (<code>store.component_field_key</code>) and a hash of the source that decides the numbers, so a changed row or formula is a new file; the file is read through an unpickler that allows only the field's own classes. The web daemon only reads the file (<code>store._component_field</code>); a visitor's request that finds no file for a galaxy of more than <code>INLINE_COMPONENTS</code> (1500) components is refused at once with the 503 of the cache guard (<code>admin/cachebuild.py</code>, cause <code>missing</code>), and a worker, the command line or the warm-up builds it in their own process; the <code>opening</code> phase</td>
+</tr>
+<tr>
+<td><code>object-index</code></td>
+<td>the object index (PERF.140): one <code>object_index</code> row per object of every kind the site lists, written only when the object changed since the kind's last run</td>
+</tr>
+<tr>
+<td><code>galaxy-map</code></td>
+<td>the opening nodes and stage (existing <code>warm_opening_view</code>), the galaxy shape, sector list, phenomena, superbubbles, shell specs, bright-star status</td>
+</tr>
+<tr>
+<td><code>galaxy-deep-nodes</code></td>
+<td>the zoom run (MAP.261): the nodes the map fetches on a zoom from the opening view in to the galaxy's center, down to blocks of <code>tile_cache.warm_zoom_floor</code> shells (default 9), at most <code>MAX_WARM_NODES</code> (100,000), coarsest first, in chunks of <code>NODE_CHUNK</code> through <code>tilecache.fetch_nodes</code>; the <code>deep-nodes</code> phase</td>
+</tr>
+<tr>
+<td><code>galaxy-nodes</code></td>
+<td>the Galaxy Map's sector-block nodes (MAP.260): every block of level <code>warmup.NODE_WARM_FLOOR</code> (243) and above that holds a generated sector or pre-placed objects (<code>nodes.populated_node_keys</code>), biggest blocks first, in chunks of <code>NODE_CHUNK</code> (64) through <code>tilecache.fetch_nodes</code>; the <code>built-levels</code> phase, which stops at the cache budget</td>
+</tr>
+<tr>
+<td><code>lists</code></td>
+<td>the first page of the sector, system, uncharted-system, phenomena, polity and species lists, the lists page and the first page of each kind's list (UX.141), and each list's counts</td>
+</tr>
+<tr>
+<td><code>sectors</code></td>
+<td>every sector page (the sector detail), nearest the galaxy center first, up to <code>page_cache.warm_max_objects</code></td>
+</tr>
+<tr>
+<td><code>systems</code></td>
+<td>every system page, same order and cap</td>
+</tr>
+<tr>
+<td><code>phenomena</code></td>
+<td>every phenomenon page, same cap</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td>the search page's empty and default answers and its index counts</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Nodes (PERF.130, MAP.260, MAP.261).</strong> The families cut into many units. Before MAP.262 the map was cut into cube tiles and <code>galaxy-tiles</code> built the octree's first levels and a zoom run of them (7,112 tiles in 12 minutes 17 seconds in one process on the scaled probe galaxy, 40 MB on disk, a second run 1.0 second and none built); the cube tiles are gone and the same two ideas run on the sector-block nodes. <code>galaxy-nodes</code> lists the populated blocks of <code>NODE_WARM_FLOOR</code> and above from the stored block rows and cuts them into chunks of <code>NODE_CHUNK</code>; a unit builds one chunk through <code>tilecache.fetch_nodes</code>, the call the map's own request makes, so what is stored is what a visitor is served and a node that is stored and current is not built again (a second run builds nothing). <code>galaxy-deep-nodes</code> is the zoom run: the union of <code>nodecut.node_cut</code> for the camera on the opening camera's line through the origin (the page's starting angles round the central black hole), from the opening distance in, one <code>ZOOM_STEP</code> (1.3) closer at a time, keeping nodes finer than <code>NODE_WARM_FLOOR</code> down to <code>warm_zoom_floor</code> shells; a floor that would build more than <code>MAX_WARM_NODES</code> is refused with its count. Nodes deeper than the run are built on first request, and the ones around a visit are built ahead (below).</p>
+<p><em>Settled-view time</em> (the server's time to hand a fresh visitor every node of one view, asked in request-sized chunks one after the other, for the camera on the zoom run's line at each distance, on that galaxy): without warming 5.1 / 9.0 / 18.6 / 53.5 / 12.5 / 8.4 / 3.0 / 1.2 s at 100,000 / 30,000 / 10,000 / 3,000 / 1,000 / 300 / 100 / 30 pc, 111 s over the eight views; after the warm-up 0.0 / 0.0 / 1.7 / 1.2 / 0.1 / 0.1 / 0.0 / 0.1 s, 3.2 s over the eight. What remains is nodes the run's one-step grid does not hold; PERF.132 builds those around a visit. (These figures are of the cube tiles, kept as the record of what warming buys.) The node cache is keyed by the tile stamp (PERF.133, below), which leaves the release number out, so a release that changes neither the format nor the generator epoch keeps every stored node and the <code>planetgen warm</code> that <code>update.sh</code> starts finds them stored (&quot;0 built&quot;).</p>
+<p><strong>Building around a visit (PERF.132, MAP.260).</strong> <code>web/lib/tileprefetch.py</code>. When a <code>/galaxy/nodes</code> response has gone, the route hands the request's node keys to <code>tileprefetch.schedule</code>, which queues what the visitor is likely to ask for next and does not have: for each requested node (the request lists them nearest first) its children and then its parent and the parent's other children, for a visitor who zooms in, out or pans. The page's own idle prefetch (zoom 3, after 1.5 s of a still camera, at most 12 nodes, marked <code>X-Map-Prefetch</code>) fills the browser's cache and does not queue anything on the server. The jobs go to the bulk queue (never the interactive one, so an admin's work is not behind them) as chunks of 16 nodes that a worker builds into the same disk cache through <code>tilecache.fetch_nodes</code>; one worker is started if none serves the queue. Rules, each a <code>tile_cache</code> setting or a fixed constant: at most <code>prefetch_per_visit</code> (128) nodes per request, <code>prefetch_per_minute</code> (600) in all, nothing while <code>prefetch_max_queued</code> (8) jobs wait, nothing for ten minutes after <code>prune</code> deleted files (the cache is full), nothing during an update, nothing for a node stored or already claimed (a Redis key per node and generation, 15 minutes), so a visit to a built area queues nothing and a second visitor to the same area causes no build. It fails open: no Redis or no cache directory means no background build. It does not queue stages or windows: the map asks for them one block at a time.</p>
+<p><strong>The phases (PERF.141, Boss 2026-10-18 5:43 PM EDT).</strong> <code>warmup.PHASES</code> names five phases and the families in each, in the order they run: (1) <code>opening</code>: <code>cluster-field</code>, <code>object-index</code>, <code>galaxy-map</code> and <code>lists</code>, the cluster field, the object index, the opening views and the first page of each list; (2) <code>built-levels</code>: <code>galaxy-nodes</code>, the populated blocks of <code>NODE_WARM_FLOOR</code> and above; (3) <code>deep-nodes</code>: <code>galaxy-deep-nodes</code>, the zoom run in to the center down to <code>warm_zoom_floor</code>; (4) <code>objects</code>: <code>sectors</code>, <code>systems</code>, <code>phenomena</code>; (5) <code>search</code>. Each family is still a command of its own; a phase is what the run reports (<code>warmup.PhaseTally</code>: built, already stored, left out by the budget or a cap, or <code>unchanged, nothing built</code>) and what <code>planetgen warm PHASE</code> runs. The node phases stop at <code>cache.max_mb</code> (below); the page phases write to Redis. <strong>The automatic start (PERF.141 slice 2).</strong> <code>queue/warmstart.py</code>. <code>dataversion.bump</code>, the one place every change that moves a data version tag passes through (a generation run, <code>planetgen orbits</code>, an edit through the API, a change the page cache found in the galaxy's content state), ends with <code>warmstart.request(database, tag)</code>. It adds the change to the Redis hash <code>planetgen:warm:wanted:&lt;database&gt;</code> and, unless the lock <code>planetgen:warm:auto:&lt;database&gt;</code> is held by a live process, takes it and starts <code>planetgen warm --on-change &lt;database&gt;</code> apart from the caller (as the owner of the tile cache directory when the caller is root, so Apache can read what it writes). A request made while a warm-up waits or runs only adds to the hash. The started process waits <code>cache.warm_settle_seconds</code> (default 60) so a burst of edits is one warm-up, takes the hash, runs the whole warm-up once (which rebuilds only what the changes touched, so a small change costs seconds), lets go of the lock and looks again: a change that arrived meanwhile starts another round, at most five in one start (<code>MAX_ROUNDS</code>; one more change after that starts a new one). Nothing starts while an update runs (<code>update.sh</code> starts its own warm-up at its end), with <code>cache.warm_on_change</code> off (<code>PLANETGEN_WARM_ON_CHANGE=0</code>; the test suite sets it so) or without Redis; a start that fails warns on stderr and never fails the change. A change on a database other than the one the site shows warms nothing. A failed run is in the activity log and ends the process; the next change starts it again. <strong>The admin page's phase state (PERF.141 slice 3).</strong> <code>queue/warmphases.py</code>. Every <code>planetgen warm</code> run writes the Redis hash <code>planetgen:warm:phases:&lt;database&gt;</code>: a field per phase and <code>_run</code> for the run. A phase is <code>waiting</code>, <code>running</code>, then <code>built</code>, <code>unchanged</code> (nothing built), <code>stopped</code> (the budget or a cap left something out), <code>nothing</code> (no family of it had anything to warm) or <code>failed</code>, with its report line, counts and times (<code>PhaseTally.result</code>). A phase the run did not ask for keeps what an earlier run wrote, so <code>planetgen warm lists</code> leaves the rest as they were; a failed run marks the running phase <code>failed</code> and puts the phases it never reached back to not run; a run whose process died reads as <code>interrupted</code>. <code>GET /api/admin/work/warm?database=NAME</code> (admin) returns it, with what the automatic start waits for, and the admin queue page (<code>/admin/queue</code>) shows it as the &quot;Cache warm-up&quot; panel: the last run (state, start, end, what asked for it), whether a start after a change waits or runs, and one row per phase. The object index is built (PERF.140) and the lists page and each kind's list are warmed in phase 1. Deeper list pages are not warmed: a page of the object lists starts after the last object of the one before (UX.141), so page 500 reads as little as page 1 and warming it buys nothing.</p>
+<p><strong>The object index (PERF.140).</strong> <code>db/objectindex.py</code> fills <code>object_index</code> (DB.79) from the live tables with one <code>INSERT ... SELECT ... ON DUPLICATE KEY UPDATE</code> for each kind of object (<code>SOURCES</code>: the columns the lists sort and search by, taken from the object's table and its system). A row's <code>indexed_at</code> moves only when a column it holds changed. <code>build</code> writes every object of a kind and removes the rows of objects that are gone. <code>refresh</code> writes only the objects whose <code>modified_at</code> (a child's edit reaches its row through its system) is later than the kind's last run, which Redis keeps (<code>planetgen:objindex:&lt;database&gt;</code>, the time taken from the database's own clock); a kind with no record is built, and a kind whose rows are fewer or more than its objects is swept, then written whole if it still differs. The automatic start (<code>warmstart</code>) asks for a <code>build</code> after a <code>positions</code> or <code>epoch</code> change, since an orbital update leaves <code>modified_at</code> alone and moves which sector holds an object, and a refresh otherwise. The index is kept first in the budget: <code>tilecache.max_cache_bytes</code> is <code>cache.max_mb</code> less the size the index took when its last run ended (<code>objectindex.reserved_bytes</code>, never less than one byte, so a budget the index fills leaves the tile cache full, not off). <code>planetgen check-db object-index</code> compares the index with the tables, naming how many rows are missing, extra or different (a warning when nothing has built it yet), and the admin queue page shows each kind's rows, last run and the index size.</p>
+<p><strong>A tile is built again only when what it holds changed (PERF.133, Boss 2026-10-18 6:05 PM EDT).</strong> The stored tiles are keyed by <code>query.galaxy_tile_stamp</code>, a hash of the galaxy shape, the bright-star seed, the naming key, <code>query.TILE_FORMAT</code>, the generator epoch and the change counters; the release number is not in it (it stays in <code>galaxy_content_stamp</code>, which the pages and counts follow). So (1) nothing changed: a second warm-up, or the <code>planetgen warm</code> after a release, builds no tile and says <code>N built, M already stored</code>; (2) a sector edited, added or given a system: <code>GET /api/galaxy/changes</code> names its tile at every level, only those files are deleted, and the ones that were stored are queued at once for a rebuild on the bulk queue (<code>tilecache.take_rebuilds</code>, <code>tileprefetch.rebuild</code>, coarsest first, at most 2,048 a change, off with the prefetch, during an update and while the cache is full), so the next visit finds them built; (3) a deleted sector, a new shape, tile format or epoch, more than 1,000 changed sectors, or a backfill: a new generation, rebuilt by the next warm-up. A change to what a tile holds or how it is packed must raise <code>query.TILE_FORMAT</code>; <code>tests/test_tile_format.py</code> pins the bytes of one fixed tile and fails until the number and its digest are updated. The stored tiles are never dropped for age.</p>
+<p><strong>What the index leaves out (MAP.400, Boss, 2026-11-06 5:08 PM EST).</strong> The index reads the tables that hold an object with an Object ID, so it holds neither <code>phenomenon_scatter</code> (9.7 million rows on the test galaxy: the scattered black holes, neutron stars, supernova remnants, planetary nebulae, hypervelocity stars and the nucleus quasar whose sector is not built) nor the unstored clouds of <code>nebula_field</code> (110 thousand, which have no Object ID until a sector stores them). The Lists page and the admin table had shown NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 while the map draws them. They were not added to the index: a row is about 300 bytes with its keys, so the scatter would take about 3 GB, three times the default <code>cache.max_mb</code> that the index is kept first in, for rows no edit changes and a sweep that counts 9.7 million on every refresh. <code>db/uncharted.py</code> reads them beside the index instead: the counts from <code>phenomenon_scatter_classes</code> (exact, kept by the scatter) and one count of the field, a list page by the row id (the scattered rows) and by the key (the field clouds), and Nearby by the cell key like every positioned table. A list shows the charted objects first in the order asked for and the uncharted ones after them (name order only; they have no name, sector or stored values to filter by), the search page's Phenomenon facet and panel count and list them, and the admin table has an Uncharted column beside Rows (recorded by each index run in <code>planetgen:objindex:&lt;database&gt;</code>, field <code>_uncharted</code>).</p>
+<p><strong>The budget (PERF.139, PERF.133 part 2; Boss, 2026-10-18, 5:43 to 5:57 PM EDT).</strong> One setting, <code>cache.max_mb</code> (default 1024, <code>0</code> turns the disk caches off, <code>PLANETGEN_CACHE_MAX_MB</code>), replaces <code>tile_cache.max_mb</code> with no shim; the tile cache is the first thing under it, and the object index (PERF.140) shares it and is kept before tiles, as the stored lists (PERF.141) will be. A tile built ahead (the warm-up, the background build, a rebuild after a change) is written with <code>AHEAD_MODE</code> (group-read bit); a tile a visit asked for is written 0600, and every visit to a stored file sets its modification time. <code>tilecache.prune</code> runs when a write may have taken the cache over the budget and, over it, deletes only the files a visit asked for, least recently visited first, down to 80% of the budget; the tiles built ahead are never deleted for size, so a cache of nothing else stays over the budget. Warming then stops: each unit of <code>planetgen warm</code>'s <code>galaxy-tiles</code> checks <code>tilecache.cache_is_full</code> first, builds nothing and reports the tiles it left out (<code>N tiles left out, the tile cache is full</code>), and the background build waits while <code>prune</code> has just deleted files (<code>.full</code>).</p>
+<p>Each family ends with one line, <code>&lt;family&gt;: &lt;n&gt; warmed (&lt;m&gt; already cached, &lt;k&gt; left out by the cap) in &lt;s&gt; s</code>, printed by the command, written to the activity log (the admin's log) and returned as the unit's result. <code>planetgen warm</code> exits non-zero if any command fails, and says which (the run stops at the failing one, as every wrapper list does); it has no silent fallback (a Redis that does not answer is an error, printed; a running update is waited for; and two warm-ups never run at the same time, see below; <code>Phase N of 5</code> lines give the time the phase took, not its units' seconds added up). A cap that leaves objects out says so; those fill on first visit. <code>planetgen warm lists search</code> runs just those; there is no <code>--no-rq</code> and no <code>--only</code>, since the order and the choice live in the wrapper's list and Redis is required. A family warms by visiting the pages through the site's own Flask app (<code>warmup.build_app</code>: open during the sector-switch maintenance, not rate limited), so what it caches is exactly what the page asks for; a page that does not answer 200 fails the family. The activity log has <code>GEN warm.family</code> or <code>GEN warm.failed</code>. <code>planetgen warm</code> waits for a running update to finish before it queues (the queue takes no job during one, OPS.53), <code>update.sh</code> runs it in two stages in the foreground, each with a progress bar (<code>--progress</code>): stage 1, <code>planetgen warm opening</code>, just before the Apache reload (what the reload and the health check need, so the reload cannot interrupt it); then it reloads, waits 10 s (<code>HEALTH_SETTLE_SECONDS</code>) and checks <code>/api/health</code> at <code>api_base_url</code> only; then it releases the update guard (the site opens) and stage 2, the full warm-up, runs while update.sh stays up showing its bar until it ends. <strong>An unchanged run (PERF.239).</strong> An object slice (a unit of <code>warm-sectors</code>, <code>warm-systems</code> or <code>warm-phenomena</code>) records, while it is warmed, the Redis key of every answer its pages read or stored, the counter of each tag they read and the incarnation (<code>pagecache.ResponseCache.recording</code>, <code>Slice</code>), and keeps that in Redis for half of <code>page_cache.shared_seconds</code> (<code>save_slice</code>, key <code>planetgen:warmed:&lt;database&gt;:&lt;digest of the slice's object ids&gt;</code>). The next run asks <code>slice_is_current</code> first: after the content stamp is looked at, one read of the tag counters and one pipelined <code>EXISTS</code> of the keys; a slice whose counters, incarnation and answers all stand is not visited, and its answers count as already cached. Anything else (a tag bumped, an answer gone, a failed page the first time, Redis not answering) visits the slice as before. A test galaxy's unchanged object phase went from 214 s to 4.5 s (10,014 objects, one process); the deep-node phase still pays about a quarter of a second a unit for the app each unit builds. <strong>The progress (PERF.234, PERF.237).</strong> <code>cli/warm_progress.py</code>. The overall bar weighs a step by what it is expected to cost, not as one step in eleven: a queued step by the cost its units declare (<code>warmup.ITEM_SECONDS</code> seconds an item on one worker: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062, so the object steps are most of the bar), a step not yet queued by <code>warmup.EXPECTED_SECONDS</code>. While a later step has not been queued the whole warm-up's time left is marked <code>(rough guess)</code>. Neither the stage's nor the whole warm-up's time left is shown from fewer than <code>MIN_CHUNKS</code> (5) chunks, the first results being the first of the workers that run side by side. A chunk's own seconds are its worker's; the chunk line says how many chunks run at once (their seconds added up over the elapsed time) and the seconds a chunk takes overall (elapsed over chunks done), and the time left comes from that overall rate only.</p>
+<p><strong>Two warm-ups never run at once (OPS.117; Boss, 2026-11-07, 12:56 PM EST).</strong> A warm-up is one of three kinds, told by <code>warm_log.origin</code>: the update's own (<code>update.sh</code>'s two stages, named in <code>PLANETGEN_WARM_STARTED_BY</code>), the one a change starts (<code>planetgen warm --on-change</code>: the epoch's, the one after an orbital update, any data change) and one a person starts. Before a run takes the machine (<code>cli/warm._settle_with_other_runs</code>), it looks at the maintenance run that holds it. The update's warm-up has priority: if the holder is a cache warm-up of either of the other kinds, it cancels it through the normal cancel path (<code>runcontrol.cancel_run</code>: the run ends as <code>canceled by the update's cache warm-up, which has priority over every other warm-up</code>, its waiting units leave the queue, the started ones are stopped), waits up to 60 s for those units to stop so the two never work at once, and goes on; what the canceled run stored is kept and the update's run finds it. A maintenance run that is no warm-up it waits for, as a change's warm-up does. A change's warm-up never starts while another run holds the machine: it says which run and waits for it to end (four hours at most, nothing written to the phase record meanwhile), then warms what is left, which is little. One started by hand does not start: it names the run that holds the machine, says <code>planetgen warm --follow</code> watches it, and exits 1. If the machine is taken between the look and the start (<code>Busy</code>), the update's warm-up looks again and cancels what took it, up to twice. The canceled run is not a failure: a change's warm-up ends with a plain line (the update's run warms everything it would have), a hand-run one exits 1 with a warning, <code>warmup.log</code> closes it as <code>canceled by ...</code>, and <code>error.log</code> (OPS.116) gets nothing. The phase record is the current run's alone: <code>_run</code> holds the pid of the run that began it, and <code>warmphases.start_phase</code>, <code>finish_phase</code> and <code>end</code> from any other process are dropped, so a canceled run winding down cannot write into the update's record.</p>
+<p><strong>A warm-up outlives its terminal, and can be watched from another (PERF.235).</strong> The <code>planetgen warm</code> that starts a run is a client of it: the queue workers do the work, so a lost terminal (an SSH session that dropped, SIGHUP) no longer ends the run, as OPS.95 had it. The process points its standard output and error at /dev/null (<code>warm._silence</code>), writes one line to the run's log (&quot;The terminal this warm-up ran in was closed: it goes on without it&quot;), which the admin page's queue panel shows, and carries on to the end, still the run's starter (it keeps the run's alive key, the update guard's entry and the phase hash up to date). A SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit) and Ctrl+C in that process still end the run as canceled. <strong><code>planetgen warm --follow</code></strong> draws the running warm-up in any other session from its run record: it finds the maintenance run titled &quot;Cache warm-up&quot; (<code>runrecord.active_run</code>), reads its steps, and <code>wrapper.follow</code> replays each stage's plan, the unit results and the conclusions from Redis (stages already done show as done at once), drawing the same bars and the same per-phase lines as the starter. It starts nothing, does not touch the run's alive key (<code>touch=False</code> in <code>units.follow_stage</code>, so a follower cannot keep a dead run looking alive), does not register with the update guard and does not write the phase hash; Ctrl+C or a hangup ends only the watching (exit 130 for Ctrl+C), never the warm-up. With no warm-up running it says so and exits 0; a warm-up that fails or is canceled while it watches ends the follower with the run's error and exit 1. A warm-up started under <code>nohup</code> or in <code>tmux</code> is still the better way to run a long one by hand, but a dropped connection no longer costs the run.</p>
+<p>It runs inside the maintenance flag the update set (OPS.51). A list of every family ends with the command <code>end-map-rebuild-maintenance</code>, which ends the sector-switch maintenance after every family has succeeded: it is the list, not a family, that knows the maps are then rebuilt. It registers with the update guard (OPS.53) so a later update lists and cancels it.</p>
+<h2 id="the-warm-up-log-ops96">The warm-up log (OPS.96)</h2>
+<p>Every <code>planetgen warm</code> that runs a warm-up appends it to <code>warmup.log</code> in the log folder (<code>log_dir</code> in <code>config.json</code>, <code>/var/log/planetgen</code> on Linux), written by the command itself (<code>cli/warm_log.py</code>) and not by <code>tee</code>, so it holds every way a run starts: <code>update.sh</code>'s stage 1 and stage 2 (which tell the run so in <code>PLANETGEN_WARM_STARTED_BY</code>), a run by hand and the background run after a change (which says the change). Each run is bracketed: a first line says what started it (and the time limit an update set) and a last line says it finished, ended by a signal or Ctrl+C, or failed, and after how long. The lines in between are what the run printed, each in the logging layer's display form: the local time with its zone, the severity, <code>warm:</code> and the message (<code>2026-11-05 07:44:10 EST INFO     warm: ...</code>). <code>planetgen warm --follow</code> writes nothing, since a watcher is not the run. A file that cannot be written (a hand run by a user the folder does not admit) is said once on the screen and never stops the warm-up. The folder's rotation rule (<code>examples/apache/setup-debug-log.sh</code>: <code>*.log</code>, daily, 30 kept) rotates it with the activity log. With the <code>tee</code> gone, <code>update.sh</code> no longer pipes the output, so the progress bars draw on its terminal as the comments always said. The old /tmp file is gone.</p>
+<h2 id="the-whole-map-build-perf233">The whole-map build (PERF.233)</h2>
+<p><code>planetgen.cli.tiles</code> (<code>web/tilebuild.py</code>) builds every node of the Galaxy Map from scratch, nightly after the orbit update. The warm-up above builds what a visit would reach and stops at <code>cache.max_mb</code>; this builds the whole galaxy: every block of every level that holds a generated sector or a placed object (<code>nodes.all_node_keys</code>) and each generated sector, about 80 KB a sector node and 30 KB a block node, 20 nodes a second on four cores (reports/perf233-tile-cache-cost-2026-11-04.md).</p>
+<ul>
+<li>It builds into <code>&lt;cache root&gt;/.build/</code> (<code>tilecache.building_into</code>: the same layout, no pruning, no budget) and swaps the finished folder in for the live one, so a visitor never meets an empty cache and a run that is killed leaves the old one serving; a rerun picks up the nodes already built.</li>
+<li>It checks the data's stamp before the swap: a change meanwhile deletes just the nodes it touched, and those are built again.</li>
+<li>It refuses to start unless twice the projected size is free, saying the figures.</li>
+<li><code>prune</code> counts only the nodes a visit asked for: the built-ahead ones (this build's and the warm-up's) carry their own bound, the galaxy, so <code>cache.max_mb</code> is the allowance of what visits add on top; a cache of nothing but built-ahead nodes past the budget still stops the warm-up.</li>
+<li><code>examples/maintenance/planetgen-tiles@.timer</code> runs it at 05:00 and then <code>planetgen warm</code> rebuilds the lists, objects and search.</li>
+</ul>
+<h2 id="done-when">Done when</h2>
+<p>After <code>update.sh</code>, the first visit to the Galaxy Map, a sector, a system, a phenomena or system list and a search answers from the cache. Changing one sector rebuilds only the caches that read it. A test per kind of change proves a stale copy is never served as current.</p>
+<h2 id="not-in-this-slice">Not in this slice</h2>
+<p>Warming past the cap (a galaxy of millions of sectors warms its nearest <code>warm_max_objects</code>, the rest fill on first visit); resolving a star, planet or moon edit to its system (those routes bump every system page, <code>system-any</code>, instead); a per-page progress bar on the runs page (the node shows its state and the one result line).</p>
+<h2 id="without-redis">Without Redis</h2>
+<p>The shared tier needs Redis (PERF.86 makes it required for generation anyway). With none, the page cache stores nothing (a copy it could not validate is never served), <code>planetgen warm</code> refuses with a printed error (Redis is required for every run, PERF.127 removed the inline <code>--no-rq</code> mode).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

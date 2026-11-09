@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log output - planetGen docs</title>
+<meta name="description" content="Everything the program writes for a person or a tool to read as a log (the command line, a run&#x27;s log file, the Generate page&#x27;s job log, the queue run page, update.sh) uses one form: a time, a severity, a component, a message and optional...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/logging.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/logging.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="log-output">Log output</h1><p class="meta">docs/reference/logging.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#the-record">The record</a></li><li style="margin-left:0px"><a href="#the-three-ways-it-is-written">The three ways it is written</a></li><li style="margin-left:0px"><a href="#stages">Stages</a></li><li style="margin-left:0px"><a href="#where-to-find-it">Where to find it</a></li><li style="margin-left:0px"><a href="#adding-output">Adding output</a></li></ul></details>
+<p>Everything the program writes for a person or a tool to read as a log (the command line, a run's log file, the Generate page's job log, the queue run page, <code>update.sh</code>) uses one form: a time, a severity, a component, a message and optional <code>key=value</code> fields. A file and a screen are two views of the same record. This page is the reference for reading and using that form; the design, the reasons and the full list of places are in <a href="../design/operations/logging-standard.html"><code>docs/design/operations/logging-standard.md</code></a> (UX.102, UX.121 to UX.123, TEST.183, DOC.19).</p>
+<h2 id="the-record">The record</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time</td>
+<td>Taken when the record is made. Every form is the computer's local time with its zone (OPS.97): in a file it is the local time to the millisecond with its offset (<code>2026-10-24T14:40:00.123-0400</code>); on a screen the zone is named (<code>2026-10-24 14:40:00 EDT</code>).</td>
+</tr>
+<tr>
+<td>Severity</td>
+<td><code>debug</code>, <code>info</code>, <code>notice</code>, <code>warning</code>, <code>error</code>, <code>critical</code> (the RFC 5424 levels, lowest to highest). <code>--quiet</code> and <code>--silent</code> show <code>error</code> and above, the normal mode <code>info</code> and above, <code>--debug</code> everything.</td>
+</tr>
+<tr>
+<td>Component</td>
+<td>A short lower-case name of the part that wrote it: <code>generate</code>, <code>queue</code>, <code>web</code>, <code>update</code>, <code>job</code>.</td>
+</tr>
+<tr>
+<td>Message</td>
+<td>One line of plain words. It carries no time, severity or component of its own.</td>
+</tr>
+<tr>
+<td>Fields</td>
+<td>Numbers and names a tool may want (a count, a stage number, seconds), as <code>key=value</code>. The message reads whole without them.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A record is never written with a secret in it.</p>
+<h2 id="the-three-ways-it-is-written">The three ways it is written</h2>
+<ul>
+<li><strong>A file line</strong> (logfmt, one record per line, the time local with its offset): <code>ts=2026-10-24T14:40:00.123-0400 level=info component=generate msg=&quot;Stage 4 of 12: Scatter the massive stars&quot; event=stage.start stage=4 stages=12</code>. A value with a space, a quote or a control character is in double quotes with the usual escapes, so one record is always one line.</li>
+<li><strong>A JSON line</strong> (JSON Lines, the same names and fields), for machines and exports.</li>
+<li><strong>A display line</strong>, for people: <code>2026-10-24 14:40:00 EDT INFO     generate: Placed the sectors (count=12)</code>. The command line's ordinary text leaves the time off: the message alone, or <code>warning: message</code> for <code>warning</code> and above. <code>--debug</code> and the web log use the full display line.</li>
+</ul>
+<h2 id="stages">Stages</h2>
+<p>A stage of a run has one marker and one divider everywhere: <code>Stage 4 of 12</code> for one stage, <code>Stages 4 to 12 of 12</code> for a run of them, drawn as <code>=== Stage 4 of 12: label ===</code> on the screen, with a matching <code>finished after 31 s</code> line or <code>failed after 31 s: reason</code> line (an <code>error</code>). A skipped stage says why.</p>
+<h2 id="where-to-find-it">Where to find it</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>What it holds</th>
+<th>How to get the records</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The command line</td>
+<td>The run's text on stdout (<code>warning</code> and <code>error</code> lines on stderr).</td>
+<td><code>--record-file &lt;file&gt;</code> writes every line as a file line, <code>--record-json</code> as JSON lines; <code>--debug [file]</code> is the same layer in its debug mode (<a href="cli.html"><code>cli.md</code></a>, Options).</td>
+</tr>
+<tr>
+<td>The Generate page's job log</td>
+<td>The job's <code>output.log</code>: the runner's stage marks as display lines and each step's own text.</td>
+<td><code>/admin/generate/jobs/&lt;id&gt;/log</code> downloads it; <code>?form=records</code> downloads <code>records.log</code>, the same job as records (<a href="html-interface.html"><code>html-interface.md</code></a>).</td>
+</tr>
+<tr>
+<td>The queue run page</td>
+<td>Each event of a run, drawn as a display line.</td>
+<td><code>/admin/queue/&lt;run id&gt;/log</code> downloads the run's log as file lines.</td>
+</tr>
+<tr>
+<td><code>update.sh</code></td>
+<td>Its own lines as display lines (<code>=== Stage 4 of 9: label ===</code>, warnings and errors on stderr).</td>
+<td>The script's output; the same shapes come from <code>scripts/logrecord.sh</code>.</td>
+</tr>
+<tr>
+<td>The error log</td>
+<td>Every error and crash of every program, with the log each also went to (<code>log=</code>) and its traceback: <code>/var/log/planetgen/error.log</code>, or <code>error.log</code> in <code>log_dir</code>.</td>
+<td><code>tail -f /var/log/planetgen/error.log</code>; <a href="../design/operations/logging-standard.html"><code>logging-standard.md</code></a>, The error log.</td>
+</tr>
+<tr>
+<td>The activity log</td>
+<td>Sign-ins, refusals and other events in the one shape that fail2ban matches: <code>2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user=&quot;admin&quot;</code>. It keeps this shape on purpose; <code>test_activity_log.py</code> holds it to the filter.</td>
+<td><a href="config.html"><code>config.md</code></a>, The activity log.</td>
+</tr>
+</tbody>
+</table></div>
+<p>What a command prints as the answer to a question (the data listings of <code>query</code>, <code>config</code>, <code>backup</code>, <code>queue</code>, <code>maintenance</code> and <code>accounts</code>, and interactive prompts) is not a log and stays as printed. Logs of other software (Apache, gunicorn, MySQL, Redis) are theirs.</p>
+<h2 id="adding-output">Adding output</h2>
+<p>Make a record through <code>log.get(component)</code> in <code>planetgen/util/log.py</code> (the one module that makes and writes a line; <code>log.LineFormatter</code> is its one formatter class, in the forms <code>plain</code>, <code>display</code>, <code>debug</code>, <code>file</code> and <code>json</code>) or <code>Record</code>/<code>stage_record</code> in <code>planetgen/util/logrecord.py</code> (the record and its lines; Python's <code>logging</code> underneath), and from a shell script through <code>scripts/logrecord.sh</code> (its severities, stage word and divider are generated from the module by <code>scripts/build_log_vocabulary.py</code>). Do not format a line with your own time or divider. <code>src/tests/test_no_own_log_formatting.py</code> (TEST.183) reads every module under <code>planetgen/</code> and fails when a print, write or logger call builds its text with a time call or a hand-drawn divider, unless the function is named in its <code>ALLOWED</code> list with the reason it is not a log line (<a href="testing.html"><code>testing.md</code></a>).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

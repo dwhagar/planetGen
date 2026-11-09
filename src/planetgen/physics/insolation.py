@@ -16,7 +16,7 @@ star. Luminosities may be in any one unit and distances in AU.
 
 import math
 
-from planetgen.physics import constants, orbit_elements
+from planetgen.physics import constants, orbit_elements, radiation_field
 
 
 def mean_inverse_square(semi_major_axis_au, eccentricity):
@@ -47,7 +47,7 @@ def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsi
     semi_major = (periapsis_au + apoapsis_au) / 2.0
     eccentricity = (apoapsis_au - periapsis_au) / (apoapsis_au + periapsis_au)
     host = host_luminosity / distance_au ** 2 * orbit_elements.mean_flux_factor(planet_eccentricity)
-    mean_total = host + companion_luminosity * mean_inverse_square(semi_major, eccentricity)
+    mean_total = host + companion_luminosity * radiation_field.mean_inverse_square(distance_au, semi_major, eccentricity)     # GEN.1441: the field's mean
     swing = (companion_luminosity * (1.0 / periapsis_au ** 2 - 1.0 / apoapsis_au ** 2)
              + host_luminosity / distance_au ** 2 * (1.0 / (1.0 - planet_eccentricity) ** 2 - 1.0 / (1.0 + planet_eccentricity) ** 2))
     return min(swing / mean_total, 1.0) if mean_total > 0.0 else 0.0

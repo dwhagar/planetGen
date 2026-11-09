@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release headlines, 2026-09 - planetGen docs</title>
+<meta name="description" content="182 releases.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/releases-2026-09.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/releases-2026-09.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="release-headlines-2026-09">Release headlines, 2026-09</h1><p class="meta">docs/history/releases-2026-09.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#2026-09-30">2026-09-30</a></li><li style="margin-left:0px"><a href="#2026-09-27">2026-09-27</a></li><li style="margin-left:0px"><a href="#2026-09-24">2026-09-24</a></li><li style="margin-left:0px"><a href="#2026-09-23">2026-09-23</a></li><li style="margin-left:0px"><a href="#2026-09-20">2026-09-20</a></li><li style="margin-left:0px"><a href="#2026-09-19">2026-09-19</a></li><li style="margin-left:0px"><a href="#2026-09-18">2026-09-18</a></li><li style="margin-left:0px"><a href="#2026-09-17">2026-09-17</a></li><li style="margin-left:0px"><a href="#2026-09-16">2026-09-16</a></li><li style="margin-left:0px"><a href="#2026-09-12">2026-09-12</a></li><li style="margin-left:0px"><a href="#2026-09-11">2026-09-11</a></li><li style="margin-left:0px"><a href="#2026-09-10">2026-09-10</a></li><li style="margin-left:0px"><a href="#2026-09-09">2026-09-09</a></li><li style="margin-left:0px"><a href="#2026-09-07">2026-09-07</a></li><li style="margin-left:0px"><a href="#2026-09-06">2026-09-06</a></li><li style="margin-left:0px"><a href="#2026-09-03">2026-09-03</a></li></ul></details>
+<p>182 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).</p>
+<h2 id="2026-09-30">2026-09-30</h2>
+<ul>
+<li><strong>7.9.2</strong>: Admin Generate jobs work on native Windows.</li>
+<li><strong>7.9.1</strong>: Fix binary secondary outweighing its primary.</li>
+<li><strong>7.9.0</strong>: Galaxy Map wedge lines, scale readout and one solid slice-able density block model.</li>
+<li><strong>7.8.0</strong>: Warp times follow Boss's warp curve, plus dimensional fold travel times.</li>
+<li><strong>7.7.0</strong>: pip installs only locked, hash-checked files.</li>
+<li><strong>7.6.1</strong>: Fix star systems placed inside black hole Hill spheres.</li>
+<li><strong>7.6.0</strong>: Deployment guides for every major platform and reverse proxy support.</li>
+<li><strong>7.5.0</strong>: Random first admin password, rate limits and broad security hardening.</li>
+<li><strong>7.4.0</strong>: Brute-force property-based tests across the whole codebase.</li>
+<li><strong>7.3.0</strong>: Planets and moons named after their star, with API renaming.</li>
+<li><strong>7.2.1</strong>: Fix asteroid belt overlapping the next planet.</li>
+<li><strong>7.2.0</strong>: update.sh checks instead of reinstalling, with migrate-or-delete prompt and progress.</li>
+<li><strong>7.19.1</strong>: Fix random binary star naming failure.</li>
+<li><strong>7.19.0</strong>: Letter classes for nebulae, supernova remnants and asteroid fields.</li>
+<li><strong>7.18.1</strong>: Moons now orbit within their planet's stable Hill sphere limits.</li>
+<li><strong>7.18.0</strong>: Interstellar objects generated at real-world rates, plus brown dwarfs and runaway stars.</li>
+<li><strong>7.17.0</strong>: Galaxy Map sizes sector blocks from the screen and zooms to single sectors sooner.</li>
+<li><strong>7.16.1</strong>: Fix planet Hill spheres overlapping asteroid belts.</li>
+<li><strong>7.16.0</strong>: Windows installers and macOS support for the bash installers.</li>
+<li><strong>7.15.0</strong>: A supermassive black hole at the center of every galaxy.</li>
+<li><strong>7.14.1</strong>: Failed logins locked out per username with growing delays.</li>
+<li><strong>7.14.0</strong>: NAV courses read as bearing and mark on nested reference frames.</li>
+<li><strong>7.13.1</strong>: Fix close binary planets orbiting inside the binary.</li>
+<li><strong>7.13.0</strong>: Hybrid master-wedge sector slots that line up from center to edge.</li>
+<li><strong>7.12.0</strong>: System page lists everything in orbit once, in order.</li>
+<li><strong>7.11.0</strong>: Lighter top bar with a settings gear and responsive menu.</li>
+<li><strong>7.10.3</strong>: Galaxy Map distances use the shared distance ladder.</li>
+<li><strong>7.10.2</strong>: Upper bounds on admin generation inputs.</li>
+<li><strong>7.10.1</strong>: Renames check only uniquely named objects for clashes.</li>
+<li><strong>7.10.0</strong>: Every distance shown in its most meaningful unit, with exact constants.</li>
+<li><strong>7.1.0</strong>: CGI pages removed, old URLs redirect in the app.</li>
+<li><strong>7.0.1</strong>: Fix lopsided half-sphere neighborhood on the 3D Galaxy Map.</li>
+<li><strong>7.0.0</strong>: One 4 parsec sector standard and a galaxy of aligned layers.</li>
+<li><strong>6.6.0</strong>: System and phenomenon pages moved to the new site.</li>
+<li><strong>6.5.0</strong>: Admin pages moved to the Flask app with CSRF protection.</li>
+<li><strong>6.4.0</strong>: Galaxy Map moved to the Flask app at /galaxy.</li>
+<li><strong>6.3.0</strong>: One-off star systems generated from the admin site.</li>
+<li><strong>6.2.0</strong>: Sector and NAV pages moved to bookmarkable URLs.</li>
+<li><strong>6.1.0</strong>: Generate, plan and reset the galaxy from the web interface.</li>
+<li><strong>6.0.0</strong>: Galaxy Map draws the real cylindrical sector grid.</li>
+<li><strong>5.59.0</strong>: Browser accessibility checks for every Flask page.</li>
+<li><strong>5.58.0</strong>: install.sh works on externally managed Python.</li>
+<li><strong>5.57.0</strong>: Search page moved to bookmarkable URLs with filters as parameters.</li>
+<li><strong>5.56.0</strong>: Quasars at the galactic center.</li>
+</ul>
+<h2 id="2026-09-27">2026-09-27</h2>
+<ul>
+<li><strong>5.55.0</strong>: Galaxy Map shades predicted density with lit cylindrical prisms computed in the browser.</li>
+</ul>
+<h2 id="2026-09-24">2026-09-24</h2>
+<ul>
+<li><strong>5.54.0</strong>: Home page served by Flask with a new header, search box and mobile menu.</li>
+<li><strong>5.53.2</strong>: Airless bodies lose leftover atmospheres and temperatures never drop below the cosmic background.</li>
+<li><strong>5.53.1</strong>: Removed old Galaxy Map endpoint and versioned the map script against stale caches.</li>
+<li><strong>5.53.0</strong>: Light, dark and system theme switch, plus a proper phone layout.</li>
+<li><strong>5.52.0</strong>: System pages render natively from the database as an expandable list of bodies.</li>
+<li><strong>5.51.0</strong>: Every stellar phenomenon type now appears on the Sector Map and in sector listings.</li>
+<li><strong>5.50.0</strong>: Program-wide debug log recording every generator decision, random roll, query and request.</li>
+<li><strong>5.49.2</strong>: Editing a sector refreshes only affected Galaxy Map tiles, not the whole cache.</li>
+<li><strong>5.49.1</strong>: Every list on the site pages 50 rows at a time with one pager.</li>
+<li><strong>5.49.0</strong>: Admin stats page showing server health, database statistics and duplicate-name report.</li>
+<li><strong>5.48.3</strong>: Zoomed-in Galaxy Map no longer draws unfilled sectors and density cloud as a ball.</li>
+<li><strong>5.48.2</strong>: Browse sector list and sector system tables sorted outward by distance.</li>
+<li><strong>5.48.1</strong>: Galaxy Map clicks, double-clicks and scroll zoom now land where you point.</li>
+<li><strong>5.48.0</strong>: Created and modified timestamps on sectors, systems and phenomenon tables.</li>
+<li><strong>5.47.3</strong>: Server checklist document for verifying a deployment after an update.</li>
+<li><strong>5.47.2</strong>: Install and update scripts create the Galaxy Map tile cache directory.</li>
+<li><strong>5.47.1</strong>: Fixed giant sector spheres, missing orbit lines and flat star glows on the maps.</li>
+<li><strong>5.47.0</strong>: Galaxy Map loads space as cached cube tiles, preventing server crashes.</li>
+<li><strong>5.46.35</strong>: TODO list regrouped and numbered in working order.</li>
+<li><strong>5.46.34</strong>: TODO list now tracks open work only, with new items added.</li>
+<li><strong>5.46.33</strong>: Release notes in changes folder replace PR version bumps, with automatic version stamping.</li>
+<li><strong>5.46.32</strong>: System Map measure-distance tool giving real distance and shortest path around the star.</li>
+<li><strong>5.46.31</strong>: Sector Map shows clickable indicators for every neighboring sector, generated or not.</li>
+<li><strong>5.46.30</strong>: Sector Map shows stars, nebulae and remnants as textured, glowing 3D spheres.</li>
+<li><strong>5.46.29</strong>: Galaxy Map colors generated sectors by their real stellar density.</li>
+<li><strong>5.46.28</strong>: Galaxy Map caps rapid-click server requests to protect the API.</li>
+<li><strong>5.46.27</strong>: Browse sector and standalone system tables are truly paginated.</li>
+<li><strong>5.46.26</strong>: Rogue planets and interstellar comets now appear in the Phenomena listing and detail pages.</li>
+<li><strong>5.46.25</strong>: Database migration now correctly applies the spatial index schema upgrade.</li>
+<li><strong>5.46.24</strong>: System Map stars get granulation texture and brighter glow; spheres hide orbit lines.</li>
+<li><strong>5.46.23</strong>: Sector Map compass arrow now labeled simply N.</li>
+<li><strong>5.46.22</strong>: Selected sector stays visible on the Galaxy Map when zoomed in close.</li>
+</ul>
+<h2 id="2026-09-23">2026-09-23</h2>
+<ul>
+<li><strong>5.46.9</strong>: Compact one-line page header on system, sector, galaxy and phenomenon pages.</li>
+<li><strong>5.46.8</strong>: Better System Map label collision avoidance and 3D body preview inside the map.</li>
+<li><strong>5.46.7</strong>: Planet civilization narrative no longer contradicts its class description.</li>
+<li><strong>5.46.6</strong>: Binary system star tables render correctly and generated belts no longer overlap.</li>
+<li><strong>5.46.21</strong>: Reworked Galaxy Map click and double-click controls, with soft spherical density cloud.</li>
+<li><strong>5.46.20</strong>: Apache example no longer doubles connection load through an HTTPS redirect loopback.</li>
+<li><strong>5.46.19</strong>: Sector pages no longer time out the server thanks to spatial phenomenon indexes.</li>
+<li><strong>5.46.18</strong>: Health endpoint reports a never-migrated database instead of failing.</li>
+<li><strong>5.46.17</strong>: Health endpoint reports whether the database schema is current.</li>
+<li><strong>5.46.16</strong>: Galaxy Map view query uses a new spatial index to stop site-wide timeouts.</li>
+<li><strong>5.46.15</strong>: Galaxy Map page now renders the 3D map, with a recognizable galaxy density cloud.</li>
+<li><strong>5.46.14</strong>: Every System Map star, planet and moon renders as its own live 3D sphere.</li>
+<li><strong>5.46.13</strong>: Interactive 3D Galaxy Map with live viewport queries and copyable generate commands.</li>
+<li><strong>5.46.12</strong>: Zoomable real-scale diagrams on every phenomenon page, with supernova remnants fully supported.</li>
+<li><strong>5.46.11</strong>: Real zoom and pan on the Galaxy Map.</li>
+<li><strong>5.46.10</strong>: Navigate-to-here and navigation routes to and from standalone phenomena.</li>
+</ul>
+<h2 id="2026-09-20">2026-09-20</h2>
+<ul>
+<li><strong>5.46.5</strong>: Text search no longer crashes with a server error.</li>
+</ul>
+<h2 id="2026-09-19">2026-09-19</h2>
+<ul>
+<li><strong>5.46.4</strong>: Sector generation keeps its systems when a sector runs out of room.</li>
+<li><strong>5.46.3</strong>: Debug runs report per-phase generation timing for profiling.</li>
+<li><strong>5.46.2</strong>: Galaxy random-start mode no longer shows a bogus single-sector progress bar.</li>
+<li><strong>5.46.1</strong>: Progress bar restored for galaxy generation runs.</li>
+<li><strong>5.46.0</strong>: Qualifying sectors can no longer come out completely empty.</li>
+<li><strong>5.45.1</strong>: Name-uniqueness bookkeeping uses about a third fewer database queries, speeding generation.</li>
+<li><strong>5.45.0</strong>: Galaxy random-start mode can require a minimum starting density.</li>
+<li><strong>5.44.1</strong>: Removed the sector progress bars from generate command output.</li>
+<li><strong>5.44.0</strong>: Removed per-sector progress bar and fixed progress bar flicker.</li>
+<li><strong>5.43.1</strong>: End-to-end tests of galaxy generation against a real planned skeleton.</li>
+<li><strong>5.43.0</strong>: Galaxy generation skips empty low-density sectors and reports per-sector star statistics.</li>
+<li><strong>5.42.0</strong>: Rotating 3D body preview sphere with atmosphere glow on the System Map.</li>
+<li><strong>5.41.0</strong>: Sector Map rebuilt as a real WebGL 3D scene with true perspective.</li>
+<li><strong>5.40.0</strong>: Navigation parameters hidden from the address bar by posting links as forms.</li>
+<li><strong>5.39.1</strong>: Continuous integration fixed and test connection-pool leak plugged.</li>
+</ul>
+<h2 id="2026-09-18">2026-09-18</h2>
+<ul>
+<li><strong>5.39.0</strong>: Galaxy-wide unique names for sectors, systems, planets and moons.</li>
+<li><strong>5.38.0</strong>: Wide binary System Map shows both stars' planets, with binary naming fixes.</li>
+<li><strong>5.37.0</strong>: Publish systems and sectors to Wiki.js or MediaWiki from the web interface.</li>
+<li><strong>5.36.0</strong>: Browsable list and detail pages for exotic phenomena.</li>
+<li><strong>5.35.7</strong>: Search page no longer times out on large databases.</li>
+<li><strong>5.35.6</strong>: Sector system counts now follow real spiral-galaxy density instead of a flat ten.</li>
+<li><strong>5.35.5</strong>: Galaxy-placed Sector Map and far-from-core Galaxy Map open readable.</li>
+<li><strong>5.35.3</strong>: Site title uses the configured site name and the database picker is gone.</li>
+<li><strong>5.35.1</strong>: Superscript exponents display correctly in the System Map infobox.</li>
+</ul>
+<h2 id="2026-09-17">2026-09-17</h2>
+<ul>
+<li><strong>5.35.0</strong>: All generators unified into a single generate command.</li>
+<li><strong>5.34.0</strong>: One wiki client library supporting both Wiki.js and MediaWiki publishing.</li>
+<li><strong>5.33.0</strong>: Science-based exotic phenomena seeded in every sector, plus galaxy random-start generation.</li>
+</ul>
+<h2 id="2026-09-16">2026-09-16</h2>
+<ul>
+<li><strong>5.32.0</strong>: Two-body barycentric orbits so binary stars, planets and moons orbit a shared center.</li>
+</ul>
+<h2 id="2026-09-12">2026-09-12</h2>
+<ul>
+<li><strong>5.31.0</strong>: True-position System Map and galaxy-placed nebulae and asteroid fields.</li>
+<li><strong>5.30.0</strong>: Standalone asteroid fields and galactic orbital motion for all exotic phenomena.</li>
+<li><strong>5.29.0</strong>: Exotic phenomena: black holes, neutron stars, nebulae, supernova remnants, rogue planets, comets.</li>
+<li><strong>5.28.0</strong>: Command-line search for planets and moons by class and size.</li>
+<li><strong>5.27.0</strong>: Wide S-type binary star systems with independent stars and planets.</li>
+</ul>
+<h2 id="2026-09-11">2026-09-11</h2>
+<ul>
+<li><strong>5.26.0</strong>: Binary star chance now follows real multiplicity rates by spectral class.</li>
+<li><strong>5.25.0</strong>: Planet counts derived from protoplanetary disk physics rather than a curve fit.</li>
+<li><strong>5.24.0</strong>: Planet spacing uses mutual Hill radii, plus search by body size.</li>
+<li><strong>5.23.0</strong>: One unified config.json file for all deployment settings.</li>
+<li><strong>5.22.0</strong>: Planets no longer end up stranded outside the zone their class needs.</li>
+<li><strong>5.21.0</strong>: Ecosphere planet classes now generate at class-appropriate distances within the habitable zone.</li>
+<li><strong>5.20.0</strong>: Update script skips package reinstall when there is nothing new.</li>
+<li><strong>5.18.0</strong>: Systemd timer for the periodic orbit update.</li>
+<li><strong>5.17.0</strong>: Binary stars' mutual-orbit position advances over time.</li>
+<li><strong>5.16.0</strong>: Stars orbit the galaxy and binary pairs orbit each other.</li>
+</ul>
+<h2 id="2026-09-10">2026-09-10</h2>
+<ul>
+<li><strong>5.9.1</strong>: Class P climate tuned to a cold, glaciated world.</li>
+<li><strong>5.9.0</strong>: Class W tidally locked world class removed.</li>
+<li><strong>5.8.3</strong>: Provisional sector designations packed into a single reversible hex number.</li>
+<li><strong>5.8.2</strong>: Provisional sector designations for ungenerated galaxy addresses.</li>
+<li><strong>5.8.1</strong>: NAV Map plots the origin, destination, and route.</li>
+<li><strong>5.8.0</strong>: NAV feature: course, distance, warp times, and optimal routes between systems.</li>
+<li><strong>5.15.0</strong>: Floating-point guard skips useless orbital phase updates.</li>
+<li><strong>5.14.0</strong>: Planets and moons get 3D positions and orbital speeds.</li>
+<li><strong>5.13.0</strong>: Every star system gets a galactic orbital speed and period.</li>
+<li><strong>5.12.0</strong>: Web interface becomes a thin frontend over the Flask API.</li>
+<li><strong>5.11.1</strong>: Moon tidal locking now follows a physics-based despinning timescale.</li>
+<li><strong>5.11.0</strong>: Planets and moons get real 3D orbits, rotation, and live orbital motion.</li>
+<li><strong>5.10.1</strong>: Subdwarf stars no longer get ages older than the universe.</li>
+<li><strong>5.10.0</strong>: Flask API moved into the web interface tree.</li>
+</ul>
+<h2 id="2026-09-09">2026-09-09</h2>
+<ul>
+<li><strong>5.7.0</strong>: Galaxy density skeleton merged into the MySQL backend.</li>
+<li><strong>5.6.0</strong>: API rate limiting and stubbed write endpoints.</li>
+<li><strong>5.5.0</strong>: MySQL backend replaces SQLite, plus a paginated, validated API.</li>
+<li><strong>5.4.8</strong>: Galaxy-wide density skeleton with lazy, visit-triggered sector generation.</li>
+<li><strong>5.4.7</strong>: Galaxy sectors get gap-free vertices shared exactly with neighbors.</li>
+</ul>
+<h2 id="2026-09-07">2026-09-07</h2>
+<ul>
+<li><strong>5.4.6</strong>: System page table of contents works at any window width.</li>
+<li><strong>5.4.5</strong>: Sector Map 3D scene stays confined to its panel.</li>
+<li><strong>5.4.4</strong>: Interactive 3D Sector Map with drag to rotate and zoom.</li>
+<li><strong>5.4.3</strong>: System page table of contents moved to a right-margin rail.</li>
+<li><strong>5.4.2</strong>: Removed the rogue-planet Class R and fixed triple-consonant names.</li>
+<li><strong>5.4.1</strong>: Controllable sector density for generation.</li>
+<li><strong>5.4.0</strong>: Bell-curve planet and moon sizes centered on real-world analogs.</li>
+<li><strong>5.3.9</strong>: Gas giants can now appear in hot and habitable zones, with realistic brown-dwarf sizes.</li>
+<li><strong>5.3.8</strong>: Life-bearing planet classes restricted to the ecosphere zone.</li>
+<li><strong>5.3.7</strong>: Per-class climate tuning gives Earth, Mars and Venus analogs realistic temperatures and pressures.</li>
+<li><strong>5.3.6</strong>: Galaxy-scale coordinate system with galaxyGen.py to generate many sectors as one galaxy.</li>
+<li><strong>5.3.5</strong>: Atmospheric pressure now depends on gravity, and glaciated worlds run colder than Earth-like ones.</li>
+<li><strong>5.3.4</strong>: Corrected gas-giant density and greenhouse physics, plus compressed migration backups.</li>
+<li><strong>5.3.3</strong>: Repository tidied with all documentation consolidated into docs and scripts moved into src.</li>
+<li><strong>5.3.2</strong>: Source code reorganized under a new src directory.</li>
+</ul>
+<h2 id="2026-09-06">2026-09-06</h2>
+<ul>
+<li><strong>5.3.1</strong>: Evolved stars no longer sampled with impossibly old progenitor masses.</li>
+<li><strong>5.3.0</strong>: Atmospheric pressure fixed for all planet classes, with star ages capped at universe age.</li>
+<li><strong>5.2.5</strong>: Moons split into their own database table with a migration tool and separate moon search.</li>
+<li><strong>5.2.4</strong>: Faceted tag and name search page for the web interface.</li>
+<li><strong>5.2.3</strong>: More reliable installer using build-isolated pip install.</li>
+<li><strong>5.2.2</strong>: System pages render as HTML with a redesigned light and dark web interface.</li>
+<li><strong>5.2.1</strong>: Web interface for browsing saved databases, with Apache deployment and one-shot installer.</li>
+<li><strong>5.2.0</strong>: Full SQLite database persistence of generated sectors, with named sectors.</li>
+<li><strong>5.1.0</strong>: Version option on both command-line tools with a single version source.</li>
+<li><strong>5.0.1</strong>: Flavor text decided once at generation so rendering is repeatable.</li>
+</ul>
+<h2 id="2026-09-03">2026-09-03</h2>
+<ul>
+<li><strong>4.0.0</strong>: Generation logic refactored into separate planet physics and life modules.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

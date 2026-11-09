@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The thin disk's star formation history from its gas (GEN.469) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-17): built (galaxy/diskhistory.py, tests/testdiskhistory.py).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/disk-star-formation-history.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/disk-star-formation-history.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-thin-disks-star-formation-history-from-its-gas-gen469">The thin disk's star formation history from its gas (GEN.469)</h1><p class="meta">docs/design/galaxy/disk-star-formation-history.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#the-model">The model</a></li><li style="margin-left:0px"><a href="#what-it-gives">What it gives</a></li><li style="margin-left:0px"><a href="#the-law-steepens-where-the-gas-thins-gen999">The law steepens where the gas thins (GEN.999)</a></li><li style="margin-left:0px"><a href="#ages-inside-a-window-gen546">Ages inside a window (GEN.546)</a></li><li style="margin-left:0px"><a href="#what-it-does-not-do">What it does not do</a></li><li style="margin-left:0px"><a href="#code">Code</a></li><li style="margin-left:0px"><a href="#the-thick-disks-ages-in-the-old-population-gen1025">The thick disk's ages in the old population (GEN.1025)</a></li><li style="margin-left:0px"><a href="#the-infall-replaces-the-halo-growth-gen1230-gen1242">The infall replaces the halo growth (GEN.1230, GEN.1242)</a></li></ul></details>
+<p><strong>Status (2026-10-17):</strong> built (<code>galaxy/disk_history.py</code>, <code>tests/test_disk_history.py</code>). Boss chose &quot;Build it&quot; on the
+decision card at 5:34 PM EDT (as the lane reported).</p>
+<p>The disk's three populations (<code>young</code> 0 to 0.1 Gy, <code>intermediate</code> 0.1 to 3, <code>old</code> 3 to 10) used to share its stars in
+proportion to the length of their age windows, as if the disk had formed stars at one rate for ten Gy. That is a typed
+assumption. Now each population's share is the part of the disk's own star formation history that fell in its window,
+and the history is worked out from the gas.</p>
+<h2 id="the-model">The model</h2>
+<p>One disk, forty rings out to ten scale lengths, each following gas continuity from the disk's start (10 Gy ago):</p>
+<pre><code>d(gas)/dt = inflow(t) - (1 - R) * rate,      rate = A * gas^n          (per area)
+</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Value</th>
+<th>Source (read)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Depletion</td>
+<td><code>A = 2.5e-4</code> solar masses/yr/kpc2 per (solar masses/pc2)^1.4, <code>n = 1.4</code></td>
+<td>[R2321], eq. 4 [R2321], already in <code>tuning</code></td>
+</tr>
+<tr>
+<td>Return fraction <code>R</code></td>
+<td>0.384 from the generator's own mass function (<code>IMF_BREAKS_SOL</code>, <code>IMF_SLOPES</code>, the Chabrier function of <code>stellar-mass-function.md</code>; 0.371 on the Kroupa function before GEN.927); the same code gives 0.272 for a Salpeter slope of 2.35 from 0.1 to 100 solar masses, Madau and Dickinson's 0.27</td>
+<td>[R2798], section 2.1: instantaneous recycling above 1 solar mass, white dwarf remnants by the [R0961] relation of <code>tuning.WD_IFMR_PIECES</code> (the old relation of <code>0.444 + 0.084 m</code> before GEN.930), 1.4 solar masses to 40, black holes keep all</td>
+</tr>
+<tr>
+<td>Infall</td>
+<td>Exponential, <code>exp(-t / tau(R))</code> from the disk's start; <code>tau(R) = 1.033 R - 1.267</code> Gy (7 Gy at the Sun) between 2 and 8 Gy, <code>R</code> the Milky Way's radius of the ring's scale lengths (2.6 kpc each)</td>
+<td>[R5095] section 3 (the line), [R5094] section 2.4 (2 Gy inside, 8 Gy at 20 kpc)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The inflow</strong> is an exponential infall whose time scale grows outward, so the inner rings are fed early and the outer ones keep being fed (inside-out
+formation). Only its shape in time matters: each ring's amplitude is solved (by bisection, all rings at once) so the ring ends with its share of the
+disk's stars, <code>Sigma*(R) = M_thin / (2 pi L^2) exp(-R/L)</code>. The thin disk's mass is the galaxy's stellar mass (the mass chain's, drawn from the seed) times the thin
+disk's share of the density model's stars. A dense ring has a short depletion time and follows the inflow closely; a thin
+one lags it. The populations' shares are the rings' star formation (weighted by ring area) inside each age window.</p>
+<p>A shape carries the galaxy's <code>(stellar mass, halo mass)</code> in a new field <code>GalaxyShape.masses</code>. It is not stored: it is
+drawn again from the seed (<code>db.store.get_galaxy_shape</code>, <code>shape_draw</code>), like the component field. A shape built without
+masses (tests, toy galaxies) takes the median galaxy of its disk scale length ([R4048] sizes, the mass chain's
+stellar-to-halo relation).</p>
+<h2 id="what-it-gives">What it gives</h2>
+<p>Disk-wide, for a disk scale length of 2.6 kpc (<code>tests/test_disk_history.py</code>), since GEN.1230 (the halo is no longer read):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stellar mass</th>
+<th>Young (0 to 0.1 Gy)</th>
+<th>Intermediate (0.1 to 3)</th>
+<th>Old</th>
+<th>Present rate over the mean</th>
+<th>Local B-star share (between arms, 2026-10-18, halo-growth inflow)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>flat history</td>
+<td>1.00%</td>
+<td>29.0%</td>
+<td>70.0%</td>
+<td>1</td>
+<td>0.10%</td>
+</tr>
+<tr>
+<td>1e10</td>
+<td>0.70%</td>
+<td>23.9%</td>
+<td>75.4%</td>
+<td>0.70</td>
+<td>0.26%</td>
+</tr>
+<tr>
+<td>3e10</td>
+<td>0.54%</td>
+<td>19.5%</td>
+<td>80.0%</td>
+<td>0.54</td>
+<td>0.13%</td>
+</tr>
+<tr>
+<td>5e10</td>
+<td>0.49%</td>
+<td>17.7%</td>
+<td>81.8%</td>
+<td>0.48</td>
+<td>0.050%</td>
+</tr>
+<tr>
+<td>6.1e10</td>
+<td>0.47%</td>
+<td>17.1%</td>
+<td>82.4%</td>
+<td>0.46</td>
+<td>0.033%</td>
+</tr>
+</tbody>
+</table></div>
+<p>(Before GEN.1230 the inflow followed the stars a galaxy's halo holds and the rows read 2.93, 1.20, 0.39 and 0.27 percent young and a present rate over the mean of
+2.95, 1.18, 0.38 and 0.27; the lighter halo of GEN.1154 moved the 5e10 row to 0.55, and the Milky Way shape's star formation to 4.0 solar masses a year against the 1.65 measured. The B-star column is from then and has not been measured again.)</p>
+<p>The last column was recomputed on 2026-10-18 with the generator's own sampler, 100,000 draws a population, the flat row with
+ages spread evenly inside the windows and the others with the ages spread by the history's rate (GEN.546, below). GEN.469
+recorded 0.19, 0.38, 0.26, 0.12 and 0.085% for the same rows with even ages; the same measure gives 0.10, 0.20, 0.14,
+0.069 and 0.047% today, so the sampler or the mass function has moved since.</p>
+<p>A light spiral forms its stars later than a heavy one (downsizing), but since GEN.1230 only through the law: a thinner disk spends its gas more slowly,
+so the young share is 1.4 times higher at 1e10 than at 5e10 (3 times with the halo-growth inflow, which also made the Milky Way's disk form 2.7 times the stars
+it does). The infall time scale is the Milky Way's in scale lengths for every galaxy (row GI1). The mass dependence is a factor on the inflow, <code>exp(0.4 t (1 - V / 220 km/s))</code> per gigayear ([R5121]: equation 21), with the disk speed V = 220 (M / 5e10)^(1/3) km/s from a disk mass that goes as V cubed (row GI3). A disk slower than the Milky Way's is fed ever more slowly into the present and a faster one the other way, which restores the downsizing the infall alone had flattened: [R5122] has a 100 km/s disk rising to the present, a 200 km/s one about constant and a 360 km/s one falling (GEN.1246).
+A galaxy's young share is still a property of the galaxy, so the magnetar rate (which follows the young stars) differs from galaxy to galaxy:
+<code>MAGNETAR_YOUNG_STAR_SHARE</code> is now the share of a galaxy of 5e10 solar masses, 0.18% (it was 0.16%, and 0.44% before GEN.469).</p>
+<p><strong>Test targets, none an input.</strong> The Galaxy forms 1.65 +- 0.19 solar masses a year ([R2680, R2681], read; M* 6.08 +- 1.14e10, disk 5.17 +- 1.11e10), which against a ten-Gy mean of
+5.17e10 / (1 - R) / 10 Gy is a present rate 0.20 of the mean. The derived 0.48 (5e10) and 0.46 (6.1e10) are 2.3 times it (the test allows 2.5; the observed figure counts the thick disk's stars over
+the thin disk's ten Gy, so it is low for the thin disk alone). The whole Milky Way shape forms 2.8 solar masses a year now against the measured 1.65 (the census range is 1 to 3):
+the outer disk (beyond 10 kpc) and the inner disk (inside 4 kpc) still form more than observed, where the model has no truncation and no bar-depleted center. The gas left at the Sun's radius is 0.2 to 0.3 of its stars (observed about 13 against 38 solar masses per
+pc2), inside the test's 0.1 to 0.5.</p>
+<h2 id="the-law-steepens-where-the-gas-thins-gen999">The law steepens where the gas thins (GEN.999)</h2>
+<p>The rings used the plain Kennicutt-Schmidt law, so a thin outer ring spent its gas as fast as a dense one and a Milky Way mass disk ended with about a third of the gas it has: a depletion time of 1.8 Gy (3e10 solar masses of thin disk stars) against the 1.0 to 4.2 Gy measured (Sources 2 on GEN.998), and 4.3 solar masses per pc2 at the Sun's radius. The ring solve now carries the factor the present-day profile already used (GEN.450, <code>star_formation._thin_gas_factor</code>): <code>rate = A * gas^n * (gas / (gas + gas_s))^(m - n)</code>, with the saturation <code>gas_s</code> of 9 solar masses per pc2 [R0392] and the index <code>m</code> of 2.1 (Kennicutt and Evans, the middle of 1.5 to 2.7), both already in <code>tuning</code>. No new constant, and no Milky Way value is fitted.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Milky Way shape (<code>tests/test_disk_history.py</code>)</th>
+<th>Plain law</th>
+<th>With the factor</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Depletion time, thin disk of 3e10 stars</td>
+<td>1.8 Gy</td>
+<td>2.9 Gy</td>
+<td>1.0 to 4.2 Gy</td>
+</tr>
+<tr>
+<td>Depletion time, the full Milky Way shape</td>
+<td>2.2 Gy</td>
+<td>3.7 Gy</td>
+<td>4.2 Gy (Sources 2)</td>
+</tr>
+<tr>
+<td>Gas at 8 kpc</td>
+<td>4.3 per pc2</td>
+<td>7.2 per pc2</td>
+<td>11.9 +- 1.6 atomic and molecular with helium ([R3002: Table 2]: 10.9 + 1.0 within 1 kpc of the Sun; 13.7 with the ionized gas)</td>
+</tr>
+<tr>
+<td>Star formation now</td>
+<td>1.50 a year</td>
+<td>1.70 a year</td>
+<td>1.65 +- 0.19 [R2680]</td>
+</tr>
+<tr>
+<td>Gas inside the bar gap</td>
+<td>5.0e8</td>
+<td>6.2e8</td>
+<td>(the ring inflow follows it)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The gas at the Sun's radius is still 60% of the measured, and raising it further (a higher index or saturation) would push the depletion time and the present rate past their measured ranges; the plain law's coefficient ([R2321], +- 28%) is a mean over spirals, and the Milky Way is known to sit below it at the Sun's radius. That residual is left as it is and filed with the stand-in row AL1.</p>
+<p>Populations' shares move with the rate: for stellar masses 1e10, 3e10, 5e10 and 6.1e10 the young share goes 2.99, 1.31, 0.54 and 0.37% to 3.42, 1.43, 0.60 and 0.42%, the intermediate 62.6, 44.4, 25.0 and 18.1% to 68.0, 47.4, 26.8 and 19.5%, and the old falls to match. The table under &quot;What it gives&quot; is as of GEN.469 and is not redone here.</p>
+<p>(Since GEN.1230 the same disk depletes in 3.4 Gy and keeps 10.3 solar masses per pc2 at 8 kpc; the table above is the halo-growth inflow's.)</p>
+<h2 id="ages-inside-a-window-gen546">Ages inside a window (GEN.546)</h2>
+<p>A window used to draw its stars' ages evenly, though the rate varies across it (by a factor of 1.0, 2.5 and a rise from
+nothing for the young, intermediate and old windows of a 5e10 galaxy). Now the age of a young, intermediate or old disk
+star is drawn from the history's own rate inside its window.</p>
+<ul>
+<li><strong>The law.</strong> <code>galaxy.age_law.AgeLaw</code> is the density of ages in a window as a piecewise-linear curve through the disk's
+star formation rate (rings weighted by area) at 33 evenly spaced ages (<code>tuning.AGE_LAW_POINTS</code>, rounded to six figures so
+that equal histories give one law). It gives the weight of an interval (the window's length times the chance an age
+falls in it, which for an even spread is the overlap), and an age by inverting its cumulative.
+<code>galaxy.disk_history.population_age_laws(shape)</code> builds one per disk population (<code>tuning.DISK_AGE_LAW_POPULATIONS</code>)
+for the galaxy of a shape. The bulge, halo, clusters and satellites have no entry and draw evenly: their history is not
+the disk's.</li>
+<li><strong>One law everywhere.</strong> The star samplers' tables, shares and draws all take the same law (<code>age_laws</code> in
+<code>generation.star_population</code>, <code>bright_stars.age_laws_of(shape)</code>), so the bright stars the scatter places, the mass
+pass, both backfills and the dim systems a sector draws for itself agree on how many stars of each kind a place holds
+and how old they are. <code>FillContext.apply</code> hands a dim system its population's law as <code>SystemConfig.AGE_LAW</code>. A draw with
+no population (a system made outside a galaxy) keeps the whole disk's even spread.</li>
+<li><strong>What changes.</strong> Within a window the ages shift toward where the rate is high: the old window of a 5e10 galaxy
+averages 6.1 Gy instead of 6.5, the intermediate one 1.8 Gy instead of 1.55, and a 1e10 galaxy's old window 5.0 Gy.
+The shares of each window are still the history's (GEN.469), but the share of bright stars in a window changes with the
+ages: a front-loaded intermediate window holds more bright main-sequence stars.</li>
+<li><strong>The local B-star share</strong> between the arms at the solar radius, with 100,000 draws a population, falls from 0.069% to
+0.050% (0.046 to 0.055% over four seeds), against the observed 0.04%; the table above shows the effect for each
+galaxy mass.</li>
+</ul>
+<h2 id="what-it-does-not-do">What it does not do</h2>
+<ul>
+<li><strong>The observed local B-star share (0.04%, Mamajek's census) is still 1.2 to 1.4 times lower than the Milky Way-like
+galaxy's 0.046 to 0.055% (GEN.546 closed most of the gap, below).</strong> The test now allows 1.5 times the observed share.
+What is not in the model and could close the rest: the single-star mass function may be steeper than the cluster one above 1
+solar mass ([R2498], astro-ph/0009005, on the bias of unresolved binaries), the Sun's place above the plane and
+between the arms, and gas moving between rings.</li>
+<li><strong>Gas moves between rings and flows out</strong> in a real galaxy ([R5094] has bar-driven radial flows and none outflows; [R5095] has neither); here each ring is a closed
+box fed by its inflow.</li>
+<li><strong>The radial pattern stays GEN.134's</strong> (<code>galaxy.star_formation.recent_factor</code>, from the gas disk's scale length and the
+bar gap). The rings alone make the outer disk younger, the opposite of the observed fall; the factor still multiplies
+the young and intermediate shares and averages 1 over the disk, so the disk-wide shares are the history's.</li>
+<li><strong>The infall time scale is a fit to one galaxy.</strong> [R5095] fits it to the Milky Way's abundance gradients and [R5094] takes 2 to 8 Gy; neither gives it for another size or mass, so every galaxy takes
+the Milky Way's in scale lengths (GEN.725 row GI1, level L0).</li>
+</ul>
+<h2 id="code">Code</h2>
+<ul>
+<li><code>galaxy/disk_history.py</code>: infall time scale, ring inflows, ring solver, shares.</li>
+<li><code>galaxy/star_formation.disk_population_share(name, shape)</code>: the share <code>density.population_densities</code>,
+<code>population_densities_array</code> and <code>generation/object_first._disk_share_bound</code> read (the bound must use the same share
+as the density it bounds).</li>
+<li><code>tuning</code>: the constants above with their sources.</li>
+<li>A change of the generator's output: epoch bumped (OPS.56); it joins the one full rescatter (GEN.301 waits).</li>
+</ul>
+<h2 id="the-thick-disks-ages-in-the-old-population-gen1025">The thick disk's ages in the old population (GEN.1025)</h2>
+<p>The thick disk is counted in the <code>old</code> population (<code>density.population_units</code>), but the old window ended at 10 Gy, the thin disk's age, while the thick disk formed from about 13 to about 8 Gy ago ([R1863], <code>tuning.THICK_DISK_AGE_RANGE_GY</code>, stand-in TD1). <code>galaxy/thick_ages.py</code> builds the old population's <code>AgeLaw</code> as a mixture: the thin disk's law over 3 to 10 Gy with the weight the thin disk has among the old systems, and the thick disk's law, flat over 8 to 13 Gy (stand-in TD2), with the thick disk's share (<code>density.thick_disk_units</code> over the old units). Only the shape of an age law matters, so the count of old stars per sector does not change; the stars are spread over ages up to 13 Gy, and the thick disk's share of them is older than the thin disk ever was.</p>
+<p>Wired (part 2): <code>disk_history.population_age_laws</code> returns the mixture for <code>old</code>, <code>tuning.STELLAR_POPULATION_AGE_RANGES_GY[&quot;old&quot;]</code> ends at 13 Gy, and <code>tuning.THIN_DISK_OLD_WINDOW_GY</code> (3 to 10) keeps the thin disk's own window where the thin disk alone is meant: its share of the disk (<code>population_shares</code>), its law, its heating (<code>galaxy/structure.py</code>) and its arm contrast. The mean system mass of <code>old</code> and the remnants formed in it follow the longer window, so the density identity fixture (<code>tests/fixtures/density_identity.json</code>) was made again: every density of a shape moves by one number (0.04 to 1.2 percent, the model's units per solar mass), the total mass not at all. Changes generated output: the old stars of a sector are drawn over 3 to 13 Gy.</p>
+<h2 id="the-infall-replaces-the-halo-growth-gen1230-gen1242">The infall replaces the halo growth (GEN.1230, GEN.1242)</h2>
+<p>The inflow followed the stars a galaxy's halo holds. GEN.1154 made the median halo of a 5e10 galaxy lighter (2.0e12 to 1.37e12 solar masses), which
+moved the growth of those stars later, so the Milky Way shape's disk formed 4.0 solar masses a year (3.7 before GEN.999's gas law, 2.0 before GEN.1154) against the 1.65
+measured, and 1.5 against the main sequence at that mass (Speagle's fit: 2.7 times above it). Weakening the law's coefficient made it worse (the stars are fixed, so more form
+late), a cold-accretion cut at the shock-heating mass needed an exponent no source gives, and the halo's own baryon accretion gave 6.3. The one-zone Milky Way models
+use an exponential infall: the line of [R5095] for its time scale, limited by [R5094]'s 2 and 8 Gy. It gives 2.8 solar masses a year for the Milky Way shape, a gas surface density
+of 10.3 solar masses per pc2 at 8 kpc (measured 7 to 16) and a depletion time of 3.4 Gy at the Sun. Registry rows GI1 (the scale length mapping) and GI2 (the 2 and 8 Gy stops); the core gas
+inflow time went from 1.0 to 0.6 Gy (CG1) because the inner rings keep less gas.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

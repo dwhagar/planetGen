@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group 1: sub-Neptune and super-Earth envelope and water-world occurrence - planetGen docs</title>
+<meta name="description" content="Scope: part 09 rows b4, e1, e2, e3, e4, e5 and the weight that links envelope loss to stellar mass, metallicity and age (called e-link below; part 09 has no explicit row for it, the dependence enters only through S and Ecum in e1/e2).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/tunable-gaps-sources/group1-subneptunes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/tunable-gaps-sources/group1-subneptunes.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="group-1-sub-neptune-and-super-earth-envelope-and-water-world-occurrence">Group 1: sub-Neptune and super-Earth envelope and water-world occurrence</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group1-subneptunes.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdicts">1. Summary and verdicts</a></li><li style="margin-left:0px"><a href="#2-detail">2. Detail</a></li><li style="margin-left:14px"><a href="#2a-e1e2-bare-rock-vs-retained-hhe-and-e-link-stellar-mass-metallicity-age">2A. e1/e2 (bare rock vs retained H/He) and e-link (stellar mass, metallicity, age)</a></li><li style="margin-left:14px"><a href="#2b-b4-e3-e4-water-rich-share-water-world-hycean">2B. b4, e3, e4 (water-rich share, water world, hycean)</a></li><li style="margin-left:14px"><a href="#2c-e5-envelope-metal-mass-fraction-z">2C. e5 (envelope metal mass fraction Z)</a></li><li style="margin-left:0px"><a href="#3-sources-verified-id-n-access">3. Sources verified (id, N, access)</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled--to-verify">5. Recalled / to verify</a></li></ul></details>
+<p>Scope: part 09 rows b4, e1, e2, e3, e4, e5 and the weight that links envelope loss to stellar mass, metallicity and age (called <strong>e-link</strong> below; part 09 has no explicit row for it, the dependence enters only through S and E_cum in e1/e2). Labels follow <code>_worker-rules.md</code>: READ (arXiv PDF text read by me), 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED. Every arXiv id below was checked by downloading the PDF and reading its title and abstract. Part 09 section 2 table e and section 4 item R1 were read; the repo design doc <code>atmospheres-retention-and-classes.md</code> section 3.4 was read for the e1/e2 formula (the code in <code>src/</code> does not implement table e yet).</p>
+<h2 id="1-summary-and-verdicts">1. Summary and verdicts</h2>
+<p>The radius valley is measured well enough to tune an envelope-loss draw: the CKS sample (N = 970 planets, 703 hosts after cuts, [R3500]) gives the valley location, slope in period, slope with stellar mass and a null result for metallicity, each with a published 1 sigma, and the Kepler DR25 injection products and a fitted recovery curve are public, so an injection-recovery test is possible. The catch is that the two knobs named in part 09 (eps and f_env0) cannot be tuned alone: published fits ([R3797], N about 900 CKS planets) constrain them only jointly with a core-mass distribution (peak 3.7 Earth masses), and the data do not separate XUV photoevaporation (the mechanism of e1/e2) from core-powered mass loss ([R0354] favours core-powered at about 1 to 2 sigma). The water-world share (b4, e3, e4) is not constrained by any data set: published estimates run from under 3 percent water by mass for super-Earths [R3801] to 59 percent of mass-radius planets being water-rich [R0715], and every route that fixes the answer depends on the model. The envelope metal fraction Z (e5) has about eight JWST retrievals plus one 15-planet exo-Neptune retrieval; it is not a population distribution, and atmospheric Z is not bulk envelope Z.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>What</th>
+<th>Verdict</th>
+<th>One-line reason</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>e1/e2</td>
+<td>bare rock vs H/He envelope (eps, f_env0)</td>
+<td><strong>a</strong> with a proviso</td>
+<td>CKS ensemble + public injections + published valley statistics; tune a three-knob set (eps or eta(v_esc), f_env0 distribution, core-mass distribution), not two</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>e-link</td>
+<td>stellar mass, [Fe/H], age weight</td>
+<td><strong>b</strong></td>
+<td>mass slope measured three ways (0.18 to 0.26); metallicity null (0.01 +0.05/-0.06); age only through one ratio (0.61 to 1.00) and a weak slope</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>b4</td>
+<td>water-rich share</td>
+<td><strong>c</strong></td>
+<td>model-dependent spread 0 to 87 percent; no data-defined share; derive from formation physics, do not draw</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>e3/e4</td>
+<td>water world vs hycean (eta)</td>
+<td><strong>c</strong></td>
+<td>eta has no population constraint; one contested planet (K2-18 b); hycean is a temperature and H<sub>2</sub> gate, so derive by physics</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>e5</td>
+<td>envelope Z, bins 0.01 to 0.6</td>
+<td><strong>b</strong></td>
+<td>N about 8 planets plus 15 exo-Neptunes; upper edge 0.6 is below several retrievals; atmosphere Z differs from bulk Z</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Where a verified source overrides a partly verified one (rule of 3:02 AM EDT): (1) the fixed eps range 0.05 to 0.2 (part 09, 2ND-HAND) is overridden by the read variable-efficiency law eta = 0.1 (v_esc/15 km/s)^-2 (Owen and Wu 2017, READ in part 04), which gives 0.35 at 8 km/s and 0.036 at 25 km/s; (2) &quot;K2-18b near solar to tens of x&quot; (part 09) is overridden by [R0340] (READ): water 0.6 to 162 times solar; (3) the &quot;20 to 35 percent of M-dwarf bare planets water-rich&quot; quoted second-hand through [R0978] is replaced by the read [R0714] text (about 10 to 30 percent G dwarfs, 20 to 35 percent M dwarfs, model output, not data); (4) [R1478]'s &quot;flat-bottomed, band of forbidden sizes&quot; reading is overridden by [R1477] (READ): the gap is partially filled and the planets in it are real.</p>
+<p>No-fixed-content flags: none of the e1/e2, b4, e3/e4 knobs rests on the Solar System alone (it has no sub-Neptune). Two places lean on it: the Z-versus-mass trend that [R2802] extrapolates from Solar System giants (do not use it to set e5), and the Earth-like core density (32.5 percent iron) used as the rocky end member; the latter is also supported by exoplanet data ([R3797], rho_tilde = 0.26 +0.08/-0.09 against 0.33 for Earth). E_cum = 3.1e16 J/m2 comes from the project XUV model, which is not read here (see section 5).</p>
+<h2 id="2-detail">2. Detail</h2>
+<h3 id="2a-e1e2-bare-rock-vs-retained-hhe-and-e-link-stellar-mass-metallicity-age">2A. e1/e2 (bare rock vs retained H/He) and e-link (stellar mass, metallicity, age)</h3>
+<p>These share one data set (CKS and Kepler DR25), one fit (valley location, slope, depth) and one test, so one builder should do them together.</p>
+<p><strong>1. Ensemble.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>N</th>
+<th>Measured</th>
+<th>Accuracy and selection</th>
+<th>Public</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CKS DR1 [R1478]</td>
+<td>2025 planets; 900 after cuts; N_star = 36,075 for completeness</td>
+<td>Rp, occurrence per radius bin</td>
+<td>median Rp error 12 percent; Kp&lt;14.2, b&lt;0.7, P&lt;100 d, 4700&lt;Teff&lt;6500 K; K-S p = 0.003 vs log-uniform, dip test p = 1.4e-3; peaks 1.3 and 2.4 Earth radii, gap 1.5 to 2.0 with deficit factor &gt;= 2</td>
+<td>table 2 machine-readable at the journal; no licence text found</td>
+<td>[R1478]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CKS-Gaia [R1477]</td>
+<td>907 planets, 1189 stars</td>
+<td>Rp to 5 percent; gap vs P, S, M*</td>
+<td>IDEM occurrence with 25 percent completeness cut; ABC cross-check agrees within 1 sigma; gap partially filled; super-Earth and sub-Neptune frequencies nearly equal</td>
+<td>code <code>github.com/California-Planet-Search/cksgaia</code> (README reachable, data on Dropbox links); table 4 machine-readable</td>
+<td>[R1477]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CKS DR2 [R3500]</td>
+<td>970 planets, 703 hosts, M* 0.5 to 1.4</td>
+<td>gap vs P, S, M*, [Fe/H], age</td>
+<td>Rp error &lt;= 20 percent; b&lt;0.8; T/Tmax&gt;0.6; detection model from [R0786] injections</td>
+<td>VizieR J/AJ/163/179 (tables 1, 2; front page reachable, table download not tested); software <code>github.com/petigura/CKS-Cool</code> named in the paper, raw README returned 404</td>
+<td>[R3500]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Asteroseismic sample [R4504]</td>
+<td>117 planets</td>
+<td>gap slope</td>
+<td>Rp median error 3.3 percent</td>
+<td>not checked</td>
+<td>[R4504]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Short-cadence refit (Ho and [R1963])</td>
+<td>431 planets</td>
+<td>gap vs P, M*, age; depth</td>
+<td>refit transits, deeper valley than earlier</td>
+<td>not checked</td>
+<td>Ho and [R1963]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Gaia-Kepler ([R0353] [R0353, R0354] [R0354])</td>
+<td>sample size not extracted</td>
+<td>gap vs M*, age, S</td>
+<td>3-D gap in (Rp, S, M*)</td>
+<td>not checked</td>
+<td>Berger</td>
+<td>READ (abstracts)</td>
+</tr>
+<tr>
+<td>Kepler DR25 injections</td>
+<td>146,294 on-target injections (INJ1)</td>
+<td>pipeline recovery</td>
+<td>five injection runs; detection efficiency and robovetter results as tables; last updated 19 Dec 2017</td>
+<td>NASA Exoplanet Archive &quot;Simulated Data&quot; page, reachable; licence text not on the page</td>
+<td>NASA Exoplanet Archive</td>
+<td>DATA (page read)</td>
+</tr>
+<tr>
+<td>[R0786]</td>
+<td>146,295 injected targets</td>
+<td>completeness of DR25</td>
+<td>90 to 95 percent recovery for strong signals</td>
+<td>archive page above</td>
+<td>[R0786]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Low-mass stars: [R0828]</td>
+<td>328 planets (275 Kepler + 53 K2), 126 for M* 0.08 to 0.65</td>
+<td>valley around Teff&lt;4700 K</td>
+<td>valley center 1.54 +-0.16; flux slope -0.060 +-0.025; rocky:non-rocky 0.5 +-0.1 (mid-K) to 8.5 +-4.6 (mid-M); valley not visible in the 126-planet low-mass subset (counts and that remark are 2ND-HAND via [R3500])</td>
+<td>not checked</td>
+<td>[R0828]</td>
+<td>READ (abstract) / 2ND-HAND (counts)</td>
+</tr>
+<tr>
+<td>Ho 2024 [R1962]</td>
+<td>72 refit planets + the 431-planet FGK set; bins N = 63, 141, 148, 92</td>
+<td>valley depth E vs M*</td>
+<td>E_avg = 1.25 (+0.55/-0.17) for M*&lt;0.7; 2.72 (+1.10/-0.74), 2.87 (+1.13/-0.76), 4.62 (+2.80/-1.62) for the higher bins; linear slope 5.36 (+3.19/-3.23) per solar mass</td>
+<td>not checked</td>
+<td>Ho 2024</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TESS mid-to-late M ([R1568] preprint, [R1568])</td>
+<td>8134 stars, 77 candidates</td>
+<td>occurrence</td>
+<td>0.954 +-0.147 super-Earths and 0.148 +-0.045 sub-Neptunes per star, ratio 5.5:1; valley absent (unimodal, peak 1.25 +-0.05)</td>
+<td>not checked; preprint, review status unknown</td>
+<td>[R1568]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Occurrence per star of sub-Neptunes from [R3500] (READ, P = 1 to 300 d): 1.37 (+0.19/-0.18), 0.79 (+-0.08), 0.41 (+-0.04) for M* = 0.5 to 0.7, 0.7 to 1.0, 1.0 to 1.4. [R3797] give 0.72 +-0.03 planets per star for P = 1 to 100 d, 0.95 to 6 Earth radii (READ). [R3252] ([R3252], N = 1130 planets) find a mixture preferred by the data with an intrinsically rocky fraction Q = 0.20 (+0.06/-0.05) and 1.05 +-0.05 planets per star, and warn the occurrence is model dependent (READ).</p>
+<p><strong>2. Physical bracket.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>energy-limited loss</td>
+<td>Mdot = eta pi R^3 F_XUV / (G M K_tide); eta 0.05 to 0.2</td>
+<td>[R2740] via part 04</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>variable efficiency</td>
+<td>eta = 0.1 (v_esc/15 km/s)^-2; valley radius scales as eta^0.18 X_HE^0.19 rho^-0.24</td>
+<td>Owen and Wu 2017 via part 04</td>
+<td>READ (part 04)</td>
+</tr>
+<tr>
+<td>initial envelope</td>
+<td>&quot;more than a few percent&quot; of mass, cores near 3 Earth masses, Earth-like core density; formation inside the ice line</td>
+<td>Owen and Wu 2017 abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>fitted birth population, model I (log-Gaussians)</td>
+<td>core mass mu_M = 3.72 (+0.45/-0.33) Earth masses, sigma_M = 0.44 (+0.06/-0.03); initial envelope mu_X = 0.040 (+0.015/-0.016), sigma_X = 0.51 (+0.20/-0.12) (log units of its Eq. 1)</td>
+<td>[R3797: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>fitted birth population, model II (free shape)</td>
+<td>envelope distribution &quot;strongly peaked at about 1e-2&quot;; abstract quotes a typical 4 percent; core peak about 4 Earth masses; core-accretion theory over-predicts H/He by about 5</td>
+<td>[R3797]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>photoevaporation efficiency index</td>
+<td>alpha_eta &lt; 1.36 at 2 sigma (data allow a variable eta)</td>
+<td>[R3797] model III</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>core-powered alternative</td>
+<td>valley slope dlogR/dlogP = 1/(3(1-beta)) = -0.11; ice fraction of cores &lt; about 20 percent</td>
+<td>[R1734]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>core-powered stellar dependence</td>
+<td>dlogR/dlogM* about 0.33-0.35; location independent of age and [Fe/H] to first order; sub-Neptune radius slopes about +0.1 with [Fe/H] and -0.1 with age</td>
+<td>[R1735]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>repo formula, COMPUTED check</td>
+<td>f_lost = eps pi R^3 E_cum S / (G M^2), R = M^0.27 Earth radii; at S = 1 and M = 5, f_lost = 1.56e-4. Insolation where f_lost = f_env0: M = 4: S = 49 (f 1 percent), 148 (3 percent), 492 (10 percent) at eps = 0.1; the eps bracket 0.05 to 0.2 moves each by x2 to /2</td>
+<td>COMPUTED from the repo doc inputs</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>observed transition</td>
+<td>planets at 1.3 Earth radii sit at S &gt; 200, planets at 2.4 at S &lt; 80</td>
+<td>[R1478]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The bracket f_env0 = 0.005 to 0.10 and eps 0.05 to 0.2 therefore contains the fitted values (4 percent, 1 percent, eta about 0.1) and spans S_crit from about 25 to 1000 for a 4 Earth-mass core, which covers the observed transition. The proposed draw is consistent with the data but wide enough to be uninformative until tuned.</p>
+<p><strong>3. Verdict.</strong> (a), conditional. A published ensemble and bracket exist. The proviso: the two part-09 knobs are degenerate with the core-mass distribution and with the mass-loss mechanism, so the builder must tune a joint set, and the repo's bare/retained binary has no intrinsic spread, so the gap would be empty where the data show it partially filled [R1477]. A radius model for retained envelopes (not in the repo) and a width knob are needed. The quantity should be derived by physics (energy-limited or Bondi-limited loss integrated over the star's XUV history) and only the birth population (core mass, f_env0) drawn.</p>
+<p><strong>4. Knobs and targets.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Tuned against</th>
+<th>Target and published uncertainty</th>
+<th>Valid range</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>eps (or eta(v_esc) index)</td>
+<td>valley slope in period</td>
+<td>m = dlogRp/dlogP = -0.11 +-0.02 (Petigura); -0.09 (+0.02/-0.04) (Van Eylen); -0.096 (+0.023/-0.027) (Ho and Van Eylen)</td>
+<td>P 1 to 100 d, M* 0.5 to 1.4</td>
+<td>as listed</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>eps and f_env0 jointly</td>
+<td>valley location</td>
+<td>Rp,0 = 1.84 +-0.03 Earth radii at P = 10 d (Petigura)</td>
+<td>same</td>
+<td>[R3500]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>f_env0 (width and center)</td>
+<td>super-Earth to sub-Neptune ratio</td>
+<td>about 1:1 over P &lt; 100 d (Fulton and Petigura); 0.61 +-0.09 (age &lt; 1 Gyr) and 1.00 +-0.10 (&gt; 1 Gyr) [R0353]</td>
+<td>FGK</td>
+<td>as listed</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>core-mass distribution (new knob)</td>
+<td>peak and width</td>
+<td>mu_M = 3.72 (+0.45/-0.33) Earth masses, sigma_M = 0.44 (+0.06/-0.03)</td>
+<td>CKS FGK</td>
+<td>[R3797]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>mechanism choice (XUV vs core-powered)</td>
+<td>3-D gap slopes</td>
+<td>alpha = dlogRgap/dlogS = 0.069 (+0.019/-0.023), beta = dlogRgap/dlogM* at fixed S = -0.046 (+0.125/-0.117) [R0354]; predicted core-powered alpha 0.08, beta 0.00; photoevaporation alpha 0.12, beta -0.17 (as quoted by Berger from [R3796])</td>
+<td>needs about 5000 planets with Rp error &lt;= 5 percent to separate [R3796]</td>
+<td>[R0354, R3796]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>stellar-mass weight</td>
+<td>valley vs M*</td>
+<td>dlogRp/dlogM* = 0.18 (+0.08/-0.07) (Petigura); 0.231 (+0.053/-0.064) (Ho and Van Eylen); 0.26 (+0.21/-0.16) [R0353]; sub-Neptune size exponent alpha = 0.25 +-0.03, super-Earth 0.02 +-0.03 (Petigura)</td>
+<td>M* 0.5 to 1.4</td>
+<td>as listed</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>stellar-mass weight (depth)</td>
+<td>depth E_avg</td>
+<td>1.25 (+0.55/-0.17), 2.72 (+1.10/-0.74), 2.87 (+1.13/-0.76), 4.62 (+2.80/-1.62) by M* bin</td>
+<td>M* below 0.7 to above 1.1</td>
+<td>Ho 2024</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>metallicity weight</td>
+<td>valley and sizes vs [Fe/H]</td>
+<td>dlogRp/d[Fe/H] = 0.01 (+0.05/-0.06); sub-Neptune exponent -0.01 +-0.02, super-Earth -0.00 +-0.02</td>
+<td>[Fe/H] -0.5 to +0.5</td>
+<td>[R3500]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>age weight</td>
+<td>valley vs age</td>
+<td>dlogRp,valley/dlog(age) = 0.033 (+0.017/-0.025) (Ho and Van Eylen); sub-Neptune size gamma = -0.01 +-0.03 (Petigura, Teff &gt; 5500 K, ages 1 to 10 Gyr)</td>
+<td>1 to 10 Gyr</td>
+<td>as listed</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Contradictions inside the verified set (no override, report the spread): Petigura finds no sub-Neptune size dependence on [Fe/H] (+-0.02) and none on age, while [R1735] predict +0.1 and -0.1; the data disfavour the core-powered metallicity and age slopes at about 5 sigma for metallicity and 3 sigma for age if the quoted errors are taken at face value (COMPUTED as 0.1/0.02 and 0.1/0.03). Petigura also notes the age uncertainty is 0.1 to 0.5 dex, so the age null is weak. The M-dwarf valley is disputed: Cloutier and Menou report a positive slope in P (0.058 +-0.022) while Petigura measures -0.12 (+0.06/-0.04) for M* = 0.5 to 0.7; Ho 2024 finds a shallower valley; [R1568] finds none.</p>
+<p><strong>5. Consistency test.</strong> Simulate planets for the generator's own host stars (M*, [Fe/H], age), apply e1/e2 and a retained-envelope radius law, then apply a selection model: geometric transit probability p_tr = 0.8 R*/a [R3500] times the recovery curve p_det(MES) = c * Gamma-CDF(MES; a, b) with (a, b, c) = (26.1, 0.320, 0.941), zero below MES = 10 (READ; COMPUTED values 0.41 at MES 8, 0.80 at 10, 0.92 at 12, 0.94 above 15). Then compare the simulated valley (KDE minima train, 1000 bootstraps as in Petigura) to the numbers above with the published 1 sigma as tolerance, in M* bins 0.5 to 0.7, 0.7 to 1.0, 1.0 to 1.4. Because the 3-D gap test is uninformative below about 5000 planets [R3796, R3797], the test cannot choose between mechanisms; it can only check that the tuned set reproduces m, Rp,0, the ratio and the depth. Systematic offsets between gap-finding methods are acknowledged by [R0354], so use one method on both sides. The CKS-Cool code could not be fetched (raw README 404), so the fit routine must be rewritten from the paper (NOT REACHED for the code).</p>
+<p><strong>6. No-fixed-content flags.</strong> None. E_cum (project XUV model, not read here) is calibrated on a Sun-like history; replace it by the generator's own star XUV track when e-link is wired.</p>
+<p><strong>7. Group for a builder.</strong> Builder A: e1, e2, e-link with the CKS fit, the injection-recovery step and the valley test. The same selection model and the same Petigura/Ho tables also serve table-d shoreline checks only loosely (not this group).</p>
+<h3 id="2b-b4-e3-e4-water-rich-share-water-world-hycean">2B. b4, e3, e4 (water-rich share, water world, hycean)</h3>
+<p><strong>1. Ensemble.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set or model result</th>
+<th>N</th>
+<th>Result</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3797] forward model on CKS</td>
+<td>about 900 planets</td>
+<td>cores &quot;ice-poor, Earth-like&quot;: rho_tilde = 0.26 (+0.08/-0.09), sigma_rho_tilde &lt; 0.16 (2 sigma), Earth 0.33; assumes H/He on every sub-Neptune and photoevaporation; two-species mass-radius tables [R1429], a 3-species check says ice content stays negligible</td>
+<td>[R3797]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3795, R3801]</td>
+<td>super-Earths below the valley</td>
+<td>population water mass fraction &lt;= 3 percent at 1 sigma; end-members tested</td>
+<td>[R3801]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1734]</td>
+<td>CKS valley</td>
+<td>cores with water-ice fraction &lt; about 20 percent</td>
+<td>[R1734]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4880]</td>
+<td>growth model + Monte Carlo, no N</td>
+<td>planets of 2 to 4 Earth radii are &quot;water worlds&quot; with &gt; 1/4, possibly &gt; 1/2 water by mass; no occurrence fraction stated</td>
+<td>[R4880]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0600, R0601]</td>
+<td>population synthesis</td>
+<td>sub-Neptunes water-rich; planets with some H/He are 13 to 16 percent; needs photoevaporation to fill the super-Earth peak</td>
+<td>[R0600, R0601]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4528], 2024 [R4529]</td>
+<td>population synthesis</td>
+<td>rocky cores near 3 (max 5) Earth masses, icy near 10; depletion of water mass fractions 0 to 20 percent; steam above 400 K gives +30 percent radius at 1 Earth mass; valley fades for M* 0.1 to 0.4</td>
+<td>Venturini</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0713, R0714]</td>
+<td>Genesis library + loss models</td>
+<td>about 10 to 30 percent (G) and 20 to 35 percent (M) of bare planets water-rich; most outside P = 10 d; bare water-rich and rocky-with-thin-air are degenerate</td>
+<td>[R0714]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0715]</td>
+<td>Kepler P-Rp mixture (rocky + water worlds, no H/He) and TEPCat</td>
+<td>water mass fraction peaks near 41 percent; TEPCat sample classified 26.2 percent rocky, 59 percent water-rich, 14.8 percent H/He-rich; at least 20 percent of sub-Neptunes need H/He; TEPCat N not extracted; a preprint</td>
+<td>[R0715]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2774]</td>
+<td>34 M-dwarf planets (of 43 listed)</td>
+<td>three populations: rocky 0.94 +-0.13, water 0.47 +-0.05, puffy 0.24 +-0.04 of scaled Earth density; separation at 0.65</td>
+<td>LP22</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3430]</td>
+<td>46 M, 61 K, 63 G + 9 late F planets</td>
+<td>no distinct M-dwarf water-world population; no gap in density or radius; minimum sub-Neptune mass 1.9, 3.4, 4.3 Earth masses for M, K, FG</td>
+<td>[R3430]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0978]</td>
+<td>60 M-dwarf planets</td>
+<td>two populations preferred: GMM AIC/BIC 9.37/19.76 (two) vs 14.05/30.67 (three)</td>
+<td>[R0978]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3798]</td>
+<td>M-dwarf sample of LP22</td>
+<td>H/He sub-Neptunes with boil-off are degenerate with 1:1 water worlds below 10 Earth masses; mass and radius alone insufficient</td>
+<td>[R3798]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3443] (SPRIGHT)</td>
+<td>not fetched</td>
+<td>reported (via Dainese) to disfavour a water-world population</td>
+<td>via [R0978]</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>2. Physical bracket.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hycean definition</td>
+<td>H<sub>2</sub> &lt;= 0.1 wt percent, water &gt;= 10 wt percent, ocean bottom 300 to 400 K, radii up to 2.6 Earth radii at 10 Earth masses</td>
+<td>[R2804] via part 05</td>
+<td>READ (part 05)</td>
+</tr>
+<tr>
+<td>liquid vs steam</td>
+<td>water is fully steam for Teq above 400 K</td>
+<td>[R4529] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>solids cap</td>
+<td>refractories &gt; 50 wt percent of solids caps ice plus water at 50 wt percent</td>
+<td>[R4335] via part 09</td>
+<td>READ (part 09)</td>
+</tr>
+<tr>
+<td>ice-line material</td>
+<td>about 50 percent water by mass beyond the snow line</td>
+<td>[R0300] review [R0300]; Chakrabarty</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TRAPPIST-1 densities</td>
+<td>all seven fit one rocky relation with 21 wt percent Fe (vs 32 Earth) or water-layer alternative</td>
+<td>[R0039]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>rocky/non-rocky threshold</td>
+<td>R_thresh median 1.48, 95 percent upper 1.59 Earth radii (N = 27 RV planets)</td>
+<td>[R3800]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>3. Verdict.</strong> (c) for b4 and e3/e4. The spread of published water-rich shares is 0 to 87 percent depending on the model (&lt; 3 percent mass, [R3801]; ice-poor cores, Rogers and Owen; 10 to 35 percent, [R0714]; 59 percent, [R0715]; 84 to 87 percent, [R0600, R0601]), and the two ends of the spread are both READ, so neither overrides the other. The part-09 value c[0.05, 0.4] s^3 sits inside the spread but cannot be narrowed from public data. The share is the output of a formation model (migration of ice-rich embryos), so it should be derived from the snow-line law and a migration rule, not drawn. The eta split in e3/e4 is not a probability: hycean is a gate on Teq (&lt; about 400 K, steam otherwise), on H<sub>2</sub> mass fraction (&lt;= 0.1 percent) and on ocean mass (&gt;= 10 percent), so e4 = p[b4] times a physical gate and e3 the remainder. The only hycean candidate, K2-18 b, is contested: [R2805] read it as hycean-compatible with about 1 percent CH<sub>4</sub> and CO<sub>2</sub>, [R4731] ([R4731], READ) argues a lifeless hycean world makes &lt; 1 ppm CH<sub>4</sub> and a 100x solar mini-Neptune fits, and [R3299] ([R3299], READ) shows magma-ocean chemistry can raise sub-Neptune H<sub>2</sub>O, CH<sub>4</sub>, CO<sub>2</sub> without icy accretion.</p>
+<p><strong>What breaks the degeneracy, with N.</strong> Mass and radius alone do not [R0714, R3798]. The discriminators that exist: (i) population inference on the radius distribution, which excludes ice-rich cores only if every sub-Neptune holds H/He (N about 900, Rogers and Owen); (ii) the dependence of the valley on period and stellar mass, where water-world models predict a flatter or filled valley at low M* ([R4529]; Ho 2024, N = 72 + 431; Cloutier and Menou, N = 328) and photoevaporation predicts a steeper one, but both families can be tuned; (iii) the density gap of M-dwarf planets, where three independent analyses disagree (LP22 N = 34 vs Parc N = 46 vs Dainese N = 60); (iv) transmission spectra giving mean molecular weight: GJ 9827 d is steam-rich (H<sub>2</sub>O volume mixing ratio &gt; 31 percent, no escaping He, [R3517]), TOI-270 d has a metal-rich miscible envelope [R0339], GJ 3470 b (11.2 Earth masses) needs a deep H<sub>2</sub> envelope, and He escape is detected in K2-18 b, GJ 3470 b, GJ 436 b and tentatively GJ 1214 b (caption of [R3798], READ). That is about 6 planets with an informative spectrum and the interpretation of each depends on the interior model. Monte Carlo power estimates (Sun 2024) say about 45 JWST planets are needed to see even a mass-abundance trend (Sun 2024, [R4258]); no equivalent number was found for the water-world fraction.</p>
+<p><strong>4. Knobs.</strong> Proposed: s^3 weight with amplitude c (b4) kept as a bracket 0 to 0.87 until a formation model is chosen; if one is chosen, tune the migration-efficiency knob against the density-valley depth and the sub-Neptune minimum mass vs M* (Parc: 1.9, 3.4, 4.3 Earth masses for M, K, FG dwarfs, READ, observational-bias caveat in the paper). Targets for a consistency test with their uncertainties: radius-valley depth by M* (Ho 2024 table above), super-Earth:sub-Neptune ratio 5.5:1 for mid-to-late M ([R1568], preprint), 0.61 to 1.00 with age [R0353]. For e4: gate Teq &lt; 400 K, H<sub>2</sub> fraction &lt;= 0.001, water &gt;= 0.1, no draw.</p>
+<p><strong>5. Consistency test.</strong> Mass-radius planets need a mass-radius sample, not the Kepler radius sample: compare the simulated density distribution (after TEPCat or PlanetS selection: mass error &lt;= 25 percent, radius error &lt;= 8 percent, as used by LP22, Parc and Dainese) with the observed one using the same classifier. No published tolerance exists because the three classifiers disagree; use the spread. A selection model is needed (RV and TTV follow-up bias towards bright hosts and large masses, not modelled in any of the cited papers).</p>
+<p><strong>6. No-fixed-content flags.</strong> None for b4/e3/e4. The 1:1 rock to water ratio (LP22, Zeng) is taken from Solar System ice-to-rock composition by LP22 (they cite the Solar System, 2ND-HAND via the paper text &quot;if it has the same composition as the Solar System&quot;); the generator should use its own snow-line and ice-fraction law, not that number.</p>
+<p><strong>7. Group for a builder.</strong> Builder B: b4, e3, e4 with the formation-model choice (these need the owner's decision first). Parc's PlanetS catalog and TEPCat are the shared data set.</p>
+<h3 id="2c-e5-envelope-metal-mass-fraction-z">2C. e5 (envelope metal mass fraction Z)</h3>
+<p><strong>1. Ensemble (JWST and related; per-planet, no population fit).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Planet</th>
+<th>Mass, radius, Teq</th>
+<th>Result</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TOI-270 d</td>
+<td>4.78 Earth masses, 2.2 Earth radii, 350 to 380 K</td>
+<td>mean molecular weight 5.47 (+1.25/-1.14), envelope metal mass fraction 58 (+8/-12) percent, C/O 0.47 (+0.16/-0.19), interior 90 (+3/-4) wt percent rock/iron</td>
+<td>[R0339]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>K2-18 b</td>
+<td>8.63 +-1.35 Earth masses, 2.6 Earth radii</td>
+<td>water 0.6 to 162 times solar (HST); JWST CH<sub>4</sub> and CO<sub>2</sub> near 1 percent each; 100x solar mini-Neptune fits</td>
+<td>[R0340, R2805, R4731]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GJ 9827 d</td>
+<td>1.98 Earth radii, 620 K</td>
+<td>O/H about 4 by mass, H<sub>2</sub>O volume mixing ratio &gt; 31 percent</td>
+<td>[R3517]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GJ 3470 b</td>
+<td>11.2 Earth masses, 600 K</td>
+<td>metallicity about 100x solar from H<sub>2</sub>O, CO<sub>2</sub>, SO<sub>2</sub>; CH<sub>4</sub> below equilibrium</td>
+<td>[R0304]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GJ 1214 b</td>
+<td>n/a</td>
+<td>metallicity above 100x solar (models 1 to 3000x) with thick haze</td>
+<td>[R2316]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GJ 3090 b</td>
+<td>2.13 Earth radii, about 700 K</td>
+<td>&gt; 100x solar at 3 sigma (best fit about 2300x); text cites 100 to 500x for five earlier planets and 1000x for GJ 1214 b</td>
+<td>[R0051]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>V1298 Tau b</td>
+<td>9.85 Earth radii, 12 to 15 Earth masses (from scale height), 10 to 30 Myr</td>
+<td>log Z = 0.6 (+0.4/-0.6) times solar; low by an order of magnitude vs mature sub-Neptunes</td>
+<td>[R0255]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>15 exo-Neptunes, 200 to 1000 K</td>
+<td>HST transmission spectra</td>
+<td>best described by low sedimentation efficiency (f_sed about 0.1) and 100x solar, intrinsic scatter about 0.5 scale height</td>
+<td>[R0516]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>19 planets, H<sub>2</sub>O, Na, K</td>
+<td>HST</td>
+<td>H<sub>2</sub>O abundance rises as mass falls; revisit with host-star abundances cannot tell a linear trend from independent draws; needs about 58 planets (HST) or 45 (JWST) for Bayes factor &gt; 10</td>
+<td>[R4663]; Sun 2024 [R4258]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>carbon abundances</td>
+<td>2 sub-Neptunes (K2-18 b, TOI-270 d)</td>
+<td>&quot;too early to make a robust assessment&quot; of a trend; possible carbon plateau</td>
+<td>[R2802] review, [R2802]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>TOI-270 d interpretation</td>
+<td>model</td>
+<td>magma-atmosphere interaction fits the spectrum without icy accretion</td>
+<td>[R3299]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>[R4590] (HAT-P-26 b) and [R0932] ([R0932], READ abstract only: spectral-feature amplitude correlates with Teq or H/He fraction at 95 percent, &quot;complex degeneracies&quot; remain) add no population Z distribution; Wakeford was not fetched (RECALLED). The [R0710] bulk-Z result for 147 giants in part 05 is for giant planets and does not reach sub-Neptunes.</p>
+<p><strong>2. Physical bracket.</strong> Z (mass fraction) from &quot;k times solar&quot; with Z_sun = 0.0139 ([R0168] via part 05): Z = k Z0 / (1 - Z0 + k Z0). COMPUTED: k = 1 gives 0.014, 4 gives 0.053, 10 gives 0.124, 100 gives 0.585 (matches the 58 percent of TOI-270 d), 162 gives 0.70, 1000 gives 0.93, 2291 gives 0.97. The part-09 bin edges 0.01 to 0.6 therefore cover 0.7x to 106x solar; the upper edge excludes K2-18 b's 162x upper limit, GJ 1214 b (above 100x, up to about 1000x) and GJ 3090 b. Fully miscible envelopes can reach Z = 0.58 or more [R0339].</p>
+<p><strong>3. Verdict.</strong> (b). About eight sub-Neptune retrievals and one 15-planet exo-Neptune retrieval, with different methods and a stated lack of trend evidence. Not a population distribution. Also, atmospheric Z (what spectra measure) differs from bulk envelope Z (what e5's mean molecular weight formula uses) when the envelope is not well mixed or the magma ocean exchanges volatiles ([R0339, R3299] miscible case). Do not draw Z log-uniform as if it were occurrence-weighted.</p>
+<p><strong>4. Knobs.</strong> Center, width and upper edge of the log-uniform draw: lower edge 0.01 (solar-like, V1298 Tau b at 4x gives 0.053 and is an outlier low; Z below 0.01 not excluded, K2-18 b lower limit 0.6x), upper edge raised to about 0.95 (1000x) or kept at 0.6 with a stated cut; width target: the Brande scatter of about 0.5 scale height is the only population-level spread (READ), but it is an aerosol-model quantity, not a Z spread. No target value with a published uncertainty exists for the mean of log Z.</p>
+<p><strong>5. Consistency test.</strong> Compare the simulated Z of the planets matching JWST targets (mass, radius, Teq) with the table above; tolerance is each retrieval's 1 sigma (for example TOI-270 d +8/-12 percent); a trend test needs about 45 JWST planets (Sun 2024) and is not yet possible.</p>
+<p><strong>6. No-fixed-content flags.</strong> The Solar System giants' carbon-versus-mass trend that [R2802] plots is the only population trend extrapolated to sub-Neptunes, and it is Solar System only (Uranus, Neptune, Saturn, Jupiter). Do not use it to set e5; the review itself finds the sub-Neptune carbon abundances do not follow it strongly.</p>
+<p><strong>7. Group for a builder.</strong> Builder C: e5 and e6 (CH<sub>4</sub> vs CO<sub>2</sub> carbon carrier), because they share the JWST table and the same retrievals; e6 is outside this group.</p>
+<h2 id="3-sources-verified-id-n-access">3. Sources verified (id, N, access)</h2>
+<p>All fetched with <code>curl</code> from <code>export.arxiv.org/pdf/&lt;id&gt;</code>, text via <code>pdftotext</code>; all arXiv content is under the arXiv non-exclusive licence unless the paper states CC (not individually checked; data licences were not stated in any paper read).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Candidate in prompt</th>
+<th>Verified id</th>
+<th>Check</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1478] CKS III</td>
+<td>1703.10375</td>
+<td>correct; N 2025 / 900</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1477]</td>
+<td>1805.01453</td>
+<td>correct; CKS VII; 907 planets</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3500]</td>
+<td>2201.10020</td>
+<td>CKS X; 970 planets (the id 2205.03385 first guessed was an unrelated paper)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2020]</td>
+<td>1902.01417</td>
+<td>FGK ABC occurrence, DR25 + Gaia DR2; code on GitHub (ExoplanetsSysSim.jl, SysSimData)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2021] (M dwarfs)</td>
+<td>2002.02573</td>
+<td>authors Hsu, Ford, Terrien (not Ragozzine, Ashby); 1,746 targets, 89 candidates; MIT-licensed code</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0572]</td>
+<td>2010.14812</td>
+<td>exists (rocky HZ occurrence); not used for the valley; code <code>github.com/stevepur/DR25-occurrence-public</code> (README read)</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Owen and Wu 2017</td>
+<td>1705.10810</td>
+<td>correct</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4504]</td>
+<td>1710.05398</td>
+<td>correct; 117 planets</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3797]</td>
+<td>2007.11006</td>
+<td>correct</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1734]</td>
+<td>1811.03202 (the id 1907.03745 is unrelated); 2020 stellar-dependence paper is 1907.03732</td>
+<td>read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4880] PNAS</td>
+<td>1906.04253</td>
+<td>exists; gives no water-world occurrence number</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2774]</td>
+<td>2209.03871</td>
+<td>N = 34</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3384]</td>
+<td>1911.04745</td>
+<td>two populations (rocky, volatile-rich); M-R laws M = 0.9 R^3.45 and 1.74 R^1.58; N not extracted</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R3800]</td>
+<td>1407.4457</td>
+<td>R_thresh 1.48 (95 percent &lt; 1.59), 27 RV planets</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0300]</td>
+<td>2010.11867 (the id 2010.13219 is unrelated)</td>
+<td>review</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R3252]</td>
+<td>1911.03582</td>
+<td>N = 1130; Q_rocky 0.20</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0039]</td>
+<td>2010.01074</td>
+<td>TRAPPIST-1</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R3430]</td>
+<td>2406.04311 (Parc, Bouchy, Venturini, Dorn, Helled)</td>
+<td>46 M-dwarf planets</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4528] / 2024</td>
+<td>2008.05513 / 2404.01967 (the 2024 letter is by Venturini, not Parc)</td>
+<td>pebble models</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0828]</td>
+<td>1912.02170 (the id 1912.02188 is unrelated)</td>
+<td>read</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Ho and [R1963]; Ho 2024</td>
+<td>2301.04062; 2401.12378</td>
+<td>read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0353, R0354]</td>
+<td>2005.14671; 2302.00009</td>
+<td>read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3796] (3-D gap)</td>
+<td>2105.03443</td>
+<td>needs about 5000 planets</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3798, R3801]</td>
+<td>2301.04321; 2409.17394</td>
+<td>read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0714]; 2026</td>
+<td>2310.03593; 2602.11923</td>
+<td>read; code <code>github.com/GijsMulders/Genesis</code>, <code>github.com/arcunique/GPS</code> named in the papers</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0978]</td>
+<td>2503.02451</td>
+<td>N = 60</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1568]</td>
+<td>2602.23364</td>
+<td>preprint</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0601]</td>
+<td>2401.04380</td>
+<td>read; KOBE code on GitHub</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>JWST: [R0051, R0255, R0304, R0339, R0340, R2316, R2805, R3299, R3517, R4731]</td>
+<td>1909.04642; 2309.05566; 2401.11082; 2305.06240; 2406.04450; 2403.03325; 2410.03527; 2504.20428; 2507.08837; 2510.07367</td>
+<td>abstracts and key lines read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4663]; Sun 2024 (Sun, Wang, Welbanks, Teske, Buchner); [R0516, R0932, R2802]</td>
+<td>1912.04904; 2402.08292; 1708.00016; 2310.07714; 2509.19247</td>
+<td>read</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>NASA Exoplanet Archive Kepler &quot;Simulated Data&quot; page</td>
+<td>URL <code>exoplanetarchive.ipac.caltech.edu/docs/KeplerSimulated.html</code> returned 200</td>
+<td>page read; no licence text on it</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>VizieR J/AJ/163/179 (CKS DR2)</td>
+<td>front page returned 200; README download returned 500</td>
+<td>table sizes not read</td>
+<td>DATA (front page)</td>
+</tr>
+<tr>
+<td>CKS-Cool README</td>
+<td>404 on raw GitHub</td>
+<td>NOT REACHED</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R3443, R4590] (SPRIGHT), [R4352]</td>
+<td>not fetched</td>
+<td></td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-boss-must-supply">4. Boss must supply</h2>
+<ol>
+<li>A decision on the mechanism for e1/e2 (XUV energy-limited, as in the repo, versus core-powered) and a radius law for retained envelopes ([R2741] is the usual choice; I did not fetch it). Without a radius law no valley statistic can be computed.</li>
+<li>For b4/e3/e4: the formation model (snow line plus migration rule) that sets the water-rich share; the public record gives only the model-dependent spread above. The Genesis library or the Burn/Venturini pipelines are the nearest public candidates; their licences and data tables were not checked.</li>
+<li>The CKS DR2 and CKS-Gaia planet tables (VizieR J/AJ/163/179; Fulton and Petigura Table 4) and the DR25 injection efficiency tables, downloaded and checked in: the proxy here did not return the table files.</li>
+<li>The XUV history (E_cum versus stellar mass and age) used by the repo, with its source; this lane did not read the activity document behind E_cum = 3.1e16 J/m2.</li>
+<li>TEPCat or PlanetS tables of precise masses and radii for the mass-radius test (Parc catalogue; TEPCat), with a licence check.</li>
+<li>For e5: an occurrence-weighted metal-fraction distribution does not exist; the owner must accept the bracket plus per-planet TEST points, or wait for JWST population studies (about 45 planets).</li>
+</ol>
+<h2 id="5-recalled--to-verify">5. Recalled / to verify</h2>
+<ul>
+<li>Z_sun = 0.0139 is READ in part 05 [R0168], taken second-hand here.</li>
+<li>E_cum = 3.1e16 J/m2 and the core radius law R = M^0.27 are from the repo doc (project XUV model [C]); not verified by me.</li>
+<li>[R2741] radius law; [R2740] eps range (2ND-HAND via part 04).</li>
+<li>[R4590] (HAT-P-26 b) details: RECALLED, not fetched.</li>
+<li>[R3384] sample size N: not extracted.</li>
+<li>[R0715] TEPCat N and its peer-review status; [R1568] review status.</li>
+<li>Cloutier and Menou sample counts (275 + 53): 2ND-HAND from [R3500]; verify in the paper's body.</li>
+<li>[R4335] cap and [R2804] hycean definition: taken from part 05 and part 09 (READ there, not re-read here).</li>
+<li>Licences of the CKS and DR25 tables: not stated in any paper read; verify at the archive before redistribution.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

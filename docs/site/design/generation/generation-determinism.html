@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generation determinism: drift, fingerprints, epochs and net diffs - planetGen docs</title>
+<meta name="description" content="What makes a seed rebuild the same galaxy on another Python version, operating system or CPU, measured on the repository&#x27;s own code and lock file, and the design that follows: a deterministic-math helper rule with a lint, rounding before...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/generation-determinism.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/generation-determinism.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="generation-determinism-drift-fingerprints-epochs-and-net-diffs">Generation determinism: drift, fingerprints, epochs and net diffs</h1><p class="meta">docs/design/generation/generation-determinism.md</p><details class="toc"><summary>On this page (26 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary">1. Summary</a></li><li style="margin-left:0px"><a href="#2-what-breaks-bit-for-bit-reproducibility">2. What breaks bit-for-bit reproducibility</a></li><li style="margin-left:14px"><a href="#21-interpreter-versions">2.1 Interpreter versions</a></li><li style="margin-left:14px"><a href="#22-the-c-maths-library-os-and-cpu">2.2 The C maths library (OS and CPU)</a></li><li style="margin-left:14px"><a href="#23-numpy-blas-and-astropy">2.3 numpy, BLAS and astropy</a></li><li style="margin-left:0px"><a href="#3-the-deterministic-math-rule-and-its-lint">3. The deterministic-math rule and its lint</a></li><li style="margin-left:0px"><a href="#4-canonical-serialization-and-fingerprints-gen58">4. Canonical serialization and fingerprints (GEN.58)</a></li><li style="margin-left:14px"><a href="#41-encoder">4.1 Encoder</a></li><li style="margin-left:14px"><a href="#42-hash-function">4.2 Hash function</a></li><li style="margin-left:14px"><a href="#43-per-sector-digests-and-the-region-tree">4.3 Per-sector digests and the region tree</a></li><li style="margin-left:0px"><a href="#5-version-key-epoch-and-battery-digest">5. Version key, epoch and battery digest</a></li><li style="margin-left:14px"><a href="#51-what-the-current-key-gets-wrong">5.1 What the current key gets wrong</a></li><li style="margin-left:14px"><a href="#52-recommended-record">5.2 Recommended record</a></li><li style="margin-left:14px"><a href="#53-the-ops13-question-recalculate-the-seed-value">5.3 The OPS.13 question: "recalculate the seed value"</a></li><li style="margin-left:14px"><a href="#54-the-battery-ops15">5.4 The battery (OPS.15)</a></li><li style="margin-left:14px"><a href="#55-how-other-systems-handle-it-all-r-unconfirmed">5.5 How other systems handle it (all [R], unconfirmed)</a></li><li style="margin-left:0px"><a href="#6-net-diff-and-edit-log-format-gen59-gen61">6. Net-diff and edit-log format (GEN.59, GEN.61)</a></li><li style="margin-left:14px"><a href="#61-candidates">6.1 Candidates</a></li><li style="margin-left:14px"><a href="#62-the-format">6.2 The format</a></li><li style="margin-left:14px"><a href="#63-the-settings-json-adm18-in-the-same-style">6.3 The settings JSON (ADM.18) in the same style</a></li><li style="margin-left:0px"><a href="#7-golden-seed-test-structure-test77">7. Golden-seed test structure (TEST.77)</a></li><li style="margin-left:14px"><a href="#71-tiers">7.1 Tiers</a></li><li style="margin-left:14px"><a href="#72-updating-goldens">7.2 Updating goldens</a></li><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>What makes a seed rebuild the same galaxy on another Python version, operating system or CPU, measured on the repository's own code and lock file, and the design that follows: a deterministic-math helper rule with a lint, rounding before hashing, the fingerprint encoder and digest tree (GEN.58), a version key extended with a generator epoch and a battery digest (DB.6, DB.7, OPS.13 to OPS.15), the net-diff delta format (GEN.59, GEN.61) and the structure of the golden-seed test (TEST.77). It extends <a href="reproducible-galaxies.html">reproducible-galaxies.md</a>, which holds the overall design and the as-built notes.</p>
+<p>Informs: GEN.55, GEN.57, GEN.58, TEST.77, OPS.12, OPS.13, OPS.14, OPS.15, DB.7, ADM.17, ADM.18, GEN.59, GEN.61, API.16, API.17 (GEN.56 is done)</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p><strong>Python floor (2026-10-15).</strong> The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the <code>test</code> extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. Finding 1 of the summary (a seed gives different galaxies on the 3.9 leg, because of <code>math.hypot</code> and <code>math.dist</code>) and rule 5 (freeze astropy-derived constants as literals) are resolved by dropping 3.9 and astropy; rule 2 is built (GEN.135: <code>util/detmath.py</code> has <code>hypot</code>, <code>dist</code>, <code>fsum</code> and <code>matmul</code>, and <code>test_reproducible_draws.py</code> rejects <code>math.hypot</code>, <code>math.dist</code>, <code>@</code> and <code>numpy.dot</code> outside <code>web/</code> and the migrations; builtin <code>sum</code> of floats is the same in every supported Python, 3.12 and later, so it is left alone) and rule 4 is still open. The environment record in section 5 and the golden file's <code>env</code> list no longer need an astropy entry.</p>
+<p>Evidence tags: [S] seen in a search result, [C] computed by the research run against <code>main</code> at c30d74a, [R] recalled and unconfirmed. The research environment could only read search-result text, not the papers or documentation themselves, and its web-search budget ran out before the first search, so there are no [S] items here and every prior-art claim is [R]. Code paths are under <code>src/planetgen/</code>.</p>
+<h2 id="1-summary">1. Summary</h2>
+<ol>
+<li><strong>A seed does not give the same galaxy on the project's own CI legs today.</strong> The repo's hash-pinned <code>requirements.lock</code> was installed into Python 3.9 to 3.13 environments and <code>src/tests/reproducible_sector_probe.py</code>'s logic run over 30 sectors of 40 systems. Python 3.10 to 3.13 agree on all 30; Python 3.9 differs on all 30 [C]. The cause is <code>math.hypot</code> and <code>math.dist</code>, which Python changed between 3.9 and 3.10. Replacing them with <code>sqrt(x*x + y*y)</code> made all five agree, although the lock gives them different numpy and astropy versions [C]. CI has a 3.9 leg, so TEST.77 as written would be red there on day one.</li>
+<li><strong><code>util/draw.py</code> is sound</strong> (GEN.56): identical output on Python 3.9 to 3.14 over a 20,000-round battery [C]. Only <code>Stream.gauss</code> depends on the C maths library (<code>log</code>, <code>cos</code>).</li>
+<li><strong>Floating point across OS and CPU is a small, nonzero risk</strong> (<code>exp</code> differs between glibc and musl in 0.07 percent of inputs, <code>atan2</code> 17.7 percent, by 1 to 11 ulp [C]); rounding to 9 significant digits before hashing hides it. macOS was not tested.</li>
+<li><strong>The version key tracks releases, not output.</strong> Add an integer <code>generator_epoch</code> and a battery digest (section 5). The OPS.13 seed is not changed on update (section 5.3).</li>
+<li><strong>Fingerprint:</strong> a 40-line canonical encoder, SHA-256, a leaf digest per sector stored at save time, a two-level tree for regions (section 4). <strong>Net diff:</strong> a custom address-path delta with <code>was</code> and <code>now</code> pairs (section 6).</li>
+</ol>
+<h2 id="2-what-breaks-bit-for-bit-reproducibility">2. What breaks bit-for-bit reproducibility</h2>
+<h3 id="21-interpreter-versions">2.1 Interpreter versions</h3>
+<p>Run on Linux x86-64 (glibc 2.39) with CPython 3.9.25, 3.10.20, 3.11.17, 3.12.3, 3.13.16 and 3.14.6, plus a musl-libc 3.12.13 (python-build-standalone) for a second C maths library [C].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Result across Python 3.9 to 3.14</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Random(seed).random()</code> for int, str, bytes and float seeds; <code>getstate()</code>; and <code>getrandbits</code>, <code>randrange</code>, <code>randint</code>, <code>choice</code>, <code>choices</code>, <code>shuffle</code>, <code>sample</code>, <code>uniform</code>, <code>gauss</code>, <code>normalvariate</code>, <code>expovariate</code>, <code>triangular</code> and the other variates tested</td>
+<td>Identical</td>
+</tr>
+<tr>
+<td><code>paretovariate</code></td>
+<td>3.9 differs from 3.10 to 3.14</td>
+</tr>
+<tr>
+<td>Seeding with a tuple or frozenset; <code>sample(set)</code>; <code>randrange(10.0)</code></td>
+<td>Work in 3.9 and 3.10 (the last to 3.11), then <code>TypeError</code></td>
+</tr>
+<tr>
+<td>Seed sign</td>
+<td><code>Random(-42)</code> equals <code>Random(42)</code>; <code>Random(1.0)</code> equals <code>Random(1)</code></td>
+</tr>
+<tr>
+<td><code>draw.Stream</code> battery, 20,000 rounds</td>
+<td>Identical hash on all six</td>
+</tr>
+<tr>
+<td><code>math.hypot(x, y)</code>, <code>math.hypot(x, y, z)</code>, <code>math.dist</code></td>
+<td><strong>3.9 differs from 3.10 to 3.14</strong>, which agree</td>
+</tr>
+<tr>
+<td><code>sum()</code> of three or more floats</td>
+<td><strong>3.11 and earlier differ from 3.12 and later</strong> (3.12 sums floats with compensation)</td>
+</tr>
+<tr>
+<td><code>sum</code> of two floats, <code>math.fsum</code>, <code>statistics.fmean</code>, <code>sqrt(x*x+y*y)</code>, <code>**</code>, <code>exp</code>, <code>log</code>, <code>sin</code>, <code>atan2</code>, <code>round</code>, float <code>repr</code></td>
+<td>Identical on glibc</td>
+</tr>
+<tr>
+<td><code>unicodedata.unidata_version</code></td>
+<td>13.0 (3.9, 3.10), 14.0 (3.11), 15.0 (3.12), 15.1 (3.13), 16.0 (3.14)</td>
+</tr>
+<tr>
+<td>Set order of strings</td>
+<td>Changes with <code>PYTHONHASHSEED</code>; int and tuple hashes do not</td>
+</tr>
+</tbody>
+</table></div>
+<p>On 200,000 random floats in 0.1 to 3 [C]: <code>sum</code> of 3 floats differs 18.4 percent between 3.11 and 3.12, <code>sum</code> of 4 floats 26.2 percent, and <code>math.hypot(a, b)</code> differs 34.5 percent between 3.9 and 3.12. A spot check on 2026-10-09 against <code>sqrt(a*a + b*b)</code> over 100,000 inputs gave: 3.9 hypot differs 37.3 percent, 3.10 and 3.12 hypot 16.8 percent (and each other 0 percent); <code>sum([a,b,c])</code> against <code>(a+b)+c</code> 0 percent on 3.9 and 3.10, 18.6 percent on 3.12 [C]. Two consequences. Swapping a version-dependent builtin for a plain-IEEE expression changes values on every interpreter, so adopting the helpers is a generation-output change and bumps the epoch (section 5). The 30-sector probe showed 3.11 and 3.12 agreeing, so no path in that sample sums three or more floats into a stored value, but <code>generation/system.py:1514</code> (<code>draw.uniform(0, sum(weights))</code>), <code>generation/binary.py</code> (<code>sum(s.mass ...)</code> for three-star systems) and <code>star_population.py</code> do sum floats, and a larger run will hit them.</p>
+<p>About 43 <code>math.hypot</code> and <code>math.dist</code> call sites exist under <code>src/planetgen/</code> today; roughly 25 are in <code>galaxy/</code>, <code>population/</code>, <code>physics/</code> and <code>db/</code> and affect stored values, the rest are in <code>web/</code> drawing code where bits do not matter. <code>galaxy/geometry.py</code> (<code>sector_address_at</code>) already uses <code>sqrt(x*x + y*y)</code> with a comment saying why, in that one place.</p>
+<h3 id="22-the-c-maths-library-os-and-cpu">2.2 The C maths library (OS and CPU)</h3>
+<p>CPython's <code>math.exp</code>, <code>log</code>, <code>sin</code>, <code>cos</code>, <code>pow</code> and <code>**</code> call the platform C library. IEEE 754 requires correct rounding only for <code>+ - * /</code>, <code>sqrt</code> and conversions. Measured on 100,000 random inputs per function, glibc 2.39 against musl 1.2 [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>glibc != musl</th>
+<th>Max ulp apart</th>
+<th>Function</th>
+<th>glibc != musl</th>
+<th>Max ulp apart</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exp</td>
+<td>0.074%</td>
+<td>1</td>
+<td>atan</td>
+<td>4.25%</td>
+<td>1</td>
+</tr>
+<tr>
+<td>log</td>
+<td>0.003%</td>
+<td>2</td>
+<td>asin / acos</td>
+<td>6.0% / 7.6%</td>
+<td>1</td>
+</tr>
+<tr>
+<td>log10</td>
+<td>4.37%</td>
+<td>11</td>
+<td>tanh</td>
+<td>7.7%</td>
+<td>3</td>
+</tr>
+<tr>
+<td>log2</td>
+<td>0.020%</td>
+<td>6</td>
+<td>atan2</td>
+<td>17.7%</td>
+<td>1</td>
+</tr>
+<tr>
+<td>sin / cos</td>
+<td>3.0% / 3.2%</td>
+<td>1</td>
+<td>pow (<code>**</code>)</td>
+<td>0.13%</td>
+<td>6</td>
+</tr>
+<tr>
+<td>tan</td>
+<td>3.8%</td>
+<td>1</td>
+<td>hypot (libm)</td>
+<td>0.000%</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Against a correctly rounded reference (mpmath, 200 bits), glibc misrounds <code>exp</code> 0.06 percent, <code>sin</code> 0.13, <code>pow</code> 0.055, but <code>sinh</code> 25 percent, <code>cosh</code> 23, <code>expm1</code> 8.5 and <code>log1p</code> 6.8 [C]. Treat <code>sinh</code>, <code>cosh</code>, <code>expm1</code>, <code>log1p</code> and <code>tanh</code> as least stable and <code>exp</code>, <code>log</code> and <code>pow</code> as most stable. The musl build's <code>math.sqrt</code> misrounded 0.09 percent of inputs (glibc 0), cause unknown: &quot;sqrt is exact&quot; is a property of a platform build. macOS libm is expected to differ from glibc at similar rates [R, medium].</p>
+<p>Rounding hides these differences. Of 58,526 glibc/musl results that differed, the share still different after rounding to N significant digits [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>N</th>
+<th>17</th>
+<th>16</th>
+<th>15</th>
+<th>14</th>
+<th>13</th>
+<th>12</th>
+<th>11</th>
+<th>10</th>
+<th>9</th>
+<th>8</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>still differ</td>
+<td>100%</td>
+<td>58.1%</td>
+<td>6.4%</td>
+<td>0.68%</td>
+<td>0.075%</td>
+<td>0.007%</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each dropped digit divides the chance by about 10. A quantised fingerprint misfires only when a differing value sits next to a rounding boundary; at 9 digits that is about 10^-7 per differing value in the one-ulp case, and errors that grow through a calculation need the margin. A discrete decision (<code>x &gt;= threshold</code>) flips with probability about 10^-16 per comparison per ulp, so a whole galaxy is safe in practice. A loop that iterates to a tolerance (the Kepler solver in <code>physics/kepler.py</code>) can change its iteration count and move a result by up to its tolerance, so keep tolerances below the 9-digit quantum or accept that the digest hides it.</p>
+<h3 id="23-numpy-blas-and-astropy">2.3 numpy, BLAS and astropy</h3>
+<p>The statement in <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 4 that no numpy or other numeric library is used was wrong. <code>galaxy/nebula_shape.py</code>, <code>physics/sector_path.py</code> and <code>physics/kepler.py</code> import numpy (the last also scipy <code>optimize</code>), <code>nebula_shape.py</code> needs scikit-image for marching cubes, and <code>physics/constants.py</code> imports astropy for 19 constants (GEN.66). The lock pins a different version per Python leg:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Library</th>
+<th>3.9</th>
+<th>3.10</th>
+<th>3.11</th>
+<th>3.12 and later</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>numpy</td>
+<td>1.26.4</td>
+<td>2.2.6</td>
+<td>2.4.6</td>
+<td>2.5.3</td>
+</tr>
+<tr>
+<td>astropy</td>
+<td>6.0.1</td>
+<td>6.1.7</td>
+<td>8.0.1</td>
+<td>8.0.1</td>
+</tr>
+<tr>
+<td>scikit-image</td>
+<td>0.24.0</td>
+<td>0.25.2</td>
+<td>0.26.0</td>
+<td>0.26.0</td>
+</tr>
+<tr>
+<td>scipy</td>
+<td>1.13.1</td>
+<td>1.15.3</td>
+<td>1.17.1</td>
+<td>1.18.1</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Astropy constants drift.</strong> Comparing every numeric constant in <code>planetgen.physics.constants</code> under astropy 6.1.7 and 8.0.1, exactly one differs: <code>HYDROGEN_ATOM_MASS_KG</code> (1.67353286206015e-27 against 1.67353286432139e-27, relative 1.35e-9) [C]. It did not affect the probe sector, but a 9-digit fingerprint sits at the edge of that difference. Freeze the constants as literals in <code>constants.py</code> and assert the astropy values equal them within tolerance in a test.</li>
+<li><strong>BLAS kernels.</strong> numpy's matrix product goes through OpenBLAS, which picks a kernel by CPU. With <code>OPENBLAS_CORETYPE</code> set to SANDYBRIDGE or NEHALEM instead of HASWELL, <code>(100000,3) @ (3,3)</code> and <code>(50,3,3) @ (50,3,3)</code> gave different bits, and a 300x300 product also changed with thread count [C]. <code>np.sin</code>, <code>cos</code>, <code>exp</code>, <code>log</code>, <code>power</code>, <code>tanh</code>, <code>arctan2</code>, <code>sqrt</code>, <code>np.sum(axis=)</code>, <code>einsum</code> and <code>norm</code> did not change when AVX512, AVX2 and FMA3 were masked [C]; that proves little about other CPUs (Apple Accelerate). The repo uses <code>@</code> in <code>nebula_shape.py</code> (lines 107 and 163) and <code>sector_path.py</code> (line 232). Over 150 nebula shapes under three kernel settings, 6.5 percent of field values differed (max relative 1.6e-11) but all 150 <code>scale</code> values and all 450,000 <code>contains_many</code> answers were identical [C]: the effect is real and currently absorbed by thresholds. Replacing <code>@</code> with elementwise multiplies and adds removes the dependence for about three lines.</li>
+</ul>
+<h2 id="3-the-deterministic-math-rule-and-its-lint">3. The deterministic-math rule and its lint</h2>
+<p>Rules for generation code (the packages <code>galaxy</code>, <code>generation</code>, <code>names</code>, <code>physics</code>, <code>population</code>, <code>util</code>), in order of value:</p>
+<ol>
+<li><strong>Randomness only through <code>draw</code>.</strong> Built and scanned by <code>src/tests/test_reproducible_draws.py</code>. Seed with non-negative ints only.</li>
+<li><strong>No <code>math.hypot</code>, <code>math.dist</code> or builtin <code>sum()</code> of floats.</strong> Add <code>planetgen/util/detmath.py</code> with <code>hypot(*c)</code> (the square root of a left-to-right sum of squares, plain IEEE operations), <code>dist(a, b)</code> and <code>fsum</code> (<code>math.fsum</code>, correctly rounded and identical in every version run). Extend <code>test_reproducible_draws.py</code>'s AST scan to flag the three, with an allowlist for integer sums and a comment. <code>math.fsum</code> costs more than <code>sum</code>; check the performance benchmarks, none of these are hot paths. Switching changes stored values, so it ships with an epoch bump.</li>
+<li><strong>Transcendentals are allowed, exact float comparison on their output is not.</strong> Avoid <code>sinh</code>, <code>cosh</code>, <code>expm1</code>, <code>log1p</code> where <code>exp</code> and <code>log</code> do the job. A libm-free normal draw (a ziggurat, or Wichura's AS241) would remove <code>Stream.gauss</code>'s dependence on <code>log</code> and <code>cos</code>; not worth doing unless an exact cross-libm guarantee is wanted.</li>
+<li><strong>No BLAS in generation.</strong> Replace <code>@</code>, <code>dot</code>, <code>matmul</code> and <code>linalg.*</code> in <code>nebula_shape.py</code> and <code>sector_path.py</code> with elementwise code, or show the quantity feeds only quantised output. Give numpy an explicit dtype. numpy stays for display meshes.</li>
+<li><strong>Freeze astropy-derived constants as literals.</strong></li>
+<li><strong>Never iterate a set or dict built from strings or tuples without sorting</strong>, and never <code>os.listdir</code> or <code>glob</code> unsorted. The scan finds no <code>list(set(</code> today.</li>
+<li><strong>Text.</strong> Keep names and word lists ASCII or handle them as bytes: the Unicode database differs from 13.0 (3.9) to 16.0 (3.14), so <code>.lower()</code>, <code>.title()</code> and <code>casefold()</code> can change for non-ASCII letters [R for the effect, C for the versions].</li>
+<li><strong>Files and float text.</strong> Write canonical bytes in binary mode with <code>\n</code> only and hash the canonical body, not the file. Float <code>repr</code> does not call the platform printf [R, high]; the six Linux versions agree. No locale-aware formatting.</li>
+<li><strong>Run the no-database battery (section 7, tier A) on the macOS CI job too.</strong> <code>ci.yml</code> has a <code>macos-installers</code> job but the test matrix (3.9, 3.12, 3.13) is Linux only. GitHub's <code>macos-latest</code> is Apple Silicon [R], a different CPU family and libm, the strongest single cross-check.</li>
+<li><strong>A leg that still differs after rules 2 to 5 is not loosened silently.</strong> The failure report says whether integers and strings or only floats differ; a float-only difference on one platform is a finding to triage, and <code>epochs.json</code> can hold a per-platform alternative digest as a last resort.</li>
+</ol>
+<h2 id="4-canonical-serialization-and-fingerprints-gen58">4. Canonical serialization and fingerprints (GEN.58)</h2>
+<h3 id="41-encoder">4.1 Encoder</h3>
+<p>RFC 8785 (JCS) sorts keys, writes UTF-8 with no whitespace and uses ES6 number serialization [R, high]. Against <code>json.dumps</code> (pure-Python <code>rfc8785</code> 0.1.4 [C]) it writes <code>1.0</code> as <code>1</code>, <code>1e16</code> as <code>10000000000000000</code>, <code>-0.0</code> as <code>0</code>, and errors on integers of 2^53 or more and on nan.</p>
+<p>So JCS is not what <code>json.dumps</code> writes, cannot carry 128-bit seeds, 96-bit uids or BIGINT ids as numbers, and erases the sign of zero. Because the fingerprint quantises every float first, it needs a rule stable across Python 3.9 to 3.14, not cross-language portability. A 40-line encoder inside <code>planetgen</code>, documented as &quot;JCS-like, not JCS&quot;, with no new dependency:</p>
+<ul>
+<li><strong>Floats:</strong> reject nan and inf; <code>x = 0.0 if x == 0 else x</code>; quantise with <code>float(format(x, &quot;.8e&quot;))</code> (9 significant digits); <code>json.dumps</code> then writes the shortest repr of that double.</li>
+<li><strong>Integers:</strong> decimal; anything above 2^53 as a hex string.</li>
+<li><strong>Strings:</strong> UTF-8 as stored, no Unicode normalisation (the tables differ by Python version).</li>
+<li><strong>Rows:</strong> keys sorted (<code>sort_keys=True, separators=(&quot;,&quot;, &quot;:&quot;), ensure_ascii=True, allow_nan=False</code>); lists in generation order, never database id order; ids, foreign keys and timestamps skipped.</li>
+<li><strong>Format tag:</strong> <code>b&quot;pgfp1\0&quot;</code> in the hash input, so a rule change (digits, field set) is told apart from a content change. <code>fp_spec</code> is kept separate from <code>generator_epoch</code> in the golden file.</li>
+</ul>
+<p>MySQL 8.4 and MariaDB 11.4 may send DOUBLE values in different text forms (17 significant digits against shortest) [R, medium; not tested]. A digest read back from the database is independent of that only because of the 9-digit quantisation.</p>
+<h3 id="42-hash-function">4.2 Hash function</h3>
+<p>SHA-256, BLAKE2b and SHA3-256 are in the Python 3.9 standard library; BLAKE3 is not (PyPI <code>blake3</code> 1.0.11, released 2026-10-08, needs Python 3.11 or later; 1.0.10 needs 3.8 or later). SHA-256 is already used for unit seeds, uids and the naming key. Measured on the research machine (Python 3.9.25, OpenSSL 3.5.4, no SHA-NI): SHA-256 130 to 310 MB/s, BLAKE2b about 270 MB/s, BLAKE3 2 to 4 GB/s [C]. A 40-system sector generates in about 1.3 s; its canonical text is on the order of 0.5 MB, so hashing is a few milliseconds, under 1 percent of generation. Canonicalisation in Python is the cost, not the hash. <strong>SHA-256.</strong></p>
+<h3 id="43-per-sector-digests-and-the-region-tree">4.3 Per-sector digests and the region tree</h3>
+<p>Sector addresses have a total order: <code>geometry.provisional_sector_designation</code> and <code>galaxy/uid.sector_uid</code> pack the sector's address into one integer: shell, band and wedge since 2026-10-15 (until then ring, biased layer and slot, ring in the high bits).</p>
+<ul>
+<li><strong>Leaf</strong> = <code>SHA256(0x00 || fp_spec || uid (8 bytes) || canonical_sector_bytes)</code>, stored per sector in the galaxy database (one 32-byte column, or 8 bytes truncated, since it detects change and is not a security feature). This leaf is for reproducibility; DB.9's damage checksum is a separate lossless SHA-256 of the stored rows (<a href="../operations/db-check-and-parity-repair.html">db-check-and-parity-repair.md</a> 5.3), because a canonical digest that rounds floats or skips columns cannot detect every damaged byte.</li>
+<li><strong>Node</strong> = <code>SHA256(0x01 || for each child in uid order: child key (8 bytes) || child digest)</code>. The distinct prefix bytes stop a leaf from being read as a node, as in RFC 6962 Merkle trees [R].</li>
+<li><strong>Levels:</strong> sector leaf, (shell, band) node, shell node, galaxy root (cylindrical until 2026-10-15: (ring, layer) node, ring node). A region is any shell or band range or list of sectors; its digest covers the leaves or nodes it spans plus their count, so two regions with different sector sets never coincide. An ungenerated sector is absent and the count says so.</li>
+<li><strong>Cost</strong> [C]: a flat digest over 1,000,000 stored leaves took 1.0 s in Python (the loop, not the hash). With a stored node table, changing one sector rehashes one 1,000-child group and the 1,000-entry top in 0.55 ms. Compute the leaf at save time from the in-memory sector, which does not depend on the database float round trip; keep a <code>sector_digest_nodes</code> table keyed by (shell, band) marked dirty on save or edit; compute shell and galaxy roots on demand. At 12 billion sectors a full-galaxy digest is a batch job; a region of up to about 10^6 sectors is interactive.</li>
+</ul>
+<p>The GEN.39 stand-in <code>tests/galaxy_fingerprint.py</code> (<code>repr</code> of full-precision floats) is gone: the tests compare <code>planetgen.db.fingerprint</code> (GEN.58), which hashes through <code>util/fingerprint_encoding.py</code> (GEN.304, nine significant digits). <code>tests/reproducible_sector_probe.py</code> compares runs under one interpreter only, which is why it could not see cross-version drift until it was run under five.</p>
+<h2 id="5-version-key-epoch-and-battery-digest">5. Version key, epoch and battery digest</h2>
+<h3 id="51-what-the-current-key-gets-wrong">5.1 What the current key gets wrong</h3>
+<p><code>galaxy/version_key.py</code> builds 22 hex digits (release, Python major.minor.micro, OS digit, architecture digit; see <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 4).</p>
+<ol>
+<li><strong>It tracks releases, not output.</strong> By <code>changes/README.md</code>, every <code>patch</code> or <code>minor</code> note bumps REVISION and BUILD is the sum of TODO category counters, so the key moves when items are added to <code>docs/TODO.md</code>. OPS.14 would warn on most updates and OPS.12's &quot;refuse when the running release isn't Y&quot; would refuse almost always, though output is the same.</li>
+<li><strong>It over-specifies the environment.</strong> Python micro (3.12.3 against 3.12.4) does not matter. Python minor mattered in 3.10 (hypot) and 3.12 (sum), both fixable in code. OS and architecture matter only through the C maths library and BLAS, which the digits do not name.</li>
+<li><strong>It omits what did differ in the tests:</strong> numpy, astropy, scikit-image and scipy versions, which differ per Python leg in the lock. OPS.13's lock hash covers that; the logged key does not.</li>
+</ol>
+<h3 id="52-recommended-record">5.2 Recommended record</h3>
+<p>Keep the 22-digit key as provenance (log line, DB.6 columns) and add:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+<th>Changes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generator_epoch</code> (int)</td>
+<td>Algorithm epoch</td>
+<td>A PR changes the golden digest, and nothing else</td>
+</tr>
+<tr>
+<td><code>fp_spec</code> (int)</td>
+<td>Fingerprint format version</td>
+<td>The canonical encoding or quantisation changes</td>
+</tr>
+<tr>
+<td><code>schema_version</code></td>
+<td>Galaxy schema (Alembic head)</td>
+<td>Migrations (already recorded)</td>
+</tr>
+<tr>
+<td><code>battery_digest</code> (hex)</td>
+<td>Digest of the canned battery run in this environment</td>
+<td>Any output change, including platform or library drift</td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td>Python x.y.z, OS, machine, <code>platform.libc_ver()</code>, numpy, astropy, scipy, scikit-image versions, lock hash</td>
+<td>Informational</td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>MAJOR.REVISION.BUILD</td>
+<td>Every release</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>src/tests/golden/epochs.json</code> maps each epoch to its first release and its golden battery digest, so a tool can name the release to check out for any epoch (OPS.12) and OPS.14 can say &quot;epoch 7 was introduced in 7.131.412&quot;.</p>
+<p><strong>Enforcing the epoch.</strong> <code>scripts/bump_version.py --check-pr</code> already compares a PR with <code>main</code>. Add the rule: the golden file changed if and only if the epoch is bumped if and only if the <code>changes/</code> note carries a <code>generation-output: changed</code> line. This is the mechanism Python's <code>.pyc</code> magic number and numpy's stream-compatibility policy (NEP 19) use [R].</p>
+<p><strong>As built (OPS.56, 2026-10-16).</strong> <code>src/tests/golden/epochs.json</code> holds the epochs (<code>epoch</code>, <code>first_release</code>, <code>reason</code>; the digest per epoch arrives with the battery, OPS.57); <code>planetgen/util/generator_epoch.py</code> reads it (<code>generator_epoch()</code>, <code>epoch_history()</code>, <code>first_release(n)</code>). &quot;Golden changed&quot; means any file under <code>src/tests/golden/</code> other than <code>epochs.json</code>. <code>bump_version.py --check-pr</code> fails a PR unless the golden files, an epoch bump of exactly one and a <code>generation-output: changed</code> line in an added note are all present or all absent; <code>python -m tests.golden_update --reason &quot;...&quot;</code> appends the epoch as <code>pending</code> (refusing under <code>CI</code>, with no golden change since main, or a second time in one change) and stamping the note that carries the line writes the release into <code>first_release</code>. Epoch 1 has <code>first_release</code> null: every release from the start.</p>
+<p><strong>Comparison rule</strong> (OPS.14, OPS.12). A stored galaxy is reproducible here if its epoch matches and the battery digest computed now equals the stored one. Epoch matches, battery differs: &quot;same code, different platform or libraries; the first differing battery case is X&quot; (the case that found the 3.9 hypot drift). Epoch differs: say which release introduced it. Release, Python micro, OS and architecture differences are notes, not errors.</p>
+<p><strong>Per-sector version (DB.7).</strong> The TODO text asks for four columns per sector (<code>version_key</code>, version, python, platform). At 12 billion sectors that is repeated text. Recommended: the <code>generation_runs</code> table that already exists (<code>db/schema.sql</code>) as the reference, and per-sector columns of only <code>generator_epoch</code> (SMALLINT) and <code>run_id</code> (INT, foreign key), the full key text living on the run row. A mixed-version galaxy is then a sector-by-sector comparison of epochs.</p>
+<p><strong>Numbers at merge (OPS.71, 2026-10-29).</strong> Epoch and migration numbers go to whichever change merges first, so a branch that waited on its gate renumbers after main moved. <code>python scripts/allocate_numbers.py</code> does that in one pass on a tree that holds the branch's changes (merged or rebased onto main, even with <code>epochs.json</code> in conflict): the migrations main does not have are renamed to follow its newest and their <code>revision</code> and <code>down_revision</code> rewritten; the epochs main does not have are appended to main's file, numbered on; the first migration gets <code>schema_v&lt;main's head&gt;.sql.gz</code> made from main's <code>schema.sql</code> and its README line; and <code>v&lt;old&gt;</code>, the four-digit <code>&lt;old&gt;</code> and <code>epoch &lt;old&gt;</code> in the lines the branch added are changed to the new numbers (each printed, so a line that talks about main's number can be put back). <code>--check</code> says whether the numbers already follow main's, <code>--dry-run</code> shows the changes. It refuses (exit 2) when two of the branch's migrations are numbered alike or main already holds the fixture it would make. The golden files carry the epoch, so after an epoch moves take main's golden files and run <code>python -m tests.golden_update</code> (about a minute). <code>src/tests/test_allocate_numbers.py</code> covers it on throwaway git repositories.</p>
+<h3 id="53-the-ops13-question-recalculate-the-seed-value">5.3 The OPS.13 question: &quot;recalculate the seed value&quot;</h3>
+<p>Boss (2026-10-02 02:08Z): each update &quot;will have to make a sweet to recalculate the seed value based on the current code version and it'll need to keep the seed/version combo for say the last 10 updates.&quot;</p>
+<p><strong>Do not change the seed; recalculate what is derived from the code and record it next to the seed.</strong></p>
+<ol>
+<li>The galaxy seed identifies the galaxy. The stored rows came from it; changing it makes the stored seed claim a galaxy that does not exist.</li>
+<li>Mixing the version into the seed (<code>H(seed || epoch)</code>) would re-roll every sector at each epoch bump, including sectors whose generator code did not change, which defeats &quot;a release that changes one formula changes only what that formula touches&quot; (<a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 3).</li>
+<li>What is recalculated on each update and kept in the history row is the new version key and epoch, the dependency fingerprints (lock hash, numpy and astropy versions, libc) and the battery digest under the new code (OPS.15). That is the sweep: does the same seed still produce the same thing on this code.</li>
+</ol>
+<p>An OPS.13 row is <code>(galaxy_seed, version_key, epoch, battery_digest, lock_sha256, env_json, date)</code>, last 10 per galaxy, plus the corpus, offensive-words and name-list hashes already planned (the filtered list the generator actually uses is hashed, so a corpus download difference that leaves the list unchanged does not alarm). A <code>derived_run_id = SHA-256(seed || version_key)</code> could label a row but must never feed generation; not recommended.</p>
+<h3 id="54-the-battery-ops15">5.4 The battery (OPS.15)</h3>
+<p>A pure function <code>generator_battery_digest()</code> in the package (not a script), no database and no network, running a fixed canned battery and returning an overall digest plus per-case digests:</p>
+<ul>
+<li>6 to 8 tiny cases, each a fixed (galaxy seed, address, config) giving one 3-system sector through <code>generation/run_sector.generate_sector</code> under <code>draw.bound(unit_seed(...))</code>; one rogue planet or phenomenon; one nebula shape (<code>draw_shape</code>, <code>scale</code>, 50 <code>contains</code> points); one bright-star scatter on a tiny region; one population stream; one <code>unit_seed</code> known answer. Each is hashed with the section 4 encoder.</li>
+<li>Cost [C]: eight 3-system sectors take 1.2 s; importing the package costs 2 to 3 s of CPU. So 3 to 5 s per update. <code>update.sh</code> runs it with the new code and compare with the previous history row; ADM.17 and API.16 can show &quot;battery OK&quot; or &quot;differs&quot; by running it at start-up or on demand.</li>
+<li>It detects an intentional change (the epoch should have been bumped), an accidental one (the golden test should have failed first) and environment drift with the epoch unchanged. It cannot see code paths it does not exercise; grow it as GEN.42, PERF.18, API.12 and API.13 land.</li>
+<li>The pure part (seed, address, config to sector object) is also what API.17's remote generation needs; keep it free of database reads. The entry points are <code>generation/run_galaxy.generate_and_save_sector_at</code> (<code>galaxySeed.seeded(galaxy_seed, &quot;sector&quot;, address)</code>), <code>galaxy/nebula_field.py</code> (<code>&quot;nebula-cell&quot;</code>) and <code>generation/run_sector.generate_sector</code>.</li>
+</ul>
+<p><strong>As built (OPS.57, 2026-10-23).</strong> <code>generation/generator_battery.py</code>: <code>generator_battery_digest()</code> returns a <code>BatteryDigest</code> (<code>overall</code>, and <code>cases</code>, a <code>CaseDigest(full, structural, floats)</code> per case; <code>first_difference(other)</code> names the first case, in order, that differs). Seven cases: <code>sector-a</code> and <code>sector-b</code> (three systems through <code>generate_sector</code> under <code>galaxy.seed.seeded(GALAXY_SEED, &quot;sector&quot;, address)</code>, hashed from <code>SpaceSector.to_dict()</code>), <code>phenomenon</code> (a rogue planet), <code>nebula-shape</code> (<code>draw_shape</code>, its dictionary, its scale and 50 <code>contains</code> answers), <code>bright-star-scatter</code> (<code>bright_stars.scatter</code> on a three-shell outline of a toy galaxy), <code>population-stream</code> (ten stars of <code>star_population.sample_bright_stars</code>) and <code>unit-seed</code> (the SHA-256 of a known address). Each case is turned into a tree of plain values (<code>tree</code>: objects by field, sets sorted, the clocks of <code>db.fingerprint_tree.CLOCK_KEYS</code> left out) and hashed with the GEN.304 encoder; the overall digest is over the full digests in the order of <code>CASES</code>. About 5 s on the lane machine (most of it the first sector). <code>tests/test_generator_battery.py</code> checks two runs and two hash seeds agree and that changing one canned draw changes exactly one case.</p>
+<p><strong>As built (OPS.58, 2026-10-23).</strong> The record of 5.2 is kept in three places. The control database's <code>version_key_history</code> (control schema v18) holds, per galaxy database, the seed, the key, <code>generator_epoch</code>, <code>battery_digest</code> and <code>battery_cases</code>, the lock hash and <code>environment</code> (<code>version_history.environment()</code>: Python, system, machine, libc, numpy, astropy, scipy, scikit-image), a new row only when one of them differs from the newest row and otherwise <code>last_seen_at</code>. The galaxy's own <code>galaxy_shape</code> (v131) keeps <code>generator_epoch</code>, <code>fp_spec</code> (<code>util.fingerprint_encoding.FP_SPEC</code>, 1 for <code>pgfp1</code>), <code>battery_digest</code> and <code>battery_cases</code>, written when a plan draws a new seed, and <code>generation_runs.generator_epoch</code> the epoch of each run, so each pass of a galaxy has its epoch. <code>version_check.galaxy_check(conn, compute_battery)</code> returns <code>(errors, warnings)</code>: an epoch difference is an error naming the release that first generated under the next epoch, a battery difference at the same epoch a warning naming the first case, a different <code>fp_spec</code> a warning; <code>galaxy_warning</code> is its text. The battery is worked out once a process (<code>generator_battery.running_digest()</code>), by <code>planetgen plan</code>, the update's history step and the commands that extend or fingerprint a galaxy; the web pages pass <code>compute_battery=False</code>. Refusing a remote or rebuild run on an epoch error is OPS.12's.</p>
+<h3 id="55-how-other-systems-handle-it-all-r-unconfirmed">5.5 How other systems handle it (all [R], unconfirmed)</h3>
+<p>Minecraft (Java) stores a data version per chunk, so old chunks keep their terrain and new chunks use the new generator, with 1.18 blending the seams (medium-high): DB.7's per-sector version in miniature. Factorio (exchange string with settings, seed and game version), Terraria (1.4 changed generation) and Dwarf Fortress (separate seeds for world, history and names; a saved world is a snapshot) tie a seed to a version (medium). Brogue and DCSS show the version beside the seed (medium). No Man's Sky stores player edits on top of deterministic seeds; how updates preserve them is unknown (low, do not rely on it). numpy's NEP 19 freezes <code>RandomState</code>'s stream while <code>Generator</code>'s may change, and Rust <code>rand</code>'s <code>StdRng</code> may change algorithm while a named ChaCha generator is fixed [R, high]: &quot;the stream may change&quot; is kept apart from &quot;this named thing never changes&quot;, which <code>draw.py</code> does and an epoch counter formalises. None promises that a seed rebuilds across versions, which matches Boss's &quot;no automatic migration&quot;.</p>
+<h2 id="6-net-diff-and-edit-log-format-gen59-gen61">6. Net-diff and edit-log format (GEN.59, GEN.61)</h2>
+<h3 id="61-candidates">6.1 Candidates</h3>
+<p>RFC 6902 JSON Patch addresses arrays by position, is an ordered script, and fails safe on a changed base only with added <code>test</code> ops. RFC 7396 JSON Merge Patch replaces arrays whole, cannot set a field to null (null deletes it) and checks nothing. A custom delta addresses objects by stable generation index, holds one final state per object (order independent), marks deletes as tombstones and checks the base through a <code>was</code> value.</p>
+<p>Demonstrated with <code>jsonpatch</code> and a hand-written RFC 7396 [C]. A diff of one planet mass in system 1 is <code>[{&quot;op&quot;:&quot;replace&quot;,&quot;path&quot;:&quot;/systems/1/planets/1/mass&quot;,&quot;value&quot;:99.0}]</code> (71 bytes). If a later generator version inserts a system at the front, the same patch applies without error to the wrong planet; adding a <code>test</code> op first makes it fail loudly. The merge patch for the same edit has to carry the whole <code>systems</code> array (130 bytes in a 2-system toy, far larger in real data). The custom form was 92 bytes with no position in it.</p>
+<h3 id="62-the-format">6.2 The format</h3>
+<p>A custom document built on merge-patch ideas but keyed by stable object address, one entry per changed object, flat field maps:</p>
+<pre><code class="language-json">{
+  &quot;format&quot;: &quot;pgdelta/1&quot;,
+  &quot;epoch&quot;: 7,
+  &quot;orbit_epoch&quot;: &quot;2026-10-09T00:00:00Z&quot;,
+  &quot;objects&quot;: {
+    &quot;S12.3.0/y4/p2&quot;:    {&quot;set&quot;: {&quot;mass_kg&quot;: {&quot;was&quot;: 5.97e24, &quot;now&quot;: 6.1e24}}},
+    &quot;S12.3.0/y4/p2/m1&quot;: {&quot;deleted&quot;: true},
+    &quot;S12.3.0/y5&quot;:       {&quot;regen&quot;: &quot;9F3A07C2E81B44D5A1C06E7B3D2F9081&quot;},
+    &quot;S12.3.0/y6/p+3F0A91&quot;: {&quot;added&quot;: {&quot;class&quot;: &quot;ice giant&quot;}}
+  }
+}
+</code></pre>
+<p>Rules, which make the GEN.61 merge deterministic and idempotent:</p>
+<ol>
+<li><strong>Address path:</strong> sector <code>S&lt;ring&gt;.&lt;layer&gt;.&lt;slot&gt;</code>, then <code>y&lt;n&gt;</code> system, <code>p&lt;n&gt;</code> planet, <code>m&lt;n&gt;</code> moon, <code>b&lt;n&gt;</code> belt, <code>c&lt;n&gt;</code> comet, where <code>n</code> is the <strong>generation index</strong>: the object's position in generation order when first produced, stored and never renumbered. Deleting object 2 leaves 0, 1, 3. Admin-added objects get <code>+&lt;random 24-bit hex&gt;</code> so they cannot collide with generated indices. <code>galaxy/uid.py</code> and <code>store.assign_uids</code> derive a uid from the object's rank among its parent's rows by row id; if an admin deletes a planet and the sector is later re-saved, that rank can shift. The path helper therefore needs a stored generation-index column, not row rank and not the uid.</li>
+<li><strong><code>set</code> holds field to <code>{was, now}</code>.</strong> <code>now</code> is the admin's value; <code>was</code> is the generated value captured before the first change. A field whose latest <code>now</code> equals its <code>was</code> is dropped, and an entry with no fields is dropped, without regenerating (this is what GEN.59's &quot;an edit that puts a value back drops its entry&quot; needs). It also gives rebase checks and a readable log.</li>
+<li><strong><code>regen</code> holds the new 128-bit seed.</strong> A regenerate at path P clears every entry at or under P and writes <code>{&quot;regen&quot;: seed}</code>; later edits are recorded on top and their <code>was</code> values refer to the regenerated content. A delete at P clears everything under P and writes the tombstone. Both are prefix operations: the merge sorts by path and processes prefix-first.</li>
+<li><strong>Order independence:</strong> the file maps path to final state, so folding pending deltas is &quot;for each pending delta in time order, overwrite by rule 2 or 3&quot;, and a different grouping gives the same file. Each pending row is <code>(time, path, op, payload)</code>.</li>
+<li><strong>Canonical bytes:</strong> sorted keys; <code>now</code> and <code>was</code> as the exact Python float repr, not quantised (they are stored values; the fingerprint quantises when comparing); seeds and ids above 2^53 as hex strings; binary write, <code>\n</code>, no BOM; a <code>content_sha256</code> of the canonical body inside the file, so GEN.61's &quot;written and read back&quot; check is one comparison.</li>
+<li><strong>When the base changed (different epoch):</strong> by Boss's rule there is no automatic migration, so the default is to refuse; OPS.12 stops at the epoch check and names the release. A separate explicit rebase tool, if ever wanted, is a three-way compare: base is <code>was</code>, ours is <code>now</code>, theirs is the regenerated value. Equal <code>was</code> applies; different <code>was</code> is a conflict (keep the admin's value, mark it conflicted); a missing path is an orphan (listed, not applied); a <code>regen</code> is kept but flagged because new code gives different content from what the admin saw. Never apply silently.</li>
+</ol>
+<p><strong>Regenerate needs a seed argument.</strong> GEN.59's text says it replaces today's <code>random.seed()</code> in <code>api/edits.py</code>. That call is gone: a search of <code>src/planetgen</code> finds no <code>random.seed</code>, and GEN.56 moved the draws to <code>util/draw.py</code>. What remains is that <code>admin/edits.py: regenerate_planet</code>, <code>regenerate_moon</code> and <code>regenerate_belt</code> draw from whatever stream is bound, the run stream in a request, with no stored seed. GEN.59 must add a seed argument to those functions, bind <code>draw.bound(seed)</code> around them and store the seed.</p>
+<h3 id="63-the-settings-json-adm18-in-the-same-style">6.3 The settings JSON (ADM.18) in the same style</h3>
+<p><em>Removed by ADM.50 (2026-10-16): there is no settings file now (<a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 7). The encoding rules below stand for any record that stores these values.</em></p>
+<p>The same encoder: <code>seed</code> as 32 uppercase hex, <code>version_key</code> with parts spelled out, <code>epoch</code>, <code>fp_spec</code>, every creation setting at full float repr (they are generator inputs and must not be quantised), <code>lock_sha256</code>, <code>env</code>, the naming key and its <code>CODEC_VERSION</code> (<a href="../architecture/object-ids.html">object-ids.md</a>, GEN.70), the filtered word list's SHA-256 with the list itself in gzip and base64 (stars and sectors keep word-salad names per Boss's 2026-10-08 decisions), and <code>content_sha256</code>. The file name <code>&lt;seed&gt;-&lt;key&gt;-&lt;YYYYMMDD&gt;-&lt;HHMMSS&gt;Z.json</code> has no colons.</p>
+<h2 id="7-golden-seed-test-structure-test77">7. Golden-seed test structure (TEST.77)</h2>
+<p>Built as described in <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> (the golden test paragraph): tier A pins a digest a case rather than a digest a named section, and the Rosetta text is three small battery cases, because a one-system sector is about 100 KB of canonical text.</p>
+<h3 id="71-tiers">7.1 Tiers</h3>
+<p>Three tiers, cheapest first, so a failure is localised before the expensive test runs.</p>
+<ul>
+<li><strong>Tier A, no database, every leg including macOS (3 to 5 s).</strong> The OPS.15 battery. The golden record per case is a <code>structural_digest</code> (ints, strings, booleans, counts, names) and a <code>float_digest</code> (floats at 9 digits), each over named sections (system, star, planet, moon, belt, comet, phenomenon, population), plus the case's overall digest. On mismatch the report prints a table: case, section, expected, actual, structural or float. A structural mismatch is a code change; a float-only mismatch on one platform is drift.</li>
+<li><strong>Tier B, database, 1 against 4 workers.</strong> TEST.77 as written: plan, a few sectors, a scatter and a backfill. Two assertions: 1 worker equals 4 workers (always true, no golden needed), and the per-sector digests equal the golden's. Print differences by address (<code>S12.3.0: expected 9fa1..., got 02be...</code>), then the region digest. A few dozen sectors.</li>
+<li><strong>Tier C:</strong> the existing hash-seed and locale subprocess probe (<code>test_a_sector_does_not_depend_on_hash_seed_or_locale</code>), unchanged.</li>
+</ul>
+<p>One &quot;Rosetta&quot; case is stored as full canonical text (a 1-system sector, a few KB, <code>src/tests/golden/rosetta_epoch_N.txt</code>) so a failing diff reads line by line; the other cases store digests only. On failure the actual text is written next to the golden path and <code>diff -u</code> is printed.</p>
+<h3 id="72-updating-goldens">7.2 Updating goldens</h3>
+<ul>
+<li>One tool, <code>python -m tests.golden_update --reason &quot;...&quot;</code> (or <code>pytest --update-golden</code>), rewrites <code>src/tests/golden/</code> and <code>epochs.json</code>, bumps <code>generator_epoch</code> and records the reason. It refuses to run when the <code>CI</code> environment variable is set and when the diff is empty.</li>
+<li><code>bump_version.py --check-pr</code> enforces golden file changed, epoch bumped and note line <code>generation-output: changed</code> together (section 5.2).</li>
+<li>The golden file records the environment it was made on (<code>python</code>, <code>platform</code>, <code>numpy</code>, <code>astropy</code>) as information only; the digest is the same on all legs. This replaces the TODO's &quot;pinned per release with the version it was made on&quot;: per-leg goldens would hide the drift of section 2, and a per-release pin would be rewritten on every release because REVISION moves each time.</li>
+<li>Order of work: the deterministic-math items (section 3, rules 2 to 5) land before TEST.77, or the 3.9 leg is red.</li>
+</ul>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<p>Boss's recorded decisions that this note builds on; the rest of the note is recommendation.</p>
+<ul>
+<li>Seed: 128 bits, stored in the database, logged at the top of every generation (Boss, 2026-10-02 01:40Z).</li>
+<li>A seed reproduces a galaxy only on the exact setup that made it; there is no automatic migration of old galaxies to a new release's output (Boss's rule, recorded in <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> sections 2 and 10).</li>
+<li>Admin changes are a net difference from the generated galaxy, a regenerate draws a fresh 128-bit seed for that object, and the JSON file changes only with the deltas at the end of the day (Boss, 2026-10-02 02:20Z and 02:28Z).</li>
+<li>Each update keeps the seed/version combination for the last 10 updates (Boss, 2026-10-02 02:08Z).</li>
+<li>Generation draws reach the unit's stream through a <code>ContextVar</code>, not an <code>rng</code> argument on every function (Boss, 2026-10-09 07:02Z).</li>
+<li>Stars and sectors keep word-salad names; planets, moons and belts keep the &quot;<system> I&quot; pattern (Boss, 2026-10-08 03:57Z and 04:00Z).</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>Computed from scripts in the research run's <code>exp/</code> scratchpad. The hypot and sum rates marked as a spot check in section 2.1 were rerun on 2026-10-09.</p>
+<p>[R] items to verify when paper and documentation access is allowed (the research environment could only read search-result text, not the papers or documentation):</p>
+<ul>
+<li>That the Python documentation promises reproducibility only for <code>random()</code> (it is what <code>draw.py</code>'s docstring says).</li>
+<li>That 3.12's <code>sum()</code> uses compensated summation and that 3.10 changed <code>math.hypot</code>: the behaviour was measured; the attribution to those releases' &quot;What's New&quot; is from memory.</li>
+<li>macOS (libm, Accelerate) behaviour: nothing was run on it.</li>
+<li>That <code>macos-latest</code> on GitHub is arm64; that Python's float <code>repr</code> and <code>format</code> do not call the platform printf; the MySQL against MariaDB DOUBLE text formatting claim.</li>
+<li>All prior-art statements in section 5.5; RFC 6962 domain-separation prefixes; RFC 8785's rules (the library's behaviour was tested, the RFC text was not read).</li>
+<li>The musl <code>sqrt</code> misrounding is one build's observation, undiagnosed.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Repo files read: <code>docs/TODO.md</code> (the items listed), the two design notes, <code>util/draw.py</code>, <code>galaxy/seed.py</code>, <code>version_key.py</code>, <code>uid.py</code>, <code>geometry.py</code>, <code>nebula_shape.py</code>, <code>physics/constants.py</code>, <code>kepler.py</code>, <code>sector_path.py</code>, <code>admin/edits.py</code>, <code>src/tests/test_reproducible_draws.py</code>, <code>reproducible_sector_probe.py</code>, <code>requirements.lock</code>, <code>.github/workflows/ci.yml</code>, <code>scripts/bump_version.py</code>, <code>changes/README.md</code>.</li>
+<li>PyPI JSON API: https://pypi.org/pypi/blake3/json (1.0.11 needs Python 3.11 or later, 1.0.10 needs 3.8 or later), https://pypi.org/pypi/rfc8785/json (0.1.4, pure Python, Trail of Bits); also <code>canonicaljson</code> 2.0.0, <code>jcs</code> 0.2.1, <code>xxhash</code> 4.0.1.</li>
+<li>Runtimes used: CPython 3.9.25, 3.10.20, 3.11.17, 3.12.3, 3.13.16, 3.14.6 (glibc 2.39) and 3.12.13 musl (python-build-standalone via <code>uv</code>); mpmath 1.4.1, numpy 2.5.3, rfc8785 0.1.4, jsonpatch.</li>
+<li>No web pages were consulted.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

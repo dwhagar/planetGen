@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star types against distance from the galactic core (GEN.133) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-17): analysis (GEN.133, #807); proposals 1 and 3 built derived as GEN.134 (see &quot;Built: GEN.134&quot; at the end), proposal 2 not met (see there), proposal 4 already built by GEN.158.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/star-types-by-galactic-radius.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/star-types-by-galactic-radius.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="star-types-against-distance-from-the-galactic-core-gen133">Star types against distance from the galactic core (GEN.133)</h1><p class="meta">docs/design/galaxy/star-types-by-galactic-radius.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#how-the-generator-works-today">How the generator works today</a></li><li style="margin-left:0px"><a href="#results">Results</a></li><li style="margin-left:14px"><a href="#class-shares-inside-each-population-main-sequence-dwarfs-by-class">Class shares inside each population (main-sequence dwarfs by class)</a></li><li style="margin-left:14px"><a href="#spiral-arm-crest-z--0-pc">spiral-arm crest, z = 0 pc</a></li><li style="margin-left:14px"><a href="#midway-between-arms-z--0-pc">midway between arms, z = 0 pc</a></li><li style="margin-left:0px"><a href="#against-the-observed-universe">Against the observed universe</a></li><li style="margin-left:0px"><a href="#findings">Findings</a></li><li style="margin-left:0px"><a href="#proposals-not-built">Proposals (not built)</a></li><li style="margin-left:0px"><a href="#how-the-proposals-are-built-boss-2026-10-16">How the proposals are built (Boss, 2026-10-16)</a></li><li style="margin-left:0px"><a href="#built-gen134-2026-10-17">Built: GEN.134 (2026-10-17)</a></li><li style="margin-left:0px"><a href="#built-gen469-2026-10-17">Built: GEN.469 (2026-10-17)</a></li></ul></details>
+<p><strong>Status (2026-10-17):</strong> analysis (GEN.133, #807); proposals 1 and 3 built derived as GEN.134 (see &quot;Built: GEN.134&quot; at the end), proposal 2 not met (see there), proposal 4 already built by GEN.158.</p>
+<p>Analysis of 2026-10-09 for Boss: how the generator's star-type rates change with
+galactocentric radius, set against what is observed. Method: <code>scripts/star_type_by_radius.py</code>
+draws 30,000 stars per population from the generator's own model
+(<code>stellar_evolution.sample_living_star</code>) and mixes them with the default galaxy's
+population shares at each radius (<code>density.population_densities</code>). Nothing was changed
+by this note; the proposals at the end are for Boss to choose from.</p>
+<h2 id="how-the-generator-works-today">How the generator works today</h2>
+<p>A star's type comes only from its population (young, intermediate, old, bulge: an age
+range each) through a Kroupa mass function and stellar evolution. Position enters only
+by changing the population mix: arms and the thin plane are young, the bulge and the thick
+disk and halo are old. There is no metallicity, no radial star-formation history and no
+radial change in the mass function. So the class shares move only where the mix moves:
+fractions of B, A and white dwarfs change, and M, K and G stay flat (M 74-75%, K 13-14%, G
+2.8-3.4% everywhere).</p>
+<h2 id="results">Results</h2>
+<h3 id="class-shares-inside-each-population-main-sequence-dwarfs-by-class">Class shares inside each population (main-sequence dwarfs by class)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>population</th>
+<th>O</th>
+<th>B</th>
+<th>A</th>
+<th>F</th>
+<th>G</th>
+<th>K</th>
+<th>M</th>
+<th>subgiant</th>
+<th>giant</th>
+<th>wd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>young</td>
+<td>0.0133%</td>
+<td>2.99%</td>
+<td>2.65%</td>
+<td>2.86%</td>
+<td>3.22%</td>
+<td>13.9%</td>
+<td>74.3%</td>
+<td>0.02%</td>
+<td>0%</td>
+<td>0.05%</td>
+</tr>
+<tr>
+<td>intermediate</td>
+<td>0%</td>
+<td>0.51%</td>
+<td>2.09%</td>
+<td>3.12%</td>
+<td>3.34%</td>
+<td>13.8%</td>
+<td>74.2%</td>
+<td>0.197%</td>
+<td>0.143%</td>
+<td>2.6%</td>
+</tr>
+<tr>
+<td>old</td>
+<td>0%</td>
+<td>0%</td>
+<td>0.0667%</td>
+<td>1.44%</td>
+<td>3.37%</td>
+<td>13.3%</td>
+<td>74.7%</td>
+<td>0.347%</td>
+<td>0.357%</td>
+<td>6.42%</td>
+</tr>
+<tr>
+<td>bulge</td>
+<td>0%</td>
+<td>0%</td>
+<td>0%</td>
+<td>0.06%</td>
+<td>2.84%</td>
+<td>14%</td>
+<td>74%</td>
+<td>0.55%</td>
+<td>0.417%</td>
+<td>8.12%</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="spiral-arm-crest-z--0-pc">spiral-arm crest, z = 0 pc</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>R (kpc)</th>
+<th>relative density</th>
+<th>young</th>
+<th>intermediate</th>
+<th>old</th>
+<th>bulge</th>
+<th>O</th>
+<th>B</th>
+<th>A</th>
+<th>F</th>
+<th>G</th>
+<th>K</th>
+<th>M</th>
+<th>subgiant</th>
+<th>giant</th>
+<th>wd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.25</td>
+<td>160</td>
+<td>2%</td>
+<td>15%</td>
+<td>15%</td>
+<td>69%</td>
+<td>0.000273%</td>
+<td>0.135%</td>
+<td>0.369%</td>
+<td>0.765%</td>
+<td>3%</td>
+<td>13.8%</td>
+<td>74.2%</td>
+<td>0.458%</td>
+<td>0.36%</td>
+<td>6.9%</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>153</td>
+<td>2%</td>
+<td>14%</td>
+<td>14%</td>
+<td>71%</td>
+<td>0.000258%</td>
+<td>0.128%</td>
+<td>0.349%</td>
+<td>0.726%</td>
+<td>2.99%</td>
+<td>13.8%</td>
+<td>74.2%</td>
+<td>0.463%</td>
+<td>0.363%</td>
+<td>6.97%</td>
+</tr>
+<tr>
+<td>1</td>
+<td>112</td>
+<td>2%</td>
+<td>16%</td>
+<td>16%</td>
+<td>67%</td>
+<td>0.000292%</td>
+<td>0.145%</td>
+<td>0.396%</td>
+<td>0.814%</td>
+<td>3.01%</td>
+<td>13.8%</td>
+<td>74.2%</td>
+<td>0.452%</td>
+<td>0.356%</td>
+<td>6.82%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>27.2</td>
+<td>6%</td>
+<td>44%</td>
+<td>43%</td>
+<td>8%</td>
+<td>0.000817%</td>
+<td>0.406%</td>
+<td>1.1%</td>
+<td>2.16%</td>
+<td>3.31%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.277%</td>
+<td>0.246%</td>
+<td>4.49%</td>
+</tr>
+<tr>
+<td>3</td>
+<td>19.1</td>
+<td>6%</td>
+<td>42%</td>
+<td>41%</td>
+<td>11%</td>
+<td>0.00079%</td>
+<td>0.392%</td>
+<td>1.07%</td>
+<td>2.08%</td>
+<td>3.29%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.287%</td>
+<td>0.252%</td>
+<td>4.62%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>11.5</td>
+<td>7%</td>
+<td>48%</td>
+<td>46%</td>
+<td>0%</td>
+<td>0.000893%</td>
+<td>0.444%</td>
+<td>1.21%</td>
+<td>2.34%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.253%</td>
+<td>0.231%</td>
+<td>4.17%</td>
+</tr>
+<tr>
+<td>5</td>
+<td>7.8</td>
+<td>7%</td>
+<td>48%</td>
+<td>45%</td>
+<td>0%</td>
+<td>0.000898%</td>
+<td>0.446%</td>
+<td>1.21%</td>
+<td>2.34%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.253%</td>
+<td>0.23%</td>
+<td>4.16%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>5.36</td>
+<td>7%</td>
+<td>48%</td>
+<td>44%</td>
+<td>1%</td>
+<td>0.00089%</td>
+<td>0.442%</td>
+<td>1.2%</td>
+<td>2.32%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.256%</td>
+<td>0.232%</td>
+<td>4.2%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>2.43</td>
+<td>7%</td>
+<td>49%</td>
+<td>45%</td>
+<td>0%</td>
+<td>0.000908%</td>
+<td>0.451%</td>
+<td>1.23%</td>
+<td>2.35%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.252%</td>
+<td>0.229%</td>
+<td>4.13%</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1.12</td>
+<td>7%</td>
+<td>49%</td>
+<td>44%</td>
+<td>0%</td>
+<td>0.000914%</td>
+<td>0.454%</td>
+<td>1.23%</td>
+<td>2.36%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.251%</td>
+<td>0.228%</td>
+<td>4.12%</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0.517</td>
+<td>7%</td>
+<td>49%</td>
+<td>44%</td>
+<td>0%</td>
+<td>0.000918%</td>
+<td>0.456%</td>
+<td>1.24%</td>
+<td>2.36%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.251%</td>
+<td>0.228%</td>
+<td>4.11%</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.162</td>
+<td>7%</td>
+<td>49%</td>
+<td>44%</td>
+<td>0%</td>
+<td>0.000923%</td>
+<td>0.458%</td>
+<td>1.24%</td>
+<td>2.37%</td>
+<td>3.34%</td>
+<td>13.6%</td>
+<td>74.4%</td>
+<td>0.25%</td>
+<td>0.227%</td>
+<td>4.1%</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="midway-between-arms-z--0-pc">midway between arms, z = 0 pc</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>R (kpc)</th>
+<th>relative density</th>
+<th>young</th>
+<th>intermediate</th>
+<th>old</th>
+<th>bulge</th>
+<th>O</th>
+<th>B</th>
+<th>A</th>
+<th>F</th>
+<th>G</th>
+<th>K</th>
+<th>M</th>
+<th>subgiant</th>
+<th>giant</th>
+<th>wd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.25</td>
+<td>131</td>
+<td>0%</td>
+<td>5%</td>
+<td>13%</td>
+<td>82%</td>
+<td>1.16e-05%</td>
+<td>0.0283%</td>
+<td>0.116%</td>
+<td>0.391%</td>
+<td>2.93%</td>
+<td>13.9%</td>
+<td>74.1%</td>
+<td>0.506%</td>
+<td>0.395%</td>
+<td>7.62%</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>103</td>
+<td>0%</td>
+<td>6%</td>
+<td>14%</td>
+<td>80%</td>
+<td>1.33e-05%</td>
+<td>0.0325%</td>
+<td>0.133%</td>
+<td>0.439%</td>
+<td>2.94%</td>
+<td>13.9%</td>
+<td>74.1%</td>
+<td>0.5%</td>
+<td>0.392%</td>
+<td>7.55%</td>
+</tr>
+<tr>
+<td>1</td>
+<td>56.1</td>
+<td>0%</td>
+<td>9%</td>
+<td>22%</td>
+<td>69%</td>
+<td>2.02e-05%</td>
+<td>0.0494%</td>
+<td>0.203%</td>
+<td>0.634%</td>
+<td>3%</td>
+<td>13.8%</td>
+<td>74.2%</td>
+<td>0.474%</td>
+<td>0.379%</td>
+<td>7.25%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>27.2</td>
+<td>0%</td>
+<td>12%</td>
+<td>30%</td>
+<td>57%</td>
+<td>2.84e-05%</td>
+<td>0.0695%</td>
+<td>0.285%</td>
+<td>0.859%</td>
+<td>3.06%</td>
+<td>13.8%</td>
+<td>74.3%</td>
+<td>0.444%</td>
+<td>0.364%</td>
+<td>6.91%</td>
+</tr>
+<tr>
+<td>3</td>
+<td>7.78</td>
+<td>1%</td>
+<td>29%</td>
+<td>70%</td>
+<td>0%</td>
+<td>6.76e-05%</td>
+<td>0.165%</td>
+<td>0.676%</td>
+<td>1.94%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.301%</td>
+<td>0.292%</td>
+<td>5.26%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>9.84</td>
+<td>0%</td>
+<td>16%</td>
+<td>37%</td>
+<td>47%</td>
+<td>3.64e-05%</td>
+<td>0.0889%</td>
+<td>0.363%</td>
+<td>1.06%</td>
+<td>3.11%</td>
+<td>13.7%</td>
+<td>74.3%</td>
+<td>0.417%</td>
+<td>0.35%</td>
+<td>6.6%</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3.52</td>
+<td>1%</td>
+<td>30%</td>
+<td>69%</td>
+<td>0%</td>
+<td>6.92e-05%</td>
+<td>0.169%</td>
+<td>0.69%</td>
+<td>1.95%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.3%</td>
+<td>0.291%</td>
+<td>5.24%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>2.37</td>
+<td>1%</td>
+<td>30%</td>
+<td>69%</td>
+<td>0%</td>
+<td>6.99e-05%</td>
+<td>0.171%</td>
+<td>0.696%</td>
+<td>1.96%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.299%</td>
+<td>0.29%</td>
+<td>5.22%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>1.08</td>
+<td>1%</td>
+<td>31%</td>
+<td>69%</td>
+<td>0%</td>
+<td>7.11e-05%</td>
+<td>0.174%</td>
+<td>0.707%</td>
+<td>1.97%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.299%</td>
+<td>0.289%</td>
+<td>5.2%</td>
+</tr>
+<tr>
+<td>10</td>
+<td>0.495</td>
+<td>1%</td>
+<td>31%</td>
+<td>68%</td>
+<td>0%</td>
+<td>7.2e-05%</td>
+<td>0.176%</td>
+<td>0.715%</td>
+<td>1.97%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.298%</td>
+<td>0.288%</td>
+<td>5.19%</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0.227</td>
+<td>1%</td>
+<td>32%</td>
+<td>68%</td>
+<td>0%</td>
+<td>7.28e-05%</td>
+<td>0.178%</td>
+<td>0.722%</td>
+<td>1.98%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.297%</td>
+<td>0.287%</td>
+<td>5.17%</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.0707</td>
+<td>1%</td>
+<td>32%</td>
+<td>67%</td>
+<td>0%</td>
+<td>7.37e-05%</td>
+<td>0.18%</td>
+<td>0.73%</td>
+<td>1.99%</td>
+<td>3.36%</td>
+<td>13.5%</td>
+<td>74.5%</td>
+<td>0.297%</td>
+<td>0.286%</td>
+<td>5.16%</td>
+</tr>
+</tbody>
+</table></div>
+<p>(The full output, including z = 500 pc, is what the script prints.)</p>
+<h2 id="against-the-observed-universe">Against the observed universe</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Generator</th>
+<th>Observed</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M dwarfs, solar neighborhood</td>
+<td>74-75%</td>
+<td>69% (10 pc census) to 75-78%</td>
+<td>[R1112], <a href="https://www.pas.rochester.edu/~emamajek/memo_star_dens.html">Mamajek</a></td>
+</tr>
+<tr>
+<td>B stars, solar neighborhood</td>
+<td>0.13% between arms, 0.37% in an arm</td>
+<td>about 0.04%</td>
+<td><a href="https://www.pas.rochester.edu/~emamajek/memo_star_dens.html">Mamajek</a></td>
+</tr>
+<tr>
+<td>A stars</td>
+<td>0.8-1.3%</td>
+<td>about 0.6%</td>
+<td>same</td>
+</tr>
+<tr>
+<td>O stars</td>
+<td>7e-5% to 9e-4%</td>
+<td>about 5e-5%</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Bulge stars younger than 5 Gyr</td>
+<td>0% (bulge ages 8-12 Gyr)</td>
+<td>3% (HST) to 16-23% (microlensing, disputed)</td>
+<td>[R0346, R4483]</td>
+</tr>
+<tr>
+<td>Star formation across the disk</td>
+<td>young share flat from 2 to 15 kpc</td>
+<td>rate peaks near 5 kpc, falls about 0.28 dex per kpc beyond; 84% inside the solar circle, 1% beyond 13.5 kpc</td>
+<td>[Herschel Hi-GAL study][R1241]</td>
+</tr>
+<tr>
+<td>Galactic center star formation</td>
+<td>none (bulge is old)</td>
+<td>Central Molecular Zone holds ~5% of the Galaxy's rate</td>
+<td>same, [R0141]</td>
+</tr>
+<tr>
+<td>Iron gradient</td>
+<td>none</td>
+<td>-0.06 dex/kpc for young stars, flatter (-0.03) for 6-10 Gyr</td>
+<td>[R0101]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="findings">Findings</h2>
+<ol>
+<li>Local class shares of M, K, G, A and O are inside the observed spread. B stars come out
+three to ten times too common at the Sun's radius (the young population's 3% B share times
+its arm weight).</li>
+<li>Nothing varies with radius beyond the population mix. The young share stays 7% on an arm
+from 2 kpc to 15 kpc, so the outer galaxy has as many O, B and A stars per star as the Sun's
+neighborhood, when the real star formation falls by about a factor of 20 out to 15 kpc.</li>
+<li>The inner galaxy (under 1 kpc) is all bulge and old disk: no O or B stars at all in the
+plane, which matches the bulge but leaves out the Central Molecular Zone's young stars (about
+5% of the Galaxy's star formation, a few hundred parsecs across).</li>
+<li>White dwarfs run 4-8% (higher where it is older), plausible against the roughly 5% local figure (not separately sourced here).</li>
+<li>The bulge has no stars under 8 Gyr; the observed fraction is 3% to about 20% depending on the method.</li>
+<li>No metallicity: the observed -0.06 dex/kpc gradient changes planet occurrence and the giant
+branch, but not the main-sequence class shares to first order.</li>
+</ol>
+<h2 id="proposals-not-built">Proposals (not built)</h2>
+<ol>
+<li>Weight the young and intermediate populations by the observed star-formation profile (peak at
+5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own
+small young region).</li>
+<li>Lower the young population's B share, or cut its weight, to bring local B stars to about 0.04%.</li>
+<li>Give the bulge a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures).</li>
+<li>Add a metallicity gradient only if planet occurrence is later tied to it. Globular clusters are a second reason to add a metallicity value: their giant-planet cull is <code>10^(2 [Fe/H])</code> (<a href="globular-clusters.html">globular-clusters.md</a> section 7).</li>
+</ol>
+<h2 id="how-the-proposals-are-built-boss-2026-10-16">How the proposals are built (Boss, 2026-10-16)</h2>
+<p>Boss's NO FIXED CONTENT ruling (2026-10-16, 4:11 and 4:14 PM EDT) applies to all four proposals above. The numbers in them
+(a peak at 5 kpc, a slope of -0.28 dex per kpc, a dip inside 3 kpc, B stars at 0.04%, a bulge tail of 10% under 5 Gyr) are
+the Milky Way's observed values. They are test targets that show the derived result is plausible, never inputs to the
+generator and never a preset. GEN.134 is built derived: the star-formation profile by radius follows from the galaxy's own
+shape (its disk scale length, its bulge and bar, and the gas supply those imply), the B share follows from the mass function
+and the star-formation history, and the bulge's young tail follows from the bulge's own formation model. Each value is
+calculated or drawn from the existing seeds, with real science named for every link, and the Milky Way figures above are only
+what the plausibility test compares the result with.</p>
+<p>Boss chose Core 4 to take GEN.134 first and to research the inner-disk dip (2026-10-16, 8:40 PM EDT, card &quot;Core 4 first&quot;).
+Core 4 asks Boss only for what it cannot look up or verify.</p>
+<h2 id="built-gen134-2026-10-17">Built: GEN.134 (2026-10-17)</h2>
+<p><code>galaxy/star_formation.py</code> gives the young and intermediate populations a radial factor, applied in
+<code>density.population_densities</code> and <code>population_densities_array</code>. It is derived from the shape's own disk scale length
+and bulge scale radius. The Milky Way's figures are test targets in <code>tests/test_star_formation_profile.py</code>, never inputs.</p>
+<p><strong>The chain.</strong></p>
+<ol>
+<li><em>The star-formation law.</em> Rate per area goes as the gas per area to the power n = 1.4 ([R2321]: 1.4 +/- 0.15
+over 61 spirals and 36 starbursts, gas 10 to 1e5 solar masses per pc2; other fits 1.3 +/- 0.3 and 1.65 +/- 0.16;
+resolved data give 1.5 to 2.7 for total gas). The thin disk's stars are the sum of its past rates, so their surface
+density is <code>exp(-R/L)</code>. A gas disk of scale length <code>g L</code> makes the present rate fall as <code>exp(-n R / (g L))</code> and the
+<em>share</em> of the stars that are recent as <code>exp(-(n/g - 1) R / L)</code>. <code>g</code> is 1 (<code>GAS_TO_STELLAR_SCALE_LENGTH_RATIO</code>, an
+assumption: the observed gas disk is more extended, which would make the outer disk younger). The Milky Way's own Kennicutt-Schmidt index
+is lower than the classic one: 1.2 +-0.2 ([R2770], molecular gas) and 1.12 +-0.05 [R4140], as the
+Herschel paper below reports them [P: as that paper quotes them]; with them the outer fall would be -0.19 dex per kpc, and the observed -0.28 needs an index of 1.65.
+<em>The index rises where the gas thins (GEN.450, Boss's answer to the card of 12:27 PM EDT 2026-10-23).</em> Instead of one index of 1.65, which is
+chosen to hit the observed figure (a test target, never an input), the index steepens where the disk's own gas is thin: [R0392]
+find that molecular gas forms stars at a constant efficiency (index 1.0) while atomic gas, which dominates the outskirts, saturates near 9
+solar masses per pc2 and shows a weak total-gas relation; [R2651] find the efficiency in the atomic-dominated
+disk falls exponentially with radius; [R3951] gives a cold-phase threshold. The rate is
+<code>A gas^n (gas / (gas + gas_s))^(m - n)</code>: <code>n</code> stays 1.4, <code>gas_s</code> is 9 solar masses per pc2 (<code>tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2</code>) and <code>m</code>
+is 2.1 (<code>tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT</code>), the middle of the 1.5 to 2.7 that resolved total-gas fits give. The gas is the rings' gas now
+(<code>disk_history.history_of</code>), about 4 solar masses per pc2 at 8 kpc for a Milky Way-like galaxy (the observed total is higher, about 13, so the
+threshold bites a little earlier in the model than in the Galaxy), and the extra factor is normalised away like the rest, so the disk still makes
+as many stars. The result for the Milky Way-like shape is a fall of -0.27 dex per kpc beyond the peak. What is open: <code>m</code> and <code>gas_s</code> are not read from
+one galaxy (no source gives the index of a single galaxy's outer disk), the smooth form <code>gas / (gas + gas_s)</code> is a choice, and the ring gas is
+lower than the observed total.</li>
+<li><em>The bar gap.</em> A bar drives the gas inside its corotation inward, and what is left is sheared and made turbulent by the bar's
+shocks, so the star-forming gas in the region the bar sweeps is depleted. What the papers say [P: each read in the paper, 2026-10-17]:
+in six zoom-in simulations the star formation &quot;desert&quot; either side of the bar lacks stars younger than 10 Myr because, after
+the bar forms, &quot;gas in these regions is removed on 1 Gyr timescales&quot; [R1142];
+bars drive gas inflow inside the corotation radius, which raises the central rate, yet disk galaxies with a suppressed center often host
+a bar, and the causes are discussed, not settled [R4610]; galaxies with bar-driven radial gas flows have
+suppressed star-formation efficiency with &quot;no indication of depleted gas mass fractions&quot;, so gas exhaustion is not the cause there
+[R1973]. Observed in the Milky Way: the molecular gas shows &quot;a pronounced deficit at R about 0.5 to 3.5 kpc (a bar gap)&quot;, an outer boundary at
+3.5 kpc that &quot;is consistent with the dynamical estimate of the Galactic bar half-length&quot;, with the caveat that axisymmetric distance
+inversions can partly fill such a gap [R0215]; the long bar's half-length is
+5.0 +-0.2 kpc in [R4650], so the estimates differ. The Central Molecular Zone forms stars at
+a rate at least ten times below what its dense gas predicts ([R2505], after [Longmore et al.
+2013][R2737]): episodic, with a raised critical density from the turbulent pressure. The generator's rate is scaled by
+<code>S(R) = f + (1 - f) u^p / (1 + u^p)</code>, <code>u = R / R_gap</code>. <strong>The gap radius</strong> is 2.2 bulge scale radii (<code>BAR_GAP_RADIUS_RATIO</code>), 3.5 kpc for the default shape, which
+is the gap's outer edge over the bulge's 1.58 kpc [P for the 3.5 kpc]; <strong>the floor</strong> <code>f</code> (0.03) is what 1 Gyr removal leaves after 3.5 Gyr
+(<code>exp(-3.5)</code>), the young and intermediate stars being under 3 Gyr old; that bar epoch is an assumption and the 1 Gyr is a simulated galaxy's, so the floor stays an open default;
+<strong>the edge power</strong> <code>p</code> (4) is a model default (2 never leaves a ring). Fast bars have corotation over bar length of 1.0 to 1.4 (Debattista and Sellwood
+2000; a search summary, the paper was not opened).</li>
+<li><em>Normalisation.</em> The factor is scaled so the stars of the disk, weighted by their own surface density, average 1: the
+disk makes as many stars over its life as the uniform-in-time populations already assumed. The three disk populations
+still share the same disk density, so no cell's total changes.</li>
+</ol>
+<p><strong>Result for the default shape</strong> (disk scale length 2.6 kpc, bulge scale radius 1.58 kpc; rate per area, test values):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Derived</th>
+<th>Milky Way target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Peak of the rate per area</td>
+<td>3.3 kpc (the gap's edge)</td>
+<td>4 to 5 kpc (molecular ring)</td>
+</tr>
+<tr>
+<td>Share of the star formation inside the solar circle</td>
+<td>91% (86% before GEN.450)</td>
+<td>84%</td>
+</tr>
+<tr>
+<td>Share beyond 13.5 kpc</td>
+<td>0.4% (1.3% before GEN.450)</td>
+<td>1%</td>
+</tr>
+<tr>
+<td>Fall beyond the peak</td>
+<td>-0.27 dex per kpc (the plain law gives -0.23 = 1.4 x 0.434 / 2.6; the index rising where the gas thins, GEN.450, adds -0.04)</td>
+<td>-0.28</td>
+</tr>
+<tr>
+<td>Share inside 3 kpc</td>
+<td>13%</td>
+<td>a dip (not quantified here)</td>
+</tr>
+<tr>
+<td>Stars under 5 Gyr in the bar's core (250 to 1000 pc)</td>
+<td>9% to 11%</td>
+<td>3% (HST) to 16 to 23% (microlensing, disputed)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The young share in the bar's core falls from 2% to under 1%, and the intermediate from 15% to 4%, on an arm crest at 0.25 kpc (the old disk's
+part of the thin disk and the bulge fill the rest).</p>
+<p><strong>Proposal 2 is not met.</strong> The B-star share at the Sun's radius between arms is 0.2% (was 0.17%) and 0.5% in an arm,
+against the note's 0.04%. The derived radial factor is 0.96 at the solar circle (the Sun sits at the disk's average), so
+it cannot lower the local B share. B stars are the stars formed in the last few hundred Myr, so the share follows the
+<em>recent</em> rate against the lifetime average: the generator forms stars at a constant rate over 10 Gyr, and a recent rate
+four times lower is a time dependence that the radial factor does not model. The next derived step is the disk's
+star-formation <em>history</em> from the same gas law (the rate falls as the gas is used, unless it is replenished), which needs
+an inflow rate that nothing in the shape sets; filed as a follow-up. The 0.04% target also rests on a source this note has
+not opened at the time (Mamajek's memo; read since, see Citations), and is his figure from Hipparcos B types.</p>
+<p><strong>Citations (re-checked against the papers, 2026-10-17, 12:40 AM EDT).</strong> [R2321]: 61 normal spirals and 36 starbursts, index 1.4 +-0.15, confirmed.
+[R1241] (Milky Way star formation 2.0 +-0.7 solar masses per year; a peak at the Central Molecular Zone and another near 5 kpc; beyond 5 kpc
+log(rate per area) falls with a = -0.28 +-0.01 per kpc, an exponential scale length of 1.55 kpc, shorter than the stellar disk's 2.6 kpc; 84% inside the solar circle and 1% beyond 13.5 kpc; half of the star formation in the Molecular Ring): all confirmed, and the 1.55 kpc against 2.6 kpc is the same
+sign as the derived 2.6 / 1.4 = 1.86 kpc. The remaining papers are listed in the chain above with what each says. The B-star target is <a href="https://www.pas.rochester.edu/~emamajek/memo_star_dens.html">Mamajek's memo</a>, read: B stars 3.9e-4 of the stars (1 in 2600; calculated from the Hipparcos (HIP2) B types), A 6.0e-3, O about 5e-7, M dwarfs
+72.5% (RECONS 10 pc, N = 283); the 0.04% is confirmed as his figure, and its completeness limits are his. The numbers marked recalled in <code>tuning.py</code> stay so, except the gap edge (3.5 kpc, read).</p>
+<p><strong>Out of scope here.</strong> The Central Molecular Zone (GEN.282), metallicity (GEN.158, done), and the globular clusters.</p>
+<p><strong>The majorant.</strong> The object-first band bound (<code>generation.object_first._disk_share_bound</code>) widens the young and
+intermediate weights by the factor's true smallest and largest value over the band's cylindrical radii
+(<code>recent_factor_range</code>). The factor is not monotone (it dips a little from the center, rises to the gap's edge and falls
+beyond), so the extremes are at an end or at one of its two turning points, found by bisection.</p>
+<h2 id="built-gen469-2026-10-17">Built: GEN.469 (2026-10-17)</h2>
+<p>The disk-wide shares of the young, intermediate and old populations, which GEN.134's radial factor multiplies, now come
+from the disk's own gas history (<code>galaxy/disk_history.py</code>, <a href="disk-star-formation-history.html">disk-star-formation-history.md</a>)
+instead of the age windows' lengths over ten Gy. For a galaxy of 5e10 solar masses the local B-star share between the
+arms falls from 0.19% to 0.12%; the observed 0.04% stays a test target and a strict expected failure.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

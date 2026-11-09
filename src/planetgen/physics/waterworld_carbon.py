@@ -72,8 +72,12 @@ ALTERED_CRUST_KM = (0.1, 50.0, "log")
 0.1 km (Earth-like alteration of the top of the extrusives) to 50 km (pervasive alteration of a thick stagnant-lid extrusive pile); this
 already takes the intrusive to extrusive ratio into account. A bracket of their argument (tier 3, tweak level 0)."""
 
-CRUST_SODIUM_WT = 0.028
-"""float: The sodium mass fraction of the crust that is leached ([R1494] through [R2381: Eq. 4], Na0; READ, tier 1)."""
+CRUST_NA2O_WT = 0.028
+"""float: The Na2O mass fraction of the crust that is leached: 0.028 is what [R2381: Eq. 4] take from [R1494] for Na0, and it is the Na2O of a mid-ocean ridge basalt (about 2.8 weight percent), not the
+sodium (READ, tier 1; GEN.1349 found that the sodium of it is 74 percent of it)."""
+
+CRUST_SODIUM_WT = CRUST_NA2O_WT * 2.0 * elements.molar_mass("Na") / (2.0 * elements.molar_mass("Na") + elements.molar_mass("O"))
+"""float: The sodium mass fraction of the crust that is leached, 0.0208: the sodium in the Na2O of `CRUST_NA2O_WT` (derived)."""
 
 
 @dataclass(frozen=True)

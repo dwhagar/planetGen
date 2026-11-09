@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Single-Server Migration Guide &amp; Codebase Modernization Outline - planetGen docs</title>
+<meta name="description" content="This guide outlines a step-by-step conversion strategy to modernize the planetGen architecture while maintaining a single-server, broker-less deployment model (Celery Project, 2024; Python Software Foundation, 2024).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/web-ux-and-job-management-guide.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/web-ux-and-job-management-guide.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../operations/api-design-standards.html">api-design-standards</a>, <a href="../../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching</a>, <a href="../../interface/settings-seo-and-accounts.html">settings-seo-and-accounts</a>.</p>
+</blockquote>
+<h1 id="single-server-migration-guide--codebase-modernization-outline">Single-Server Migration Guide &amp; Codebase Modernization Outline</h1><p class="meta">docs/design/research/imported/web-ux-and-job-management-guide.md</p><details class="toc"><summary>On this page (15 headings)</summary><ul><li style="margin-left:0px"><a href="#phased-migration-progression">Phased Migration Progression</a></li><li style="margin-left:14px"><a href="#phase-1-native-in-process-queue--admin-management-refactoring">Phase 1: Native In-Process Queue &amp; Admin Management Refactoring</a></li><li style="margin-left:14px"><a href="#phase-2-real-time-sse-log-streaming--terminal-integration">Phase 2: Real-Time SSE Log Streaming &amp; Terminal Integration</a></li><li style="margin-left:14px"><a href="#phase-3-data-grids--controls-modernization">Phase 3: Data Grids &amp; Controls Modernization</a></li><li style="margin-left:14px"><a href="#phase-4-spatial-partitioning--3d-viewport-optimization">Phase 4: Spatial Partitioning &amp; 3D Viewport Optimization</a></li><li style="margin-left:0px"><a href="#potential-code-conversion-pain-points">Potential Code Conversion Pain Points</a></li><li style="margin-left:14px"><a href="#sqlite-concurrency--database-locking">SQLite Concurrency &amp; Database Locking</a></li><li style="margin-left:14px"><a href="#wsgi-worker-starvation-during-log-streaming">WSGI Worker Starvation During Log Streaming</a></li><li style="margin-left:14px"><a href="#asset-bundling-in-a-vanilla-js--jinja-pipeline">Asset Bundling in a Vanilla JS / Jinja Pipeline</a></li><li style="margin-left:14px"><a href="#coordinate-frame-shift-for-3d-rendering">Coordinate Frame Shift for 3D Rendering</a></li><li style="margin-left:0px"><a href="#integration--implementation-guide">Integration &amp; Implementation Guide</a></li><li style="margin-left:14px"><a href="#how-should-single-server-queue-management-be-structured-without-redis-or-celery">How should single-server queue management be structured without Redis or Celery?</a></li><li style="margin-left:14px"><a href="#how-can-sse-log-streaming-be-implemented-efficiently-on-a-single-python-backend">How can SSE log streaming be implemented efficiently on a single Python backend?</a></li><li style="margin-left:14px"><a href="#how-should-modern-open-source-ux-components-be-integrated-into-jinja2-templates">How should modern open-source UX components be integrated into Jinja2 templates?</a></li><li style="margin-left:0px"><a href="#references">References</a></li></ul></details>
+<p>This guide outlines a step-by-step conversion strategy to modernize the planetGen architecture while maintaining a single-server, broker-less deployment model (Celery Project, 2024; Python Software Foundation, 2024). It replaces custom queues and DOM scripts with standard Python concurrency mechanisms and open-source frontend libraries.</p>
+<h2 id="phased-migration-progression">Phased Migration Progression</h2>
+<h3 id="phase-1-native-in-process-queue--admin-management-refactoring">Phase 1: Native In-Process Queue &amp; Admin Management Refactoring</h3>
+<ul>
+<li><strong>Target Files:</strong> <code>planetgen.cli.job</code>, <code>src/planetgen/queue/work.py</code>, <code>src/planetgen/web/admin_pages.py</code>, <code>src/planetgen/web/templates/admin_queue.html</code>.</li>
+<li><strong>Objective:</strong> Replace custom SQLite process-polling loops with Python's built-in <code>concurrent.futures.ProcessPoolExecutor</code> managed in-process, while expanding the admin web interface for queue inspection and control (Python Software Foundation, 2024).</li>
+<li><strong>Steps:</strong>
+<ol>
+<li>Wrap <code>ProcessPoolExecutor</code> inside a global task manager singleton within the Flask application process (Python Software Foundation, 2024).</li>
+<li>Refactor <code>workQueue.py</code> to maintain SQLite job state for persistence while delegating execution futures to the pool.</li>
+<li>Expand <code>admin_pages.py</code> and <code>admin_queue.html</code> to expose active task futures, worker utilization, job cancellations, and queue re-prioritization directly in the web UI.</li>
+</ol>
+</li>
+</ul>
+<h3 id="phase-2-real-time-sse-log-streaming--terminal-integration">Phase 2: Real-Time SSE Log Streaming &amp; Terminal Integration</h3>
+<ul>
+<li><strong>Target Files:</strong> <code>src/html/static/generatejobs.js</code>, <code>src/planetgen/web/jobs.py</code>, <code>src/planetgen/util/log.py</code>.</li>
+<li><strong>Objective:</strong> Transition process log rendering from client HTTP polling to Server-Sent Events (SSE) and Xterm.js (Xterm.js, 2024).</li>
+<li><strong>Steps:</strong>
+<ol>
+<li>Modify <code>log.py</code> to publish log outputs into thread-safe in-memory queues per job ID.</li>
+<li>Add an SSE route in <code>jobs.py</code> that streams log buffers to the client as text streams.</li>
+<li>Replace the <code>&lt;div&gt;</code> log containers in <code>generatejobs.js</code> with an Xterm.js terminal instance that listens to the SSE stream (Xterm.js, 2024).</li>
+</ol>
+</li>
+</ul>
+<h3 id="phase-3-data-grids--controls-modernization">Phase 3: Data Grids &amp; Controls Modernization</h3>
+<ul>
+<li><strong>Target Files:</strong> <code>src/planetgen/web/lib/tabledisplay.py</code>, <code>src/html/static/sectormap.js</code>, Jinja templates in <code>src/planetgen/web/templates/</code>.</li>
+<li><strong>Objective:</strong> Eliminate server-rendered table DOM bloat and manual DOM construction in JavaScript.</li>
+<li><strong>Steps:</strong>
+<ol>
+<li>Refactor <code>tabledisplay.py</code> and Jinja templates to serve lightweight container shell markup rather than large pre-rendered HTML tables.</li>
+<li>Integrate TanStack Table and TanStack Virtual in <code>sectormap.js</code> to render catalog lists headlessly with viewport virtualization (TanStack, 2024).</li>
+<li>Standardize form controls, dropdowns, and modal dialogs using Shoelace web components (Shoelace, 2024).</li>
+</ol>
+</li>
+</ul>
+<h3 id="phase-4-spatial-partitioning--3d-viewport-optimization">Phase 4: Spatial Partitioning &amp; 3D Viewport Optimization</h3>
+<ul>
+<li><strong>Target Files:</strong> <code>src/html/static/galaxymap3d.js</code>, <code>src/html/static/galaxyprisms.js</code>, <code>src/planetgen/galaxy/geometry.py</code>.</li>
+<li><strong>Objective:</strong> Eliminate GPU coordinate jitter and memory limits across astronomical scale jumps.</li>
+<li><strong>Steps:</strong>
+<ol>
+<li>Update <code>galaxyGeometry.py</code> to export sector bounding volumes into a Hierarchical Bounding Volume Hierarchy (BVH) structure (Open Geospatial Consortium, 2023).</li>
+<li>Refactor <code>galaxymap3d.js</code> to stream scene nodes dynamically based on camera distance using <code>three-mesh-bvh</code> or an OGC 3D Tiles renderer (Open Geospatial Consortium, 2023).</li>
+<li>Deprecate custom frustum culling and raw prism mathematics in <code>galaxyprisms.js</code>.</li>
+</ol>
+</li>
+</ul>
+<h2 id="potential-code-conversion-pain-points">Potential Code Conversion Pain Points</h2>
+<h3 id="sqlite-concurrency--database-locking">SQLite Concurrency &amp; Database Locking</h3>
+<ul>
+<li><strong>Issue:</strong> <code>ProcessPoolExecutor</code> worker processes writing job completions while the Flask web app reads/writes worker statuses can trigger SQLite database lock errors (Python Software Foundation, 2024).</li>
+<li><strong>Mitigation:</strong> Enable Write-Ahead Logging (WAL) mode in SQLite during startup, shorten transaction lock durations in <code>workQueue.py</code>, and funnel status updates through a dedicated thread-safe queue in the master application process.</li>
+</ul>
+<h3 id="wsgi-worker-starvation-during-log-streaming">WSGI Worker Starvation During Log Streaming</h3>
+<ul>
+<li><strong>Issue:</strong> Standard WSGI servers (e.g., Gunicorn with synchronous workers) block an entire HTTP worker process for each open SSE log stream connection.</li>
+<li><strong>Mitigation:</strong> Run the single server instance using an asynchronous or eventlet/gevent worker class, or use thread-pooled streaming responses to prevent worker pool depletion.</li>
+</ul>
+<h3 id="asset-bundling-in-a-vanilla-js--jinja-pipeline">Asset Bundling in a Vanilla JS / Jinja Pipeline</h3>
+<ul>
+<li><strong>Issue:</strong> Introducing modern npm modules (TanStack, Xterm.js, Shoelace) into a codebase built around Jinja templates and static vanilla JS files (<code>src/html/static/</code>) can break simple static file serving.</li>
+<li><strong>Mitigation:</strong> Use standalone ES Module (ESM) builds or integrate a lightweight bundler (such as Vite or ESBuild) configured to output compiled ESM bundles directly into <code>src/html/static/</code>.</li>
+</ul>
+<h3 id="coordinate-frame-shift-for-3d-rendering">Coordinate Frame Shift for 3D Rendering</h3>
+<ul>
+<li><strong>Issue:</strong> Translating absolute galactic coordinates from <code>galaxyGeometry.py</code> directly to WebGL causes single-precision float32 vertex jitter in Three.js (Open Geospatial Consortium, 2023).</li>
+<li><strong>Mitigation:</strong> Compute visual coordinates relative to local sector origins (Camera-Relative Rendering) before passing geometry buffers to the GPU.</li>
+</ul>
+<h2 id="integration--implementation-guide">Integration &amp; Implementation Guide</h2>
+<h3 id="how-should-single-server-queue-management-be-structured-without-redis-or-celery">How should single-server queue management be structured without Redis or Celery?</h3>
+<ul>
+<li><strong>Architecture:</strong> Use a hybrid model consisting of SQLite for persistent state and Python's <code>concurrent.futures.ProcessPoolExecutor</code> for execution (Python Software Foundation, 2024).</li>
+<li><strong>Why:</strong> SQLite preserves task history across server restarts, while <code>ProcessPoolExecutor</code> utilizes multi-core CPU performance without external broker dependencies (Celery Project, 2024; Python Software Foundation, 2024).</li>
+<li><strong>Admin Web Control:</strong> Flask admin endpoints in <code>admin_pages.py</code> interact with the executor's <code>Future</code> objects. Canceling a job calls <code>future.cancel()</code> or terminates the worker process, while pausing queues holds new dispatches in SQLite without worker pool execution.</li>
+</ul>
+<h3 id="how-can-sse-log-streaming-be-implemented-efficiently-on-a-single-python-backend">How can SSE log streaming be implemented efficiently on a single Python backend?</h3>
+<ul>
+<li><strong>Architecture:</strong> Implement an in-memory pub-sub channel using Python's <code>queue.Queue</code> per active job ID in <code>log.py</code>.</li>
+<li><strong>Why:</strong> Avoids polling SQLite for log lines, reducing disk I/O and server load.</li>
+<li><strong>Client Handshake:</strong> <code>generatejobs.js</code> initiates an <code>EventSource('/api/jobs/&lt;id&gt;/stream')</code> connection. The server yields log chunks as text streams, which Xterm.js appends directly into its terminal canvas buffer (Xterm.js, 2024).</li>
+</ul>
+<h3 id="how-should-modern-open-source-ux-components-be-integrated-into-jinja2-templates">How should modern open-source UX components be integrated into Jinja2 templates?</h3>
+<ul>
+<li><strong>Architecture:</strong> Adopt a progressive web component model using Shoelace and ESM-imported JavaScript libraries (Shoelace, 2024).</li>
+<li><strong>Why:</strong> Preserves the existing Jinja layout architecture in <code>src/planetgen/web/templates/</code> while replacing client-side rendering with fast, accessible web components (Shoelace, 2024).</li>
+<li><strong>Data Flow:</strong> Jinja renders lightweight HTML structural shells containing <code>data-*</code> attributes; static scripts in <code>src/html/static/</code> hydrate these containers using TanStack Table and Xterm.js (TanStack, 2024; Xterm.js, 2024).</li>
+</ul>
+<h2 id="references">References</h2>
+<p>[R5030]</p>
+<p>[R5031]</p>
+<p>[R5032]</p>
+<p>[R5033]</p>
+<p>[R5034]</p>
+<p>[R5035]</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

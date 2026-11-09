@@ -7,8 +7,8 @@ camera moves.
 
 A node's contents (see `planetgen.db.nodes.galaxy_nodes`) depend only on its key and on the
 database's contents, which `planetgen.db.query.galaxy_tile_stamp` summarizes as a
-short "stamp" (it leaves the release number out: a release that changes neither `query.TILE_FORMAT` nor the generator
-epoch keeps every stored node, PERF.133). Nodes are cached as `<cache dir>/<db>/<generation>/
+short "stamp" (it leaves the release number and the generator epoch out: a release or an epoch that changes neither `query.TILE_FORMAT` nor a stored row
+keeps every stored node, PERF.133, OPS.133). Nodes are cached as `<cache dir>/<db>/<generation>/
 n<m>_<shell>_<band>_<wedge>.bin` (the finished, trimmed and packed bytes, see `trim_node` and `tilepack`), where the
 generation is the stamp at the last time every node went stale. `fetch_nodes` asks the API only for the nodes it doesn't
 already have, and when every node is cached it doesn't call the API for
@@ -20,7 +20,7 @@ with one cheap API call (`GET /api/galaxy/changes`, see
 columns and answers which nodes changed since the last check. Only those
 node files are deleted, so renaming a sector refetches the few dozen nodes
 over it rather than the whole map. A change that can't be pinned to
-nodes (a deleted sector, a re-planned galaxy, a new format or generator epoch)
+nodes (a deleted sector, a re-planned galaxy, a new format or a scatter drawn again under a new epoch)
 answers `full`, and a new generation starts with nothing cached.
 
 A request is answered by joining those stored bytes, never by unpacking and
@@ -615,6 +615,32 @@ def validate_request(node_keys):
     if len(keys) > MAX_NODES_PER_REQUEST:
         raise TileRequestError(f"at most {MAX_NODES_PER_REQUEST} nodes per request")
     return keys
+
+
+def stored_nodes(db, node_keys):
+    """
+    PERF.257: which of `node_keys` the disk cache already holds in the current generation, found from the stamp and the file names alone (no node is read,
+    built or sent; a file is written whole or not at all, `_write_bytes`). The stamp is checked first (`current_stamp`, as every fetch does), so a node a change
+    deleted is not among them. Empty when the disk cache is off.
+
+    Returns:
+        set: The keys of `node_keys` stored and current.
+    """
+    root = cache_dir()
+    if not root:
+        return set()
+    generation = current_stamp(db, root)["generation"]
+    if not generation:
+        return set()
+    generation_dir = os.path.join(_db_dir(root, db), generation)
+    found = set()
+    for key in node_keys:
+        try:
+            if os.stat(os.path.join(generation_dir, _node_filename(key))).st_size > 0:
+                found.add(key)
+        except OSError:
+            continue
+    return found
 
 
 def _collect(db, keys, known_stamp, ahead=False):

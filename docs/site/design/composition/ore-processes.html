@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ore-forming processes for rocky planet and moon crusts (GEN.1379) - planetGen docs</title>
+<meta name="description" content="Status: design (docs only, lock-free).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/ore-processes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/ore-processes.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="ore-forming-processes-for-rocky-planet-and-moon-crusts-gen1379">Ore-forming processes for rocky planet and moon crusts (GEN.1379)</h1><p class="meta">docs/design/composition/ore-processes.md</p><details class="toc"><summary>On this page (17 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-what-is-not-decided-here">1. Scope and what is not decided here</a></li><li style="margin-left:0px"><a href="#2-the-generator-state-the-ores-read">2. The generator state the ores read</a></li><li style="margin-left:0px"><a href="#3-three-rules-that-decide-whether-a-type-exists">3. Three rules that decide whether a type exists</a></li><li style="margin-left:0px"><a href="#4-the-three-derived-fields">4. The three derived fields</a></li><li style="margin-left:14px"><a href="#41-crust-thickness">4.1 Crust thickness</a></li><li style="margin-left:14px"><a href="#42-craton-fraction">4.2 Craton fraction</a></li><li style="margin-left:14px"><a href="#43-crustal-sulfur-index">4.3 Crustal sulfur index</a></li><li style="margin-left:0px"><a href="#5-the-19-deposit-types">5. The 19 deposit types</a></li><li style="margin-left:0px"><a href="#6-how-much-and-how-rich-the-endowment-and-grade-model">6. How much, and how rich (the endowment and grade model)</a></li><li style="margin-left:0px"><a href="#7-what-81-stores-the-fields">7. What 8.1 stores (the fields)</a></li><li style="margin-left:0px"><a href="#8-tests-and-the-census-what-the-build-slices-must-prove">8. Tests and the census (what the build slices must prove)</a></li><li style="margin-left:0px"><a href="#9-slice-order-and-what-each-needs">9. Slice order and what each needs</a></li><li style="margin-left:0px"><a href="#10-open-points-for-the-builders-not-for-boss">10. Open points for the builders (not for Boss)</a></li><li style="margin-left:0px"><a href="#11-build-notes-gen1380-magmatic-slice-physicsore_depositspy">11. Build notes: GEN.1380 (magmatic slice, physics/ore_deposits.py)</a></li><li style="margin-left:0px"><a href="#12-build-notes-gen1378-sedimentary-and-biogenic-slice-physicssedimentary_depositspy">12. Build notes: GEN.1378 (sedimentary and biogenic slice, physics/sedimentary_deposits.py)</a></li><li style="margin-left:0px"><a href="#13-build-notes-gen1381-hydrothermal-and-sedimentary-hosted-slice-physicshydrothermal_depositspy">13. Build notes: GEN.1381 (hydrothermal and sedimentary-hosted slice, physics/hydrothermal_deposits.py)</a></li><li style="margin-left:0px"><a href="#14-build-notes-gen1423-carbide-slice-physicscarbide_depositspy">14. Build notes: GEN.1423 (carbide slice, physics/carbide_deposits.py)</a></li></ul></details>
+<p>Status: design (docs only, lock-free). Written 2026-11-07 for the real-material build (Boss, 5:24 PM EST on 2026-11-07: all non-fictional generation in the real-material report is built in 8.1; 5:20 PM EST: GEN.798 is widened to rocky crusts). This is N10 part 1 of <code>/mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md</code>. It decides, for the 19 deposit types of <code>/mnt/project-files/research/real-material-data/ore_deposit_types_and_parameters.csv</code>, which stored state lets a body have the deposit, how much and how rich, and which fields 8.1 stores so that the 8.2 resource scan (GEN.798, GEN.799) can place and score deposits without more physics. It builds nothing; the build items are GEN.1380 to GEN.1383 (the mechanism slices) and GEN.1378 (the sedimentary and biogenic deposits).</p>
+<p><strong>Source rule.</strong> Every value below that came from the data file is <strong>RECALLED</strong> (the file names its sources and says none was opened). The builder of each slice opens the primary source, or an accepted secondary source, of every value it uses before the value enters GEN.725 (item rule); until then the value is a stand-in at the tier written here. Numbers I added are marked <strong>DESIGN</strong> (a modelling choice, tweak level L0 to L3 as stated).</p>
+<h2 id="1-scope-and-what-is-not-decided-here">1. Scope and what is not decided here</h2>
+<ul>
+<li><strong>Bodies.</strong> Rocky planets and moons (type <code>t</code>, with a crust). Giants and icy-shell bodies have no ore crust; belts, fields and comets are scored by GEN.798 from their composition (GEN.473, GEN.477), and the one extraterrestrial type in the file (metal cores exposed by collisions) belongs to that path, not to this one.</li>
+<li><strong>What is stored (8.1).</strong> The <em>potential</em> of a body: which deposit types it admits, how much ore each holds in total, and how rich. Not individual deposits. A deposit has a place only when the 8.2 scan asks for one (GEN.799), from the stored potential and the object's own seed, so the 8.1 census does not pay for map points nobody looks at.</li>
+<li><strong>Not decided.</strong> The resource score and the recovery difficulty (GEN.798); the table that stores locations (DB.106); the fictional materials (8.2).</li>
+</ul>
+<h2 id="2-the-generator-state-the-ores-read">2. The generator state the ores read</h2>
+<p>What the generator stores (checked in the code on 2026-11-07), what it will store once the upstream real-material items land, and what this design adds.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Field</th>
+<th>Status</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tectonic regime</td>
+<td><code>lid_regime</code> (<code>mobile</code> or <code>stagnant</code>, GEN.721)</td>
+<td>stored</td>
+<td>every hydrothermal and orogenic type</td>
+</tr>
+<tr>
+<td>Mantle redox</td>
+<td><code>mantle_redox</code> (reduced, intermediate, oxidized) and <code>mantle_delta_iw</code></td>
+<td>stored</td>
+<td>porphyry (oxidized), chromitite and diamond (reduced), sulfide saturation</td>
+</tr>
+<tr>
+<td>Water</td>
+<td><code>hydrosphere</code>, <code>water_mass_fraction</code>, ocean cover and state (liquid, ice shell, none)</td>
+<td>stored</td>
+<td>VMS, SEDEX, weathering, sedimentary types, all hydrothermal</td>
+</tr>
+<tr>
+<td>Heat</td>
+<td><code>internal_heat_flux_w_m2</code>, <code>urey_ratio</code></td>
+<td>stored</td>
+<td>magma volume, hydrothermal vigour</td>
+</tr>
+<tr>
+<td>Age</td>
+<td>star age; body age (the planet's formed at the star's)</td>
+<td>stored</td>
+<td>age gates (BIF, unconformity U, the share of a type's lifetime already run)</td>
+</tr>
+<tr>
+<td>Climate</td>
+<td>surface temperature, pressure, liquid-water presence, evaporation (GEN.1319 brine)</td>
+<td>stored</td>
+<td>laterite and bauxite, evaporites, placers</td>
+</tr>
+<tr>
+<td>Life history</td>
+<td>the GEN.750 timeline and <code>life_stage</code> (oxygenic photosynthesis time, ocean oxygenation)</td>
+<td>stored</td>
+<td>BIF, phosphorite</td>
+</tr>
+<tr>
+<td>Bulk and mantle oxides</td>
+<td><code>rock_mass_fraction</code>, <code>metal_mass_fraction</code>, FeO and Al<sub>2</sub>O<sub>3</sub>; Cr<sub>2</sub>O<sub>3</sub>, TiO<sub>2</sub>, P<sub>2</sub>O<sub>5</sub>, Na<sub>2</sub>O, K<sub>2</sub>O, MnO, NiO (N5)</td>
+<td>partly; N5 completes it</td>
+<td>magmatic, pegmatite, carbonatite, phosphorite</td>
+</tr>
+<tr>
+<td>Star element set</td>
+<td>Ti, V, Cr, Mn, Co, Cu, Zn, P, Li (N1); REE, PGE, Au, Pb and the siderophile split (N<sub>2</sub>)</td>
+<td>planned</td>
+<td>every grade ceiling</td>
+</tr>
+<tr>
+<td>Mantle carbon and water</td>
+<td>carbonates, diamond or graphite by redox, hydrous phases (N7)</td>
+<td>planned</td>
+<td>carbonatite, kimberlite</td>
+</tr>
+<tr>
+<td>Salt sequence</td>
+<td>evaporite sequence from the brine (N9)</td>
+<td>built (GEN.1366, <code>physics/evaporite_sequence.py</code>)</td>
+<td>evaporite</td>
+</tr>
+<tr>
+<td><strong>Crust thickness</strong></td>
+<td><code>crust_thickness_km</code></td>
+<td><strong>new, derived</strong> (section 4.1)</td>
+<td>porphyry, orogenic, pegmatite, craton</td>
+</tr>
+<tr>
+<td><strong>Craton</strong></td>
+<td><code>craton_fraction</code> (share of the crust that is thick, old and cold)</td>
+<td><strong>new, derived</strong> (section 4.2)</td>
+<td>kimberlite, unconformity U, orogenic</td>
+</tr>
+<tr>
+<td><strong>Sulfur supply</strong></td>
+<td><code>crust_sulfur_index</code> (0 to 1)</td>
+<td><strong>new, derived</strong> (section 4.3)</td>
+<td>magmatic sulfide, VMS, SEDEX</td>
+</tr>
+</tbody>
+</table></div>
+<p>Planned fields are inputs from other real-material items; a slice that needs one that has not merged waits for it (the build plan orders them: GEN.1380 needs only N5 and N8).</p>
+<h2 id="3-three-rules-that-decide-whether-a-type-exists">3. Three rules that decide whether a type exists</h2>
+<p>These follow the data file's own grouping and are the gate of every row in section 5.</p>
+<ol>
+<li><strong>Magmatic</strong> (chromitite, Ni-Cu-PGE sulfide, Fe-Ti-V oxide): needs a large volume of mafic or ultramafic magma, and for the sulfide type a crustal sulfur source. They exist with or without plate tectonics: a stagnant-lid body gets them from plume or impact melt, so the gate is magma volume (heat flow and mass), not the lid.</li>
+<li><strong>Hydrothermal</strong> (porphyry, VMS, orogenic, epithermal, SEDEX and MVT): need liquid water in the crust and a heat engine. Porphyry, orogenic and epithermal need a <strong>mobile lid</strong> (arcs, collision, shear zones); VMS needs seafloor spreading, so a mobile lid <em>and</em> an ocean; SEDEX and MVT need a sedimentary basin with brines, so liquid water and a surface. A stagnant-lid or dry body has none.</li>
+<li><strong>Sedimentary and weathering</strong> (BIF, phosphorite, evaporite, laterite and bauxite, placer, roll-front uranium): need surface liquid water and time; BIF needs an Fe(II) ocean that is partly oxidized (an oxygen source); phosphorite needs a productive sea (life); laterite and bauxite need a warm wet climate and a stable surface.</li>
+</ol>
+<p>Pegmatite, carbonatite, kimberlite and unconformity uranium have their own gates (section 5): continental crust and granite production; a carbonated mantle and rifting; a thick old craton with carbon at depth and low oxygen fugacity; an old basin over reduced basement.</p>
+<h2 id="4-the-three-derived-fields">4. The three derived fields</h2>
+<p>Each is a <strong>DESIGN</strong> stand-in (registered in GEN.725 by the slice that builds it, tier T6 or T7 until a source is opened, tweak L2 where it is tuned to the Earth, Mars and Venus values). They are deterministic from stored state plus the object's seed through <code>draw.py</code>, so a body made again gets the same record.</p>
+<h3 id="41-crust-thickness">4.1 Crust thickness</h3>
+<p><code>crust_thickness_km</code> is the mean thickness of the crust. The wanted behaviour: a small hot body that has stayed stagnant has a thick lid crust, a mobile-lid body recycles and has a thin oceanic crust with thicker continents, and a body whose mantle is very hot has a thin crust. Earth is 7 km oceanic and about 35 km continental, Mars about 50 km and Venus about 30 km (all RECALLED, to open before use). The stand-in is a monotone function of the surface gravity and the mantle temperature already computed by the interior model (<code>interior_heat</code>), fitted to those three bodies: two parameters, L2. Used by porphyry (depth of the intrusion), pegmatite and orogenic gold (continental crust), and to scale the volume of ore-bearing crust.</p>
+<h3 id="42-craton-fraction">4.2 Craton fraction</h3>
+<p><code>craton_fraction</code> (0 to 1) is the share of the crust that is thick, old and cold enough to hold a keel deeper than 150 km (kimberlite) and a Proterozoic basin over basement (unconformity uranium). Gate: mobile lid, body age at least 2 Gyr, and enough continental crust (a non-zero share of felsic crust, which <code>surface_composition</code> already tracks as a rock type); zero otherwise. Magnitude: a DESIGN fraction around 0.3 for an Earth-like body, scaled by age (a younger body has had less time to stabilise keels), drawn once per body.</p>
+<h3 id="43-crustal-sulfur-index">4.3 Crustal sulfur index</h3>
+<p><code>crust_sulfur_index</code> (0 to 1) says how much sulfur the crust offers a rising mafic magma to saturate on. The data file names the sources of the sulfur: sulfide-bearing sedimentary rocks (needs a surface and an ocean with sulfate reduction) and evaporites (sulfate). The stand-in: a function of the star's S/Fe (an element the star set holds), the water inventory, and whether sedimentary sulfide has had time to build (age). A body with no liquid water has the index of its primordial sulfur only (low); an Earth-like body has a high one. Impact melt sheets (Sudbury) are the other sulfur route: a body with a recent large impact in its record can have the sulfide type without sedimentary sulfur (uses the collision count the planet architecture already records).</p>
+<h2 id="5-the-19-deposit-types">5. The 19 deposit types</h2>
+<p>Columns: the <strong>gate</strong> is a condition on the stored state (an AND of its parts; &quot;mobile&quot; and &quot;stagnant&quot; are <code>lid_regime</code>); the grade and tonnage ranges are the data file's (RECALLED); the <strong>slice</strong> is the build item that stores the type. Sources named are the data file's, unopened.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Type</th>
+<th>Process</th>
+<th>Gate on the generator state</th>
+<th>Grade (RECALLED)</th>
+<th>Tonnage (RECALLED)</th>
+<th>Key minerals</th>
+<th>Slice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Porphyry Cu-Mo-Au</td>
+<td>magmatic-hydrothermal</td>
+<td>mobile, liquid water, <code>mantle_redox</code> oxidized (fO2 at or above FMQ+1 to +2), crust thickness enough for a 1 to 4 km intrusion, star Cu</td>
+<td>Cu 0.3 to 1.0 percent, Au 0.1 to 1 g/t, Mo 0.01 to 0.05 percent</td>
+<td>1e8 to 1e10 t ore</td>
+<td>chalcopyrite, bornite, molybdenite, pyrite</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Volcanogenic massive sulfide</td>
+<td>seafloor hydrothermal</td>
+<td>mobile, ocean (liquid water), extensional crust, heat flow above a floor</td>
+<td>Cu 1 to 4, Zn 3 to 10, Pb 0 to 3 percent, Ag, Au</td>
+<td>1e6 to 1e8 t</td>
+<td>pyrite, chalcopyrite, sphalerite, galena</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SEDEX and MVT Zn-Pb</td>
+<td>basinal brine</td>
+<td>liquid water, a basin (surface, sediment), brines 100 to 250 C, sulfate reduction (sulfur index)</td>
+<td>Zn 5 to 12, Pb 2 to 8 percent</td>
+<td>1e6 to 1e8 t</td>
+<td>sphalerite, galena, pyrite, barite, dolomite</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Orogenic gold</td>
+<td>metamorphic fluid</td>
+<td>mobile, collision or accretion (continental crust), metamorphism, quartz veins</td>
+<td>Au 3 to 10 g/t</td>
+<td>1e6 to 1e8 t ore, giants over 100 t Au</td>
+<td>native gold, pyrite, arsenopyrite</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Epithermal Au-Ag</td>
+<td>near-surface hydrothermal</td>
+<td>mobile, volcanism, shallow water table</td>
+<td>Au 1 to 10 g/t</td>
+<td>1e5 to 1e7 t</td>
+<td>electrum, sulfides, quartz, adularia</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Magmatic Ni-Cu-PGE sulfide</td>
+<td>magmatic segregation</td>
+<td>large mafic or ultramafic magma volume (plume or impact melt), sulfur index high, PGE from the star</td>
+<td>Ni 0.5 to 3, Cu 0.3 to 2 percent, PGE 0.5 to 10 g/t</td>
+<td>1e6 to 1e9 t</td>
+<td>pentlandite, pyrrhotite, chalcopyrite, PGM</td>
+<td>GEN.1380</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Chromitite</td>
+<td>magmatic</td>
+<td>large layered mafic intrusion or ophiolite, reduced to moderate fO2, Cr<sub>2</sub>O<sub>3</sub> in the mantle (N5)</td>
+<td>stratiform 30 to 45 percent Cr<sub>2</sub>O<sub>3</sub>, podiform 40 to 60</td>
+<td>1e7 to 1e10 t</td>
+<td>chromite</td>
+<td>GEN.1380</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Fe-Ti-V oxide</td>
+<td>magmatic</td>
+<td>late Fe-rich liquid in a large layered intrusion, or an anorthosite massif (mostly Proterozoic: an age window), TiO<sub>2</sub> and V from the mantle (N5, N1)</td>
+<td>magnetite 20 to 30 percent, V2O5 0.3 to 1; ilmenite TiO<sub>2</sub> about 32</td>
+<td>1e8 to 1e9 t</td>
+<td>magnetite, ilmenite, titanomagnetite</td>
+<td>GEN.1380</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Banded iron formation</td>
+<td>chemical sediment</td>
+<td>ocean with dissolved Fe(II), a rising oxygen source (photosynthesis or abiotic), age window, no sulfidic ocean</td>
+<td>Fe 25 to 35 percent, enriched 55 to 65</td>
+<td>1e9 to 1e11 t</td>
+<td>hematite, magnetite, chert, siderite</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Laterite Ni and bauxite</td>
+<td>weathering</td>
+<td>warm wet climate, stable surface, liquid water, millions of years; ultramafic (Ni) or aluminous (Al) source rock</td>
+<td>Ni 1 to 2 percent; Al<sub>2</sub>O<sub>3</sub> 40 to 60 percent</td>
+<td>1e8 to 1e10 t</td>
+<td>garnierite, goethite, gibbsite, boehmite, diaspore</td>
+<td>GEN.1382</td>
+</tr>
+<tr>
+<td>11</td>
+<td>LCT and NYF pegmatite</td>
+<td>late magmatic</td>
+<td>continental crust, granite production, orogenic crust, water, Li, B, F, P</td>
+<td>Li<sub>2</sub>O 1 to 2.5 percent, Ta<sub>2</sub>O<sub>5</sub> 0.01 to 0.05</td>
+<td>1e5 to 1e8 t</td>
+<td>spodumene, lepidolite, beryl, columbite-tantalite, cassiterite</td>
+<td>GEN.1382</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Carbonatite REE-Nb-P</td>
+<td>mantle carbonate melt</td>
+<td>rifting or plume, carbonated mantle (mantle carbon, N7), REE and Nb in the star set (N<sub>2</sub>)</td>
+<td>REO 3 to 10 percent, Nb<sub>2</sub>O<sub>5</sub> 1 to 3</td>
+<td>1e7 to 1e9 t</td>
+<td>bastnasite, monazite, pyrochlore, apatite</td>
+<td>GEN.1383</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Kimberlite diamond</td>
+<td>xenocryst delivery</td>
+<td>craton (keel over 150 km), carbon in the mantle, reduced fO2, kimberlite magmatism</td>
+<td>0.1 to 1.0 carat per tonne</td>
+<td>1e6 to 1e8 t ore</td>
+<td>diamond, garnet, olivine, ilmenite</td>
+<td>GEN.1383</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Unconformity-related U</td>
+<td>basinal brine, redox boundary</td>
+<td>old basin over reduced basement (craton share and age window), oxidizing brines</td>
+<td>U3O8 1 to 20 percent</td>
+<td>1e4 to 1e6 t U</td>
+<td>uraninite, coffinite</td>
+<td>GEN.1383</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Roll-front U</td>
+<td>groundwater redox front</td>
+<td>oxidizing groundwater, reductant (organics or sulfide), uranium-bearing volcanic or granitic source</td>
+<td>U3O8 0.05 to 0.3 percent</td>
+<td>1e3 to 1e5 t U</td>
+<td>uraninite, coffinite</td>
+<td>GEN.1381</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Phosphorite</td>
+<td>marine sedimentary</td>
+<td>productive ocean with upwelling, organic matter (life), phosphorus supply (N18, star P)</td>
+<td>P<sub>2</sub>O<sub>5</sub> 18 to 35 percent</td>
+<td>1e8 to 1e10 t</td>
+<td>francolite, apatite</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Evaporite</td>
+<td>evaporation</td>
+<td>arid climate or restricted basin, brine chemistry from weathering inputs (GEN.1319, N9)</td>
+<td>halite and potash beds, gypsum</td>
+<td>1e8 to 1e12 t</td>
+<td>calcite, gypsum, anhydrite, halite, sylvite, carnallite</td>
+<td>GEN.1378 and N9</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Placer</td>
+<td>mechanical concentration</td>
+<td>running water, long weathering, uplift</td>
+<td>ilmenite, zircon, rutile 1 to 10 percent heavy minerals; Au 0.5 to 5 g/t</td>
+<td>1e6 to 1e9 t</td>
+<td>ilmenite, zircon, rutile, monazite, cassiterite, gold</td>
+<td>GEN.1382</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Asteroid M-type metal</td>
+<td>differentiation and impact</td>
+<td>not a crust deposit: a disrupted differentiated parent body</td>
+<td>Fe-Ni, Ni 5 to 25 percent, PGE tens of ppm</td>
+<td>n/a</td>
+<td>kamacite, taenite, schreibersite, troilite</td>
+<td>GEN.473, GEN.477 and GEN.798</td>
+</tr>
+</tbody>
+</table></div>
+<p>Row 19 is listed so the 19 types of the file all have an owner; this design stores nothing for it. Rows 9, 16 and 17 are the sedimentary and biogenic deposits (GEN.1378); this design gives their gate and the fields they store so the same record serves the scan.</p>
+<h2 id="6-how-much-and-how-rich-the-endowment-and-grade-model">6. How much, and how rich (the endowment and grade model)</h2>
+<p>For each type a body admits (its gate holds), 8.1 stores two numbers and one flag.</p>
+<p><strong>Endowment</strong> <code>E_k</code>, the total ore mass of type <em>k</em> on the body, kg. The model has three factors:</p>
+<ol>
+<li><strong>Opportunity</strong>: the area (or volume) of crust that satisfies the type's setting. Hydrothermal and orogenic types scale with the crust of a mobile-lid body, so with surface area times the continental share; magmatic types with the volume of magma the body's heat flow and mass support; weathering and sedimentary types with the area under liquid water or a wet climate. DESIGN, L1.</li>
+<li><strong>Time</strong>: the share of the body's life during which the setting existed (an age window, and for types that need life or oxygen, the time since that event on the GEN.750 timeline). Types with a window (BIF, anorthosite Fe-Ti, unconformity uranium) are zero outside it.</li>
+<li><strong>A lognormal draw</strong> for the scatter between bodies of the same state. The data file's tonnage range for the type (its 10^a to 10^b) gives the median and the spread of the <em>per-deposit</em> tonnage, and the deposit count per unit opportunity gives the sum; the Earth's known totals are the L2 anchor (porphyry copper at roughly half of terrestrial Cu, the file says, to be checked against its source).</li>
+</ol>
+<p><strong>Grade</strong> <code>g_k</code>, the mass fraction of the key element or oxide in the ore. Drawn inside the file's range, then <strong>capped by what the host supplies</strong>: the concentration factor over crustal abundance (the file's: Cu about 140, Zn 750, Pb 3000, Ni 320, Cr 3300, U 740, Li 750, Au 2300, Fe 11, Al 3, all RECALLED with the crustal abundances the file cites) multiplies the body's crustal mean of that element, which comes from the star set and the oxides (N1, N<sub>2</sub>, N5). So a metal-poor star gives poorer ore, a Cr-poor mantle gives a lean chromitite, and the ordering the file states (Fe and Al easy, Cr, Pb and Au hard) comes out of the factors, not out of a table. A type whose capped grade falls below the bottom of its range is not stored (the body has no ore of that type, only the dispersed element).</p>
+<p><strong>Flag</strong> <code>status</code>: <code>present</code>, <code>absent_by_state</code> (a gate failed) or <code>absent_by_chance</code> (the gate holds but the endowment draw gave no deposit), so the page and the census can tell a dry planet from an unlucky one.</p>
+<p><strong>Draws.</strong> One stream per body and type keyed on the object ID and the type id (the same pattern as the oddity streams, GEN.1036), so adding a type moves no other draw; the gate and the factors are deterministic from the stored state. Every constant (the opportunity scalings, the age windows, the deposit count per unit opportunity, the lognormal widths) is a GEN.725 stand-in with its tier and tweak level, replaced when its source is opened.</p>
+<h2 id="7-what-81-stores-the-fields">7. What 8.1 stores (the fields)</h2>
+<p>One row per body and admitted type, in a child table (the pattern of <code>field_members</code> and the other child tables), plus two columns on the body.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Field</th>
+<th>Unit</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planets</code>, <code>moons</code></td>
+<td><code>crust_thickness_km</code></td>
+<td>km</td>
+<td>section 4.1</td>
+</tr>
+<tr>
+<td><code>planets</code>, <code>moons</code></td>
+<td><code>craton_fraction</code></td>
+<td>fraction</td>
+<td>section 4.2</td>
+</tr>
+<tr>
+<td><code>planets</code>, <code>moons</code></td>
+<td><code>crust_sulfur_index</code></td>
+<td>fraction</td>
+<td>section 4.3</td>
+</tr>
+<tr>
+<td><code>body_deposit_types</code> (new)</td>
+<td><code>object_id</code>, <code>deposit_type</code> (id of the 19), <code>status</code></td>
+<td>text</td>
+<td>one row per body and type that was assessed</td>
+</tr>
+<tr>
+<td></td>
+<td><code>endowment_kg</code></td>
+<td>kg</td>
+<td>total ore mass, <code>E_k</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code>grade</code></td>
+<td>mass fraction</td>
+<td><code>g_k</code> of the key element or oxide</td>
+</tr>
+<tr>
+<td></td>
+<td><code>key_element</code></td>
+<td>text</td>
+<td>the element or oxide the grade is of</td>
+</tr>
+<tr>
+<td></td>
+<td><code>age_window_gyr_start</code>, <code>age_window_gyr_end</code></td>
+<td>Gyr</td>
+<td>when the type formed (for the scan's age line and for the census)</td>
+</tr>
+<tr>
+<td></td>
+<td><code>capped_by_host</code></td>
+<td>0 or 1</td>
+<td>the grade was held down by the host supply</td>
+</tr>
+</tbody>
+</table></div>
+<p>All numeric columns get a <code>db/column_units.py</code> entry and a unit registry (GEN.568) entry; the new table and the three columns need a migration (renumbered at merge) and an epoch (<code>--affects fill</code>). The scan reads rows, never recomputes them; the object page shows the types with their status in plain words (&quot;Ore: porphyry copper, rich&quot; and so on) by a page change that is not part of this design.</p>
+<h2 id="8-tests-and-the-census-what-the-build-slices-must-prove">8. Tests and the census (what the build slices must prove)</h2>
+<ul>
+<li><strong>Gates (invariants, per slice).</strong> No hydrothermal row on a stagnant-lid or dry body; no VMS without an ocean; no BIF without an oxygen source and an Fe(II) ocean inside its age window; no kimberlite without a craton and mantle carbon; no phosphorite without life; no unconformity uranium before its basin age. Each as a test on generated bodies, and each with a forced counter-example that the gate refuses (the pattern of the oddity forcing).</li>
+<li><strong>Anchors.</strong> An Earth-like body (mobile lid, oceans, 4.5 Gyr, oxygenated) admits all of rows 1 to 18; a Mars-like body (stagnant, cold, dry) admits only the magmatic rows, weathering of its past, and none of the hydrothermal ones; a Venus-like body (stagnant, hot, dry at its age) admits the magmatic rows. Totals within an order of magnitude of the Earth's known endowments for the types where the source gives one.</li>
+<li><strong>Isolation.</strong> Dial-style test: a body made again with the same seed has the same rows; turning a type off (a registry flag) changes no other draw.</li>
+<li><strong>Census (N26, the closing gate of the build plan).</strong> Over a generated sample, the share of bodies that admit each type by body class, and the share of admitting bodies that have a <code>present</code> row, against the state rates (not against a literature rate, since no survey says how many planets have porphyry copper). New types appear only where the physics says (the reachability pattern of TEST.455).</li>
+<li><strong>Registry.</strong> Every constant has a GEN.725 row; <code>scripts/wiring_guard.py --check</code> and the burn-down register pass (a slice that stores a field the scan does not read yet gets a wiring-register line naming GEN.799).</li>
+</ul>
+<h2 id="9-slice-order-and-what-each-needs">9. Slice order and what each needs</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>Types</th>
+<th>Needs first</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1380 (lock, wave 4)</td>
+<td>rows 6, 7, 8</td>
+<td>N5 (mantle oxides), N8 (minerals), the three derived fields of section 4 (crust thickness and sulfur index land here)</td>
+</tr>
+<tr>
+<td>GEN.1381</td>
+<td>rows 1 to 5, 15</td>
+<td>GEN.1380's table and fields, N1 (Cu, Au), N9 for the brines (SEDEX)</td>
+</tr>
+<tr>
+<td>GEN.1382</td>
+<td>rows 10, 11, 18</td>
+<td>N1 (Li), climate fields, GEN.1380's table</td>
+</tr>
+<tr>
+<td>GEN.1383</td>
+<td>rows 12, 13, 14</td>
+<td>N7 (mantle carbon), N<sub>2</sub> (REE, Nb), <code>craton_fraction</code></td>
+</tr>
+<tr>
+<td>GEN.1378</td>
+<td>rows 9, 16, 17</td>
+<td>GEN.750 timeline, N9, N18</td>
+</tr>
+</tbody>
+</table></div>
+<p>The first slice creates the table and the three body columns; later slices add rows. GEN.798 (the resource design) reads this record and is written before GEN.1380 closes so the stored fields are enough (the build plan's rule).</p>
+<h2 id="10-open-points-for-the-builders-not-for-boss">10. Open points for the builders (not for Boss)</h2>
+<ol>
+<li><strong>Fe(II) ocean and the oxygen rise</strong> for BIF: the GEN.750 timeline gives the oxygenic photosynthesis time; the abiotic oxygen route (hydrogen escape, photolysis) is a second source the file mentions. GEN.1378 decides whether the abiotic route gets its own gate.</li>
+<li><strong>The oxygen fugacity scale.</strong> The file states fO2 against FMQ; the generator stores ΔIW. The offset between the two buffers (about 3.5 log units at magmatic temperatures) is RECALLED and depends on temperature: GEN.1380 opens a source (the buffer paper is on the list of papers Boss cannot access, so use a second-hand citation) before gating porphyry or chromitite on it.</li>
+<li><strong>Tonnage scatter versus total.</strong> The file gives per-deposit ranges; the endowment sums a count of deposits. The count per unit opportunity is the least anchored number; the Earth totals are the only check, so GEN.1380 should state its tier plainly (L2 at best) in the registry row.</li>
+<li><strong>Moons.</strong> A moon's crust follows the same gates with its own state; a tidally heated moon (Io) gets magmatic rows from its heat flow, an icy-shell moon none. The slices test one rocky moon of each kind.</li>
+</ol>
+<h2 id="11-build-notes-gen1380-magmatic-slice-physicsore_depositspy">11. Build notes: GEN.1380 (magmatic slice, <code>physics/ore_deposits.py</code>)</h2>
+<p>Built: rows 6, 7 and 8, the three derived fields and the table of section 7, as <code>planet_deposit_types</code>, <code>moon_deposit_types</code> and <code>rogue_planet_deposit_types</code> (one child table for each owner, the pattern of <code>planet_gases</code>, so the cascade and the fingerprint need nothing new) and the columns <code>crust_thickness_km</code>, <code>craton_fraction</code> and <code>crust_sulfur_index</code> on <code>planets</code>, <code>moons</code> and <code>rogue_planets</code> (v228). The stand-ins are ORE1 to ORE7 in section 6.227 of <code>gap-filling-plan.md</code>. How the points of section 10 and the design stand:</p>
+<ul>
+<li><strong>Opportunity.</strong> The magma volume is the mantle the body has processed through melting, the measure the degassing of the air already uses (<code>surface_pressure.degassed_share</code>), over an Earth-like body's. A body under 0.05 of it has no magmatic ore; an icy body (a water mass fraction of <code>hydrosphere.ICY_MIN_WATER_FRACTION</code> or more) has none, which also takes the deep-ocean worlds out of the sulfide type.</li>
+<li><strong>Redox (point 2).</strong> The stored mantle redox class (<code>reduced</code>, <code>intermediate</code>, <code>oxidized</code>) gates the sulfide and the chromite to the first two; the numeric offset between the FMQ and iron-wuestite buffers is not needed at this slice and stays open for GEN.1381 (porphyry).</li>
+<li><strong>Count (point 3).</strong> The number of deposits is Poisson with mean <code>deposits * opportunity * window</code>, a type whose gate holds and whose draw is zero is <code>absent_by_chance</code>, and the endowment is the sum of lognormal deposits. The count is the least anchored number (ORE5, L3).</li>
+<li><strong>Grade.</strong> A cap under the bottom of the grade range is <code>absent_by_state</code>, not chance: the body has the element dispersed and no ore. A generated Earth-mass body at 4.5 Gyr makes Fe-Ti-V oxide ore in about two thirds of draws, chromitite in a tenth (the generator's bulk-silicate chromium is below the Earth's), and the sulfide only on wet bodies with a sulfur-rich enough crust that are not icy.</li>
+<li><strong>Left for later.</strong> The platinum-group grade of the sulfide type (GEN.1371 gives the star's PGE), vanadium, the impact-melt route (the collision record is not stored), and moons' tidal magma beyond what <code>interior_heat</code> already counts in the released heat. <code>craton_fraction</code> is stored and unread until GEN.1383 (register line GEN.799).</li>
+</ul>
+<h2 id="12-build-notes-gen1378-sedimentary-and-biogenic-slice-physicssedimentary_depositspy">12. Build notes: GEN.1378 (sedimentary and biogenic slice, <code>physics/sedimentary_deposits.py</code>)</h2>
+<p>Built: rows 9, 16 and 17 (banded iron formation, phosphorite, evaporite) and four biogenic rocks the item names, added to the same table as rows 20 to 23: limestone, chert, coal and kerogen. They are assessed after the life pass (<code>generation.life.apply_life_data</code>), not with the magmatic types, because five of them read the life timeline; a body whose life never reached the stage a type needs has the type <code>absent_by_state</code>. The module replaces its own seven rows each time the life pass runs (an edit, a body made again) and leaves the magmatic ones.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Type</th>
+<th>Gate on the generator state</th>
+<th>Window</th>
+<th>Slice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td>Banded iron formation</td>
+<td>neutral ocean (liquid, lit), <code>life_age_photosynthesis_gyr</code> set, the rock's FeO high enough to cap the Fe grade over 25 percent</td>
+<td>from the first photosynthesis for 1.2 Gyr, cut at the body's age</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Phosphorite</td>
+<td>open surface ocean, life from the first photosynthesis plus 0.5 Gyr, ocean phosphate of 1 umol/L or more (GEN.1367), the crust's P<sub>2</sub>O<sub>5</sub> times 200 over 18 percent</td>
+<td>from the lag to the body's age</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Evaporite</td>
+<td>open surface ocean, land, mean temperature at or above 270 K, a non-empty salt sequence (GEN.1366)</td>
+<td>0.2 to 1.0 of the body's age</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Limestone</td>
+<td>neutral wet ocean, 1 Pa or more of carbon dioxide; doubled once complex cells exist</td>
+<td>0.1 of the age to the age</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Chert</td>
+<td>wet ocean, <code>life_age_complex_cells_gyr</code> set</td>
+<td>from complex cells</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Coal</td>
+<td>open ocean with land, <code>life_age_multicellularity_gyr</code> set, <code>life_flora</code> of 3 or more</td>
+<td>from multicellular life</td>
+<td>GEN.1378</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Kerogen</td>
+<td>wet ocean, life from the first photosynthesis plus 0.3 Gyr</td>
+<td>from the lag</td>
+<td>GEN.1378</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Open point 1 (decided).</strong> The abiotic oxygen route is not a gate for the iron formation: ultraviolet oxidation of Fe(II) and hydrogen-escape oxygen make too little oxidized iron to lay a formation, and the oxygen of escape goes to the air, not the deep ocean. The oxygen source is the first photosynthesis of the body's own timeline.</li>
+<li><strong>Evaporite key.</strong> <code>key_element</code> is <code>salt</code> and <code>grade</code> is the dominant salt's share of the dried salts (the column is 8 characters; the salt itself is <code>surface_composition.dried_salts</code> of the body). A page that names the salt reads that function.</li>
+<li><strong>Left for later.</strong> The abiotic Precambrian chert (it rides with the iron formation), biogenic oxygen's feedback on the iron supply, the sulfidic-ocean exclusion beyond the ocean class (an acid sulfate ocean has none), and economic enrichment of the iron formation to 55 to 65 percent (the stored grade is the protore's).</li>
+</ul>
+<h2 id="13-build-notes-gen1381-hydrothermal-and-sedimentary-hosted-slice-physicshydrothermal_depositspy">13. Build notes: GEN.1381 (hydrothermal and sedimentary-hosted slice, <code>physics/hydrothermal_deposits.py</code>)</h2>
+<p>Built: rows 1 to 5 and 15 (porphyry, VMS, SEDEX and MVT, orogenic gold, epithermal, roll-front uranium) as rows of the same three child tables, so the slice stores no column and needs no migration. They are assessed after the life pass, next to the sedimentary slice, with its record, count law and status flag (<code>sedimentary_deposits.assess</code>). The stand-ins are HT1 to HT7 in section 6.224 of <code>gap-filling-plan.md</code>. How the points of section 10 and the design stand:</p>
+<ul>
+<li><strong>Gates.</strong> A mobile lid and liquid water for the four arc types; an oxidized mantle and a crust of 20 km for porphyry; a liquid ocean and heat flow of 0.3 of the Earth's for VMS; land, an ocean, a crust sulfur index of 0.3 and 0.5 Gyr of sediment for SEDEX and MVT; a granitoid share and 25 km of crust for orogenic gold; processed mantle of 0.2 of the reference for epithermal; oxygen over 1000 Pa, land, granite and a reductant (sulfur or life) for roll-front uranium. The oxygen-fugacity offset between the FMQ and iron-wuestite buffers (point 2) is still not used: the stored <code>mantle_redox</code> class is the gate.</li>
+<li><strong>Grade.</strong> Held to the concentration factor times the crustal mean. Copper and zinc scale with the star's Cu/Fe and Zn/Fe over the reference mix's (<code>ore_deposits.over_iron</code>); gold and lead are not in the star set and follow the iron until GEN.1371 lands. Uranium comes from the body's own <code>c_u0_ppm</code> times the crust's 80-fold enrichment. VMS and SEDEX are graded on zinc, the key metal of their ranges.</li>
+<li><strong>Left for later.</strong> Lead, silver, molybdenum and the by-product metals of each type (one key element each, as the magmatic slice has); the abiotic route to the oxidizing groundwater of the uranium type; the platinum-group co-products. Stagnant-lid bodies get no arc types, as the design says; the SEDEX type does not need the lid.</li>
+</ul>
+<h2 id="14-build-notes-gen1423-carbide-slice-physicscarbide_depositspy">14. Build notes: GEN.1423 (carbide slice, <code>physics/carbide_deposits.py</code>)</h2>
+<p>Built: two mineral rows for a carbon-rich body, as rows of the same three child tables (no column, no migration): <code>moissanite_crust</code> (the SiC of the carbon rock) and <code>cohenite_metal</code> (Fe<sub>3</sub>C in the carbon-saturated metal). They are assessed after the ore pass and before the life pass's deposits, on streams of their own, and only when the body's rock is carbon rock (a star at C/O 0.8 or more, [R0455]); a silicate body has both <code>absent_by_state</code>.</p>
+<ul>
+<li><strong>Moissanite grade.</strong> The SiC share of the SiC-and-graphite rock, <code>1 / (1 + g)</code> for the graphite-over-rock <code>g</code> the bulk draw takes (0.05 to 0.40): 0.71 to 0.95. The count scales with the surface area and the stored crust thickness over 35 km.</li>
+<li><strong>Cohenite grade.</strong> From 0.30 up to the Fe<sub>3</sub>C share of iron saturated with carbon at the iron-carbon eutectic (4.3 percent carbon over the 6.69 percent of Fe<sub>3</sub>C, 0.64). The count scales with the metal mass fraction over the Earth's core share.</li>
+<li><strong>Stand-ins</strong> CH1 to CH<sub>3</sub> in section 6.235 of <code>gap-filling-plan.md</code>.</li>
+<li><strong>Left for later.</strong> TiC (khamrabaevite), CaS and MgS of the carbide-planet suite (report row 15), diamond as a deposit, and the carbon mantle's equation of state (GEN.428's open item).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

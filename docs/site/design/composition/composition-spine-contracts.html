@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Composition spine: interface contracts (lane I, 2026-10-23) - planetGen docs</title>
+<meta name="description" content="Owner: lane I (thread &quot;Composition spine for habitability&quot;).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/composition-spine-contracts.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/composition-spine-contracts.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="composition-spine-interface-contracts-lane-i-2026-10-23">Composition spine: interface contracts (lane I, 2026-10-23)</h1><p class="meta">docs/design/composition/composition-spine-contracts.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#0-order-of-work-and-one-change-to-the-order-the-plan-gives">0. Order of work (and one change to the order the plan gives)</a></li><li style="margin-left:0px"><a href="#1-accessors-stable-from-pr-1">1. Accessors (stable from PR 1)</a></li><li style="margin-left:14px"><a href="#11-bulk-composition-planetgenphysicsbulk_composition">1.1 Bulk composition: planetgen.physics.bulk_composition</a></li><li style="margin-left:14px"><a href="#12-atmosphere-mixture-planetgenphysicsmixture">1.2 Atmosphere mixture: planetgen.physics.mixture</a></li><li style="margin-left:0px"><a href="#2-step-contracts">2. Step contracts</a></li><li style="margin-left:14px"><a href="#21-gen429-kernels-planetgenphysicsbulk_structure-pure-as-built">2.1 GEN.429 kernels: planetgen.physics.bulk_structure (pure; as built)</a></li><li style="margin-left:14px"><a href="#22-gen428-planetgenphysicsbulk_draw-as-built">2.2 GEN.428: planetgen.physics.bulk_draw (as built)</a></li><li style="margin-left:14px"><a href="#23-gen452-part-2--gen411-pr-4">2.3 GEN.452 part 2 + GEN.411 (PR 4)</a></li><li style="margin-left:0px"><a href="#3-rules-for-everyone-building-against-this">3. Rules for everyone building against this</a></li><li style="margin-left:0px"><a href="#4-end-to-end-draw-order-the-star-to-the-phi-6-doc78">4. End-to-end draw order: the star to the PHI-6 (DOC.78)</a></li><li style="margin-left:14px"><a href="#41-per-star-once">4.1 Per star (once)</a></li><li style="margin-left:14px"><a href="#42-per-body-planet-moon-in-this-order">4.2 Per body (planet, moon), in this order</a></li><li style="margin-left:14px"><a href="#43-rules-for-changing-the-order">4.3 Rules for changing the order</a></li><li style="margin-left:0px"><a href="#5-boundaries-agreed-with-other-lanes">5. Boundaries agreed with other lanes</a></li><li style="margin-left:14px"><a href="#l-boundary-lane-l-2026-10-23-who-writes-the-mixture">L boundary (lane L, 2026-10-23): who writes the mixture</a></li><li style="margin-left:14px"><a href="#k-boundary-lane-k-2026-10-23-the-small-body-density">K boundary (lane K, 2026-10-23): the small-body density</a></li></ul></details>
+<p>Owner: lane I (thread &quot;Composition spine for habitability&quot;). Items: GEN.565 (PlanetaryObject part), GEN.557, GEN.428 with DB.69, GEN.429, GEN.452 part 2, GEN.411 with DB.71 and GEN.424. Everything after GEN.428 (GEN.430, 441, 442, 460, 461, 466 and the rest) belongs to the lanes named in the plan, not to this lane. Designs: docs/design/composition/composition-model.md, bulk-composition.md, atmosphere-composition.md, atmosphere-colour.md section 7.</p>
+<p>Status: the accessors of section 1 are in PR 1 (no behaviour change, no epoch); sections 2.1 and 2.2 describe the code as built in the GEN.429 and GEN.428 PR.</p>
+<h2 id="0-order-of-work-and-one-change-to-the-order-the-plan-gives">0. Order of work (and one change to the order the plan gives)</h2>
+<p>The plan lists GEN.565 then GEN.557 then GEN.428. GEN.428, GEN.429 and GEN.411 do not need the PlanetaryObject class or the wanderer draw: they are functions of a plain <code>BulkSubject</code> / <code>AirSubject</code> (below), called from <code>generate_planet_properties</code> today and from the one body draw later. GEN.557 also waits on GEN.553 (lane A) and DB.73 (lane B). So the order is:</p>
+<ol>
+<li>PR &quot;spine-contracts&quot;: this document in docs/design, plus <code>physics/bulk_composition.py</code> (data class + accessor) and <code>physics/mixture.py</code> (accessors). No epoch.</li>
+<li>PR GEN.429 kernels: <code>physics/bulk_structure.py</code>, pure functions (reference solver, closed forms, small-body mixing). No epoch.</li>
+<li>PR GEN.428 + DB.69 (+ the derived radius, density and gravity of GEN.429 in the generator): epoch bump, migration, golden update.</li>
+<li>PR GEN.452 part 2 (#2613 rebased) + GEN.411 + DB.71 + GEN.424: epoch bump, migration.
+Built in three merges (2026-10-24): 4a GEN.452 part 2 (#3041), 4b DB.71 + GEN.424 (#3110, epoch 95), 4c GEN.411 + GEN.422 (epoch 103): the air is the fixed point of <code>physics/surface_air.py</code> (<code>surface-pressure-supply-law.md</code> section 6), which replaced the class density, molar density and greenhouse ranges, <code>CLASS_MIXES</code> and the mixing-ratio draw (GEN.683); the supply law (GEN.726, #3111) came between 4b and 4c.</li>
+<li>GEN.565 PlanetaryObject and GEN.557 once lanes A and B land.</li>
+</ol>
+<h2 id="1-accessors-stable-from-pr-1">1. Accessors (stable from PR 1)</h2>
+<h3 id="11-bulk-composition-planetgenphysicsbulk_composition">1.1 Bulk composition: <code>planetgen.physics.bulk_composition</code></h3>
+<pre><code class="language-python">@dataclass(frozen=True)
+class BulkFractions:
+    metal: float      # iron-rich core incl. light elements, share of the WHOLE body's mass
+    rock: float       # silicate mantle and crust (SiC and graphite when carbon_rock)
+    water: float      # H2O in every phase (ice, ocean, mantle-bound is NOT included)
+    ice: float        # every other ice: CO2, NH3, CH4, CO, N2, H2S, CH3OH, organics (one share)
+    envelope: float   # H/He gas (with envelope_z of heavy elements inside it)
+    # metal + rock + water + ice + envelope == 1 to 1e-9
+    rock_feo: float | None         # FeO, mass fraction of the rock
+    rock_al2o3: float | None       # Al2O3, mass fraction of the rock (Earth bulk silicate 0.045)
+    rock_mg_si: float | None       # molar Mg/Si of the rock
+    envelope_helium: float | None  # Y of the envelope (mass fraction of the envelope)
+    envelope_z: float | None       # heavy elements, mass fraction of the envelope
+    porosity: float | None         # small bodies only
+    carbon_rock: bool
+    origin: str                    # &quot;drawn&quot; (route 2) or &quot;inverse&quot; (route 1)
+
+def bulk_fractions(body) -&gt; BulkFractions | None   # None for a body saved before GEN.428 and a body with no composition
+</code></pre>
+<p>Body attributes and columns (planets and moons tables, DB.69): <code>metal_mass_fraction</code>, <code>rock_mass_fraction</code>, <code>water_mass_fraction</code> (exists today in hydrosphere; from GEN.428 it is the drawn value, not a separate draw), <code>ice_mass_fraction</code>, <code>envelope_mass_fraction</code>, <code>rock_feo_fraction</code>, <code>rock_al2o3_fraction</code>, <code>rock_mg_si_ratio</code>, <code>envelope_helium_fraction</code>, <code>envelope_z_fraction</code>, <code>porosity</code>, <code>carbon_rock</code> (bool), <code>composition_origin</code> (<code>drawn</code> | <code>inverse</code>). All dimensionless; declared in <code>db/column_units.py</code> in the DB.69 migration. The detailed mixture (minerals, oxides, ices by name, the rows of the shared materials table GEN.427) is a child table <code>planet_composition</code> / <code>moon_composition</code> (body id, component = materials key, mass_fraction) written in the same PR; summary columns are the contract for everyone else, the child table is for the description writer (GEN.430) and the surface (GEN.441).</p>
+<p>For lane H (answers to its questions): silicate_mass_fraction = <code>rock_mass_fraction</code>; refractory_enrichment = <code>rock_al2o3_fraction / 0.045</code>; core mass fraction of the dry part = <code>metal_mass_fraction / (metal_mass_fraction + rock_mass_fraction)</code>; water = <code>water_mass_fraction</code>. Until PR 3 lands <code>bulk_fractions(body)</code> returns None: use your stand-ins when it does.</p>
+<h3 id="12-atmosphere-mixture-planetgenphysicsmixture">1.2 Atmosphere mixture: <code>planetgen.physics.mixture</code></h3>
+<pre><code class="language-python">def partial_pressures_pa(body) -&gt; dict[str, float]    # gas-table formula (&quot;CO2&quot;, &quot;N2&quot;, &quot;He&quot;, &quot;NH3&quot;, &quot;Na&quot;) -&gt; Pa, zeros dropped
+def total_pressure_pa(mix) -&gt; float                   # sum
+def mole_fractions(mix) -&gt; dict[str, float]
+def mean_molar_mass_kg_mol(mix) -&gt; float              # sum x_i M_i, M_i from physics.gases
+</code></pre>
+<p>Keys are exactly the <code>physics/gases.py</code> formulas (case as the table writes them). Since DB.71 (PR 4b, migration 0146) the air is the child table <code>planet_gases</code> / <code>moon_gases</code> (body id, gas formula, <code>partial_pa</code>), so ANY gas of the table can be stored, and the balance gas is a named stored gas like the rest (GEN.424: helium, ammonia and sodium are rows, no unstored remainder). The body attribute is <code>gas_partials_pa</code> (formula to Pa); a column-named dict (a row) carries the same key once <code>db.store.with_gases</code> has attached it. The ten <code>p_&lt;gas&gt;_kpa</code> columns are gone (no shim). Lane G, F and the radiation code read only through <code>mixture.partial_pressures_pa(body)</code> / <code>atmosphere.partial_kpa(body, gas)</code> / <code>mixture.mean_molar_mass_kg_mol</code>. The air column leaves out a gas with no Rayleigh cross section (sodium) until the gas table has one.</p>
+<p>Stored consistency (tested in PR 4b): <code>sum(partial_pressures_pa) == atmospheric_pressure</code> to 1e-9 relative; <code>atm_molar_density == mean_molar_mass_kg_mol</code> (name and unit kept, kg/mol); <code>scale_height</code> follows from R T_e / (M g). GEN.412's <code>bond_albedo</code>, <code>greenhouse_factor</code>, <code>albedo_basis</code> are lane D's and are read, not written, by this lane. Haze, dust and cloud columns (GEN.414, DB.68) are lane G's: use the design names <code>tau_haze</code>, <code>tau_dust</code>, <code>tau_cloud</code> (550 nm), <code>cloud_cover</code>, <code>aerosol_draw</code> (atmosphere-colour.md section 5), not <code>cloud_tau</code>.</p>
+<h2 id="2-step-contracts">2. Step contracts</h2>
+<h3 id="21-gen429-kernels-planetgenphysicsbulk_structure-pure-as-built">2.1 GEN.429 kernels: <code>planetgen.physics.bulk_structure</code> (pure; as built)</h3>
+<p>All SI unless named. No draws, no state.</p>
+<pre><code class="language-python">structure(bulk, mass_kg, *, flux_earth=1.0, age_gy=4.5, temperature_k=None, x_fe=None, core_scale=1.0, prefer_solver=False) -&gt; Structure
+    # radius_km, density_g_cm3, gravity_g, escape_kms, moment_of_inertia, cmb_pressure_gpa, method
+    # method: &quot;closed-dry&quot; | &quot;closed-water&quot; | &quot;closed-small&quot; | &quot;closed-envelope&quot; | &quot;solver&quot; | &quot;mixing&quot;
+layered_structure(mass_earth, metal, rock, water, x_fe, core_scale, ...) -&gt; dict          # the reference solver (iron, silicate, water)
+radius_fit_earth(mass_earth, cmf, x_fe, core_scale) -&gt; float                              # part B closed form, 0.1 to 20 Earth masses
+water_world_radius_earth(mass_earth, cmf, water) -&gt; float                                 # part C closed form, 0.3 to 20
+small_body_radius_earth(mass_earth, cmf, water) -&gt; float                                  # fit over 1.5e-4 to 0.3 Earth masses
+envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy, ...) -&gt; float             # [R2741], 1 to 20
+mixing_density_kg_m3(metal, rock, water, ice, porosity) -&gt; float                          # below 1e21 kg
+cmf_from_mass_radius(mass_earth, radius_earth, ...)                                  # route 1 inverse (the water fraction's inverse was deleted unused, TEST.525)
+x_fe_from_feo_mass_fraction(feo) -&gt; float                                                 # the mantle's Fe/(Fe+Mg) from FeO
+</code></pre>
+<p>Water and ice together under 0.1 percent of the mass are solved as dry. A giant (envelope over 0.5) raises <code>OutsideRange</code>: the giant radius law of GEN.34 is <code>physics/planets.py</code>'s until GEN.460.</p>
+<h3 id="22-gen428-planetgenphysicsbulk_draw-as-built">2.2 GEN.428: <code>planetgen.physics.bulk_draw</code> (as built)</h3>
+<pre><code class="language-python">host_ratios(star) -&gt; HostRatios     # fe, si, al, ca, ni (atoms per Mg), c_over_o, y_envelope, z; from the star's abundance key
+dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock=0.0) -&gt; DryPartition   # metal, rock, rock_feo, rock_al2o3, rock_mg_si
+draw_terrestrial(body, radius_given, mass_given)   # sets the BulkFractions attributes, mass, radius, density
+ROCK_KIND_TABLE                                    # gated GEN.472 table &quot;bulk-rock-kind&quot;: silicate | carbide-graphite | carbide-graphite-by-class
+</code></pre>
+<p>A giant is drawn by <code>planetgen.physics.giant_draw.draw_giant</code> (GEN.460, GEN.642), not here. The body needs <code>planet_class</code>, <code>radius</code> (or <code>mass</code>), <code>star</code> (with <code>metallicity_fe_h</code>, <code>age</code>, <code>mass</code>, <code>galactic_center_dist_ly</code>) and <code>is_moon</code>. Draw order (a change is an epoch change): rock kind, water share, other ices (class D), FeO, core light elements, porosity (class D), graphite (carbon rock). The mass is then solved from the class radius; class S and a body given both a mass and a radius are worked back from them (<code>origin</code> is <code>inverse</code>). Columns (DB.69, schema 144): <code>metal_mass_fraction</code>, <code>rock_mass_fraction</code>, <code>ice_mass_fraction</code>, <code>envelope_mass_fraction</code>, <code>rock_feo_fraction</code>, <code>rock_al2o3_fraction</code>, <code>rock_mg_si_ratio</code>, <code>envelope_helium_fraction</code>, <code>envelope_z_fraction</code>, <code>porosity</code>, <code>carbon_rock</code>, <code>composition_origin</code>, with the existing <code>water_mass_fraction</code>; read them through <code>bulk_composition.bulk_fractions(body)</code>, which returns <code>None</code> for a row saved before schema 144.</p>
+<p>Hook points in <code>generate_planet_properties</code> after PR 3 (so other lanes know where to add draws): (a) bulk composition (<code>bulk_draw</code>), (b) lane H <code>radiogenic.draw_content(planet, silicate_mass_fraction=..., refractory_enrichment=...)</code> immediately after (a), (c) <code>calculate_atmospheric_conditions</code> (lane D's albedo and greenhouse, then GEN.411), (d) hydrosphere (reads the water share the bulk draw made). Draws come from the ambient bound stream in that order; each module draws in a fixed order of its own.</p>
+<p>Extension coming: giant interiors (GEN.641, GEN.642, DB.89, lane J) add layers and a core to the giant composition; the five whole-body fractions stay the totals.</p>
+<h3 id="23-gen452-part-2--gen411-pr-4">2.3 GEN.452 part 2 + GEN.411 (PR 4)</h3>
+<p><code>atmosphere.generate_atmosphere(planet)</code> is replaced by: recipes <code>RECIPES.draw_all(subject)</code> (GEN.478 tables) -&gt; partial pressures at the surface (saturation caps from <code>physics.saturation</code>, cold-end freeze-out, GEN.422 order) -&gt; total pressure = sum -&gt; mean molar mass -&gt; scale height -&gt; text from the stored mixture (GEN.415 is later). <code>atm_density</code> and the molar-density range draw of today are gone. Epoch bump with GEN.452 part 2's stored freeze-out values.</p>
+<h2 id="3-rules-for-everyone-building-against-this">3. Rules for everyone building against this</h2>
+<ul>
+<li>Read composition only through the two accessors. No lane reads or writes <code>p_&lt;gas&gt;_kpa</code> after PR 4, or <code>composition</code> text for logic.</li>
+<li>New draws: after the hook they belong to, from the ambient stream; never reorder existing draws without telling this lane.</li>
+<li>New numeric columns: declare in <code>db/column_units.py</code> in the same PR. Epochs and migrations are numbered at merge (first to merge takes the next free).</li>
+<li>Files this lane edits (avoid parallel edits, tell me first): <code>physics/planets.py</code> (<code>generate_planet_properties</code>, <code>calculate_atmospheric_conditions</code>, <code>reconcile_zone_and_class</code>), <code>physics/atmosphere.py</code>, <code>generation/planet.py</code> (SERIALIZABLE_FIELDS), <code>db/store.py</code> (planet and moon field lists), <code>db/models.py</code>, <code>db/schema.sql</code>, <code>db/column_units.py</code>, <code>physics/hydrosphere.py</code> (the water draw line only), <code>physics/habitability_world.py</code> (molar mass table only), <code>tuning.py</code> (class density and atmosphere ranges). New: <code>physics/bulk_composition.py</code>, <code>physics/bulk_structure.py</code>, <code>physics/mixture.py</code>.</li>
+</ul>
+<h2 id="4-end-to-end-draw-order-the-star-to-the-phi-6-doc78">4. End-to-end draw order: the star to the PHI-6 (DOC.78)</h2>
+<p>One table for every lane. &quot;Stream&quot; says where the draws come from; &quot;Draws&quot; says whether the block consumes random numbers at all. A block that must not move later draws has a stream of its own, named by a key.</p>
+<p><strong>The reproducibility rule.</strong> Every draw goes through <code>util/draw.py</code>. Inside a unit of work (a sector fill, a scatter run, a backfill block) there is one ambient stream, so the order of draws inside it is part of the output: inserting, removing or reordering one draw shifts every later draw and is an epoch change. Draws inside a block run in a fixed order. A block either has a stream of its own or appends after the last draw of the block before it. Derived values draw nothing. A stored formation branch is never redrawn, and a recalculation after an orbit validation or an edit never redraws a stored composition (F10, GEN.422). A table's version is part of the order: adding, removing or reweighting a row changes every seed in its classes.</p>
+<h3 id="41-per-star-once">4.1 Per star (once)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>What</th>
+<th>Stream</th>
+<th>Draws</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Initial mass (Kroupa IMF, sector truncation)</td>
+<td>ambient</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Age from the population's star formation history</td>
+<td>ambient</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Redraw while mass and age give a collapsed object</td>
+<td>ambient</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Evolve to the present state (<code>evolve_star</code>)</td>
+<td>none</td>
+<td>no</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Classify: spectral letter, luminosity class</td>
+<td>none</td>
+<td>no</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Habitable zone, Hill sphere, orbit, spin, activity</td>
+<td>none</td>
+<td>no</td>
+</tr>
+<tr>
+<td>7</td>
+<td>[Fe/H] (a horizontal-branch star keeps the one it drew for its colour)</td>
+<td><code>metallicity:{mass}:{age}:{distance}</code> (bright stars <code>metallicity:bright:{seed}</code>)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Snow line</td>
+<td><code>snow_line:{mass}:{age}:{distance}</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Disk of a pre-main-sequence star</td>
+<td><code>disk:{mass}:{age}</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Star composition (<code>star_makeup</code>)</td>
+<td><code>abundance:{key}</code></td>
+<td>yes, its own stream</td>
+</tr>
+</tbody>
+</table></div>
+<p>Planned: GEN.553 moves [Fe/H] before the state (step 7 before 4) and gives each step of the star its own stream; GEN.651 wires [Fe/H] into the evolution; GEN.652 settles the two main-sequence tables. When GEN.553 lands, this table is replaced by its five steps (origin, birth, state, composition, motion).</p>
+<h3 id="42-per-body-planet-moon-in-this-order">4.2 Per body (planet, moon), in this order</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Draws in it</th>
+<th>Stream</th>
+<th>Source of the order</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Count and slots</td>
+<td>how many bodies, spacing, belts, zone</td>
+<td>ambient</td>
+<td><code>system.py</code> <code>_generate_planets</code></td>
+</tr>
+<tr>
+<td>Formation</td>
+<td>born beyond or migrant, formation distance and temperature, ice set</td>
+<td>ambient</td>
+<td>section 2.2, bulk-composition.md section 7</td>
+</tr>
+<tr>
+<td>Bulk composition</td>
+<td>water share, dry part, mass (decision 28), envelope fraction and loss</td>
+<td>ambient (hook a)</td>
+<td>section 2.2 above</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td>radius, density, gravity, escape speed</td>
+<td>none</td>
+<td>GEN.429</td>
+</tr>
+<tr>
+<td>Radiogenic content</td>
+<td>K, U, Th, Al-26</td>
+<td>ambient (hook b, straight after a)</td>
+<td>lane H</td>
+</tr>
+<tr>
+<td>Atmosphere</td>
+<td><code>RECIPES.draw_all</code> in the tables' order, then saturation and freeze-out (no draws)</td>
+<td>ambient (hook c)</td>
+<td>section 2.3</td>
+</tr>
+<tr>
+<td>Albedo and greenhouse</td>
+<td>the two draws GEN.412 records</td>
+<td>ambient (hook c)</td>
+<td>lane D</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>fixed point of pressure, greenhouse and temperature</td>
+<td>none</td>
+<td>GEN.422</td>
+</tr>
+<tr>
+<td>Hydrosphere, ozone, aerosols, magnetism, spin</td>
+<td>each in its own module's order</td>
+<td>ambient (hook d)</td>
+<td>lanes F, J, L</td>
+</tr>
+<tr>
+<td>Radiation</td>
+<td>surface dose from the stored inputs</td>
+<td>none</td>
+<td>lanes G, H</td>
+</tr>
+<tr>
+<td>Moons</td>
+<td>recursion per orbit slot</td>
+<td>planned <code>Stream(f&quot;{host_seed}:orbit:{slot}&quot;)</code> (GEN.556)</td>
+<td>GEN.556</td>
+</tr>
+<tr>
+<td>After the body is complete</td>
+<td><code>classify</code> (GEN.646), PHI-6 (GEN.643), the four life scores (GEN.649)</td>
+<td>none, except the evolutionary-stage draw for the life scores</td>
+<td>lane D, class lane</td>
+</tr>
+</tbody>
+</table></div>
+<p>Until GEN.646 lands the class letter is still an input at the count, formation and bulk blocks; afterwards it is only an output of <code>classify</code>.</p>
+<h3 id="43-rules-for-changing-the-order">4.3 Rules for changing the order</h3>
+<ol>
+<li>A new draw goes after the hook it belongs to, or on a stream of its own if it must not move later draws. Say so in the PR.</li>
+<li>Moving a draw, or changing a table's rows or weights, is an epoch bump with a migration, numbered at merge.</li>
+<li>Whoever changes a row in this table updates it in the same PR.</li>
+</ol>
+<h2 id="5-boundaries-agreed-with-other-lanes">5. Boundaries agreed with other lanes</h2>
+<h3 id="l-boundary-lane-l-2026-10-23-who-writes-the-mixture">L boundary (lane L, 2026-10-23): who writes the mixture</h3>
+<p>Agreed as lane L proposed (/mnt/project-files/reports/lane-l-boundary-2026-10-23.md). Lane L writes <code>planetgen/physics/mixture_draw.py</code>: <code>draw_mixture(subject) -&gt; MixtureDraw(mole_fractions: {gas-table formula: fraction, sum 1}, regimes drawn, redox_diw)</code>, a pure function of a <code>recipes.Subject</code> (inputs named in <code>atmosphere_recipes.INPUTS</code>), with no pressure logic and no storage. Lane I (PR 4) keeps the total pressure (retention row d), the saturation caps and freeze-out (GEN.452, GEN.422 order), the sum of partial pressures, the mean molar mass, the storage and DB.71. PR 4 calls <code>draw_mixture</code> in place of <code>CLASS_MIXES</code> and deletes <code>CLASS_MIXES</code> in the same PR (GEN.479's done-line), so GEN.479 merges before PR 4 or in step with it. Lane L does not edit <code>planets.py</code>, <code>atmosphere.py</code> or <code>mixture.py</code>; until <code>draw_mixture</code> is on main PR 4 builds against its signature above.</p>
+<h3 id="k-boundary-lane-k-2026-10-23-the-small-body-density">K boundary (lane K, 2026-10-23): the small-body density</h3>
+<p>Agreed. Lane K writes <code>physics/compaction.py</code> (<code>grain_density_kg_m3(mass_fractions_by_component)</code> (times one minus the porosity; <code>small_body_density_kg_m3</code> was deleted unused, TEST.525), <code>compacted_density_kg_m3(radius_km, rock_fraction)</code>, the 1e19 to 1e21 kg taper). <code>bulk_structure.structure</code> keeps the rocky, water and envelope branches and the solver above 1e21 kg; its <code>mixing</code> branch (below 1e21 kg) is the zero-pressure mixing rule with porosity (<code>mixing_density_kg_m3</code>) until <code>compaction.py</code> is on main, and the first PR after that replaces the branch with a call to lane K's functions and deletes <code>mixing_density_kg_m3</code>. Lane K's comet, belt and icy-body draws return <code>BulkFractions</code> with <code>porosity</code> set.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

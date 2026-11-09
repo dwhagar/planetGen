@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surface and crust composition (GEN.441) - planetGen docs</title>
+<meta name="description" content="Code: physics/surfacecomposition.py.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/surface-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/surface-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="surface-and-crust-composition-gen441">Surface and crust composition (GEN.441)</h1><p class="meta">docs/design/composition/surface-composition.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-reads-and-gives">What it reads and gives</a></li><li style="margin-left:0px"><a href="#the-order-of-the-draw">The order of the draw</a></li><li style="margin-left:0px"><a href="#parametrisations-all-in-ranges-none-a-measurement">Parametrisations (all in RANGES, none a measurement)</a></li><li style="margin-left:0px"><a href="#reads-back">Reads back</a></li><li style="margin-left:0px"><a href="#stored-second-slice-gen441">Stored (second slice, GEN.441)</a></li><li style="margin-left:0px"><a href="#rock-types-from-the-oxides-gen474-lock-free-step">Rock types from the oxides (GEN.474, lock-free step)</a></li><li style="margin-left:0px"><a href="#still-to-do">Still to do</a></li><li style="margin-left:0px"><a href="#the-salts-a-brine-leaves-gen1366">The salts a brine leaves (GEN.1366)</a></li></ul></details>
+<p>Code: <code>physics/surface_composition.py</code>. Tests: <code>tests/test_surface_composition.py</code>. Research base: part E of the body composition research (<code>body-composition-parts/E-ground-radiogenic-shielding.md</code>, sections 2.2, 2.3, 2.6, 3.2 and 3.5) and the gated possibility-table rule (<code>composition-model.md</code> section 4b).</p>
+<h2 id="what-it-reads-and-gives">What it reads and gives</h2>
+<p>Reads (a <code>SurfaceInputs</code>): whether the body is a giant (from its structure, <code>body_type</code>, never the class letter: GEN.917, GEN.915), surface temperature and pressure, the air's oxygen and other partial pressures, the bulk fractions of GEN.428 (water, other ices, rock, metal, rock FeO, carbon rock), the hydrosphere state, ocean fraction and class of GEN.461, the internal and tidal heat flow, the age and the plate-tectonics chance.</p>
+<p>Gives (a <code>SurfaceComposition</code>): the areal <code>mix</code> (ocean, ice and the ground types, summing to 1), the mass <code>components</code> (rows of the shared materials table, summing to 1) and the grain state. A giant has no ground (<code>None</code>).</p>
+<h2 id="the-order-of-the-draw">The order of the draw</h2>
+<ol>
+<li>Covered share from the hydrosphere: liquid ocean (with <code>RANGES[&quot;ocean_salt&quot;]</code> of salts) or ice. Only ices that stand at the surface temperature and air are kept (<code>ice_stable</code>: water by the repo's 273.15 K under air and 220 K in vacuum rule, other ices by their saturation curve against their partial pressure or the vacuum floor, which is water's vapor pressure at 220 K). A frozen body whose water and ices reach half the rock's mass is ice everywhere.</li>
+<li>Dominant ground of the land from <code>surface-dominant-ground</code>: metal (metal share 0.7 or more), carbon (carbon rock), basaltic (heat flow over the drawn floor), else ultramafic or anorthositic by a draw whose chance rises with the rock's FeO.</li>
+<li>Modifiers, in the fixed order felsic, clay, oxidized, evaporite, sulfur, each a uniform areal share of the land when its inputs allow it, scaled together to at most 0.9 of the land.</li>
+<li>Grain: slab if molten (1400 K) or slab or crushed if under 0.1 Gyr, else powder.</li>
+</ol>
+<p>The recipes (<code>surface-ground-types</code>) are Hu et al. 2012 Table 2 on materials rows. Stand-ins are named on the rows: kaolinite for Mg-smectite, <code>basalt_powder</code> for glass, <code>orthoclase</code> for K-feldspar. Hu's pyrite is the <code>pyrite</code> row (GEN.1384): the <code>metal</code> ground is that sample alone, as Table 2 gives it, where it stood as troilite and kamacite before the row existed.</p>
+<h2 id="parametrisations-all-in-ranges-none-a-measurement">Parametrisations (all in <code>RANGES</code>, none a measurement)</h2>
+<p>The heat-flow floor 1e-4 to 1e-3 W/m2, the overturn scale 0.2 of FeO, the modifier share ranges, the 0.1 Gyr young-surface limit, the ice-rich ratio 0.5, the stripped-mantle share 0.7, the free-oxygen floor 20 Pa and the ocean salt share 0.035 (Earth's). Each stands for a fit against data and is on the part E gap list.</p>
+<h2 id="reads-back">Reads back</h2>
+<p><code>band_albedo</code> gives the lab reflectance by band area-weighted over the ground types that have a measured spectrum (not a Bond albedo; the final albedo is GEN.462). <code>land_rock_ppm</code> gives K, Th and U for the land of a body from the reservoir models of part E table 2.8b (<code>RESERVOIRS</code>), for the ground dose.</p>
+<h2 id="stored-second-slice-gen441">Stored (second slice, GEN.441)</h2>
+<p><code>generate_surface(body)</code> runs right after the hydrosphere and sets <code>ground_type</code>, <code>ground_grain</code> and <code>ground_&lt;type&gt;_fraction</code> (twelve areal shares that add up to 1; schema 159). A giant's fields are <code>None</code>. The non-water ices' proportions are a stand-in (the median comet volatiles, <code>comet_population.median_volatiles</code>) until the species are stored with the bulk composition; the tidal heat flow is not yet an input, so the sulfur modifier waits on it.</p>
+<p>The ground dose reads the stored ground: <code>land_rock_ppm(body)</code> is the area-weighted K, Th and U of the land (<code>RESERVOIR_OF</code>: clay and iron-oxidized ground follow basalt, being altered basalt; land with no reservoir takes basalt's), and <code>radiation._ground_dose</code> raises the bulk silicate's content to it. <code>radiogenic.SURFACE_RESERVOIRS</code> and <code>tuning.RADIOGENIC_FELSIC_FRACTION_MAX</code> are gone.</p>
+<h2 id="rock-types-from-the-oxides-gen474-lock-free-step">Rock types from the oxides (GEN.474, lock-free step)</h2>
+<p><code>GROUND_TYPES</code> is a library: each ground type is a fixed mineral list taken from the Earth's and the Moon's crusts (Hu, [R2024: Table 2]). <code>physics/rock_types.py</code> (registry RT1 to RT3, section 6.45) derives the ground type from the oxides of the body's own rock instead:</p>
+<ul>
+<li><strong>The norm.</strong> The CIPW norm allocates the oxides to ideal minerals by mass balance in the method's fixed order (apatite, ilmenite, orthoclase, albite, anorthite, magnetite, diopside, hypersthene; quartz from the silica left, olivine, nepheline, leucite and periclase when it falls short). The norm adds up to the oxides given (tested); a peralkaline rock or one without the silica for any norm is refused.</li>
+<li><strong>What melts.</strong> A mantle becomes a crust by partial melting. The minerals of the norm melt in three stages: the low-melting feldspars, quartz and diopside together in the proportions the rock holds them (an invariant eutectic, so the liquid keeps one composition while the stage lasts: a basalt for the bulk silicate Earth up to a fifth melted), then hypersthene, then olivine (a magnesian liquid, komatiite-like, over a third melted). K, Th and U are incompatible, so a batch melt holds them <code>1 / (D + F (1 - D))</code> times the source (D taken as zero); N-MORB over depleted mantle (22.8, 31.9 and 25.9 times for K, Th, U) is one melt of 3 to 4.5 percent for all three, which the test pins as a consistency check and never uses as an input.</li>
+<li><strong>The ground type</strong> is anorthositic at 90 percent plagioclase in the norm (IUGS), ultramafic under 45 percent silica or over 18 percent magnesia (komatiite), then basaltic (45 to 52), intermediate (52 to 63) or felsic (63 and over) by the silica bands of the total alkali-silica diagram. The upper continental crust ([R3842: Table 11]) comes out felsic, the lower crust intermediate, a lunar highland anorthosite anorthositic and the bulk silicate Earth ultramafic, all as test points.</li>
+</ul>
+<p>Limits: the staged melt is not a phase-equilibrium liquid (MELTS or pMELTS would give one: the stage mix is too aluminous and calcic for a MORB, 23 percent Al<sub>2</sub>O<sub>3</sub> against about 15, and its high-degree liquids rise in silica as the orthopyroxene joins, so 25 to 30 percent melts are called intermediate); the norm's iron split is proportional; there are no hydrous, carbonate or sulfur rocks.</p>
+<p><strong>Wired (GEN.474, train 7).</strong> The volcanic crust (the <code>basaltic</code> row of the dominant-ground table, where the heat flow is over the volcanism floor) is no longer always basalt: it is the ground type of the melt of the body's stored mantle. <code>rock_types.rock_oxides</code> builds the rock's oxides from the stored FeO and Al<sub>2</sub>O<sub>3</sub> shares and Mg/Si and the star's Ca/Mg (the alkalis, titanium and phosphorus are not stored and are zero); <code>melt_fraction</code> takes the share that melts from the heat flow (3 to 30 percent, log-linear over five decades above the middle of the floor's range, 9 percent at Earth's heat flow: registry MF1, T9, L3); and <code>ground_type_of</code> of the staged melt names the ground. An Earth-like mantle makes basalt, a mantle richer in silica (Mg/Si near 0.7) andesite and a poorer or hotter one a magnesian ultramafic melt; about nine in ten of 800 generated volcanic bodies stay basaltic, a tenth turn ultramafic and a few turn intermediate. A new <code>intermediate</code> ground type (an average andesite's assemblage, registry RT4) and its areal-share column <code>ground_intermediate_fraction</code> (planets and moons, migration 0187) are added; its K, Th and U are basalt's until a reservoir of its own is read. The melt does not decide the primary crust (the overturn and anorthosite rules of a body that no longer melts stay), the felsic share of a mobile lid (still a uniform draw), or the crust's K, Th and U from the mantle's (the batch enrichment of <code>rock_types</code> is not used yet). A melt the staged allocation gives as pure plagioclase reads basaltic: the stored rock has no alkalis, so a calcium-poor mantle's first melt is feldspar alone, and an anorthosite is a flotation cumulate, not a mantle melt. The run's draw order is unchanged (no new draw). The library of Hu's assemblages stays as the types' recipes.</p>
+<h2 id="still-to-do">Still to do</h2>
+<p>Ground albedo with weathering (GEN.462's follow-up reads <code>band_albedo</code>), the child table of component shares for the describer (GEN.430), the API and the describer lines, tidal heating as an input, and the invariants of E 3.6 against the stored mass balance.</p>
+<h2 id="the-salts-a-brine-leaves-gen1366">The salts a brine leaves (GEN.1366)</h2>
+<p>Code: <code>physics/evaporite_sequence.py</code>. Tests: <code>tests/test_evaporite_sequence.py</code>. Stand-ins: registry section 6.226 (rows EV1 to EV11).</p>
+<p>The evaporite ground used to be four tenths halite, three tenths gypsum and three tenths calcite, and the ocean's salt was halite alone. Both are now the salts of the body's own brine, allocated to rows of the materials table in the order of the chemical divides (Hardie and Eugster):</p>
+<ol>
+<li>The ions. The crust that weathers is the melt of the body's mantle at its heat flow, with the alkalis put back (the stored rock carries none: sodium at <code>waterworld_carbon.CRUST_SODIUM_WT</code>, potassium at the basalt reservoir's K). Each cation dissolves in proportion to its oxide moles times its mobility in the weathering series (<code>MOBILITY</code>). The anions are the ocean class's (<code>ANION_PARAMS</code>: carbonate per calcium, then chloride against sulfate for the rest of the charge), and the anion charge is the cation charge.</li>
+<li>The steps. Acid water: jarosite then alunite. All waters: calcite from calcium and carbonate in equal moles. Carbonate left over is the alkaline (soda) path: magnesium carbonate (hydromagnesite, or magnesite when hot), then sodium carbonate (nahcolite at high carbon dioxide, else trona, thermonatrite or natrite by temperature). Calcium left over is the calcium path: calcium sulfate, then magnesium sulfate, then sodium sulfate, then (calcium still left) calcium chloride. Last, the chlorides: perchlorate (thin oxidizing air only), halite, carnallite, sylvite, bischofite, antarcticite.</li>
+<li>The forms. Gypsum or anhydrite is read from the measured equilibrium by temperature and the activity of water [R5164]: a brine saturated with halite (activity 0.75) makes anhydrite above 18 degrees C. Mirabilite or thenardite at 32.4 degrees C, epsomite, hexahydrite or kieserite at 48 and 68 degrees C, and the sodium carbonate hydrates at 32.5 and 109 degrees C are stand-ins (EV4 to EV6).</li>
+</ol>
+<p><code>surface_composition.dried_salts</code> gives the mass shares for the evaporite ground and <code>ocean_salts</code> the ocean's (the same, less the calcite, which is the seafloor's). A body with no silicate rock has volcanic sodium chloride only, halite. The areal mix, the draws and the albedo rows (<code>ALBEDO_ROWS</code>, halite, gypsum and calcite) are unchanged; only the stored mass composition moves.</p>
+<p>Limits: equilibrium on complete desiccation, not a basin's kinetics; no double salts (glauberite, polyhalite, langbeinite, kainite) and no bassanite; one activity of water for the calcium sulfate (the halite one where halite forms), not a curve along the evaporation; the class anion split and the mobilities are stand-ins, not a speciation of the brine.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

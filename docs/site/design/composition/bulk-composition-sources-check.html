@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk composition chain: sources check (GEN.425) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-17): the result of GEN.425 (done), copied from the read-only thread&#x27;s report so that every lane has it in the repository.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/bulk-composition-sources-check.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/bulk-composition-sources-check.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="bulk-composition-chain-sources-check-gen425">Bulk composition chain: sources check (GEN.425)</h1><p class="meta">docs/design/composition/bulk-composition-sources-check.md</p><details class="toc"><summary>On this page (23 headings)</summary><ul><li style="margin-left:0px"><a href="#0-how-far-the-check-could-go-read-this-first">0. How far the check could go (read this first)</a></li><li style="margin-left:0px"><a href="#1-verdict-and-counts">1. Verdict and counts</a></li><li style="margin-left:0px"><a href="#2-source-by-source">2. Source by source</a></li><li style="margin-left:14px"><a href="#21-r3992-read-verified">2.1 [R3992] (READ, verified)</a></li><li style="margin-left:14px"><a href="#22-r4881-read-verified">2.2 [R4881] (READ, verified)</a></li><li style="margin-left:14px"><a href="#23-r4882-read-verified">2.3 [R4882] (READ, verified)</a></li><li style="margin-left:14px"><a href="#24-r4880-read-verified">2.4 [R4880] (READ, verified)</a></li><li style="margin-left:14px"><a href="#25-r2741-read-verified">2.5 [R2741] (READ, verified)</a></li><li style="margin-left:14px"><a href="#26-r1429-read-verified">2.6 [R1429] (READ, verified)</a></li><li style="margin-left:14px"><a href="#27-equation-of-state-constants-vinet-birch-murnaghan-verified-cross-checked">2.7 Equation-of-state constants: Vinet, Birch-Murnaghan (verified, cross-checked)</a></li><li style="margin-left:14px"><a href="#28-saumon-chabrier-apjs-99-713-original-read-from-the-ads-scan-tables-not-obtained">2.8 Saumon, Chabrier, ApJS 99, 713 (original READ from the ADS scan; tables NOT obtained)</a></li><li style="margin-left:14px"><a href="#29-r1146-read-verified-as-a-method">2.9 [R1146] (READ, verified as a method)</a></li><li style="margin-left:14px"><a href="#210-r4336-read-verified">2.10 [R4336] (READ, verified)</a></li><li style="margin-left:14px"><a href="#211-r3916-aa-580-l13-read-stoichiometry-reproduced">2.11 [R3916], A&amp;A 580, L13 (READ; stoichiometry reproduced)</a></li><li style="margin-left:14px"><a href="#212-water-fraction-against-the-snow-line-assembled">2.12 Water fraction against the snow line (assembled)</a></li><li style="margin-left:0px"><a href="#3-what-the-two-tables-should-use">3. What the two tables should use</a></li><li style="margin-left:14px"><a href="#31-gen427-materials-table">3.1 GEN.427 materials table</a></li><li style="margin-left:14px"><a href="#32-gen429-density-mass-radius">3.2 GEN.429 density, mass, radius</a></li><li style="margin-left:14px"><a href="#33-gen428-composition-fractions-what-can-be-derived-from-the-star">3.3 GEN.428 composition fractions: what can be derived from the star</a></li><li style="margin-left:0px"><a href="#4-where-it-applies">4. Where it applies</a></li><li style="margin-left:0px"><a href="#5-what-boss-must-research-himself-or-a-lane-must-go-and-read">5. What Boss must research himself (or a lane must go and read)</a></li><li style="margin-left:0px"><a href="#6-open-points-for-the-design-gen426">6. Open points for the design (GEN.426)</a></li><li style="margin-left:0px"><a href="#7-files">7. Files</a></li></ul></details>
+<p><strong>Status (2026-10-17):</strong> the result of GEN.425 (done), copied from the read-only thread's report so that every lane has it in the repository. It feeds GEN.426 to GEN.430, DB.69 and the surveys GEN.432 and GEN.433; the lane that builds each item reads its section first. Where it says a source was not reached, the input is open and is Boss's to research (section 5). The check scripts and parsed tables stay in /mnt/project-files/reports/bulk-composition-sources-check-2026-10-17/ and are not committed. Times in it are as the lane's clock reported.</p>
+<p>Date: 2026-10-17 (task started about 11:53 PM EDT on 10-16 as the wake clock reported; lane clocks drift). Read-only research, no repo change. Chain: goal issue #1949, plan note <code>docs/design/composition/atmosphere-colour.md</code> section 5, trace <code>composition-density-link-2026-10-17.md</code>. Feeds GEN.426 (design), GEN.427 (materials table), GEN.428 (fractions drawn), GEN.429 (density, mass, radius derived).</p>
+<p>Check scripts and the parsed tables are in <code>/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17/</code> (the scripts read the <code>pdftotext</code> output of the named arXiv PDF from the working directory; they are not committed to the repo).</p>
+<h2 id="0-how-far-the-check-could-go-read-this-first">0. How far the check could go (read this first)</h2>
+<p>Labels: <strong>READ</strong> = the paper's own text was read (arXiv PDF or the ADS scan). <strong>COMPUTED</strong> = re-derived here with Python from READ inputs. <strong>2ND-HAND</strong> = seen only in a citing paper or in open-source code. <strong>NOT REACHED</strong> = no copy could be read.</p>
+<p>Network, as it stood when this was written (Boss widened access just before 12:02 AM EDT; the first half of the work ran before that):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>export.arxiv.org</code> PDFs</td>
+<td>work (used for every paper below); the <code>/api/query</code> endpoint timed out at 60 s on all seven tries</td>
+</tr>
+<tr>
+<td><code>arxiv.org</code> (abs and pdf)</td>
+<td><strong>now reachable</strong> (200 for <code>/abs/1507.08081</code> and <code>/pdf/0707.2895</code>)</td>
+</tr>
+<tr>
+<td><code>doi.org</code></td>
+<td>answers, but only redirects to <code>adsabs.harvard.edu</code>, which does not resolve from this container</td>
+</tr>
+<tr>
+<td><code>articles.adsabs.harvard.edu</code></td>
+<td><strong>now reachable for old scans</strong>: the first try for [R3932] timed out, the second returned the 29-page PDF with a text layer. [R2726] (<code>2003ApJ...591.1220L</code>) returned 403 (no free scan)</td>
+</tr>
+<tr>
+<td><code>ui.adsabs.harvard.edu</code> link gateway</td>
+<td>redirect loop, nothing returned</td>
+</tr>
+<tr>
+<td><code>iopscience.iop.org</code></td>
+<td>returns a Radware bot-check page instead of the paper; I did not try to get around it</td>
+</tr>
+<tr>
+<td><code>cdsarc.cds.unistra.fr</code></td>
+<td>the server answers but refuses: 403 &quot;unable to read htaccess&quot; on <code>/ftp/J/ApJS/99/713/</code>, 500 on <code>viz-bin/cat</code>. <code>cdsarc.u-strasbg.fr</code> does not resolve</td>
+</tr>
+<tr>
+<td><code>ntrs.nasa.gov</code> (search API)</td>
+<td>answered 200; nothing was needed from it</td>
+</tr>
+<tr>
+<td><code>water.lsbu.ac.uk</code> (Chaplin ice page)</td>
+<td>no answer</td>
+</tr>
+<tr>
+<td><code>pypi.org</code>, <code>files.pythonhosted.org</code></td>
+<td>work (burnman 2.1.0 source used as an independent cross-check)</td>
+</tr>
+</tbody>
+</table></div>
+<p>A single command that probed a long list of other hosts at once was refused by the session's safety classifier, so I tested only hosts I needed. <strong>Not tested:</strong> ScienceDirect, OUP, Wikipedia, Zenodo, NIST, PMC, Crossref, Semantic Scholar, github.com.</p>
+<h2 id="1-verdict-and-counts">1. Verdict and counts</h2>
+<p>12 items were on the list (the six papers named, plus equations of state, SCvH, the three stellar-chemistry papers, and the water fraction against the snow line).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Count</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ and verified</td>
+<td>8</td>
+<td>[R1429, R2741, R3992, R4336, R4880, R4881, R4882], equation-of-state constants (Seager Table 1, cross-checked against two independent sources)</td>
+</tr>
+<tr>
+<td>Verified with a limit that matters</td>
+<td>3</td>
+<td>[R3916] (stoichiometry reproduced, but methane column off by 15 percent and it needs stellar O, Mg, Si the project does not store); [R1146] (an inversion method, no closed-form law, so GEN.429 cannot take an equation from it); [R3932] (original read now, but the numerical tables were not obtained)</td>
+</tr>
+<tr>
+<td>Assembled, not one law</td>
+<td>1</td>
+<td>Water fraction against the snow line: [R2318, R2865, R3193, R4880], plus a stoichiometric estimate computed here</td>
+</tr>
+</tbody>
+</table></div>
+<p>Also read: [R0709] and the abstract of [R0708] for what replaced SCvH. <strong>Not reached:</strong> [R2726], the SCvH numerical tables, Chaplin's low-pressure ice data.</p>
+<p><strong>Corrections to what the notes or the papers say (9):</strong></p>
+<ol>
+<li>[R3992: Table 3] labels the 8300 kg/m3 iron row &quot;Fe(alpha)&quot;; Table 1 gives 8.30 g/cm3 for Fe(epsilon) and 7.86 for Fe(alpha). The row is the epsilon phase.</li>
+<li>[R2741]: the text says the envelope radius goes as <code>t^0.11</code> (solar) and <code>t^0.18</code> (enhanced opacity) with no sign; Eq. 3 correctly has exponent <strong>-0.18</strong> (planets shrink with age).</li>
+<li>[R1429] pure water ice is <strong>12 percent larger</strong> in radius than [R4882] pure water (1.58 against 1.41 R_earth at 1 M_earth), because it uses ANEOS &quot;warm ice&quot;; [R4880] says older water equations of state are wrong at a few hundred GPa. Use the newer one for water.</li>
+<li>[R4882]'s &quot;100% Fe&quot; column is not pure iron. It uses the PREM outer-core fit (rho0 7.05, K0 201 GPa), which carries Earth's light elements, so it is 4 to 8 percent larger than pure epsilon-iron [R1429, R3992].</li>
+<li>[R4882]'s closed form is calibrated on Earth's seismic model (PREM). It is valid, but it is not &quot;nothing copied from the solar system&quot;; the constants 1.07 and 0.21 are fitted to a table built from Earth's mantle and core. See section 3.</li>
+<li>[R4882]'s Table 2 water columns (&quot;25%h2o&quot;, &quot;50%h2o&quot;) do not say what the rest of the planet is made of, in the text I read. Do not use the table for water mixtures without that.</li>
+<li>[R3992] MgO bulk modulus 177 GPa differs 9 percent from [R4232] (161.4 GPa, via burnman). Silicate and iron constants agree within 1 percent in density (section 2.7).</li>
+<li>Water has two Vinet/BME parameter sets in [R3992]: BME for ice VII (K0 23.7 GPa, K0' 4.15) and a Vinet fit to DFT for ice VII, VIII and X (K0 14.3771 GPa, K0' 6.57972, rho0 1460). They are not interchangeable; the second covers the high-pressure range.</li>
+<li>[R3916]'s Table 1 methane column (0.37 percent for the Sun) is not reproduced by its own stoichiometry (0.32 percent computed), everything else is. Cause not found.</li>
+</ol>
+<h2 id="2-source-by-source">2. Source by source</h2>
+<h3 id="21-r3992-read-verified">2.1 [R3992] (READ, verified)</h3>
+<p><strong>Law.</strong> Spherical hydrostatic structure <code>dm/dr = 4 pi r^2 rho</code>, <code>dP/dr = -G m rho / r^2</code> with a cold equation of state per material; Vinet or fourth-order Birch-Murnaghan (BME) fitted to experiment up to roughly 200 GPa, Thomas-Fermi-Dirac (TFD, Salpeter and Zapolsky) above. Outer boundary <code>P(R) = 0</code>. Temperature matters little: a 3.5 percent density error is a 1.2 percent radius error (<code>R ~ rho^-1/3</code>).</p>
+<p><strong>Constants (Table 1, copied as printed):</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Material</th>
+<th>K0 (GPa)</th>
+<th>K0'</th>
+<th>rho0 (g/cm3)</th>
+<th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fe (alpha)</td>
+<td>162.5 +/- 5</td>
+<td>5.5 +/- 0.8</td>
+<td>7.86</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>Fe (epsilon)</td>
+<td>156.2 +/- 1.8</td>
+<td>6.08 +/- 0.12</td>
+<td>8.30</td>
+<td>Vinet</td>
+</tr>
+<tr>
+<td>FeS</td>
+<td>35 +/- 4</td>
+<td>5 +/- 2</td>
+<td>4.77</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O ice VII</td>
+<td>23.7 +/- 0.9</td>
+<td>4.15 +/- 0.07</td>
+<td>1.46</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>MgO</td>
+<td>177.0 +/- 4</td>
+<td>4.0 +/- 0.1</td>
+<td>3.56</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>MgSiO<sub>3</sub> enstatite</td>
+<td>125</td>
+<td>5 (assumed)</td>
+<td>3.22</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>MgSiO<sub>3</sub> perovskite</td>
+<td>247 +/- 4</td>
+<td>3.97</td>
+<td>4.10</td>
+<td>BME4 (K0'' = -0.016 /GPa)</td>
+</tr>
+<tr>
+<td>(Mg0.88,Fe0.12)SiO<sub>3</sub> perovskite</td>
+<td>266 +/- 6</td>
+<td>3.9 +/- 0.04</td>
+<td>4.26</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>C (graphite)</td>
+<td>33.8 +/- 3</td>
+<td>8.9 +/- 1.0</td>
+<td>2.25</td>
+<td>BME</td>
+</tr>
+<tr>
+<td>SiC</td>
+<td>227 +/- 3</td>
+<td>4.1 +/- 0.1</td>
+<td>3.22</td>
+<td>BME</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Modified polytrope (Table 3): <code>rho(P) = rho0 + c P^n</code>, P in Pa, valid below 1e16 Pa.</strong> Fe 8300, 0.00349, 0.528; MgSiO<sub>3</sub> perovskite 4100, 0.00161, 0.541; (Mg,Fe)SiO<sub>3</sub> 4260, 0.00127, 0.549; H<sub>2</sub>O 1460, 0.00311, 0.513; graphite 2250, 0.00350, 0.514; SiC 3220, 0.00172, 0.537. Fit error 2 to 5 percent for P &lt; 5e9 and P &gt; 3e13 Pa, up to 12 percent in between.</p>
+<p><strong>Generic mass-radius form (Eq. 23):</strong> <code>log10 Rs = k1 + (1/3) log10 Ms - k2 Ms^k3</code>, <code>k1 = -0.20945, k2 = 0.0804, k3 = 0.394</code>, good to 1 percent for Ms &lt; 4; the paper says it holds up to about 20 M_earth. Effective scales per composition (Table 4, <code>R = r1 Rs</code>, <code>M = m1 Ms</code>): Earth-like Fe 0.325 / MgSiO<sub>3</sub> 0.675: m1 6.41 M_earth, r1 3.19 R_earth; Fe 4.34, 2.23; MgSiO<sub>3</sub> 7.38, 3.58; H<sub>2</sub>O 5.52 and 4.43 (from the polytropic rows).</p>
+<p><strong>Range.</strong> Solid planets, cold, up to about 20 M_earth for the generic law; the numerical curves go to 10 M_Jupiter but electron degeneracy then flattens the radius. The paper's proposal: a &quot;super Earth&quot; is a planet without a substantial gas envelope.</p>
+<p><strong>Verdict: verified</strong>, one label slip (correction 1). The constants agree with later sources (section 2.7).</p>
+<h3 id="22-r4881-read-verified">2.2 [R4881] (READ, verified)</h3>
+<p>Three-layer grid, 0.1 to 100 M_earth: Fe (epsilon, [R3992] Vinet to 2.09e4 GPa then TFD), MgSiO<sub>3</sub> (perovskite and post-perovskite from [R0650], post-perovskite at 122 GPa, about 1.5 percent denser, dissociation at 0.90 and 2.10 TPa from [R4465], TFD above 4.9 TPa), H<sub>2</sub>O (Chaplin ices up to 2.216 GPa, then Frank, Fei, Hu 2004 for ice [R1457] DFT 37.4 GPa to 8.893 TPa, TFD above). Surface pressure 1 bar.</p>
+<p>One formula worth lifting (Frank, Fei and Hu 2004 as printed, ice VII, 2.216 to 37.4 GPa): <code>rho (mol/cm3) = 0.0805 + 0.0229 (1 - exp(-0.0743 p)) + 0.1573 (1 - exp(-0.0061 p))</code>, p in GPa.</p>
+<p>There is <strong>no closed-form radius law in this paper</strong>; its product is the grid (Table 1 for six 2-layer curves, Table 3 for ternary diagrams) and contours of central pressure, core mass fraction and core radius fraction. Water: the paper follows ice along the melting curve; superionic phase included.</p>
+<p><strong>Verdict: verified as a method and as the source of the three-layer equations of state; no equation for GEN.429 comes out of it directly.</strong></p>
+<h3 id="23-r4882-read-verified">2.3 [R4882] (READ, verified)</h3>
+<p><strong>Law (Eq. 2):</strong> <code>R/R_earth = (1.07 - 0.21 CMF) (M/M_earth)^(1/3.7)</code>, <strong>for 0 &lt;= CMF &lt;= 0.4 and 1 &lt;= M &lt;= 8 M_earth</strong>; agrees with the paper's own curves within about 0.01 R_earth, and inverted (Eq. 3, <code>CMF = (1/0.21)(1.07 - (R/R_e)/(M/M_e)^(1/3.7))</code>) gives CMF to about 0.02. Error propagation (Eq. 4): <code>|dCMF| ~ 5 sqrt((dr/r)^2 + ((1/3.7)(dm/m))^2)</code>.</p>
+<p><strong>Equations of state (second-order Birch-Murnaghan, Eq. 1: <code>P = 1.5 K0 [(rho/rho0)^(7/3) - (rho/rho0)^(5/3)]</code>), fitted to PREM:</strong> lower mantle rho0 3.98 g/cm3, K0 206 GPa; outer core rho0 7.05, K0 201; inner core rho0 7.85, K0 255; each good to about 1 percent. Mantle: linear PREM table to 23.83 GPa, BM2 to 3.5 TPa, TFD (MgSiO<sub>3</sub>) above. Core: BM2 to 12 TPa, TFD Fe above. Earth's CMF is 0.325 in the paper; TFD for MgO, SiO<sub>2</sub>, MgSiO<sub>3</sub> and Mg<sub>2</sub>SiO<sub>4</sub> are almost identical (average A = 20, Z = 10), so Mg/Si does not matter at high pressure.</p>
+<p><strong>Table 2</strong> gives radii for 100% Fe, 50, 30, 25, 20% Fe, rock, 25% H<sub>2</sub>O, 50% H<sub>2</sub>O, 100% H<sub>2</sub>O at 0.125 to 32 M_earth (copied into <code>compare_mass_radius_laws.py</code>).</p>
+<p><strong>Checks (COMPUTED):</strong> the closed form reproduces the paper's own 30% Fe column to 0.002, 0.006, 0.005 and 0.016 R_earth at 1, 2, 4 and 8 M_earth. The BM2 constants give back PREM at the core-mantle and inner-core boundaries (mantle 5.569 g/cm3 at 135.8 GPa, outer core 9.914 g/cm3 at 135.8 GPa and 12.17 g/cm3 at 328.85 GPa; the PREM values themselves were not read here, the paper only states 1 percent).</p>
+<p><strong>Verdict: verified.</strong> Caveats: calibrated on Earth's interior (correction 5); the inner core and light elements in the iron are baked in; mass range 1 to 8 only. [R4880] applies the same <code>M^(1/3.7)</code> scaling to water worlds (section 2.4).</p>
+<h3 id="24-r4880-read-verified">2.4 [R4880] (READ, verified)</h3>
+<p>Argues that the 2 to 4 R_earth planets are partly water worlds. What is usable:</p>
+<ul>
+<li><code>R = M^(1/3.7)</code> (Earth-like, R_earth and M_earth units) for rocky planets, and <strong><code>R = f M^(1/3.7)</code> with <code>f = 1 + 0.55 x - 0.14 x^2</code></strong>, x the ice (water) mass fraction; <strong><code>f = 1.41</code> for 100 percent water</strong> (check: 1 + 0.55 - 0.14 = 1.41). Used there for 1 to 20 M_earth.</li>
+<li>Rock and ice grow together beyond the snow line: the rock to ice ratio &quot;does not strongly depend on host star metallicity&quot;; x between 1/2 and 2/3 is assumed for the icy planets.</li>
+<li>Radius reference: <strong>1 millibar</strong> surface; cosmic H<sub>2</sub>-He is 75 percent H<sub>2</sub> and 25 percent He by mass; water in the interior stays solid along the melting curve; envelope curves are isothermal at 300, 500, 700, 1000 K.</li>
+<li>&quot;A gas envelope of at most a few percent by mass&quot; is enough for any planet between 2 and 4 R_earth.</li>
+</ul>
+<p><strong>Checks (COMPUTED):</strong> <code>f(x)</code> times the &quot;rock&quot; column of [R4882: Table 2] gives 25 percent water 1.204 against the table's 1.182 (1.9 percent) and 50 percent water 1.323 against 1.270 (4 percent) at 1 M_earth. So <code>f</code> is good to about 2 to 4 percent if the base is pure rock. [R1429] eq. 7 (section 2.6) agrees with [R4882] to about 5 percent for mixtures.</p>
+<p><strong>Verdict: verified.</strong> The 1:2 ratio of rocky to icy cores and the claim that they are water worlds are the paper's population argument, not a law to copy; the paper itself says gas dwarfs against water worlds cannot be told apart from mass and radius alone.</p>
+<h3 id="25-r2741-read-verified">2.5 [R2741] (READ, verified)</h3>
+<p><strong>Core (Eq. 1):</strong> <code>R_core = (M_core/M_earth)^0.25 R_earth</code> for an Earth-like rock/iron core (2:1 rock to iron, ANEOS olivine and SESAME 2140 iron) to within about 2 percent; about 10 percent if the iron fraction varies.</p>
+<p><strong>Envelope (Eq. 3, enhanced-opacity fit, defaults 5 M_earth, 100 F_earth, 5 percent, 5 Gyr):</strong>
+<code>R_env = 2.06 R_earth (M/M_earth)^-0.21 (f_env/5%)^0.59 (F/F_earth)^0.044 (age/5 Gyr)^-0.18</code>, total <code>R = R_core + R_env + R_atm</code>, <code>R_atm ~ 9 H</code> (about 9 scale heights, usually near 0.1 R_earth, from 100 bar to the 20 mbar level where the transit radius is defined).</p>
+<p><strong>Domain.</strong> 1 to 20 M_earth; envelope mass fraction 0.01 to 20 percent; flux 0.1 to 1000 F_earth (tables at 0.1, 10, 1000); age 100 Myr to 10 Gyr; solar metallicity and 50x enhanced-opacity atmospheres. Hydrogen/helium by [R3932]. Radius defined at <strong>20 mbar</strong>. Rocky/gaseous divide: the paper suggests <strong>1.75 R_earth</strong>.</p>
+<p><strong>Checks (COMPUTED, 24 rows x 11 columns x 6 tables parsed into <code>lopez_fortney_2014_tables2-7.csv</code>):</strong> with <code>R_atm</code> left out, Eq. 3 plus Eq. 1 against the tables for envelope fractions of 0.5 percent and above: at 1 Gyr enhanced opacity mean +3.1 percent, RMS 6.3 percent, range -11 to +15; at 10 Gyr RMS 8.3 percent, range -22 to +35; solar metallicity at 1 Gyr bias +8 percent, RMS 11 percent. That matches the paper's own &quot;within about 0.1 dex&quot; and its warning that the fit is a rough guide.</p>
+<p><strong>Verdict: verified</strong> (correction 2). For GEN.429 interpolate the tables (CSV above) instead of using Eq. 3; the equation is a sanity check.</p>
+<h3 id="26-r1429-read-verified">2.6 [R1429] (READ, verified)</h3>
+<p>Equations of state: iron SESAME 2140, olivine and water ANEOS, hydrogen and helium [R3932] (Y = 0.28). Warm ice adds a thermal pressure <code>P_T = 3.59e-5 rho T</code> (P in Mbar, rho in g/cm3, T in K) on a Uranus/Neptune adiabat. Rock and iron are cold (no thermal term; accurate to 1 to 2 percent). Giant cores: 50/50 ice/rock by mass.</p>
+<p><strong>Closed forms (Eqs. 7 and 8, R in R_earth, M in M_earth, log base 10), fitted 0.01 to 100 M_earth:</strong></p>
+<ul>
+<li>Ice/rock: <code>R = (0.0912 imf + 0.1603)(log M)^2 + (0.3330 imf + 0.7387) log M + (0.4639 imf + 1.1193)</code>, imf = ice mass fraction (1 pure ice, 0 pure rock).</li>
+<li>Rock/iron: <code>R = (0.0592 rmf + 0.0975)(log M)^2 + (0.2337 rmf + 0.4938) log M + (0.3102 rmf + 0.7932)</code>, rmf = rock mass fraction (1 pure rock, 0 pure iron).</li>
+</ul>
+<p>Authors' accuracy claim: 2.5 percent average for ice/rock, 1.5 percent for rock/iron, better than 0.5 percent near 1 M_earth, up to 10 percent for ice/rock at 0.01 M_earth.</p>
+<p><strong>Checks (COMPUTED against the paper's own Table 1, M &lt;= 100):</strong> rock/iron with rmf 0.67 mean 1.1 percent, max 3.7; rmf 0.5 mean 1.6, max 3.2; pure iron mean 2.5, max 4.1; pure rock via Eq. 8 mean 2.3, max 10. Ice/rock: pure ice mean 3.4, max 17; 50/50 mean 3.0, max 10; pure rock via Eq. 7 mean 3.5, max 13. So the rock/iron equation meets its claim; the ice/rock one is worse than claimed at the ends (the claim &quot;2.5 percent&quot; is the average over its whole range, my numbers are for the ten tabulated masses, so the end errors dominate).</p>
+<p>Radius reference is the 1 bar level; hot giants need the model atmosphere tables (Tables 2 and 3 there: 0.02 to 9.5 AU, 17 to 3594 M_earth, core 0 to 100 M_earth; not needed for the solids chain).</p>
+<p><strong>Verdict: verified</strong>, with the water warning in correction 3.</p>
+<h3 id="27-equation-of-state-constants-vinet-birch-murnaghan-verified-cross-checked">2.7 Equation-of-state constants: Vinet, Birch-Murnaghan (verified, cross-checked)</h3>
+<p>Seager Table 1 (section 2.1) is the verified source. Independent checks, COMPUTED:</p>
+<ul>
+<li>Epsilon-iron: Seager Vinet (8.30, 156.2, 6.08) against the calibrant in burnman 2.1.0 (V0 6.81706 cm3/mol so rho0 8.192, K0 148, K0' 5.86): density at 50, 100, 200, 330 GPa 9.987/9.947, 10.995/10.999, 12.41/12.48, 13.744/13.886 g/cm3, within 1.0 percent.</li>
+<li>MgSiO<sub>3</sub> perovskite: Seager (4.10, 247, 3.97; third-order BM here) against [R4232] as shipped in burnman (V0 24.445 cm3/mol so rho0 4.107, K0 250.5, K0' 4.14): 25, 50, 100, 135 GPa density ratio 1.000, 1.001, 1.004, 1.006. [R4882]'s lower-mantle BM2 (3.98, 206) is within 1.6 percent of it at 25 GPa and 1.1 percent at 135 GPa.</li>
+<li>Periclase: [R4232] rho0 3.584 (agrees with 3.56) but K0 161.4 GPa against 177 (correction 7).</li>
+<li>Two-layer integration (COMPUTED, <code>two_layer_structure_check.py</code>): Fe Vinet (Seager) over MgSiO<sub>3</sub> BM3 (Seager), CMF 0.3, no phase changes, no TFD: radii 0.792, 0.978, 1.198, 1.453, 1.744 R_earth at 0.5, 1, 2, 4, 8 M_earth. [R4882: Table 2] (30% Fe): 0.823, 1.005, 1.22, 1.47, 1.75 at the same masses. So <strong>the Seager constants alone reproduce a published table to 1 to 4 percent</strong> (a little low because the BM and Vinet forms are extrapolated cold and the Earth-like upper mantle is missing). Use BM only up to about 2.8e13 Pa; Seager Fig. 1 shows the MgSiO<sub>3</sub> BME curve turns unphysical there and TFD must take over.</li>
+</ul>
+<p><strong>Verdict: verified.</strong> What the table lacks: a verified density for <strong>low-pressure ice phases</strong> (ice Ih and the others below 2.2 GPa). Seager's 1.46 g/cm3 is ice VII at zero pressure (high-pressure phase), the wrong number for a small icy body or moon. Ice Ih was not found in any source read (section 5).</p>
+<h3 id="28-saumon-chabrier-apjs-99-713-original-read-from-the-ads-scan-tables-not-obtained">2.8 Saumon, Chabrier, ApJS 99, 713 (original READ from the ADS scan; tables NOT obtained)</h3>
+<p>From the paper itself: hydrogen and helium equations of state for low-mass stars (M &lt; 1 M_sun), brown dwarfs and giant planets, covering <strong>2.10 &lt; log T(K) &lt; 7.06 and 4 &lt; log P (dyn/cm2) &lt; 19</strong>; free-energy minimisation; <strong>mixtures by the additive volume rule plus an ideal entropy of mixing</strong> (so the density of a mixture with helium mass fraction Y follows from the two pure tables); a hypothetical plasma phase transition for hydrogen, with tables both with it and with it interpolated away; tables published on the AAS CD-ROM Series Vol. 5 and by anonymous FTP; the paper's own figure uses Y = 0.25. Radiation is not included.</p>
+<p>What replaced it: [R0709] keep SCvH only for ρ &lt;= 0.05 g/cm3 and add ab initio data in between; they state SCvH underestimates H<sub>2</sub> pressure dissociation, is too stiff at low pressure, and overestimates the internal energy in the dissociation regime. Sizes quoted there: SCvH pressure about 10 percent above the simulations at 2 g/cm3 along an isentrope, and departures &quot;as much as 25%&quot; in one density-temperature regime (which quantity that 25 percent refers to is not clear in the extracted text). [R0708] ([R0708], abstract only) add H-He interactions, which matter at low temperature and high density (giants and brown dwarfs).</p>
+<p><strong>Verdict: verified as a source, but the numbers are not in hand.</strong> The CDS catalogue J/ApJS/99/713 refused every request from here (section 0). For a planet generator the envelope radius comes from Lopez and Fortney or [R1429] tables, which already used SCvH; the generator does not need to integrate SCvH. Only a lane that integrates the envelope itself needs the tables.</p>
+<h3 id="29-r1146-read-verified-as-a-method">2.9 [R1146] (READ, verified as a method)</h3>
+<p>A Bayesian inversion, not a forward law. Assumptions to carry over: bulk <strong>Fe/Si and Mg/Si mass ratios of the planet equal the star's</strong> (cites [R0455, R2180, R4335], because Fe, Mg, Si condense together at small distances); a pure-iron core; a mantle in the Na<sub>2</sub>O-CaO-FeO-MgO-Al2O3-SiO2 system (more than 98 percent of Earth's mantle) with Na<sub>2</sub>O 2, CaO 2, Al<sub>2</sub>O<sub>3</sub> 4.8 weight percent fixed at chondritic values; mineral equations of state from [R4231]/2011 by Gibbs minimisation; core by [R0332] (Mie-Gruneisen-Debye with rho0 8.334, q 0.489, gamma0 2.434).</p>
+<p>Relation worth keeping (Eq. 1): <code>Fe/Si_bulk = Fe/Si_mantle + M_core / M_Si,mantle</code>, so a larger core must come with less iron (FeO) in the mantle; Earth's mantle values in the paper's Table 2: Fe/Si 0.17, Mg/Si 0.83, Si 22 weight percent, core radius 3400 km. Prior ranges (Table 1): mantle Si 14 to 30 weight percent, mantle Fe/Si up to 2.23, Mg/Si 0.89 +/- 0.08 ([R2726] Sun: Fe/Si 1.69 +/- 0.18). Tested to 10 M_earth and 1.7 R_earth, plus Kepler-36b. Conclusions: mass and radius fix the core size; stellar Fe, Si, Mg reduce the degeneracy.</p>
+<p><strong>Verdict: verified.</strong> It gives no equation for GEN.429. The usable consequence is the bulk constraint, turned into a core mass fraction in section 3.3.</p>
+<h3 id="210-r4336-read-verified">2.10 [R4336] (READ, verified)</h3>
+<p>Gibbs-energy minimisation (HSC Chemistry 7.1) of nebular condensation inside the Alibert planet-formation model, for 18 stars covering <strong>Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75 (mass ratios)</strong>, solar-mass and solar-luminosity hosts. Result: <strong>Mg/Si and Fe/Si in rocky, icy and giant planets fall on the 1:1 line with the star</strong>; deviations only for material that formed where the disk is too hot to condense Mg, Si, Fe (inside about 0.3 AU, roughly 1000 K, for the disk they show), C/O shows only a very weak link.</p>
+<p>Thresholds as printed (mass ratios, pressure about 1e-4 bar): Mg/Si below 0.86 puts Mg in pyroxene (MgSiO<sub>3</sub>) with leftover Si in other silicates; 0.86 to 1.73 splits between pyroxene and olivine; above 1.73 all Si goes to olivine and leftover Mg to oxides; C/O above 0.6 makes Si carbides. <strong>Checked (COMPUTED):</strong> 0.86 and 1.73 are exactly the molar ratios 1 and 2 (24.305/28.0855 = 0.865, twice that 1.731); C/O 0.6 is molar 0.8 (0.8 x 12.011/15.999 = 0.601).</p>
+<p><strong>Verdict: verified.</strong> Limits: solar-mass stars only, one family of disks, solar-system-type formation.</p>
+<h3 id="211-r3916-aa-580-l13-read-stoichiometry-reproduced">2.11 [R3916], A&amp;A 580, L13 (READ; stoichiometry reproduced)</h3>
+<p>The model: heavy elements as H<sub>2</sub>O, CH<sub>4</sub>, Fe, MgSiO<sub>3</sub>, Mg<sub>2</sub>SiO<sub>4</sub> in equilibrium condensation; with stellar abundances N_X: <code>N_O = N_H2O + 3 N_MgSiO3 + 4 N_Mg2SiO4</code>, <code>N_Mg = N_MgSiO3 + 2 N_Mg2SiO4</code>, <code>N_Si = N_MgSiO3 + N_Mg2SiO4</code> (valid while N_Mg &gt; N_Si). The iron fraction among refractories is <code>f_iron = m_Fe / (m_Fe + m_MgSiO3 + m_Mg2SiO4)</code>. The paper's results: C-7 31.6, K-93 34.7, K-10 27.5, Sun 33.2 percent ([R2726] condensation, 38.0 percent). The paper compares the 17 percent iron from mass and radius [R1156] with 28 to 35 percent from the stars and calls the agreement good &quot;on a 10 to 20 percent level&quot; (their words).</p>
+<p><strong>Check (COMPUTED, <code>check_santos_2015_stoichiometry.py</code>):</strong> with Asplund-2009-style solar number abundances (log eps C 8.43, O 8.69, Mg 7.60, Si 7.51, Fe 7.50, He 10.93; <strong>typed from memory, not read from a source here</strong>), the script gives MgSiO<sub>3</sub> 0.183, Mg<sub>2</sub>SiO<sub>4</sub> 0.077, H<sub>2</sub>O 0.509, Fe 0.130 mass percent, Z 1.216 and f_iron <strong>33.2</strong>, matching the paper's Sun column (0.19, 0.08, 0.50, 0.13, 1.26, 33.2) except methane (0.32 against 0.37; correction 9). Because 33.2 is reproduced exactly the abundances are consistent with the paper's, but a lane must cite its own Asplund source.</p>
+<p><strong>Verdict: verified with a limit.</strong> Needs oxygen, magnesium, silicon and carbon as well as iron from the host; and the project stores only [Fe/H] (section 5).</p>
+<h3 id="212-water-fraction-against-the-snow-line-assembled">2.12 Water fraction against the snow line (assembled)</h3>
+<p>There is no single law. What the sources give:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Source</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ice/rock mass ratio beyond the water ice line</td>
+<td>[R2865] (READ)</td>
+<td><strong>1 +/- 0.5</strong> (ice 45 +/- 15 weight percent of condensed mass) without refractory organics; <strong>0.35 +/- 0.25</strong> (30 +/- 10 percent) with them; across model variants 0.1 to 1.5. These are <strong>all</strong> ices (H<sub>2</sub>O, CO, CO<sub>2</sub>, CH<sub>3</sub>OH, NH<sub>3</sub>), not water alone; strong gradient near the water line</td>
+</tr>
+<tr>
+<td>Rock and ice fractions for sub-Neptune cores</td>
+<td>[R4880] (READ)</td>
+<td>x = 1/2 to 2/3 ice</td>
+</tr>
+<tr>
+<td>Stoichiometric water share (COMPUTED here from [R3916]'s equations and the Asplund-style Sun)</td>
+<td>[R3916]</td>
+<td>water 0.509, refractories 0.390 mass percent of the nebula, so <strong>water / (water + refractories) = 0.566</strong>; with methane counted as ice 0.68</td>
+</tr>
+<tr>
+<td>Snow-line position, dust and accretion</td>
+<td>[R3193] (READ)</td>
+<td><code>R_SL = [3 mu m_p (G M*)^(3/2) Mdot^2 kappa_R / (128 pi^2 k_B sigma_SB T_ice f alpha)]^(2/9)</code> with <code>T_ice</code> 160 K (150 to 170 K), steady viscous disk. For 1.0, 0.8, 0.6, 0.4, 0.2 M_sun: small grains 3.3, 2.6, 1.9, 1.2, 0.5 AU (1-sigma 2.2 to 5.0 for 1.0 M_sun); larger grains 1.6, 1.2, 0.9, 0.6, 0.2 AU. Observed scatter in accretion rate (0.4 dex) gives about 0.2 dex in snow-line distance. For comparison the same table lists luminosity-based main-sequence values 2.5, 1.23, 0.61, 0.32, 0.16 AU</td>
+</tr>
+<tr>
+<td>Snow line moves in time</td>
+<td>[R2318] (READ in part)</td>
+<td>located where T_mid = <strong>170 K</strong>; moves inward as accretion falls; the old fixed <code>2.7 (M*/M_sun) AU</code> line is only a main-sequence reference</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Computed derivation of the project's constant.</strong> The equilibrium temperature of a blackbody at 1 AU from 1 L_sun is <code>T = (L / (16 pi sigma a^2))^(1/4) = 278.3 K</code>; so <code>a_snow = (278.3 / T_ice)^2 sqrt(L/L_sun)</code> AU: <strong>2.68 AU at 170 K</strong>, 3.03 at 160 K, 3.44 at 150 K. The fixed <code>SNOW_LINE_AU_AT_1_LSUN = 2.7</code> [R1854] was this 170 K value; GEN.458 removed it: <code>SNOW_LINE_TEMPERATURE_K = 170</code> now gives the blackbody center (<code>formation.snow_line_au</code>, 2.68 AU for the Sun) and each star draws and stores its own line around it. Mulders and Kennedy and Kenyon show accretion heating and dust size move the true line by a factor of 2 to 3 around it, so a drawn scatter of about 0.2 dex is justified by Mulders; the optically thin formula is the unscattered center.</p>
+<p><strong>Verdict: assembled; usable.</strong> The water mass fraction inside the snow line is not in any source read (condensation models give essentially zero; delivery is a separate research item, section 5).</p>
+<h2 id="3-what-the-two-tables-should-use">3. What the two tables should use</h2>
+<h3 id="31-gen427-materials-table">3.1 GEN.427 materials table</h3>
+<p>Per material: zero-pressure density, Vinet or BM constants, valid pressure range, source. Use Seager Table 1 and the Table 3 polytrope for the cold, high-pressure regime (verified, cross-checked in 2.7) and take the following <strong>values to the 3 listed significant figures</strong>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Material</th>
+<th>rho0 (g/cm3)</th>
+<th>K0 (GPa)</th>
+<th>K0'</th>
+<th>Form</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fe (epsilon), core</td>
+<td>8.30</td>
+<td>156.2</td>
+<td>6.08</td>
+<td>Vinet</td>
+<td>any pressure above about 100 GPa; TFD above 2.09e4 GPa</td>
+</tr>
+<tr>
+<td>Fe (alpha), small bodies</td>
+<td>7.86</td>
+<td>162.5</td>
+<td>5.5</td>
+<td>BME</td>
+<td>low pressure</td>
+</tr>
+<tr>
+<td>MgSiO<sub>3</sub> perovskite, mantle</td>
+<td>4.10</td>
+<td>247</td>
+<td>3.97</td>
+<td>BM4 (K0'' -0.016 /GPa) or BM3</td>
+<td>above 27 GPa; post-perovskite 1.5 percent denser above 122 GPa</td>
+</tr>
+<tr>
+<td>MgSiO<sub>3</sub> enstatite</td>
+<td>3.22</td>
+<td>125</td>
+<td>5 (assumed)</td>
+<td>BME</td>
+<td>small bodies, upper mantle (low-pressure silicate)</td>
+</tr>
+<tr>
+<td>(Mg0.88,Fe0.12)SiO<sub>3</sub></td>
+<td>4.26</td>
+<td>266</td>
+<td>3.9</td>
+<td>BME</td>
+<td>oxidized mantle</td>
+</tr>
+<tr>
+<td>MgO</td>
+<td>3.56</td>
+<td>177 (161.4 per [R4232])</td>
+<td>4.0</td>
+<td>BME</td>
+<td>choose and cite one</td>
+</tr>
+<tr>
+<td>FeS</td>
+<td>4.77</td>
+<td>35</td>
+<td>5</td>
+<td>BME</td>
+<td>sulfide core option</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O ice VII</td>
+<td>1.46</td>
+<td>23.7</td>
+<td>4.15</td>
+<td>BME</td>
+<td>2.2 to 44 GPa (Seager); Frank et al. formula 2.2 to 37.4 GPa; DFT table above</td>
+</tr>
+<tr>
+<td>graphite / SiC</td>
+<td>2.25 / 3.22</td>
+<td>33.8 / 227</td>
+<td>8.9 / 4.1</td>
+<td>BME</td>
+<td>carbon-rich (C/O &gt; 0.6 by mass)</td>
+</tr>
+<tr>
+<td>H/He (cosmic)</td>
+<td>SCvH or CMS19 tables</td>
+<td>-</td>
+<td>-</td>
+<td>tables</td>
+<td>envelopes; Y 0.25 to 0.28 in the sources</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Not in any source read:</strong> ice Ih and the low-pressure ices (Ih, III, V, VI) as bulk densities for small icy bodies and moons, porosity of small bodies, and CH<sub>4</sub>, NH<sub>3</sub>, CO<sub>2</sub> ices. A zero-pressure density for them cannot be written down from the sources here; the &quot;uniform 3.93 to 5.51 g/cm3 for every class&quot; problem in the trace (class D &quot;frozen hydrocarbons and ice&quot;) stays unsolved for low-mass bodies until that is researched.</p>
+<h3 id="32-gen429-density-mass-radius">3.2 GEN.429 density, mass, radius</h3>
+<p>Recommended order, by body mass M (M_earth), composition by mass fractions (Fe core CMF, silicate, water x, envelope f_env):</p>
+<ol>
+<li><strong>Small bodies (below about 0.01 M_earth), no sources read for the regime:</strong> pressure is negligible, so density is the harmonic mean of the zero-pressure densities <code>rho = 1 / sum(w_i / rho0_i)</code> (volume additivity; not from a paper; ignores porosity). This is a derivation, flag it as such. Seager shows the equation of state reduces to <code>rho = rho0</code> for scaled mass below 1 (Ms &lt; 1, i.e. M below m1; m1 is 5.80 M_earth for the iron modified polytrope), so compression is small there.</li>
+<li><strong>Solid planets 0.01 to about 100 M_earth (sources valid to 100):</strong> integrate the two- or three-layer structure (Zeng's mass-as-coordinate form: <code>dr/dm = 1/(4 pi rho r^2)</code>, <code>dP/dm = -G m /(4 pi r^4)</code>) with the constants above, or interpolate a grid built once with them. That integration reproduces the published [R4882] table to 1 to 4 percent at 0.5 to 8 M_earth (2.7). It makes the composition the cause of the density, which is what Boss asked. The closed forms are checks and fallbacks:
+<ul>
+<li>rock plus iron: [R4882: Eq. 2] (1 to 8 M_earth, CMF 0 to 0.4, within 0.01 R_earth) or [R1429: Eq. 8] (0.01 to 100 M_earth, 1.5 percent);</li>
+<li>rock plus water: [R4880] <code>f(x)</code> on the rock radius (2 to 4 percent) or [R1429: Eq. 7] (5 percent for mixtures against [R4882]; pure ice 12 percent big);</li>
+<li>envelope on top: [R2741] tables (1 to 20 M_earth, 0.01 to 20 percent, radius at 20 mbar).
+Agreement of the closed forms with each other (COMPUTED, Earth-like CMF 0.325, R_earth): at 1, 2, 4, 8 M_earth [R4882] gives 1.002, 1.208, 1.457, 1.757; [R1429] eq. 8 gives 1.003, 1.211, 1.445, 1.703; Seager generic gives 0.970, 1.188, 1.443, 1.733; Lopez core <code>M^0.25</code> gives 1.000, 1.189, 1.414, 1.682. So <strong>3 to 4 percent spread in radius, 10 to 12 percent in density</strong>, is the honest uncertainty for rocky bodies from the literature.</li>
+</ul>
+</li>
+<li><strong>Over 20 M_earth with a gas envelope:</strong> use the [R1429] giant tables (core 0 to 100 M_earth, 17 to 3594 M_earth, 0.02 to 9.5 AU, ages) rather than a closed form; the project already has a giant mass-radius relation (GEN.34) that this chain does not need to touch.</li>
+<li><strong>Radius reference level differs:</strong> Seager 0 pressure, [R4881] 1 bar, [R1429] 1 bar, Lopez and Fortney 20 mbar, [R4880] 1 millibar. The code's radius level has to be fixed once (1 bar is the common one) and the envelope tables corrected by the scale-height term.</li>
+</ol>
+<h3 id="33-gen428-composition-fractions-what-can-be-derived-from-the-star">3.3 GEN.428 composition fractions: what can be derived from the star</h3>
+<p>Core mass fraction from stellar Fe/Si and Mg/Si (mass ratios), assuming <strong>all iron in the core and Mg and Si as oxides</strong> (O/Si molar = 2 + Mg/Si molar for any Mg/Si, which follows from MgSiO<sub>3</sub>, Mg<sub>2</sub>SiO<sub>4</sub>, SiO<sub>2</sub> and MgO): with silicate mass per gram of Si <code>1 + Mg/Si + (2 + r) 15.999/28.0855</code>, <code>r = (Mg/Si) 28.0855/24.305</code>, <strong>CMF = (Fe/Si) / ((Fe/Si) + silicate mass per gram of Si)</strong>.</p>
+<p>Test (COMPUTED, <code>cmf_from_star_and_snow_line.py</code>): the Lodders-2003 Sun used by Dorn and Thiabaud (Fe/Si 1.69, Mg/Si 0.88) gives <strong>CMF 0.320</strong>; Earth's 0.325 ([R4882: Table 1]) is within 2 percent. Thiabaud's corners: Fe/Si 1.34, Mg/Si 0.66: 0.293; 2.81, 1.85: 0.351; 1.34, 1.85: 0.205; 2.81, 0.66: 0.465. So the stellar range gives CMF from about 0.2 to 0.47 (Mercury-like at the top is a relevant sanity check, not a target). It overstates the core when some iron sits as FeO in the mantle (Dorn: Earth's mantle Fe/Si 0.17) and ignores light elements in the core. The Santos route (f_iron 33.2 for the Sun) is the same idea with oxygen accounting.</p>
+<h2 id="4-where-it-applies">4. Where it applies</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Law</th>
+<th>Mass range</th>
+<th>Composition range</th>
+<th>Reference radius</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3992] generic (Eq. 23)</td>
+<td>up to ~20 M_earth (Ms &lt; 4, extended to ~40 with Table 4 k)</td>
+<td>homogeneous or layered Fe/silicate/water, carbon</td>
+<td>P = 0</td>
+</tr>
+<tr>
+<td>[R4882: Eq. 2]</td>
+<td>1 to 8 M_earth</td>
+<td>CMF 0 to 0.4, rock only</td>
+<td>about 1 bar</td>
+</tr>
+<tr>
+<td>[R4880] (f)</td>
+<td>1 to ~20 M_earth</td>
+<td>x 0 to 1 water on rock</td>
+<td>1 mbar</td>
+</tr>
+<tr>
+<td>[R1429] Eqs. 7 and 8</td>
+<td>0.01 to 100 M_earth</td>
+<td>ice/rock and rock/iron</td>
+<td>1 bar</td>
+</tr>
+<tr>
+<td>[R2741]</td>
+<td>1 to 20 M_earth</td>
+<td>f_env 0.01 to 20 percent, 0.1 to 1000 F_earth, 100 Myr to 10 Gyr</td>
+<td>20 mbar</td>
+</tr>
+<tr>
+<td>[R4336]</td>
+<td>solar-mass hosts</td>
+<td>Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>[R3916]</td>
+<td>rocky planets</td>
+<td>Mg &gt; Si, C as CH<sub>4</sub> only</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>[R2865]</td>
+<td>solar chemistry</td>
+<td>beyond the water line, ice/rock 0.1 to 1.5</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-what-boss-must-research-himself-or-a-lane-must-go-and-read">5. What Boss must research himself (or a lane must go and read)</h2>
+<ol>
+<li><strong>Low-pressure ice and silicate densities for small bodies and moons.</strong> Ice Ih (and the other ices below 2.2 GPa), CH<sub>4</sub>, NH<sub>3</sub> and CO<sub>2</sub> ices, olivine and enstatite bulk densities with porosity. Not in any source read. Chaplin's water page was unreachable; [R0777] are the sources [R4881] name.</li>
+<li><strong>Stellar Mg, Si, O and C against [Fe/H].</strong> The project stores only [Fe/H] (<code>metallicity_fe_h</code>), but the core fraction and the water fraction need Fe/Si, Mg/Si, O and C/O. Needs a drawn relation with scatter; no value should be fixed.</li>
+<li><strong>Solar abundance set.</strong> The check above used values typed from memory (Asplund-style). The chain needs a cited abundance table to calibrate against; [R2726] (full text 403) and [R0169] were not read.</li>
+<li><strong>Water inside the snow line</strong> (rocky planets in the warm zone): condensation models say nearly zero; delivery of water by scattered or drifting bodies is a separate field. Not sourced; the existing separate <code>water_mass_fraction</code> draw needs a rule for how it relates.</li>
+<li><strong>Iron oxidation and light elements.</strong> FeO in the mantle and light elements in the core change CMF by ten percent or more [R1146, R4882]. No closed form exists; either accept &quot;all iron in the core&quot; with its stated bias or research a draw.</li>
+<li><strong>SCvH or CMS19 tables</strong> if any lane integrates an envelope itself. CDS refused from this container; the AAS CD-ROM and anonymous FTP routes are not available here.</li>
+<li><strong>Hot, molten planets</strong> (very close in): Seager says temperature matters little for solids; the water layers do depend on temperature (Fortney's warm ice, [R4880]'s 300 to 1000 K envelopes). Not needed for the first version.</li>
+</ol>
+<h2 id="6-open-points-for-the-design-gen426">6. Open points for the design (GEN.426)</h2>
+<ul>
+<li>Which radius level the code uses (section 3.2, item 4).</li>
+<li>Whether the structure is integrated per planet, tabulated once, or a closed form with a stated error. Per planet costs a root-find per body; a grid in M, CMF, x and f_env is the usual answer.</li>
+<li>The closed forms disagree by 3 to 4 percent in radius (10 to 12 percent in density); a lane that derives density must say which source it follows and why.</li>
+</ul>
+<h2 id="7-files">7. Files</h2>
+<p>Scripts (all read the <code>pdftotext</code> text of the named arXiv paper from the working directory unless noted): <code>check_lopez_fortney_2014.py</code>, <code>check_fortney_2007_eq7_8.py</code>, <code>compare_mass_radius_laws.py</code>, <code>check_eos_constants.py</code> (self-contained), <code>check_santos_2015_stoichiometry.py</code> (self-contained), <code>cmf_from_star_and_snow_line.py</code> (self-contained), <code>two_layer_structure_check.py</code> (self-contained, needs scipy). Data: <code>lopez_fortney_2014_tables2-7.csv</code> (1584 rows: age, opacity, flux, mass, envelope fraction, radius). Papers read: [R3992], 1301.0818, 1512.08827, 1906.04253, 1311.0329, astro-ph/0612671, 1502.03605, 1507.01343, 1507.08081, 1407.7271, 1505.03516, 0710.1065, 1902.01852, 2107.04434 (abstract), and the ADS scan of ApJS 99, 713 (1995).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

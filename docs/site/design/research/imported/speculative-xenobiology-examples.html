@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speculative xenobiology examples - planetGen docs</title>
+<meta name="description" content="Speculative xenobiology examples">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/speculative-xenobiology-examples.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/speculative-xenobiology-examples.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<p class="meta">docs/design/research/imported/speculative-xenobiology-examples.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:14px"><a href="#extreme-environmental-tolerances">Extreme Environmental Tolerances</a></li><li style="margin-left:14px"><a href="#anatomical-redundancy-and-physiological-oddities">Anatomical Redundancy and Physiological Oddities</a></li><li style="margin-left:14px"><a href="#parasitic-symbiotic-and-genetic-adaptations">Parasitic, Symbiotic, and Genetic Adaptations</a></li><li style="margin-left:14px"><a href="#lifespan-and-developmental-extremes">Lifespan and Developmental Extremes</a></li><li style="margin-left:14px"><a href="#references">References</a></li></ul></details><blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/habitability-index.html">habitability-index</a>.</p>
+</blockquote>
+<p>This report details the notable biological extremes, physiological oddities, and unique evolutionary adaptations of terrestrial lifeforms, significantly expanded to detail the biological outliers of the <em>Star Trek</em> universe alongside established <em>Star Wars</em> and <em>Stargate</em> edge cases. By analyzing these fictional adaptations through the frameworks of speculative biology, xenobiology, and comparative biochemistry, these speculative organisms bridge the gap between science fiction worldbuilding and contemporary astrobiological modeling [R3502, R3965]. Space-dwelling organisms and void-borne entities have been excluded to focus strictly on species that rely on planetary biospheres.</p>
+<h3 id="extreme-environmental-tolerances">Extreme Environmental Tolerances</h3>
+<ul>
+<li><strong>Andorians</strong>: Native to the icy moon of Andoria, this humanoid species is physiologically adapted to extreme cold planetary environments (&quot;Andorian&quot;, n.d.). They possess a heavy cobalt base to their blood and tissues, giving them cerulean to blushing purple skin and dark blue abrasions (&quot;Andorian&quot;, n.d.). Their circulatory system is redundant, allowing blood to seep through tissues as well as veins, drastically increasing their resistance to frostbite and physical fatigue (&quot;Andorian&quot;, n.d.). Andorians feature a higher cartilage-to-bone ratio to compartmentalize their internal organs and utilize cranial antennae as crucial sensory organs for balance, motion, and temperature gradients (&quot;Andorian&quot;, n.d.). While they have a high basal metabolism that protects them in the cold, they are extremely vulnerable to high temperatures and can lose 10% of their body weight in as little as two days in hot climates (&quot;Andorian&quot;, n.d.). In speculative physiology and xenobiology, such metabolic strategies reflect extreme thermal adaptations modeled by non-canonical respiratory metalloproteins and tissue perfusion mechanisms outside terrestrial mammalian norms [R3965].</li>
+<li><strong>Benzites</strong>: Evolving on the planet Benzar, this blue-skinned, hairless humanoid species developed within an atmosphere that significantly deviates from standard Class-M terrestrial norms (&quot;Benzite&quot;, n.d.). Originally, off-world Benzites were required to wear specialized respiration apparatuses to process nitrogen-oxygen atmospheres safely, though advanced medical adaptations later phased this out (&quot;Benzite&quot;, n.d.). Benzites are notably resistant to poisons and possess highly adaptable digestive tracts capable of deriving nutrition from nearly any organic compound (&quot;Benzite&quot;, n.d.). This extreme metabolic flexibility illustrates synthetic and xenobiological theories of orthogonal enzyme pathways that process xenobiotic substrates otherwise toxic to baseline terrestrial organisms [R3965].</li>
+<li><strong>Tholians</strong>: The Tholians are a xenophobic, non-humanoid, and hermaphroditic species defined by their crystalline carapaces (&quot;Tholian&quot;, n.d.). They require intensely hot planetary environments to survive, thriving at temperatures around 480 Kelvin (&quot;Tholian&quot;, n.d.). They are highly susceptible to thermal shock; if exposed to temperatures at or below 380 Kelvin, their crystalline carapaces fracture and cause intense agony (&quot;Tholian&quot;, n.d.). In freezing conditions, a Tholian will completely freeze solid and shatter (&quot;Tholian&quot;, n.d.). In speculative biology, high-temperature crystalline integuments align with non-aqueous macromolecular stability models, where structural biopolymers depend strictly on thermal kinetic thresholds to prevent catastrophic embrittlement and crystal dislocation [R3502].</li>
+<li><strong>Horta</strong>: Native to the deep underground environments of the planet Janus VI, the Horta is a silicon-based organism that visually resembles a large, featureless rock (&quot;Horta&quot;, n.d.). Rather than relying on organic material, the Horta consumes solid rock for nourishment and secretes a highly corrosive biological acid that allows it to rapidly tunnel through solid planetary bedrock (&quot;Horta&quot;, n.d.). Speculative biochemistry highlights silicon-based life as a prime theoretical alternative to carbon; while silicon-oxygen (Si-O) backbones form robust polymeric lattices capable of enduring extreme thermal regimes, they require specialized chemical conditions and solvent environments to maintain structural versatility and continuous metabolic turnover [R3502].</li>
+</ul>
+<h3 id="anatomical-redundancy-and-physiological-oddities">Anatomical Redundancy and Physiological Oddities</h3>
+<ul>
+<li><strong>Denobulans</strong>: Denobulans feature highly complex physiology marked by distinctive facial ridges and an evolutionary defense mechanism allowing them to physically enlarge their faces when threatened (&quot;Denobulan&quot;, n.d.). Their anatomy includes exceptionally rapid toenail growth, extremely long tongues, and natural climbing abilities that mirror terrestrial lizards, enabling them to quickly scale vertical rock faces without handholds or equipment (&quot;Denobulan&quot;, n.d.). Denobulans require minimal daily sleep, but their biology mandates a deep hibernation cycle lasting five to six days annually (&quot;Denobulan&quot;, n.d.). They also possess highly robust immune systems capable of temporarily fighting off aggressive nano-intrusions (&quot;Denobulan&quot;, n.d.).</li>
+<li><strong>Klingons</strong>: Klingon biology is dictated by the principle of extreme anatomical redundancy, termed <em>brak'lul</em>, granting them a robust and enduring terrestrial physiology (&quot;Klingon&quot;, n.d.). Their internal anatomy is built with redundant organs—including twenty-three ribs, multiple hearts, and eight-chambered pulmonary networks—while their external skeletal structure features prominent cranial crests and osseous ridges that provide structural resilience against blunt force (&quot;Klingon&quot;, n.d.).</li>
+<li><strong>Vulcans</strong>: Having evolved on a harsh, high-gravity desert world, Vulcans possess copper-based hemocyanin, which gives their blood a distinct green color (&quot;Vulcan&quot;, n.d.). To survive the intense stellar radiation of their homeworld, they developed a nictitating membrane (an inner eyelid) to protect their retinas (&quot;Vulcan&quot;, n.d.). Their biology is exceptionally durable; their heart is located on the right side of the torso, they can survive severe dehydration much longer than humans, and they are capable of remaining awake for up to two weeks without sleep (&quot;Vulcan&quot;, n.d.). In comparative physiology and astrobiology, copper-based oxygen transport pathways represent an established evolutionary solution across distinct terrestrial phyla, though speculative humanoid hemocyanin systems demand unique allosteric adaptations to match elevated oxygen-delivery requirements under terrestrial atmospheric pressures [R3965].</li>
+<li><strong>Ferengi</strong>: Adapted to the heavy, swampy, and high-precipitation environment of Ferenginar, Ferengi anatomy features ascending ribs to accommodate dual upper and lower lungs (&quot;Ferengi&quot;, n.d.). Their four-lobed brain structure naturally prevents telepathic species from reading their thoughts or chemically interrogating them (&quot;Ferengi&quot;, n.d.). They operate with an exceptionally high resting blood pressure of 250/167 and possess yellow blood containing pyrocytes, which can cause severe contact dermatitis in other species (&quot;Ferengi&quot;, n.d.). Their signature enlarged auditory lobes grant them hearing so acute that they can determine a speaker's species, gender, and emotional state through heavy electronic static (&quot;Ferengi&quot;, n.d.).</li>
+</ul>
+<h3 id="parasitic-symbiotic-and-genetic-adaptations">Parasitic, Symbiotic, and Genetic Adaptations</h3>
+<ul>
+<li><strong>Illyrians</strong>: Rather than altering their destination planets through terraforming, the humanoid Illyrians modify their own biology (&quot;Illyrian&quot;, n.d.). They hold genetic augmentation as a core cultural tradition, continuously altering their species' DNA to adapt to, and survive in, almost any hostile environmental condition they encounter (&quot;Illyrian&quot;, n.d.). In xenobiological literature, deliberate somatic and germline recoding represents an engineering parallel to synthetic biological systems designed with alternative biochemistries to withstand biosafety constraints and xenobiotic niches [R3965].</li>
+<li><strong>Goa'uld</strong>: These snake-like aquatic predators invade the soft tissue of a humanoid host, entwining around the cervical spinal cord to seize absolute control of the brain and motor functions (Alderac Entertainment Group, 2003; &quot;Goa'uld&quot;, n.d.). This parasitic fusion suppresses the host's consciousness while granting incredible regenerative healing powers and disease immunity (Alderac Entertainment Group, 2003; &quot;Goa'uld&quot;, n.d.). Their biology requires the heavy mineral naquadah to be present in their bloodstream, acting as a metabolic co-factor and bioelectric conductor (Alderac Entertainment Group, 2003; &quot;Goa'uld&quot;, n.d.).</li>
+<li><strong>Wraith</strong>: The Wraith are a catastrophic evolutionary edge case resulting from the genetic blending of humans and a predatory insect known as the Iratus bug (&quot;Wraith&quot;, n.d.). This forced evolution created a humanoid-insect hybrid species that sustains itself by draining the life-force of sentient prey through specialized sucker organs located on the palms of their right hands (&quot;Wraith&quot;, n.d.). They inject their prey with a strengthening enzyme to keep them alive longer during the draining process (&quot;Wraith&quot;, n.d.). The Wraith are biologically immortal and endure long periods of starvation by entering deep hibernation cycles that can last for centuries (&quot;Wraith&quot;, n.d.).</li>
+<li><strong>Sith Abominations</strong>: Biological organisms can be forcibly mutated via dark side alchemy into horrific terrestrial edge cases (&quot;Sith abomination&quot;, n.d.). Through a combination of genetic engineering and esoteric manipulation, these &quot;Sithspawn&quot; undergo violent physical transformations that alter their fundamental creature type, transforming them into resilient apex predators (&quot;Sith abomination&quot;, n.d.).</li>
+</ul>
+<h3 id="lifespan-and-developmental-extremes">Lifespan and Developmental Extremes</h3>
+<ul>
+<li><strong>Antedeans</strong>: An ichthyohumanoid (fish-human hybrid) species that possesses a terrestrial biology so unsuited for space exploration that the sensory experience of spaceflight is deeply traumatic to them (&quot;Antedean&quot;, n.d.). To endure travel off-world, their biology requires them to enter a self-induced catatonic state, awakening with a massive caloric deficit that must be replenished by consuming large quantities of fish (&quot;Antedean&quot;, n.d.).</li>
+<li><strong>Drayans</strong>: This species experiences a completely inverted biological life cycle (&quot;Drayan&quot;, n.d.). Drayans are born possessing the physical appearance and biology of elderly individuals and age in reverse (&quot;Drayan&quot;, n.d.). The oldest members of their society physically resemble young children at the end of their lifespans (&quot;Drayan&quot;, n.d.).</li>
+<li><strong>Ocampa</strong>: A telepathic species with a hyper-accelerated metabolism, the Ocampa possess a remarkably brief lifespan of only nine to twelve years, though technological intervention can extend this to twenty years (&quot;Ocampa&quot;, n.d.). Their biology permits only a single reproductive cycle, known as the Elogium, during their entire lifetime (&quot;Ocampa&quot;, n.d.).</li>
+<li><strong>Nox</strong>: A deeply pacifistic and symbiotic race, the Nox exhibit near-ascension biological and mental capabilities (Alderac Entertainment Group, 2003; &quot;Nox&quot;, n.d.). They possess extreme longevity and have developed natural stealth abilities allowing them to hide themselves and objects as large as cities from physical sight and advanced sensors (Alderac Entertainment Group, 2003; &quot;Nox&quot;, n.d.).</li>
+</ul>
+<h3 id="references">References</h3>
+<p>[R3502]</p>
+<p>[R3965]</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

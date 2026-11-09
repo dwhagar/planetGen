@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmospheric Toxicity, Geochemical Evolution, and Marginal Habitability in Terrestrial Exoplanetary Systems - planetGen docs</title>
+<meta name="description" content="Evaluating the habitability of an exoplanet requires assessing circumstellar orbital mechanics, planetary geodynamics, and the physiological compatibility of the volatile envelope ([R2281]; [R3986, R3987]).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/atmospheric-toxicity.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/atmospheric-toxicity.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/atmospheres-retention-and-classes.html">atmospheres-retention-and-classes</a>, <a href="../../habitability/habitability-index.html">habitability-index</a>, <a href="../../architecture/units-and-number-formatting.html">units-and-number-formatting</a>.</p>
+</blockquote>
+<h1 id="atmospheric-toxicity-geochemical-evolution-and-marginal-habitability-in-terrestrial-exoplanetary-systems">Atmospheric Toxicity, Geochemical Evolution, and Marginal Habitability in Terrestrial Exoplanetary Systems</h1><p class="meta">docs/design/research/imported/atmospheric-toxicity.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#thermodynamic-and-biochemical-mechanisms-of-atmospheric-toxicity">Thermodynamic and Biochemical Mechanisms of Atmospheric Toxicity</a></li><li style="margin-left:14px"><a href="#human-physiological-boundaries">Human Physiological Boundaries</a></li><li style="margin-left:14px"><a href="#universal-biological-toxicity-vectors">Universal Biological Toxicity Vectors</a></li><li style="margin-left:0px"><a href="#geochemical-and-astrobiological-drivers-of-atmospheric-composition">Geochemical and Astrobiological Drivers of Atmospheric Composition</a></li><li style="margin-left:14px"><a href="#mantle-oxygen-fugacity-and-volatile-degassing">Mantle Oxygen Fugacity and Volatile Degassing</a></li><li style="margin-left:14px"><a href="#serpentinization-and-abiotic-methane-synthesis">Serpentinization and Abiotic Methane Synthesis</a></li><li style="margin-left:14px"><a href="#photochemical-cascades-and-the-carbon-monoxide-runaway">Photochemical Cascades and the Carbon Monoxide Runaway</a></li><li style="margin-left:14px"><a href="#hydrodynamic-and-kinetic-escape-regimes">Hydrodynamic and Kinetic Escape Regimes</a></li><li style="margin-left:0px"><a href="#scientifically-plausible-atmospheric-archetypes-in-the-ecosphere">Scientifically Plausible Atmospheric Archetypes in the Ecosphere</a></li><li style="margin-left:14px"><a href="#archetype-a-oxidized-dense-carbon-dioxide-worlds">Archetype A: Oxidized Dense Carbon Dioxide Worlds</a></li><li style="margin-left:14px"><a href="#archetype-b-abiotic-hyperbaric-oxygen-worlds">Archetype B: Abiotic Hyperbaric Oxygen Worlds</a></li><li style="margin-left:14px"><a href="#archetype-c-hydrogen-enriched-atmospheres">Archetype C: Hydrogen-Enriched Atmospheres</a></li><li style="margin-left:14px"><a href="#archetype-d-photochemically-stalled-anoxic-worlds">Archetype D: Photochemically Stalled Anoxic Worlds</a></li><li style="margin-left:0px"><a href="#the-marginal-habitability-spectrum-biogenesis-failure-versus-anthropogenic-viability">The Marginal Habitability Spectrum: Biogenesis Failure versus Anthropogenic Viability</a></li><li style="margin-left:14px"><a href="#the-breathing-mask-only-paradigm">The Breathing-Mask-Only Paradigm</a></li><li style="margin-left:14px"><a href="#the-habitable-zone-for-complex-life-mismatch">The Habitable Zone for Complex Life Mismatch</a></li><li style="margin-left:14px"><a href="#climatic-and-density-extremes-in-marginal-habitability">Climatic and Density Extremes in Marginal Habitability</a></li><li style="margin-left:0px"><a href="#synthesis-and-astrobiological-outlook">Synthesis and Astrobiological Outlook</a></li><li style="margin-left:0px"><a href="#references">References</a></li></ul></details>
+<p>Evaluating the habitability of an exoplanet requires assessing circumstellar orbital mechanics, planetary geodynamics, and the physiological compatibility of the volatile envelope ([R2281]; [R3986, R3987]). In astrobiology and speculative planetary science, &quot;air&quot; is neither inherently benign nor static; rather, it represents a non-equilibrium chemical reservoir shaped by interior mantle redox thermodynamics, impact delivery, surface-atmosphere geochemical cycles, photochemical networks, and hydrodynamic escape [R0692, R1465, R2544].</p>
+<p>An exoplanet possessing surface liquid water within the classical circumstellar habitable zone may nevertheless sustain an atmospheric composition that is toxic to human physiology or completely prohibitive to the origin and macro-evolutionary radiation of complex native organisms [R2281, R3986]. This report examines the fundamental chemical and physical mechanisms governing atmospheric toxicity, the natural endogenic and exogenic processes driving volatile diversification on Earth-sized worlds, and the speculative continuum of marginally habitable planets where severe climatic or atmospheric barriers preclude the spontaneous development of native complex ecosystems, yet permit human survival under targeted technological mitigation [R3986, R4767].</p>
+<h2 id="thermodynamic-and-biochemical-mechanisms-of-atmospheric-toxicity">Thermodynamic and Biochemical Mechanisms of Atmospheric Toxicity</h2>
+<p>Atmospheric toxicity operates along two distinct vectors: acute human physiological failure modes and universal biochemical constraints that inhibit carbon-based, aqueous organic life [R3986, R3987]. Atmospheric toxicity is fundamentally thermodynamic, driven by the inspired partial pressure (<span class="math">\(p_i\)</span>) of volatile species, total barometric pressure (<span class="math">\(P_{\text{tot}}\)</span>), and the resulting redox potentials imposed on living tissues ([R0343]; [R3986, R3987]).</p>
+<h3 id="human-physiological-boundaries">Human Physiological Boundaries</h3>
+<p>Human respiration relies on a narrow thermodynamic window of inspired oxygen partial pressure (<span class="math">\(p\text{O}_2\)</span>) and total ambient pressure to sustain alveolar gas exchange without damaging cellular infrastructure. When ambient barometric pressure drops below the Armstrong limit of approximately <span class="math">\(6.3\text{ kPa}\)</span> (<span class="math">\(47\text{ mm Hg}\)</span>), the total pressure equals the vapor pressure of pure water at human core body temperature (<span class="math">\(37^\circ\text{C}\)</span>), causing exposed bodily fluids within the alveolar spaces and mucous membranes to undergo spontaneous ebullism. Even above this threshold, a minimum <span class="math">\(p\text{O}_2\)</span> of approximately <span class="math">\(8.0\text{ to }9.6\text{ kPa}\)</span> (<span class="math">\(60\text{ to }72\text{ mm Hg}\)</span>) is required to maintain the diffusion gradient across the alveolar-capillary membrane; values falling below this trigger immediate hypoxic syncope, irreversible cerebral ischemia, and cellular death.</p>
+<p>Conversely, an overabundance of molecular oxygen induces hyperoxia. Chronic exposure to an inspired <span class="math">\(p\text{O}_2\)</span> exceeding <span class="math">\(40\text{ to }53\text{ kPa}\)</span> (<span class="math">\(300\text{ to }400\text{ mm Hg}\)</span>) damages pulmonary capillary endothelial cells via the excessive generation of reactive oxygen species (<span class="math">\(\text{ROS}\)</span>), including superoxide anions (<span class="math">\(\text{O}_2^{\bullet-}\)</span>), hydroxyl radicals (<span class="math">\(\text{OH}^\bullet\)</span>), and hydrogen peroxide (<span class="math">\(\text{H}_2\text{O}_2\)</span>). Under hyperbaric regimes where <span class="math">\(p\text{O}_2\)</span> surpasses <span class="math">\(160\text{ kPa}\)</span>, central nervous system toxicity manifests rapidly, causing visual field contraction, diaphragmatic spasms, and tonic-clonic convulsions.</p>
+<p>Carbon dioxide (<span class="math">\(\text{CO}_2\)</span>) acts as a systemic metabolic toxin rather than a simple asphyxiant [R3987]. While ambient Earth conditions expose organisms to roughly <span class="math">\(0.04\text{ kPa}\)</span> of <span class="math">\(\text{CO}_2\)</span>, human physiological homeostasis requires long-term ambient levels to remain below <span class="math">\(0.93\text{ kPa}\)</span> (<span class="math">\(7\text{ mm Hg}\)</span>) to prevent respiratory compensation fatigue [R3986, R3987].</p>
+<p>When inspired <span class="math">\(p\text{CO}_2\)</span> exceeds <span class="math">\(1.0\text{ to }2.0\text{ kPa}\)</span>, the diminished diffusion gradient from venous blood to inspired alveolar air produces progressive hypercapnic acidosis, characterized by a dropping blood pH, cellular membrane hyperpolarization, cognitive impairment, and severe headache [R3987]. Sustained exposures exceeding <span class="math">\(5.0\text{ kPa}\)</span> induce profound systemic acidosis, compensatory electrolyte shifts, respiratory center depression, narcosis, and fatal cardiac arrhythmias [R3987].</p>
+<p>Chemically inert background gases can also induce physical toxicity under hyperbaric surface pressures via inert gas narcosis [R0343]. Governed by the Meyer-Overton correlation, non-polar molecules partition into the hydrophobic lipid bilayer of neuronal membranes in direct proportion to their lipid solubility, swelling the bilayer, altering membrane fluidity, and inhibiting the gating mechanisms of essential ion channels [R0343]. Molecular nitrogen (<span class="math">\(\text{N}_2\)</span>) induces progressive psychomotor impairment and intellectual deficits at partial pressures exceeding <span class="math">\(300\text{ to }400\text{ kPa}\)</span>. Argon (<span class="math">\(\text{Ar}\)</span>), which is twice as soluble in lipids as nitrogen, triggers narcotic impairment at roughly half the partial pressure of <span class="math">\(\text{N}_2\)</span>, making dense argon-rich envelopes toxic to human cognition even when oxygen ratios are biologically normal [R0343].</p>
+<h3 id="universal-biological-toxicity-vectors">Universal Biological Toxicity Vectors</h3>
+<p>Beyond mammalian systems, atmospheric constituents can disrupt baseline organic biochemistry by altering environmental pH, inactivating metalloenzymes, or degrading biological polymers [R0692, R3987].</p>
+<p>Carbon monoxide (<span class="math">\(\text{CO}\)</span>) presents a universal physiological barrier to organisms dependent on transition-metal respiratory pigments [R3986]. The carbon monoxide molecule functions as a strong <span class="math">\(\pi\)</span>-acceptor ligand, binding with high affinity to the ferrous iron (<span class="math">\(\text{Fe}^{2+}\)</span>) located in the active sites of porphyrin complexes, including hemoglobin, myoglobin, and mitochondrial cytochrome c oxidase [R3986]. This binding arrests the aerobic electron transport chain and halts oxidative phosphorylation [R3986, R3987].</p>
+<p>While specialized chemolithoautotrophic and anaerobic microorganisms can metabolize <span class="math">\(\text{CO}\)</span> through the Wood-Ljungdahl pathway via nickel-iron carbon monoxide dehydrogenase enzymes [R3648], high partial pressures of atmospheric <span class="math">\(\text{CO}\)</span> impose an insurmountable evolutionary barrier against the development of aerobic metazoans possessing centralized circulatory frameworks [R3986, R3987].</p>
+<p>Reduced sulfur species, most notably hydrogen sulfide (<span class="math">\(\text{H}_2\text{S}\)</span>), act as potent neurotoxins and cellular poisons by binding the ferric iron (<span class="math">\(\text{Fe}^{3+}\)</span>) moiety in cytochrome c oxidase, shutting down cellular respiration in aerobic organisms at micromolar concentrations [R3986, R3987]. Although anoxic microbial ecosystems exploit <span class="math">\(\text{H}_2\text{S}\)</span> as an electron donor for anoxygenic photosynthesis and sulfate reduction, its atmospheric accumulation acidifies aqueous boundary layers and destroys complex organic matrices [R3986].</p>
+<p>Similarly, volcanically outgassed acid volatiles, such as sulfur dioxide (<span class="math">\(\text{SO}_2\)</span>), hydrogen chloride (<span class="math">\(\text{HCl}\)</span>), and hydrogen fluoride (<span class="math">\(\text{HF}\)</span>), dissolve into aqueous droplets and surface reservoirs to produce sulfuric and hydrochloric acids [R3986, R3987]. The resulting environmental proton flux hydrolyzes phosphodiester and peptide bonds, denatures functional tertiary proteins, and drives the pH of open oceans below the threshold required to stabilize mineralized structural shells or biological membranes [R3986, R3987].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Chemical Species</strong></th>
+<th><strong>Formula</strong></th>
+<th><strong>Human Permissible Range (pi​)</strong></th>
+<th><strong>Acute Lethal Threshold (Human)</strong></th>
+<th><strong>Universal Biological Disruption Mode</strong></th>
+<th><strong>Primary Abiotic Origin</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Molecular Oxygen</strong></td>
+<td><span class="math">\(\text{O}_2\)</span></td>
+<td><span class="math">\(8.0\text{--}53\text{ kPa}\)</span> (<span class="math">\(60\text{--}400\text{ mm Hg}\)</span>)</td>
+<td><span class="math">\(&lt;6.0\text{ kPa}\)</span> (hypoxia); <span class="math">\(&gt;160\text{ kPa}\)</span> (acute CNS toxicity)</td>
+<td>ROS-induced oxidative stress; membrane lipid peroxidation; halts anaerobic prebiotic chemistry ([R2769]; [R3986, R3987]; [R4356]).</td>
+<td>Desiccation photolysis of water; secondary oxygenic photosynthesis [R2769, R4356].</td>
+</tr>
+<tr>
+<td><strong>Carbon Dioxide</strong></td>
+<td><span class="math">\(\text{CO}_2\)</span></td>
+<td><span class="math">\(&lt;0.93\text{ kPa}\)</span> (<span class="math">\(7\text{ mm Hg}\)</span>)</td>
+<td><span class="math">\(&gt;5.0\text{ kPa}\)</span> (severe respiratory acidosis, coma) [R3986, R3987]</td>
+<td>Hypercapnic blood acidification; calcification inhibition via ocean acidification; greenhouse forcing [R3986, R3987].</td>
+<td>Mantle degassing under oxidized conditions; carbonate thermal breakdown [R1465, R1491, R3648].</td>
+</tr>
+<tr>
+<td><strong>Carbon Monoxide</strong></td>
+<td><span class="math">\(\text{CO}\)</span></td>
+<td><span class="math">\(&lt;0.005\text{ kPa}\)</span> (<span class="math">\(&lt;50\text{ ppm}\)</span>) [R3986]</td>
+<td><span class="math">\(&gt;0.1\text{ kPa}\)</span> (<span class="math">\(&gt;1,000\text{ ppm}\)</span>; fatal within 1 hour) [R3986]</td>
+<td>Competitive ligand poisoning of metalloenzymes; cytochrome c oxidase inhibition; halts complex aerobic respiration [R3986].</td>
+<td>Degassing of reduced silicate melts; photolysis of <span class="math">\(\text{CO}_2\)</span> under low-NUV stellar regimes ([R1511, R3985], 2019).</td>
+</tr>
+<tr>
+<td><strong>Hydrogen Sulfide</strong></td>
+<td><span class="math">\(\text{H}_2\text{S}\)</span></td>
+<td><span class="math">\(&lt;0.001\text{ kPa}\)</span> (<span class="math">\(&lt;10\text{ ppm}\)</span>)</td>
+<td><span class="math">\(&gt;0.05\text{ kPa}\)</span> (<span class="math">\(&gt;500\text{ ppm}\)</span>; acute respiratory arrest)</td>
+<td>Arrest of cellular respiration at cytochrome c oxidase; sulfurization of organic compounds [R3986, R3987].</td>
+<td>Magmatic outgassing from low-<span class="math">\(f\text{O}_2\)</span> basaltic melts; hydrothermal fluid release ([R1491, R3648]; [R3986, R3987]).</td>
+</tr>
+<tr>
+<td><strong>Sulfur Dioxide</strong></td>
+<td><span class="math">\(\text{SO}_2\)</span></td>
+<td><span class="math">\(&lt;0.0005\text{ kPa}\)</span> (<span class="math">\(&lt;5\text{ ppm}\)</span>)</td>
+<td><span class="math">\(&gt;0.01\text{ kPa}\)</span> (<span class="math">\(&gt;100\text{ ppm}\)</span>; catastrophic pulmonary edema)</td>
+<td>Severe acidification of aqueous solvents; precipitation of destructive acid rain; UV aerosol shielding.</td>
+<td>Magmatic outgassing from oxidized melts; thermal alteration of sulfate minerals ([R1465]; [R3986, R3987]).</td>
+</tr>
+<tr>
+<td><strong>Molecular Nitrogen</strong></td>
+<td><span class="math">\(\text{N}_2\)</span></td>
+<td><span class="math">\(0\text{--}300\text{ kPa}\)</span></td>
+<td><span class="math">\(&gt;320\text{ kPa}\)</span> (progressive inert gas narcosis)</td>
+<td>Biologically inert structural diluent; narcotic at hyperbaric pressures; required for bioavailable ammonium fixation.</td>
+<td>Primordial accretionary envelope; outgassing from mantle reservoirs; ammonium breakdown [R2171].</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="geochemical-and-astrobiological-drivers-of-atmospheric-composition">Geochemical and Astrobiological Drivers of Atmospheric Composition</h2>
+<p>The volatile envelope of a terrestrial exoplanet within the ecosphere is primarily determined by internal mantle thermodynamics, low-temperature water-rock alteration, host star photochemical interactions, and hydrodynamic atmospheric escape ([R0692, R1491, R2544]; [R3986, R3987]).</p>
+<h3 id="mantle-oxygen-fugacity-and-volatile-degassing">Mantle Oxygen Fugacity and Volatile Degassing</h3>
+<p>The initial speciation of volcanic gases discharged from a planet's interior is dictated by the oxygen fugacity (<span class="math">\(f\text{O}_2\)</span>) of its upper mantle [R1491, R1953, R3378]. Oxygen fugacity defines the chemical potential of oxygen in equilibrium with a silicate melt, parameterized against solid-state mineral redox buffers such as iron-wüstite (<span class="math">\(\text{IW}\)</span>) and quartz-fayalite-magnetite (<span class="math">\(\text{QFM}\)</span>) [R1465, R1953]. When planetary accretion processes and core-mantle differentiation leave a mantle reduced—at or below the <span class="math">\(\text{IW}\)</span> buffer (<span class="math">\(\Delta\text{IW} \le 0\)</span>)—metallic iron remains present in the silicate phase, fixing the escaping volcanic volatile speciation into reduced forms [R1465, R1491]:</p>
+<p><span class="math display">\[\Delta\text{IW} \le 0 \implies \text{H}_2,\ \text{CO},\ \text{CH}_4,\ \text{H}_2\text{S}\]</span></p>
+<p>Under these reduced conditions, volcanic degassing supplies little to no direct carbon dioxide or sulfur dioxide, flooding the surface with carbon monoxide, hydrogen, and volatile sulfides [R1465, R1491, R3985].</p>
+<p>Only when the mantle undergoes iron disproportionation—wherein ferrous iron (<span class="math">\(\text{Fe}^{2+}\)</span>) transitions into ferric iron (<span class="math">\(\text{Fe}^{3+}\)</span>) and metallic iron (<span class="math">\(\text{Fe}^0\)</span>) under the immense pressures of the lower mantle, with the metal subsequently sequestered into the core—does the upper mantle become oxidized to the <span class="math">\(\text{QFM}\)</span> buffer (<span class="math">\(\Delta\text{IW} +3.5\text{ to }+4.0\)</span>) [R1465].</p>
+<p>Basaltic melts ascending from an oxidized mantle switch their volatile yield entirely, outgassing high-mean-molecular-weight atmospheres composed of <span class="math">\(\text{H}_2\text{O}\)</span>, <span class="math">\(\text{CO}_2\)</span>, <span class="math">\(\text{N}_2\)</span>, and <span class="math">\(\text{SO}_2\)</span> [R1465, R1491, R3378]. If an exoplanet is small or lacks the internal pressure regimes necessary to trigger deep iron disproportionation, its mantle remains perpetually reduced, trapping its secondary atmosphere in an anoxic, <span class="math">\(\text{CO}\text{-}\)</span> and <span class="math">\(\text{H}_2\text{-rich}\)</span> chemical regime [R1465, R1491].</p>
+<h3 id="serpentinization-and-abiotic-methane-synthesis">Serpentinization and Abiotic Methane Synthesis</h3>
+<p>Water-rock reactions occurring within oceanic lithospheres supply volatile inputs independently of volcanism [R3648, R4119]. When surface water penetrates deep faults into crustal and upper mantle ultramafic rocks rich in magnesium-iron olivine (<span class="math">\((\text{Mg},\text{Fe})_2\text{SiO}_4\)</span>), hydration alters the mineral matrix into serpentine, brucite, and magnetite [R3648, R4119]:</p>
+<p><span class="math display">\[3\text{Fe}_2\text{SiO}_4 + 2\text{H}_2\text{O} \longrightarrow 2\text{Fe}_3\text{O}_4 + 3\text{SiO}_2 + 2\text{H}_2\]</span></p>
+<p>This reaction oxidizes ferrous iron into ferric iron, generating large amounts of dissolved molecular hydrogen [R3648, R4119]. In hydrothermal systems where dissolved inorganic carbon is abundant, the hydrogen reduces <span class="math">\(\text{CO}_2\)</span> via abiotic Fischer-Tropsch-type (<span class="math">\(\text{FTT}\)</span>) and Sabatier pathways [R3648, R4119]:</p>
+<p><span class="math display">\[\text{CO}_2 + 4\text{H}_2 \longrightarrow \text{CH}_4 + 2\text{H}_2\text{O}\]</span></p>
+<p>Although serpentinization can sustain steady-state atmospheric fluxes of <span class="math">\(\text{H}_2\)</span> and <span class="math">\(\text{CH}_4\)</span>, the kinetic limitations of non-biological <span class="math">\(\text{FTT}\)</span> catalysis produce substantial quantities of intermediate carbon monoxide [R3985, R4119].</p>
+<p>Abiotic planets characterized by serpentinization generate elevated atmospheric <span class="math">\(\text{CO}/\text{CH}_4\)</span> ratios ([R2488, R2492]; [R3985]). Conversely, living biospheres utilize metabolic pathways that consume <span class="math">\(\text{CO}\)</span> to drive hydrogenotrophic methanogenesis, depleting environmental <span class="math">\(\text{CO}\)</span> and generating high atmospheric <span class="math">\(\text{CH}_4/\text{CO}\)</span> disequilibrium ([R2488, R2492]; [R3648, R3985]).</p>
+<h3 id="photochemical-cascades-and-the-carbon-monoxide-runaway">Photochemical Cascades and the Carbon Monoxide Runaway</h3>
+<p>The spectral energy distribution of the host star directly influences atmospheric equilibrium, particularly for terrestrial planets orbiting M-dwarf stars ([R1511]; [R3986, R3987]; [R4355]). In an atmosphere containing carbon dioxide, far-ultraviolet radiation photolyzes <span class="math">\(\text{CO}_2\)</span> into carbon monoxide and atomic oxygen ([R1137, R1511]; [R3986, R3987]):</p>
+<p><span class="math display">\[\text{CO}_2 + h\nu (\lambda &lt; 200\text{ nm}) \longrightarrow \text{CO} + \text{O}\]</span></p>
+<p>On Earth, this photolysis is balanced in the troposphere by catalytic oxidation cycles mediated by hydroxyl radicals (<span class="math">\(\text{OH}\)</span>), which react rapidly with <span class="math">\(\text{CO}\)</span> to regenerate <span class="math">\(\text{CO}_2\)</span> [R3986, R3987]:</p>
+<p><span class="math display">\[\text{CO} + \text{OH} \longrightarrow \text{CO}_2 + \text{H}\]</span></p>
+<p>The continuous formation of <span class="math">\(\text{OH}\)</span> radicals relies on the photolysis of ozone (<span class="math">\(\text{O}_3\)</span>) by near-ultraviolet radiation (<span class="math">\(\text{NUV}\)</span>, <span class="math">\(\lambda \sim 310\text{ nm}\)</span>), which yields excited singlet oxygen (<span class="math">\(\text{O}(^1\text{D})\)</span>) that subsequently cleaves water vapor [R3986, R3987]:</p>
+<p><span class="math display">\[\text{O}_3 + h\nu \longrightarrow \text{O}_2 + \text{O}(^1\text{D})\]</span><span class="math display">\[\text{O}(^1\text{D}) + \text{H}_2\text{O} \longrightarrow 2\text{OH}\]</span></p>
+<p>Because M-dwarf stars exhibit high ratios of extreme ultraviolet and far-ultraviolet to near-ultraviolet flux (<span class="math">\(\text{FUV}/\text{NUV}\)</span>), their planetary atmospheres experience rapid <span class="math">\(\text{CO}_2\)</span> photolysis while lacking the <span class="math">\(\text{NUV}\)</span> photons needed to generate sufficient <span class="math">\(\text{OH}\)</span> sinks ([R3986, R3987]; [R4355, R4356]).</p>
+<p>When the abiotic surface outgassing of <span class="math">\(\text{CO}\)</span> and <span class="math">\(\text{CH}_4\)</span> exceeds the available photochemical <span class="math">\(\text{OH}\)</span> recycling capacity, the hydroxyl sink collapses entirely [R1813, R2544]. The planet enters a self-sustaining state termed the <em>carbon monoxide runaway</em>, allowing <span class="math">\(\text{CO}\)</span> to build to partial pressures between <span class="math">\(0.01\text{ and }0.1\text{ bar}\)</span>, poisoning the entire ecosphere for aerobic metazoans ([R1511, R1813]; [R3986, R3987]).</p>
+<h3 id="hydrodynamic-and-kinetic-escape-regimes">Hydrodynamic and Kinetic Escape Regimes</h3>
+<p>Planetary atmospheric composition is continually sculpted by thermal and non-thermal escape processes [R0692, R3389]. During the initial several hundred million years of stellar evolution, intense stellar X-ray and extreme ultraviolet (<span class="math">\(\text{XUV}\)</span>) irradiation heats the planetary thermosphere, initiating hydrodynamic escape [R2769, R3389]. In this regime, the upper atmosphere expands into space as a supersonic planetary wind, carrying light atomic hydrogen along with heavier trace species via collisional drag [R0692, R3389].</p>
+<p>As stellar activity declines, escape shifts to the kinetic Jeans regime, where individual atoms in the high-energy Maxwellian tail exceed the escape velocity (<span class="math">\(v_{\text{esc}} = \sqrt{2GM/R}\)</span>) [R0692, R3389]. While massive, volatile-rich Super-Earths retain light hydrogen envelopes across gigayear timescales, low-mass terrestrial bodies suffer preferential hydrogen loss [R0692, R3518].</p>
+<p>If unmitigated by an intrinsic magnetic field, solar wind sputtering, ion pick-up, and charge exchange further erode volatile reservoirs, stripping atmospheres down to thin, dry crustal residues, as observed on Mars [R0692].</p>
+<h2 id="scientifically-plausible-atmospheric-archetypes-in-the-ecosphere">Scientifically Plausible Atmospheric Archetypes in the Ecosphere</h2>
+<p>Geochemical outgassing, stellar spectral dynamics, and escape processes give rise to several distinct atmospheric archetypes within circumstellar habitable zones [R2769, R3986].</p>
+<h3 id="archetype-a-oxidized-dense-carbon-dioxide-worlds">Archetype A: Oxidized Dense Carbon Dioxide Worlds</h3>
+<p>Situated near the outer edge of the habitable zone, planets governed by an active carbonate-silicate cycle require high concentrations of greenhouse gases to offset low stellar insolation [R2281, R3986]. As surface temperatures decline, continental weathering rates drop, causing volcanic <span class="math">\(\text{CO}_2\)</span> to accumulate in the atmosphere until reaching radiative equilibrium [R2281, R3987].</p>
+<p>To prevent global glaciation near the outer boundary of a G- or K-type star's ecosphere, steady-state <span class="math">\(\text{CO}_2\)</span> partial pressures must reach <span class="math">\(1.0\text{ to }5.0\text{ bar}\)</span> [R3987]. Beyond this point, the atmosphere reaches the maximum greenhouse limit, where the cooling effect of Rayleigh scattering begins to exceed the greenhouse warming capacity of additional <span class="math">\(\text{CO}_2\)</span> [R2281, R3986].</p>
+<p>While these planets maintain liquid surface oceans and provide viable conditions for chemolithoautotrophic and anaerobic single-celled life, their atmospheric envelopes are toxic to complex metazoans [R2281, R3986, R3991]. Any organisms dependent on aerobic respiration would suffer acute hypercapnia and blood acidification within seconds [R3986, R3987].</p>
+<h3 id="archetype-b-abiotic-hyperbaric-oxygen-worlds">Archetype B: Abiotic Hyperbaric Oxygen Worlds</h3>
+<p>Terrestrial planets orbiting M-dwarf stars often accumulate massive, abiotic oxygen atmospheres through oceanic photolysis and hydrodynamic hydrogen loss [R2769, R3016, R4356]. Because low-mass M dwarfs remain in an extended, highly luminous pre-main-sequence phase for hundreds of millions of years, planets within the eventual habitable zone spend their early history in a runaway greenhouse state [R2769]. Water vapor fills the stratosphere, where intense stellar XUV flux dissociates <span class="math">\(\text{H}_2\text{O}\)</span> molecules into atomic hydrogen and oxygen ([R2769]; [R4355, R4356]).</p>
+<p>The light hydrogen escapes into space via hydrodynamic blow-off, leaving large volumes of abiotic oxygen behind [R2769, R4355]. If the crust and mantle become saturated with oxidized iron or lack the active subduction necessary to recycle crustal oxidants into the deep interior, the oxygen sink fails ([R2769]; [R4355, R4356]).</p>
+<p>The abiotic <span class="math">\(\text{O}_2\)</span> accumulates into hyperbaric envelopes with partial pressures spanning <span class="math">\(10\text{ to }100+\text{ bar}\)</span> ([R2769]; [R4355, R4356]). Such environments destroy prebiotic organic compounds through oxidative degradation, precluding the emergence of native life while creating a hyperbaric environment that triggers fatal oxygen toxicity seizures in humans [R1813, R4355].</p>
+<h3 id="archetype-c-hydrogen-enriched-atmospheres">Archetype C: Hydrogen-Enriched Atmospheres</h3>
+<p>Terrestrial planets possessing several Earth masses (Super-Earths) and sub-Neptunes can retain primordial hydrogen-helium envelopes or regenerate secondary <span class="math">\(\text{H}_2\)</span> atmospheres via serpentinization and reduced volcanic degassing [R3518, R3991]. In these dense atmospheres, molecular hydrogen generates greenhouse warming through collision-induced absorption (<span class="math">\(\text{CIA}\)</span>) [R3518, R4770].</p>
+<p>When <span class="math">\(\text{H}_2\)</span> molecules collide with other molecules of <span class="math">\(\text{H}_2\)</span>, <span class="math">\(\text{N}_2\)</span>, or <span class="math">\(\text{CO}_2\)</span>, transient dipole moments are induced that absorb thermal infrared radiation across the critical <span class="math">\(8\text{--}12\ \mu\text{m}\)</span> atmospheric window [R3518, R4770]. This collisional absorption mechanism can warm an exoplanet well beyond the traditional outer edge of the habitable zone ([R3518]; [R3986, R3987]; [R4770]).</p>
+<p>In deep ocean variants—the Hycean world archetype—surface water oceans persist underneath a <span class="math">\(10\text{ to }100\text{-bar}\)</span> hydrogen envelope [R2804, R3522]. These environments can host anaerobic, extremophilic single-celled organisms, as laboratory tests show that bacteria such as <em>Escherichia coli</em> grow and reproduce under pure <span class="math">\(\text{H}_2\)</span> atmospheres [R3991].</p>
+<p>However, they are uninhabitable for complex aerobic life and humans due to total anoxia, severe hyperbaric hydrogen narcosis, and high atmospheric density, which causes excessive work of breathing in mammalian lungs [R3522].</p>
+<h3 id="archetype-d-photochemically-stalled-anoxic-worlds">Archetype D: Photochemically Stalled Anoxic Worlds</h3>
+<p>Planets orbiting early-to-mid M dwarfs that possess moderate outgassing fluxes of <span class="math">\(\text{CO}_2\)</span> and <span class="math">\(\text{H}_2\text{O}\)</span> can enter a photochemically arrested state [R3986, R3987]. Due to low stellar near-ultraviolet emission, the tropospheric <span class="math">\(\text{OH}\)</span> radical sink remains too small to recombine photolyzed <span class="math">\(\text{CO}\)</span> back into <span class="math">\(\text{CO}_2\)</span> [R3986, R3987].</p>
+<p>Carbon monoxide accumulates until reaching photochemical steady state via slower, surface deposition pathways, resulting in atmospheres containing <span class="math">\(1\%\text{ to }10\%\ \text{CO}\)</span>, <span class="math">\(80\%\ \text{N}_2\)</span>, and trace levels of <span class="math">\(\text{CO}_2\)</span> and <span class="math">\(\text{CH}_4\)</span> [R1511, R1813, R3986].</p>
+<p>These conditions support prebiotic organic synthesis and provide chemical free energy for simple chemotrophic anaerobes [R1813, R3648]. Conversely, the elevated <span class="math">\(\text{CO}\)</span> concentrations cause rapid carboxyhemoglobin saturation in complex aerobic organisms, resulting in rapid hypoxia and circulatory collapse [R3986].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Atmosphere Archetype</strong></th>
+<th><strong>Primary Chemical Inventory</strong></th>
+<th><strong>Equilibrium Surface Temperature Range</strong></th>
+<th><strong>Typical Surface Pressure</strong></th>
+<th><strong>Indigenous Life Emergence Potential</strong></th>
+<th><strong>Human Survival Architecture</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Oxidized Dense Carbon Dioxide</strong> [R3986, R3987]</td>
+<td><span class="math">\(\text{CO}_2\)</span> (<span class="math">\(80\text{--}98\%\)</span>), <span class="math">\(\text{N}_2\)</span> (<span class="math">\(2\text{--}15\%\)</span>), <span class="math">\(\text{H}_2\text{O}\)</span></td>
+<td><span class="math">\(260\text{--}320\text{ K}\)</span></td>
+<td><span class="math">\(2.0\text{--}10.0\text{ bar}\)</span> [R3986]</td>
+<td>Permissive for chemotrophic and anaerobic microbes; prohibitive for complex metazoans [R3986, R3991].</td>
+<td>Full-face breathing mask with <span class="math">\(\text{CO}_2\)</span> scrubber; shirtsleeve-compatible thermal protection.</td>
+</tr>
+<tr>
+<td><strong>Abiotic Hyperbaric Oxygen</strong> ([R2769]; [R4355, R4356])</td>
+<td><span class="math">\(\text{O}_2\)</span> (<span class="math">\(70\text{--}95\%\)</span>), <span class="math">\(\text{N}_2\)</span> (<span class="math">\(2\text{--}10\%\)</span>), <span class="math">\(\text{O}_3\)</span> trace</td>
+<td><span class="math">\(240\text{--}300\text{ K}\)</span></td>
+<td><span class="math">\(10.0\text{--}100.0+\text{ bar}\)</span> ([R2769]; [R4355, R4356])</td>
+<td>Extremely Low; severe oxidation degrades prebiotic organic matrices ([R1813]; [R4355, R4356]).</td>
+<td>Rigid hyperbaric containment suits; specialized non-combustible materials required.</td>
+</tr>
+<tr>
+<td><strong>Hydrogen-Enriched (CIA / Hycean)</strong> [R2804, R3518]</td>
+<td><span class="math">\(\text{H}_2\)</span> (<span class="math">\(10\text{--}90\%\)</span>), <span class="math">\(\text{He}\)</span>, <span class="math">\(\text{N}_2\)</span>, <span class="math">\(\text{CH}_4\)</span></td>
+<td><span class="math">\(270\text{--}400\text{ K}\)</span> [R2804, R3522]</td>
+<td><span class="math">\(5.0\text{--}50.0+\text{ bar}\)</span> [R3522, R3991]</td>
+<td>Favorable for anaerobic and marine extremophilic microbial life [R2804, R3991].</td>
+<td>High-pressure atmospheric isolation suits with helium/nitrogen balance gas.</td>
+</tr>
+<tr>
+<td><strong>Photochemically Stalled Anoxic</strong> ([R1813]; [R3986, R3987])</td>
+<td><span class="math">\(\text{N}_2\)</span> (<span class="math">\(70\text{--}90\%\)</span>), <span class="math">\(\text{CO}\)</span> (<span class="math">\(1\text{--}10\%\)</span>), <span class="math">\(\text{CO}_2\)</span></td>
+<td><span class="math">\(273\text{--}310\text{ K}\)</span></td>
+<td><span class="math">\(0.5\text{--}2.0\text{ bar}\)</span></td>
+<td>High; prebiotic chemical precursor pathways favored by high <span class="math">\(\text{CO}\)</span> [R1813].</td>
+<td>Positive-pressure breathing mask with catalytic CO-oxidation filtration; standard protective garments.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-marginal-habitability-spectrum-biogenesis-failure-versus-anthropogenic-viability">The Marginal Habitability Spectrum: Biogenesis Failure versus Anthropogenic Viability</h2>
+<p>A central consideration in exoplanetary science is the decoupling between <em>biogenic habitability</em>—the capacity of an environment to support spontaneous abiogenesis and evolutionary diversification—and <em>anthropogenic survivability</em>, which measures the ability of humans to operate on a surface with simple mechanical mitigation ([R2281]; [R3986, R3987]; [R4767]).</p>
+<h3 id="the-breathing-mask-only-paradigm">The Breathing-Mask-Only Paradigm</h3>
+<p>A common trope in planetary exploration imagines an absolute dichotomy between Earth-like paradise worlds and airless vacuum environments requiring heavy, pressurized space suits. However, geochemical modeling reveals an expansive intermediate class of worlds [R3986, R3987].</p>
+<p>If total atmospheric pressure resides between approximately <span class="math">\(50\text{ and }250\text{ kPa}\)</span> (<span class="math">\(0.5\text{ to }2.5\text{ bar}\)</span>), ambient barometric forces prevent bodily fluid ebullism and stave off the mechanical tissue distortion associated with the Armstrong limit [R4767].</p>
+<p>If global temperatures simultaneously maintain a range of <span class="math">\(273\text{ to }315\text{ K}\)</span> (<span class="math">\(0^\circ\text{C}\text{ to }42^\circ\text{C}\)</span>), human thermoregulation functions without liquid-cooling garments or active electric heating systems [R4767].</p>
+<p>In this regime, mechanical counterpressure suits (<span class="math">\(\text{MCP}\)</span> suits) and rigid extravehicular pressure vessels become redundant. The sole barrier to human survival is chemical toxicity or anoxia [R3986, R3987].</p>
+<p>On a world with an atmosphere of <span class="math">\(90\%\ \text{N}_2\)</span> and <span class="math">\(10\%\ \text{CO}_2\)</span> at a surface pressure of <span class="math">\(1.0\text{ bar}\)</span>, an unprotected human would lose consciousness from hypercapnic acidosis and hypoxia within two minutes [R3986]. Yet, because ambient barometric and thermal conditions are stable, surface exploration requires only an unpressurized garment and a positive-pressure breathing mask providing an Earth-normal gas mixture, bypassing the operational hurdles of space exploration.</p>
+<h3 id="the-habitable-zone-for-complex-life-mismatch">The Habitable Zone for Complex Life Mismatch</h3>
+<p>The disconnect between planetary habitability and animal biology is most pronounced at the outer edges of habitable zones [R3986]. As demonstrated by Schwieterman et al., the classical habitable zone defines its outer boundary using the maximum greenhouse limit, where dense multi-bar <span class="math">\(\text{CO}_2\)</span> atmospheres maintain liquid water [R2281, R3986].</p>
+<p>While simple unicellular organisms survive under multi-bar <span class="math">\(\text{CO}_2\)</span> pressures, complex aerobic organisms possessing circulatory networks cannot tolerate <span class="math">\(p\text{CO}_2\)</span> values above <span class="math">\(0.005\text{ to }0.05\text{ bar}\)</span> due to systemic respiratory acidosis and gas exchange failure ([R3986, R3987]; [R3991]).</p>
+<p>Consequently, the <em>Habitable Zone for Complex Life</em> (<span class="math">\(\text{HZCL}\)</span>) spans only <span class="math">\(20\%\text{ to }28\%\)</span> of the width of the conventional microbial habitable zone around solar-type G-stars [R3986].</p>
+<p>Around M dwarfs, this zone narrows further; photochemical runaway often drives <span class="math">\(\text{CO}\)</span> accumulation across the entire habitable zone, creating conditions that are chemically lethal to complex aerobic metazoans despite the presence of stable oceans and thriving microbial mats [R3986].</p>
+<h3 id="climatic-and-density-extremes-in-marginal-habitability">Climatic and Density Extremes in Marginal Habitability</h3>
+<p>Beyond chemical toxicity, planetary environments can be rendered marginally habitable by severe physical extremes that inhibit the development of native life while remaining accessible to human technology:</p>
+<ul>
+<li>
+<p><strong>Post-Runaway Desiccated Super-Earths:</strong> A terrestrial planet situated along the inner edge of the habitable zone may experience early oceanic desiccation, leaving behind a hyper-arid &quot;dune world&quot; ([R2281]; [R4355, R4356]). With minimal surface moisture, the atmospheric relative humidity remains very low, which suppresses the runaway moist greenhouse effect and keeps the climate stable despite high stellar insolation [R2281].
+Because open water is absent, the carbonic acid weathering of silicate rocks ceases, allowing volcanic outgassing of <span class="math">\(\text{CO}_2\)</span> and <span class="math">\(\text{SO}_2\)</span> to build a dry, high-pressure atmosphere ([R2281]; [R3986, R3987]). The absence of long-lived open water bodies presents a significant barrier to the abiogenesis of native life [R2281].
+Nonetheless, human operations can function on the surface using particulate-filtering breathing masks, closed-cycle water reclamation, and reflective thermal clothing, avoiding the complex pressurization hardware required in true vacuum environments [R3986].</p>
+</li>
+<li>
+<p><strong>Sub-Baric Ice Worlds:</strong> Low-mass terrestrial bodies (<span class="math">\(0.3\text{ to }0.5\ M_\oplus\)</span>) orbiting near the middle or outer edges of the habitable zone often lose substantial atmospheric mass through impact erosion and kinetic escape, driving surface pressures down to <span class="math">\(10\text{--}20\text{ kPa}\)</span> (<span class="math">\(0.1\text{--}0.2\text{ bar}\)</span>) [R0692, R2281]. While this pressure remains above the Armstrong limit, the thin atmosphere provides little greenhouse warming, locking the planet into a global Snowball glaciation state [R3991].
+Localized volcanic fissures and subglacial geothermal vents may maintain transient liquid water habitats, but the cold and dry conditions severely limit the complexity of native biospheres [R2997].
+Human survival in this environment does not require heavy, rigid pressure suits; operators can function using heated thermal polar garments and sealed rebreather masks that supply pure oxygen at an ambient partial pressure of <span class="math">\(10\text{--}20\text{ kPa}\)</span>, matching standard alveolar oxygenation requirements.</p>
+</li>
+<li>
+<p><strong>Hyperbaric Inert Gas Worlds:</strong> Volatile-rich terrestrial planets that accrete large primordial nitrogen inventories or retain significant radiogenic argon can sustain surface pressures of <span class="math">\(5.0\text{ to }10.0\text{ bar}\)</span> [R0343, R4770]. Even if temperatures remain clement and carbon dioxide levels are low, the dense atmosphere presents unique physical challenges [R0343, R4767].
+The elevated column weight increases the work of breathing, and the high partial pressures of nitrogen and argon induce inert gas narcosis [R0343].
+While simple native organisms thrive without ill effects, human surface access requires living in hypobaric surface habitats and breathing tailored gas mixtures—such as hydrogen-oxygen (<span class="math">\(\text{Hydrox}\)</span>) or helium-oxygen (<span class="math">\(\text{Heliox}\)</span>)—to prevent narcosis during outdoor excursions [R0343].</p>
+</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Planetary Scenario</strong></th>
+<th><strong>Physical &amp; Chemical Limiting Factor</strong></th>
+<th><strong>Indigenous Abiogenesis Viability</strong></th>
+<th><strong>Limiting Barrier for Humans</strong></th>
+<th><strong>Operational Equipment Profile for Human Survival</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Post-Runaway Desiccated Super-Earth</strong> [R2281, R4356]</td>
+<td>Total hydrosphere loss; trace moisture; high <span class="math">\(\text{CO}_2\)</span> and <span class="math">\(\text{SO}_2\)</span> ([R2281]; [R3986, R3987]).</td>
+<td>Minimal; lack of persistent liquid water solvent inhibits prebiotic chemistry [R2281].</td>
+<td>High temperature swings; dust inhalation; hypercapnia.</td>
+<td>Respirator mask with particulate and acid gas scrubbers; evaporative cooling garments.</td>
+</tr>
+<tr>
+<td><strong>Sub-Baric Ice World</strong> [R0692, R2997]</td>
+<td>Surface pressure <span class="math">\(10\text{--}20\text{ kPa}\)</span>; global snowball glaciation [R0692].</td>
+<td>Minimal; liquid solvent restricted to subglacial or geothermal niches [R2997].</td>
+<td>Hypothermia; ambient hypoxia due to low total barometric pressure.</td>
+<td>Thermal polar outerwear; positive-pressure pure <span class="math">\(\text{O}_2\)</span> rebreather mask (no MCP suit required).</td>
+</tr>
+<tr>
+<td><strong>Hyperbaric Nitrogen/Argon World</strong> [R0343]</td>
+<td>Surface pressure <span class="math">\(5\text{--}10\text{ bar}\)</span>; elevated gas density [R0343].</td>
+<td>Unaffected; high inert gas pressure does not disrupt primitive cellular biochemistry.</td>
+<td>Severe inert gas narcosis; excessive airway resistance during respiration [R0343].</td>
+<td>Hypobaric dome settlements; deep-diving breathing gas mixtures (<span class="math">\(\text{He}\text{--}\text{O}_2\)</span>) [R0343].</td>
+</tr>
+<tr>
+<td><strong>Photochemically Stalled M-Dwarf Planet</strong> ([R1511]; [R3986, R3987])</td>
+<td><span class="math">\(P_{\text{tot}} \sim 1\text{ bar}\)</span>; <span class="math">\(\text{CO}\)</span> mixing ratio <span class="math">\(1\text{--}10\%\)</span> ([R1511]; [R3986, R3987]).</td>
+<td>High; abundant <span class="math">\(\text{CO}\)</span> provides thermodynamic fuel for chemolithoautotrophy [R1813, R3648].</td>
+<td>Rapid carboxyhemoglobin formation and acute chemical asphyxiation [R3986, R3987].</td>
+<td>Positive-pressure breathing mask with catalytic hopcalite <span class="math">\(\text{CO}\)</span>-oxidation filters.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="synthesis-and-astrobiological-outlook">Synthesis and Astrobiological Outlook</h2>
+<p>Planetary habitability is not a binary condition, but an overlapping continuum shaped by mantle thermodynamics, stellar spectral features, and evolutionary biology:</p>
+<ol>
+<li>
+<p><strong>Atmospheric toxicity is fundamentally thermodynamic and physiological.</strong> The ability of a gas to support or extinguish life depends on its partial pressure and biochemical properties. Atmospheric components that sustain microbial metabolisms—such as high concentrations of <span class="math">\(\text{CO}_2\)</span> and <span class="math">\(\text{CO}\)</span>—act as neurotoxins and metabolic poisons in complex metazoans by inducing hypercapnic acidosis and ligand binding in respiratory metalloproteins [R3986].</p>
+</li>
+<li>
+<p><strong>Atmospheres reflect the redox evolution of planetary interiors.</strong> The chemical speciation of a secondary atmosphere is tied to the oxidation state of the underlying silicate mantle. Mantles buffered near the iron-wüstite boundary outgas reduced volatile envelopes rich in <span class="math">\(\text{H}_2\)</span>, <span class="math">\(\text{CO}\)</span>, and <span class="math">\(\text{H}_2\text{S}\)</span>, whereas oxidized mantles produce envelopes dominated by <span class="math">\(\text{H}_2\text{O}\)</span>, <span class="math">\(\text{CO}_2\)</span>, and <span class="math">\(\text{SO}_2\)</span> [R1465, R1491].</p>
+</li>
+<li>
+<p><strong>Stellar spectral properties drive atmospheric chemical equilibria.</strong> Around M-dwarf stars, a high ratio of extreme ultraviolet to near-ultraviolet flux can suppress the tropospheric <span class="math">\(\text{OH}\)</span> radical sink, initiating carbon monoxide runaway, or strip away water inventories to leave behind dense, abiotic oxygen envelopes [R2769, R3986, R4356].</p>
+</li>
+<li>
+<p><strong>Marginal habitability decouples indigenous biogenesis from human survival.</strong> Environments that prevent the emergence or macro-evolution of native life—including hyper-arid dune worlds, hypercapnic outer-habitable-zone planets, and frozen sub-baric worlds—can remain accessible to human presence [R2281, R3986]. Provided surface pressures remain above the Armstrong limit of <span class="math">\(6.3\text{ kPa}\)</span> and temperatures avoid thermal extremes, human exploration avoids the logistical burdens of full-body pressure suits, relying instead on lightweight breathing masks, chemical filtration, and targeted thermal protection to establish a lasting operational footprint.</p>
+</li>
+</ol>
+<h2 id="references">References</h2>
+<ul>
+<li>
+<p>[R0692]</p>
+</li>
+<li>
+<p>[R1137]</p>
+</li>
+<li>
+<p>[R1465]</p>
+</li>
+<li>
+<p>[R4973]</p>
+</li>
+<li>
+<p>[R1813]</p>
+</li>
+<li>
+<p>[R1953]</p>
+</li>
+<li>
+<p>[R2171]</p>
+</li>
+<li>
+<p>[R2281]</p>
+</li>
+<li>
+<p>[R2492]</p>
+</li>
+<li>
+<p>[R3799]</p>
+</li>
+<li>
+<p>[R2769]</p>
+</li>
+<li>
+<p>[R2997]</p>
+</li>
+<li>
+<p>[R3014]</p>
+</li>
+<li>
+<p>[R4878]</p>
+</li>
+<li>
+<p>[R3378]</p>
+</li>
+<li>
+<p>[R3389]</p>
+</li>
+<li>
+<p>[R3518]</p>
+</li>
+<li>
+<p>[R4032]</p>
+</li>
+<li>
+<p>[R3648]</p>
+</li>
+<li>
+<p>[R3985]</p>
+</li>
+<li>
+<p>[R3986]</p>
+</li>
+<li>
+<p>[R4119]</p>
+</li>
+<li>
+<p>[R4001]</p>
+</li>
+<li>
+<p>[R4771]</p>
+</li>
+<li>
+<p>[R4770]</p>
+</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

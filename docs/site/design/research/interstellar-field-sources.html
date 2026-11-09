@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interstellar asteroid fields: what the sources say (GEN.1098) - planetGen docs</title>
+<meta name="description" content="Status: read report.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/interstellar-field-sources.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/interstellar-field-sources.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="interstellar-asteroid-fields-what-the-sources-say-gen1098">Interstellar asteroid fields: what the sources say (GEN.1098)</h1><p class="meta">docs/design/research/interstellar-field-sources.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#what-was-read">What was read</a></li><li style="margin-left:0px"><a href="#what-it-changes-in-the-design">What it changes in the design</a></li><li style="margin-left:0px"><a href="#what-each-module-takes">What each module takes</a></li><li style="margin-left:0px"><a href="#open-for-the-module-lanes">Open for the module lanes</a></li></ul></details>
+<p>Status: read report. Written 5:36 PM EDT 2026-10-30 as the lane reported. Nothing built. Reads the sources of <code>docs/design/systems/interstellar-asteroid-fields.md</code> section 10 for the numbers the four field modules need (GEN.1099 collision, GEN.1100 dispersal, GEN.1101 rates, GEN.1102 composition). Every number is a row of the registry section 6.103 (rows IF1 to IF12 of <code>gap-filling-plan.md</code>). Boss decided physics only (4:54 PM EDT 2026-10-30): no game rate and no floor dial.</p>
+<h2 id="what-was-read">What was read</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>How</th>
+<th>What it gave</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R2633]</td>
+<td>full text</td>
+<td>the disruption threshold and its scaling (IF3), the largest remnant (IF1, IF2), the impact angle (IF4), the fragment tail (IF5) and the fragment speeds (IF6)</td>
+</tr>
+<tr>
+<td>[R4226] [R4999]</td>
+<td>abstract, sections 2 to 4</td>
+<td>where erosion begins, the debris share of giant impacts, and the core and mantle bookkeeping (IF7, IF8)</td>
+</tr>
+<tr>
+<td>Su et al. 2006, ApJ 653, 675 [R4247]</td>
+<td>abstract, sections 2 to 4, Table 4</td>
+<td>the share of young A stars with a belt, by age (IF9)</td>
+</tr>
+<tr>
+<td>Do, [R1124]</td>
+<td>abstract, section 2</td>
+<td>the interstellar background the fields stand against (IF11)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not reached, and what that leaves open:</p>
+<ul>
+<li><strong>[R3191] and 2020, [R2178]</strong>: rogue density; already the root of <code>tuning.ROGUE_PLANET_RATE_PER_STAR</code>, and GEN.1109 (rogue abundance) owns them. The collision rate (design section 2) stays a derived figure on that input.</li>
+<li><strong>Shock vaporisation thresholds</strong> (Pierazzo, Melosh) and <strong>[R0527]</strong> (flyby truncation): not opened. The design's remark that peak shock above about 400 GPa leaves mostly melt and vapor stays [R]. LS12 has no vaporisation at all (see finding 3).</li>
+<li><strong>[R0763]</strong> (excess rates of B stars): not opened; IF9 uses A stars as the stand-in for the belts of supernova progenitors.</li>
+<li><strong>[R2867], 2010</strong> (core and mantle in impacts of differentiated bodies): quoted second-hand through [R4226] (IF8).</li>
+<li><strong>[R1941]</strong> (unbinding by mass loss): the half-mass rule is derived in IF10 in two lines instead.</li>
+</ul>
+<h2 id="what-it-changes-in-the-design">What it changes in the design</h2>
+<ol>
+<li><strong>The rubble window is not 15 to 30 km/s; it scales with the pair.</strong> The disruption speed is <code>V* = (32 pi c* / 5)^(1/2) (rho1 G)^(1/2) RC1</code> with <code>c* = 1.9</code>, <code>rho1 = 1000 kg/m3</code> and <code>RC1</code> the radius of the combined mass at 1000 kg/m3 (IF3). Computed here [C]: two Earths 22.6 km/s (<code>RC1</code> 14 180 km, <code>Q*</code> 6.4e7 J/kg, escape speed of the pair 10.6 km/s), two 0.3-Earth bodies 15.2 km/s, two 0.1-Earth bodies 10.5 km/s. The window of a large remnant plus rubble is <code>QR / Q*</code> from 1 to 1.8, i.e. speeds <code>V*</code> to <code>1.34 V*</code> (22.6 to 30.3 km/s for two Earths). Below <code>V*</code> the pair merges or hits and runs; above it the largest remnant falls under a tenth of the mass (0.044 at 40 km/s, 0.013 at 60 km/s for two Earths). The design's window was right for two Earths and wrong for lighter pairs, where it is lower.</li>
+<li><strong>The largest-remnant law replaces the shock table.</strong> The design's section 3.1 outcome table (merger, partial, catastrophic by speed alone) becomes <code>Mlr / Mtot</code> against <code>QR / Q'*RD</code> (IF1, IF2), with the impact angle drawn from <code>sin theta cos theta</code> (IF4) and the hit-and-run test <code>b &gt; R / (R + r)</code>.</li>
+<li><strong>Extrapolation warning.</strong> The law was fitted to N-body simulations of gravity-dominated rubble at speeds up to a few km/s (impact speeds of the table: tens of m/s to km/s). Applying it to 20 to 80 km/s uses the same scaling far outside the fitted range, and it has no melt or vapor: the module must say so in its history sentence and keep the vapor-and-droplet outcome of design section 3.1 for speeds above about <code>1.34 V*</code>, where LS12's own 10 percent largest remnant ends the law's region of validity.</li>
+<li><strong>Unbound mass is smaller than the design's &quot;near 1&quot;.</strong> Read as dm/dv = 10^(A - S v) per unit of the escape speed with <code>A = -0.3 Mlr / Mtot + 0.3</code> (IF6), the share of the mass that leaves faster than the escape speed of the combined mass is about 11 percent at the start of the super-catastrophic regime and tends to 13.6 percent of <code>Mtot</code> at high speed [C]; the rest stays in a cloud bound to the (tiny) remnant and to itself. That is a reading of equation 43 (the bin width is not given in the text; the reading matches the paper's &quot;lowest bin about 0.1 <code>Mtot</code>&quot;), so GEN.1099 checks it against Figure 7 first. If it holds, a collision between planet-size rogues makes a bound debris swarm round the remnant plus a smaller unbound field, not a field of the whole mass.</li>
+<li><strong>Composition from two parents.</strong> The escaping fragments come mostly from the silicate mantles of both bodies, the cores going into the largest remnant (IF8, average of the two idealised models, initial core fraction 1/3). So an unbound collision field is silicate-rich with little iron, not iron plus silicate plus ice in proportion; ice shards only from water-rich parents' outer layers. GEN.1102 starts from that.</li>
+<li><strong>Supernova belts are better supported than the design's 0.3.</strong> 41 percent of A stars of 30 Myr or less carry a belt at 24 micron (48 percent at 70 micron), falling to 25, 15 and 2 percent in older bins (IF9, Table 4 of Su). Progenitors are 8 solar masses and more and live under 40 Myr, so 0.41 replaces 0.3 as the stand-in (tier T3: A stars stand in for B stars, and the excess is dust, not belt mass). The belt is unbound whenever the remnant is under half the progenitor's mass (IF10): every neutron-star case, and a black hole of less than half.</li>
+<li><strong>A field past 1 ly sits under the interstellar background.</strong> <code>n_IS</code> about 0.2 per cubic AU for 100 m bodies (IF11) is the floor the retired field falls into; it is one detection, so factor 3.</li>
+</ol>
+<h2 id="what-each-module-takes">What each module takes</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Rows</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1099 <code>rogue_collision.py</code></td>
+<td>IF1 to IF7, IF12</td>
+<td><code>V*</code>, <code>QR</code>, the remnant, the tail, the speed law; the collision rate of design section 2 stays the derived figure (not a row: [C] from the rogue density)</td>
+</tr>
+<tr>
+<td>GEN.1100 <code>field_dispersal.py</code></td>
+<td>IF6, IF11, IF12</td>
+<td>expansion from the speed law (not a flat 5 to 15 km/s), the retirement radius at 1 ly</td>
+</tr>
+<tr>
+<td>GEN.1101 <code>field_rates.py</code></td>
+<td>IF9, IF10</td>
+<td>supernova belt rate from the core-collapse rate times the belt share; no floor dial</td>
+</tr>
+<tr>
+<td>GEN.1102 composition</td>
+<td>IF8</td>
+<td>mantle-dominated shards, core in the remnant</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="open-for-the-module-lanes">Open for the module lanes</h2>
+<ul>
+<li>The reading of equation 43 (finding 4) and the unbound share it gives.</li>
+<li>Whether the remnant planet (own rogue planet, Boss decision) is the &quot;largest remnant&quot; of IF1, with its core fraction from IF8.</li>
+<li>Which <code>c*</code> to use for a rogue with a thick ice shell (IF3 gives 1.9 for planets, 5 for small ice or rubble bodies; the water-rich rogues sit between).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

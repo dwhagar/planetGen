@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Major design decisions - planetGen docs</title>
+<meta name="description" content="Short records of the choices that shape planetGen as a whole.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/design-decisions.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/design-decisions.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="major-design-decisions">Major design decisions</h1><p class="meta">docs/design/architecture/design-decisions.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-cylindrical-sector-grid-rings-layers-slots-4-pc-sectors">1. The cylindrical sector grid (rings, layers, slots; 4 pc sectors)</a></li><li style="margin-left:0px"><a href="#2-rendering-system-pages-from-the-database-instead-of-storing-text">2. Rendering system pages from the database instead of storing text</a></li><li style="margin-left:0px"><a href="#3-threejs-for-the-galaxy-map-and-the-other-maps">3. three.js for the Galaxy Map (and the other maps)</a></li><li style="margin-left:0px"><a href="#4-a-flask-only-website-cgi-pages-removed">4. A Flask-only website (CGI pages removed)</a></li><li style="margin-left:0px"><a href="#5-mysql-as-the-store">5. MySQL as the store</a></li><li style="margin-left:0px"><a href="#6-release-notes-in-changes-versions-stamped-after-merge">6. Release notes in changes/, versions stamped after merge</a></li><li style="margin-left:0px"><a href="#7-system-python-with-apt-on-linux-venvs-elsewhere">7. System Python with apt on Linux, venvs elsewhere</a></li><li style="margin-left:0px"><a href="#8-population-as-a-separate-pass-optional-and-off-by-default">8. Population as a separate pass, optional and off by default</a></li><li style="margin-left:0px"><a href="#9-an-in-memory-cache-for-the-pages-api-answers">9. An in-memory cache for the pages' API answers</a></li><li style="margin-left:0px"><a href="#10-a-drill-down-for-the-galaxy-map-instead-of-a-free-camera">10. A drill-down for the Galaxy Map instead of a free camera</a></li><li style="margin-left:0px"><a href="#11-third-party-libraries-instead-of-zero-dependencies">11. Third-party libraries instead of zero dependencies</a></li><li style="margin-left:0px"><a href="#12-names-from-ids">12. Names from IDs</a></li><li style="margin-left:0px"><a href="#13-every-sector-can-be-generated">13. Every sector can be generated</a></li></ul></details>
+<p>Short records of the choices that shape planetGen as a whole. Each says what
+was chosen, when, why, and what was turned down. Versions are from
+<code>CHANGELOG.md</code>; PR numbers are from the merge commits. Where a reason is not
+written down anywhere in the repository, this file says so instead of
+guessing.</p>
+<p><strong>Status lines (2026-10-15).</strong> Each decision below opens with a status: <em>in force</em>, <em>reversed</em>, <em>built</em> or <em>being replaced</em>, with the TODO item. The decisions are kept as written; the status says what happened since.</p>
+<p>The git history in this repository starts on 2026-09-23 (PR #66). Earlier
+choices are known only from <code>CHANGELOG.md</code> and old copies of <code>docs/TODO.md</code>.</p>
+<hr />
+<h2 id="1-the-cylindrical-sector-grid-rings-layers-slots-4-pc-sectors">1. The cylindrical sector grid (rings, layers, slots; 4 pc sectors)</h2>
+<p><strong>Status: built (schema v91, 2026-10-15).</strong> Boss (2026-10-15) replaced the ring, layer and slot grid with spherical sectors: shells of 4 pc depth, latitude bands and wedges from pole to pole. The switch landed with migration 0091 (2026-10-15); <a href="../galaxy/spherical-sector-coordinates.html">spherical-sector-coordinates.md</a> is the plan, and <code>galaxy-coordinate-system.md</code> describes the built grid. The text below describes the cylindrical grid it replaced.</p>
+<p><strong>Chosen:</strong> every galaxy-placed sector is one cell of a cylindrical grid
+around the galactic axis: ring <code>i</code> (radius), layer <code>j</code> (height, layer 0 on
+the plane) and slot <code>k</code> (angle), each about one edge long. The edge is 4 pc
+(13.05 ly). Rings hold a multiple of a master wedge count (3 at the center,
+doubling outward), so slot boundaries line up from the center out. Details:
+<code>galaxy-coordinate-system.md</code>.</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>6.0.0 (2026-09-30, schema v32, PR #98): cylinders replace spherical
+shells; 11.5 ly cells.</li>
+<li>7.0.0 (2026-09-30, schema v33): 4 pc edge, the same slot count on every
+layer (aligned columns), per-layer skeleton, bounds checked before
+generating.</li>
+<li>7.13.0 (2026-09-30, schema v35, MAP.33): hybrid master-wedge slot counts.</li>
+</ul>
+<p><strong>Why:</strong></p>
+<ul>
+<li>Sectors should &quot;follow the flat disk instead of a ball&quot; (CHANGELOG 6.0.0).
+The shell design spent most of its addresses far off the disk.</li>
+<li>The cells tile space exactly and every lookup (point to cell, neighbors,
+cells near a point) is closed form, so the Voronoi prism table
+(<code>sector_vertices</code>) and the per-shell band table (<code>galaxy_shell_band</code>)
+could be dropped (CHANGELOG 6.0.0).</li>
+<li>4 pc is a whole number of parsecs and puts the galaxy's edge at about
+50,000 ly at the default shape, the real disk's radius (CHANGELOG 7.0.0).</li>
+<li>Master wedges make every master line a slot boundary in every ring
+outward, so the Galaxy Map's blocks and wedge lines cut on shared lines.
+Boss chose this hybrid on 2026-09-30.</li>
+</ul>
+<p><strong>Rejected:</strong></p>
+<ul>
+<li>Spherical shells with Fibonacci-sphere slots (the 5.3.6 &quot;Track C&quot;
+design): cubes cannot tile a sphere, so it needed per-sector Voronoi
+prisms and a Fibonacci-number neighbor search.</li>
+<li>A stored plan of every qualifying sector (<code>galaxy_sector_plan</code>, about
+10.5 billion rows and 1 TB): never built, because position and density
+are pure functions of the address.</li>
+<li>2 pc (a local sector would average under one star), 3 pc and 5 pc edges.</li>
+<li>A staggered brick pattern of layers: rejected for aligned columns; no
+reason beyond alignment is recorded.</li>
+</ul>
+<p><strong>Cost:</strong> each of v32, v33 and v35 deleted the affected galaxy-placed
+sectors with their systems and phenomena.</p>
+<hr />
+<h2 id="2-rendering-system-pages-from-the-database-instead-of-storing-text">2. Rendering system pages from the database instead of storing text</h2>
+<p><strong>Status: in force.</strong></p>
+<p><strong>Chosen:</strong> a system's wikitext and Markdown pages are rendered on demand
+from its rows (<code>planetgen/db/render.py</code>). The stored copies
+(<code>star_systems.wikitext_content</code>, <code>markdown_content</code>) are gone.</p>
+<p><strong>When:</strong> 5.52.0 (2026-09-24, PR #85, schema v29; the commit message says
+v28, the number before a merge renumbered it).</p>
+<p><strong>Why:</strong> pages now &quot;follow renames, names made unique after generation, and
+orbit ticks&quot; (CHANGELOG 5.52.0). Stored text went stale whenever a row
+changed after generation. Wiki upload uses the fresh render.</p>
+<p><strong>Rejected:</strong> keeping the stored text and regenerating it on every change.
+Not discussed in the record beyond the reasons above. A one-off command,
+<code>planetgen.cli.render_parity</code> (removed by OPS.61), compared stored and
+rendered text on an old database before upgrading.</p>
+<p><strong>Cost:</strong> the migration deletes the stored copies; the release note says to
+back up first. The rendered page must match generation exactly, which is
+why loading a binary now re-derives which star is heavier (same release).</p>
+<hr />
+<h2 id="3-threejs-for-the-galaxy-map-and-the-other-maps">3. three.js for the Galaxy Map (and the other maps)</h2>
+<p><strong>Status: in force.</strong></p>
+<p><strong>Chosen:</strong> the Sector, System and Galaxy Maps draw with three.js (r186),
+vendored as one minified file in <code>src/html/static/vendor/</code>, not loaded from
+a CDN.</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>5.41.0 (2026-09-19): the Sector Map moves from a CSS 3D illusion to a
+three.js WebGL scene.</li>
+<li>5.46.13 (2026-09-23): the 3D Galaxy Map, with live viewport queries.</li>
+<li>2026-10-01 (PR #153, MAP.40): the choice re-checked for the Galaxy Map
+and recorded in <code>docs/reference/html-interface.md</code>, &quot;Why the maps use three.js&quot;.</li>
+</ul>
+<p><strong>Why:</strong></p>
+<ul>
+<li>A real perspective camera gives correct occlusion, and sprites shrink with
+distance for free, which fixed the flat map's &quot;star icon doesn't shrink as
+you zoom in&quot; problem (CHANGELOG 5.46.13).</li>
+<li>Vendored, so the pages' <code>Content-Security-Policy: default-src 'self'</code>
+needs no exception (CHANGELOG 5.41.0).</li>
+<li>The project has no build step, and one vendored file suits that.</li>
+<li>The Galaxy Map's slow part was the JavaScript that lists blocks, not the
+drawing; that work moved to a Web Worker (<code>galaxyblocks.js</code>, 7.32.0).</li>
+</ul>
+<p><strong>Rejected (review of 2026-09-30):</strong> Babylon.js (several megabytes); deck.gl
+(needs a bundler); regl or raw WebGPU (picking, sprites and lighting by
+hand). If WebGL runs out, three's own <code>InstancedMesh</code>, <code>BatchedMesh</code> and
+<code>WebGPURenderer</code> come first.</p>
+<hr />
+<h2 id="4-a-flask-only-website-cgi-pages-removed">4. A Flask-only website (CGI pages removed)</h2>
+<p><strong>Status: in force.</strong></p>
+<p><strong>Chosen:</strong> every page is served by the same Flask app as the API
+(<code>src/planetgen/web/</code>, Jinja2 templates, mounted at <code>/</code> through mod_wsgi or
+gunicorn). The old <code>/&lt;name&gt;.py</code> CGI URLs were retired and answer with the 404 page.</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>5.2.1 (2026-09-06): the first web interface, plain Python CGI scripts
+with the standard library only.</li>
+<li>5.54.0 (2026-09-24, PR #92): the Flask page foundation; the home page
+moves.</li>
+<li>PRs #93, #96, #97 and #100 (2026-09-24 to 2026-09-30): the sector, NAV,
+Galaxy Map, admin, system and phenomenon pages move.</li>
+<li>7.1.0 (2026-09-30, PR #104): the CGI pages, shims and Apache CGI rules are
+removed.</li>
+</ul>
+<p><strong>Why (from the 5.54.0 and 7.1.0 notes and commit d66fbed):</strong></p>
+<ul>
+<li>Pages are served &quot;without a process start or an HTTP call back to the
+API&quot;: inside a request, page code calls the API routes in-process.</li>
+<li>Plain, bookmarkable GET URLs with no database name in them; the database
+comes from <code>config.json</code>.</li>
+<li>Autoescaped Jinja2 templates, an app-wide CSRF check, and HTML error pages
+that never show a traceback.</li>
+<li>One shared page shell (header, skip link, breadcrumbs, theme), checked in
+CI by the browser accessibility test (5.59.0).</li>
+</ul>
+<p><strong>Rejected:</strong> keeping the CGI scripts. They were the &quot;interim CGI browser&quot;
+(5.10.0) from the days before the API existed. Why Flask was picked over
+another framework is not recorded beyond the JSON API already being
+Flask (it existed by 5.3.2).</p>
+<hr />
+<h2 id="5-mysql-as-the-store">5. MySQL as the store</h2>
+<p><strong>Status: in force, with the pool changed.</strong> The connection pool is SQLAlchemy's <code>QueuePool</code> (<code>db/store.py</code>), not <code>DBUtils.PooledDB</code>, and schema migrations are Alembic revisions (DB.11); the schema was past v43, at v90 on main when this status was written (2026-10-15); migrations on main run past 0111 (<code>db/migrations/versions/</code>).</p>
+<p><strong>Chosen:</strong> MySQL 8.0.16+ or a compatible MariaDB, InnoDB tables, through
+<code>pymysql</code> with a <code>DBUtils.PooledDB</code> connection pool. Schema changes are
+numbered migrations recorded in <code>schema_migrations</code> (now at v43).</p>
+<p><strong>When:</strong> 5.5.0 (2026-09-09), &quot;TODO.md Phase 5&quot;, replacing SQLite entirely.
+This predates the repository's git history, so there is no PR.</p>
+<p><strong>Why:</strong> the old <code>docs/TODO.md</code> Phase 5 entry says the move was &quot;for real
+concurrent multi-user access&quot;, together with &quot;real connection pooling&quot; for
+the web interface. The <code>schema.sql</code> port notes add that <code>BIGINT</code> keys give
+headroom at galaxy scale (tens of millions of bodies).</p>
+<p><strong>Rejected:</strong> SQLite (one writer at a time, which the shell-era plan table
+also hit; <code>docs/archive/galaxy-disk-density-rev2.md</code>, section 5).
+Other servers such as PostgreSQL are not discussed anywhere in the
+repository.</p>
+<p><strong>Cost:</strong> SQLite's in-place v1 to v5 migrations were removed. The one-time
+SQLite import script (<code>src/migrateSqliteToMysql.py</code>) was retired too
+(TEST.61): it only took a file at the current schema version, which no
+SQLite database ever reached (SQLite stopped at v5, and MySQL migrations
+start at v8), so it could never run.</p>
+<hr />
+<h2 id="6-release-notes-in-changes-versions-stamped-after-merge">6. Release notes in <code>changes/</code>, versions stamped after merge</h2>
+<p><strong>Status: in force.</strong> A note may open with a <code>**Headline:**</code> line (DOC.39).</p>
+<p><strong>Chosen:</strong> a PR does not edit the version. It adds one note,
+<code>changes/&lt;name&gt;.&lt;patch|minor|major&gt;.md</code>. After the merge,
+<code>.github/workflows/stamp-version.yml</code> runs <code>scripts/bump_version.py</code>, which
+gives each note its own version, writes <code>_version.py</code>, the README badge and
+<code>CHANGELOG.md</code> together, and commits <code>Release x.y.z</code>. A PR check rejects a
+hand-edited version or a missing note (unless labelled <code>no-release</code>).</p>
+<p><strong>When:</strong> 5.46.33 (2026-09-24, PR #68, commit 7ed99d6).</p>
+<p><strong>Why:</strong> parallel PRs kept claiming the same next version number and needed
+hand-renumbering merges (5.41.0/5.41.1 and 5.46.15 are named in the release
+note). A uniquely named note per PR cannot collide.</p>
+<p><strong>Rejected:</strong> bumping the version inside each PR (the old way).</p>
+<p><strong>Later, on 2026-10-01 (OPS.1):</strong> the version became MAJOR.REVISION.BUILD.
+A <code>major</code> note bumps MAJOR, any other note bumps REVISION, and BUILD was the
+sum of the TODO category counters in <code>docs/plan/todo-number-map.md</code>
+(Boss: &quot;major feature set.revision.build&quot;). <strong>Changed on 2026-10-10:</strong> Boss
+wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
+plus one and never resets; the counters only allocate TODO IDs. See
+<code>changes/README.md</code>.</p>
+<hr />
+<h2 id="7-system-python-with-apt-on-linux-venvs-elsewhere">7. System Python with apt on Linux, venvs elsewhere</h2>
+<p><strong>Status: reversed by OPS.45</strong> (merged, #1333, 2026-10-14). The installers now make planetGen's own virtual environment at <code>/usr/local/planetgen/venv</code> from the hash-checked lock, on Linux and macOS alike, and mod_wsgi reaches it through <code>python-home</code> (<a href="../../deployment/apache.html#planetgens-own-python">apache.md</a>); the system Python is left alone. The dedicated venv this section turned down &quot;for now&quot; is the one that was built.</p>
+<p><strong>Chosen:</strong> on Linux, <code>install.sh</code> and <code>update.sh</code> put the libraries into the
+system Python. On an externally managed Python (PEP 668: Debian 12+,
+Ubuntu 23.04+), each library comes from apt when apt has it at or above
+<code>setup.py</code>'s floor; only what apt lacks or ships too old is pip-installed
+system-wide into <code>/usr/local</code>, alongside apt's copy, from the hash-checked
+<code>requirements.lock</code>. On macOS the installer builds a venv
+(with gunicorn).</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>5.58.0 (2026-09-30, PR #99): first support for externally managed Python,
+with apt packages plus a fallback venv joined by a <code>.pth</code> file.</li>
+<li>7.2.0 (2026-09-30, PR #105, commit b3d533e): &quot;No more venv: libraries go
+into the system Python.&quot;</li>
+<li>Commit 38a67c5 then moved everything into a dedicated venv at
+<code>/opt/planetgen/venv</code>, and commit 498df96, in the same PR, reverted it.</li>
+<li>7.7.0: pip installs only locked, hash-checked files.</li>
+<li>7.16.0: macOS installer, with a venv.</li>
+</ul>
+<p><strong>Why:</strong></p>
+<ul>
+<li>Boss &quot;asked in words for the system Python with apt first&quot; (commit
+498df96).</li>
+<li>pip must never overwrite apt's files: a plain
+<code>pip install --upgrade --break-system-packages</code> deletes apt's copy of
+some packages (python3-pymysql) and breaks dpkg, so pip resolves first and
+installs alongside with <code>--ignore-installed --no-deps</code> (commit b3d533e,
+<code>docs/deployment/apache.md</code>).</li>
+<li>mod_wsgi embeds the system Python, so libraries in that Python are what
+Apache actually imports (7.2.0 adds a check for a mismatch).</li>
+</ul>
+<p><strong>Rejected, for now:</strong> the dedicated venv at <code>/opt/planetgen/venv</code>, reached
+by mod_wsgi through <code>python-home</code> (commit 38a67c5, &quot;the standard deployment
+pattern Boss shared&quot;). It was reverted because &quot;the venv is still an open
+question&quot; to Boss, and the commit is kept in history to restore if Boss
+chooses it (commit 498df96). On macOS there is no system
+package manager to lean on, so a venv is used there; no further reason is
+recorded.</p>
+<hr />
+<h2 id="8-population-as-a-separate-pass-optional-and-off-by-default">8. Population as a separate pass, optional and off by default</h2>
+<p><strong>Status: in force.</strong></p>
+<p><strong>Chosen:</strong> species, civilizations, polities and territories are built by
+their own pass over what is already stored (<code>generate.py population</code>,
+<code>planetgen/population/model.py</code>), not during system generation. The pass
+is opt-in: <code>planetgen sector</code> never runs it (PERF.124 removed its <code>--population</code> option), a <code>galaxy</code> run runs it as a stage, and
+<code>install.sh</code> asks y/N with a
+30-second timeout that defaults to No and skip the question with no
+terminal; <code>POPULATION=1</code> runs it without asking. The pages
+and the Galaxy Map's Territories button hide themselves when there is no
+population data (<code>GET /api/population</code>, a polity count). Details:
+<code>population-and-politics.md</code>.</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>7.49.0 (2026-10-01, PR #169, schema v44, POP.1 to POP.4): the pass ships
+and runs after every <code>sector</code> and <code>galaxy</code> fill unless
+<code>--no-population</code> is given (Boss's decision 5, &quot;territories recompute
+automatically after each fill&quot;).</li>
+<li>7.58.1 (PR #181): the Territories button appears only once a polity
+exists.</li>
+<li>7.58.2 (PR #180): optional and off by default everywhere; <code>--population</code>
+replaces <code>--no-population</code>; <code>/api/population</code> added.</li>
+</ul>
+<p><strong>Why:</strong></p>
+<ul>
+<li>A separate pass reads only stored rows (each planet's evolution text and
+each system's position), so a galaxy generated before v44 can be
+populated without a regenerate, and nothing in system generation had
+to change (design doc, &quot;When it runs&quot;).</li>
+<li>A watermark on <code>planets.id</code> (<code>population_state</code>) makes a rerun cheap: it
+scans only planets added since, then recomputes eras and territories,
+which are derived and can be rebuilt from scratch.</li>
+<li>Draws are seeded by the planet id, so traits, civilization odds and
+ages come out the same on every run.</li>
+<li>Off by default: the design doc records it only as Boss's choice of
+2026-10-01, superseding decision 5 the same day; no further reason is
+written down. In practice it means a scheduled <code>update.sh</code> never runs
+the pass, and a fill's time is spent on sectors only.</li>
+</ul>
+<p><strong>Rejected:</strong></p>
+<ul>
+<li>Generating species and polities inside <code>StarSystem</code>: it would have
+needed a regenerate of every existing galaxy, and territories depend on
+neighboring systems a single system cannot see.</li>
+<li>Recomputing territories automatically after every fill (decision 5 as
+first accepted): replaced by the opt-in above.</li>
+<li>Taking the timeline's <code>technological_civilization</code> milestone as a living
+civilization: a 150-sector test fill put it on one system in seven,
+which made nearly every one a polity (commit b62d0aa). A 1 in 1,000
+chance (<code>CIVILIZATION_CHANCE</code>) decides instead.</li>
+</ul>
+<hr />
+<h2 id="9-an-in-memory-cache-for-the-pages-api-answers">9. An in-memory cache for the pages' API answers</h2>
+<p><strong>Status: in force; the invalidation (clear on write, content stamp) is replaced by tag counters in Redis (PERF.104, built 2026-10-16, see cache-warm-up.md); the in-process copy remains.</strong></p>
+<p><strong>Chosen:</strong> each web process keeps the API's public GET answers in memory
+(<code>planetgen/web/lib/pagecache.py</code>, asked by <code>apiclient._request</code> before each call).
+Any successful API write in the process clears it; at most once every 15
+seconds per database it reads the galaxy content stamp (<code>GET /api/galaxy/changes</code>) and drops that database's entries when the stamp
+moved; nothing is kept past 5 minutes; it is capped at 2,000 entries and
+64 MB. Every failure fails open. <code>page_cache</code> in <code>config.json</code> tunes it,
+and <code>PLANETGEN_PAGE_CACHE=off</code> turns it off.</p>
+<p><strong>When:</strong> 7.56.0 (2026-10-01, PR #178, PERF.2).</p>
+<p><strong>Why:</strong></p>
+<ul>
+<li>Every page called the API and every API route queried MySQL fresh, even
+for answers that rarely change (PERF.2). The Galaxy Map's tiles
+already had a cache (<code>tilecache.py</code>), and its content stamp could be
+reused, so the page cache needs no new database columns.</li>
+<li>Only cookie-less GETs are cached, so every visitor gets the same answer
+and nothing that depends on who is asking (<code>/auth</code>, <code>/admin</code>) is
+shared. Tile and stage data stay in the disk cache.</li>
+<li>Clearing on any write in the process makes an edit show on the very
+next page; the stamp catches writes from other processes (a
+<code>generate.py</code> job, another worker); the age limit catches what the
+stamp cannot see, such as a rename from the command line.</li>
+</ul>
+<p><strong>Rejected:</strong> the original plan for PERF.2, invalidating each page from its own
+rows' <code>modified_at</code>, in the style of the tile cache. The commit does not
+say why; the chosen scheme is simpler and needs only the one stamp call.</p>
+<hr />
+<h2 id="10-a-drill-down-for-the-galaxy-map-instead-of-a-free-camera">10. A drill-down for the Galaxy Map instead of a free camera</h2>
+<p><strong>Status: being replaced.</strong> The fly-through map (MAP.146 and MAP.147 to MAP.155) is the planned replacement for the drill-down stages and Free look; until it is built the stages stay, and the spherical sector switch (decision 1) changes the block ladder they sit on.</p>
+<p><strong>Chosen:</strong> the Galaxy Map opens on discrete stages: blocks 243, 27 and 3
+sectors a side, then single sectors, alternating a 3D view of a block's
+children and a top-down view of one slab, eight clicks from the galaxy to
+a sector. Each stage has its own URL. The old free camera stays behind a
+Free look button for now. Details: <code>galaxy-drilldown-navigation.md</code>.</p>
+<p><strong>When:</strong></p>
+<ul>
+<li>7.41.2 and 7.41.3 (PR #160): the block ladder and the stage API.</li>
+<li>7.44.0 (2026-10-01, PR #171, MAP.16): the stages on the map.</li>
+<li>7.50.0, 7.52.0, 7.58.0: the address bar, the NAV course on the map, and
+the Sector Map's pick mode, all built on the stage URLs.</li>
+</ul>
+<p><strong>Why:</strong> Boss asked to &quot;select in sections&quot; (design doc, section 1), and
+the research he shared supports discrete scale tiers, a breadcrumb and
+animated flights. Each stage draws at most about 900 blocks, so the
+phone-performance limits of the free camera stop mattering. Boss chose
+243, 27, 3, 1 (&quot;the bigger targets&quot;) over 81, 9, 1.</p>
+<p><strong>Still open:</strong> MAP.17 (2026-10-01) asks to remove the free camera and
+every drag-rotate and to start top-down, picking a wedge, then a slice,
+then a block. That would settle the design doc's decision 2 against Free
+look and change how the first stages work.</p>
+<h2 id="11-third-party-libraries-instead-of-zero-dependencies">11. Third-party libraries instead of zero dependencies</h2>
+<p><strong>Status: largely built</strong> (OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22, MAP.102). Two parts changed: astropy was dropped (GEN.211, #1310) and three-mesh-bvh was dropped; the work queue is being redone under PERF.86 (Redis only). See the status line in <a href="library-migration.html">library-migration.md</a>.</p>
+<p><strong>Chosen:</strong> Boss (2026-10-03): &quot;we have an explicit directive to move the
+code base from a 0-dependency model into using 3rd party open source
+libraries to simplify our own code deployment.&quot; Hand-written TOTP, QR,
+Kepler solvers, SQL building, the process-pool queue, rate limiting,
+the page cache, Markdown and validation give way to pyotp, segno,
+scipy, astropy, SQLAlchemy with Alembic, RQ on Redis, Flask-Limiter,
+cachetools, markdown and Pydantic (the JSON tile cache stays); the pages gain Shoelace, TanStack,
+Xterm.js and three-mesh-bvh. The code is first reorganized into
+importable packages. Details: <code>library-migration.md</code>.</p>
+<p><strong>When:</strong> planned 2026-10-03 and 2026-10-07 as phase 0 groundwork; not
+built yet.</p>
+<p><strong>Why:</strong> less code to maintain, audited implementations of security code,
+and several open bugs (job logs, test flakes, menus, slow map zoom) are
+fixed by the libraries rather than patched.</p>
+<p><strong>Turned down:</strong> the job guide's broker-less process pool (Boss chose
+Redis); Huey and Celery (section 3 of <code>library-migration.md</code>).</p>
+<h2 id="12-names-from-ids">12. Names from IDs</h2>
+<p><strong>Status: built</strong> (object IDs, the naming key and the phoneme codec; <a href="object-ids.html">object-ids.md</a>). IDs are renumbered when a sector moves to the spherical grid (decision 1).</p>
+<p><strong>Chosen:</strong> Boss (2026-10-03): &quot;Do away with name generation for any
+object, do away with our word-salad code entirely&quot;, narrowed on
+2026-10-08: &quot;keep word salad method for stars and sectors, everything else
+gets a name derived from it's unique ID.&quot; Every object gets a unique ID.
+Stars and sectors keep their word-salad names and, by Boss's decision
+of 2026-10-08 04:00Z, planets, moons and belts keep the &quot;<star> I&quot;
+pattern; the objects with no star-derived name (rogue planets, black
+holes, neutron stars, nebulae, remnants, quasars, interstellar comets,
+asteroid fields, constellations) get Boss's phoneme codec
+(<code>planetgen.names.gated_phoneme_codec</code>) applied to the ID under a naming key stored in
+the control database, drawn when the galaxy is created and changeable by
+an admin. Details: <code>object-ids.md</code>.</p>
+<p><strong>Why:</strong> names become unique by construction (no collision rules, no
+registries, no word lists to keep reproducible), and changing the key
+renames the whole galaxy without touching a row.</p>
+<h2 id="13-every-sector-can-be-generated">13. Every sector can be generated</h2>
+<p><strong>Status: built</strong> (GEN.81: a density or size refusal is now a warning, and the run goes ahead).</p>
+<p><strong>Chosen:</strong> Boss (2026-10-03 and 2026-10-07): &quot;No sector should generate
+and not fill with stuff even if there are no star systems&quot; and &quot;The
+projected density is just to be used in generation, not to block
+generation anywhere.&quot; Every address inside the galaxy's bounds can be
+generated; the density only sets the odds (with a small floor
+everywhere), and <code>sector_stats.bright_level_sol</code> = 0 is the one
+&quot;generated&quot; flag. The console warns but does what it is asked.</p>
+<p><strong>Why:</strong> the &quot;doesn't qualify&quot; rule left sparse and edge sectors
+impossible to fill, broke neighborhood runs, and kept rogue planets,
+comets and fields out of empty sectors.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

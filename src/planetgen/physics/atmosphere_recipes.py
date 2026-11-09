@@ -93,6 +93,11 @@ BODY_KINDS = ("terrestrial", "giant", "brown-dwarf", "asteroid", "comet")
 
 KINDS = ("option", "binary", "param", "bins", "derived", "flag", "windows", "choice")
 
+OPTIONAL_QUANTITIES = {"host_distance_au": None, "xuv_companions": ()}
+"""dict: Quantities a subject carries only when its host has companions (GEN.1442) and the value an expression reads without them: `host_distance_au`, the body's
+distance from its host (AU; the host's own XUV cannot take it from the total light), and `xuv_companions`, the other stars' XUV sources at the body
+(`radiation_field.xuv_emitters`)."""
+
 INPUTS = {
     "mass_earth": "mass of the body (Earth masses)",
     "mass_jupiter": "mass of the body (Jupiter masses)",
@@ -326,6 +331,8 @@ class _Env:
             return self.recipes.constant(group.name, name, group.constants[name], self.subject)
         if name in self.recipes.physical:
             return self.recipes.physical[name]
+        if name in OPTIONAL_QUANTITIES:
+            return self.subject.get(name, OPTIONAL_QUANTITIES[name])
         return self.subject[name]
 
     def call(self, name, args):
@@ -579,7 +586,7 @@ class Recipes:
             self._check_spec(entry)
 
     def _check_names(self, entry):
-        allowed = set(INPUTS) | set(self.physical) | {"body_class", "value"} | set(entry.constants) | set(entry.lets)
+        allowed = set(INPUTS) | set(OPTIONAL_QUANTITIES) | set(self.physical) | {"body_class", "value"} | set(entry.constants) | set(entry.lets)
         if entry.group:
             allowed |= set(self.groups[entry.group].constants)
         expressions = list(entry.lets.values())

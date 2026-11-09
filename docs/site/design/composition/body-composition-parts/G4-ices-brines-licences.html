@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G4: ices, brines and licences (check of Boss's second note, claims G4.1 to G4.7) - planetGen docs</title>
+<meta name="description" content="Scope: body-related claims only.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/G4-ices-brines-licences.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/G4-ices-brines-licences.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="g4-ices-brines-and-licences-check-of-bosss-second-note-claims-g41-to-g47">G4: ices, brines and licences (check of Boss's second note, claims G4.1 to G4.7)</h1><p class="meta">docs/design/composition/body-composition-parts/G4-ices-brines-licences.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#verdicts">Verdicts</a></li><li style="margin-left:0px"><a href="#figures-for-the-generator">Figures for the generator</a></li><li style="margin-left:14px"><a href="#f1-cold-end-vapor-pressure-answers-g41-needed-by-p_satspecies-t">F1 cold-end vapor pressure (answers G4.1; needed by p_sat(species, T))</a></li><li style="margin-left:14px"><a href="#co2-sublimation-answers-g42c-test-target-for-p_sat-and-for-co2-frost">CO2 sublimation (answers G4.2c; test target for p_sat and for CO2 frost)</a></li><li style="margin-left:14px"><a href="#light-gases-critical-and-triple-points-answers-g43-part-e-materials-table-row-for-h2-already-matches">Light gases, critical and triple points (answers G4.3; Part E materials-table row for H2 already matches)</a></li><li style="margin-left:14px"><a href="#co2-hydrate-points-answers-g44">CO2 hydrate points (answers G4.4)</a></li><li style="margin-left:14px"><a href="#brine-freezing-point-lookup-answers-g45-for-hydrosphere-and-mars-type-brines">Brine freezing-point lookup (answers G4.5; for hydrosphere and Mars-type brines)</a></li><li style="margin-left:14px"><a href="#venus-acid-clouds-answers-g46">Venus acid clouds (answers G4.6)</a></li><li style="margin-left:0px"><a href="#licence-table-g47-and-the-data-this-design-will-load">Licence table (G4.7 and the data this design will load)</a></li><li style="margin-left:0px"><a href="#still-unreachable-boss-must-research">Still unreachable (Boss must research)</a></li><li style="margin-left:0px"><a href="#counts">Counts</a></li><li style="margin-left:0px"><a href="#files-all-under-mntproject-filesdesign-draftspartsg-files">Files (all under /mnt/project-files/design-drafts/parts/G-files/)</a></li></ul></details>
+<p>Scope: body-related claims only. Labels follow <code>_brief.md</code> (READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED). Scripts and extracted tables: <code>parts/G-files/G4_*</code> (listed at the end). Reused from Part F: the transcribed Fray and Schmitt Table 2 (<code>F-files/fray_schmitt_table2_transcribed_and_checked.py</code>, NTRS 20210019502).</p>
+<p>Key finding in one paragraph: the cold-end vapor-pressure papers exist, but the attribution is off (Blakley et al. is 2024, Planetary and Space Science 244, 105863, and covers only beta-O2 and NH<sub>3</sub>; N<sub>2</sub>, CO and CH<sub>4</sub> are [R1708]). A 2026 preprint by Grundy's group applies a further +19 percent correction (ccold = 1.19) to all five species, so the &quot;lower by 1.6&quot; and &quot;lower by 1.5&quot; figures are already out of date. The &quot;0 K to 800 K, 12 GPa&quot; range belongs to [R2918], not to [R2137]. The CO<sub>2</sub> hydrate quadruple point matches one paper [R4015]. Two licence claims fail: NIST Standard Reference Data (WebBook, XCOM, ESTAR, PSTAR) is copyrighted by the Secretary of Commerce, not public domain, and the NTRS record for JPL Publication 19-5 says it is copyrighted with US-government-purpose use rights, not public domain.</p>
+<h2 id="verdicts">Verdicts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>claim as written (short)</th>
+<th>verdict</th>
+<th>the right figure (unit)</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G4.1a</td>
+<td>[R0418, R1708] replace Fray and Schmitt (F&amp;S) extrapolations below 50 K for alpha-N2, alpha-CO, CH<sub>4</sub> I, NH<sub>3</sub>, beta-O2 with QCM experiments</td>
+<td>PARTLY</td>
+<td>Two papers exist. [R1708] (N<sub>2</sub>, CO, CH<sub>4</sub>). Blakley et al. <strong>2024</strong> (not 2025), Planet. Space Sci. 244, 105863 (NH<sub>3</sub>, beta-O2; [R0418] is this paper). Measured ranges: N<sub>2</sub> 23.3 to 31.1 K, CO 26.2 to 34.1 K, CH<sub>4</sub> 31.1 to 39.1 K (Grundy fig03 files); beta-O2 lower bound near 30 K; NH<sub>3</sub> lower bound near 90 K, fitted over about 80 to 120 K (Blakley sec 2.2, 4.1). NH<sub>3</sub> is therefore not &quot;below 50 K&quot;. They are lab data in a narrow window plus a fitted extrapolation law (Lobo and Ferreira form), not a replacement below 50 K for all five.</td>
+<td>[R1708] abstract (NAU repository eprint 6246, Crossref [R1708]); [R0418] ([R0418] PDF, par.nsf.gov/servlets/purl/10610695)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.1b</td>
+<td>beta-O2 vapor pressures lower than legacy by an average factor 1.6</td>
+<td>CONFIRMED</td>
+<td>&quot;lower vapor pressures than previous work by an average factor of 1.6&quot; (Blakley sec 4.2, Fig. 7; compared to F&amp;S/Brown and Ziegler polynomial). NH<sub>3</sub>: factor 1.5 (sec 4.1). Both are the 2024 values; the 2026 correction (G4.1e) raises them by 4 to 39 percent depending on T (COMPUTED below)</td>
+<td>[R0418] sec 4.1, 4.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.1c</td>
+<td>sublimation enthalpy 9.2 percent higher</td>
+<td>CONFIRMED</td>
+<td>&quot;Over the range of 20-50 K, our calculated values are higher by an average of 9.2% than the NIST accepted constant value of 9.26 kJ/mol&quot;. NH<sub>3</sub>: 2.74 percent higher than NIST 31.2 kJ/mol over 80 to 120 K.</td>
+<td>Blakley sec 4.2, Fig. 8; sec 4.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.1d</td>
+<td>&quot;E_a about 9.2 kJ/mol&quot; (note's second wording)</td>
+<td>CONTRADICTED</td>
+<td>The two 9.2 values are unrelated. 9.26 kJ/mol is the old NIST constant for O<sub>2</sub>; the paper's own result is 9.2 percent above it, about 10.1 kJ/mol on average over 20 to 50 K (9.26 x 1.092 = 10.11, COMPUTED), and it varies with T. The paper gives L(T) as a fourth-degree function, not one constant.</td>
+<td>Blakley sec 4.2; Table 1</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>G4.1e</td>
+<td>N<sub>2</sub> &quot;chamber background pressure correction factor Phi about 1.1875&quot;</td>
+<td>PARTLY</td>
+<td>Phi in [R1708] is a per-run polynomial scale on the gauge pressure (eq. 6: p_vap = Phi p_gauge sqrt(T_QCM/T_room) minus the dQ/dt term), fitted from the stepped deposition, not one constant, and its N<sub>2</sub> value is not printed in anything reached. The only constant near 1.19 is a different correction: <strong>ccold = 1.19 +/- 0.03</strong>, the geometric back-condensation from cold parts of the QCM mount, in the 2026 Grundy et al. preprint (Appendix A), applied to all five species. 1.1875 itself is not found.</td>
+<td>[R1707] preprint (openknowledge.nau.edu/6360, &quot;in press in Icarus 2026&quot;; title Vapor Pressures of Low-Temperature C2Hx Hydrocarbon Ices), eq. 2 to 3, Appendix A; Blakley sec 3.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.1f</td>
+<td>CH<sub>4</sub> reduced vapor pressure below 36 K</td>
+<td>PARTLY</td>
+<td>CH<sub>4</sub> I is reduced over the whole measured and compared range, not only below 36 K. Origin[R1708] fit over F&amp;S: 0.52 at 30 K, 0.62 at 35 K, 0.70 at 40 K, 0.83 at 50 K, 0.93 at 60 K, 1.01 at 70 K, 1.07 at 80 K (COMPUTED from the data package). With ccold = 1.19: 0.62, 0.74, 0.83, 0.99, 1.1 (30, 35, 40, 50, 60 K). Nothing special happens at 36 K for CH<sub>4</sub>. The 35.61 K transition is alpha to beta N<sub>2</sub>, a different molecule.</td>
+<td>[R1708] data package fig06 files (openknowledge.nau.edu/6246)</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>G4.1g</td>
+<td>CO &quot;largest relative error among super-volatiles&quot;</td>
+<td>CONFIRMED</td>
+<td>Abstract: &quot;carbon monoxide being the most discrepant of the three species, almost an order of magnitude lower than had been thought.&quot; Ratio to F&amp;S (original fit): 0.067 at 25 K (15 times lower), 0.146 at 30 K, 0.25 at 35 K, 0.39 at 40 K, 0.69 at 50 K, 1.02 at 60 K. N<sub>2</sub> ratio: 1.24 at 20 K, 0.97 at 22 K, 0.52 at 30 K, 0.42 at 34 K.</td>
+<td>[R1708] abstract; fig04 to fig06 files</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>G4.2a</td>
+<td>[R2137]: validity &quot;0 K to 800 K and up to 12 GPa&quot;</td>
+<td>CONTRADICTED</td>
+<td>That range is the title and abstract of a different paper: Trusler, J. Phys. Chem. Ref. Data 40, 043105 (2011), &quot;Equation of State for Solid Phase I of Carbon Dioxide Valid for Temperatures up to 800 K and Pressures up to 12 GPa&quot; (abstract: &quot;valid at temperatures from 0 to 800 K and at pressures from the solid-fluid phase boundary to 12 GPa&quot;). Jager and Span's abstract states no numbers: &quot;behaves physically reasonably within its range of validity&quot;. Their full text was not reachable; the range stays unknown. A 2025 JCED paper (acs.jced.5c00260) builds a new solid-I EoS valid &quot;up to 400 K and 1.2 GPa&quot; and lists Jager and Span and Trusler as comparison models.</td>
+<td>Crossref abstract of [R2918] (Trusler); OpenAlex/TU Dresden abstract of [R2137]; OpenAlex abstract of [R4080]</td>
+<td>READ (abstracts)</td>
+</tr>
+<tr>
+<td>G4.2b</td>
+<td>coupling with [R4166]</td>
+<td>CONFIRMED</td>
+<td>Abstract: sublimation and melting pressures are &quot;predicted accurately using Gibbs energies calculated from the new dry ice equation and from the fundamental equation by Span and Wagner for the fluid phase&quot;; they agree with the S&amp;W reference equations &quot;mostly within the uncertainty&quot;; &quot;very sensitive to variations of the Gibbs energy&quot;; a different fluid EoS &quot;has a significant impact&quot;. J. Chem. Eng. Data 57 (2), 590 to 597, published 6 January 2012.</td>
+<td>Crossref/OpenAlex abstract</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>G4.3a</td>
+<td>H<sub>2</sub> critical temperature 33.19 K (check 33.145 K)</td>
+<td>PARTLY</td>
+<td>NIST WebBook phase-change table, H<sub>2</sub>: <strong>Tc 33.18 K</strong> (+/- 0.2 K), Pc 13.00 bar. The modern reference-EoS value is <strong>33.145 K</strong> (EoS as stored in CoolProp <code>Hydrogen.json</code>, Pc 1.2964 MPa). Equilibrium-H2 measured value 32.994 K (old temperature scale). 33.19 is not in any source read; use 33.145 K (EoS) or 33.18 K (WebBook), difference 0.1 percent.</td>
+<td>webbook.nist.gov/cgi/cbook.cgi?ID=C1333740 ; CoolProp dev/fluids/Hydrogen.json ; J. Res. NBS 47, 75</td>
+<td>READ / 2ND-HAND</td>
+</tr>
+<tr>
+<td>G4.3b</td>
+<td>He critical temperature 5.20 K (5.195)</td>
+<td>CONFIRMED</td>
+<td>WebBook He: Tc 5.2 K, Pc 2.274 bar. EoS value 5.1953 K, Pc 0.2283 MPa (CoolProp <code>Helium.json</code>).</td>
+<td>WebBook C7440597; CoolProp Helium.json</td>
+<td>READ / 2ND-HAND</td>
+</tr>
+<tr>
+<td>G4.3c</td>
+<td>HD critical temperature about 35.9 K</td>
+<td>CONFIRMED</td>
+<td><strong>35.908 K</strong>, Pc 14.645 atm, Vc 62.8 cm3/mol; e-H2 32.994 K, 12.770 atm; e-D2 38.262 K, 16.282 atm. WebBook lists HD only with a triple point 16.6 K; [R1975: Table 9]: HD triple 16.60 K at 92.8 mmHg.</td>
+<td>J. Res. NBS 47, 75 (RP2229) PDF; J. Res. NBS 47, 63 (RP2228) Table 9</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.3d</td>
+<td>H<sub>2</sub>, HD, He &quot;non-condensable above 10 K&quot;</td>
+<td>PARTLY</td>
+<td>Wrong as stated for H<sub>2</sub> and HD. H<sub>2</sub> solid exists below the triple point <strong>13.95 to 13.96 K</strong> (WebBook; EoS 13.957 K) at <strong>0.0721 bar</strong> (7.2 kPa; EoS 7358 Pa); H<sub>2</sub> liquid exists up to Tc; H<sub>2</sub> boils at 20.27 K at 1 atm (Hoge and Arnold Table 9, e-H2). HD: triple 16.60 K, boils 22.14 K. Equilibrium-D2 triple 18.69 K. So H<sub>2</sub> and HD are condensible below about 14 and 17 K (solid) and 20 and 22 K (1 atm liquid). He has no solid at its own vapor pressure: triple (lambda) point of the liquid 2.1768 K, 5039 Pa (CoolProp), liquid below Tc 5.195 K at 1 atm; solid He needs about 25 bar (RECALLED, not checked). What the generator needs: <strong>no H<sub>2</sub> ice on any body whose surface is warmer than the H<sub>2</sub> triple point (about 14 K at the triple pressure); H<sub>2</sub> vapor pressure at 10 K is of order 100 Pa</strong>, so even a 10 K surface cannot hold H<sub>2</sub> ice against vacuum (ESTIMATE: Clausius-Clapeyron from the triple point, RECALLED sublimation enthalpy about 1 kJ/mol; not read).</td>
+<td>WebBook C1333740; [R1975]; CoolProp</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.4a</td>
+<td>CO<sub>2</sub> hydrate quadruple point V-Lw-I-H: T = 271.60 K, P = 1.044 MPa</td>
+<td>CONFIRMED</td>
+<td>Matches Semenov et al., Int. J. Mol. Sci. 24, 9321 (2023) (PMC10253777): direct measurement, &quot;T = 271.60 K, P = 1.044 MPa&quot;, combined standard uncertainty +/- 0.023 K and +/- 0.021 MPa. Earlier indirect value [R3259, R3260] (Fluid Phase Equilib. 441, 49): 271.6 +/- 0.2 K, 1.04 +/- 0.02 MPa (SNIPPET). Not found in Sloan and Koh, Mohammadi and Richon, Hashimoto, Chen or Nakano texts; Nagashima et al. are cited in the paper for V-I-H data. A value I recalled for Sloan and Koh (273.1 K, 1.256 MPa) was not found in any source: do not use it (RECALLED).</td>
+<td>PMC10253777 full text</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.4b</td>
+<td>uncertainty +/- 0.02 K, +/- 0.002 MPa</td>
+<td>PARTLY</td>
+<td>Paper: +/- 0.023 K and +/- 0.021 MPa (10 times larger in pressure). The tighter +/- 0.01 K and +/- 0.002 MPa appear only in a Mendeley data record by the same group (SNIPPET). Upper quadruple point Q2 (V-Lw-L(CO<sub>2</sub>)-H): <strong>283.13 K, 4.494 MPa</strong> (intersection of fits through the authors' earlier data and refs 57, 58 of that paper, Fig. in sec 1/2); roughly 283 K, 4.5 MPa in simulation papers (SNIPPET).</td>
+<td>PMC10253777 figure caption</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.4c</td>
+<td>the claim includes the salts MgCl<sub>2</sub>, RbCl, NaCl</td>
+<td>UNVERIFIABLE</td>
+<td>Tried: the Semenov paper (no salt data), web search for Q1 in NaCl, MgCl<sub>2</sub> and RbCl systems. Found only inhibition studies ([R1997] Raman; Dholabhai, Sami and Cordeiro et al. for NaCl and MgCl<sub>2</sub> hydrate equilibria above Q2 or without Q1). Nothing on RbCl. Missing: a primary paper that gives Q1 or the eutectic shift for CO<sub>2</sub> hydrate in salt solutions. Not needed for v1 (hydrate in brines is later work, Part F item F4).</td>
+<td>n/a</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>G4.5a</td>
+<td>Mg(ClO<sub>4</sub>)<sub>2</sub> eutectic about 205 K (literature 206 K at 44 wt percent)</td>
+<td>CONFIRMED</td>
+<td><strong>206 +/- 1 K at 44.0 wt% Mg(ClO<sub>4</sub>)<sub>2</sub></strong> (Chevrier, Hanley, GRL 36, L10202, theoretical eutectic). 205 K with eutectic water activity aw = 0.55 ([R1642], as quoted by Martinez et al. [R3775]); 206 K, aw = 0.56 (Rivera-Valentin et al. [R3774] ref 6, i.e. [R0770]); 212 K, aw 0.53 in another group's table (Pal and Kereszturi [R3411]). Spread 205 to 212 K between authors.</td>
+<td>Crossref abstract [R0770]; arXiv preprints</td>
+<td>READ (abstract), 2ND-HAND</td>
+</tr>
+<tr>
+<td>G4.5b</td>
+<td>Ca(ClO<sub>4</sub>)<sub>2</sub> eutectic about 197 K</td>
+<td>PARTLY</td>
+<td><strong>198 K</strong>, aw = 0.52 ([R2878, R3493], as quoted by Martinez et al. 1811.00862 and Rivera-Valentin et al. [R3774]). 199 K, aw 0.51 in Pal and Kereszturi ([R3411: Table 1]). 197 K is not found. Eutectic composition not reached (52.4 wt% appears in Martinez et al. as the brine composition at about 205 K, not as a stated eutectic).</td>
+<td>[R3775], 2012.00100, 2112.08287</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>G4.5c</td>
+<td>NaClO<sub>4</sub> eutectic about 236 K</td>
+<td>CONFIRMED</td>
+<td><strong>236 +/- 1 K at 52 wt% NaClO<sub>4</sub></strong> ([R0770] abstract).</td>
+<td>Crossref abstract [R0770]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.5d</td>
+<td>ln DRH = (dH_sol/R)(1/T - 1/T0) + ln DRH(T0)</td>
+<td>UNVERIFIABLE</td>
+<td>Form is the integrated van't Hoff relation; no text I read writes it for DRH. What is read: DRH of Mg(ClO<sub>4</sub>)<sub>2</sub> hydrate rises as T falls (about 42 percent near 273 K to about 64 percent near 223 K, [R1642], SNIPPET); Gu et al. 2017 (RSC Adv.) find 42.8 to 40.5 percent from 278 to 303 K (SNIPPET). Fitting the Gough pair to the form gives an effective dH/R = 513 K (about 4.3 kJ/mol, COMPUTED from SNIPPET inputs, not usable). [R3320] give Ca(ClO<sub>4</sub>)<sub>2</sub> DRH from 223 to 273 K: 5 to 55 percent, highest at the lowest T (SNIPPET); Martinez et al. use their fits as DRH(T) and ERH(T). Needs [R1642, R3320] full texts.</td>
+<td>see left</td>
+<td>SNIPPET / NOT REACHED</td>
+</tr>
+<tr>
+<td>G4.6</td>
+<td>Venus H<sub>2</sub>SO<sub>4</sub>-H2O clouds 70 to 95 wt percent (typical 75 to 85); activities by [R0210, R4289, R4877]; cloud base evaporation 48 to 52 km</td>
+<td>PARTLY</td>
+<td>Wt range: published retrievals 73 to 87 wt% in the upper clouds and 85 to 96 wt% in the lower clouds; best-fit droplets about 75 wt% (SNIPPET from a 2025 paper and several Venus papers; the [R4374] review not read). Cloud-opacity drop at <strong>48 km</strong> where the acid evaporates (Grassi review [R1668] sec 4.1.1, 2ND-HAND); &quot;48 to 52&quot; is not supported. Source mapping: The activity formulation is valid for <strong>185 to 260 K</strong> and RH above 1 percent: stratospheric aerosol, <strong>not Venus cloud temperatures</strong> (cloud base is warm, above 300 K). [R4877] covers aqueous H<sub>2</sub>SO<sub>4</sub> &quot;to 350 K&quot; and all compositions: usable. The fit is the H<sub>2</sub>SO<sub>4</sub> vapor pressure over 98.01 mass-% acid, 338 to 445 K: relevant to the base of the deck, not an activity-coefficient model.</td>
+<td>Crossref abstracts [R0210, R1668, R4289, R4877]</td>
+<td>READ (abstracts) / SNIPPET</td>
+</tr>
+<tr>
+<td>G4.7a</td>
+<td>Mainz Spectral Atlas = CC BY 4.0, cite [R2303]</td>
+<td>CONFIRMED (frozen copy)</td>
+<td>The Zenodo record 6951 (frozen snapshot of 24 June 2013, 126 MB zip) has licence <code>cc-by-4.0</code>. The live site pages read state no licence; they ask to cite Keller-Rudek, Moortgat, Sander, Sorensen, ESSD 5, 365 (2013), [R2303] The ESSD paper itself is CC BY <strong>3.0</strong>. So: CC BY 4.0 is stated only for the 2013 snapshot.</td>
+<td>zenodo.org/api/records/6951; uv-vis-spectral-atlas-mainz.org/uvvis/ ; essd.copernicus.org/articles/5/365/2013</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.7b</td>
+<td>Leiden photodissociation database = &quot;academic citation request / open access&quot;, cite [R1873]</td>
+<td>PARTLY</td>
+<td>Citation request confirmed: &quot;When using material from this site, please cite one of the overview papers. In cases of specific molecules, please cite the original source of the cross sections.&quot; Overview list: [R1873, R2019]. No licence or &quot;open access&quot; statement on the pages read (index, downloads, acknowledgements, references). Data are compiled from many third-party sources, so redistribution status is unknown.</td>
+<td>home.strw.leidenuniv.nl/~ewine/photo/ (index, downloads, references)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G4.7c</td>
+<td>JPL Publication 19-5 = &quot;public domain (US Government work)&quot;, free redistribution</td>
+<td>CONTRADICTED</td>
+<td>NTRS record 20210006316 (Burkholder et al., Evaluation No. 19): distribution PUBLIC, but the copyright block says <code>belongsToUsGov: false</code>, <code>belongsToPublisher: true</code> and the approver comment &quot;Items in TRS are protected by copyright, but are furnished with U.S. government purpose use rights.&quot; Full text is not disseminated by NTRS (metadata only). jpldataeval.jpl.nasa.gov is refused by this environment's proxy (502) and jpl.nasa.gov/copyrights returned 403, so the site's own copyright FAQ was not read. Not public domain on the evidence; redistribution of derived tables unknown.</td>
+<td>api NTRS 20210006316</td>
+<td>READ (metadata)</td>
+</tr>
+<tr>
+<td>G4.7d</td>
+<td>&quot;Bremen molecular spectra files&quot; = proprietary</td>
+<td>UNVERIFIABLE</td>
+<td>The IUP Bremen database pages (reference spectra, DLR database, Databases index) state no licence or terms in the text read; the CH<sub>4</sub> data page needs a login (&quot;Please log on&quot;); O<sub>3</sub> 2011 page asks to check for updates and contact V. Gorshelev. &quot;Proprietary&quot; is an inference, not a stated term.</td>
+<td>iup.uni-bremen.de/gruppen/molspec/databases/</td>
+<td>READ (absence)</td>
+</tr>
+<tr>
+<td>G4.7e</td>
+<td>&quot;NMSU Karkoschka band files&quot; = academic attribution</td>
+<td>PARTLY</td>
+<td>Host is right: atmos.nmsu.edu/planetary_datasets/ serves [R2258] methane absorption coefficient and Uranus albedo text files (300 to 1000 nm), source line only, no licence. [R2265] coefficients are available as derived k-tables from P. Irwin's Oxford page (users.ox.ac.uk/~atmp0035/methane.html), flagged &quot;not yet fully verified&quot;, no licence. The Arizona page of E. Karkoschka (pirlwww.lpl.arizona.edu/~erich/) is a 1998 placeholder with no data. &quot;Academic attribution&quot; is not a stated term.</td>
+<td>as left</td>
+<td>READ (absence)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figures-for-the-generator">Figures for the generator</h2>
+<h3 id="f1-cold-end-vapor-pressure-answers-g41-needed-by-p_satspecies-t">F1 cold-end vapor pressure (answers G4.1; needed by <code>p_sat(species, T)</code>)</h3>
+<p>What changes in item F1. Part F's transcribed F&amp;S coefficients are now independently confirmed: the F&amp;S polynomials tabulated in the [R1708] data package (fig04 to fig06) agree with the Part F transcription of N<sub>2</sub>-1, CO-1 and CH<sub>4</sub>-1 to 0.5 percent (20 to 60 K; <code>G4_qcm_check.out.txt</code>). So the transcription can be relabelled READ (F&amp;S curves) plus COMPUTED (match).</p>
+<p>Recommended structure of <code>p_sat</code> for the super-volatiles (PARAMETRISATION of which source to use, not a physical constant):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>species</th>
+<th>below the QCM window</th>
+<th>QCM window (lab data)</th>
+<th>above the window</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alpha-N2</td>
+<td>refit needed; do not use F&amp;S below 22 K without a flag (original fit crosses F&amp;S at about 21.5 K)</td>
+<td>23.3 to 31.1 K</td>
+<td>F&amp;S set 1 or Brown and Ziegler up to the alpha-beta transition 35.61 K (Grundy fig07 gives L(T), 7.18 kJ/mol near 20 K)</td>
+</tr>
+<tr>
+<td>alpha-CO</td>
+<td>same</td>
+<td>26.2 to 34.1 K</td>
+<td>transition from corrected-QCM to F&amp;S near 55 to 60 K (ratio crosses 1.0 at 55 K with ccold, 60 K without)</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I</td>
+<td>same</td>
+<td>31.1 to 39.1 K</td>
+<td>crossover to F&amp;S near 50 to 60 K</td>
+</tr>
+<tr>
+<td>beta-O2</td>
+<td>Blakley fit</td>
+<td>about 30 K upward</td>
+<td>Blakley fit joined with Aoyama and Kanda / Hoge data (37.6 to 53.1 K)</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>Blakley fit</td>
+<td>about 90 K upward (fit uses 80 to 120 K)</td>
+<td>F&amp;S set 1 above 162 K (lab data 162 to 195 K)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Table of corrected values (READ + COMPUTED): <code>G-files/G4_qcm_corrected_vapor_pressure.csv</code> (114 rows: T, F&amp;S, [R1708] original Lobo and Ferreira fit, same times 1.19, ratio). Spot values (bar):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>species</th>
+<th>T (K)</th>
+<th>F&amp;S 2009</th>
+<th>[R1708] fit</th>
+<th>times ccold 1.19</th>
+<th>ratio corrected / F&amp;S</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alpha-N2</td>
+<td>25</td>
+<td>8.42e-11</td>
+<td>6.14e-11</td>
+<td>7.31e-11</td>
+<td>0.87</td>
+</tr>
+<tr>
+<td>alpha-N2</td>
+<td>30</td>
+<td>3.90e-8</td>
+<td>2.01e-8</td>
+<td>2.39e-8</td>
+<td>0.61</td>
+</tr>
+<tr>
+<td>alpha-CO</td>
+<td>30</td>
+<td>3.61e-9</td>
+<td>5.27e-10</td>
+<td>6.27e-10</td>
+<td>0.17</td>
+</tr>
+<tr>
+<td>alpha-CO</td>
+<td>40</td>
+<td>1.01e-5</td>
+<td>3.90e-6</td>
+<td>4.64e-6</td>
+<td>0.46</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I</td>
+<td>36</td>
+<td>3.01e-10</td>
+<td>1.91e-10</td>
+<td>2.27e-10</td>
+<td>0.76</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I</td>
+<td>50</td>
+<td>2.98e-6</td>
+<td>2.47e-6</td>
+<td>2.94e-6</td>
+<td>0.99</td>
+</tr>
+</tbody>
+</table></div>
+<p>Direct QCM measurements ([R1708] fig03, not corrected for ccold; T in K, P in bar): N<sub>2</sub> 23.29 3.25e-12, 25.24 7.82e-11, 27.17 9.36e-10, 29.12 8.89e-9, 31.08 6.30e-8. CO 26.20 4.57e-12, 28.14 4.74e-11, 30.09 5.99e-10, 32.06 4.81e-9, 34.06 3.45e-8. CH<sub>4</sub> 31.07 1.21e-12, 33.05 9.12e-12, 35.05 6.51e-11, 37.07 4.06e-10, 39.09 2.41e-9.</p>
+<p>Functional form (used by both papers): ln p[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3. Printed coefficients:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>species</th>
+<th>A</th>
+<th>B (K)</th>
+<th>C</th>
+<th>D2 (1/K)</th>
+<th>D3 (1/K^2)</th>
+<th>D4 (1/K^3)</th>
+<th>source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>beta-O2, 2024</td>
+<td>15.29 +/- 0.29</td>
+<td>1166.2 +/- 8.6</td>
+<td>-0.75587</td>
+<td>0.14188</td>
+<td>-1.8665e-3</td>
+<td>7.582e-6</td>
+<td>Blakley Table 1 (READ)</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub>, 2024</td>
+<td>-5.55 +/- 0.45</td>
+<td>3605 +/- 31</td>
+<td>4.82792</td>
+<td>-0.024895</td>
+<td>2.1669e-5</td>
+<td>-2.3575e-8</td>
+<td>Blakley Table 1 (READ)</td>
+</tr>
+<tr>
+<td>alpha-N2, with ccold</td>
+<td>-3.35 +/- 0.19</td>
+<td>817 +/- 5</td>
+<td>not printed</td>
+<td>not printed</td>
+<td>not printed</td>
+<td>not printed</td>
+<td>[R1707: Table 3] (READ, A and B only)</td>
+</tr>
+<tr>
+<td>alpha-CO, with ccold</td>
+<td>-6.150 +/- 0.036</td>
+<td>971.6 +/- 2.1</td>
+<td>not printed</td>
+<td></td>
+<td></td>
+<td></td>
+<td>same</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I, with ccold</td>
+<td>-2.666 +/- 0.027</td>
+<td>1127.8 +/- 2.0</td>
+<td>not printed</td>
+<td></td>
+<td></td>
+<td></td>
+<td>same</td>
+</tr>
+<tr>
+<td>beta-O2, with ccold</td>
+<td>14.85 +/- 0.23</td>
+<td>1147 +/- 9</td>
+<td>take Blakley's</td>
+<td></td>
+<td></td>
+<td></td>
+<td>same</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub>, with ccold</td>
+<td>-5.73 +/- 0.57</td>
+<td>3570 +/- 27</td>
+<td>take Blakley's</td>
+<td></td>
+<td></td>
+<td></td>
+<td>same</td>
+</tr>
+</tbody>
+</table></div>
+<p>C, D2, D3, D4 for N<sub>2</sub>, CO, CH<sub>4</sub> are printed in the [R1708] paper (Table; not reachable), not in the 2026 preprint. Reconstruction for use until the paper is read (COMPUTED, <code>G4_fit_updated_lf.py</code>, fitting the tabulated 2024 curve times 1.19 with the 2026 A and B fixed; max error 0.3 to 0.6 percent in ln p inside the fitted ranges; <strong>valid only inside</strong> 20 to 35 K, 25 to 61 K, 30 to 90 K; these are curve-fit constants, not the authors' physical C..D4):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>species</th>
+<th>C</th>
+<th>D2</th>
+<th>D3</th>
+<th>D4</th>
+<th>range (K)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alpha-N2</td>
+<td>5.4606</td>
+<td>-0.27791</td>
+<td>0.0042387</td>
+<td>-3.7668e-5</td>
+<td>20 to 35</td>
+</tr>
+<tr>
+<td>alpha-CO</td>
+<td>5.9227</td>
+<td>-0.0961</td>
+<td>7.746e-5</td>
+<td>5.0999e-7</td>
+<td>25 to 61</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I</td>
+<td>3.5975</td>
+<td>-0.025762</td>
+<td>-1.7561e-4</td>
+<td>1.0998e-6</td>
+<td>30 to 90</td>
+</tr>
+</tbody>
+</table></div>
+<p>Effect of the 2026 correction on O<sub>2</sub> and NH<sub>3</sub> (COMPUTED, <code>G4_blakley_update_ratio.py</code>, assumes the 2024 C..D4 are unchanged): beta-O2 new/old = 1.39 at 25 K, 1.22 at 30 K, 1.12 at 35 K, 1.04 at 40 K, 0.99 at 45 K. NH<sub>3</sub> new/old = 1.29 at 80 K, 1.23 at 90 K, 1.19 at 100 K, 1.12 at 120 K, 1.07 at 140 K. So the &quot;factor 1.6&quot; for O<sub>2</sub> is about 1.3 to 1.5 at 30 K after the correction, and the corrected NH<sub>3</sub> factor at 90 K is 1.5/1.23 = 1.2 (COMPUTED). The 2026 paper is a preprint (&quot;in press in Icarus 2026&quot;); the Elsevier version was not read. Honest status: ccold is a geometry factor measured from photographs for one apparatus (1.19 +/- 0.03), so the corrected figures are the authors' latest best estimate, not yet an independent confirmation. Use the corrected set as default and keep the F&amp;S set as a switchable alternative; the generator's tests should accept either within a factor 2.</p>
+<p>Enthalpy of sublimation: alpha-N2 7.18 to 7.21 kJ/mol over 20 to 35.6 K; beta-N2 about 7.09 kJ/mol at 35.6 K (Grundy fig07). beta-O2 about 10.1 kJ/mol average, NH<sub>3</sub> about 32.0 kJ/mol average over 80 to 120 K (31.2 x 1.0274, COMPUTED).</p>
+<p>Cross-check (COMPUTED, <code>G4_qcm_check.py</code>): Lobo and Ferreira NH<sub>3</sub> from Blakley Table 1 divided by F&amp;S set 1 (Part F coefficients) is 0.57 at 80 K, 0.63 at 90 K, 0.68 at 100 K, 0.88 at 140 K, consistent with &quot;lower by an average factor 1.5&quot; over 80 to 120 K. The beta-O2 curve from Table 1 gives 7.07e-11 bar at 30 K, 1.40e-6 bar at 40 K (no beta-O2 F&amp;S coefficients in Part F to compare).</p>
+<h3 id="co2-sublimation-answers-g42c-test-target-for-p_sat-and-for-co2-frost">CO<sub>2</sub> sublimation (answers G4.2c; test target for p_sat and for CO<sub>2</sub> frost)</h3>
+<p>[R4166], eq. 3.12 (READ from the NIST SRD reprint, p. 1521): ln(p_sub/p_t) = (T_t/T) (a1 th + a2 th^1.9 + a3 th^2.9), th = 1 - T/T_t; T_t = 216.592 K, p_t = 0.51795 MPa, a1 = -14.740846, a2 = 2.4327015, a3 = -5.3061778. Stated uncertainty (OCR of the reprint; the first bound is garbled and read as 185 K): +/- 2.5 Pa for 185 K &lt;= T &lt;= T_t, +/- 100 Pa for 170 to 185 K, +/- 50 Pa below 170 K. The equation was fitted to data above 154 K; low-temperature data are matched to 0.01 Pa for T &gt; 85 K and 0.0001 Pa below. Normal sublimation temperature 194.6857 +/- 0.0030 K [R0310]; eq. 3.12 returns 194.6855 K (also COMPUTED here: 194.68546 K).</p>
+<p>COMPUTED values (<code>G4_co2_sublimation.py</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>T (K)</th>
+<th>p_sub (Pa)</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>80</td>
+<td>2.169e-6</td>
+<td></td>
+</tr>
+<tr>
+<td>100</td>
+<td>1.3408e-2</td>
+<td></td>
+</tr>
+<tr>
+<td>120</td>
+<td>3.736</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>150</strong></td>
+<td><strong>842.65</strong></td>
+<td>test target</td>
+</tr>
+<tr>
+<td>170</td>
+<td>9960.4</td>
+<td></td>
+</tr>
+<tr>
+<td>185</td>
+<td>43935</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>195</strong></td>
+<td><strong>103971</strong></td>
+<td>test target (above 1 atm: the normal sublimation point is 194.6857 K, 101327 Pa)</td>
+</tr>
+<tr>
+<td>210</td>
+<td>327089</td>
+<td></td>
+</tr>
+<tr>
+<td>216.592</td>
+<td>517950</td>
+<td>triple point</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-check of Part F item F1: F&amp;S CO<sub>2</sub> set 1 (Part F transcription) over S&amp;W is 0.999 at 150 K, 0.996 at 170 K, 0.995 at 195 K, 0.976 at 210 K, 1.07 at 125 K and 1.41 at 100 K; set 2 over S&amp;W is 1.38 at 150 K, 1.09 at 170 K, 1.006 at 195 K, 1.0045 at 210 K. So <strong>set 1 is the one for 150 to 200 K, set 2 is only valid above about 190 K, and below about 130 K both F&amp;S sets are 7 to 40 percent (set 1) or more (set 2) above Span and Wagner</strong>. Recommendation: use S&amp;W eq. 3.12 for CO<sub>2</sub> (three constants, one equation, accurate to 0.1 percent at 150 to 200 K) and keep F&amp;S for the others. This answers the open question in Part F &quot;selection rule between the two sets for CO2&quot;.</p>
+<h3 id="light-gases-critical-and-triple-points-answers-g43-part-e-materials-table-row-for-h2-already-matches">Light gases, critical and triple points (answers G4.3; Part E materials-table row for H<sub>2</sub> already matches)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>gas</th>
+<th>Tc (K)</th>
+<th>Pc</th>
+<th>T triple (K)</th>
+<th>P triple</th>
+<th>normal boiling (K)</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub> (normal, WebBook)</td>
+<td>33.18 (+/- 0.2)</td>
+<td>13.00 bar</td>
+<td>13.95 / 13.96</td>
+<td>0.0721 bar</td>
+<td>20.27 (e-H2, Hoge and Arnold)</td>
+<td>NIST WebBook C1333740</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub> (reference EoS)</td>
+<td>33.145</td>
+<td>1.2964 MPa</td>
+<td>13.957</td>
+<td>7357.8 Pa</td>
+<td>n/a</td>
+<td>CoolProp Hydrogen.json (Leachman)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>HD</td>
+<td>35.908</td>
+<td>14.645 atm</td>
+<td>16.60</td>
+<td>92.8 mmHg</td>
+<td>22.143</td>
+<td>[R1975]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>D2 (equilibrium)</td>
+<td>38.262 (EoS 38.34)</td>
+<td>16.282 atm</td>
+<td>18.69 (WebBook 18.65 to 18.73)</td>
+<td>128.5 mmHg</td>
+<td>23.63</td>
+<td>same; WebBook C7782390</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>He-4</td>
+<td>5.2 (WebBook) / 5.1953 (EoS)</td>
+<td>2.274 bar / 0.2283 MPa</td>
+<td>lambda point 2.1768</td>
+<td>5039 Pa</td>
+<td>not read</td>
+<td>WebBook C7440597; CoolProp</td>
+<td>READ / 2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Part E's row <code>gas_H2 ... 13.95, 20.39, 13.95, 0.0721, 33.18, 13.0</code> matches the WebBook values for Tt, Pt, Tc and Pc (so no change); its Tb 20.39 K differs from e-H2 20.27 K by 0.6 percent (normal-H2 boils 20.39 K per other tables, RECALLED, not checked here).</p>
+<h3 id="co2-hydrate-points-answers-g44">CO<sub>2</sub> hydrate points (answers G4.4)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>point</th>
+<th>T (K)</th>
+<th>P (MPa)</th>
+<th>uncertainty</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q1 (V-Lw-I-H)</td>
+<td>271.60</td>
+<td>1.044</td>
+<td>+/- 0.023 K, +/- 0.021 MPa</td>
+<td>[R4015]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Q2 (V-Lw-L-H)</td>
+<td>283.13</td>
+<td>4.494</td>
+<td>from fit intersection, not quoted</td>
+<td>same, figure caption</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="brine-freezing-point-lookup-answers-g45-for-hydrosphere-and-mars-type-brines">Brine freezing-point lookup (answers G4.5; for hydrosphere and Mars-type brines)</h3>
+<p>Pure-salt eutectics. The generator should draw within a spread because authors differ by 1 to 7 K (PARAMETRISATION: normal about the stated value with the stated spread; Solar System / Mars use is calibration only).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>salt</th>
+<th>eutectic T (K)</th>
+<th>eutectic composition</th>
+<th>eutectic aw</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NaClO<sub>4</sub></td>
+<td>236 +/- 1</td>
+<td>52 wt%</td>
+<td>not read</td>
+<td>[R0770]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mg(ClO<sub>4</sub>)<sub>2</sub></td>
+<td>206 +/- 1 (author range 205 to 212)</td>
+<td>44.0 wt%</td>
+<td>0.55 to 0.56</td>
+<td>[R0770, R1642] (205 K) via arXiv preprints; Pal and Kereszturi (212 K, aw 0.53)</td>
+<td>READ / 2ND-HAND</td>
+</tr>
+<tr>
+<td>Ca(ClO<sub>4</sub>)<sub>2</sub></td>
+<td>198 (author range 198 to 199)</td>
+<td>not reached (52.4 wt% quoted at about 205 K in Martinez et al.)</td>
+<td>0.51 to 0.52</td>
+<td>[R2878, R3493] via [R3775] and 2012.00100; [R3411] (199 K)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub> (Venus)</td>
+<td>see G4.6; [R4877] freezing-point curve, T to 350 K and 0 to 100 wt%</td>
+<td>not read</td>
+<td>n/a</td>
+<td>Crossref abstract</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>NaCl, MgCl<sub>2</sub>, other chlorides</td>
+<td>not in this task</td>
+<td></td>
+<td></td>
+<td></td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<p>[R4396] (Geochim. Cosmochim. Acta 181, 164; PDF read, faculty.washington.edu): water activity of NaClO<sub>4</sub>, Ca(ClO<sub>4</sub>)<sub>2</sub> and Mg(ClO<sub>4</sub>)<sub>2</sub> solutions from heat capacities to 178 K; aw in NaClO<sub>4</sub> rises as T falls (0.6 to 0.7 for up to 15 molal below 200 K), in Ca and Mg perchlorate it falls. Brines reach about 195 K for Mg(ClO<sub>4</sub>)<sub>2</sub> (SNIPPET). Useful for the aw(T) of a brine, not read in detail.</p>
+<h3 id="venus-acid-clouds-answers-g46">Venus acid clouds (answers G4.6)</h3>
+<p>Keep: H<sub>2</sub>SO<sub>4</sub>-H2O solution, 75 to 85 wt% in the upper cloud as a draw range (PARAMETRISATION, Solar System calibration only); cloud-deck lower edge where the acid evaporates, near 48 km on Venus (a result of temperature and acid vapor pressure, not a constant: derive from T(z) and the Ayers/Zeleznik vapor pressure). Do not use [R4289] for cloud decks; use [R4877] (valid to 350 K).</p>
+<h2 id="licence-table-g47-and-the-data-this-design-will-load">Licence table (G4.7 and the data this design will load)</h2>
+<p>&quot;Can we ship derived tables in a GPL/open repo?&quot; is answered plainly: YES, NO, or UNKNOWN. I am not a lawyer; where the source states nothing the answer is UNKNOWN and the action is to ask the maintainer.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>source</th>
+<th>licence as stated</th>
+<th>can we ship derived tables in a GPL/open repo?</th>
+<th>evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MPI-Mainz UV/VIS Spectral Atlas</td>
+<td>Zenodo snapshot 6951 (2013-06-24): <code>cc-by-4.0</code>. Live site: no licence stated on home, contact or cross-section index pages; asks to cite [R2302, R2303] (ESSD paper is CC BY 3.0)</td>
+<td>YES for the 2013 snapshot with attribution (CC BY 4.0 permits copying, derived works and redistribution if credit and a change notice are kept). Live-site data added after 2013: UNKNOWN</td>
+<td>zenodo.org/api/records/6951 (&quot;license&quot;: {&quot;id&quot;: &quot;cc-by-4.0&quot;}); uv-vis-spectral-atlas-mainz.org/uvvis/ (&quot;please cite our publication&quot;)</td>
+</tr>
+<tr>
+<td>Leiden Photodissociation / photoionization database (van Dishoeck, Heays)</td>
+<td>no licence stated; &quot;When using material from this site, please cite one of the overview papers&quot;</td>
+<td>UNKNOWN (citation request only; many entries repackage third-party cross sections)</td>
+<td>home.strw.leidenuniv.nl/~ewine/photo/index.html, downloads.html</td>
+</tr>
+<tr>
+<td>JPL Publication 19-5</td>
+<td>NTRS 20210006316: &quot;Items in TRS are protected by copyright, but are furnished with U.S. government purpose use rights&quot;; <code>belongsToUsGov</code> false, <code>belongsToPublisher</code> true. Site copyright FAQ not reachable</td>
+<td>UNKNOWN to NO as public domain; do not assume. Individual facts (a rate constant, a cross section) with citation are conventional use; bulk copy of tables: ask JPL</td>
+<td>ntrs.nasa.gov/api/citations/20210006316</td>
+</tr>
+<tr>
+<td>Bremen IUP molecular spectra</td>
+<td>no licence or terms found; one page needs login</td>
+<td>UNKNOWN</td>
+<td>iup.uni-bremen.de/gruppen/molspec/databases/ (pages read)</td>
+</tr>
+<tr>
+<td>Karkoschka methane files (NMSU host, Oxford k-tables)</td>
+<td>none stated, source line only</td>
+<td>UNKNOWN</td>
+<td>atmos.nmsu.edu/planetary_datasets/uranus_infrared.html; users.ox.ac.uk/~atmp0035/methane.html</td>
+</tr>
+<tr>
+<td>NIST WebBook (SRD 69)</td>
+<td>&quot;Copyright for NIST Standard Reference Data is governed by the Standard Reference Data Act&quot;; &quot;Standard Reference Data (SRD) are copyrighted by the U.S. Secretary of Commerce on behalf of the United States of America. All rights reserved. None of our SRD may be reproduced, stored in a retrieval system or transmitted ... without prior permission.&quot; (nist.gov/srd/public-law). The nist.gov/open/license page adds that NIST data that is not SRD, created by NIST employees, is not under US copyright and carries a worldwide royalty-free right to copy, derive and distribute with acknowledgement</td>
+<td><strong>NOT as public domain.</strong> Using a few individual values with citation is normal practice; bulk reproduction of tables is UNKNOWN and needs written permission. Prefer computing from published primary sources (EoS, Span and Wagner etc.) and citing NIST for spot checks</td>
+<td>nist.gov/srd/public-law ; nist.gov/open/license ; webbook.nist.gov/chemistry/ (&quot;Note: This site is covered by copyright&quot;)</td>
+</tr>
+<tr>
+<td>NIST XCOM (SRD 8), ESTAR / PSTAR (SRD 124)</td>
+<td>pages read carry the Berger et al. introductions and the NIST header; no separate licence text found. NIST lists these among SRD</td>
+<td>UNKNOWN; treat as SRD (permission for bulk copy). The underlying cross-section tables are also in published reports (Berger and Hubbell) that can be cited</td>
+<td>physics.nist.gov/PhysRefData/Xcom/Text/intro.html, Star/Text/intro.html</td>
+</tr>
+<tr>
+<td>PubChem</td>
+<td>NLM/NCBI: &quot;NCBI itself places no restrictions on the use or distribution of the data&quot; (molecular databases policy, quoted in the NCBI policies page text I read) but records &quot;incorporate material contributed or licensed by individuals, companies, or organizations that may be protected&quot; and users &quot;are expected to adhere to the terms ... asserted by the copyright holder&quot;; US-government-created NLM web content is public domain, with NLM acknowledgement requested. The PubChem docs pages themselves were behind a captcha</td>
+<td>UNKNOWN per record; basic facts (formula, mass, melting point as a fact) are low risk; check the &quot;data source&quot; licence of each property; do not bulk-copy contributor text</td>
+<td>ncbi.nlm.nih.gov/home/about/policies/ (read); PubChem docs (captcha)</td>
+</tr>
+<tr>
+<td>USGS</td>
+<td>&quot;USGS-authored information is in the public domain; credit requested; third-party images and some datasets are copyrighted or carry other terms&quot;</td>
+<td>YES for USGS-authored data with credit; NO assumption for items marked as third-party. Official page returned 403 here</td>
+<td>SNIPPET from usgs.gov FAQ &quot;are usgs reports copyrighted&quot;; not READ</td>
+</tr>
+<tr>
+<td>Hypatia Catalog</td>
+<td>no licence or terms found; acknowledgement text asks to cite [R1943] and the individual catalogs used (the catalog merges more than 80 literature sources)</td>
+<td>UNKNOWN</td>
+<td>hypatiacatalog.com (home, acknowledgements section) ; SNIPPET for the cite request</td>
+</tr>
+<tr>
+<td>Zenodo records</td>
+<td>each record has its own <code>license</code> field (e.g. <code>cc-by-4.0</code> for record 6951); Zenodo does not impose one</td>
+<td>per record: read the field via <code>zenodo.org/api/records/&lt;id&gt;</code> and store it in the loader</td>
+<td>READ for 6951</td>
+</tr>
+<tr>
+<td>IAPWS releases (e.g. R14-08, sublimation pressure of ice)</td>
+<td>&quot;Publication in whole or in part is allowed in all countries provided that attribution is given to the International Association for the Properties of Water and Steam&quot;</td>
+<td>YES with attribution (formulas and coefficients)</td>
+<td>R14-08(2011) PDF, first page (iapws.org/documents/release/MeltSub.download)</td>
+</tr>
+<tr>
+<td>NASA Glenn thermodynamic polynomials (NASA/TP-2002-211556, McBride, Zehe, Gordon)</td>
+<td>&quot;Unclassified - Unlimited&quot;; NTRS distribution PUBLIC; written by NASA Glenn employees (US government work)</td>
+<td>YES (US-government work); cite the report. The NTRS metadata flag <code>belongsToUsGov</code> is false for this record, so that flag is not reliable</td>
+<td>NTRS 20020085330 (text), report block 12a</td>
+</tr>
+<tr>
+<td>Burcat database (garfield.chem.elte.hu)</td>
+<td>host does not resolve from this environment</td>
+<td>UNKNOWN (NOT REACHED; RECALLED: free with acknowledgement)</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>[R1445] coefficients</td>
+<td>published in an Elsevier paper (Planet. Space Sci. 57, 2053); also reproduced in a NASA/Icarus paper supplement (NTRS 20210019502; <code>belongsToPublisher: true</code>, so the NTRS copy is not a government work)</td>
+<td>numerical coefficients of a fit are facts, low risk with citation; do not copy the paper's tables or text. A better option is to refit our own polynomial to computed values (Part F did the check)</td>
+<td>NTRS record metadata</td>
+</tr>
+<tr>
+<td>[R0418, R1707, R1708] data and Lobo-Ferreira coefficients</td>
+<td>data archived at openknowledge.nau.edu (eprints 6246, 6254, 6360); no licence statement on the pages read</td>
+<td>coefficients, as numbers with citation: low risk. Archive redistribution: UNKNOWN</td>
+<td>openknowledge.nau.edu/id/eprint/6246</td>
+</tr>
+</tbody>
+</table></div>
+<p>Change needed to Part F item F5 (&quot;NIST, PubChem, USGS public domain&quot;): NIST WebBook / XCOM / ESTAR / PSTAR are copyrighted SRD, PubChem is per record, USGS public domain is only a SNIPPET. The materials-table loader should store a <code>licence</code> and a <code>licence_evidence_url</code> per row and treat <code>UNKNOWN</code> as &quot;do not ship the table, ship a loader that fetches at build time or recomputes from a cited formula&quot;.</p>
+<h2 id="still-unreachable-boss-must-research">Still unreachable (Boss must research)</h2>
+<ol>
+<li>[R1708] main text and Table of Lobo-Ferreira C, D2, D3, D4 for N<sub>2</sub>, CO, CH<sub>4</sub>, plus the Phi values (journal page refused; the accepted manuscript is not in the NAU repository, only data and README). Gives: the exact coefficients to replace my reconstruction, and the Phi per run.</li>
+<li>[R2137] full text: validity range of the solid CO<sub>2</sub> EoS. Gives: whether it can be used above 195 K or in the deep ice layer of a CO<sub>2</sub>-rich body. [R2918] (0 to 800 K, up to 12 GPa) is the alternative with a stated range.</li>
+<li>[R1642, R3320]: DRH(T) fits and the Ca(ClO<sub>4</sub>)<sub>2</sub> eutectic composition. Gives the DRH equation and its constants. [R2878, R3493] for the Ca(ClO<sub>4</sub>)<sub>2</sub> and NaClO<sub>4</sub> phase diagrams ([R2878] is Icarus 207, 675).</li>
+<li>JPL data-evaluation site copyright FAQ (jpldataeval.jpl.nasa.gov/ and jpl.nasa.gov/copyrights are blocked from here), and NIST written permission for bulk SRD reuse (srd@nist.gov).</li>
+<li>A primary source for Q1 of CO<sub>2</sub> hydrate in NaCl, MgCl<sub>2</sub> (and RbCl) brines (only inhibition work found).</li>
+<li>[R4374] for the Venus H<sub>2</sub>SO<sub>4</sub> wt% versus altitude.</li>
+<li>Hypatia and Leiden: ask the maintainers whether redistribution of derived tables is allowed.</li>
+</ol>
+<h2 id="counts">Counts</h2>
+<p>26 claim rows: CONFIRMED 10 (G4.1b, G4.1c, G4.1g, G4.2b, G4.3b, G4.3c, G4.4a, G4.5a, G4.5c, G4.7a), PARTLY 10 (G4.1a, G4.1e, G4.1f, G4.3a, G4.3d, G4.4b, G4.5b, G4.6, G4.7b, G4.7e), CONTRADICTED 3 (G4.1d, G4.2a, G4.7c), UNVERIFIABLE 3 (G4.4c, G4.5d, G4.7d).</p>
+<p>Verification labels used in this file: READ about 38, 2ND-HAND about 8, COMPUTED 9, SNIPPET 9, RECALLED 4 (listed above), NOT REACHED 4.</p>
+<h2 id="files-all-under-mntproject-filesdesign-draftspartsg-files">Files (all under <code>/mnt/project-files/design-drafts/parts/G-files/</code>)</h2>
+<ul>
+<li><code>G4_qcm_check.py</code>, <code>.out.txt</code>: Part F transcription of F&amp;S N<sub>2</sub>/CO/CH4 against the data package; Blakley Table 1 against F&amp;S for NH<sub>3</sub>.</li>
+<li><code>G4_qcm_table_csv.py</code>, <code>G4_qcm_corrected_vapor_pressure.csv</code>: F&amp;S, [R1708] fit and the 1.19-corrected values per kelvin.</li>
+<li><code>G4_fit_updated_lf.py</code>, <code>.out.txt</code>: reconstruction of C..D4 (flagged COMPUTED).</li>
+<li><code>G4_blakley_update_ratio.py</code>, <code>.out.txt</code>: effect of the 2026 update on O<sub>2</sub> and NH<sub>3</sub>.</li>
+<li><code>G4_co2_sublimation.py</code>, <code>.out.txt</code>: Span and Wagner eq. 3.12 values and the F&amp;S CO<sub>2</sub> cross-check.</li>
+<li><code>G4_grundy2024_datapackage_README.txt</code>: copy of the NAU data README (file list).</li>
+<li>Inputs downloaded outside the repo folder (not saved): [R1708] data package <code>data_package.zip</code> (openknowledge.nau.edu/6246/2), Blakley [R1707] preprint PDF, NIST reprints RP2228 and RP2229, Span and Wagner reprint.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
