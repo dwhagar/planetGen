@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import isotope_record, ore_deposits, radiation_field
+from planetgen.physics import isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -996,6 +996,11 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     frame = getattr(planet, "_frame_axis", None) if planet.is_moon else None
     if frame is not None:      # GEN.1352: a moon already set in the system's frame has its new axis turned the way its position was
         planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.turn_to_axis((planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), frame)
+    if not planet.is_moon:
+        planet.sky_suns = sky_suns.encode(sky_suns.suns_of(
+            planet.star, (planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z),
+            spin.orbit_normal(planet.orbital_inclination_deg, planet.orbital_ascending_node_deg),
+            orbit_elements.flux_distance_au(planet.distance, getattr(planet, "eccentricity", 0.0))))     # GEN.1458: the other suns of its sky
     if not planet.is_moon and getattr(planet, "moons", None):
         orient_moons(planet)      # GEN.1352: its moons lie in the equator this axis gives
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)

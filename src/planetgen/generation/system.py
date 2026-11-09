@@ -40,6 +40,7 @@ from planetgen.generation import belt_birth, disk_ejection, habitable_request, p
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -720,8 +721,25 @@ class StarSystem:
             orbits = planet_zones.companion_orbits(ledger.zone((kind, number)), ledger.nodes, ledger.members)
         except ValueError:
             orbits = []
-        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity)
+        offsets = self._offsets_from_host(ledger, kind, number)
+        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity,
+                                                                None if offsets is None else offsets.get(member_no))
                                       for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
+
+    def _offsets_from_host(self, ledger, kind, number):
+        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);
+        the host of a P-type zone is the center of mass of the pair of its node. `None` when the tree cannot give positions."""
+        try:
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+            if kind == planet_zones.P_TYPE:
+                pair = [member for member in ledger.members if member.parent_node_no == number]
+                total = sum(member.mass_solar for member in pair)
+                origin = tuple(sum(member.mass_solar * places[member.member_no][axis] for member in pair) / total for axis in range(3))
+            else:
+                origin = places[number]
+        except (ValueError, KeyError, ZeroDivisionError, IndexError):
+            return None
+        return {member_no: tuple(place[axis] - origin[axis] for axis in range(3)) for member_no, place in places.items()}
 
     def pair_node_no(self):
         """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both

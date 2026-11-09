@@ -56269,6 +56269,128 @@
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
       "title": "Stand-ins of the radiation field of a system"
+    },
+    {
+      "key": "6.242",
+      "number": "6.242",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source stands at the direction from the host to it at the orbit nodes' epoch, taken as the planet's own (the planet at the host) and fixed through the planet's year"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a source farther from the host than about twice the planet's distance"
+            ],
+            [
+              "What would show it wrong",
+              "a source nearer than that, whose direction from the planet moves by tens of degrees over the year"
+            ],
+            [
+              "What replaces it",
+              "the direction worked from the planet's place at each step"
+            ],
+            [
+              "Evidence",
+              "derived: the direction differs from the host-centered one by at most asin(d / R), under 27 degrees at R = 2.2 d, and averages out to first order; the source's period is at least (R / d)^1.5 of the planet's"
+            ]
+          ],
+          "id": "SS1",
+          "key": "6.242:SS1",
+          "kind": "P",
+          "slug": "6-242-ss1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a source stands at the direction from the host to it at the orbit nodes' epoch, taken as the planet's own (the planet at the host) and fixed through the planet's year"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the share of each source's light is its mean part of the field (GEN.1441) and does not vary through the year"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "circular and moderately eccentric planet orbits"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose distance from the host changes its share of the source's light by tens of percent through the year"
+            ],
+            [
+              "What replaces it",
+              "the share worked at each step"
+            ],
+            [
+              "Evidence",
+              "derived: the source's light is the time-averaged 1/d^2 of the field; the host's (a/r)^2 swing is kept in the host's own term"
+            ]
+          ],
+          "id": "SS2",
+          "key": "6.242:SS2",
+          "kind": "P",
+          "slug": "6-242-ss2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the share of each source's light is its mean part of the field (GEN.1441) and does not vary through the year"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source with a share under sky_suns.MIN_SHARE = 1e-4 of the light is left out; moons, rogue planets and rings (the shade of a ring takes the host's sun only) read the host's sun alone"
+            ],
+            [
+              "The range it moves in",
+              "1e-4"
+            ],
+            [
+              "Where it holds",
+              "all planets of a system with companions"
+            ],
+            [
+              "What would show it wrong",
+              "a moon or a ringed planet whose seasons a companion decides"
+            ],
+            [
+              "What replaces it",
+              "suns for moons (the moon's own axis against the planet's orbit) and the ring's shadow for every sun"
+            ],
+            [
+              "Evidence",
+              "design: the temperature changes by under one part in 10^4 below the share; moons and rings are the next slices"
+            ]
+          ],
+          "id": "SS3",
+          "key": "6.242:SS3",
+          "kind": "T",
+          "slug": "6-242-ss3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a source with a share under sky_suns.MIN_SHARE = 1e-4 of the light is left out; moons, rogue planets and rings (the shade of a ring takes the host's sun only) read the host's sun alone"
+        }
+      ],
+      "slug": "6-242-stand-ins-of-the-other-suns-in-a-planet-s-sky",
+      "title": "Stand-ins of the other suns in a planet's sky"
     }
   ]
 }

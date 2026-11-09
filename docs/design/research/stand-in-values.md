@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1438 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1441 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1412 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1415 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 102 | 46 | 9 | 10 | 0 | 167 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 64 | 23 | 6 | 1 | 0 | 94 |
-| T6 | 162 | 102 | 27 | 75 | 0 | 366 |
-| T7 | 38 | 18 | 9 | 31 | 0 | 96 |
+| T6 | 163 | 102 | 27 | 75 | 0 | 367 |
+| T7 | 40 | 18 | 9 | 31 | 0 | 98 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 791 | 295 | 71 | 236 | 45 | 1438 |
+| All | 794 | 295 | 71 | 236 | 45 | 1441 |
 
 ## How the labels were given
 
@@ -2531,3 +2531,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RF3 | P | T7 | L0 | the source's orbit is averaged on `ORBIT_SAMPLES` = 96 points uniform in mean anomaly | 48 to 400 points | eccentricities under 0.9 | a result that moves by over 1e-4 between 96 and 400 points | an analytic average | numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits | predicted only | - | - |
 | RF4 | T | T6 | L0 | a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (`radiation_field.light_ratio`), against the host's habitable-zone edges | none | companions whose spectrum is like the host's | a companion of very different temperature, whose light the zone edges of the host do not describe | edges made from the combined spectrum | derived: the edges are fixed by the light a lone star gives at a distance | predicted only | - | - |
 | RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |
+
+## 6.242 Stand-ins of the other suns in a planet's sky
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SS1 | P | T7 | L0 | a source stands at the direction from the host to it at the orbit nodes' epoch, taken as the planet's own (the planet at the host) and fixed through the planet's year | none | a source farther from the host than about twice the planet's distance | a source nearer than that, whose direction from the planet moves by tens of degrees over the year | the direction worked from the planet's place at each step | derived: the direction differs from the host-centered one by at most `asin(d / R)`, under 27 degrees at `R = 2.2 d`, and averages out to first order; the source's period is at least `(R / d)^1.5` of the planet's | predicted only | - | - |
+| SS2 | P | T7 | L0 | the share of each source's light is its mean part of the field (GEN.1441) and does not vary through the year | none | circular and moderately eccentric planet orbits | a planet whose distance from the host changes its share of the source's light by tens of percent through the year | the share worked at each step | derived: the source's light is the time-averaged `1/d^2` of the field; the host's `(a/r)^2` swing is kept in the host's own term | predicted only | - | - |
+| SS3 | T | T6 | L0 | a source with a share under `sky_suns.MIN_SHARE` = 1e-4 of the light is left out; moons, rogue planets and rings (the shade of a ring takes the host's sun only) read the host's sun alone | 1e-4 | all planets of a system with companions | a moon or a ringed planet whose seasons a companion decides | suns for moons (the moon's own axis against the planet's orbit) and the ring's shadow for every sun | design: the temperature changes by under one part in 10^4 below the share; moons and rings are the next slices | predicted only | - | - |
