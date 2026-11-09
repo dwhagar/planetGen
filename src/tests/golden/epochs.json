@@ -849,6 +849,13 @@
       "first_release": "8.0.3741",
       "reason": "Train 20: isotopes part 2, spin-axis frame work, radiation field, wind, dose, vapour stand-ins",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 143,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 21: lighter inner planets, secular exchange, second suns and their day and eclipses, companion disk cut, belt and comet light from every star, trojan swarm cut, scattering by the strongest planet, Jupiter-family comets by the giant, super-puff by density, envelope loss, cosmogenic nuclides",
+      "affects": ["fill", "population"]
     }
   ]
 }
