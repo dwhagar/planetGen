@@ -23,6 +23,14 @@ source of each (body, effect) and the summary row (the rest's summed share, how 
 masses and orbits when a page or a census needs it (a point mass sum, a few milliseconds a system, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`);
 only light and UV, whose sources are stars across the neighbourhood, keep rows above the floor.
 
+**A lone source is not a row** (light and UV): a body with one star sending it light has no row, since that source is the body's host star and the flux is on
+the body; the rows begin where a second source matters (a binary or a multiple). The sources of light and UV are the stars of the body's own system
+(`radiation_field`), not the neighbouring stars of the galaxy, so "the largest" is the largest of the system and not of the sky.
+
+**Edits and deletes:** deleting a system deletes its rows (`ON DELETE CASCADE`); an edit of a system (`edits.save_system_edits`) clears the system's rows, because the edited
+body's shares are no longer the ones generation noted, and they stay empty until the system's ledger is refilled; a standalone phenomenon deleted alone takes its rows as
+receiver and source (`edits.forget_ledger_rows`).
+
 The effects and the unit each is stored in are `EFFECTS`; a lane that builds an effect calls `EffectLedger.add` for every (receiver, source) pair it
 computes, with the contribution in that unit (any monotone measure of the effect's size on the receiver works, the share only compares sources of one
 effect on one body).
@@ -151,7 +159,7 @@ class EffectLedger:
                 on-demand effects.
 
         Returns:
-            list: One row per stored source of each (body, effect) and one summary row for it (`source_type` and `source_id` 0, `share` the sum of the shares under the floor,
+            list: Nothing for a (body, effect) of light or UV that has one source. Otherwise one row per stored source of each (body, effect) and one summary row for it (`source_type` and `source_id` 0, `share` the sum of the shares under the floor,
             `n_below` and `largest_value` set). A (body, effect) whose receiver has no stored row is left out.
         """
         out = []
@@ -172,6 +180,8 @@ class EffectLedger:
                 split = split_sources(known, effect_floor)
                 if split is None:
                     continue
+                if split["n_sources"] == 1 and effect not in ON_DEMAND_EFFECTS:
+                    continue      # a lone source is implied: it is the body's host star and the flux is on the body, so a lone-star system stores no light or UV row (Lane 13)
                 body = {"star_system_id": star_system_id, "body_type": BODY_CODES[where[0]], "body_id": where[1], "effect": code}
                 for (table, row_id), share in split["stored"]:
                     out.append({**body, "source_type": BODY_CODES[table], "source_id": row_id, "share": share, "n_below": None, "largest_value": None})
