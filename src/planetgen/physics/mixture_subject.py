@@ -150,6 +150,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
             ratios = bulk_draw.ice_forming_ratios(star)
             if ratios is not None and formation_au:
                 quantities["formation_temperature_k"] = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(snow_line / formation_au)
+                quantities["disk_snow_line_au"] = snow_line                       # GEN.1473: the pebbles' clocks need the stored snow line, the star's mass and metals
                 quantities["disk_carbon"], quantities["disk_oxygen"] = ratios
                 quantities["disk_nitrogen"], quantities["disk_sulfur"], quantities["disk_noble"] = bulk_draw.disk_volatile_ratios(star)       # GEN.1372
     zone_edges = getattr(star, "habitable_zone", None)
@@ -179,7 +180,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.
