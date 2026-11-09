@@ -229,6 +229,14 @@ def _shift_belt(belt, amount):
     belt.lower_limit += amount
 
 
+def belt_needs_pushing(belt, last):
+    """Whether `space_orbits` would push `belt` outward past `last`, the body just inside it: its centre is closer to a belt's outer edge than `MIN_ASTEROID_BELT_SEPARATION`, or to a planet's
+    apoapsis than that planet's `min_orbit_distance`. The one rule the spacing pass and the secular exchange (`StarSystem._secular_exchange`) share."""
+    if last.body_type == 'a':
+        return _below(belt.distance - last.upper_limit, tuning.MIN_ASTEROID_BELT_SEPARATION)
+    return _below(belt.distance - apoapsis_au(last), last.min_orbit_distance)
+
+
 def space_orbits(planets):
     """
     Validates and adjusts the distances of `planets` (one star's ordered
@@ -288,12 +296,9 @@ def space_orbits(planets):
             additional_correction = 0
 
         if planet.body_type == 'a':
-            if last_planet.body_type == 'a':
-                if _below(distance_to_last, tuning.MIN_ASTEROID_BELT_SEPARATION):
-                    _shift_belt(planet, tuning.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
-                    draw.redrawn("belt.spacing_push")
-            elif _below(distance_to_last, last_planet.min_orbit_distance):
-                _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
+            if belt_needs_pushing(planet, last_planet):
+                keep_out = tuning.MIN_ASTEROID_BELT_SEPARATION if last_planet.body_type == 'a' else last_planet.min_orbit_distance
+                _shift_belt(planet, keep_out + additional_correction)
                 draw.redrawn("belt.spacing_push")
         else:
             min_distance = min_distance_after_au(planet, planets[:i])

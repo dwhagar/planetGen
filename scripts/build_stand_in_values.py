@@ -473,6 +473,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.243", "6.243 Stand-ins of the spacing of orbits against every neighbour",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.244", "6.244 Stand-ins of the secular exchange of a star's planets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.245", "6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.247", "6.247 Stand-ins of the belt dust and comet influx of a planet",
