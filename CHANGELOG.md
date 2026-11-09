@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3789] - 2026-11-09
+
+**Headline:** The moon-history test accepts a dust ring as the origin of the ring of a planet that lost a moon, as the ring code has always allowed.
+
+### Changed
+
+- `tests/test_moon_history.py::test_every_planet_with_moons_ends_with_moons_it_can_keep` asserted that a planet with fallen moons and a ring had a ring of origin `disrupted_moon` or `captured_body`. The origin is the largest event of the ring (`ring_origin.ring_origin`), and the steady dust ring of the small moons near the planet (GEN.1233, `moon_erosion`) is one of the events: a fallen moon's ring spreads thin with the time since and a faint dust ring can outweigh it. The Train 21 merge changed what the 16 seeds draw, and one planet now has a dusty ring of 1e8 kg after a fallen moon. The test accepts the three origins (`rings.ORIGINS`) and requires a `moon_erosion` ring to be a dusty one. The ring code is unchanged.
+
+generation-affects: none
+
 ## [8.0.3788] - 2026-11-09
 
 **Headline:** The deferred-sectors test of a single sector that exists generates 3 systems, not the 353 the wide galaxy's density gives (a test-only change).
