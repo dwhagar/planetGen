@@ -57861,7 +57861,7 @@
           "fields": [
             [
               "What it is",
-              "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+              "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
             ],
             [
               "The range it moves in",
@@ -57881,25 +57881,25 @@
             ],
             [
               "Evidence",
-              "form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1)"
+              "form and numbers read in [R5211: Eq. 14] (9.5e-5 Earth masses per year, exponents 5/3, 1/3 on the star mass, -1/3 on the age); the star-mass term is replaced by the disc-mass scale (see the section text); [R5210] abstract read for the use"
             ]
           ],
           "id": "DE1",
           "key": "6.242:DE1",
           "kind": "T",
           "slug": "6-242-de1",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+          "what": "disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, the disc mass scale in place of the paper's star mass term, age to the -1/3: the pebble mass flux through the disc"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+              "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
             ],
             [
               "The range it moves in",
@@ -57919,25 +57919,25 @@
             ],
             [
               "Evidence",
-              "[R5211], recalled; the number is computed from the two recalled efficiencies"
+              "[R5211: Eq. 10] read: r_g = (3/16)^(1/3) (G M)^(1/3) (eps_d Z0)^(2/3) t^(2/3); eps_d 0.05 (sticking efficiency 0.5 over the ISM growth ratio 10, from the paper's text) and Z0 0.01 give 122.8 AU at 1 Myr"
             ]
           ],
           "id": "DE2",
           "key": "6.242:DE2",
           "kind": "T",
           "slug": "6-242-de2",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+          "what": "disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+              "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
             ],
             [
               "The range it moves in",
@@ -57968,14 +57968,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+          "what": "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+              "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
             ],
             [
               "The range it moves in",
@@ -58006,14 +58006,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+          "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+              "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
             ],
             [
               "The range it moves in",
@@ -58044,14 +58044,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+          "what": "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+              "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
             ],
             [
               "The range it moves in",
@@ -58082,14 +58082,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+          "what": "disk_drift.COLD_FINGER_LEAK 0.9 (reported by cold_finger_enrichment, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+              "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
             ],
             [
               "The range it moves in",
@@ -58120,14 +58120,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+          "what": "disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+              "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
             ],
             [
               "The range it moves in",
@@ -58158,14 +58158,14 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+          "what": "disk_drift.ice_weights and disk_condensation._gas_and_solid_atoms(ice_weights=): the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+              "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
             ],
             [
               "The range it moves in",
@@ -58196,14 +58196,14 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+          "what": "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+              "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
             ],
             [
               "The range it moves in",
@@ -58234,7 +58234,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+          "what": "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
         }
       ],
       "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disk",

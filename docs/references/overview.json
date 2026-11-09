@@ -13,9 +13,9 @@
   },
   "stand_ins": {
     "by_tier": {
-      "T1": 214,
+      "T1": 216,
       "T2": 205,
-      "T3": 176,
+      "T3": 174,
       "T4": 125,
       "T5": 107,
 <<<<<<< HEAD
@@ -140,12 +140,12 @@
 >>>>>>> origin/pr-5870
     },
     "read_from_a_source": {
-      "percent": 27,
-      "rows": 419
+      "percent": 28,
+      "rows": 421
     },
     "unverified": {
       "percent": 20,
-      "rows": 301
+      "rows": 299
     }
   }
 }
