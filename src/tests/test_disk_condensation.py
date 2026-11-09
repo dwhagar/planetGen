@@ -1,5 +1,7 @@
 """The species-by-species disk condensation (GEN.1363 part A, physics/disk_condensation.py)."""
 
+import math
+
 import pytest
 
 from planetgen.physics import condensate_shares, disk_condensation as dc
@@ -207,3 +209,24 @@ def test_the_mass_law_reads_the_jump_beyond_the_snow_line_only():
     from planetgen.physics import formation
     inside = formation.mmsn_surface_density_gcm2(1.0, 2.0)
     assert formation.mmsn_surface_density_gcm2(1.0, 0.5) == pytest.approx(inside * dc.SNOW_LINE_SOLID_JUMP)
+
+
+def test_the_recipe_median_is_the_median_of_the_drawn_f7_and_not_the_center_of_its_core():
+    """GEN.1471: the core of `f7` is cut at 0.8, so the median of the draw (0.51) is below the core's center (0.57); dividing the draw by the center, as GEN.1363 part C did, lowered every giant."""
+    from planetgen.generation.possibility_table import Subject
+    from planetgen.physics.atmosphere_recipes import RECIPES
+    s = Subject("giant", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
+    below = RECIPES.probability_in("f7", s, None, dc.RECIPE_C_OVER_O_MEDIAN)
+    assert below == pytest.approx(0.5, abs=1e-3), below
+    assert dc.RECIPE_C_OVER_O_MEDIAN < dc.RECIPE_C_OVER_O_CENTER - 0.04
+    d = RECIPES._dist_of(RECIPES.entry("f7"), s)
+    assert d["core"]["sigma"] == pytest.approx(dc.RECIPE_C_OVER_O_CORE_SIGMA_DEX) and d["core"]["range"] == pytest.approx([math.log10(x) for x in dc.RECIPE_C_OVER_O_CORE_RANGE])
+    assert (d["tail"]["lo"], d["tail"]["hi"]) == pytest.approx(dc.RECIPE_C_OVER_O_TAIL_RANGE)
+
+
+def test_a_giant_with_the_medians_f7_keeps_its_disks_c_over_o_and_a_lightly_mixed_envelope_is_the_gas_leaning_one():
+    from planetgen.physics import mixture_giant
+    subject = {"formation_temperature_k": 100.0, "disk_carbon": 1.0, "disk_oxygen": 1.0}
+    bulk = mixture_giant._disk_c_over_o(subject, math.log10(18.0))             # 18 times the star's heavy elements in the planet
+    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0))
+    assert bulk > dc.envelope_c_over_o(100.0, 18.0) + 0.04                     # the envelope carries a share of the bulk, so less of the oxygen-rich solids

@@ -67,6 +67,15 @@ ECC_MAX = NUMBERS["ecc_max"]["value"]
 INCLINATION_MAX_DEG = NUMBERS["inclination_max_deg"]["value"]
 """float: The largest inclination to the secondary's orbit (degrees). [Stand-in TJ5, tier T4, tweak L4.]"""
 
+HILL_SEPARATION_K = NUMBERS["hill_separation_k"]["value"]
+"""float: The separation, in mutual Hill radii, below which another giant or a companion takes the whole swarm (GEN.1455). [Stand-in TJ6, tier T2, tweak L0.]"""
+
+STABLE_RAMP = NUMBERS["stable_ramp"]["value"]
+"""float: How fast the surviving share of a swarm grows with the separation past that limit. [Stand-in TJ7, tier T4, tweak L4.]"""
+
+STAR_LIMIT_MARGIN = NUMBERS["star_limit_margin"]["value"]
+"""float: A swarm needs its giant inside the companion-star stability limit over this. [Stand-in TJ8, tier T4, tweak L4.]"""
+
 POINTS = ("L4", "L5")
 """tuple: The only points that hold natural bodies."""
 
@@ -83,6 +92,39 @@ def stable(host_mass, secondary_mass, trojan_mass=0.0):
     if trojan_mass < 0.0:
         raise TrojanError(f"a trojan's mass is at least 0, got {trojan_mass!r}")
     return mass_parameter(host_mass, secondary_mass) < MU_CRIT and (secondary_mass + trojan_mass) / (host_mass + secondary_mass + trojan_mass) < MU_CRIT
+
+
+def neighbour_stable_share(host_mass, secondary_mass, secondary_au, neighbour_mass, neighbour_au):
+    """
+    The share of the swarm of a secondary at `secondary_au` that survives another giant or a companion of `neighbour_mass` at `neighbour_au` (GEN.1455; masses in one unit, distances in AU, a
+    companion star at its periastron). The separation over `HILL_SEPARATION_K` mutual Hill radii of the two, `x`, is the whole law: 0 at `x <= 1` (the neighbour takes the swarm), then
+    `1 - exp(-STABLE_RAMP (x - 1))`. A neighbour far away gives 1.
+    """
+    if neighbour_mass <= 0.0 or host_mass <= 0.0 or neighbour_au <= 0.0 or secondary_au <= 0.0:
+        return 1.0
+    hill = ((secondary_mass + neighbour_mass) / (3.0 * host_mass)) ** (1.0 / 3.0) * 0.5 * (secondary_au + neighbour_au)
+    x = abs(neighbour_au - secondary_au) / (HILL_SEPARATION_K * hill)
+    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+
+
+def star_limit_stable_share(secondary_au, stability_limit_au):
+    """
+    The share of the swarm of a secondary at `secondary_au` that survives a companion star (GEN.1455): the star's stability limit (`Star.a_crit_au`, Holman and Wiegert), over the
+    secondary's distance and `STAR_LIMIT_MARGIN`, is `x`, and the share is 0 at `x <= 1` and `1 - exp(-STABLE_RAMP (x - 1))` past it. No limit (a lone star) gives 1.
+    A star is not taken as a mutual-Hill neighbour: the Hill radius is for bodies far lighter than the host.
+    """
+    if not stability_limit_au or stability_limit_au <= 0.0 or secondary_au <= 0.0:
+        return 1.0
+    x = stability_limit_au / (STAR_LIMIT_MARGIN * secondary_au)
+    return 0.0 if x <= 1.0 else 1.0 - math.exp(-STABLE_RAMP * (x - 1.0))
+
+
+def surviving_share(host_mass, secondary_mass, secondary_au, neighbours, stability_limit_au=None):
+    """The share of the swarm that survives every other giant, `[(mass, au)]` (the product of `neighbour_stable_share`), and the companion stars' limit (`star_limit_stable_share`); 1.0 with none (a lone giant gives the swarm of before)."""
+    share = star_limit_stable_share(secondary_au, stability_limit_au)
+    for mass, au in neighbours:
+        share *= neighbour_stable_share(host_mass, secondary_mass, secondary_au, mass, au)
+    return share
 
 
 def max_trojan_mass(host_mass, secondary_mass):

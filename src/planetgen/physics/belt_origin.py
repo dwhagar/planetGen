@@ -462,7 +462,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
 
 
 def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5, debris=(), metal_ratio=1.0,
-          scatter=1.0, instability=0.0):
+          scatter=1.0, instability=0.0, disk_limit_au=math.inf):
     """
     Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disk and
     the `debris` events the caller names, each traced through the giants' clearing and the instability, in order of distance. Belts under
@@ -478,6 +478,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
         instability (float): 0 to 1, how much the giants scattered each other (`capture_windows.instability_level`): it throws out a share of the disk past the outermost giant (`scattering_loss_share`, GEN.1341).
+        disk_limit_au (float): Where a companion star cuts the disk (`disk_truncation.star_truncation_au`, GEN.1451): every stretch ends there before its mass is worked out, and one that no longer fits is no belt. Infinite for a lone star.
 
     Returns:
         list: `BeltOrigin`, nearest the star first.
@@ -486,6 +487,10 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
     candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au)
     candidates += snow_line_bump(chain, star_mass_kg, formation_snow_line_au, candidates)
     candidates += [_debris_candidate(event) for event in debris]
+    if disk_limit_au < math.inf:
+        for candidate in candidates:
+            candidate["outer_au"] = min(candidate["outer_au"], disk_limit_au)
+        candidates = [candidate for candidate in candidates if _fits(candidate["inner_au"], candidate["outer_au"])]
     belts = []
     for candidate in sorted(candidates, key=lambda c: c["inner_au"]):
         belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability)

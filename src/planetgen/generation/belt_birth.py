@@ -31,7 +31,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in BG14, tier M
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
 from planetgen.generation import remnant_orbits
-from planetgen.physics import belt_origin, bulk_draw, scatter, swept_hand_on
+from planetgen.physics import belt_origin, bulk_draw, disk_truncation, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -81,14 +81,17 @@ def _debris(star, chain):
     return [found] if found is not None else []
 
 
-def _fates(star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
+def _fates(star, star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
     """`(shares, sentence, giant_au, giant)` of an outer disk after the outermost giant (`scatter.scatter_shares`, the giant's distance and the giant itself), or `(None, None, None, None)` where the belt is not an outer disk or no giant has been."""
     giants = sorted((planet for planet in planets if planet.body_type == 'g'), key=lambda planet: planet.distance)
     if origin.origin != "outer-disk" or not giants:
         return None, None, None, None
     giant = giants[-1]
     moved_out = max(giant.distance - (giant.formation_distance_au or giant.distance), 0.0)
-    shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disk_edge_au, instability)
+    neighbours = [(other.mass, other.distance) for other in giants[:-1]]       # the other giants and the companion stars at their periastron take part of the swarm (GEN.1455)
+    survival = trojans.surviving_share(star_mass_kg, giant.mass, giant.distance, neighbours, getattr(star, "a_crit_au", None))
+    shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disk_edge_au, instability,
+                                    trojan_survival=survival)
     return shares, scatter.history_line(shares, giant.distance, moved_out), giant.distance, giant
 
 
@@ -112,7 +115,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     snow_line_au = star.snow_line_au
     edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
-                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability)
+                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
+                                disk_limit_au=disk_truncation.star_disk_limit_au(star))
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
@@ -125,7 +129,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         kept = [max(found, key=lambda item: item[0])]
     belts = []
     for _mass, origin, lower, upper in kept:
-        shares, sentence, giant_au, giant = _fates(star_mass_kg, planets, origin, edge_au, instability)
+        shares, sentence, giant_au, giant = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)     # the disk's edge as a companion cut it (GEN.1451); the star's own edge when none did
         belt = AsteroidBelt(system_config, star, lower, lower, upper, origin=origin, scatter_fates=shares, scatter_giant_au=giant_au)
         if giant is not None:
             belt.scatter_giant_kg, belt.scatter_giant_radius_km = giant.mass, giant.radius

@@ -1548,6 +1548,7 @@
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
+-- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -1949,6 +1950,30 @@ CREATE TABLE IF NOT EXISTS galaxy_block_lights (
     point_lpy             DOUBLE NOT NULL,
     point_lpz             DOUBLE NOT NULL,
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- galaxy_block_light_parts (v239, GEN.1476): the same sums `galaxy_block_lights` holds, for each sector cell (`shell_index`, `band_index`, `wedge_index`)
+-- that holds a bright star no system was built around or a scattered phenomenon not yet built. The two scatter writers (`store.insert_bright_stars`,
+-- `store.insert_phenomenon_scatter`) add each batch's sums to its cells in the transaction that writes the rows (`db/block_lights.note_rows`), so the
+-- block light totals are rolled up from these rows (`block_lights.roll`) and the uncharted sector index takes its cells from them, and neither reads the two
+-- scatter tables again. A sector build or delete puts its cell right (`block_lights.sync_cells`); the parts are checked against the tables' unbuilt counts
+-- before they are used and made again when they differ. Derived data, no foreign key.
+CREATE TABLE IF NOT EXISTS galaxy_block_light_parts (
+    shell_index          INT NOT NULL,
+    band_index           INT NOT NULL,
+    wedge_index          INT NOT NULL,
+    star_count           BIGINT UNSIGNED NOT NULL,
+    star_luminosity_sol  DOUBLE NOT NULL,
+    star_lpx              DOUBLE NOT NULL,
+    star_lpy              DOUBLE NOT NULL,
+    star_lpz              DOUBLE NOT NULL,
+    star_lt              DOUBLE NOT NULL,
+    point_count          BIGINT UNSIGNED NOT NULL,
+    point_luminosity_sol DOUBLE NOT NULL,
+    point_lpx             DOUBLE NOT NULL,
+    point_lpy             DOUBLE NOT NULL,
+    point_lpz             DOUBLE NOT NULL,
+    PRIMARY KEY (shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- region_stats (v161, DB.107): one row per named region of the Galaxy Map (`galaxy/named_regions.py`): a 9-block, `(shell_index,
@@ -2542,6 +2567,7 @@ CREATE TABLE IF NOT EXISTS planets (
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3074,6 +3100,7 @@ CREATE TABLE IF NOT EXISTS moons (
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4556,6 +4583,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     runner_up_class               CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
@@ -5143,6 +5171,41 @@ CREATE TABLE IF NOT EXISTS sector_stats (
 
 
 -- ---------------------------------------------------------------------
+-- galaxy_totals and sector_facets (v237, DB.121): the galaxy's counts, kept as they change instead of counted again when a sector is
+-- added (`db.galaxy_counts`). `sector_facets` holds, for each sector whose stats are filled, one row for each of its `total` counts (systems,
+-- stars, planets, moons, belts and habitable worlds) and one for each value of each facet the lists and the search page offer (a star's
+-- spectral and Yerkes class, a planet's or moon's class, body type and life class, a system's binary state and octant); it is keyed by the
+-- sector's address, like `sector_stats`, so a sector row that is replaced keeps it. `galaxy_totals` is the one row, id 1, that is the
+-- sum of the `total` rows plus the mass and luminosity of `sector_stats`, moved by the difference in the same transaction as the sector's
+-- save (`store.record_sector_stats`), edit (`store.refresh_edited_sectors`) or emptying (`store.forget_sector_fill`). A page reads them while
+-- they are whole (`galaxy_counts.usable`) and counts the old way otherwise; `planetgen fill-block-totals` makes them again and `check-counts`
+-- compares them with a full count. What no sector holds (systems filed in no sector, a moon of a free planet) is counted when asked.
+CREATE TABLE IF NOT EXISTS sector_facets (
+    shell_index   INT NOT NULL,
+    band_index    INT NOT NULL,
+    wedge_index   INT NOT NULL,
+    facet         VARCHAR(16) NOT NULL,
+    value         VARCHAR(40) NOT NULL,
+    n             INT UNSIGNED NOT NULL,
+    PRIMARY KEY (shell_index, band_index, wedge_index, facet, value),
+    KEY idx_sector_facets_facet (facet, value, n)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS galaxy_totals (
+    id                 TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+    systems            BIGINT NOT NULL DEFAULT 0,
+    stars              BIGINT NOT NULL DEFAULT 0,
+    planets            BIGINT NOT NULL DEFAULT 0,
+    moons              BIGINT NOT NULL DEFAULT 0,
+    belts              BIGINT NOT NULL DEFAULT 0,
+    habitable_worlds   BIGINT NOT NULL DEFAULT 0,
+    mass_kg            DOUBLE NOT NULL DEFAULT 0,
+    luminosity_sol     DOUBLE NOT NULL DEFAULT 0,
+    updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- chart_ledger (v201, GEN.1127): which sector cells have been charted. A cell is a whole sector (the unit of randomness,
 -- docs/design/systems/region-object-store.md), so it is charted or it is not, and the uncharted remainder is the cells with no row.
 -- `run_id` is the generation run that charted it and `generator_epoch` the epoch it was charted under (a cell charted under an older
@@ -5162,6 +5225,44 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
     KEY idx_chart_ledger_run (run_id),
     CONSTRAINT fk_chart_ledger_run
         FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- effect_ledger (v240, GEN.1465): for every body of a system and every effect that acts on it (`physics/effect_ledger.py` `EFFECTS`: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing,
+-- 6 precession, 7 eccentricity perturbation), the share of each source's contribution in the largest source's (1.0 for the largest). `body_type` and `source_type` are the kind table's code
+-- (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars), `body_id` and `source_id` its row id. A source whose share is under
+-- `tuning.EFFECT_LEDGER_FLOOR` (1e-3; the gravity effects keep only the largest source) is not a row of its own: the (body, effect) has one summary row with `source_type` 0 and `source_id` 0, whose `share` is the sum of the shares under the floor, `n_below`
+-- how many they were and `largest_value` the largest source's contribution in the effect's unit. The ledger changes no result. It goes with its system (`ON DELETE CASCADE`); a body deleted on
+-- its own takes its rows through `db/edits.py`.
+CREATE TABLE IF NOT EXISTS effect_ledger (
+    star_system_id  BIGINT UNSIGNED NOT NULL,
+    body_type       TINYINT UNSIGNED NOT NULL,
+    body_id         BIGINT UNSIGNED NOT NULL,
+    effect          TINYINT UNSIGNED NOT NULL,
+    source_type     TINYINT UNSIGNED NOT NULL,
+    source_id       BIGINT UNSIGNED NOT NULL,
+    share           FLOAT NOT NULL CHECK (share >= 0),
+    n_below         INT UNSIGNED NULL,
+    largest_value   DOUBLE NULL CHECK (largest_value IS NULL OR largest_value > 0),
+
+    PRIMARY KEY (star_system_id, body_type, body_id, effect, source_type, source_id),
+    CONSTRAINT fk_effect_ledger_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- system_summary (v238, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
+-- own rows, so the jobs that refresh them (`rescore-habitability`) take only the systems that are not current. `habitability_stamp` is the stamp
+-- of the code that scored the system's planets and moons (`db/derived_stamp.py`: a hash of the physics source, so a changed formula is a different
+-- stamp); NULL until the system is scored. Written by the system save and by `store.refresh_habitability`. It is a side table, not columns of
+-- `star_systems`, because that table has a FULLTEXT key and adding a column to it copies every row. A system's row goes with it.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS system_summary (
+    star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    habitability_stamp  INT UNSIGNED NULL,
+
+    CONSTRAINT fk_system_summary_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

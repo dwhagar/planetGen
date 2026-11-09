@@ -9,7 +9,7 @@ radius is that of a Neptune or a Saturn. Three papers say what makes one and wha
 
 * [R2609]: a core of a few Earth masses can hold a thick envelope, a gas-to-core ratio of 7 to 28 percent for
   Kepler-51 b and over 20 percent for the class, when it accretes a dust-free atmosphere in the outer disk and migrates in. This gives the
-  *envelope*, `PUFF_ENVELOPE`, and the class (`MAX_MASS_EARTH`, the periods, "an order of magnitude more rare" than smaller planets).
+  *envelope*, `PUFF_ENVELOPE`, and the class (`START_MAX_MASS_EARTH`, `START_MAX_PERIOD_D`, "an order of magnitude more rare" than smaller planets).
 * [R2741] (`bulk_structure.envelope_radius_earth`): the radius of a core under an envelope of that fraction. It is the radius of
   the module everywhere it holds (1 to 30 Earth masses, envelope up to a half): Kepler-51 d comes out at 9.3 Earth radii with a 41 percent
   envelope, Kepler-51 b at 7.1 with 16 percent. Past it (`covers`) the radius is the giant tables' (`giant_radius`), which give WASP-107 b
@@ -28,7 +28,7 @@ near zero and no obliquity tide, so the old super-puffs are the ones that kept a
 Use:
 
     radius = radius_earth(mass_earth, envelope, flux_earth, age_gy)
-    is_super_puff(mass_earth, radius_earth_, age_gy, period_d)
+    is_super_puff(mass_earth, radius_earth_)
 """
 
 import math
@@ -37,11 +37,17 @@ from planetgen.physics import bulk_structure, constants, envelope_escape, giant_
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
-MAX_MASS_EARTH = 10.0
-"""float: A super-puff weighs under this (the design table; Lee and Chiang's class is 2 to 6 Earth masses, row PF1)."""
+START_MAX_MASS_EARTH = 10.0
+"""float: The heaviest core that can START as a super-puff (`envelope_capture.puff_eligible`, GEN.1343; the design table, Lee and Chiang's class is 2 to 6 Earth masses, row PF1)."""
 
-PERIOD_RANGE_D = (10.0, 100.0)
-"""tuple: The orbital periods a super-puff has, days (the design table, row PF1; Lee and Chiang have it under 50 days)."""
+START_MAX_PERIOD_D = 100.0
+"""float: The longest period of a core that can START as a super-puff, days (`envelope_capture.puff_eligible`; the Kepler sub-Neptunes the occurrence share counts, row PF1). It gates the
+start only: a planet is a super-puff by its mass and density (`is_super_puff`), at any period (Kepler-51 d is at 130 days, Kepler-87 c at 191)."""
+
+CLASS_MAX_MASS_EARTH = 30.0
+"""float: The heaviest planet that is a super-puff (GEN.1470, row PF1): the top of the range of the radius law (`LOPEZ_MAX_MASS_EARTH`), which is also the sub-Saturn mass of the
+super-puffs of the survey catalogues ([R5217], abstract read: "sub-Saturn mass planets with extremely low bulk densities"; no number is in the
+abstract, so the 30 is the law's). A planet of 10 to 30 Earth masses under the density edge is a puff the start gate never made but the tide or the young age can."""
 
 DENSITY_RANGE_G_CM3 = (0.03, 0.1)
 """tuple: The bulk density of a super-puff, g/cc (the design table; Kepler-51 d is 0.038, row PF1). The upper edge is the definition."""
@@ -132,11 +138,10 @@ def radius_earth(mass_earth, envelope, flux_earth, age_gy, tidal_ratio=1.0):
     return giant_radius.radius_km(mass_earth, mass_earth * (1.0 - envelope), flux_earth, age_gy) / constants.EARTH_RADIUS_KM
 
 
-def is_super_puff(mass_earth, radius_earth_, period_d):
-    """Whether a planet is a super-puff: under `MAX_MASS_EARTH`, in `PERIOD_RANGE_D` and of a density under the top of `DENSITY_RANGE_G_CM3`, at any age (GEN.1347: the
-    obliquity tide keeps one inflated, and Kepler-79 d is 1.9 to 3.4 Gyr old)."""
-    return (mass_earth <= MAX_MASS_EARTH and PERIOD_RANGE_D[0] <= period_d <= PERIOD_RANGE_D[1]
-            and density_g_cm3(mass_earth, radius_earth_) <= DENSITY_RANGE_G_CM3[1])
+def is_super_puff(mass_earth, radius_earth_):
+    """Whether a planet is a super-puff: up to `CLASS_MAX_MASS_EARTH` and of a density under the top of `DENSITY_RANGE_G_CM3`, at any age and at any period (GEN.1470: the density is the
+    definition; GEN.1347: the obliquity tide keeps one inflated, and Kepler-79 d is 1.9 to 3.4 Gyr old; Kepler-51 d is at 130 days)."""
+    return mass_earth <= CLASS_MAX_MASS_EARTH and density_g_cm3(mass_earth, radius_earth_) <= DENSITY_RANGE_G_CM3[1]
 
 
 def q_term(q_prime, obliquity_deg):

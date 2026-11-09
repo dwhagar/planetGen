@@ -150,7 +150,8 @@ def test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike():
 
 def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
     """GEN.1335 against [R1459] (16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii inside 85 days): of the inner systems of a K dwarf
-    about a quarter hold a bare core of that size (0.19 with every system at the same scale)."""
+    about a quarter hold a bare core of that size (0.19 with every system at the same scale). GEN.1406 lowered the median scale to 2.5 Earth masses (the rocky peak of the radius
+    histogram at 1.3 Earth radii, [R1478: Abstract]): 0.38 of the inner systems of a K dwarf and 0.33 of a Sun's."""
     mass_solar, hosts, earth = 0.7, 0, 0
     draw.set_run_seed(78)
     for _ in range(600):
@@ -160,7 +161,22 @@ def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
         hosts += bool(short)
         earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
     assert hosts > 500
-    assert 0.23 <= earth / hosts <= 0.40, earth / hosts       # 0.19 with no spread between systems
+    assert 0.30 <= earth / hosts <= 0.46, earth / hosts       # 0.19 with no spread between systems, 0.25 at a median scale of 3.6 Earth masses
+
+
+def test_a_share_of_the_inner_systems_of_a_sun_like_star_hold_an_earth_size_planet():
+    """GEN.1406: with the Sun's inner systems at a median of 3.6 Earth masses only 0.21 of them held a bare core of 0.8 to 1.25 Earth radii inside 85 days, which left 5.5 percent of
+    G2V stars one against the 16.5 +- 3.6 percent [R1459] finds for FGK stars; at 2.5 Earth masses the share is a third of the hosts."""
+    hosts, earth = 0, 0
+    draw.set_run_seed(79)
+    for _ in range(800):
+        z = 0.2 * draw.gauss(0.0, 1.0)
+        arch = pa.build(SUN, 1.2, 10.0 ** z, z, 30.0, inner=True)
+        short = [x for x in arch.planets if not x.runaway and period_d(SUN, x.distance_au) < 85.0]
+        hosts += bool(short)
+        earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
+    assert hosts > 700
+    assert 0.27 <= earth / hosts <= 0.42, earth / hosts
 
 
 # --- giants ----------------------------------------------------------------------------------------------------------------

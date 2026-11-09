@@ -174,6 +174,31 @@ OCEAN_CARBON_OVER_AIR = 54.0
 """float: The carbon of the air and the surface ocean together over that of the air alone, for a body with a surface ocean: the Earth's 41 000 Gt of exchangeable carbon (air, ocean, soil, biosphere) over its 760 Gt
 of air, taken for every ocean world. [Stand-in ISO16, tier T6, tweak L3.]"""
 
+COSMOGENIC_RATE_EARTH.update({"Be-10": 0.029, "Al-26": 1280.0 / constants.SECONDS_PER_YEAR})
+"""dict: Adds the global mean production in the Earth's air of 10Be, 0.029 atoms/cm2/s (modern dipole, 650 MV; [R5203: Table 1]), and of 26Al, 1280 atoms/cm2/a ([R5215: Table 3], about 4.1e-5 per second, from the
+spallation of argon). The 10Be/26Al production ratio of the air is 2.3e-3 for 26Al over 10Be in the model of [R5215: Table 2]; this rate over the 10Be one is 1.4e-3, the measured atmospheric ratio being 1.9e-3 ([R5215: Sec. 3]). [Stand-in ISO29 (10Be, tier T1, tweak L0) and ISO30 (26Al, tier T2, tweak L0).]"""
+
+EARTH_TARGETS_PER_G["Ar"] = 1.94e20
+"""float: Atoms of argon in a gram of the Earth's air, the target of 26Al (1.288 percent of the air's mass is argon, 39.948 g/mol). [Stand-in ISO30, tier T2, tweak L0.]"""
+
+ROCK_ATTENUATION_G_CM2 = 160.0
+"""float: The attenuation length of the nucleon cascade in rock, g/cm2 (about 160 g/cm2 in the exposure-dating texts, recalled and read on a course text; no registry entry); the same length is the depth of the surface layer whose beryllium and aluminium the isotopes mix into, so the layer's mean concentration is the surface one. [Stand-in ISO31, tier T2, tweak L0.]"""
+
+LUNAR_BE10_ATOMS_PER_G = 1.05e10
+"""float: The 10Be of a surface rock of a body with no air and no field at saturation, atoms per gram: the 9.6 to 11.2 dpm/kg measured in the lunar basalt 74275 ([R5216]; 10 dpm/kg, i.e. 1.05e10 atoms/g at the half-life of
+1.386 Myr). The Moon has no field, so this is the no-air, no-field anchor of the cascade at the surface. [Stand-in ISO32, tier T2, tweak L0.]"""
+
+ROCK_AL26_OVER_BE10_PRODUCTION = 6.75
+"""float: How many 26Al atoms a rock surface makes for each 10Be, the production ratio of quartz at the surface of the Earth (6.75, the standard value of the exposure-dating literature, recalled from the
+reviews, not opened). The saturated concentration ratio follows with the half-lives. [Stand-in ISO33, tier T3, tweak L0.]"""
+
+REGOLITH_BERYLLIUM_G_G = 1.5e-6
+"""float: The beryllium of the surface rock, grams per gram (the continental crust's 1.9 to 2.8 ppm, a mafic rock's about 1), taken for every rocky body. [Stand-in ISO34, tier T4, tweak L0.]"""
+
+DEFAULT_ROCK_AL2O3 = 0.15
+"""float: The Al2O3 mass fraction of the surface rock of a body that stores none (the continental crust's, about 15 percent). [Stand-in ISO34, tier T4, tweak L0.]"""
+
+
 RADIOACTIVE_PARENTS = {"K": ("K-39", "K-40", "K-41"), "U": ("U-238", "U-235")}
 """dict: The elements whose isotopes decay to the body's age, and the isotopes followed (`radiogenic.PARENTS`; 234U is left out)."""
 
@@ -222,6 +247,8 @@ def elements_held(body):
     for name, formula in SOLID_ICES.items():
         if _positive(body, name):
             held |= _formula_elements(formula)
+    if _has_rock_surface(body):
+        held.add("Be")                                  # GEN.1489: the surface layer's beryllium, which 10Be is counted against
     if envelope > 0.0:
         held |= {"H", "He"}
         if _positive(body, "envelope_z_fraction"):
@@ -497,7 +524,7 @@ def _ocean_water_kg(body):
 def cosmogenic_rate(body, isotope):
     """
     The production of `isotope` (`COSMOGENIC_RATE_EARTH`) in the body's air, atoms per cm2 per second: the Earth's rate times the share of the cascade the column catches (`ATTENUATION_G_CM2`), the
-    targets in a gram of the air over the Earth's (tritium from nitrogen and oxygen, radiocarbon from the nitrogen alone), and the field's shielding (`NO_FIELD_FACTOR` with no dipole, falling to 1 at the Earth's
+    targets in a gram of the air over the Earth's (tritium and 10Be from nitrogen and oxygen, radiocarbon from the nitrogen alone, 26Al from argon), and the field's shielding (`NO_FIELD_FACTOR` with no dipole, falling to 1 at the Earth's
     moment and under it above). 0 for a body with no air. The galactic flux, the star's wind and the star's own flares are the Earth's.
     """
     air = _air_atoms(body)
@@ -505,8 +532,10 @@ def cosmogenic_rate(body, isotope):
         return 0.0
     atoms, _molar, column = air
     caught = (1.0 - math.exp(-column / ATTENUATION_G_CM2)) / (1.0 - math.exp(-EARTH_COLUMN_G_CM2 / ATTENUATION_G_CM2))
-    if isotope == "H-3":
+    if isotope in ("H-3", "Be-10"):
         target = (atoms.get("N", 0.0) + atoms.get("O", 0.0)) / (EARTH_TARGETS_PER_G["N"] + EARTH_TARGETS_PER_G["O"])
+    elif isotope == "Al-26":
+        target = atoms.get("Ar", 0.0) / EARTH_TARGETS_PER_G["Ar"]            # 26Al is made from argon
     else:
         target = atoms.get("N", 0.0) / EARTH_TARGETS_PER_G["N"]
     moment = float(getattr(body, "magnetic_moment_a_m2", None) or 0.0) / EARTH_DIPOLE_A_M2
@@ -536,6 +565,65 @@ def cosmogenic_rows(body):
             continue
         made = rate * _area_cm2(body) / elements.isotope(isotope).decay_constant
         rows.append({"element": element, "isotope": isotope, "fraction": made / (pool + made), "initial_ratio": None, "origin": COSMOGENIC})
+    return rows
+
+
+def _land_fraction(body):
+    """The share of the body's surface that is dry rock the cascade reaches: the ocean (a few meters of water stop it) covers `ocean_fraction` of it."""
+    return min(max(1.0 - float(getattr(body, "ocean_fraction", None) or 0.0), 0.0), 1.0)
+
+
+def _field_relative(body):
+    """How much the body's dipole cuts the cascade at the surface against a body with no field (1 with none, the Earth's moment giving `1 / NO_FIELD_FACTOR`)."""
+    moment = float(getattr(body, "magnetic_moment_a_m2", None) or 0.0) / EARTH_DIPOLE_A_M2
+    return 1.0 / (1.0 + (NO_FIELD_FACTOR - 1.0) * moment)
+
+
+def _surface_column_g_cm2(body):
+    """The mass of air over a square centimeter of the body's surface, g/cm2: 0 for a body with no air."""
+    air = _air_atoms(body)
+    return 0.0 if air is None else air[2]
+
+
+def surface_cosmogenic_atoms_per_g(body, isotope):
+    """
+    The atoms of `isotope` (`Be-10` or `Al-26`) in a gram of the body's surface layer, at the star's age: the in-situ part, the saturated surface concentration of a body with no air and no field
+    (`LUNAR_BE10_ATOMS_PER_G`, times `ROCK_AL26_OVER_BE10_PRODUCTION` over the half-life ratio for 26Al) cut by the air over it (`exp(-column / ATTENUATION_G_CM2)`), by the field (`_field_relative`) and by the
+    ocean over `ocean_fraction` of the surface, plus the part that fell out of the air (`cosmogenic_rate` over the decay constant, spread over `ROCK_ATTENUATION_G_CM2`), all grown towards saturation by `1 - exp(-lambda t)`.
+    """
+    decay = elements.isotope(isotope).decay_constant
+    grown = 1.0 - math.exp(-decay * _age_gy(getattr(body, "star", None)) * 1.0e9 * constants.SECONDS_PER_YEAR)
+    saturated = LUNAR_BE10_ATOMS_PER_G
+    if isotope == "Al-26":
+        saturated *= ROCK_AL26_OVER_BE10_PRODUCTION * elements.isotope("Be-10").decay_constant / decay
+    in_situ = saturated * math.exp(-_surface_column_g_cm2(body) / ATTENUATION_G_CM2) * _field_relative(body) * _land_fraction(body)
+    fallout = cosmogenic_rate(body, isotope) / decay / ROCK_ATTENUATION_G_CM2
+    return (in_situ + fallout) * grown
+
+
+def _has_rock_surface(body):
+    """Whether the body has a solid rock surface to hold the isotopes: rock, no carbon rock (a diamond world has no aluminium) and no envelope that is most of its mass."""
+    return (_positive(body, "rock_mass_fraction") and not getattr(body, "carbon_rock", False) and (getattr(body, "envelope_mass_fraction", None) or 0.0) < 0.1
+            and not getattr(body, "is_small_body", False))        # a belt, comet or field has no one surface (GEN.1487): its record leaves the cosmic-ray layer out
+
+
+def surface_cosmogenic_rows(body):
+    """
+    The `COSMOGENIC` rows of the surface layer of a rocky body (GEN.1489): 26Al over the layer's aluminium, and 10Be over its beryllium (beryllium is an element a rocky body holds, `elements_held`, so its 9Be row is the natural one). They
+    come from `surface_cosmogenic_atoms_per_g`: bodies with no air get the whole cascade, bodies with air what the column lets through and what falls out of it (10Be from nitrogen and oxygen, 26Al from argon), and a
+    ocean-covered surface only what falls out. Empty for a body with no rock surface.
+    """
+    if not _has_rock_surface(body):
+        return []
+    rows = []
+    al_g = (getattr(body, "rock_al2o3_fraction", None) or DEFAULT_ROCK_AL2O3) * 2.0 * elements.molar_mass("Al") / elements.molar_mass("Al2O3")
+    for isotope, element, grams_per_g in (("Al-26", "Al", al_g), ("Be-10", "Be", REGOLITH_BERYLLIUM_G_G)):
+        pool = grams_per_g / (elements.molar_mass(element) * 1000.0) * AVOGADRO
+        made = surface_cosmogenic_atoms_per_g(body, isotope)
+        if made <= 0.0 or pool <= 0.0:
+            continue
+        fraction = made / (pool + made)
+        rows.append({"element": element, "isotope": isotope, "fraction": fraction, "initial_ratio": None, "origin": COSMOGENIC})
     return rows
 
 
@@ -582,7 +670,7 @@ def small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_
     total = math.fsum(ices.values())
     ice = float(ice_mass_fraction or 0.0) if ice_fraction is None and water_fraction is None else float(ice_fraction or 0.0) + float(water_fraction or 0.0)
     view = SimpleNamespace(star=SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=None if age_gy is None else float(age_gy), snow_line_au=snow_line_au), ice_formation_k=temperature,
-                           isotope_seed=f"ice:{kind}:{seed}", rock_mass_fraction=(1.0 - ice) if rock_fraction is None else float(rock_fraction), metal_mass_fraction=float(metal_fraction or 0.0),
+                           isotope_seed=f"ice:{kind}:{seed}", is_small_body=True, rock_mass_fraction=(1.0 - ice) if rock_fraction is None else float(rock_fraction), metal_mass_fraction=float(metal_fraction or 0.0),
                            water_mass_fraction=0.0, mass=0.0, radius=0.0, distance=0.0, is_moon=False)
     if total > 0.0 and ice > 0.0:
         if water_fraction is None:
@@ -695,6 +783,28 @@ def mantle_sheet_rows(rows):
         add("129Xe/130Xe", "Xenon-129 over xenon-130 of the mantle's gas", f"129Xe/130Xe {ratio:.4g}", ratio)
     return shown
 
+def _one_row_per_isotope(rows):
+    """
+    The rows with one for each isotope (the tables hold one): a short-lived isotope that cosmic rays also make (26Al) is one row whose fraction is the sum of the two, its origin the larger part's and its
+    birth ratio the short-lived part's.
+    """
+    found = {}
+    for row in rows:
+        kept = found.get(row["isotope"])
+        if kept is None:
+            found[row["isotope"]] = row
+            continue
+        larger = row if row["fraction"] > kept["fraction"] else kept
+        found[row["isotope"]] = {"element": kept["element"], "isotope": kept["isotope"], "fraction": min(kept["fraction"] + row["fraction"], 1.0),
+                                 "initial_ratio": kept["initial_ratio"] if kept["initial_ratio"] is not None else row["initial_ratio"], "origin": larger["origin"]}
+    ordered = []
+    seen = set()
+    for row in rows:
+        if row["isotope"] not in seen:
+            seen.add(row["isotope"])
+            ordered.append(found[row["isotope"]])
+    return ordered
+
 
 def record_of(body):
     """The rows of `body`'s record (`ROW_FIELDS` dicts, by atomic number then mass number), or `None` for a body with no stored composition."""
@@ -722,13 +832,14 @@ def record_of(body):
             mix, initial = _decayed(symbol, age)
         for name in sorted(mix, key=lambda isotope_name: elements.isotope(isotope_name).a):
             rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "initial_ratio": initial.get(name), "origin": origin})
-    return rows + extinct_rows(body, held, age) + cosmogenic_rows(body)
+    return _one_row_per_isotope(rows + extinct_rows(body, held, age) + cosmogenic_rows(body) + surface_cosmogenic_rows(body))
 
 
 SHEET_RATIOS = (("D/H", "H-2", "H-1", "Deuterium over hydrogen"), ("13C/12C", "C-13", "C-12", "Carbon-13 over carbon-12"), ("15N/14N", "N-15", "N-14", "Nitrogen-15 over nitrogen-14"),
                 ("40Ar/36Ar", "Ar-40", "Ar-36", "Argon-40 over argon-36"), ("235U/238U", "U-235", "U-238", "Uranium-235 over uranium-238"),
                 ("40K/39K", "K-40", "K-39", "Potassium-40 over potassium-39"), ("3H/1H", "H-3", "H-1", "Tritium over hydrogen (of the air and ocean)"),
-                ("14C/12C", "C-14", "C-12", "Carbon-14 over carbon-12 (of the air and ocean)"))
+                ("14C/12C", "C-14", "C-12", "Carbon-14 over carbon-12 (of the air and ocean)"),
+                ("10Be/9Be", "Be-10", "Be-9", "Beryllium-10 over beryllium-9 (of the surface layer)"), ("26Al/27Al", "Al-26", "Al-27", "Aluminum-26 over aluminum-27 (of the surface layer)"))
 """tuple: The ratios a property sheet lists, `(short name, top isotope, bottom isotope, label)`: the ones the record moves away from the natural mix."""
 
 
