@@ -56387,6 +56387,166 @@
       ],
       "slug": "6-242-stand-ins-of-the-other-suns-in-a-planet-s-sky",
       "title": "Stand-ins of the other suns in a planet's sky"
+    },
+    {
+      "key": "6.243",
+      "number": "6.243",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a star makes a day of its own when it puts at least daylight.DAY_SUN_W_M2 = 0.036 W/m2 on the body: civil twilight, 3.4 lux over the 1.3e5 lux of the Sun at Earth, times the 1361 W/m2 of the solar constant"
+            ],
+            [
+              "The range it moves in",
+              "0.036 W/m2"
+            ],
+            [
+              "Where it holds",
+              "the eye's day, a body with an air that scatters like Earth's"
+            ],
+            [
+              "What would show it wrong",
+              "a sky where a fainter star is called a day (a thin air, a dark-adapted sky)"
+            ],
+            [
+              "What replaces it",
+              "a threshold from the sky's brightness in the air the body has"
+            ],
+            [
+              "Evidence",
+              "measured: the illuminance at the end of civil twilight (Sun 6 degrees below the horizon) is about 3.4 lux; the Sun at Earth gives about 1.3e5 lux"
+            ]
+          ],
+          "id": "DS1",
+          "key": "6.243:DS1",
+          "kind": "T",
+          "slug": "6-243-ds1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a star makes a day of its own when it puts at least daylight.DAY_SUN_W_M2 = 0.036 W/m2 on the body: civil twilight, 3.4 lux over the 1.3e5 lux of the Sun at Earth, times the 1361 W/m2 of the solar constant"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the polar circle, the solar day and the day count stay the host's: a second sun's own circle is a few degrees from the host's and a day that two suns share has no single length"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a companion that stands near the host in the sky or is faint"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose second sun sets while the host stays up for weeks"
+            ],
+            [
+              "What replaces it",
+              "a polar circle per sun and a day that follows the brightest"
+            ],
+            [
+              "Evidence",
+              "design: the circle depends on the tilt only; the union changes the share of the day, not its period"
+            ]
+          ],
+          "id": "DS2",
+          "key": "6.243:DS2",
+          "kind": "P",
+          "slug": "6-243-ds2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the polar circle, the solar day and the day count stay the host's: a second sun's own circle is a few degrees from the host's and a day that two suns share has no single length"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "each counted sun stands where the planet's place against it puts it, the planet taken on its circle of mean flux at the year's longitude and the companion fixed at its offset from the host at the orbit nodes' epoch"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a companion whose period is longer than the planet's year"
+            ],
+            [
+              "What would show it wrong",
+              "a companion whose orbit moves it by tens of degrees in the planet's year"
+            ],
+            [
+              "What replaces it",
+              "the companion at its own place for each step of the year"
+            ],
+            [
+              "Evidence",
+              "derived: the planet-to-companion direction is the offset plus the planet's displacement from the host, which this keeps; the companion's period is at least (R / d)^1.5 of the planet's"
+            ]
+          ],
+          "id": "DS3",
+          "key": "6.243:DS3",
+          "kind": "P",
+          "slug": "6-243-ds3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "each counted sun stands where the planet's place against it puts it, the planet taken on its circle of mean flux at the year's longitude and the companion fixed at its offset from the host at the orbit nodes' epoch"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon reads its planet's suns and the parent's shadow as before (the share of the moon's day the planet takes is multiplied on the union), its own spin axis against the planet's orbit decides the arcs"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a moon that stands in no sibling's shadow"
+            ],
+            [
+              "What would show it wrong",
+              "a moon whose sibling blocks one of two suns (GEN.1462)"
+            ],
+            [
+              "What replaces it",
+              "the eclipse calendar of GEN.1462"
+            ],
+            [
+              "Evidence",
+              "design: the shadow share is the parent's disk against the star in the union's mean"
+            ]
+          ],
+          "id": "DS4",
+          "key": "6.243:DS4",
+          "kind": "P",
+          "slug": "6-243-ds4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon reads its planet's suns and the parent's shadow as before (the share of the moon's day the planet takes is multiplied on the union), its own spin axis against the planet's orbit decides the arcs"
+        }
+      ],
+      "slug": "6-243-stand-ins-of-the-day-with-every-sun",
+      "title": "Stand-ins of the day with every sun"
     }
   ]
 }
