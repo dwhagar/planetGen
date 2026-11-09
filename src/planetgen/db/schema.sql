@@ -5251,7 +5251,7 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 
 
 -- ---------------------------------------------------------------------
--- system_summary (v238, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
+-- system_summary (v238, GEN.1479; v241, GEN.1478): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
 -- own rows, so the jobs that refresh them (`rescore-habitability`) take only the systems that are not current. `habitability_stamp` is the stamp
 -- of the code that scored the system's planets and moons (`db/derived_stamp.py`: a hash of the physics source, so a changed formula is a different
 -- stamp); NULL until the system is scored. Written by the system save and by `store.refresh_habitability`. It is a side table, not columns of
@@ -5260,6 +5260,18 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 CREATE TABLE IF NOT EXISTS system_summary (
     star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     habitability_stamp  INT UNSIGNED NULL,
+    -- v241 (GEN.1478): what the system's rows add up to, so no reader sums them again (`db/system_summary.py`): the stars' mass, the stars', planets' and
+    -- moons' mass, the brightest star's and all the stars' luminosity (W), and the counts of stars, planets, moons, belts and comets. Written by the system
+    -- save and the editor; NULL for a system with no row of that kind (no star: no mass).
+    stars_mass_kg                DOUBLE NULL,
+    system_mass_kg               DOUBLE NULL,
+    brightest_star_luminosity_w  DOUBLE NULL,
+    total_luminosity_w           DOUBLE NULL,
+    star_count                   SMALLINT UNSIGNED NULL,
+    planet_count                 SMALLINT UNSIGNED NULL,
+    moon_count                   SMALLINT UNSIGNED NULL,
+    belt_count                   SMALLINT UNSIGNED NULL,
+    comet_count                  SMALLINT UNSIGNED NULL,
 
     CONSTRAINT fk_system_summary_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE

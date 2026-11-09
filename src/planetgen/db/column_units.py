@@ -1014,6 +1014,9 @@ TABLES = {
     },
     "system_summary": {
         "id": ("star_system_id", "habitability_stamp"),
+        "kg": ("stars_mass_kg", "system_mass_kg"),
+        "W": ("brightest_star_luminosity_w", "total_luminosity_w"),
+        "count": ("star_count", "planet_count", "moon_count", "belt_count", "comet_count"),
     },
     "sector_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
