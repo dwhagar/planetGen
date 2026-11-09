@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3745] - 2026-11-09
+
+**Headline:** Every star of a system now also adds its XUV, flares, particles and ultraviolet to the radiation of each planet and moon.
+
+
+### Changed
+- **The XUV, flare, particle, far-ultraviolet and DNA doses and the loss of air and envelope read every star of the system (GEN.1442).** A body's stored XUV flux, XUV exposure index and flare index are the host's value plus the other stars' parts by position (the time-averaged `1/d^2` of GEN.1441); the free-space particle dose adds each star's flare particles; the far-ultraviolet that breaks methane into haze adds each star's; the ground's DNA dose and UV index add each star's own spectrum through the one air and ozone column; and the thermal and envelope loss follow each star's XUV decay through time, with the host's XUV taking its own distance now that the light is the whole system's. A lone star gives the same numbers as before to the last digit. The ozone column is still drawn by the host's colour (registry rows DS1 to DS4, section 6.241). In a census of 300 systems (seed 11, each system seeded alone) all 774 bodies of lone stars came out the same, and of 276 bodies of multi-star systems 235 changed their stored XUV flux, 223 their flare index, 139 their particle dose, 150 their ultraviolet index and 59 their envelope. It shares the epoch of GEN.1441 (`--affects plan,scatter,fill,population`); no migration.
+
+generation-output: changed
+
 ## [8.0.3744] - 2026-11-09
 
 **Headline:** Every star of a system now lights every planet and moon of it, by where it is, not only the star the planet circles.
