@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1484 |
+| GEN | GEN.1485 |
 | PERF | PERF.259 |
 | DB | DB.122 |
 | API | API.48 |
@@ -3652,8 +3652,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1439 | A plan stores no container for each globular cluster | none | done, PR #5775 |
 | GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | open |
 | GEN.1481 | Sky backfill and ring walks: cut the cell visits (8.3e9 at a 7.5 sky) by pruning mass rings by block or a recursive Poisson split (audit C11) | none | open |
-| GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | open |
+| GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | done, closed as a finding (Lane 14 retime, 2026-11-09) |
 | GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | open |
+| GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | open |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | open |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
@@ -3700,7 +3701,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.1.8 | PERF.10 |
 | PERF.1.9 | PERF.11 |
 | PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
-| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | open |
+| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | done, PR #5824 |
 | PERF.258 | check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output | none | open |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | open |
 | SEC.2.1 | SEC.3 |

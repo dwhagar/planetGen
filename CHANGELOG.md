@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3738] - 2026-11-09
+
+**Headline:** A new generator epoch no longer empties the map's stored nodes: they follow the stored rows, so only what was regenerated is fetched again.
+
+### Changed
+
+- OPS.133: the key the Galaxy Map's node cache follows (`tile_base` in `galaxy_content_state`) no longer holds the running generator epoch. It holds the epoch each scatter was drawn under (`scatter_epochs`) instead; the plan's own epoch was already in it through the stored shape. A node is read from stored rows, so an epoch bump with nothing regenerated changes no node. A regenerated sector bumps its own `modified_at` and so its own nodes only, and a scatter drawn again under a new epoch still empties every node.
+- Nothing stored changes. The first update after this lands empties the stored nodes once, as every epoch did before.
+
+generation-output: unchanged
+
+## [8.0.3737] - 2026-11-09
+
+**Headline:** An unchanged warm-up now takes minutes instead of 28: the workers keep the app and a node stage skips the nodes that are already stored.
+
+### Changed
+- **The warm-up app is built once per worker (PERF.257).** The five warm commands whose units visit pages (`warm-galaxy-nodes`, `warm-galaxy-deep-nodes`, `warm-sectors`, `warm-systems`, `warm-phenomena`) build the app in the worker before the work horse is forked, so no unit pays the 7 s the app took to import. Measured: 7.1 s a horse before, 0.0 s after.
+- **A node stage opens with a stamp check.** The nodes the disk cache already holds in the current generation are left out of the units (`tilecache.stored_nodes`); an unchanged rerun is one empty unit that reports them as already stored, and a changed sector cuts only its own nodes. A failed check cuts every node as before.
+- Generated output is unchanged.
+
+generation-affects: none
+
 ## [8.0.3736] - 2026-11-09
 
 **Headline:** The proof tests for the generation-rescan chain have their harness, and the first run already found that today's block-light refresh differs from a rebuild by one unit in the last place.
