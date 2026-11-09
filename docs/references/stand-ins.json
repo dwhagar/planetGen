@@ -59735,8 +59735,8 @@
       "title": "Stand-ins of the effect ledger"
     },
     {
-      "key": "6.253",
-      "number": "6.253",
+      "key": "6.259",
+      "number": "6.259",
       "rows": [
         {
           "burn_down": null,
@@ -59767,9 +59767,9 @@
             ]
           ],
           "id": "SKY1",
-          "key": "6.253:SKY1",
+          "key": "6.259:SKY1",
           "kind": "T",
-          "slug": "6-253-sky1",
+          "slug": "6-259-sky1",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -59805,9 +59805,9 @@
             ]
           ],
           "id": "SKY2",
-          "key": "6.253:SKY2",
+          "key": "6.259:SKY2",
           "kind": "P",
-          "slug": "6-253-sky2",
+          "slug": "6-259-sky2",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59835,7 +59835,7 @@
             ],
             [
               "What replaces it",
-              "the light of a dark member drawn from its mass, age and companion (follow-up of GEN.1443)"
+              "the light of a dark member drawn from its mass, age and companion (GEN.1501)"
             ],
             [
               "Evidence",
@@ -59843,9 +59843,9 @@
             ]
           ],
           "id": "SKY3",
-          "key": "6.253:SKY3",
+          "key": "6.259:SKY3",
           "kind": "P",
-          "slug": "6-253-sky3",
+          "slug": "6-259-sky3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59853,7 +59853,7 @@
           "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
         }
       ],
-      "slug": "6-253-stand-ins-of-the-bright-sources-in-a-body-s-sky",
+      "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
       "title": "Stand-ins of the bright sources in a body's sky"
     }
   ]

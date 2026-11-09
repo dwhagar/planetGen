@@ -15,7 +15,7 @@ the same list the temperature, the day shares of GEN.1461 and the suns of GEN.14
 distance is the root-mean-square one the orbit average gives), and `R` the star's radius. The colour is the star's blackbody colour (`photometry.star_colour`) as a word
 (`atmosphere_colour.colour_word`).
 
-Stand-ins are the rows SKY1 to SKY3 of section 6.253 of the gap plan. The compact objects that sit in the orbit tree as dark members (a neutron star, a black hole with a disk) give no
+Stand-ins are the rows SKY1 to SKY3 of section 6.259 of the gap plan. The compact objects that sit in the orbit tree as dark members (a neutron star, a black hole with a disk) give no
 light in the field yet, so they do not show here either (SKY3).
 """
 
