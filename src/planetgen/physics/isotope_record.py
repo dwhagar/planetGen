@@ -50,7 +50,7 @@ from types import SimpleNamespace
 
 from planetgen import tuning
 from planetgen.galaxy import shape_draw
-from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -275,6 +275,9 @@ def gas_n15_over_n14(star):
 
 def _ice_temperature_k(body):
     """The temperature an ice of the body formed at, K: the disk's at its formation distance, never above the snow line's and never below `FLOOR_ICE_K`."""
+    fixed = getattr(body, "ice_formation_k", None)
+    if fixed is not None:
+        return min(max(fixed, FLOOR_ICE_K), ICE_REFERENCE_K)        # a small body (GEN.1487): the temperature its ice formed at is worked out from what its row stores
     star = getattr(body, "star", None)
     distance = getattr(body, "formation_distance_au", None)
     distance = getattr(body, "distance", None) if distance is None else distance
@@ -412,6 +415,9 @@ def _argon(share_40):
 
 def stream_of(body, key):
     """The body's own stream for one draw of the record: seeded from what is final about the body, so no draw of the run's stream moves."""
+    seed = getattr(body, "isotope_seed", None)
+    if seed is not None:
+        return draw.Stream(f"isotopes:{key}:{seed}")          # a small body (GEN.1487) has no mass and orbit of its own to seed from: its row names the stream
     star = getattr(body, "star", None)
     return draw.Stream(f"isotopes:{key}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
 
@@ -533,36 +539,70 @@ def cosmogenic_rows(body):
     return rows
 
 
-ICE_SHEET_ROWS = (("isotope_ice_d_h", "Deuterium over hydrogen of the ices"), ("isotope_ice_n15", "Nitrogen-15 over nitrogen-14 of the ices"))
-"""tuple: The two derived lines a belt's or a comet's property sheet shows for its ices, `(key, label)`."""
+SMALL_BODY_KINDS = ("belt", "belt_member", "comet", "interstellar_comet", "asteroid_field", "field_member")
+"""tuple: The kinds of small body `small_body_record` takes (GEN.1487): the belt and its members, a comet, an interstellar comet, an interstellar field and its members."""
+
+ICE_BUDGET_MARGIN_K = 0.1
+"""float: How far below the water line (K) the ice budget of a small body formed at the line is read: water condenses below the line only. [Stand-in ISO19, tier T6, tweak L0.]"""
+
+SMALL_BODY_ICE_COLUMNS = {"NH3": "ice_nh3_mass_fraction", "CO2": "ice_co2_mass_fraction", "CH4": "ice_ch4_mass_fraction", "N2": "ice_n2_mass_fraction", "CO": "ice_co_mass_fraction"}
+"""dict: The ices of the disk budget (`disk_condensation.masses_percent`) a small body's record follows beside its water, and the column of a planet's ice each one is read into. The ammonium salts, H2S and the noble
+gases that the budget freezes are left out of the elements a small body holds. [Stand-in ISO18, tier T6, tweak L0.]"""
 
 
-def ice_ratios(star, temperature_k, stream):
-    """`(D/H, 15N/14N)` of ices formed at `temperature_k` around `star` (`metallicity_fe_h`, `age`): the star's gas ratios raised by the ice laws, with one log-normal scatter on D/H."""
-    scatter = math.exp(D_H_SCATTER_LN * stream.gauss())
-    d_h = gas_d_h(star) * ice_factor(temperature_k, D_H_ENRICHMENT_REFERENCE, D_H_T0_K) * scatter
-    n15 = gas_n15_over_n14(star) * ice_factor(temperature_k, NITROGEN_ENRICHMENT_REFERENCE, N_T0_K)
-    return d_h, n15
-
-
-def ice_sheet_rows(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed):
+def small_body_temperature_k(kind, snow_line_au=None, distance_km=None):
     """
-    The derived sheet lines for the ices of a belt or a comet, worked out from stored values, `[(key, label, text, ratio)]`; empty for a body with no ice or no star. A belt's ice formed at its
-    distance (`condensate_shares.ICE_CONDENSATION_K` water at the snow line, falling as the square root of the distance, held inside the ice law's range; the snow line when the belt stores none), a comet's at
-    `COMET_ICE_K`. The scatter is drawn on a stream named by `seed`, so one body always shows the same line.
+    The temperature the ice of a small body formed at, K: a belt's (and its members') at its distance (`condensate_shares.ICE_CONDENSATION_K` water at the star's snow line, falling as the square root of the distance,
+    held inside the ice law's range; the snow line when the belt stores none), a comet's at `COMET_ICE_K`, an interstellar comet's too (a planetesimal thrown out of a disk, as a comet is), an interstellar field's
+    the snow line's. [Stand-in ISO20, tier T6, tweak L0.]
     """
-    if not ice_mass_fraction or ice_mass_fraction <= 0.0 or metallicity_fe_h is None or age_gy is None:
-        return []
-    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=float(age_gy))
-    if kind == "comet":
-        temperature = COMET_ICE_K
-    elif snow_line_au and distance_km and distance_km > 0.0:
+    if kind in ("comet", "interstellar_comet"):
+        return COMET_ICE_K
+    if kind in ("belt", "belt_member") and snow_line_au and distance_km and distance_km > 0.0:
         temperature = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(float(snow_line_au) * constants.AU_TO_KM / float(distance_km))
-        temperature = min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
-    else:
-        temperature = ICE_REFERENCE_K
-    d_h, n15 = ice_ratios(star, temperature, draw.Stream(f"isotopes:ice:{kind}:{seed}"))
-    return [(ICE_SHEET_ROWS[0][0], ICE_SHEET_ROWS[0][1], f"D/H {d_h:.4g}", d_h), (ICE_SHEET_ROWS[1][0], ICE_SHEET_ROWS[1][1], f"15N/14N {n15:.4g}", n15)]
+        return min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
+    return ICE_REFERENCE_K
+
+
+def galactic_gas_metallicity(galactic_radius_pc):
+    """The [Fe/H] taken for a small body that has no star (an interstellar comet or field): the gas of the galaxy at the radius it is at (`nebula_composition.gas_gradient_oh`, [O/H] standing for [Fe/H]). [Stand-in ISO20, tier T6, tweak L0.]"""
+    return nebula_composition.gas_gradient_oh(float(galactic_radius_pc))
+
+
+def small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km=None, snow_line_au=None, seed="", rock_fraction=None, metal_fraction=None, water_fraction=None, ice_fraction=None):
+    """
+    A stand-in `record_of` reads for a belt, a comet, an interstellar comet, an interstellar field or a member of a belt or field (GEN.1487), made from the values its row stores: no table of its own holds a record,
+    since the record is a pure function of those values. The body is rock and ice: `ice_mass_fraction` of it is ice (a member gives its own `rock_fraction`, `metal_fraction` and `water_fraction`, and
+    `ice_fraction` for its other ices), the ice split into water and the other ices of the budget at the temperature it formed at (`small_body_temperature_k`), and the rest rock. The draws are made on a stream
+    named by `kind` and `seed` (the belt's system and distance, a comet's id), so one body always shows the same record. `age_gy` of `None` is the Earth's reference age.
+    """
+    temperature = small_body_temperature_k(kind, snow_line_au, distance_km)
+    masses = disk_condensation.masses_percent(min(temperature, ICE_REFERENCE_K - ICE_BUDGET_MARGIN_K))    # water is frozen below its line, not on it: a body at the line itself holds the water the line leaves
+    ices = {name: value for name, value in masses.items() if name in ("H2O", *SMALL_BODY_ICE_COLUMNS)}
+    total = math.fsum(ices.values())
+    ice = float(ice_mass_fraction or 0.0) if ice_fraction is None and water_fraction is None else float(ice_fraction or 0.0) + float(water_fraction or 0.0)
+    view = SimpleNamespace(star=SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=None if age_gy is None else float(age_gy), snow_line_au=snow_line_au), ice_formation_k=temperature,
+                           isotope_seed=f"ice:{kind}:{seed}", rock_mass_fraction=(1.0 - ice) if rock_fraction is None else float(rock_fraction), metal_mass_fraction=float(metal_fraction or 0.0),
+                           water_mass_fraction=0.0, mass=0.0, radius=0.0, distance=0.0, is_moon=False)
+    if total > 0.0 and ice > 0.0:
+        if water_fraction is None:
+            view.water_mass_fraction = ice * ices.get("H2O", 0.0) / total
+            for name, column in SMALL_BODY_ICE_COLUMNS.items():
+                setattr(view, column, ice * ices.get(name, 0.0) / total)
+        else:
+            view.water_mass_fraction = float(water_fraction)
+            other = float(ice_fraction or 0.0)
+            rest = total - ices.get("H2O", 0.0)
+            for name, column in SMALL_BODY_ICE_COLUMNS.items():
+                setattr(view, column, other * ices.get(name, 0.0) / rest if rest > 0.0 else 0.0)
+    return view
+
+
+def small_body_record(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km=None, snow_line_au=None, seed="", **fractions):
+    """The rows of the isotope record of a small body (`SMALL_BODY_KINDS`; `ROW_FIELDS` dicts), worked out from the values its row stores through `record_of`, the same laws as a planet's; `None` for a body with no composition."""
+    if kind not in SMALL_BODY_KINDS:
+        raise ValueError(f"no small body of kind {kind!r}")
+    return record_of(small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed, **fractions))
 
 
 def record_of(body):
