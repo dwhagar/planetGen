@@ -42,7 +42,7 @@ over the pool the isotope mixes into (the air, and the surface ocean for hydroge
 A body with no air has none.
 
 Left out, and where it goes: 10Be and 26Al made in the air (no source in hand for a global rate; the pool for beryllium is the crust's); cosmic-ray production in an airless surface and an ocean-covered one; the xenon excess
-from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the natural mix); the isotope split of a body's reservoirs (a mantle against an ocean); belts, comets and stars.
+from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the natural mix); the isotope split of a body's reservoirs (a mantle against an ocean).
 """
 
 import math
@@ -50,7 +50,7 @@ from types import SimpleNamespace
 
 from planetgen import tuning
 from planetgen.galaxy import shape_draw
-from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
+from planetgen.physics import birth_radioisotopes, bulk_draw, condensate_shares, constants, disk_condensation, elements, interior_heat, nebula_composition, radiogenic, stellar_abundances, surface_pressure
 from planetgen.util import draw
 
 ATTRIBUTE = "isotopes"
@@ -275,6 +275,9 @@ def gas_n15_over_n14(star):
 
 def _ice_temperature_k(body):
     """The temperature an ice of the body formed at, K: the disk's at its formation distance, never above the snow line's and never below `FLOOR_ICE_K`."""
+    fixed = getattr(body, "ice_formation_k", None)
+    if fixed is not None:
+        return min(max(fixed, FLOOR_ICE_K), ICE_REFERENCE_K)        # a small body (GEN.1487): the temperature its ice formed at is worked out from what its row stores
     star = getattr(body, "star", None)
     distance = getattr(body, "formation_distance_au", None)
     distance = getattr(body, "distance", None) if distance is None else distance
@@ -412,6 +415,9 @@ def _argon(share_40):
 
 def stream_of(body, key):
     """The body's own stream for one draw of the record: seeded from what is final about the body, so no draw of the run's stream moves."""
+    seed = getattr(body, "isotope_seed", None)
+    if seed is not None:
+        return draw.Stream(f"isotopes:{key}:{seed}")          # a small body (GEN.1487) has no mass and orbit of its own to seed from: its row names the stream
     star = getattr(body, "star", None)
     return draw.Stream(f"isotopes:{key}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
 
@@ -533,36 +539,161 @@ def cosmogenic_rows(body):
     return rows
 
 
-ICE_SHEET_ROWS = (("isotope_ice_d_h", "Deuterium over hydrogen of the ices"), ("isotope_ice_n15", "Nitrogen-15 over nitrogen-14 of the ices"))
-"""tuple: The two derived lines a belt's or a comet's property sheet shows for its ices, `(key, label)`."""
+SMALL_BODY_KINDS = ("belt", "belt_member", "comet", "interstellar_comet", "asteroid_field", "field_member")
+"""tuple: The kinds of small body `small_body_record` takes (GEN.1487): the belt and its members, a comet, an interstellar comet, an interstellar field and its members."""
+
+ICE_BUDGET_MARGIN_K = 0.1
+"""float: How far below the water line (K) the ice budget of a small body formed at the line is read: water condenses below the line only. [Stand-in ISO19, tier T6, tweak L0.]"""
+
+SMALL_BODY_ICE_COLUMNS = {"NH3": "ice_nh3_mass_fraction", "CO2": "ice_co2_mass_fraction", "CH4": "ice_ch4_mass_fraction", "N2": "ice_n2_mass_fraction", "CO": "ice_co_mass_fraction"}
+"""dict: The ices of the disk budget (`disk_condensation.masses_percent`) a small body's record follows beside its water, and the column of a planet's ice each one is read into. The ammonium salts, H2S and the noble
+gases that the budget freezes are left out of the elements a small body holds. [Stand-in ISO18, tier T6, tweak L0.]"""
 
 
-def ice_ratios(star, temperature_k, stream):
-    """`(D/H, 15N/14N)` of ices formed at `temperature_k` around `star` (`metallicity_fe_h`, `age`): the star's gas ratios raised by the ice laws, with one log-normal scatter on D/H."""
-    scatter = math.exp(D_H_SCATTER_LN * stream.gauss())
-    d_h = gas_d_h(star) * ice_factor(temperature_k, D_H_ENRICHMENT_REFERENCE, D_H_T0_K) * scatter
-    n15 = gas_n15_over_n14(star) * ice_factor(temperature_k, NITROGEN_ENRICHMENT_REFERENCE, N_T0_K)
-    return d_h, n15
-
-
-def ice_sheet_rows(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed):
+def small_body_temperature_k(kind, snow_line_au=None, distance_km=None):
     """
-    The derived sheet lines for the ices of a belt or a comet, worked out from stored values, `[(key, label, text, ratio)]`; empty for a body with no ice or no star. A belt's ice formed at its
-    distance (`condensate_shares.ICE_CONDENSATION_K` water at the snow line, falling as the square root of the distance, held inside the ice law's range; the snow line when the belt stores none), a comet's at
-    `COMET_ICE_K`. The scatter is drawn on a stream named by `seed`, so one body always shows the same line.
+    The temperature the ice of a small body formed at, K: a belt's (and its members') at its distance (`condensate_shares.ICE_CONDENSATION_K` water at the star's snow line, falling as the square root of the distance,
+    held inside the ice law's range; the snow line when the belt stores none), a comet's at `COMET_ICE_K`, an interstellar comet's too (a planetesimal thrown out of a disk, as a comet is), an interstellar field's
+    the snow line's. [Stand-in ISO20, tier T6, tweak L0.]
     """
-    if not ice_mass_fraction or ice_mass_fraction <= 0.0 or metallicity_fe_h is None or age_gy is None:
-        return []
-    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=float(age_gy))
-    if kind == "comet":
-        temperature = COMET_ICE_K
-    elif snow_line_au and distance_km and distance_km > 0.0:
+    if kind in ("comet", "interstellar_comet"):
+        return COMET_ICE_K
+    if kind in ("belt", "belt_member") and snow_line_au and distance_km and distance_km > 0.0:
         temperature = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(float(snow_line_au) * constants.AU_TO_KM / float(distance_km))
-        temperature = min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
-    else:
-        temperature = ICE_REFERENCE_K
-    d_h, n15 = ice_ratios(star, temperature, draw.Stream(f"isotopes:ice:{kind}:{seed}"))
-    return [(ICE_SHEET_ROWS[0][0], ICE_SHEET_ROWS[0][1], f"D/H {d_h:.4g}", d_h), (ICE_SHEET_ROWS[1][0], ICE_SHEET_ROWS[1][1], f"15N/14N {n15:.4g}", n15)]
+        return min(max(temperature, FLOOR_ICE_K), ICE_REFERENCE_K)
+    return ICE_REFERENCE_K
+
+
+def galactic_gas_metallicity(galactic_radius_pc):
+    """The [Fe/H] taken for a small body that has no star (an interstellar comet or field): the gas of the galaxy at the radius it is at (`nebula_composition.gas_gradient_oh`, [O/H] standing for [Fe/H]). [Stand-in ISO20, tier T6, tweak L0.]"""
+    return nebula_composition.gas_gradient_oh(float(galactic_radius_pc))
+
+
+def small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km=None, snow_line_au=None, seed="", rock_fraction=None, metal_fraction=None, water_fraction=None, ice_fraction=None):
+    """
+    A stand-in `record_of` reads for a belt, a comet, an interstellar comet, an interstellar field or a member of a belt or field (GEN.1487), made from the values its row stores: no table of its own holds a record,
+    since the record is a pure function of those values. The body is rock and ice: `ice_mass_fraction` of it is ice (a member gives its own `rock_fraction`, `metal_fraction` and `water_fraction`, and
+    `ice_fraction` for its other ices), the ice split into water and the other ices of the budget at the temperature it formed at (`small_body_temperature_k`), and the rest rock. The draws are made on a stream
+    named by `kind` and `seed` (the belt's system and distance, a comet's id), so one body always shows the same record. `age_gy` of `None` is the Earth's reference age.
+    """
+    temperature = small_body_temperature_k(kind, snow_line_au, distance_km)
+    masses = disk_condensation.masses_percent(min(temperature, ICE_REFERENCE_K - ICE_BUDGET_MARGIN_K))    # water is frozen below its line, not on it: a body at the line itself holds the water the line leaves
+    ices = {name: value for name, value in masses.items() if name in ("H2O", *SMALL_BODY_ICE_COLUMNS)}
+    total = math.fsum(ices.values())
+    ice = float(ice_mass_fraction or 0.0) if ice_fraction is None and water_fraction is None else float(ice_fraction or 0.0) + float(water_fraction or 0.0)
+    view = SimpleNamespace(star=SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=None if age_gy is None else float(age_gy), snow_line_au=snow_line_au), ice_formation_k=temperature,
+                           isotope_seed=f"ice:{kind}:{seed}", rock_mass_fraction=(1.0 - ice) if rock_fraction is None else float(rock_fraction), metal_mass_fraction=float(metal_fraction or 0.0),
+                           water_mass_fraction=0.0, mass=0.0, radius=0.0, distance=0.0, is_moon=False)
+    if total > 0.0 and ice > 0.0:
+        if water_fraction is None:
+            view.water_mass_fraction = ice * ices.get("H2O", 0.0) / total
+            for name, column in SMALL_BODY_ICE_COLUMNS.items():
+                setattr(view, column, ice * ices.get(name, 0.0) / total)
+        else:
+            view.water_mass_fraction = float(water_fraction)
+            other = float(ice_fraction or 0.0)
+            rest = total - ices.get("H2O", 0.0)
+            for name, column in SMALL_BODY_ICE_COLUMNS.items():
+                setattr(view, column, other * ices.get(name, 0.0) / rest if rest > 0.0 else 0.0)
+    return view
+
+
+def small_body_record(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km=None, snow_line_au=None, seed="", **fractions):
+    """The rows of the isotope record of a small body (`SMALL_BODY_KINDS`; `ROW_FIELDS` dicts), worked out from the values its row stores through `record_of`, the same laws as a planet's; `None` for a body with no composition."""
+    if kind not in SMALL_BODY_KINDS:
+        raise ValueError(f"no small body of kind {kind!r}")
+    return record_of(small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed, **fractions))
+
+
+SURFACE_D_H = 1.0e-10
+"""float: The deuterium over hydrogen left at the surface of a star that has passed its protostar stage, 1e-10: deuterium burns above about 1e6 K and a convective young star mixes its whole envelope through that, so the surface keeps almost none (the Sun's is below any measure). [Stand-in ISO21, tier T5, tweak L4.]"""
+
+DREDGED_C12_OVER_C13 = 20.0
+"""float: The 12C/13C at the surface of a red giant after the first dredge-up, 20: the CN cycle of the dredged layers turns the 12C there into 13C, and giants of 1 to 3 solar masses are seen at 15 to 30. [Stand-in ISO22, tier T3, tweak L1.]"""
+
+SURFACE_NATURAL_ONLY = ("other metals",)
+"""tuple: The entries of a star's element mass fractions that are not one element and so have no isotopes."""
+
+
+def star_surface_record(surface_elements, metallicity_fe_h, age_gy, deuterium_burned=True, dredged_up=False):
+    """
+    The isotope record of a star's surface (GEN.1488; `ROW_FIELDS` dicts, by atomic number then mass number), worked out from the element mass fractions of its surface (`stellar_abundances.StellarComposition.elements`, from
+    `stellar_composition.star_makeup(...).surface`) and the star's [Fe/H] and age. Every element with a share above zero gets the natural mix, with the laws of the planet record where the star changes it: carbon and
+    nitrogen take the ratios of the star's birth gas (`gas_c13_over_c12`, `gas_n15_over_n14`), a red giant's carbon the 12C/13C of the first dredge-up (`DREDGED_C12_OVER_C13`), and the hydrogen of a star past its
+    protostar stage the deuterium it has left (`SURFACE_D_H`; a protostar keeps the birth gas's `gas_d_h`). The short-lived isotopes and the cosmogenic ones belong to bodies, not a star's surface. `None` for a star with no composition.
+    """
+    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=None if age_gy is None else float(age_gy))
+    rows = []
+    for symbol, share in surface_elements.items():
+        if symbol in SURFACE_NATURAL_ONLY or not share or share <= 0.0:
+            continue
+        mix = _natural(symbol)
+        if not mix:
+            continue
+        origin = NATURAL
+        if symbol == "H" and "H-2" in mix:
+            ratio = SURFACE_D_H if deuterium_burned else gas_d_h(star)
+            origin, mix = PHYSICAL, _two("H", "H-1", "H-2", ratio / (1.0 + ratio))
+        elif symbol == "C":
+            ratio = 1.0 / DREDGED_C12_OVER_C13 if dredged_up else gas_c13_over_c12(star)
+            origin, mix = PHYSICAL, _two("C", "C-12", "C-13", ratio / (1.0 + ratio))
+        elif symbol == "N":
+            ratio = gas_n15_over_n14(star)
+            origin, mix = PHYSICAL, _two("N", "N-14", "N-15", ratio / (1.0 + ratio))
+        for name in sorted(mix, key=lambda isotope_name: elements.isotope(isotope_name).a):
+            rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "initial_ratio": None, "origin": origin})
+    rows.sort(key=lambda row: (elements.isotope(row["isotope"]).z, elements.isotope(row["isotope"]).a))
+    return rows or None
+
+
+MANTLE_DELTA_D = -0.080
+"""float: How far the deuterium over hydrogen of the water in a rocky body's mantle lies from its surface water's, as a fraction: -80 per mil, the mantle's value against seawater [R5214: Sec. 4], as the heavy isotope stays with the water that left. [Stand-in ISO23, tier T2, tweak L0.]"""
+
+MANTLE_DELTA_N15 = -0.005
+"""float: How far the 15N/14N of a rocky body's mantle nitrogen lies from its air's, as a fraction: -5 per mil, the MORB source against air ([R5214]; the mantle's estimates run from -5 to +3 per mil, and [R2923] gives -5 to -30 per mil). [Stand-in ISO24, tier T3, tweak L0.]"""
+
+MANTLE_DELTA_C13 = 0.003
+"""float: How far the 13C/12C of a rocky body's mantle carbon lies from its air's, as a fraction: the mantle's -5 per mil against the air's -8 per mil is +3 per mil [R5214: Sec. 4]. [Stand-in ISO25, tier T3, tweak L0.]"""
+
+MANTLE_XE_129_OVER_130 = 7.9
+"""float: The 129Xe/130Xe of the Earth's upper-mantle gas, 7.9 ([R5214], MORB and well gases). [Stand-in ISO26, tier T3, tweak L0.]"""
+
+SOLAR_XE_129_OVER_130 = 6.286
+"""float: The 129Xe/130Xe of the solar gas the radiogenic excess is counted from, 6.286 (the solar value of the lunar-sample work, recalled, not opened). The excess of another body's mantle is the Earth's times the body's birth 129I/127I over the early Solar System's (`ESS_INITIAL_RATIO`), the closure time (40 to 50 Myr, [R2923]) and the iodine over xenon of the mantle being the Earth's. [Stand-in ISO27 (the solar value, tier T4, tweak L0) and ISO28 (the scaling, tier T5, tweak L1).]"""
+
+MANTLE_SHEET_KEYS = tuple(f"isotope_mantle_{short}" for short in ("D/H", "13C/12C", "15N/14N", "129Xe/130Xe"))
+"""tuple: The keys of the lines `mantle_sheet_rows` gives."""
+
+
+def mantle_sheet_rows(rows):
+    """
+    The derived lines for the mantle of a rocky body (GEN.1490), `[(key, label, text, ratio)]`, from its stored record `rows` (`{"isotope", "fraction", "initial_ratio"}` mappings): the ratios of the water, nitrogen
+    and carbon in the mantle, which differ from the body's own by the fractionation of degassing and of the ocean's making (`MANTLE_DELTA_D`, `MANTLE_DELTA_N15`, `MANTLE_DELTA_C13`), and the 129Xe/130Xe of its
+    gas, the solar value plus the 129Xe that the decay of 129I made (the Earth's excess times the body's birth ratio of 129I over the early Solar System's). Empty for a body with no rock (no Mg in the record).
+    """
+    fractions = {row["isotope"]: row["fraction"] for row in rows or ()}
+    if "Mg-24" not in fractions:
+        return []
+    shown = []
+
+    def add(key, label, text, ratio):
+        shown.append((f"isotope_mantle_{key}", label, text, ratio))
+
+    if fractions.get("H-1") and "H-2" in fractions:
+        ratio = fractions["H-2"] / fractions["H-1"] * (1.0 + MANTLE_DELTA_D)
+        add("D/H", "Deuterium over hydrogen of the mantle's water", f"D/H {ratio:.4g}", ratio)
+    if fractions.get("C-12") and "C-13" in fractions:
+        ratio = fractions["C-13"] / fractions["C-12"] * (1.0 + MANTLE_DELTA_C13)
+        add("13C/12C", "Carbon-13 over carbon-12 of the mantle", f"13C/12C {ratio:.4g}", ratio)
+    if fractions.get("N-14") and "N-15" in fractions:
+        ratio = fractions["N-15"] / fractions["N-14"] * (1.0 + MANTLE_DELTA_N15)
+        add("15N/14N", "Nitrogen-15 over nitrogen-14 of the mantle", f"15N/14N {ratio:.4g}", ratio)
+    birth = next((row.get("initial_ratio") for row in rows if row["isotope"] == "I-129"), None)
+    if birth:
+        excess = (MANTLE_XE_129_OVER_130 - SOLAR_XE_129_OVER_130) * birth / ESS_INITIAL_RATIO["I-129"]
+        ratio = SOLAR_XE_129_OVER_130 + excess
+        add("129Xe/130Xe", "Xenon-129 over xenon-130 of the mantle's gas", f"129Xe/130Xe {ratio:.4g}", ratio)
+    return shown
 
 
 def record_of(body):
