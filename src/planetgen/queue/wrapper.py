@@ -475,9 +475,12 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
         plan = runrecord.read_plan(conn, run_id, index)
-        metrics = {}
+        results = _stage_results(conn, run_id, index)
+        # OPS.123: the speeds and the row's counts are what the units report, written here, not a hook of each command
+        stages.record_unit_samples(_mysql_config(step.params["database"]), step.params.get("workers", 1), results)
+        metrics = stages.stage_row_metrics(plan["detail"], results)
         if hook is not None:
-            metrics = hook(step.params, plan["detail"], _stage_results(conn, run_id, index), seconds) or {}
+            metrics = {**metrics, **(hook(step.params, plan["detail"], results, seconds) or {})}
         if declared.get("row"):
             skipped = (plan["detail"] or {}).get("skip")
             if skipped:

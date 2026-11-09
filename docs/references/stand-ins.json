@@ -44477,6 +44477,428 @@
           "tweak": "L1",
           "unread": null,
           "what": "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements"
+            ],
+            [
+              "The range it moves in",
+              "the five ices of disk_condensation.masses_percent"
+            ],
+            [
+              "Where it holds",
+              "small bodies with a stored ice fraction and no stored species"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose measured NH3, CO2, CH4, N2 or CO share differs from the budget's by over a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the species shares stored for each small body (comets carry a free-text summary only)"
+            ],
+            [
+              "Evidence",
+              "the budget is the disk model's own; the ices a stored summary names are not parsed"
+            ]
+          ],
+          "id": "ISO18",
+          "key": "6.236:ISO18",
+          "kind": "T",
+          "slug": "6-236-iso18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 K"
+            ],
+            [
+              "Where it holds",
+              "belts at their snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a belt at the snow line whose ice is measured dry"
+            ],
+            [
+              "What replaces it",
+              "a budget that carries the partial freeze at the line"
+            ],
+            [
+              "Evidence",
+              "water condenses below the line only, so a body at the line holds its water; the width is a numerical choice"
+            ]
+          ],
+          "id": "ISO19",
+          "key": "6.236:ISO19",
+          "kind": "T",
+          "slug": "6-236-iso19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at COMET_ICE_K like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age"
+            ],
+            [
+              "The range it moves in",
+              "the formation temperature 20 to 182 K; the gas gradient of nebula_composition"
+            ],
+            [
+              "Where it holds",
+              "interstellar comets and fields (GEN.1487)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the disk the body was thrown out of, once stored"
+            ],
+            [
+              "Evidence",
+              "an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored"
+            ]
+          ],
+          "id": "ISO20",
+          "key": "6.236:ISO20",
+          "kind": "T",
+          "slug": "6-236-iso20",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at COMET_ICE_K like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1e-8"
+            ],
+            [
+              "Where it holds",
+              "stars and remnants from the pre-main-sequence on"
+            ],
+            [
+              "What would show it wrong",
+              "a measured surface deuterium of a main-sequence star over 1e-8"
+            ],
+            [
+              "What replaces it",
+              "a pre-main-sequence burning model of the envelope"
+            ],
+            [
+              "Evidence",
+              "deuterium burns above about 1e6 K and a young convective envelope is mixed through that; no measure of a surface D/H exists in the Sun, so the value is a floor, not a fit"
+            ]
+          ],
+          "id": "ISO21",
+          "key": "6.236:ISO21",
+          "kind": "T",
+          "slug": "6-236-iso21",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L4",
+          "unread": null,
+          "what": "isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up"
+            ],
+            [
+              "The range it moves in",
+              "15 to 30"
+            ],
+            [
+              "Where it holds",
+              "red giants of 1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a red-giant sample whose median 12C/13C is outside 15 to 30"
+            ],
+            [
+              "What replaces it",
+              "the dredge-up grid of stellar_abundances.first_dredge_up extended to isotope ratios by mass and metallicity"
+            ],
+            [
+              "Evidence",
+              "the CN cycle turns the 12C of the dredged layers into 13C; the 20 is recalled from giant surveys, not read from a paper in hand; mass and metallicity dependence left out"
+            ]
+          ],
+          "id": "ISO22",
+          "key": "6.236:ISO22",
+          "kind": "T",
+          "slug": "6-236-iso22",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.MANTLE_DELTA_D -0.080: the mantle's water has D/H 8 percent under the surface water's"
+            ],
+            [
+              "The range it moves in",
+              "-60 to -125 per mil (Hawaiian plume minerals reach -125)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with water"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk mantle measure outside -50 to -130 per mil"
+            ],
+            [
+              "What replaces it",
+              "a degassing and ocean-making model by temperature and oxidation"
+            ],
+            [
+              "Evidence",
+              "[R5214]: the mantle's dD of about -80 per mil; [R2923] gives down to -125 per mil in plume minerals"
+            ]
+          ],
+          "id": "ISO23",
+          "key": "6.236:ISO23",
+          "kind": "T",
+          "slug": "6-236-iso23",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.MANTLE_DELTA_D -0.080: the mantle's water has D/H 8 percent under the surface water's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.MANTLE_DELTA_N15 -0.005: the mantle's 15N/14N is 5 per mil under the air's"
+            ],
+            [
+              "The range it moves in",
+              "-30 to +3 per mil"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with nitrogen"
+            ],
+            [
+              "What would show it wrong",
+              "a mantle sample set whose mean is outside -30 to +5 per mil"
+            ],
+            [
+              "What replaces it",
+              "a nitrogen budget with its own fractionation"
+            ],
+            [
+              "Evidence",
+              "[R2923] (-5 to -30 per mil); [R5214] ascribes +3 per mil to the whole mantle, the MORB source -5; the low end of the range is taken"
+            ]
+          ],
+          "id": "ISO24",
+          "key": "6.236:ISO24",
+          "kind": "T",
+          "slug": "6-236-iso24",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.MANTLE_DELTA_N15 -0.005: the mantle's 15N/14N is 5 per mil under the air's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's"
+            ],
+            [
+              "The range it moves in",
+              "0 to +6 per mil"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with carbon"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mantle-air carbon offset outside -3 to +10 per mil"
+            ],
+            [
+              "What replaces it",
+              "a carbon cycle with its own fractionation"
+            ],
+            [
+              "Evidence",
+              "[R5214]: the mantle at -5 per mil, the air at -8 per mil (the Earth's air is moved by the biosphere, so the offset is its own)"
+            ]
+          ],
+          "id": "ISO25",
+          "key": "6.236:ISO25",
+          "kind": "T",
+          "slug": "6-236-iso25",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas"
+            ],
+            [
+              "The range it moves in",
+              "7.5 to 8.2"
+            ],
+            [
+              "Where it holds",
+              "the Earth"
+            ],
+            [
+              "What would show it wrong",
+              "a mantle gas outside 7 to 9"
+            ],
+            [
+              "What replaces it",
+              "the mantle's own iodine over xenon and closure time"
+            ],
+            [
+              "Evidence",
+              "[R5214]: 7.9 from MORB and well gases (read from a model summary of the chapter, not verbatim)"
+            ]
+          ],
+          "id": "ISO26",
+          "key": "6.236:ISO26",
+          "kind": "T",
+          "slug": "6-236-iso26",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from"
+            ],
+            [
+              "The range it moves in",
+              "6.2 to 6.4"
+            ],
+            [
+              "Where it holds",
+              "any star's gas"
+            ],
+            [
+              "What would show it wrong",
+              "a solar ratio outside 6.2 to 6.4"
+            ],
+            [
+              "What replaces it",
+              "the star's own gas by metallicity"
+            ],
+            [
+              "Evidence",
+              "recalled from the lunar-sample work, not opened"
+            ]
+          ],
+          "id": "ISO27",
+          "key": "6.236:ISO27",
+          "kind": "T",
+          "slug": "6-236-iso27",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time"
+            ],
+            [
+              "The range it moves in",
+              "the closure time 40 to 120 Myr"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose mantle xenon excess differs from this scaling by a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a degassing-time model by mantle size, with the iodine over xenon drawn"
+            ],
+            [
+              "Evidence",
+              "[R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand"
+            ]
+          ],
+          "id": "ISO28",
+          "key": "6.236:ISO28",
+          "kind": "T",
+          "slug": "6-236-iso28",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",
@@ -57283,6 +57705,90 @@
       "title": "Stand-ins of the drift and evaporation of the ices in the disk"
     },
     {
+      "key": "6.243",
+      "number": "6.243",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, min_orbit_distance is five of it"
+            ],
+            [
+              "The range it moves in",
+              "the Hill radius at periapsis is smaller by (1 - e) (0.7 of it at e = 0.3)"
+            ],
+            [
+              "Where it holds",
+              "planets with eccentricity under 0.5"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which releasing the belt keep-out to the periapsis Hill radius moves a belt or a planet by more than a tenth of its distance"
+            ],
+            [
+              "What replaces it",
+              "none; the circular radius is the larger, so it only widens the keep-out, and the planet-planet spacing already uses the apoapsis and periapsis (clearance_ledger.planet_exclusion) and a moon's limit already carries the planet's eccentricity (clearance_ledger.moon_hill_fraction, [R1138])"
+            ],
+            [
+              "Evidence",
+              "physics: the two other places an eccentric orbit enters the keep-out already do; the circular radius is the conservative one, so nothing is let through by it"
+            ]
+          ],
+          "id": "SP1",
+          "key": "6.243:SP1",
+          "kind": "P",
+          "slug": "6-243-sp1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, min_orbit_distance is five of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet"
+            ],
+            [
+              "The range it moves in",
+              "the factor (constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR)"
+            ],
+            [
+              "Where it holds",
+              "wide pairs with the companion beyond about 50 AU"
+            ],
+            [
+              "What would show it wrong",
+              "a companion at a few hundred AU that pumps an outer planet's eccentricity past the gap by the Kozai-Lidov law"
+            ],
+            [
+              "What replaces it",
+              "the pumping of GEN.1447 (Lane 23)"
+            ],
+            [
+              "Evidence",
+              "the existing criterion of the cross-star check, kept as it was; only the set of pairs it is applied to changed (GEN.1460)"
+            ]
+          ],
+          "id": "SP2",
+          "key": "6.243:SP2",
+          "kind": "P",
+          "slug": "6-243-sp2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet"
+        }
+      ],
+      "slug": "6-243-stand-ins-of-the-spacing-of-orbits-against-every-neighbour",
+      "title": "Stand-ins of the spacing of orbits against every neighbour"
+    },
+    {
       "key": "6.245",
       "number": "6.245",
       "rows": [
@@ -57441,6 +57947,250 @@
       ],
       "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
       "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
+    },
+    {
+      "key": "6.247",
+      "number": "6.247",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "belts that have ground down along M = A / t"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of a debris belt's loss that drifts inward past its edge"
+            ],
+            [
+              "What replaces it",
+              "a grain-size cascade with radiation-force and drag lifetimes"
+            ],
+            [
+              "Evidence",
+              "no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing"
+            ]
+          ],
+          "id": "IF1",
+          "key": "6.247:IF1",
+          "kind": "P",
+          "slug": "6-247-if1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "influx.COMET_LIFETIME_YR 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets"
+            ],
+            [
+              "The range it moves in",
+              "1e6 to 1e8"
+            ],
+            [
+              "Where it holds",
+              "comets of the short-period and Halley kinds"
+            ],
+            [
+              "What would show it wrong",
+              "dynamical lifetimes of the comets of a system that differ by over a factor of ten"
+            ],
+            [
+              "What replaces it",
+              "lifetime from the comet's period class"
+            ],
+            [
+              "Evidence",
+              "no source: the tens-of-millions-of-years order of dynamical lifetimes"
+            ]
+          ],
+          "id": "IF2",
+          "key": "6.247:IF2",
+          "kind": "P",
+          "slug": "6-247-if2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "influx.COMET_LIFETIME_YR 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "streams much faster than the planet's escape speed"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose escape speed is comparable to the stream's"
+            ],
+            [
+              "What replaces it",
+              "the focused cross-section R^2 (1 + v_esc^2 / v^2)"
+            ],
+            [
+              "Evidence",
+              "derived: a cross-section over a sphere's area"
+            ]
+          ],
+          "id": "IF3",
+          "key": "6.247:IF3",
+          "kind": "T",
+          "slug": "6-247-if3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "each giant between the source and the planet ejects the share 1 - exp(-Theta / 10) of what drifts past, Theta its Safronov number (the rule the swept disk of the giants already follows, row SX3)"
+            ],
+            [
+              "The range it moves in",
+              "THETA_EJECT"
+            ],
+            [
+              "Where it holds",
+              "giants with Theta of a few to a few tens"
+            ],
+            [
+              "What would show it wrong",
+              "a system where a giant measurably passes more or less than this"
+            ],
+            [
+              "What replaces it",
+              "an integration of encounters"
+            ],
+            [
+              "Evidence",
+              "reuse of scatter.THETA_EJECT (SX3)"
+            ]
+          ],
+          "id": "IF4",
+          "key": "6.247:IF4",
+          "kind": "T",
+          "slug": "6-247-if4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "each giant between the source and the planet ejects the share 1 - exp(-Theta / 10) of what drifts past, Theta its Safronov number (the rule the swept disk of the giants already follows, row SX3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets near the star"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose dust is seen outside its own ring"
+            ],
+            [
+              "What replaces it",
+              "outward transport of the cascade"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "IF5",
+          "key": "6.247:IF5",
+          "kind": "T",
+          "slug": "6-247-if5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems with no giant beyond a comet reservoir"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose measured comet flux is set by a giant's inward scattering"
+            ],
+            [
+              "What replaces it",
+              "inward scattering by each giant, a stirring factor from the companion"
+            ],
+            [
+              "Evidence",
+              "design; GEN.1453 slice B (GEN.1493) is the air reading the influx"
+            ]
+          ],
+          "id": "IF6",
+          "key": "6.247:IF6",
+          "kind": "T",
+          "slug": "6-247-if6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+        }
+      ],
+      "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",
+      "title": "Stand-ins of the belt dust and comet influx of a planet"
     }
   ]
 }

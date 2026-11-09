@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5092 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5093 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1061,6 +1061,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r1000"></a>**R1000** Daumont, D., Brion, J., Charbonnier, J., & Malicet, J. 1992, Ozone UV spectroscopy I: Absorption cross-sections at room temperature, J Atmos Chem, 15, 145, doi:10.1007/bf00053756. [paper](https://doi.org/10.1007/bf00053756) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/bf00053756/abstract)
 - <a id="paper-r1001"></a>**R1001** Dauphas, N. 2005, The U/Th production ratio and the age of the Milky Way from meteorites and Galactic halo stars, Nature, 435, 1203, doi:10.1038/nature03645. [paper](https://doi.org/10.1038/nature03645) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature03645/abstract)
 - <a id="paper-r1002"></a>**R1002** Dauphas, N. 2017, The isotopic nature of the Earth’s accreting material through time, Nature, 541, 521, doi:10.1038/nature20830. [paper](https://doi.org/10.1038/nature20830) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature20830/abstract)
+- <a id="paper-r5214"></a>**R5214** Dauphas, N. & Morbidelli, A. 2014, Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans, in Treatise on Geochemistry, Elsevier, doi:10.1016/b978-0-08-095975-7.01301-2. [paper](https://doi.org/10.1016/b978-0-08-095975-7.01301-2) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/b978-0-08-095975-7.01301-2/abstract)
 - <a id="paper-r1003"></a>**R1003** Dauphas, N., et al. 2022, The Extent, Nature, and Origin of K and Rb Depletions and Isotopic Fractionations in Earth, the Moon, and Other Planetary Bodies, PSJ, 3, 29, doi:10.3847/psj/ac2e09. [paper](https://doi.org/10.3847/psj/ac2e09) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/psj/ac2e09/abstract)
 - <a id="paper-r1004"></a>**R1004** Dauphas, N. & Schauble, E. A. 2016, Mass Fractionation Laws, Mass-Independent Effects, and Isotopic Anomalies, AREPS, 44, 709, doi:10.1146/annurev-earth-060115-012157. [paper](https://doi.org/10.1146/annurev-earth-060115-012157) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1146/annurev-earth-060115-012157/abstract)
 - <a id="paper-r1005"></a>**R1005** Davé, R., Finlator, K., & Oppenheimer, B. D. 2011, Galaxy evolution in cosmological simulations with outflows - II. Metallicities and gas fractions, MNRAS, 416, 1354, doi:10.1111/j.1365-2966.2011.19132.x. [paper](https://doi.org/10.1111/j.1365-2966.2011.19132.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2011.19132.x/abstract)
