@@ -518,6 +518,14 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
+def get_generated(db, kind, since, limit=None, offset=None):
+    """Returns `GET /api/generated`'s answer (`kind`, `since`, `total`, `items`, `limit`, `offset`): the sectors, systems, planets or
+    moons made at or after `since`, Unix seconds, newest first (ADM.150)."""
+    _require_db(db)
+    params = [("db", db), ("kind", kind), ("since", since), ("limit", limit), ("offset", offset)]
+    return _request("/generated", [(key, value) for key, value in params if value is not None])
+
+
 def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
     """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
     the scattered stars no system was built around yet, with the `total`
@@ -658,16 +666,6 @@ def get_superbubbles(db):
         return _request("/galaxy/superbubbles", {"db": db})["superbubbles"]
     except ApiError:
         return []
-
-
-def get_galaxy_made(db, since, until=None):
-    """Returns `GET /api/galaxy/made` (`total` and `items`): the sectors
-    created from `since` to `until`, Unix seconds (ADM.31)."""
-    _require_db(db)
-    params = {"db": db, "since": since}
-    if until is not None:
-        params["until"] = until
-    return _request("/galaxy/made", params)
 
 
 def get_galaxy_shape(db):

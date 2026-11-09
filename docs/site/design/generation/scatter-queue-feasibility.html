@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scatter "sector queue" feasibility study - planetGen docs</title>
+<meta name="description" content="Status (2026-10-29): research; its recommendations are built as PERF.58 (#1108, which replaced PERF.57), PERF.60 (#1106) and PERF.63 (#1174).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/scatter-queue-feasibility.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/scatter-queue-feasibility.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="scatter-sector-queue-feasibility-study">Scatter &quot;sector queue&quot; feasibility study</h1><p class="meta">docs/design/generation/scatter-queue-feasibility.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#1-where-scatter-time-goes-today">1. Where scatter time goes today</a></li><li style="margin-left:0px"><a href="#2-cost-of-the-list-approach-at-default-scale">2. Cost of the list approach at default scale</a></li><li style="margin-left:0px"><a href="#3-what-would-change-in-the-results">3. What would change in the results</a></li><li style="margin-left:0px"><a href="#4-how-it-fits-perf57-and-gen187">4. How it fits PERF.57 and GEN.187</a></li><li style="margin-left:0px"><a href="#5-prototype-object-first-thinned-sampler">5. Prototype: object-first thinned sampler</a></li><li style="margin-left:0px"><a href="#follow-up-boss-2026-10-10-several-objects-per-sector-and-stacks-of-layers">Follow-up (Boss, 2026-10-10): several objects per sector, and stacks of layers</a></li><li style="margin-left:14px"><a href="#several-objects-per-sector-tiered-capacity">Several objects per sector: tiered capacity</a></li><li style="margin-left:14px"><a href="#stacks-of-layers-the-sparse-method">Stacks of layers (the sparse method)</a></li><li style="margin-left:0px"><a href="#what-could-not-be-measured">What could not be measured</a></li><li style="margin-left:0px"><a href="#recommendation">Recommendation</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li><li style="margin-left:0px"><a href="#phenomena-prototype-result-bugfixes-lane-1-2026-10-10-perf61">Phenomena prototype result (Bugfixes lane 1, 2026-10-10, PERF.61)</a></li><li style="margin-left:0px"><a href="#phenomena-numpy-result-bugfixes-lane-1-2026-10-10-perf63">Phenomena numpy result (Bugfixes lane 1, 2026-10-10, PERF.63)</a></li></ul></details>
+<p><strong>Status (2026-10-29):</strong> research; its recommendations are built as PERF.58 (#1108, which replaced PERF.57), PERF.60 (#1106) and PERF.63 (#1174). PERF.61's prototype measured no gain and was not merged; PERF.59 was closed as superseded. Lines saying &quot;not on main&quot; or suggesting items are history. The queue itself was rebuilt under PERF.86 (each scatter kind is its own command and stage of a run, cut into units that are RQ jobs on the bulk queue); this note does not cover it, see <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a>.</p>
+<p>Question (Boss, 2026-10-10): would a shuffled list of every available sector, popped one object at a time, make scattering faster, and what would it change?</p>
+<p><strong>Short answer.</strong> The literal list is slower, by roughly two orders of magnitude. The idea behind it (decide how many objects there are, then pick where, instead of visiting every ring) is right, and a prototype built on it ran 35 times faster per star pass at default scale with a spatially identical result. It does not need a list, and it does not need one-object-per-sector.</p>
+<p>Method and scripts: <code>/mnt/project-files/research/scatter-queue/scripts/</code> (all numbers below come from there). Where the existing cost model applies, this note cites <a href="generation-performance-study.html">generation-performance-study.md</a> rather than redoing it.</p>
+<h2 id="1-where-scatter-time-goes-today">1. Where scatter time goes today</h2>
+<p>Quarter-scale galaxy (509 layers, outer ring 940, 3.74e8 sectors), single process, warm, no database, measured per pass:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pass</th>
+<th>Wall</th>
+<th>Objects</th>
+<th>Time in <code>_ring_bins</code></th>
+<th>Other</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass</td>
+<td>46.9 s</td>
+<td>4,083</td>
+<td>43.6 s (93%)</td>
+<td>461 of 509 layers empty, 35.7 s spent in those</td>
+</tr>
+<tr>
+<td>Luminosity</td>
+<td>47.5 s</td>
+<td>4,935</td>
+<td>43.9 s (92%)</td>
+<td>389 empty layers, 22.8 s</td>
+</tr>
+<tr>
+<td>Phenomena</td>
+<td>73.8 s</td>
+<td>1,375,520</td>
+<td>42.7 s (58%)</td>
+<td>place 16.0 s, kind weights 8.5 s, Poisson 0.9 s</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The cost is the ring walk, not the objects. Each ring evaluates the density model about 32 times (about 6 µs per call, 0.22 to 0.24 ms per ring). The passes find a few thousand stars and still pay for every ring of every layer.</li>
+<li>All three passes recompute identical <code>_ring_bins</code> inputs. Sharing them would save about 87 of 168 s at quarter-scale.</li>
+<li>At default scale (2,041 layers, 3,136,126 ring visits per pass) the measured 0.244 ms per ring is about <strong>12.7 minutes per pass</strong> for the two star passes.</li>
+<li>The per-object costs from the performance study (draw 40 to 49 µs, insert 38 µs) only matter for the phenomena pass, which places millions of rows. No database writes were measured here; the study's insert cost applies unchanged to any design.</li>
+<li><code>_sample_poisson_count</code> is Knuth's O(mean) algorithm. It is fine per ring, but any design that draws one count per layer needs a large-mean Poisson helper.</li>
+</ul>
+<h2 id="2-cost-of-the-list-approach-at-default-scale">2. Cost of the list approach at default scale</h2>
+<p>Default galaxy: 2.3921e10 candidate sectors.</p>
+<ul>
+<li><strong>Building and shuffling.</strong> Layer 0 at quarter-scale (2.78M sectors): a Python tuple list takes 2.07 s and 267 MB, shuffle 1.75 s. A numpy int32 index array takes 11 MB and shuffles in 0.27 s. The largest default layer (4.4e7 sectors) is 4.2 GB as tuples, 178 MB as int32. So the list can exist if it is an index array, not tuples.</li>
+<li><strong>Weights.</strong> Step 5 needs each sector's density. At 6.07 µs per sector, layer 0 costs <strong>16.9 s</strong> against 0.246 s for today's ring walk (about 68 times more). Across the default galaxy that is 2.39e10 × 6 µs, roughly <strong>40 CPU-hours per pass</strong>, against 12.7 minutes today (190 to 270 times more density evaluations).</li>
+<li><strong>Weighted shuffle.</strong> Efraimidis-Spirakis keys plus <code>argpartition</code> cost 0.28 s per layer once the weights exist (peak 528 MB), so the shuffle is cheap and the weights are not.</li>
+<li><strong>Sparsity makes the list unnecessary.</strong> The mass and luminosity passes place about 2.7e5 and 3.2e5 objects among 2.4e10 sectors. Picking k distinct sectors needs a used-set or a lazy Fisher-Yates over k draws, not N keys. The list buys nothing over sampling.</li>
+</ul>
+<h2 id="3-what-would-change-in-the-results">3. What would change in the results</h2>
+<p>Expected objects per sector (λ) at default scale:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pass</th>
+<th>Expected objects</th>
+<th>Sectors with λ ≥ 0.001</th>
+<th>Lost under one-per-sector cap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass (8 Msun)</td>
+<td>266,390</td>
+<td>0.12%</td>
+<td>0.02%</td>
+</tr>
+<tr>
+<td>Luminosity (5,000 Lsun)</td>
+<td>317,800</td>
+<td>0.10%</td>
+<td>0.02%</td>
+</tr>
+<tr>
+<td>Phenomena (14 Msun cut)</td>
+<td>6.7155e7</td>
+<td>4.57% have λ ≥ 0.01; 0.146% have λ ≥ 0.1 (6.1% of objects)</td>
+<td>1.43%</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>One object per sector costs nothing for stars.</strong> The largest per-sector λ is 0.004 (mass) and 0.003 (luminosity) at the defaults, so a second object in a sector is a rare event and the cap drops 0.02% of objects.</li>
+<li><strong>It matters for phenomena (1.4% lost) and for low luminosity floors.</strong> With the luminosity floor at 1,000 Lsun the cap loses 0.84% of 2.6e7 objects; at 100 Lsun it loses 18.9% (largest λ 3.3). Capping at one makes those regions come out sparser than the physical density, and the &quot;move it to another sector&quot; variant over-counts density next to filled regions. If the cap is adopted it should be applied only to the star passes at the shipped floors, or the sampler should draw the number per sector from Poisson(λ) rather than 0 or 1.</li>
+<li><strong>Dropped objects.</strong> Today an object that lands in a filled or mass-marked sector is drawn and dropped. That equals thinning when the expected count is computed over the available sectors only, so the dropped-object behaviour matches Boss's step 4 (do not put those sectors in the list) as long as the expected count is not recomputed over the removed sectors and renormalised.</li>
+<li><strong>Seeds.</strong> Any new sampler is a different random sequence, so existing seeds give a different galaxy. A reseed (<code>planetgen plan</code>) is needed, as with the other scatter changes.</li>
+</ul>
+<h2 id="4-how-it-fits-perf57-and-gen187">4. How it fits PERF.57 and GEN.187</h2>
+<ul>
+<li><strong>PERF.57</strong> (grouping layers 10/20/40 after 5 empty layers, halving after a placement) is a majorant over a group of layers: it exists to avoid paying for empty layers. The object-first sampler is the same trick taken to its end, with one majorant per layer drawn once and no group size to tune. If PERF.57 lands first, the sampler replaces its group logic; if not, PERF.57 can be dropped in favour of it. Bugfixes lane 1 should know before it finishes PERF.57.</li>
+<li><strong>GEN.187</strong> (bright-star back scatter by mass rings, 1, 2, 5, 8 Msun around filled space) works on a small explicit candidate set (face-adjacent rings of filled sectors). A per-candidate draw is natural there, and Boss's queue idea fits it well. This was checked against the TODO text only, since GEN.187 is not built.</li>
+<li>Boss's sparse method for runs of blank layers is the same idea at layer scale: do not visit what cannot produce anything.</li>
+</ul>
+<h2 id="5-prototype-object-first-thinned-sampler">5. Prototype: object-first thinned sampler</h2>
+<p>Per layer: draw N from Poisson(Σ e·slots·M) where M is a certified density majorant per ring; choose the ring from a cumulative table; choose slot and point as today; accept with probability true_density / M; skip filled sectors. The majorant is exact enough to be cheap: density falls with radius and |z|, the arm term is bounded by 1 + A, and each population's share peaks at cos = ±1. A <code>check=True</code> assertion that true density never exceeds M was never violated.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scale</th>
+<th>Pass</th>
+<th>Time</th>
+<th>Objects</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quarter</td>
+<td>Mass</td>
+<td>0.61 s</td>
+<td>4,298</td>
+<td>4,161</td>
+</tr>
+<tr>
+<td>Quarter</td>
+<td>Luminosity</td>
+<td>0.69 s</td>
+<td>5,116</td>
+<td>4,964</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>Mass</td>
+<td>19.6 s</td>
+<td>267,092</td>
+<td>266,390</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>Luminosity</td>
+<td>21.0 s</td>
+<td>318,218</td>
+<td>317,800</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Speed.</strong> About 78 times faster at quarter-scale (47 s to 0.6 s) and about 35 times at default scale (about 12.7 minutes to 20 s). Measured later (see Layer stacks below): the majorant over all 3.1M rings is 3.75 s of the run, the rest is the candidates (about 37 µs each, 41% of them rejected), so the time is spent on candidates and objects, not on rings.</li>
+<li><strong>Counts.</strong> 12 seeds: mass mean 4,189.6 (sd 53.4), luminosity 4,996.2 (sd 40.1), +0.7% and +0.6% against expected, within about 1.5σ.</li>
+<li><strong>Spatial distribution.</strong> At a 1,000 Lsun floor (about 420k stars per replicate, a 9 × 8 × 8 histogram) the chi-square per degree of freedom was 0.93 to 1.02 between the sampler and today's code, 1.07 pooled (p about 0.12). Ring-band and layer-band shares agree within 0.05 points. The two cannot be told apart.</li>
+</ul>
+<h2 id="follow-up-boss-2026-10-10-several-objects-per-sector-and-stacks-of-layers">Follow-up (Boss, 2026-10-10): several objects per sector, and stacks of layers</h2>
+<h3 id="several-objects-per-sector-tiered-capacity">Several objects per sector: tiered capacity</h3>
+<p>Boss's variant: keep several objects per sector where that is what we have today, still place by popping from a queue, and give dense sectors a higher capacity by density tier. Evaluated on the per-sector expected counts at default scale (2.39e10 sectors, arrays in <code>scripts/lamarr_*.npz</code>, analysis in <code>scripts/tier_analysis.py</code>, output in <code>scripts/tiers.log</code>).</p>
+<p><strong>Capacity is a function of the sector's expected count λ.</strong> Take the smallest capacity from 1, 2, 4, 8, 16 such that P(Poisson(λ) &gt; capacity) is below ε. At ε = 1e-4 the tiers fill up like this:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pass</th>
+<th>Sectors at capacity 1</th>
+<th>2</th>
+<th>4</th>
+<th>8+</th>
+<th>Objects dropped by the cap</th>
+<th>Queue slots per sector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass (8 Msun) and luminosity (5,000 Lsun)</td>
+<td>100%</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0.02% (same as cap 1)</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>Luminosity, 1,000 Lsun</td>
+<td>98.6%</td>
+<td>1.38%</td>
+<td>0.019%</td>
+<td></td>
+<td>0.13% (was 0.84% at cap 1)</td>
+<td>1.014</td>
+</tr>
+<tr>
+<td>Luminosity, 300 Lsun</td>
+<td>82.0%</td>
+<td>14.9%</td>
+<td>2.55%</td>
+<td>0.57%</td>
+<td>0.07% (was 11.8%)</td>
+<td>1.265</td>
+</tr>
+<tr>
+<td>Luminosity, 100 Lsun</td>
+<td>70.1%</td>
+<td>23.5%</td>
+<td>5.06%</td>
+<td>1.33%</td>
+<td>0.05% (was 18.9%)</td>
+<td>1.49</td>
+</tr>
+<tr>
+<td>Phenomena (14 Msun)</td>
+<td>96.3%</td>
+<td>3.37%</td>
+<td>0.29%</td>
+<td></td>
+<td>0.12% (was 1.43%)</td>
+<td>1.043</td>
+</tr>
+</tbody>
+</table></div>
+<p>So tiers fix the low-floor and phenomena loss, and cost nothing at the shipped star floors, where every sector sits in tier 1. A tier is also a clean density rating: a sector's count never exceeds its capacity, so its fill (count over capacity) stays between 0 and 1.</p>
+<p><strong>The queue itself changes the statistics; independent draws with a tier cap do not.</strong> If a sector is listed <code>c</code> times and each pop takes one slot, a sector with expected count λ ends up with Binomial(c, λ/c) objects, not Poisson(λ). That has the same mean but fewer sectors with two or more objects: with c = 2 the chance of two is λ²/4, half of Poisson's λ²/2. Measured on the default phenomena load, objects beyond the first in a sector are 1.43% under Poisson, 0.50% for a queue with ε = 1e-3 tiers, and 0.81% with ε = 1e-4 (at the 100 Lsun floor 18.9% against 17.3%). Cap 1 gives none. Two ways to avoid it:</p>
+<ol>
+<li><strong>Preferred: draw as today (independent, object-first), count objects per sector in a small dictionary, and drop an object when its sector is at capacity.</strong> The count is Poisson up to the cap, so dispersion is exactly today's, and the cap is a pure function of λ. At ε = 1e-4 the drop is 0.05% to 0.13% of objects. Cost: one dictionary lookup per accepted object.</li>
+<li>A true queue needs capacity much larger than λ (copy weight λ/c with c ≥ 8λ) before it looks Poisson, which means long lists. Not worth it.</li>
+</ol>
+<p>The tier is computed from λ at the sector center, so it is the same for every object in the sector. Not measured: the sampler running with the cap (only the analytic effect above; the queue's Binomial shape is a standard result and was not simulated).</p>
+<h3 id="stacks-of-layers-the-sparse-method">Stacks of layers (the sparse method)</h3>
+<p>Boss's sparse method for runs of blank layers, adapted: one majorant, one Poisson draw and one ring table for a stack of G consecutive layers, layer chosen uniformly among the stack's layers that reach the sampled ring, accept with true density over the stack majorant (<code>scripts/stack.py</code>, <code>bench_stack.py</code>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scale</th>
+<th>Stack size G</th>
+<th>Time</th>
+<th>Objects</th>
+<th>Candidates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quarter</td>
+<td>1</td>
+<td>1.11 s</td>
+<td>12,484</td>
+<td>21,456</td>
+</tr>
+<tr>
+<td>Quarter</td>
+<td>4</td>
+<td>0.93 s</td>
+<td>12,285</td>
+<td>23,049</td>
+</tr>
+<tr>
+<td>Quarter</td>
+<td>16</td>
+<td>1.07 s</td>
+<td>12,519</td>
+<td>29,906</td>
+</tr>
+<tr>
+<td>Quarter</td>
+<td>64</td>
+<td>2.12 s</td>
+<td>12,555</td>
+<td>67,723</td>
+</tr>
+<tr>
+<td>Quarter</td>
+<td>509 (all)</td>
+<td>4.97 s</td>
+<td>12,442</td>
+<td>150,546</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>1</td>
+<td>49.5 s</td>
+<td>795,968</td>
+<td>1,350,353</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>4</td>
+<td>46.0 s</td>
+<td>795,528</td>
+<td>1,374,921</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>16</td>
+<td>49.4 s</td>
+<td>795,313</td>
+<td>1,479,856</td>
+</tr>
+</tbody>
+</table></div>
+<p>(Luminosity pass at 5,000 Lsun with an 8 Msun mass split, so the object counts differ from the 14 Msun tables above. Single process.)</p>
+<p><strong>Result: stacks do not pay.</strong> A bigger stack has a looser majorant, so more candidates are rejected, and that cancels the saving of fewer majorants. Best case is G = 4 at 7% faster; G = 16 is break-even; whole-galaxy stacks are 5 times slower at quarter-scale. Reason: an empty layer costs only its majorant, about 1.2 µs per ring (3.75 s for all 3.1M default rings), so there is nothing left to skip. What costs time is the candidates, about 37 µs each (11.5 µs to place the point and check its address, 5.9 µs for the density, the rest loop overhead), with 41% rejected, and the per-object work after that (about 62 µs per object here).</p>
+<p>So the stack idea's job, avoiding a visit to every empty layer, is done by the object-first draw itself: each layer costs one majorant and one Poisson draw whether it is empty or not. PERF.57's grouping is not needed.</p>
+<p><strong>Where a further 10% to 20% is, if wanted.</strong> Rejected candidates are 41% of the 1.35M and cost the same 37 µs as accepted ones. Doing the sector-address check only after the density test saves about 8 µs per rejected candidate (about 4.5 s of 49 s). A tighter majorant (per azimuth bin, not per ring) would raise the 59% acceptance toward 85%. Neither is needed for the 35 times.</p>
+<p><strong>Recommended wording for PERF.58.</strong> Per-layer sampler (a stack of one); stack size is a named tuning value defaulting to 1, so a stack of G can be tried later without a code change (G = 4 measured 7% faster). Several objects per sector: independent draws with a per-sector count dictionary and a tier cap from λ at the sector center (smallest of 1, 2, 4, 8, 16 with P(N &gt; cap) &lt; 1e-4), objects over the cap dropped; the cap applies in the star passes and phenomena alike and replaces the one-per-sector rule. Optional: defer the address check until after acceptance.</p>
+<h2 id="what-could-not-be-measured">What could not be measured</h2>
+<ul>
+<li>No database writes: the study builds the galaxy shape in memory, so insert and commit costs are excluded (see the performance study for those).</li>
+<li>Single process on a 4-core container; the production worker pool and PERF.42 pre-warm were not run.</li>
+<li>The phenomena pass was not prototyped. It needs per-kind majorants and still pays placement and row costs (about 16 s per 1.4M objects at quarter-scale).</li>
+<li>The prototype uses numpy's Poisson for the layer count and evaluates density at the exact point rather than at bin centers.</li>
+<li>GEN.187 and PERF.57 are not on main, so the interaction is analysis, not measurement.</li>
+</ul>
+<h2 id="recommendation">Recommendation</h2>
+<ol>
+<li><strong>Do not build the shuffled sector list.</strong> It costs 190 to 270 times more density evaluations and gains nothing, because the objects are sparse.</li>
+<li><strong>Share <code>_ring_bins</code> across the three passes.</strong> Low-risk, no change to results, about a 2 times saving at quarter-scale.</li>
+<li><strong>Build the object-first sampler for the mass and luminosity passes</strong>, replacing the per-ring walk and PERF.57's grouping. About 35 times faster at default scale, distribution unchanged, needs a reseed and a large-mean Poisson helper.</li>
+<li><strong>Phenomena pass next, separately.</strong> Same idea with per-kind majorants. The gain is smaller because row costs dominate.</li>
+<li><strong>Use tiered capacity, not cap-of-one,</strong> so several objects per sector stay possible (see Follow-up): independent draws, a per-sector count, cap from λ.</li>
+<li><strong>Do not group layers into stacks.</strong> Measured: no gain over one layer at a time (see Follow-up).</li>
+</ol>
+<p>Suggested TODO items (for the TODO thread to file if Boss agrees): share <code>_ring_bins</code> across passes; object-first thinned sampler for the star passes (supersedes the PERF.57 grouping); large-mean Poisson helper; object-first sampler for phenomena.</p>
+<h2 id="sources">Sources</h2>
+<p>Scripts and logs: <code>research/scatter-queue/scripts/</code> (<code>profile_today.py</code>, <code>lambda_dist.py</code>, <code>bench_literal.py</code>, <code>thinned.py</code>, <code>bench_thinned.py</code>, <code>seeds_thinned.py</code>, <code>equiv.py</code>). Related: <a href="generation-performance-study.html">generation-performance-study.md</a>; TODO items PERF.57, GEN.187, GEN.195.</p>
+<h2 id="phenomena-prototype-result-bugfixes-lane-1-2026-10-10-perf61">Phenomena prototype result (Bugfixes lane 1, 2026-10-10, PERF.61)</h2>
+<p>The object-first sampler was built for the phenomena pass (per-class Poisson counts from the stellar density bound times a per-kind regional factor bound, acceptance on the true density times the regional factor, tiered sector capacity across classes) and measured against today's <code>phenomenon_scatter.scatter_layer</code> on the default-scale galaxy (2,041 layers, outer ring up to 3,763, 14 Msun cut, single process; scripts and log in <code>research/scatter-queue/scripts/bench_phenomena_object_first.*</code>, prototype in <code>phenomenon_scatter_object_first_prototype.py</code>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Today</th>
+<th>Object first</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Objects (41 sampled layers)</td>
+<td>1,385,251</td>
+<td>1,380,928 (-0.3%)</td>
+</tr>
+<tr>
+<td>Time (41 sampled layers)</td>
+<td>41.9 s</td>
+<td>42.1 s</td>
+</tr>
+<tr>
+<td>Whole pass, single process (scaled)</td>
+<td>34.8 min</td>
+<td>35.0 min</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Counts and positions match</strong> (per-layer counts within 0.5%).</li>
+<li><strong>No speed gain.</strong> A default-scale layer holds about 33,000 to 95,000 phenomena, so the pass is dominated by per-object work, not by the ring walk: today about 17 us an object (bin weights are precomputed), object first about 30 us (a candidate costs a point draw, a density evaluation and a regional factor, and about half of them are rejected). Only sparse outer layers gain (layer 700: 0.32 s to 0.08 s), and the dense ones lose (layer 0: 1.4 s to 2.35 s).</li>
+<li>Deferring the sector-address check until after acceptance and using <code>relative_density</code> instead of the population split cut the new sampler's time by about 40% (3.9 s to 2.35 s for layer 0), and it still does not beat today's.</li>
+<li><strong>Decision:</strong> the phenomena pass keeps today's ring walk; the prototype is not merged. A further gain would need the candidate work vectorised in numpy (points, density, regional factor and acceptance for thousands of candidates at once), a larger change that would need its own prototype; not done.</li>
+<li>The star passes keep the sampler (PERF.58), where objects are few (267,000 to 318,000) and the ring walk was the whole cost.</li>
+</ul>
+<h2 id="phenomena-numpy-result-bugfixes-lane-1-2026-10-10-perf63">Phenomena numpy result (Bugfixes lane 1, 2026-10-10, PERF.63)</h2>
+<p>The object-first prototype showed that per-object Python work, not the ring walk, sets the phenomena pass's cost. PERF.63 vectorises that work and keeps the ring walk's model unchanged: per ring and class the same Poisson count (mean <code>rate * e * slots_per_bin * sum(bin weights)</code>), then for the whole layer at once the angle bin (one <code>searchsorted</code> over the rings' cumulative shares), the slot under the bin's angle, the uniform point in the slot, the mass and the stored-in-cell check, as numpy arrays. The random numbers still come from the layer's <code>draw.Stream</code> in bulk (<code>random()</code> calls), so GEN.56's single random wrapper holds and a layer repeats from its seed. The first rings (fewer slots than angle bins) keep the scalar walk.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Ring walk (before)</th>
+<th>Numpy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Objects (41 sampled layers)</td>
+<td>1,439,029</td>
+<td>1,439,919 (+0.06%)</td>
+</tr>
+<tr>
+<td>Time (41 sampled layers)</td>
+<td>46.4 s</td>
+<td>5.0 s</td>
+</tr>
+<tr>
+<td>Whole pass, single process</td>
+<td>about 37.6 min (scaled)</td>
+<td>3.69 min (all 2,041 layers, 68,236,244 objects, measured)</td>
+</tr>
+<tr>
+<td>Layer 0 (95,000 objects)</td>
+<td>2.9 s</td>
+<td>0.33 s</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Distribution matches.</strong> On layers 0 and 255, four seeds each, two-sample chi-square against the old walk: radius 27.9 and 27.6 (29 degrees of freedom), angle 38.2 and 16.2 (35), height 9.2 and 7.6 (9); the mass means agree (stellar black holes 17.00 against 17.00). Counts per class and per ring group are tested against the walk's Poisson means in <code>tests/test_phenomenon_vector.py</code>.</li>
+<li><strong>What changes:</strong> the streams differ (same seed, different draws), so a galaxy needs a reseed; a point that rounding carries out of its cell is dropped instead of redrawn (a chance of about one in a million).</li>
+<li><strong>Floor:</strong> generation is now about 3.7 minutes; writing 68 million rows to the database will take longer than that, so the pass is bound by the inserts from here on.</li>
+<li>Prototype, benchmark and distribution scripts and logs: <code>research/scatter-queue/scripts/</code> (<code>phenomenon_numpy.py</code>, <code>bench.py</code>, <code>dist.py</code>, <code>full.py</code>, <code>bench_phenomena_numpy.log</code>, <code>full_pass_phenomena_numpy.log</code>).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

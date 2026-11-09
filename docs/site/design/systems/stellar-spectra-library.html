@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stellar spectra library: model atmospheres plus the measured chromosphere (GEN.970) - planetGen docs</title>
+<meta name="description" content="Status: built (GEN.970, parent GEN.745) and wired (GEN.971, rides the star-epoch merge train 3).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/stellar-spectra-library.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/stellar-spectra-library.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stellar-spectra-library-model-atmospheres-plus-the-measured-chromosphere-gen970">Stellar spectra library: model atmospheres plus the measured chromosphere (GEN.970)</h1><p class="meta">docs/design/systems/stellar-spectra-library.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-replaces">What it replaces</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li><li style="margin-left:0px"><a href="#how-it-works">How it works</a></li><li style="margin-left:0px"><a href="#what-it-was-checked-against">What it was checked against</a></li><li style="margin-left:0px"><a href="#wired-gen971">Wired (GEN.971)</a></li></ul></details>
+<p>Status: built (GEN.970, parent GEN.745) and wired (GEN.971, rides the star-epoch merge train 3). Code: <code>datasets/stellar_spectra.py</code> (download and reduction), <code>physics/stellar_library.py</code> (the lookup and the chromosphere). Tests: <code>tests/test_stellar_spectra.py</code> (blackbody fixtures), <code>tests/test_stellar_library_real.py</code> (the real grids against the Sun and MUSCLES).</p>
+<h2 id="what-it-replaces">What it replaces</h2>
+<p><code>physics/stellar_spectrum.py</code> (GEN.443) gives a star a blackbody of its effective temperature with a seeded UV-C share (0.1 to 1, log-uniform) and a UV-B and UV-A share on one family fitted to the Sun. The blackbody overpredicts the Sun's ultraviolet 3.9 times in UV-C, and the seeded share has no dependence on temperature or activity. The map colour of a star (<code>physics/photometry.py</code>) is a blackbody above 4500 K and a small BT-Settl offset table below.</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>ATLAS9 fluxes of [R0681] (<code>fp00k2odfnew</code>, solar metallicity), 476 models, 3500 to 50000 K, log g 0 to 5, from Fiorella Castelli's page at INAF Trieste. This is the hot half (3500 K up).</li>
+<li>PHOENIX-ACES-AGSS-COND-2011 of [R2058], from the Goettingen server (ftp.gwdg.de), 2300 to 3500 K in 200 K steps at log g 4.5, 5.0 and 5.5: the M dwarfs.</li>
+<li>The MUSCLES Treasury Survey [R1435], eleven M and K stars, for what the photosphere lacks. BT-Settl itself (phoenix.ens-lyon.fr) resets the connection from the cloud machines and the MUSCLES HLSP files (archive.stsci.edu) fail their TLS chain there, so PHOENIX-ACES stands for BT-Settl (same code, different dust treatment, the same family) and the MUSCLES numbers are the paper's Tables 1 and 3. Neither is a loss for the question asked: the tests below hold the result to the measured stars.</li>
+</ul>
+<p>Setup downloads 130 MB (transient pieces, sha256 and size pinned), reduces each model to the share of its bolometric power in 1500 log-spaced bins from 9 nm to 100 micron (<code>stellar_spectra.npz</code>, 2.5 MB), and deletes the sources. Dataset id SL1.</p>
+<h2 id="how-it-works">How it works</h2>
+<p><code>stellar_spectra.band_fractions(T_eff, log g, bands)</code> interpolates the shares of the models around a star linearly in log T_eff and log g, in the logarithm of each bin's share (an ultraviolet tail that falls by a decade between two models is a straight step), and sums them over a band. <code>stellar_library.band_shares(T_eff, log g, xuv_over_lbol)</code> gives the generator's bands (<code>stellar_spectrum.BAND_EDGES_NM</code>) and adds the corona: far-ultraviolet (91.2 to 170 nm) power equal to 1.12 times the star's XUV power (5 to 91.2 nm), which <code>physics/activity.py</code> already computes as <code>l_xuv_w</code>, split between UV-C and the ionizing band. <code>shares_of_blackbody</code> returns the three UV shares as multiples of the blackbody's: the quantities <code>stellar_spectrum.uv_shares</code> holds, so GEN.971 swaps one for the other.</p>
+<h2 id="what-it-was-checked-against">What it was checked against</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Library</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sun, UV-C / UV-B / UV-A as a share of the blackbody's</td>
+<td>0.29 / 0.71 / 0.77</td>
+<td>0.256 / 0.625 / 0.787 (ATLAS-1, [R4354])</td>
+</tr>
+<tr>
+<td>Near-ultraviolet (170 to 320 nm) of the eleven MUSCLES stars</td>
+<td>within 0.33 dex for all eleven</td>
+<td>[R1435: Table 3]</td>
+</tr>
+<tr>
+<td>Far-ultraviolet (91.2 to 170 nm) of the seven M dwarfs</td>
+<td>photosphere 1e-8 to 1e-15 of bolometric, measured 1e-4.2 to 1e-4.8</td>
+<td>the chromosphere, not the model, supplies it</td>
+</tr>
+<tr>
+<td>Far-ultraviolet with the corona (XUV times 1.12)</td>
+<td>within 0.55 dex for all eleven</td>
+<td>[R1435: Table 3]</td>
+</tr>
+<tr>
+<td>Closure (integrated flux over sigma T^4)</td>
+<td>0.97 to 1.00</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="wired-gen971">Wired (GEN.971)</h2>
+<ul>
+<li><code>physics.activity.generate_activity</code> stores <code>uv_c_share</code> as the library's UV-C power over the blackbody's (<code>activity.uv_shares_of</code> -&gt; <code>stellar_library.uv_shares</code>): the star's effective temperature, surface gravity (mass and radius) and its corona's XUV over luminosity (<code>log_lx_lbol</code>; the photosphere's own XUV is in the model, so only the corona is added). The seeded draw is gone except for a run that disregards a missing library (<code>fetch.stand_ins_used</code>). The value is a multiple of the blackbody's and exceeds 1 for a cool active star (an M5 dwarf at saturation: 100 to 1000, the chromosphere); the column unit is <code>uv-mult</code>, the sheet row &quot;UV-C power against its blackbody's&quot;. A star outside 2300 to 50000 K takes 1. A white dwarf keeps none.</li>
+<li><code>physics.body_radiation</code> takes all three shares (<code>uv_c</code>, <code>uv_b</code>, <code>uv_a</code>) from the library instead of the family built on <code>uv_c_share</code> (<code>stellar_spectrum.irradiance_w_m2(..., shares=)</code>, <code>atmospheric_radiation.surface_radiation(..., uv_shares=)</code>); a star that lacks mass, radius, temperature or luminosity keeps the family from its stored <code>uv_c_share</code>. Limitation: the extra UV-C of a cool star is placed in the 100 to 280 nm cells in proportion to the blackbody's shape there, so it sits near 280 nm, where the chromosphere's is really at 120 to 170 nm; the band total is right and the in-band shape is not (a later item: the spectrum on the radiation grid from the library bins).</li>
+<li>The colour of a star's disk (<code>bodylook.star_surface_color</code>) and the light of the sky colour (<code>atmosphere_colour.body_light</code> into <code>atmosphere_colour(light=)</code>, and the giant's) come from the library spectrum by <code>stellar_library.visible_spectrum</code> and <code>star_colour</code>; outside the library, or for a run that disregards a missing library, the blackbody with the BT-Settl offsets of <code>photometry.py</code> (still what a bare <code>atmosphere_colour(temperature_k=)</code> call takes). A cool star's seeded spread is no longer used with a library spectrum. Against the blackbody at the Sun's temperature the chromaticity is within 0.006; at 7500 K the library is bluer (line blanketing moves the ultraviolet's flux into the blue), and at 3300 K the red dwarf's sky is whiter.</li>
+<li>The grids are solar metallicity; a metal-poor star's ultraviolet differs. SL4 records it.</li>
+<li>Stars above 50000 K or below 2300 K get no spectrum (None); callers take the blackbody.</li>
+<li>This moves the UV of every star and the colour of every star and sky, so it is <code>--affects fill</code> (stars, and the body colour stage) and rides train 3.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 9.0: Composition, atmosphere colour and the view from a planet - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-9-0-composition-and-atmosphere-colour.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-9-0-composition-and-atmosphere-colour.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-90-composition-atmosphere-colour-and-the-view-from-a-planet">Version 9.0: Composition, atmosphere colour and the view from a planet</h1><p class="meta">docs/plan/releases/version-9-0-composition-and-atmosphere-colour.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-the-proofs-and-the-headline">Phase 1: The proofs and the headline</a></li><li style="margin-left:14px"><a href="#the-headline">The headline</a></li><li style="margin-left:14px"><a href="#resource-layer">Resource layer</a></li><li style="margin-left:0px"><a href="#phase-2-sky-rendering-the-view-from-a-planet-folded-in-from-91">Phase 2: Sky rendering (the view from a planet, folded in from 9.1)</a></li><li style="margin-left:14px"><a href="#sky-rendering">Sky rendering</a></li><li style="margin-left:0px"><a href="#phase-3-the-gravity-map-closes">Phase 3: The gravity map closes</a></li><li style="margin-left:14px"><a href="#gravity-layers">Gravity layers</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 9.0</p>
+<p>Status: paused until 8.1 is complete (its composition, radiation and colour work moved into 8.1 phases 5 to 11 on Boss's word, 5:48 PM EDT 2026-10-23; only the proofs and the headline stay here). Earlier note (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>Boss (5:31 PM EST on 2026-11-05): 9.1 is folded into 9.0, so this version holds three things: the composition and atmosphere colour, the view from a planet (phase 2, with its sky data, research and dust model built in 8.2 as foundations) and the gravity map (finished in phase 3 from its foundations in 8.2, 8.3 and 8.5). The dynamic population and trade moved to 9.2 (Boss, 6:00 PM EST on 2026-11-05). The numbers 9.2 onward stay as they are.</p>
+<p>What every body, star and atmosphere is made of, worked out from real science, and what follows from it: the colour of the air and the radiation in the air and on the ground. Boss (2026-10-16, 11:25 PM EDT and 11:58 PM EDT): atmosphere composition and the composition of planets, moons, stars and everything is the joint headline of 9.0 with the atmosphere colour; every body has figures on its composition based on actual science, not made up where it can be avoided, and drawing the density first and filling in a fitting composition is as acceptable as deriving it. The atmosphere colour (sky colour and atmosphere colour are the same thing) is the absolute colour, not adapted to the star, and covers gas giants; it shows in the descriptions and replaces the planet colour on the maps. The atmospheric radiation (band transmission and the greenhouse effect from the mixture) and the surface radiation (the dose from the air's shielding and the ground's own composition) are derived the same way. Everything else is built before: the research, the designs and the data tables (the elements, the gases, the materials, the stars) are in 8.1 phases 1 and 2, the star composition function in 8.1 phase 3, and the generation and storage in 8.4 phases 1 to 4, so 9.0 holds the colour, the radiation and what shows them. A major version needs Boss's word. The master note is <a href="../../design/composition/composition-model.html">composition-model.md</a>; the atmosphere plan is <a href="../../design/composition/atmosphere-colour.html">atmosphere-colour.md</a>, based on <a href="../../design/composition/sky-colour-analysis.html">sky-colour-analysis.md</a>. The view from a planet and the gravity map are 9.1, and the backups and repair chain is 8.9 (Boss, 11:26 PM EDT).</p>
+<h2 id="phase-1-the-proofs-and-the-headline">Phase 1: The proofs and the headline</h2>
+<p>The radiation sweep, the documents of the whole composition model and the headline.</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="the-headline">The headline</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.212</td>
+<td>A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition</td>
+<td>GEN.444, GEN.446</td>
+<td>Boss 11:58 PM EDT; the radiation proof.</td>
+</tr>
+<tr>
+<td>DOC.66</td>
+<td>Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number</td>
+<td>TEST.212</td>
+<td>Boss 11:58 PM EDT; docs only.</td>
+</tr>
+<tr>
+<td>GEN.421</td>
+<td>Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it</td>
+<td>GEN.446, TEST.212, DOC.66</td>
+<td>Headline of 9.0 (Boss, 11:25 PM EDT).</td>
+</tr>
+<tr>
+<td>MAP.284</td>
+<td>Night-side thermal glow on hot worlds, with no city lights until 9.2</td>
+<td>MAP.280</td>
+<td>Body rendering R15; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+<tr>
+<td>MAP.283</td>
+<td>Comet colour from the coma species</td>
+<td></td>
+<td>Body rendering R9b; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+<tr>
+<td>MAP.282</td>
+<td>Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry</td>
+<td>MAP.280</td>
+<td>Body rendering R14; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+<tr>
+<td>MAP.281</td>
+<td>Giant chemistry bands once the band strengths exist</td>
+<td></td>
+<td>Body rendering R6b; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+<tr>
+<td>MAP.280</td>
+<td>Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface</td>
+<td></td>
+<td>Body rendering R4b; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="resource-layer">Resource layer</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.313</td>
+<td>Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed</td>
+<td>MAP.312, DB.106</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-sky-rendering-the-view-from-a-planet-folded-in-from-91">Phase 2: Sky rendering (the view from a planet, folded in from 9.1)</h2>
+<p>The view from a planet, moved here from 9.0 and back with it (Boss, 10:27 PM EDT; 9.1 folded into 9.0 at 5:35 PM EST on 2026-11-05): the photometry library, the sky catalogue, the star map and the PNG. It builds on the atmosphere colour of 9.0 and on the sky data and research of 8.9.</p>
+<h3 id="sky-rendering">Sky rendering</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIEW.14</td>
+<td>Orientation and horizon: the planet's own sky, time of day and twilight</td>
+<td>VIEW.12, VIEW.13, VIEW.6</td>
+<td>Split from VIEW.2.</td>
+</tr>
+<tr>
+<td>VIEW.2</td>
+<td>A starmap seen from a planet. RESEARCH WITH BOSS FIRST</td>
+<td>VIEW.11, VIEW.12, VIEW.13, VIEW.14</td>
+<td></td>
+</tr>
+<tr>
+<td>VIEW.15</td>
+<td>Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API</td>
+<td>VIEW.11, VIEW.12, VIEW.13</td>
+<td>Split from VIEW.3.</td>
+</tr>
+<tr>
+<td>VIEW.16</td>
+<td>Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels</td>
+<td>VIEW.4, VIEW.12</td>
+<td>Split from VIEW.3.</td>
+</tr>
+<tr>
+<td>VIEW.17</td>
+<td>Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card</td>
+<td>VIEW.15, VIEW.16</td>
+<td>Split from VIEW.3.</td>
+</tr>
+<tr>
+<td>MAP.285</td>
+<td>Close-up tier: fragment-shader detail over about 500 px, shared with the sky view</td>
+<td>VIEW.14</td>
+<td>Body rendering R16; Boss's plan of 10:26 PM EDT 2026-10-23.</td>
+</tr>
+<tr>
+<td>VIEW.3</td>
+<td>Render the view as a PNG, with constellations</td>
+<td>VIEW.15, VIEW.16, VIEW.17</td>
+<td></td>
+</tr>
+<tr>
+<td>VIEW.18</td>
+<td>Headline of 9.0: the view from a planet, with its starmap, its picture and its constellations</td>
+<td>VIEW.2, VIEW.3</td>
+<td>Headline of 9.0 (Boss, 11:42 PM EDT).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-the-gravity-map-closes">Phase 3: The gravity map closes</h2>
+<p>The Sector Map and System Map layers, the wording and the umbrella.</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="gravity-layers">Gravity layers</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.170</td>
+<td>The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional</td>
+<td></td>
+<td>Later; only if PERF.72 says it is cheap.</td>
+</tr>
+<tr>
+<td>MAP.167</td>
+<td>Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0)</td>
+<td>GEN.199</td>
+<td>Seminal feature of 9.0 (Boss 2026-10-10). Parent.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

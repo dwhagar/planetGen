@@ -22,8 +22,9 @@ EDGE_LY = 11.5
 EDGE_PC = EDGE_LY * constants.LIGHTYEAR_M / constants.PARSEC_M
 
 
-def _save(mysql_config, with_black_hole=True, systems=2):
-    center_pc = spherical.sector_position_pc(*ADDRESS, EDGE_PC)
+def _save(mysql_config, with_black_hole=True, systems=2, address=None):
+    address = ADDRESS if address is None else address         # read at the call: a test sets the module's ADDRESS for the sectors it saves next
+    center_pc = spherical.sector_position_pc(*address, EDGE_PC)
     sector = SpaceSector("Path Round Trip", edge_ly=EDGE_LY)
     for index in range(systems):
         cfg = SystemConfig()
@@ -38,7 +39,7 @@ def _save(mysql_config, with_black_hole=True, systems=2):
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.sqrt(sum(c * c for c in center_pc)),
-        "shell_index": ADDRESS[0], "band_index": ADDRESS[1], "wedge_index": ADDRESS[2],
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
     })
     return sector_id, center_pc
 
@@ -183,5 +184,37 @@ def test_settling_covers_a_sector_and_its_neighbours_and_nothing_far(mysql_confi
         assert sector_paths.load_sector_paths(conn, far_id) == {}
         assert sector_paths.sector_ids_since(conn, "2999-01-01") == []
         assert far_id in sector_paths.sector_ids_since(conn, "2000-01-01")
+    finally:
+        conn.close()
+
+
+def test_a_batch_reads_the_masses_around_its_sectors_once_and_saves_the_paths_each_sector_alone_would(mysql_config, monkeypatch):
+    """GEN.1477: sectors that sit together share their neighbours; the batch reads each sector's masses once, and every knot is bit-for-bit what a read of the sector's own neighbourhood saves."""
+    ids = []
+    for wedge in (700, 701, 702, 703):
+        monkeypatch.setattr(sys.modules[__name__], "ADDRESS", (1500, 2, wedge))
+        ids.append(_save(mysql_config, systems=2)[0])
+
+    def knots(conn):
+        return {sector_id: sorted((key, [(k.t_s, k.position, k.velocity) for k in path.knots], path.exited)
+                                  for key, path in sector_paths.load_sector_paths(conn, sector_id).items())
+                for sector_id in ids}
+
+    reads = []
+    real = sector_paths._read_masses
+    monkeypatch.setattr(sector_paths, "_read_masses", lambda conn, centers: reads.append(sorted(centers)) or real(conn, centers))
+    conn = store.get_connection(mysql_config)
+    try:
+        for sector_id in ids:   # alone: each sector reads its own neighbourhood
+            sector_paths.compute_sector_paths(conn, sector_id)
+        alone = knots(conn)
+        alone_reads = sum(len(read) for read in reads)
+        reads.clear()
+        order = sector_paths.sectors_in_cell_order(conn, ids)
+        assert sorted(order) == sorted(ids) and order == sector_paths.sectors_in_cell_order(conn, reversed(ids))
+        sector_paths.settle_sectors(conn, order, expand=False)
+        assert knots(conn) == alone and alone
+        assert len(reads) == 1 and len(set(reads[0])) == len(reads[0]), "one read of the union, each sector once"
+        assert len(reads[0]) < alone_reads
     finally:
         conn.close()

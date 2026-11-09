@@ -91,6 +91,13 @@ def test_an_unstable_wide_binary_is_made_again_and_the_console_says_which(mysql_
     _sector, good = _store_system(mysql_config, "Good Sector", broken=False)
     sector_id, bad = _store_system(mysql_config, "Bad Sector", broken=True)
     before, planets_before, good_planets = _row(mysql_config, bad), _planet_ids(mysql_config, bad), _planet_ids(mysql_config, good)
+    conn = store.get_connection(mysql_config)
+    try:
+        problems = wide_binary_reroll.unstable(conn)["found"][0]["problems"]
+    finally:
+        conn.close()
+    assert any("orbits beyond the farthest stable orbit" in line for line in problems)
+    named = "; ".join(problems[:wide_binary_reroll.REPORT_PROBLEMS])            # the console names the first few problems, and which come first depends on the system (a belt that stays at its place is first)
     lines = []
     result = wide_binary_reroll.run(mysql_config, say=lines.append)
     assert (result["scanned"], result["unstable"], result["redone"], result["left"], result["failed"]) == (2, 1, 1, [], [])
@@ -100,7 +107,7 @@ def test_an_unstable_wide_binary_is_made_again_and_the_console_says_which(mysql_
     assert _planet_ids(mysql_config, bad) != planets_before                                  # new bodies
     assert _planet_ids(mysql_config, good) == good_planets                                    # the stable one was not touched
     report = "\n".join(lines)
-    assert f"(id {bad})" in report and "re-rolled, now stars of" in report and "orbits beyond the farthest stable orbit" in report
+    assert f"(id {bad})" in report and "re-rolled, now stars of" in report and named in report
     assert f"(id {good})" not in report
 
 

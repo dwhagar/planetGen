@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roles and requests: users ask, moderators approve, admins approve moderators - planetGen docs</title>
+<meta name="description" content="Status (2026-10-16): plan; not built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/roles-and-requests.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/roles-and-requests.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="roles-and-requests-users-ask-moderators-approve-admins-approve-moderators">Roles and requests: users ask, moderators approve, admins approve moderators</h1><p class="meta">docs/design/interface/roles-and-requests.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-idea-in-one-paragraph">1. The idea in one paragraph</a></li><li style="margin-left:0px"><a href="#2-roles-and-who-decides">2. Roles and who decides</a></li><li style="margin-left:0px"><a href="#3-the-parts">3. The parts</a></li><li style="margin-left:0px"><a href="#4-what-82-and-86-hold-so-nothing-is-rebuilt">4. What 8.2 and 8.6 hold so nothing is rebuilt</a></li><li style="margin-left:0px"><a href="#5-decisions-and-their-reasons">5. Decisions and their reasons</a></li><li style="margin-left:0px"><a href="#6-phases-and-threads-version-100">6. Phases and threads (version 10.0)</a></li><li style="margin-left:0px"><a href="#7-open-questions-each-with-a-default-work-goes-ahead-on-the-default">7. Open questions (each with a default; work goes ahead on the default)</a></li></ul></details>
+<p><strong>Status (2026-10-16):</strong> plan; not built. This is the design of the 10.0 headline (USR.25). It builds on the accounts of 8.2 (USR.1 to USR.7) and the change plans of 8.6 (ADM.57, ADM.58 to ADM.68).</p>
+<p>Boss (2026-10-16, 1:43 PM EDT): &quot;Admins don't need approval. All other defaults fine, but add for v10.0 user edit requests and a moderator role, so User, Moderator, Admin. Moderators would be able to approve user requests, admins approve moderator requests. So we'll have to build out the plan for v10.0 to add roles, permissions, etc.&quot; Boss (1:49 PM EDT): &quot;basically admins can approve themselves at the time, so they don't request as much as just confirm&quot;.</p>
+<h2 id="1-the-idea-in-one-paragraph">1. The idea in one paragraph</h2>
+<p>A request is a change plan of 8.6 that someone below the approving role submitted. The plan engine computes its effect, the approver sees the same preview an admin sees, and approving it applies it through the same job, journal and undo. Which role may submit which operation, and which role must approve it, are data in one permission catalogue and one <code>can()</code> check, so the rules live in one place.</p>
+<h2 id="2-roles-and-who-decides">2. Roles and who decides</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Role</th>
+<th>May request</th>
+<th>May approve</th>
+<th>Own plan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User</td>
+<td>text aspects of one object (default: rename, description, note)</td>
+<td>nothing</td>
+<td>needs a moderator or an admin</td>
+</tr>
+<tr>
+<td>Moderator</td>
+<td>everything a user may, plus a move, an orbit edit or a regeneration of one object</td>
+<td>requests from users</td>
+<td>needs an admin</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>everything</td>
+<td>requests from users and moderators</td>
+<td>confirm it after the preview, no second approver</td>
+</tr>
+<tr>
+<td>Owner</td>
+<td>everything an admin may</td>
+<td>the same, plus the Owner-only settings tier (ADM.86)</td>
+<td>the same as an admin</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nobody decides their own request unless they are an admin confirming their own plan. A request that touches a locked aspect, a named object or a populated world goes to an admin whoever asked (default). The lists above are defaults held as data in the catalogue (USR.12), so Boss can widen them without a code change.</p>
+<h2 id="3-the-parts">3. The parts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Permission catalogue</td>
+<td>Every permission the site checks, the role-to-permission map and <code>can(account, permission, object)</code></td>
+<td>USR.12</td>
+</tr>
+<tr>
+<td>Moderator role</td>
+<td>Assign and remove it on the accounts page, audited</td>
+<td>USR.13</td>
+</tr>
+<tr>
+<td>Guard sweep</td>
+<td>Every route, page and command uses <code>can()</code>; a test finds a raw role comparison</td>
+<td>USR.14, TEST.179</td>
+</tr>
+<tr>
+<td>Request tables</td>
+<td>Comments and notice records; the request itself is a plan row of 8.6 (DB.36)</td>
+<td>DB.39</td>
+</tr>
+<tr>
+<td>Submit, queue, decide</td>
+<td>Submit as a plan in state <code>requested</code>; each role sees its share; decide by role</td>
+<td>USR.15, USR.16, USR.17</td>
+</tr>
+<tr>
+<td>Approver screen</td>
+<td>The plan preview of ADM.66 with the requester's note and the decision buttons</td>
+<td>USR.18</td>
+</tr>
+<tr>
+<td>Conversation</td>
+<td>Comments, edit and resubmit, withdraw, &quot;my requests&quot;</td>
+<td>USR.19, USR.20</td>
+</tr>
+<tr>
+<td>Lifecycle and limits</td>
+<td>Stale, withdrawn and expired requests; per-user caps and a block</td>
+<td>USR.21, USR.22</td>
+</tr>
+<tr>
+<td>Notices and audit</td>
+<td>Email notices; one audit view of role changes and requests</td>
+<td>USR.23, USR.24</td>
+</tr>
+<tr>
+<td>Proof</td>
+<td>End-to-end test of the chain, the permission matrix test, the help page</td>
+<td>TEST.178, TEST.179, DOC.55</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-what-82-and-86-hold-so-nothing-is-rebuilt">4. What 8.2 and 8.6 hold so nothing is rebuilt</h2>
+<ul>
+<li><strong>8.2, accounts (USR.2).</strong> The role is one text column with four valid values (user, moderator, admin, Owner); moderator is valid and unused until 10.0. Every admin-only page, route and command goes through one guard (<code>require_role</code>), which 10.0 replaces with <code>can()</code>; nothing else compares a role. The role change page writes its audit row through one function that 10.0 reuses.</li>
+<li><strong>8.6, change plans (DB.36, ADM.58, ADM.60, ADM.66, ADM.68).</strong> The plan table carries the requester and their role, the role that must approve, the decision and note, and the state list already has <code>requested</code> and <code>withdrawn</code>. Apply runs under the approver's identity and the journal names both people. The approval screen shows the requester's note when there is one. The history lists requester and approver.</li>
+<li><strong>8.1, settings.</strong> The limits (open requests, daily submissions, expiry) are options of the settings page (ADM.84).</li>
+</ul>
+<h2 id="5-decisions-and-their-reasons">5. Decisions and their reasons</h2>
+<ul>
+<li><strong>A request is a plan, not a second mechanism.</strong> Preview, apply, undo, history and audit are written once in 8.6; 10.0 adds who may submit and who may decide.</li>
+<li><strong>The catalogue is data.</strong> A new role or a widened list is an edit to data and a test, not a change to routes.</li>
+<li><strong>Admins confirm, they do not request.</strong> Boss decided an admin's own edit has no second approver; the preview stays so nothing applies unseen.</li>
+<li><strong>No self-approval below admin.</strong> A moderator cannot approve their own request; only an admin can.</li>
+<li><strong>Stale means resubmit.</strong> If an object changed after submission the request goes back to the requester, as stale plans do in 8.6.</li>
+</ul>
+<h2 id="6-phases-and-threads-version-100">6. Phases and threads (version 10.0)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Theme</th>
+<th>Threads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Roles, permissions and the request tables</td>
+<td>Permissions; Request tables</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Submitting and deciding requests</td>
+<td>Request flow</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Reviewing, limits, notices and audit</td>
+<td>Reviewing; Lifecycle; Notices and audit</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Close-out: proof, help and the headline</td>
+<td>Proof and help</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-open-questions-each-with-a-default-work-goes-ahead-on-the-default">7. Open questions (each with a default; work goes ahead on the default)</h2>
+<ul>
+<li><strong>What users may request.</strong> Default: rename, description and note on one object; no structural change. Boss may widen it.</li>
+<li><strong>What a moderator may approve.</strong> Default: only user requests inside the user list; a locked, named or populated target goes to an admin.</li>
+<li><strong>Limits and expiry.</strong> Default: 5 open requests, 20 submissions a day, 30 days to expiry; settings on the settings page.</li>
+<li><strong>Notices.</strong> Default: approvers and requesters are emailed, each account can turn the emails off.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

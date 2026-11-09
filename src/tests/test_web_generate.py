@@ -1589,18 +1589,15 @@ def test_the_generate_form_reports_every_bad_field_at_once():
     assert "Minimum start density must be at least 0.001." in message
 
 
-def test_made_url_only_for_a_finished_sector_run(client):
-    """ADM.31: a finished galaxy run offers its sectors on the Galaxy Map."""
+def test_systems_url_only_for_a_galaxy_run_that_has_started(client):
+    """ADM.151: a started galaxy run links to the systems made since it started."""
     now = time.time()
     with client.application.test_request_context("/"):
         base = {"created_at": now - 61, "steps": []}
-        done = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": True, "started_at": now - 60,
-                                        "finished_at": now, **base})
-        assert done["made_url"].startswith("/galaxy?made=")
-        for job in ({"kind": "galaxy", "finished": False, "started_at": now},
-                    {"kind": "plan", "finished": True, "started_at": now},
-                    {"kind": "galaxy", "finished": True, "started_at": None}):
-            assert generate_page._job_view({"id": "j2", **base, **job})["made_url"] is None
+        started = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": False, "started_at": now - 60, **base})
+        assert started["systems_url"] == f"/admin/generated?kind=systems&since={int(now - 60)}"
+        for job in ({"kind": "plan", "started_at": now}, {"kind": "galaxy", "started_at": None}):
+            assert generate_page._job_view({"id": "j2", "finished": False, **base, **job})["systems_url"] is None
 
 
 def test_random_start_argv_carries_the_neighborhood_count():

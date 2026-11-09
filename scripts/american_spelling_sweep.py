@@ -11,7 +11,7 @@ merged on a train: merge the branch taking the train's side of every conflict, t
 
 The words: centre (centres, centred, centring), cancelled, cancelling, vapour, flavour, ionising, ionised, ionisation, oxidised, oxidising, disc
 (discs, as a whole word: `nuclear_disc` counts, `discrete` does not) and link-neighbours. A proper noun that holds "Centre" (Centre National, Centre for, ...)
-stays. Left alone (`SKIP_PREFIX`, `SKIP_FILES`, `SKIP_LINES`): the design documents, the plan and the TODO, the changelog and the release notes, the
+stays. Left alone (`SKIP_PREFIX`, `SKIP_FILES`, `SKIP_LINES`): the design documents, the plan and the TODO (and `docs/site/`, the web pages built from them), the changelog and the release notes, the
 generated pages, the migrations and the old-schema fixtures (they name the stored words as they were), the reference data (paper titles), the
 golden data, the licence text, the vendor scripts, the files that hold the British word list on purpose, and the lines that tell what a word was.
 """
@@ -24,7 +24,7 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 SKIP_PREFIX = (
-    "docs/TODO.md", "docs/plan/", "docs/design/", "docs/generated/", "docs/references/", "docs/REFERENCES.md", "docs/REFERENCES.html", "docs/reference/references-data.json",
+    "docs/TODO.md", "docs/plan/", "docs/design/", "docs/generated/", "docs/site/", "docs/references/", "docs/REFERENCES.md", "docs/REFERENCES.html", "docs/reference/references-data.json",
     "docs/reference/api-versions.json", "docs/reference/api-compatibility.md", "CHANGELOG.md", "changes/", "DATA-LICENSE.md", ".github/",
     "src/planetgen/db/migrations/versions/", "src/tests/fixtures/", "src/tests/golden/", "src/html/static/vendor/",
 )

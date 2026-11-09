@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redox of rocky debris: the retune of rows a3 and a4 (GEN.513) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-23 by lane M.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/wd-redox-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/wd-redox-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="redox-of-rocky-debris-the-retune-of-rows-a3-and-a4-gen513">Redox of rocky debris: the retune of rows a3 and a4 (GEN.513)</h1><p class="meta">docs/design/composition/wd-redox-tuning.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-was-tuned">1. What was tuned</a></li><li style="margin-left:0px"><a href="#2-what-the-targets-now-compare">2. What the targets now compare</a></li><li style="margin-left:0px"><a href="#3-what-it-does-not-do">3. What it does not do</a></li><li style="margin-left:0px"><a href="#4-the-power-of-the-targets-gen665">4. The power of the targets (GEN.665)</a></li></ul></details>
+<p>Status: built 2026-10-23 by lane M. Rows a3 (building blocks of asteroids, C and D types) and a4 (debris of white dwarfs) of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>), their four targets in <code>physics/data/tuning_targets.json</code>, and the detection model of GEN.508 (<code>docs/design/composition/wd-pollution-detection.md</code>). Tests in <code>src/tests/test_wd_pollution.py</code> and <code>src/tests/test_tuning_harness.py</code>.</p>
+<h2 id="1-what-was-tuned">1. What was tuned</h2>
+<p>Both rows drew <code>dIW ~ N(mu, 0.45)</code> with the center -1.26 (a3) or -1.25 (a4). The 0.45 is the spread of the 22 <em>reported</em> medians of [R1152] and 2023, which is the spread of the bodies plus the abundance error of each star, cut by the papers' reporting rule. Drawing the bodies as wide as the reported medians counts the measurement twice.</p>
+<p>The rows now draw <code>N(-1.25, 0.22)</code>. The center is the mean of the 22 values (standard error 0.10) for both rows; the detection model shows it survives the selection to within that error. The width 0.22 is the intrinsic spread the worker report computed from the 13 well-constrained stars (the least selection-biased subset).</p>
+<h2 id="2-what-the-targets-now-compare">2. What the targets now compare</h2>
+<p>The four targets (a3 and a4, mean and sd) name the selection model <code>wd-pollution-detection</code> and the field <code>diw</code>: a drawn body is measured with a log-normal abundance error, classified by the papers' rule and kept if a median is reported, and the mean and the standard deviation of the kept medians are compared with the published -1.25 (sigma 0.10) and 0.45 (sigma 0.069).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Width of the draw</th>
+<th>Reported sd, error from the stars with both bounds</th>
+<th>Reported sd, error from the whole sample</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.419</td>
+<td>0.625</td>
+</tr>
+<tr>
+<td>0.22 (shipped)</td>
+<td>0.48</td>
+<td>0.66</td>
+</tr>
+<tr>
+<td>0.38</td>
+<td>0.583 (the edge of 2 sigma)</td>
+<td>0.711</td>
+</tr>
+<tr>
+<td>0.45 (before)</td>
+<td>0.632</td>
+<td>0.741</td>
+</tr>
+</tbody>
+</table></div>
+<p>The published spread is 0.447 (sigma 0.069), so the accepted width is 0 to about 0.38 with the first error model, and the second model over-disperses at every width, including zero (3.3 sigma at 0.05). The comparison therefore names the first model for the spread; the mean passes with both. This is the finding of GEN.508 in its final form: the sample does not identify the intrinsic width, and 0.45 was too wide. 0.22 is inside the accepted range and agrees with the independent estimate.</p>
+<h2 id="3-what-it-does-not-do">3. What it does not do</h2>
+<ul>
+<li>The scale conversion between the white-dwarf core-formation dIW and the surface magma-ocean dIW of row a1 is not tested. Row a1 keeps its floor and slope (flagged stand-ins); a3 and a4 are on the white-dwarf scale.</li>
+<li>The settling of elements out of a white dwarf atmosphere is not modelled; a tuned width is an upper bound for a sample that holds stars observed after the pollution waned.</li>
+<li>The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.</li>
+</ul>
+<h2 id="4-the-power-of-the-targets-gen665">4. The power of the targets (GEN.665)</h2>
+<p>The sample behind the spread has 7 stars with both bounds (16 with both bounds in the error fit, of which the redox values come from 22), not 8 of 24. The tests now say what the four targets can and cannot refuse (<code>test_wd_pollution.py</code>, last test): a center 0.3 dex off and a spread of 0.9 or 0.22 against 0.447 are refused (more than 2 sigma of 0.10 and 0.069), the earlier width 0.45 is refused, and a width of 0.01 is not. The width 0.22 is kept: it is the intrinsic spread of the well-constrained stars and the only value of the accepted range 0 to about 0.38 with an independent estimate behind it. The data cannot tell it from a width of zero, and a better target needs more stars with both bounds.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

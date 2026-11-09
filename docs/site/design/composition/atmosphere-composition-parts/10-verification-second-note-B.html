@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 Verification of the second boss-added note, part B (claims 1 to 9: particles, doses, ionization, kinetics) - planetGen docs</title>
+<meta name="description" content="Scope: read-only verification of nine claims in the owner&#x27;s second research note.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/10-verification-second-note-B.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/10-verification-second-note-B.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="10-verification-of-the-second-boss-added-note-part-b-claims-1-to-9-particles-doses-ionization-kinetics">10 Verification of the second boss-added note, part B (claims 1 to 9: particles, doses, ionization, kinetics)</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/10-verification-second-note-B.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#0-summary-table-details-and-sources-in-sections-1-to-9">0. Summary table (details and sources in sections 1 to 9)</a></li><li style="margin-left:0px"><a href="#1-claim-1-band-function-for-sep-spectra">1. Claim 1: Band function for SEP spectra</a></li><li style="margin-left:14px"><a href="#11-published-form">1.1 Published form</a></li><li style="margin-left:14px"><a href="#12a-published-band-parameters-fills-the-part-07-gap-and-a-validation-read-computed">1.2a Published Band parameters (fills the part 07 gap) and a validation (READ, COMPUTED)</a></li><li style="margin-left:14px"><a href="#12-the-notes-version-fails-continuity-computed">1.2 The note's version fails continuity (COMPUTED)</a></li><li style="margin-left:14px"><a href="#13-weibull-and-exponential-in-rigidity-versus-band-above-100-mev">1.3 Weibull and exponential-in-rigidity versus Band above 100 MeV</a></li><li style="margin-left:0px"><a href="#2-claim-2-mars-rad-numbers">2. Claim 2: Mars RAD numbers</a></li><li style="margin-left:14px"><a href="#21-proton-energy-needed-to-cross-the-gale-column-computed-from-nist-pstar-material-134-carbon-dioxide-csda-range">2.1 Proton energy needed to cross the Gale column (COMPUTED from NIST PSTAR, material 134 carbon dioxide, CSDA range)</a></li><li style="margin-left:14px"><a href="#22-what-the-papers-state">2.2 What the papers state</a></li><li style="margin-left:14px"><a href="#23-neutron-share-15-to-20-percent-of-total-surface-dose">2.3 Neutron share: "15 to 20 percent of total surface dose"</a></li><li style="margin-left:0px"><a href="#3-claim-3-europa">3. Claim 3: Europa</a></li><li style="margin-left:0px"><a href="#4-claim-4-titan">4. Claim 4: Titan</a></li><li style="margin-left:14px"><a href="#41-column-mass-computed">4.1 Column mass (COMPUTED)</a></li><li style="margin-left:14px"><a href="#42-surface-dose">4.2 Surface dose</a></li><li style="margin-left:0px"><a href="#5-claim-5-w-value-photoionization-sources">5. Claim 5: W value, photoionization sources</a></li><li style="margin-left:14px"><a href="#51-w-for-air-electrons">5.1 W for air (electrons)</a></li><li style="margin-left:14px"><a href="#52-w-for-the-other-gases-mars-titan-relevance-fills-part-07-table-212-gaps">5.2 W for the other gases (Mars, Titan relevance); fills part 07 table 2.12 gaps</a></li><li style="margin-left:14px"><a href="#53-outer-shell-photoionization-cross-sections-which-species-have-a-reachable-source">5.3 Outer-shell photoionization cross sections: which species have a reachable source</a></li><li style="margin-left:0px"><a href="#6-claim-6-troe-falloff-form">6. Claim 6: Troe falloff form</a></li><li style="margin-left:14px"><a href="#61-n-for-fc--06-computed">6.1 N for Fc = 0.6 (COMPUTED)</a></li><li style="margin-left:14px"><a href="#62-jpl-form-as-printed-read">6.2 JPL form as printed (READ)</a></li><li style="margin-left:0px"><a href="#7-claim-7-jpl-19-5-changes-and-licence">7. Claim 7: JPL 19-5 changes and licence</a></li><li style="margin-left:0px"><a href="#8-claim-8-ph3">8. Claim 8: PH3</a></li><li style="margin-left:0px"><a href="#9-claim-9-r1814-r2050-r4860-are-updated-by-incorporating-revised-cross-sections">9. Claim 9: "[R1814, R2050, R4860] are updated by incorporating revised cross sections"</a></li><li style="margin-left:0px"><a href="#10-what-this-changes-in-the-generator-items">10. What this changes in the generator items</a></li><li style="margin-left:0px"><a href="#11-not-reached">11. NOT REACHED</a></li><li style="margin-left:0px"><a href="#12-recalled--to-verify">12. Recalled / to verify</a></li></ul></details>
+<p>Scope: read-only verification of nine claims in the owner's second research note. Labels follow the worker rules (READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED). Verdicts: CONFIRMED, PARTLY, CONTRADICTED, UNSUPPORTED (searched, nothing found either way), NOT REACHED.</p>
+<h2 id="0-summary-table-details-and-sources-in-sections-1-to-9">0. Summary table (details and sources in sections 1 to 9)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Evidence in one line</th>
+<th>Label</th>
+<th>Corrected value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1a</td>
+<td>Band form J(&gt;E) as written</td>
+<td>CONTRADICTED</td>
+<td>high branch has an extra x^-(g2-g1); discontinuous at break unless g2-g1 = 1; slope -(2g2-g1)</td>
+<td>COMPUTED, 2ND-HAND</td>
+<td>integral in rigidity, J0 R^-g2 [(g2-g1)R0]^(g2-g1) e^(g1-g2) above R1 = (g2-g1)R0</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>Weibull/exp-in-rigidity underestimate above 100 MeV</td>
+<td>PARTLY</td>
+<td>exp in rigidity under-estimates in 12 of 12 GLEs; Weibull varies, agrees only Feb 1956; Xapsos is Weibull, not rigidity-exponential</td>
+<td>READ, 2ND-HAND</td>
+<td>event dependent</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>NM data support Band</td>
+<td>CONFIRMED</td>
+<td>F80/F200 6.02 vs 6.15 (PAMELA, GLE 71)</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>1d</td>
+<td>Original ICRC paper</td>
+<td>NOT REACHED</td>
+<td>form read in four later papers, two by the authors</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2a</td>
+<td>Column 20 to 22 g/cm2</td>
+<td>CONFIRMED</td>
+<td>Gale 18.9 to 25.7</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>2b</td>
+<td>Cutoff 150 MeV/nuc</td>
+<td>PARTLY</td>
+<td>[R1727, R1728] says about 150 (140 to 160); PSTAR CO<sub>2</sub>: 165 MeV at 21 g/cm2</td>
+<td>READ, COMPUTED</td>
+<td>165 vertical, 247 at 60 deg</td>
+</tr>
+<tr>
+<td>2c</td>
+<td>0.21 mGy/d, 0.64 mSv/d, 76 and 232 per yr</td>
+<td>CONFIRMED</td>
+<td>+/-0.04 and +/-0.12; 76.7 and 233.6 per yr</td>
+<td>2ND-HAND</td>
+<td>solar-cycle factor 3.3</td>
+</tr>
+<tr>
+<td>2d</td>
+<td>Neutrons 15 to 20 percent of dose</td>
+<td>CONTRADICTED</td>
+<td>RAD 2.2 to 7 percent of dose, 3.8 to 10 percent of dose equivalent; model DE 33 to 50 percent</td>
+<td>READ</td>
+<td>see 2.3</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>Trailing-hemisphere electrons</td>
+<td>CONFIRMED</td>
+<td>below 25 MeV trailing</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>3b</td>
+<td>1 to 10 MeV electrons reach mm</td>
+<td>CONTRADICTED</td>
+<td>CSDA in ice 0.48 to 5.4 cm</td>
+<td>COMPUTED</td>
+<td>mm is 0.1 to 0.5 MeV</td>
+</tr>
+<tr>
+<td>3c</td>
+<td>1e3 to 1e4 Gy/yr</td>
+<td>CONTRADICTED</td>
+<td>literature compilation 1e7 at surface, 3e5 at 1 mm</td>
+<td>READ (figure)</td>
+<td>1e3 to 1e4 at 2 to 4 cm</td>
+</tr>
+<tr>
+<td>3d</td>
+<td>X-rays decimetres</td>
+<td>CONFIRMED</td>
+<td>6 to 15 cm (0.1 to 1 MeV), yield 0.4 to 4 percent</td>
+<td>COMPUTED</td>
+<td></td>
+</tr>
+<tr>
+<td>3e</td>
+<td>5.4 Sv/day from Nordheim</td>
+<td>CONTRADICTED</td>
+<td>traced to Zubrin book table (forum quote); equals 1.97e3 Gy/yr for wR = 1</td>
+<td>SNIPPET</td>
+<td>no primary source</td>
+</tr>
+<tr>
+<td>3f</td>
+<td>[R0879, R3308, R3452] tables</td>
+<td>NOT REACHED</td>
+<td>only via [R3038] figure</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4a</td>
+<td>Titan column 1000 g/cm2</td>
+<td>CONTRADICTED</td>
+<td>1.467 bar / 1.352 = 10,850 g/cm2</td>
+<td>COMPUTED</td>
+<td>10.85 kg/cm2</td>
+</tr>
+<tr>
+<td>4b</td>
+<td>1 to 3 GeV</td>
+<td>CONTRADICTED</td>
+<td>Earth column 2.25 GeV; Titan about 22 GeV ionization, 121 interaction lengths, secondaries from over 100 to 350 GeV primaries</td>
+<td>COMPUTED, READ</td>
+<td></td>
+</tr>
+<tr>
+<td>4c</td>
+<td>1.5 mGy/yr, 3 to 5 mSv/yr</td>
+<td>CONTRADICTED</td>
+<td>1e-11 rad/s = 3.2e-6 Gy/yr</td>
+<td>READ</td>
+<td>factor 475 lower</td>
+</tr>
+<tr>
+<td>4d</td>
+<td>Muons and neutrons dominate</td>
+<td>PARTLY</td>
+<td>muons and photons; neutrons do not reach the surface</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>5a</td>
+<td>W 33.85 eV</td>
+<td>PARTLY</td>
+<td>ICRU 31 value; ICRU 90 33.97 +/- 0.12</td>
+<td>2ND-HAND</td>
+<td>33.97</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>W above 1 keV constant, rises below 100 eV</td>
+<td>PARTLY</td>
+<td>W(air) 35.5 at 1 keV, 42.5 at 100 eV, 125 at 20.7 eV</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>5c</td>
+<td>Photoionization sources</td>
+<td>PARTLY</td>
+<td>Leiden has HCN, H<sub>2</sub>CO, HCl, SiO, 15 metals; no noble gas, HF, CH<sub>3</sub>Cl, TiO, VO</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>5d</td>
+<td>Kr, Xe, HF, CH<sub>3</sub>Cl, TiO, VO cross sections</td>
+<td>NOT REACHED</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6a</td>
+<td>N = 0.75 - 1.27 log10(10F)</td>
+<td>CONTRADICTED</td>
+<td>N = -0.238 for F = 0.6</td>
+<td>COMPUTED</td>
+<td>N = 1.032 (IUPAC) or 1 (JPL)</td>
+</tr>
+<tr>
+<td>6b</td>
+<td>&quot;Standard JPL&quot; N formula</td>
+<td>PARTLY</td>
+<td>that is IUPAC/Troe; JPL fixes N = 1, Fc = 0.6</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>6c</td>
+<td>F about 0.6</td>
+<td>CONFIRMED</td>
+<td>JPL fixed 0.6</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>7a</td>
+<td>19-5 updated ClO + O, + NO, dimer</td>
+<td>CONTRADICTED</td>
+<td>evaluated 10-6, 10-6, 10-6 (bimolecular); dimer 15-10</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>8a</td>
+<td>New PH<sub>3</sub> VUV cross sections</td>
+<td>UNSUPPORTED</td>
+<td>all work uses [R0762]</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>8b</td>
+<td>PH<sub>2</sub> + H + M -&gt; PH<sub>3</sub> + M</td>
+<td>PARTLY</td>
+<td>in [R0233] as reverse of thermolysis; two-body in Sousa-Silva</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>9</td>
+<td>Harman, Zahnle, Hunten updated by new cross sections</td>
+<td>UNSUPPORTED</td>
+<td>not meaningful as written; H<sub>2</sub>O cross sections revised by [R3662]</td>
+<td>READ</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Counts (29 sub-claims): CONFIRMED 6, PARTLY 8, CONTRADICTED 10, UNSUPPORTED 2, NOT REACHED 3 (1d, 3f, 5d). The JPL 19-5 licence question (section 7) was answered: not public domain.</p>
+<h2 id="1-claim-1-band-function-for-sep-spectra">1. Claim 1: Band function for SEP spectra</h2>
+<h3 id="11-published-form">1.1 Published form</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it shows</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R2355] slides, NTRS 20100005687 (&quot;Radiation dose assessments of SPEs with spectral representation at high energies&quot;)</td>
+<td>Band function in RIGIDITY, 4 parameters (J0, gamma1, gamma2, R0). Integral: Phi(&gt;R) = J0 R^-g1 exp(-R/R0) for R &lt;= (g2-g1) R0; Phi(&gt;R) = J0 R^-g2 [(g2-g1) R0]^(g2-g1) exp(g1-g2) for R &gt;= (g2-g1) R0.</td>
+<td>2ND-HAND (text extracted from the slide PDF; formula typography garbled but parseable)</td>
+</tr>
+<tr>
+<td>[R4478], &quot;Why is solar cycle 24 an inefficient producer of high-energy particle events?&quot; (A&amp;A 604, A47; [R4478]) eq. 4; Tylka and Dietrich are co-authors</td>
+<td>the integral rigidity spectra of proton fluences in GLEs are double power laws: J(&gt;R) = J0 R^-g1 exp(-R/R0) for R &lt; R1 = (g2-g1) R0; J(&gt;R) = J0 R1^-g1 exp(-R1/R0) (R/R1)^-g2 for R &gt;= R1. &quot;The Band function and its derivative are continuous.&quot;</td>
+<td>2ND-HAND (READ in arXiv PDF; by the original authors)</td>
+</tr>
+<tr>
+<td>[R0562] eq. 2</td>
+<td>Same shape in kinetic energy, break (gb-ga)E0 (a different parametrisation, different fitted values)</td>
+<td>2ND-HAND (READ)</td>
+</tr>
+<tr>
+<td>[R0173]</td>
+<td>Band is &quot;a double power law in rigidity with a smooth exponential junction&quot;; Tylka and Dietrich fitted about 59 GLEs</td>
+<td>2ND-HAND (READ)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Corrected statement: the fits are INTEGRAL event-integrated fluence spectra in RIGIDITY R (GV): J0 in cm^-2, gamma1 low-rigidity index, gamma2 high-rigidity index, R0 the exponential rigidity, break R1 = (gamma2 - gamma1) R0.</p>
+<p>Normalisation identity (COMPUTED): with C = J0 R0^-g1 and x = R/R0, the correct high branch is C (g2-g1)^(g2-g1) e^(g1-g2) x^-g2; the note's high branch is this times x^-(g2-g1), hence discontinuous at the break and too steep above it.</p>
+<h3 id="12a-published-band-parameters-fills-the-part-07-gap-and-a-validation-read-computed">1.2a Published Band parameters (fills the part 07 gap) and a validation (READ, COMPUTED)</h3>
+<p>[R3803], ICES (NTRS 20150009484), Table 1 (read from the rendered page), Band fit of the event-integrated integral fluence in rigidity, J(&gt;R) with R in GV, J0 in protons/cm2, R0 in GV:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>J0 (cm-2)</th>
+<th>gamma1</th>
+<th>gamma2</th>
+<th>R0 (GV)</th>
+<th>break R1 = (g2-g1) R0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GLE 1976-04-30</td>
+<td>7.620e6</td>
+<td>1.710</td>
+<td>6.33</td>
+<td>0.2054</td>
+<td>0.949 GV (396 MeV)</td>
+</tr>
+<tr>
+<td>GLE 2006-12-13</td>
+<td>1.330e8</td>
+<td>1.045</td>
+<td>5.80</td>
+<td>0.1765</td>
+<td>0.839 GV (321 MeV)</td>
+</tr>
+<tr>
+<td>sub-GLEs (14 events 1974 to 2006)</td>
+<td>2.4e4 to 2.0e8</td>
+<td>-0.19 to 4.08</td>
+<td>4.35 to 10.20</td>
+<td>0.084 to 0.364</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Validation (COMPUTED): with the published form and the GLE 2006-12-13 row, F(&gt;30 MeV) = 1.53e8 cm-2, F(&gt;200 MeV) = 5.46e6, ratio F30/F200 = 28.0; [R0173: Table 1] ([R0173], READ) lists 26.1 +/- 6.8 for GLE 70 (13 Dec 2006). The 7 percent agreement confirms that the parameters are integral, rigidity-based and that the published form above is the one in use. With the note's formula the same event is lower than the published curve by 5.6e-4 at 330 MeV, 1.7e-4 at 500 MeV, 2.1e-5 at 1 GeV and 2.0e-6 at 2 GeV (COMPUTED), so the note's version would remove essentially every GeV proton. Proton rigidity R = sqrt(T^2 + 2 T m_p) / 1 GV with m_p = 938.272 MeV (COMPUTED): 30, 100, 200, 500, 1000 MeV = 0.239, 0.445, 0.644, 1.09, 1.70 GV.</p>
+<p>Generator reading (COMPUTED): for the 2006 GLE the share of above-30-MeV fluence passing a Mars-like column (primaries above 165 MeV) is 5.7 percent. Part 07's single exponential with R0 = 0.2 GV normalised at 30 MeV is 2.2, 3.7 and 7.2 times the Band curve at 100, 200 and 500 MeV for this event, and Band R0 spans 0.019 to 0.364 GV over 34 events (READ).</p>
+<h3 id="12-the-notes-version-fails-continuity-computed">1.2 The note's version fails continuity (COMPUTED)</h3>
+<p>The note's low branch C (E/E0)^-g1 exp(-E/E0) is correct; its high branch carries an extra (E0/E)^(g2-g1). Computed at the break E_b = (g2-g1)E0:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>g1, g2</th>
+<th>note: high/low ratio at break</th>
+<th>published: ratio at break</th>
+<th>note's asymptotic slope</th>
+<th>published slope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0, 4.0</td>
+<td>0.0370 (= (g2-g1)^(g1-g2))</td>
+<td>1.0000</td>
+<td>-(2 g2 - g1) = -7</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>1.0, 2.0</td>
+<td>1.000 (only continuous when g2-g1 = 1)</td>
+<td>1.0000</td>
+<td>-3</td>
+<td>-2</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdict claim 1a (formula): CONTRADICTED as written (not the published form; discontinuous at the break except for g2 - g1 = 1; wrong high-energy slope). The low-energy branch and the break definition (g2-g1)E0 are correct. The published form is continuous in value and in log-slope (low-branch slope -g1 - R/R0 equals -g2 at R1; COMPUTED).</p>
+<h3 id="13-weibull-and-exponential-in-rigidity-versus-band-above-100-mev">1.3 Weibull and exponential-in-rigidity versus Band above 100 MeV</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement</th>
+<th>Evidence</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exponential in rigidity grossly under-estimates both Band and Weibull in all 12 GLEs studied</td>
+<td>no source; Weibull varies considerably against Band, reasonable agreement only for 23 Feb 1956</td>
+<td>READ (NTRS PDF)</td>
+</tr>
+<tr>
+<td>Exponential/Weibull extrapolation in proton energy underestimates the proton spectrum above 100 MeV</td>
+<td>[R2355] slides concluding remarks: &quot;exponential/Weibull extrapolation in proton energy underestimates the actual proton spectrum above 100 MeV&quot;; but 23 Feb 1956 exponential OVER-estimates fluence, Weibull and Band agree; Aug 1972 Band LOWER at 60-200 MeV because satellite data there (IMP8 channel) read high; Sept/Oct 1989 effective dose similar for all three</td>
+<td>2ND-HAND (NTRS 20100005687)</td>
+</tr>
+<tr>
+<td>&quot;Weibull/exponential-in-rigidity [R4789]&quot;</td>
+<td>Mislabelled: [R4789] is the Weibull (stretched exponential in kinetic energy, Phi = Phi0 exp(-k E^alpha)); the exponential in rigidity is [R1454] / Malitson and Webber. Two different fits</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GLE neutron-monitor data support Band</td>
+<td>Band is fitted with satellite data below about 100 MeV and world-wide neutron monitor data above about 430 MeV (1 GV); fit of about 59 to 66 GLEs; [R0173] tests the Band parametrisation against PAMELA direct data for GLE 71: F80/F200 ratio 6.15 +/- 0.9 (PAMELA) vs 6.02 +/- 1.38 (Band); agreement below 1 GeV, PAMELA errors grow above 1 GeV from GCR subtraction; PAMELA was not used in the fit</td>
+<td>READ [R0173]</td>
+</tr>
+<tr>
+<td>Limit of Band</td>
+<td>Reduces to a single power law at high energy and misses rollovers seen by PAMELA; [R0562] multiplies Band by exp(-E/Er)</td>
+<td>2ND-HAND [R0562]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdict claim 1b: PARTLY (underestimate above 100 MeV is true for exponential-in-rigidity in all 12 tested events and for Weibull in most, not all; Xapsos is Weibull, not rigidity-exponential). Verdict claim 1c (NM data support Band): CONFIRMED with the single-event PAMELA test.</p>
+<p>Reconciliation with part 07 section 2.8: its Band and Weibull parameter gap is partly filled by the rows in 1.2a (two events plus ranges); the full 34-event table is in NTRS 20150009484 and was not transcribed.</p>
+<h2 id="2-claim-2-mars-rad-numbers">2. Claim 2: Mars RAD numbers</h2>
+<h3 id="21-proton-energy-needed-to-cross-the-gale-column-computed-from-nist-pstar-material-134-carbon-dioxide-csda-range">2.1 Proton energy needed to cross the Gale column (COMPUTED from NIST PSTAR, material 134 carbon dioxide, CSDA range)</h3>
+<p>PSTAR table pulled directly (physics.nist.gov, ap_table-t.pl, matno 134, 132 energy rows 1 keV to 10 GeV) and inverted by log-log interpolation:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column (g/cm2 CO<sub>2</sub>)</th>
+<th>Path</th>
+<th>Proton energy to reach end of CSDA range (MeV)</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>17.8</td>
+<td>vertical</td>
+<td>150</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>18.9 (Gale low, [R1729])</td>
+<td>vertical</td>
+<td>155</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>21</td>
+<td>vertical</td>
+<td>165</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>22.5 (part 07)</td>
+<td>vertical</td>
+<td>172</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>25.7 (Gale high, [R1729])</td>
+<td>vertical</td>
+<td>185</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>21</td>
+<td>zenith 45 deg (path 29.7)</td>
+<td>202</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>21</td>
+<td>zenith 60 deg (path 42.0)</td>
+<td>247</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the note's 150 MeV is the CSDA energy for about 17.8 g/cm2, 10% low in energy for 21 g/cm2 (165 MeV) and 38% low at 60 degrees (247 MeV).</p>
+<h3 id="22-what-the-papers-state">2.2 What the papers state</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Source statement</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cutoff</td>
+<td>[R1728, R1729]: at about 20 g/cm2 &quot;Primary protons with energies less than about 150 MeV ... lack the range to reach the surface&quot;; for He-4 &quot;cutoff energy for incoming particles at about 150 MeV/nuc&quot; (21 g/cm2); the atmosphere stops protons &quot;(energies &lt;= 140 to about 160 MeV depending on elevation)&quot;; protons below the cutoff still feed the surface through secondary electrons and neutrons. Matches part 07 (&quot;140 to 160 MeV&quot;)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Column</td>
+<td>[R1727, R1728] uses about 22.5 g/cm2 at Gale mean pressure (footnote: 5 to 6 g/cm2 more than at mean Mars elevation); [R1729]: Gale 18.9 to 25.7 g/cm2 (from part 07)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Absorbed dose</td>
+<td>Reitz (DLR) ICES-2016-437 (elib.dlr.de/106090): &quot;absorbed dose measured in the E detector accounts to 0.21 +/- 0.04 mGy/d&quot;; Hassler abstract in the same text; Q = 3.1 +/- 0.3; &quot;dose equivalent of 0.64 +/- 0.12 mSv/d&quot;, 7 Aug 2012 to 1 Jun 2013; cruise 1.84 +/- 0.3 mSv/day. Also 2208.00892 (Crewed missions to Mars) quotes 0.210 +/- 0.040 mGy/day citing [R1843]</td>
+<td>2ND-HAND (science.org refused; the Crossref abstract has no numbers)</td>
+</tr>
+<tr>
+<td>[R1730]</td>
+<td>0.7 mSv/day mean surface dose equivalent, 220 uGy/day absorbed (E detector fit 267 uGy/day, B detector 224 at reference), range 0.35 to 1.15 mSv/day over solar cycle</td>
+<td>READ [R1730]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Annual conversion (COMPUTED): 0.21 x 365 = 76.7 mGy/yr; 0.64 x 365 = 233.6 mSv/yr. The note's 76 and 232 are rounded consistently (about 0.5 percent low). CONFIRMED (numbers); the uncertainty is +/- 19 percent (0.04 of 0.21) and +/- 19 percent (0.12 of 0.64), and the solar-cycle spread is a factor 3.3 (0.35 to 1.15 mSv/day, [R1730]), so quoting 232 mSv/yr as one value is a solar-maximum anchor, not a constant.</p>
+<h3 id="23-neutron-share-15-to-20-percent-of-total-surface-dose">2.3 Neutron share: &quot;15 to 20 percent of total surface dose&quot;</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neutrons 8 to 740 MeV, first inversion</td>
+<td>14 +/- 4 uGy/d and 61 +/- 15 uSv/d: 7 percent of surface dose rate and 10 percent of dose equivalent</td>
+<td>[R2419] (Crossref abstract, [R2419])</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Neutrons 7 to 740 MeV, improved inversion</td>
+<td>5.1 +/- 1.0 uGy/d and 23.6 +/- 4.1 uSv/d: 2.2 percent of dose, 3.8 percent of dose equivalent; extrapolated to 1 to 1000 MeV: 6.76 uGy/d and 31.24 uSv/d, about 3 percent and 5 percent</td>
+<td>Koehler et al. [R1728]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Model neutron share of absorbed dose in water at surface</td>
+<td>4, 8, 9 percent (82, 753, 1200 Pa)</td>
+<td>[R4890] via part 08B section 4.3</td>
+<td>READ (in 08B)</td>
+</tr>
+<tr>
+<td>Model neutron share of effective dose</td>
+<td>about 50 percent at surface, above 80 percent below 50 cm</td>
+<td>[R4890] via 08B</td>
+<td>READ (in 08B)</td>
+</tr>
+<tr>
+<td>GEANT4 calculation of dose equivalent</td>
+<td>&quot;more than one third in the dose equivalent calculation is due to the neutron component&quot; with calculated neutron Q greater than 10 versus measured Q about 4</td>
+<td>Reitz ICES-2016-437</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdict claim 2d (15 to 20 percent of total surface dose): CONTRADICTED for absorbed dose (2 to 9 percent) and PARTLY for dose equivalent (RAD-measured 4 to 10 percent; model dose equivalent 33 to 50 percent depending on weighting). The statement is only defensible if it is stated as a model dose-equivalent fraction with ICRP 103 weighting, not as a fraction of dose. This agrees with 08B section 4.3 and adds the measured RAD numbers (2.2 to 7 percent of dose; 3.8 to 10 percent of dose equivalent).</p>
+<p>Verdicts claim 2: column 20 to 22 g/cm2 CONFIRMED (Gale 18.9 to 25.7, mean about 22.5); 150 MeV cutoff PARTLY (right as Guo's quoted figure and as a rule of thumb, but PSTAR gives 165 MeV at 21 g/cm2 vertically and 247 MeV at 60 degrees; Guo's own range is 140 to 160); doses CONFIRMED (2ND-HAND); neutron share CONTRADICTED/PARTLY as above.</p>
+<h2 id="3-claim-3-europa">3. Claim 3: Europa</h2>
+<p>Primary papers: [R3308] is Nature Astronomy 2, 673 to 679 (published 23 July 2018; the note's year is right, the volume is not given). Only its abstract was reached (nature.com, preview); the dose-rate tables and figures are behind the paywall. [R0879], and [R3452] are on refused hosts; their numbers were read second-hand through [R3038] ([R3038: Figure 1], which combines [R0879]) and [R4827].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement in the note</th>
+<th>Evidence</th>
+<th>Label</th>
+<th>Verdict and corrected value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trailing hemisphere is the electron target</td>
+<td>[R3426] GRL abstract (Crossref): 10 keV to 10 MeV electrons &quot;precipitate primarily on the trailing hemisphere&quot;. [R3038]: electrons below 25 MeV hit the trailing hemisphere preferentially, above 25 MeV the leading one (citing [R0879, R3308]); ion difference between hemispheres is only a few times. [R4827]: trailing deposition confined to the upper 0.1 cm or less; leading deposition reaches tens of cm</td>
+<td>READ (abstract, arXiv)</td>
+<td>CONFIRMED</td>
+</tr>
+<tr>
+<td>Electrons of 1 to 10 MeV penetrate &quot;mm depths&quot;</td>
+<td>ESTAR liquid water CSDA range (physics.nist.gov, matno 276): 1, 2, 5, 10, 25 MeV = 0.437, 0.979, 2.55, 4.98, 11.3 g/cm2; in ice of 0.917 g/cm3 = 0.48, 1.07, 2.8, 5.4, 12 cm. Mm depths belong to about 0.1 to 0.5 MeV electrons (0.02 to 0.19 cm)</td>
+<td>COMPUTED (DATA)</td>
+<td>CONTRADICTED for 1 to 10 MeV: mm to about 5 cm. Nordheim abstract: processing significant to about 1 cm at mid to high latitudes and 10 to 20 cm in the &quot;radiation lenses&quot; centered on the leading and trailing hemispheres (READ abstract)</td>
+</tr>
+<tr>
+<td>Dose &quot;about 1e3 to 1e4 Gy per year&quot;</td>
+<td>[R3038: Figure 1] (compilation of three studies, maximum of the interpolated values; READ figure, values eyeballed, uncertainty a factor of 3): electron dose rate about 1e7 Gy/yr down to 10 micrometres, 4e6 at 0.1 mm, 3e5 at 1 mm, 4e4 at 1 cm, 7e1 at 10 cm, 2 at 1 m; protons about 1e5 at 1 mm, 1e2 at 1 cm, 1 at 10 cm. The 1e3 to 1e4 Gy/yr band is reached at roughly 2 to 4 cm depth for electrons</td>
+<td>READ (figure, approximate)</td>
+<td>CONTRADICTED as a surface or mm-depth value (3 to 4 orders too low); correct only as a rate at about 2 to 4 cm in ice. Oxygen and sulfur ion doses differ by over 3 orders between the studies</td>
+</tr>
+<tr>
+<td>Bremsstrahlung X-rays penetrate decimetres</td>
+<td>XCOM water (physics.nist.gov, ComTab/water): mu/rho 0.171, 0.0969, 0.0707, 0.0222 cm2/g at 0.1, 0.5, 1, 10 MeV; attenuation length in ice 6.4, 11, 15, 49 cm. ESTAR radiation yield 0.36 percent at 1 MeV, 4.1 percent at 10 MeV, 10 percent at 25 MeV. [R4827] adds that radiative loss is small below the electron critical energy of water (78 MeV)</td>
+<td>COMPUTED (DATA); READ (Yoffe)</td>
+<td>CONFIRMED for range (decimetres), but the dose it adds is small (under 4 percent of the electron energy at 10 MeV);</td>
+</tr>
+<tr>
+<td>&quot;5.4 Sv/day&quot; (part 07 flag)</td>
+<td>Not in the Nordheim abstract and [R3308] is later than the figure's circulation. A 2002 forum post quotes Zubrin, &quot;Entering Space&quot; p. 167, table: Io 3600 rem/day, Europa 540 rem/day, Ganymede 8, Callisto 0.01; 540 rem = 5.4 Sv. A Centauri Dreams post (2021) repeats it and a reader comment says it is per day</td>
+<td>SNIPPET (forum and blog text); not a primary source</td>
+<td>CONTRADICTED as a Nordheim figure; origin is a popular book table (RECALLED title and page from the forum quote), no primary source found. 5.4 Sv/day = 1.97e3 Sv/yr (1.97e3 Gy/yr if wR = 1), 3 to 4 orders below the surface electron dose rate, so not a surface constant; it matches the dose at 2 to 4 cm depth</td>
+</tr>
+</tbody>
+</table></div>
+<p>Generator reading: a Europa-like surface dose is a depth profile (values above), with trailing deposition within 0.1 cm and leading deposition to tens of cm; ion (O, S) doses unresolved.</p>
+<h2 id="4-claim-4-titan">4. Claim 4: Titan</h2>
+<h3 id="41-column-mass-computed">4.1 Column mass (COMPUTED)</h3>
+<p>X = P / g = 1.467e5 Pa / 1.352 m/s2 = 1.085e5 kg/m2 = 10,850 g/cm2 (10.85 kg/cm2). This is 10.9 times the note's 1000 g/cm2 and 10.5 times Earth's 1033 g/cm2 (101325 Pa / 9.80665 = 1033 g/cm2). P = 1.467 bar and g = 1.352 m/s2 are the note's inputs (the Huygens and Cassini values are RECALLED, not re-read here).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PSTAR N<sub>2</sub> CSDA range reached by 10 GeV protons</td>
+<td>5030 g/cm2 (PSTAR upper limit 10 GeV)</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Proton kinetic energy for 1033 g/cm2 N<sub>2</sub> (Earth)</td>
+<td>2.25 GeV (agrees with part 07: 2241 MeV)</td>
+<td>COMPUTED (DATA)</td>
+</tr>
+<tr>
+<td>Proton energy to span 10,850 g/cm2 of N<sub>2</sub> by ionization alone (CSDA, extrapolated past 10 GeV with stopping power 2.06 to 2.27 MeV cm2/g)</td>
+<td>about 22 to 23 GeV</td>
+<td>COMPUTED, extrapolated</td>
+</tr>
+<tr>
+<td>Nuclear interaction length N<sub>2</sub></td>
+<td>89.7 g/cm2 (PDG, part 07 table 2.6); 10,850 / 89.7 = 121 interaction lengths, survival exp(-121) = 1e-53</td>
+<td>DATA, COMPUTED</td>
+</tr>
+<tr>
+<td>Earth for comparison: 1033 / 90.1</td>
+<td>11.5 interaction lengths</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Primary energy giving significant surface energy deposit (Sittler GEANT3 and MGEANT/GCALOR model)</td>
+<td>greater than about 350 GeV; mean 334 GeV; secondaries at the surface are mostly muons and photons, and &quot;secondary neutrons, pions and protons do not reach the surface&quot;</td>
+<td>READ (NTRS)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdict on &quot;E_proton &gt;= 1 to 3 GeV for the 1000 g/cm2 column&quot;: CONFIRMED for Earth's column (2.25 GeV) but CONTRADICTED when applied to Titan, whose column is 10.9 times larger: ionization alone needs about 22 GeV and nuclear attack makes primaries irrelevant; the surface sees only secondaries from primaries above about 100 to 350 GeV.</p>
+<h3 id="42-surface-dose">4.2 Surface dose</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Value</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>no source</td>
+<td>total dose rate about 1e-11 rad/s at the surface (tholin, density 1 g/cm3); 142 krad accumulated over 450 Myr (30 krad to 1350 krad over 100 Myr to 4.5 Gyr); surface energy flux 8.01e-6 erg/cm2/s; model lower limit, factor of 2 allowance for heavy ions and quality factor</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Converted</td>
+<td>1e-11 rad/s = 3.2e-6 Gy/yr = 0.003 mGy/yr; 142 krad / 450 Myr = 3.2e-6 Gy/yr (the two agree)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Note</td>
+<td>1.5 mGy/yr and 3 to 5 mSv/yr</td>
+<td>claim</td>
+</tr>
+<tr>
+<td>Ratio</td>
+<td>note / Sittler = 475</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Earth sea level</td>
+<td>0.32 mSv/yr (part 07, READ), so the note's 1.5 mGy/yr would exceed Earth under 10.5 times less air</td>
+<td>part 07</td>
+</tr>
+<tr>
+<td>Order-of-magnitude check</td>
+<td>muons at about 1e4 g/cm2 with an assumed intensity of 1e-4 cm-2 s-1 sr-1 (RECALLED) and 2 MeV cm2/g give about 3e-6 Gy/yr, the Sittler scale</td>
+<td>COMPUTED from a RECALLED input</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdicts: 1.5 mGy/yr and 3 to 5 mSv/yr CONTRADICTED (about 3e-6 Gy/yr in the only Titan model reached, GCR only); &quot;muons and secondary neutrons dominate&quot; PARTLY (muons and photons yes, neutrons do not reach the surface). [R1694], 2011 (A&amp;A, refused host) and Dartnell Titan dose papers: NOT REACHED. Sittler: GCR deposition peaks near 100 km altitude; muons reach about 100 m into the ice.</p>
+<h2 id="5-claim-5-w-value-photoionization-sources">5. Claim 5: W value, photoionization sources</h2>
+<h3 id="51-w-for-air-electrons">5.1 W for air (electrons)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ICRU 31 (1979) dry air, electrons</td>
+<td>33.85 eV (&quot;a mean value of 33.85 eV was recommended&quot;; also cited as &quot;34 eV&quot; when comparing with Monte Carlo)</td>
+<td>Fourkal, Nahum, Ma, Paskalev, [R1431]</td>
+<td>2ND-HAND (READ in that paper)</td>
+</tr>
+<tr>
+<td>ICRU 90 (2016)</td>
+<td>W_air/e = 33.97 +/- 0.12 eV (0.35 percent), &quot;asymptotic value&quot;, electrons; protons 34.44 +/- 0.14 eV (previous 34.23); C ions 34.71 +/- 0.52 eV; ICRU 73 recommends 34.2 +/- 0.1 for protons</td>
+<td>Seltzer CIRMS 2016 slides (ICRU 90 summary) and [R0592] table (33.97 eV +/- 0.12 eV)</td>
+<td>2ND-HAND (READ)</td>
+</tr>
+<tr>
+<td>Spread</td>
+<td>33.85 to 33.97 = 0.35 percent; ICRU 90 supersedes</td>
+<td>COMPUTED</td>
+<td></td>
+</tr>
+<tr>
+<td>Low-energy electrons, air</td>
+<td>W(1000 eV) 35.54; W(500) 36.81; W(100.7) 42.45; W(50.7) 51.32; W(20.7) 125.6; W(15.7) 640; threshold near 12.07 eV (O<sub>2</sub>). Ratio to the asymptote 33.9: 1.05 at 1 keV, 1.09 at 500 eV, 1.25 at 100 eV, 1.51 at 51 eV</td>
+<td>[R0858], Radiat. Res. 84, 189, Table I and II (measured 5 to about 500 eV, joined to 1 keV)</td>
+<td>READ (Helmholtz Munich PDF)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Verdict: 33.85 eV CONFIRMED as the ICRU 31 value but superseded by 33.97 eV (ICRU 90; PARTLY). &quot;Electrons above 1 keV W about 33.85&quot;: PARTLY: W(air) is 35.5 eV at 1 keV (5 percent above the asymptote), reaching the asymptote only above several keV (ICRU 90 states an asymptotic value). &quot;W rises below 100 eV&quot;: CONFIRMED in direction but it rises gradually already below about 5 keV and is 25 percent high at 100 eV. For the generator: use the asymptotic W for a fast primary and its whole cascade (the asymptotic W already integrates the secondary electrons); use W(E) only for monoenergetic low-energy electrons (photoelectrons, auroral electrons below about 5 keV).</p>
+<h3 id="52-w-for-the-other-gases-mars-titan-relevance-fills-part-07-table-212-gaps">5.2 W for the other gases (Mars, Titan relevance); fills part 07 table 2.12 gaps</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>High-energy W (eV)</th>
+<th>W at 100 eV</th>
+<th>W at 1 keV</th>
+<th>Threshold (eV)</th>
+<th>Relevance</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub> (Titan main)</td>
+<td>34.8</td>
+<td>43.3</td>
+<td>36.7</td>
+<td>15.57</td>
+<td>ion pairs per Gy 1.79e17 (part 07)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> (Mars, Venus main)</td>
+<td>33.0</td>
+<td>40.3 (at 100.7)</td>
+<td>37.7 at 400 eV, no 1 keV row</td>
+<td>13.77</td>
+<td>1.89e17</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> (Titan 5 percent)</td>
+<td>27.3</td>
+<td>32.3</td>
+<td>30.9</td>
+<td>12.55</td>
+<td>13 percent above asymptote at 1 keV</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O vapor</td>
+<td>29.6</td>
+<td>35.2</td>
+<td>about 30.4 at 900 eV</td>
+<td>12.61</td>
+<td>fills the part 07 NOT REACHED entry</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub></td>
+<td>36.4</td>
+<td>not tabulated (41.2 at 200 eV)</td>
+<td>38.6 at 500 eV</td>
+<td>15.42</td>
+<td></td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ar, Kr, Xe</td>
+<td>26.4, 24.3, 22.0</td>
+<td>32.1, 28.2, 25.4</td>
+<td>Xe 23.8</td>
+<td>15.76, 14.00, 12.13</td>
+<td>Ne not in Combecher</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not reached: NH<sub>3</sub>, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl (no W source); alpha W in air (ICRU 31, RECALLED value not used). ICRU 90 proton W in air (34.44 eV) replaces part 07's guess of &quot;3 to 10 percent above electron W&quot;: it is +1.4 percent for air.</p>
+<h3 id="53-outer-shell-photoionization-cross-sections-which-species-have-a-reachable-source">5.3 Outer-shell photoionization cross sections: which species have a reachable source</h3>
+<p>Leiden / [R1873] [R1873: Table 1] (READ, 102 species; threshold wavelengths and Ly-alpha cross sections listed; data and rates at the Leiden database, host not tested):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>In Leiden Table 1?</th>
+<th>Other reachable source</th>
+<th>Verdict on source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ar, Ne, Kr, Xe</td>
+<td>No (no noble gases in the table)</td>
+<td>[R4542] fit (all subshells, Z up to 30, so Ne and Ar only; used in part 07 as &quot;V&quot;); Henke f2 fails beyond 70 nm; Kr and Xe outer-shell data (Samson and Stolte; Marr and West) are RECALLED, not reached</td>
+<td>Ne, Ar reachable via Verner; Kr, Xe NOT REACHED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>Yes (H + CN dissociation, with ionization entry)</td>
+<td>part 02: HCN 0.1 to 187.9 nm in the photochem data</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>Yes (H<sub>2</sub> + CO)</td>
+<td>part 02: 6.3 to 375.9 nm</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>Yes (also HCl+)</td>
+<td>part 02: 4.5 to 229.9 nm</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>Yes</td>
+<td>Leiden only</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>No</td>
+<td>Mainz atlas file HF.spc listed in part 02 (not read here)</td>
+<td>NOT REACHED here</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>No</td>
+<td>JPL 19-5 photochemical section (host refused in this pass; the JPL 19-5 PDF itself was reachable at science.jpl.nasa.gov, CH<sub>3</sub>Cl cross-section table not extracted)</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>TiO, VO</td>
+<td>No</td>
+<td>no VUV photoionization data; line lists only (ExoMol, RECALLED)</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Metals</td>
+<td>Li, Na, Mg, Al, Si, K, Ca, Ti, Cr, Mn, Fe, Co, Ni, Zn, Rb listed</td>
+<td>NIST ASD line data (part 02)</td>
+<td>reachable for these elements</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-claim-6-troe-falloff-form">6. Claim 6: Troe falloff form</h2>
+<h3 id="61-n-for-fc--06-computed">6.1 N for Fc = 0.6 (COMPUTED)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Form</th>
+<th>N</th>
+<th>Remark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IUPAC/Troe: N = 0.75 - 1.27 log10(Fc)</td>
+<td>1.0317</td>
+<td>[R0182] (ACP 4, 1461, READ, p. 1469): log F = log Fc / (1 + [log(k0/kinf)/N]^2), N = [0.75 - 1.27 log Fc]</td>
+</tr>
+<tr>
+<td>JPL 15-10 and 19-5</td>
+<td>fixed 1 (and Fc fixed at 0.6)</td>
+<td>READ (see 6.2)</td>
+</tr>
+<tr>
+<td>Note: N = 0.75 - 1.27 log10(10 F), F = 0.6</td>
+<td>-0.238</td>
+<td>wrong (log10(6) = 0.778, so 0.75 - 0.988); the factor 10 has no basis in the Troe or IUPAC forms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Effect on F_eff = Fc^(1 / (1 + (x/N)^2)), x = log10(k0[M]/kinf), at x = 0.5, 1, 2, 3 (COMPUTED): N = 1 gives 0.6645, 0.7746, 0.9029, 0.9502; N = 1.0317 gives 0.6612, 0.7684, 0.8982, 0.9474; the note's N gives 0.9098, 0.9729, 0.9929, 0.9968. Worked test, JPL 15-10 OH + NO<sub>2</sub> + M (k0 = 1.8e-30, n = 3.0, kinf = 2.8e-11, m = 0; READ, OCR), 298 K, [M] = 2.46e19 cm-3: JPL form 1.049e-11 cm3/s, IUPAC N 1.048e-11 (0.1 percent), the note's N 1.270e-11 (+21 percent), Lindemann 1.715e-11 (+63 percent). Verdicts: note's N CONTRADICTED; &quot;standard JPL N formula&quot; PARTLY (that is IUPAC/Troe; JPL fixes N = 1 and Fc = 0.6, within 1 percent in k for Fc = 0.6); F about 0.6 CONFIRMED (JPL fixed; [R0182] also lists 0.35 to 0.85).</p>
+<h3 id="62-jpl-form-as-printed-read">6.2 JPL form as printed (READ)</h3>
+<p>JPL Publication 15-10 (Evaluation 18, NTRS 20160006735, rendered page 2-1): k0(T) = k0^300 (T/300)^-n, kinf(T) = kinf^300 (T/300)^-m; k_f([M], T) = {k0(T)[M] / (1 + k0(T)[M] / kinf(T))} 0.6^{ {1 + [log10(k0(T)[M] / kinf(T))]^2}^-1 }. Text: &quot;The fixed value 0.6 that appears in this formula fits the data for all listed reactions adequately, although in principle this quantity may be different for each reaction&quot;. JPL Publication 19-5 (Evaluation 19, May 2020; science.jpl.nasa.gov/documents/1487/NASA-JPL_Evaluation_19-5.pdf, 1610 pages, reachable in this pass), eq. 2.3, text extracted: k_f = {kinf(T) k0(T)[M] / (kinf(T) + k0(T)[M])} 0.6^{ {1 + [log10(k0(T)[M]/kinf(T))]^2}^-1 }, same fixed 0.6; the temperature form changed to k0(T) = k0^298 (298/T)^n and kinf = kinf^298 (298/T)^m (reference 298 K, not 300 K), a coefficient-reading trap for the generator. 19-5 adds Table 2-2 for chemical-activation (CA) reactions (OH + CO etc.), which have a second pressure-dependent product channel. This corrects part 04's statement that the Lindemann form is the &quot;upper bound&quot;: JPL itself is Lindemann times the 0.6-broadening factor, so the shipped Lindemann entries (no Troe keys) overestimate k near the center by up to 1/0.6 = 1.67 (COMPUTED).</p>
+<h2 id="7-claim-7-jpl-19-5-changes-and-licence">7. Claim 7: JPL 19-5 changes and licence</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Evidence</th>
+<th>Label</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;updated ClO + O, ClO + NO and ClO + ClO dimer kinetics&quot;</td>
+<td>JPL 19-5 Section 1.7 &quot;Noteworthy changes&quot;: entire NOx section re-evaluated; FOx, ClOx, BrOx and IOx reviewed &quot;with particular emphasis on the reactions of OH and Cl with hydrocarbons and halocarbons&quot;; sulfur, metal (Na + CO, NaOH + H), Criegee, CA reactions moved to Table 2-2. ClO + O, ClO + NO and ClO + ClO are not named</td>
+<td>READ (19-5 text)</td>
+<td>not supported as stated</td>
+</tr>
+<tr>
+<td>Per-entry evaluation tags in 19-5</td>
+<td>O + ClO (F1): &quot;Table 10-6, Note 10-6, Evaluated 10-6&quot;; ClO + NO (F130): Table 82-57, Note 10-6, Evaluated 10-6; ClO + ClO bimolecular (F137): Table 94-26, Note 97-4, Evaluated 10-6 (Nickolaisen); ClO + ClO + M termolecular (F10): Table 15-10, Note 15-10, Evaluated 15-10</td>
+<td>READ</td>
+<td>CONTRADICTED: the three bimolecular entries were last evaluated in JPL 10-6; the ClO dimer termolecular entry was updated in JPL 15-10, not 19-5</td>
+</tr>
+<tr>
+<td>Values in 19-5 (298 K)</td>
+<td>O + ClO: A 2.8e-11, E/R -85, k 3.7e-11, f 1.05; ClO + NO: A 6.4e-12, E/R -290, k 1.7e-11, f 1.15; ClO + ClO bimolecular: k1 (Cl<sub>2</sub> + O<sub>2</sub>) A 1.0e-12, E/R 1590, k 4.8e-15; k2 (ClOO + Cl) A 3.0e-11, E/R 2450, k 8.0e-15; k3 (OClO + Cl) A 3.5e-13, E/R 1370, k 3.5e-15; branching 0.29 : 0.50 : 0.21 at 298 K; ClO + ClO + M: k0 1.9e-32, n 3.6, kinf 3.7e-12, m 1.6, k 3.2e-13, f 1.15 (same as 15-10)</td>
+<td>READ</td>
+<td>these close the ClOx gap in the part 04 mechanism: data are reachable and listed here</td>
+</tr>
+<tr>
+<td>Authors</td>
+<td>Burkholder, Sander and 12 co-authors; May 2020; NTRS 20210006316 is metadata only</td>
+<td>READ</td>
+<td>CONFIRMED (08B had this as RECALLED)</td>
+</tr>
+<tr>
+<td>Copyright</td>
+<td>JPL 19-5 title page: &quot;Copyright 2019, California Institute of Technology. U.S. Government sponsorship acknowledged. All rights reserved.&quot; JPL 15-10: &quot;Copyright 2015, California Institute of Technology. U.S. Government sponsorship acknowledged. All rights reserved.&quot; NTRS metadata for 19-5: &quot;Items in TRS are protected by copyright, but are furnished with U.S. government purpose use rights&quot;; for 15-10 the NTRS determination is PUBLIC_USE_PERMITTED</td>
+<td>READ</td>
+<td>NOT public domain; no open licence stated. Rate constants are facts, but the compilation and notes are copyrighted; cite and, for embedded tables, seek permission or regenerate from primary papers</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-claim-8-ph3">8. Claim 8: PH<sub>3</sub></h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Evidence</th>
+<th>Label</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Updated VUV cross sections beyond [R4163] show shorter PH<sub>3</sub> lifetimes&quot;</td>
+<td>[R4163] take PH<sub>3</sub> UV cross sections at 295 K from [R0762] (via [R3661] and the Mainz atlas), quantum yield 1 below 230 nm, branching unity. [R0233] use the same [R0762] 295 K set and the same yield. Mainz atlas PH<sub>3</sub> files ([R0762] at 295 K 120 to 230 nm and 155 K 127 to 200 nm) were seen only in a search listing. arXiv searches for PH<sub>3</sub> photodissociation, VUV, cross section, lifetime returned no new cross-section paper; a 2024 Frontiers paper found is about PH+ and PO and is not relevant</td>
+<td>READ (two papers); SNIPPET (Mainz listing)</td>
+<td>UNSUPPORTED: no measurement newer than [R0762] was found; the &quot;shorter lifetime&quot; results ([R0233]: below 1 s above 78 to 98 km; transport-limited about 400 to 700 yr) are modelling with old cross sections. [R0233] states direct photolysis is not the dominant PH<sub>3</sub> sink below 100 km on Venus</td>
+</tr>
+<tr>
+<td>&quot;needing continuous production&quot;</td>
+<td>PH<sub>3</sub> destruction by OH, H, O, Cl and photolysis is the standing argument of [R0233, R4163] (surface or biological source on UV-shielded or CO<sub>2</sub> worlds); lifetimes of 5 to 28 h with OH (part 04)</td>
+<td>READ</td>
+<td>CONFIRMED in general (not tied to new cross sections)</td>
+</tr>
+<tr>
+<td>PH<sub>2</sub> + H + M -&gt; PH<sub>3</sub> + M</td>
+<td>[R0233] SI: this is &quot;included as the reverse reaction for thermolytic decay of PH3&quot; (PH<sub>3</sub> + M -&gt; PH<sub>2</sub> + H + M), and they neglect other PH<sub>3</sub> recombination. [R4163] give the two-body form PH<sub>2</sub> + H -&gt; PH<sub>3</sub>, k = 3.7e-10 exp(-340 K / T) cm3/s = 1.1e-10 at 288 K, important for H<sub>2</sub>-rich worlds. COMPUTED: 3.7e-10 exp(-340/288) = 1.14e-10</td>
+<td>READ; COMPUTED</td>
+<td>PARTLY: both forms exist (three-body reverse in Bains, two-body in Sousa-Silva); neither is &quot;new&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="9-claim-9-r1814-r2050-r4860-are-updated-by-incorporating-revised-cross-sections">9. Claim 9: &quot;[R1814, R2050, R4860] are updated by incorporating revised cross sections&quot;</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paper</th>
+<th>What it is</th>
+<th>Cross-section content</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1814]</td>
+<td>One-dimensional photochemical study of abiotic O<sub>2</sub> from CO<sub>2</sub> photolysis around F, G, K and M stars: O<sub>2</sub> should not accumulate on F and G planets; K and M planets may build O<sub>2</sub> because of low NUV; O<sub>3</sub> detectable in UV for a broader set. Text states that the H<sub>2</sub>O cross section is extrapolated from 196 nm out to 240 nm (all models, including Hu et al.)</td>
+<td>its own input H<sub>2</sub>O and CO<sub>2</sub> sets; later revised</td>
+<td>READ (IOP abstract and text)</td>
+</tr>
+<tr>
+<td>[R4860] (ambiguous)</td>
+<td>Two candidates: Zahnle K., 2006, &quot;Earth's Earliest Atmosphere&quot;, Elements 2, 217 (review); or [R4860], Geobiology 4, 271 (1-D photochemistry of O<sub>2</sub>, CH<sub>4</sub> and S; S-MIF loss by methane collapse; abstract names S<sub>8</sub>, not haze)</td>
+<td>no cross-section update</td>
+<td>READ (Crossref abstract of the Geobiology paper)</td>
+</tr>
+<tr>
+<td>[R2050], J. Atmos. Sci. 30, 1481</td>
+<td>analytic escape theory of light gases</td>
+<td>none</td>
+<td>READ (Crossref title); cited by [R1814] for diffusion-limited H escape</td>
+</tr>
+</tbody>
+</table></div>
+<p>Judgement: as written the claim is not meaningful: published papers are not updated, [R2050] has no cross-section input, and &quot;[R4860]&quot; is ambiguous with neither candidate a cross-section paper. What is real: the H<sub>2</sub>O near-UV cross sections that [R1814] extrapolated have since been measured. [R3662] (ApJ 896, 148; Crossref abstract, READ): first NUV H<sub>2</sub>O absorption measurement at 292 K, &quot;orders of magnitude more than previously assumed&quot;; enhanced OH recombines CO and O<sub>2</sub>, suppressing both &quot;by orders of magnitude relative to past predictions&quot; and &quot;eliminating the low-outgassing false-positive scenario for O<sub>2</sub> around solar-type stars&quot;. Consequence for part 04: abiotic O<sub>2</sub> and CO numbers from Hu 2012, [R1511, R1814] (2ND-HAND) pre-date these cross sections and overestimate O<sub>2</sub> for anoxic CO<sub>2</sub> atmospheres containing water. Verdict: UNSUPPORTED as stated; the underlying fact is CONFIRMED for [R1814] only.</p>
+<h2 id="10-what-this-changes-in-the-generator-items">10. What this changes in the generator items</h2>
+<p>Radiation items (part 07 F4, F5 and Mars, Titan, Europa rows):</p>
+<ul>
+<li>SEP source: use the published integral rigidity Band form (section 1.1), not the note's; event library from the rows (GLE 2006: J0 1.33e8, g1 1.045, g2 5.80, R0 0.1765 GV). Keep R0 a drawn parameter (0.019 to 0.364 GV).</li>
+<li>Atmospheric cutoff from the PSTAR CSDA inversion of X = P/g in the local gas, not a fixed 150 MeV: 165 MeV at 21 g/cm2 CO<sub>2</sub> vertical, 247 MeV at 60 degrees. Dose below cutoff comes from secondaries.</li>
+<li>Thick columns: Titan X = 10,850 g/cm2 (not 1000). Ionization alone needs about 22 GeV; the surface sees muon and photon secondaries only. The one calibration point (labelled as such) is a single value at 3.2e-6 Gy/yr. The note's 1.5 mGy/yr is not to be used.</li>
+<li>Neutron share: RAD 2.2 to 7 percent of dose and 3.8 to 10 percent of dose equivalent; 33 to 50 percent only as a model effective-dose share.</li>
+<li>W: asymptotic 33.97 +/- 0.12 eV for air (ICRU 90); 33.85 is superseded; W(E) table (35.5 eV at 1 keV, 42.5 at 100 eV) only for electrons below a few keV; per-gas W in 5.2.</li>
+<li>Europa-like: dose is a depth profile (1e7 Gy/yr at the surface to about 1e3 to 1e4 at 2 to 4 cm, electrons 1 to 10 MeV reaching 0.5 to 5 cm); drop &quot;5.4 Sv/day&quot;.</li>
+</ul>
+<p>Photochemistry: code Troe as k0[M]/(1 + k0[M]/kinf) times 0.6^(1/(1 + log10(k0[M]/kinf)^2)), reference 298 K in JPL 19-5 (300 K in 15-10); use the IUPAC N formula only for non-0.6 Fc, never the note's. ClOx bimolecular and dimer rate data in section 7 close the part 04 gap; JPL text is copyrighted, so regenerate or seek permission. Abiotic O<sub>2</sub> and CO values for CO<sub>2</sub> worlds with water are upper bounds [R3662]. PH<sub>3</sub> cross sections remain [R0762] and the lifetime table of part 04 stands; PH<sub>2</sub> + H has both a two-body and a three-body form.</p>
+<p>Part 09 row d (retention regimes d1 to d5): add a derived column X = P/g so d3 to d5 pick the cutoff and dose regime above; no weight change. Row p (host UV regime p1 to p6): no weight change; add a flag that abiotic-O2 outcomes for p2 and p3 (K and M) are not reliable until [R3662] cross sections are in the chemistry.</p>
+<h2 id="11-not-reached">11. NOT REACHED</h2>
+<ul>
+<li>Weibull parameters.</li>
+<li>[R0879, R3308, R3452] dose tables (paywall or refused); [R1694], 2011; Dartnell Titan dose.</li>
+<li>Photoionization of Kr, Xe, HF, CH<sub>3</sub>Cl, TiO, VO; W for NH<sub>3</sub>, SO<sub>2</sub>, CO, HCN, CH<sub>3</sub>Cl, Ne.</li>
+</ul>
+<h2 id="12-recalled--to-verify">12. Recalled / to verify</h2>
+<ul>
+<li>Zubrin, Entering Space, p. 167 as the origin of 5.4 Sv/day (title and page from a forum quote).</li>
+<li>Titan P = 1.467 bar and g = 1.352 m/s2 (the note's inputs) and a vertical muon intensity of about 1e-4 cm-2 s-1 sr-1 at 1e4 g/cm2.</li>
+<li>Kr and Xe outer-shell data (Samson and Stolte; Marr and West); TiO and VO line lists in ExoMol.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

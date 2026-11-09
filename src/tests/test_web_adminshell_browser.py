@@ -1,9 +1,9 @@
 # tests/test_web_adminshell_browser.py
 
 """
-The admin shell (ADM.92) in a real browser: the rail, the search box and the density switch pass the same
+The admin shell (ADM.92) in a real browser: the rail and the search box pass the same
 accessibility and phone-fit checks as every other page, Ctrl+K opens the palette and Enter on a result opens it, the
-`g` then `s` keys go to Settings, and the density choice is remembered. Needs Playwright with Chromium and the MySQL
+`g` then `s` keys go to Settings. Needs Playwright with Chromium and the MySQL
 test server, like test_web_a11y.py; skipped without them.
 
 Run with: pytest tests/test_web_adminshell_browser.py
@@ -68,25 +68,9 @@ def test_g_then_s_goes_to_settings_but_not_while_typing(browser, server, config)
     assert not problems, "\n".join(problems)
 
 
-def test_the_density_choice_is_remembered(browser, server, config):
-    context, page, problems, base_url = _page(browser, server)
-    try:
-        page.goto(base_url + "/admin", wait_until="load")
-        assert page.is_checked("[data-admin-density]")
-        assert page.get_attribute("body", "data-density") is None
-        page.uncheck("[data-admin-density]")
-        assert page.get_attribute("body", "data-density") == "roomy"
-        page.goto(base_url + "/admin/queue", wait_until="load")
-        assert not page.is_checked("[data-admin-density]")
-        assert page.get_attribute("body", "data-density") == "roomy"
-    finally:
-        context.close()
-    assert not problems, "\n".join(problems)
-
-
 @pytest.mark.parametrize("scheme", SCHEMES)
 def test_the_shell_stays_in_view_under_the_header_while_a_long_admin_page_scrolls(browser, server, config, scheme):
-    """UX.142: the rail, the search and the density switch are not scrolled away; a phone keeps them in the flow."""
+    """UX.142: the rail and the search are not scrolled away; a phone keeps them in the flow."""
     context, page, problems, base_url = _page(browser, server, "desktop", scheme)
     try:
         page.set_viewport_size({"width": 1280, "height": 400 + 200})

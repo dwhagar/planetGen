@@ -871,10 +871,6 @@ FAR_OWNED_PC = [(250000.0 + dx, 30000.0 + dy, 800.0 + dz) for dx, dy, dz in
                 ((0.0, 0.0, 0.0), (2400.0, -300.0, 20.0), (-3100.0, 1700.0, 5.0), (4200.0, 2200.0, -60.0), (-4800.0, -4100.0, 90.0))]
 """list: The systems of the `far` site's polity, spread over several kiloparsecs round its capital."""
 
-FAR_MADE_PC = [(150000.0 + dx, 20000.0 + dy, 400.0) for dx, dy in ((0.0, 0.0), (3000.0, 500.0), (-2500.0, 4000.0))]
-"""list: Sectors a job made on the `far` site, 150 kpc out (MAP.240)."""
-
-
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
@@ -930,16 +926,6 @@ class FixtureApi:
         """MAP.240: a polity and its systems 250 kpc out, the dots spread over several kiloparsecs."""
         return {"polities": [{"id": 1, "capital_pc": list(FAR_BUBBLE[:3]), "reach_ly": 500.0}],
                 "points": [{"x": x, "y": y, "z": z, "color": "#cc6633"} for x, y, z in FAR_OWNED_PC]}
-
-    def get_galaxy_made(self, db, since, until=None):
-        """MAP.240: sectors a job made far out, as `GET /api/galaxy/made` lists them."""
-        from planetgen.galaxy.spherical import sector_address_at
-
-        items = []
-        for x, y, z in FAR_MADE_PC:
-            shell, band, wedge = sector_address_at((x, y, z), EDGE_PC)
-            items.append({"x": x, "y": y, "z": z, "shell_index": shell, "band_index": band, "wedge_index": wedge})
-        return {"total": len(items), "items": items}
 
     def auth_me(self, cookie_header):
         """Nobody is signed in, unless the browser sends a session cookie (UX.127's admin Generate buttons)."""
@@ -1148,7 +1134,7 @@ class FixtureApi:
         return cell
 
 
-_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "get_container", "auth_me", "get_galaxy_locate",
+_APICLIENT = ("get_territories", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "get_container", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_cloud_volume", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions", "get_sector_gravity")

@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group 4: giant planets, brown dwarfs, hot Jupiters, clouds and hazes - planetGen docs</title>
+<meta name="description" content="Rows: part 09 f5, f6, f7, g1, g4, h2, h3, h4, n6, n7; body table T12.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/tunable-gaps-sources/group4-giants-bd-clouds.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/tunable-gaps-sources/group4-giants-bd-clouds.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="group-4-giant-planets-brown-dwarfs-hot-jupiters-clouds-and-hazes">Group 4: giant planets, brown dwarfs, hot Jupiters, clouds and hazes</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group4-giants-bd-clouds.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdict-table">1. Summary and verdict table</a></li><li style="margin-left:0px"><a href="#2-per-row-detail">2. Per-row detail</a></li><li style="margin-left:14px"><a href="#21-f5-and-f6-giant-metallicity">2.1 f5 and f6: giant metallicity</a></li><li style="margin-left:14px"><a href="#22-f7-giant-co-core-and-tail">2.2 f7: giant C/O, core and tail</a></li><li style="margin-left:14px"><a href="#23-g1-and-g4-brown-dwarf-type-vs-teff">2.3 g1 and g4: brown-dwarf type vs Teff</a></li><li style="margin-left:14px"><a href="#24-h2-and-h3-hot-jupiter-regimes-at-1500-and-2200-k">2.4 h2 and h3: hot-Jupiter regimes at 1500 and 2200 K</a></li><li style="margin-left:14px"><a href="#25-h4-tiovo-kept-kzz-vs-grain-size">2.5 h4: TiO/VO kept, Kzz vs grain size</a></li><li style="margin-left:14px"><a href="#26-n6-silicate-vs-haze-aerosol-crossover-near-950-k">2.6 n6: silicate vs haze aerosol crossover near 950 K</a></li><li style="margin-left:14px"><a href="#27-n7-haze-yield-lu001-1">2.7 n7: haze yield LU[0.01, 1]</a></li><li style="margin-left:14px"><a href="#28-t12-giant-interior-diluted-vs-compact-core">2.8 T12: giant interior, diluted vs compact core</a></li><li style="margin-left:14px"><a href="#29-where-a-verified-source-overrides-a-partly-verified-one-or-disagrees-with-another-verified-one">2.9 Where a verified source overrides a partly verified one (or disagrees with another verified one)</a></li><li style="margin-left:0px"><a href="#3-sources-actually-verified">3. Sources actually verified</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled-or-to-verify">5. Recalled or to verify</a></li></ul></details>
+<p>Rows: part 09 f5, f6, f7, g1, g4, h2, h3, h4, n6, n7; body table T12. Labels follow <code>_worker-rules.md</code>. Nothing in the repo was edited; tools run: curl, pdftotext, python3 -I, and a small Gibbs-energy script in the scratchpad.</p>
+<p>Usability rule (Boss, 3:02 AM EDT): where two verified sources disagree, the later, larger, better-controlled one is used and both are named; where a verified source contradicts a partly verified one (SNIPPET, RECALLED, 2ND-HAND), the verified source wins. Every such place is listed in section 2.9. Solar System-only constraints are flagged per row (f = 0.2 in f5, T12 structure, the Titan lab rate in n7, the solar C/O 0.55 anchor in f7).</p>
+<h2 id="1-summary-and-verdict-table">1. Summary and verdict table</h2>
+<p>The public record is richest for stellar C/O, the bulk heavy-element mass of giants and the brown-dwarf Teff-to-type map; it is thin for clouds, hazes and Kzz. Two rows are not probabilities: g1/g4 (type is a function of Teff with scatter, so draw mass and age, evolve, then map) and h2/h3 (regimes are outputs of equilibrium chemistry, computable with MIT-licensed code and NASA-format polynomials). A public data set found in this pass changes f5 to f7: LExACoM (Lothringer, Lowson and Fu 2025, [R2751]; CSV public; 69 planets with retrieved C/O and metallicity, updated to 2026-08-28) has no Solar System member, so it can tune m and C/O within the no-fixed-content rule.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>What it is</th>
+<th>Verdict</th>
+<th>One-line reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>f5, f6</td>
+<td>giant metallicity m</td>
+<td>(a) for bulk Z; (b) for atmospheric m</td>
+<td>Bulk: N=47, 147 and 403 fits with published scatter. Atmosphere: N=69 retrievals, scatter 0.4 to 0.9 dex, far wider than the design 0.3 dex; the bulk-to-atmosphere factor f has only Jupiter and Saturn behind it.</td>
+</tr>
+<tr>
+<td>f7</td>
+<td>giant C/O core plus tail</td>
+<td>(a) stars, (b) planets</td>
+<td>Stellar C/O: N=849, 499, 355 agree (median 0.45 to 0.50, no star above 0.8). Planet C/O: N=69, median 0.57, 6 of 69 above 0.8, method-dependent. The design tail bracket [0.0013, 0.34] is wider than the data allow.</td>
+</tr>
+<tr>
+<td>g1, g4</td>
+<td>brown-dwarf type vs Teff</td>
+<td>not a probability; derive</td>
+<td>Teff to spectral type is a fitted curve with RMS 79 to 134 K [R2374]. The &quot;T/Y gap 500 to 700 K&quot; is late T (T8, T9). Draw mass from a power law (alpha 0.6 +-0.1) and age, cool with evolution tracks.</td>
+</tr>
+<tr>
+<td>h2, h3</td>
+<td>hot-Jupiter regimes at 1500 and 2200 K</td>
+<td>not a probability; derive by physics</td>
+<td>Equilibrium chemistry computed here: CH<sub>4</sub>=CO at 966 to 1438 K (0.1 to 10 bar), H<sub>2</sub>O 10 percent depleted at 2331 to 3095 K (1 mbar to 1 bar). Edges are pressure-dependent outputs, not constants.</td>
+</tr>
+<tr>
+<td>h4</td>
+<td>TiO/VO retention, Kzz vs grain size</td>
+<td>(c) for Kzz prior; (b) for a Teq threshold</td>
+<td>No population measures Kzz (WASP-107 b gives 10^11.6 in one paper and 10^8.4 to 10^9.0 in another). Ti-bearing species are retained in 1 of 6 ultra-hot Jupiters in one survey, at the hottest Teq.</td>
+</tr>
+<tr>
+<td>n6</td>
+<td>silicate vs haze crossover near 950 K</td>
+<td>(b)</td>
+<td>A model output [R1513, R1515] tuned to the N=34 WFC3 feature compilation; no measured width. [R1300] (N=62) gives a different quantity, the cloud minimum at 1461 K.</td>
+</tr>
+<tr>
+<td>n7</td>
+<td>haze yield LU[0.01, 1]</td>
+<td>(c)</td>
+<td>Lab rates span 250x but only for 100 to 10000x solar sub-Neptune gases at 300 to 600 K; yield is degenerate with metallicity, Kzz and cloud cover in every population statistic.</td>
+</tr>
+<tr>
+<td>T12</td>
+<td>diluted vs compact core</td>
+<td>(c)</td>
+<td>Exoplanet bulk Z cannot tell the two apart (READ in two papers); the only structural evidence is Juno/Cassini gravity of Jupiter and Saturn, a Solar System-only constraint.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Groups for builders: (A) f5, f6, f7, T12 share the T16/C25/TF19 bulk-Z fit and the LExACoM table; (B) g1, g4 share [R2374: Tables 13 and 14] and the mass function; (C) h2, h3 share one equilibrium-chemistry module; (D) h4, n6, n7 share the WFC3/high-resolution feature compilations and are best built as one &quot;aerosol amplitude vs Teq&quot; test.</p>
+<h2 id="2-per-row-detail">2. Per-row detail</h2>
+<h3 id="21-f5-and-f6-giant-metallicity">2.1 f5 and f6: giant metallicity</h3>
+<p><strong>Question 1: is 0.26 dex a tunable width, and what does the retrieval trend add?</strong></p>
+<ol>
+<li>Ensemble.</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>N</th>
+<th>What was measured</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4352]</td>
+<td>47 giants, 20 Earth masses to 20 MJ, no inflation (F* &lt; 2e8 erg/s/cm2)</td>
+<td>Mz = (57.9 +-7.03) M^(0.61+-0.08) Earth masses, intrinsic spread factor 10^sigma = 1.82 +-0.09; Zpl/Zstar = (9.7 +-1.28) M^(-0.45+-0.09), Kendall tau 0.44, p 1.3e-5; no scatter printed for this second fit</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0710]</td>
+<td>147 warm giants (&lt; 1000 K, age &gt; 0.5 Gyr)</td>
+<td>MZ = Mcore + fZ (Mp - Mcore), Mcore 14.7 (+1.8, -1.6) Earth masses, fZ 0.09 +-0.01, scatter 0.66 +-0.08 times MZ; Zp/Z* = a/Mp + b, a 2.6 +-0.3, b 3.3 +-0.5 (MJ); normalising by Z* does not cut the scatter (0.67)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4350]</td>
+<td>403 giants</td>
+<td>Zp and atmospheric upper limits; Jupiter and Saturn atmospheres about 20 percent of the bulk limit; table &quot;available for download&quot;</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4663]; Sun 2024, [R4258]</td>
+<td>19</td>
+<td>H<sub>2</sub>O in 14, Na 6, K 6; H<sub>2</sub>O rises with falling mass but sits below the Solar System carbon trend; Sun: linear trend not distinguishable from no trend, 45 to 58 planets needed</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2751]</td>
+<td>66 (paper), 69 unique planets (CSV 2026-08-28)</td>
+<td>retrieved [M/H], C/O, Teq, mass; CSV public at jlothringer.github.io (table licence not stated), code MIT</td>
+<td>READ, DATA</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="2">
+<li>
+<p>Physical bracket. Atmospheric Z cannot exceed bulk Zp, and Zp is at most 1 (TF19, READ). The design range [-0.5, 2.0] dex is exceeded by LExACoM ([M/H] from -1.99 to +2.63, COMPUTED, mixed C/H, O/H, (O+C)/H definitions).</p>
+</li>
+<li>
+<p>Verdict. The 0.26 dex is the intrinsic scatter of Mz at fixed mass in the Mz-M fit (COMPUTED: log10 1.82 = 0.260 dex, band 0.25 to 0.27), not of the Zpl/Zstar fit that gives f5 its center. Chachan says the scatter of Zp/Z* is no smaller than that of Zp (0.67 vs 0.66 multiplicative, 0.22 to 0.29 dex under a lognormal or small-sigma reading, COMPUTED), so 0.26 dex is a sound proxy for the bulk scatter. But the generator needs the atmosphere. Retrievals add two things: the atmospheric trend is steeper (ExoComp text: -1 to -2 dex per dex of mass; Solar System shallowest at -1.13 +-0.09; the O/H fits print -1.80 +-0.36 transit and -1.81 +-0.16 eclipse, column assignment inferred from a garbled table) against the bulk exponent -0.45 +-0.09; and the scatter about the trend is large. From the CSV (COMPUTED, my linear fit of [M/H] on log10 M, one row per planet): all 69 slope -0.32, residual 0.80 dex; transit 27 slope -0.64, 0.94 dex; eclipse 18 slope -1.30, 0.74 dex; direct imaging 24 slope -0.22, 0.41 dex; mean quoted error 0.2 to 0.5 dex, naive intrinsic scatter 0.36 to 0.85 dex. The design width 0.3 dex fits the bulk scatter but is 1.5 to 3 times narrower than the retrieved atmospheric scatter.</p>
+<p>Verdict: (a) if f5 is redefined as bulk Z (center C25, width 0.22 to 0.29 dex); (b) for atmospheric m, with f (0.2, Jupiter and Saturn only) replaced by a distribution tuned to LExACoM.</p>
+<p>Design note corrected: part 09 f5 says &quot;[R0710] gives lower Z for sub-Saturns&quot;. The paper says sub-Saturns (&lt; 0.3 MJ) have high bulk Zp, 0.2 or more, not a selection effect. C25 agrees with T16 at 0.1 MJ (Zp/Z* 29.3 vs 27.3, COMPUTED) and is 1.4 to 1.6 times lower from 0.3 to 3 MJ (12.0 vs 16.7 at 0.3; 5.9 vs 9.7 at 1; 4.2 vs 5.9 at 3), rejoining at 10 MJ (3.56 vs 3.4). C25 supersedes T16 for the center above 0.3 MJ.</p>
+</li>
+<li>
+<p>Knobs.</p>
+</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Target</th>
+<th>Value (uncertainty)</th>
+<th>Source, status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bulk center</td>
+<td>Zp/Z* = 2.6/Mp + 3.3; MZ = 14.7 + 0.09 (Mp - 14.7)</td>
+<td>a +-0.3, b +-0.5, Mcore +1.8/-1.6, fZ +-0.01; 0.03 to 12 MJ</td>
+<td>C25 READ</td>
+</tr>
+<tr>
+<td>bulk width</td>
+<td>scatter of Mz</td>
+<td>0.260 dex (0.25 to 0.27) or 0.66 +-0.08 multiplicative</td>
+<td>T16, C25 READ</td>
+</tr>
+<tr>
+<td>factor f</td>
+<td>atmosphere/bulk</td>
+<td>0.2 (Jupiter, Saturn only); upper bound 1</td>
+<td>TF19 READ; Solar System only</td>
+</tr>
+<tr>
+<td>atmospheric slope</td>
+<td>d[M/H]/d log M</td>
+<td>-0.3 to -1.3 by geometry</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>atmospheric width</td>
+<td>residual sd</td>
+<td>0.4 to 0.9 dex</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="5">
+<li>
+<p>Consistency test. Compare simulated residual sd and slope with LExACoM (tolerance 0.2 dex on width, 0.3 on slope; the paper's fit errors are +-0.16 to 0.4); no completeness model exists for retrievals, so cut on mass and Teq only. For the bulk, compare median Zp/Z* in mass bins with C25 (29.3, 5.9, 3.6 at 0.1, 1, 10 MJ).</p>
+</li>
+<li>
+<p>Flags. f = 0.2 and any use of Jupiter or Saturn atmospheric C/H are Solar System-only. The bulk fits and LExACoM contain no Solar System body in the comparison sample (LExACoM fits Jupiter to Neptune separately; ignore).</p>
+</li>
+<li>
+<p>Group. Builder A.</p>
+</li>
+</ol>
+<h3 id="22-f7-giant-co-core-and-tail">2.2 f7: giant C/O, core and tail</h3>
+<p><strong>Question 2.</strong></p>
+<ol>
+<li>Ensemble (stars).</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R0535, R0536]</td>
+<td>849 FGK dwarfs, SNR &gt; 100</td>
+<td>median C/O 0.47, sd 0.07, long low tail, maximum 0.66 +-0.068, none carbon-rich; &quot;frequency of carbon-rich dwarfs &lt; 0.13 percent&quot;; quadratic in [Fe/H], rms 0.06; Table 1 electronic; planet hosts (156) follow the same distribution</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4248]</td>
+<td>499 HARPS (99 hosts)</td>
+<td>100 percent of hosts below 0.8; mean 0.46 +-0.11 (low-mass hosts), 0.50 +-0.10 (high-mass), 0.45 +-0.13 (singles); median error 0.14; solar reference 0.61</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Delgado [R1060]</td>
+<td>61 HARPS plus 39 other hosts, 270 comparison</td>
+<td>&quot;34 percent of stars with known planets have C/O greater than 0.8&quot;; oxygen from the single [O I] 6300 line</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hypatia via ExoComp Table 5</td>
+<td>355 FGKM</td>
+<td>median 0.468, sd 0.143 (columns inferred)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R0901]</td>
+<td>290 HARPS hosts</td>
+<td>stellar C/O 0.17 to 0.95, giant hosts median 0.43 (+0.02, -0.03), solar 0.53</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3294] (candidate &quot;[R3294]&quot; is a proceeding, 1306.4836, SNIPPET); [R4326] (candidate &quot;[R4327]&quot; is [R4327], not read)</td>
+<td>F and G dwarfs; 55 Cnc</td>
+<td>thin-disk stars have higher C/O than thick-disk and halo at equal [O/H]; the [O I] 6300 line is blended with Ni I in metal-rich stars (55 Cnc 1.12 falls to 0.78 +-0.08 with other lines)</td>
+<td>READ (abstracts)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 34 percent vs sub-percent conflict. Both numbers are READ but measure different things with different method quality. DM2010 used one oxygen line that [R4326] shows is blended at high metallicity; B&amp;F use hundreds of lines and drop it; SA18, a larger HARPS sample, finds none above 0.8. B&amp;F's &quot;&lt; 0.13 percent&quot; is the carbon-rich fraction; their READ maximum of 0.66 gives zero stars above 0.8 in 849, so an upper limit of 3/849 = 0.35 percent at 95 percent (COMPUTED). DM2010's 34 percent is superseded on method grounds, and the design range [0.0013, 0.34] for f_tail takes its two ends from this disagreement; the upper end should be dropped as a stellar number.</p>
+<p>Ensemble (planets). LExACoM, 69 unique planets (DATA, COMPUTED): C/O median 0.57, sd 0.27; transit 27 planets median 0.42 sd 0.38, eclipse 18 median 0.69 sd 0.18, direct imaging 24 median 0.58 sd 0.12. ExoComp text (66 planets): medians 0.350 (transit), 0.59 (direct), 0.7 (eclipse), sd about 0.2, K-S p 0.011 and 0.012 for transit against direct and eclipse; none above 1 at 1 sigma except TOI-5205 b (1.3 +-0.4). Design bins (&lt;0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, &gt;=1.0) hold 12, 43, 8, 3, 3 of 69 planets (0.174, 0.623, 0.116, 0.043, 0.043), against the design example 0.106, 0.747, 0.117, 0.009, 0.021.</p>
+<p>Planet-minus-star offset (2ND-HAND via [R0901]): for six planets shared with [R0735] (HST and Spitzer free retrievals) every planet exceeds its star, median +0.43 +-0.13; for directly imaged planets [R0218] median -0.04 +-0.04. WASP-77A b alone has 0.59 +-0.08 (Line 2021, [R2701], READ), 0.36 +0.10/-0.09 (August 2023, 2ND-HAND) and a host star at 0.44 +0.07/-0.08, an offset of -0.08 to +0.15 for one planet. The offset has no single distribution (0.2 to 0.5 by geometry). The design core center 0.55 rests on one planet (Line, N=1).</p>
+<ol start="2">
+<li>
+<p>Physical bracket. C/O is bounded by 0 and about 1 for accretion including oxygen-bearing solids; 3 of 69 planets have a value at or above 1, all with errors reaching below 1.</p>
+</li>
+<li>
+<p>Verdict. (a) for the stellar C/O distribution (three independent analyses agree on no tail above 0.8). (b) for planets: center, width and tail can be tuned to LExACoM only to its pooled statistics, with a 0.2 to 0.3 geometry systematic in the median. The stellar catalogue does not fix the planet tail: the planet fraction above 0.8 is 6/69 = 0.087 (Wilson 95 percent 0.040 to 0.177), or 3/69 = 0.043 (0.015 to 0.120) if the 1-sigma lower bound must exceed 0.8 (COMPUTED). Both intervals exclude the design ends 0.0013 and 0.34. The C/O above 0.8 is carried by hot and ultra-hot planets (WASP-121 b, WASP-19 b, HD 149026 b, HIP 67522 b, HR 8799 e), so it mixes chemistry, retrieval systematics and formation.</p>
+</li>
+<li>
+<p>Knobs and targets.</p>
+</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Target</th>
+<th>Value (uncertainty)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>stellar center, width</td>
+<td>median, sd</td>
+<td>0.47 and 0.07 (B&amp;F); 0.45 to 0.50 and 0.10 to 0.13 (SA18); 0.468 and 0.143 (Hypatia)</td>
+<td>READ, 2ND-HAND</td>
+</tr>
+<tr>
+<td>stellar tail above 0.8</td>
+<td>fraction</td>
+<td>&lt; 0.35 percent (95 percent)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>planet minus star</td>
+<td>median by geometry</td>
+<td>+0.43 +-0.13 (6 planets, HST), -0.04 +-0.04 (direct)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>planet core center</td>
+<td>median of 69</td>
+<td>0.57 (0.42 transit, 0.69 eclipse, 0.58 direct)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>planet core width</td>
+<td>sd below 0.8</td>
+<td>about 0.2</td>
+<td>READ (ExoComp text)</td>
+</tr>
+<tr>
+<td>f_tail (planets)</td>
+<td>fraction above 0.8</td>
+<td>0.043 to 0.087, 95 percent 0.015 to 0.177</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="5">
+<li>
+<p>Consistency test. Compare simulated fractions in the five bins and the median with the counts above (binomial, N=69, tolerance from the Wilson intervals); on the stellar side compare host C/O with B&amp;F (median 0.47, sd 0.07, none above 0.66). Hot-Jupiter hosts are metal rich and C/O rises with [Fe/H] (rms 0.06), so sample hosts by [Fe/H].</p>
+</li>
+<li>
+<p>Flags. The core center 0.55 and the solar 0.589 are Solar System anchors; LExACoM and the stellar catalogues replace them.</p>
+</li>
+<li>
+<p>Group. Builder A with f5 (one table, one loader).</p>
+</li>
+</ol>
+<h3 id="23-g1-and-g4-brown-dwarf-type-vs-teff">2.3 g1 and g4: brown-dwarf type vs Teff</h3>
+<p><strong>Question 3.</strong> Brown-dwarf spectral type is a deterministic function of Teff with scatter, not a weighted draw; the mass and age are what should be drawn.</p>
+<ol>
+<li>Ensemble.</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Source</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R2374] (ApJS 253, 7)</td>
+<td>READ (PDF)</td>
+<td>525 L, T, Y dwarfs within 20 pc; Table 14 lists dwarfs with Teff</td>
+<td>piecewise Teff(SpT) fits in Table 13 with RMS; complete to 20 pc except types &gt;= T8 and Teff &lt; 600 K; mass function dN/dM ~ M^(-alpha), alpha = 0.6 +-0.1; simulation range 125 to 2800 K, 0.01 to 0.10 solar masses, constant birthrate over 10 Gyr</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1370]</td>
+<td>READ (abstract, sections 8 and 9)</td>
+<td>145 field-age and 53 young M6 to T9 dwarfs</td>
+<td>Teff typical uncertainty 6 percent; Teff vs SpT dispersion minimum 200 K at late T; young low-gravity L dwarfs up to 300 K cooler than field dwarfs of the same type</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>astro-ph/0402475</td>
+<td>READ (abstract)</td>
+<td>42 dwarfs</td>
+<td>Teff falls steeply for M6 to L7 and T4 to T9 and is about constant, 1450 K, for L7 to T4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0323] (the 2023 paper, [R0322], is one Y0 dwarf at 467 K)</td>
+<td>READ (abstract, figure labels)</td>
+<td>23 late-T and Y dwarfs with JWST</td>
+<td>Teff 1000 to 350 K, median error 20 K; per type: T6 897 and 987 K, T6.5 1044 K, T8 525 to 805 K, T9 565 to 585 K, Y0 371 to 510 K, Y0.5 406 and 412 K, Y1 362 to 526 K</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="2">
+<li>
+<p>Physical bracket. Teff of a brown dwarf is fixed by mass and age through cooling tracks ([R0253, R0591], as used by [R2374], READ for their use); the hydrogen-burning limit near 0.075 to 0.08 solar masses, the deuterium limit near 13 MJ.</p>
+</li>
+<li>
+<p>Verdict. Not a probability: derive. The empirical map ([R2374: Table 13], READ via the layout text of the page; coefficients and RMS as printed):</p>
+</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>SpT range</th>
+<th>Teff polynomial (SpT: L0 = 0, T0 = 10, Y0 = 20)</th>
+<th>RMS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 to 8.75 (L0 to L8.75)</td>
+<td>2237.5 - 144.96 s + 4.0301 s^2</td>
+<td>134 K</td>
+</tr>
+<tr>
+<td>8.75 to 14.75 (L8.75 to T4.75)</td>
+<td>1437.9 - 18.309 s</td>
+<td>79 K</td>
+</tr>
+<tr>
+<td>14.75 to 22 (T4.75 to Y2)</td>
+<td>5141.3 - 368.65 s + 6.7301 s^2</td>
+<td>79 K</td>
+</tr>
+<tr>
+<td>Teff from absolute H (9.5 to 25 mag)</td>
+<td>quartic in MH</td>
+<td>88.1 K</td>
+</tr>
+</tbody>
+</table></div>
+<p>Evaluated (COMPUTED): L0 2238 K, L5 1613, L8 1336, T0 1255, T4 1182, T6 966, T8 686, T9 567, Y0 460, Y1 368, Y2 288 K. These agree with the individual JWST Teff above (Y0 at 468 to 510 K, T8 at 525 to 805 K), so the scatter at fixed type is about 80 to 130 K, with a plateau between L8.75 and T4.75 where the slope is only -18 K per subtype, so Teff cannot fix the type to better than about 4 subtypes there (79 K / 18 K).</p>
+<p>Consequences for the rows. g2 (L, 1300 to 2200 K), g3 (T, 700 to 1300 K) and g5 (Y, below 500 K) are the same map and need no weights. g4, the &quot;T/Y transition 500 to 700 K&quot;, is not a type: in the empirical map 500 to 700 K is T8 to T9 (686 K at T8, 567 K at T9), and the measured Y0 dwarfs start at 510 K and below. The gap came from rounding the T and Y rows; use the continuous curve above, with Y0 near 460 K (RMS 79 K; observed Y0 range 371 to 510 K). g1 (late-M, 2200 to 2800 K) is the extension of the map above L0 (2238 K): the READ table sample gives M7.5 at 2871 K and M9.5 at 2390 K (Kirkpatrick Table 14 excerpt), and the model grid stops at 2800 K, so the 2200 and 2800 K edges fit but the M-type fit is not in Table 13 (NOT REACHED). Low-gravity young L dwarfs are up to 300 K cooler than field dwarfs of the same type (Filippazzo, READ), so the map needs a gravity term below 500 Myr.</p>
+<p>If a mass draw is needed: dN/dM ~ M^(-0.6 +-0.1), constant birthrate over 10 Gyr, masses 0.01 to 0.10 solar masses (READ for the fitted model and range; alpha applies to the field, not to young clusters). The 2019 paper (candidate, ApJS 240, 19; abstract says a power law with alpha about 0.6 and a cutoff no higher than about 5 MJ) is SNIPPET and superseded by the 2021 one.</p>
+<ol start="4">
+<li>
+<p>Knobs: alpha 0.6 +-0.1 (target: space density per 150 K Teff bin, Kirkpatrick Table 15, numbers NOT REACHED); the Teff map with the RMS as Gaussian scatter at fixed type; a gravity offset up to -300 K below 500 Myr; low-mass cutoff (5 MJ or lower, SNIPPET).</p>
+</li>
+<li>
+<p>Consistency test. Simulate a 20 pc volume with the mass function and constant birthrate, evolve with a track, map to type, and compare the counts per Teff bin with [R2374] over 600 to 2250 K, where the census is complete (their completeness limit: all types except &gt;= T8 and Teff &lt; 600 K); tolerance from the Poisson error of each bin and the quoted alpha error. The observed space-density spike at 1200 to 1350 K (READ) is a test of the track.</p>
+</li>
+<li>
+<p>Flags. None: all constraints are field brown dwarfs.</p>
+</li>
+<li>
+<p>Group. Builder B.</p>
+</li>
+</ol>
+<h3 id="24-h2-and-h3-hot-jupiter-regimes-at-1500-and-2200-k">2.4 h2 and h3: hot-Jupiter regimes at 1500 and 2200 K</h3>
+<p><strong>Question 4.</strong></p>
+<ol>
+<li>
+<p>Ensemble. The edges are not observed; the observational anchors are WASP-18 b (design cites [R0134], not re-read here), the high-resolution detections of Fe, Ca, Mg and ions in WASP-76 b, WASP-121 b, WASP-189 b ([R1505], READ) and the JWST emission spectra (WASP-121 b, SNIPPET).</p>
+</li>
+<li>
+<p>Physical bracket and what was computed. The regimes are outputs of Gibbs-energy minimisation. I wrote a minimiser (element potentials, scipy) and fed it the NASA-9 polynomials in <code>easychem/thermo_easy_chem_simp_own.inp</code> from the easyCHEM 2.1.0 sdist (DATA; NASA CEA thermo.inp format, 115 species parsed, including TiO, VO, SiO, Na, K, Fe, Mg, FeH, H-, e-, Na+, K+, Fe+; no Ti+, Mg+, AlO, CaO or condensates). Inputs: H=1, O/H 4.90e-4 times Z, C/O 0.55, He/H 0.0851 ([R0169] values from memory, RECALLED), ideal gas, ten neutral species, no ions, no condensation. Sanity checks: H<sub>2</sub>O formation free energy at 1500 K reproduces the standard value (-13.2 RT, COMPUTED); CH<sub>4</sub> dominates at 800 K, 1 bar. Results (COMPUTED, Z = 1; Z = 10 changes T by less than 70 K except where stated):</p>
+</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>P (bar)</th>
+<th>T where CH<sub>4</sub> = CO</th>
+<th>T where H<sub>2</sub>O is 90 percent of the CO-limited value</th>
+<th>T where H<sub>2</sub>O is 50 percent</th>
+<th>T where H<sub>2</sub> is half dissociated</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.001</td>
+<td>not run</td>
+<td>2331 K</td>
+<td>2567 K</td>
+<td>2574 K</td>
+</tr>
+<tr>
+<td>0.01</td>
+<td>not run</td>
+<td>2542 K</td>
+<td>2843 K</td>
+<td>2884 K</td>
+</tr>
+<tr>
+<td>0.1</td>
+<td>966 K (Z=10: 892 K)</td>
+<td>2792 K</td>
+<td>3182 K</td>
+<td>3278 K</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1156 K (1052 K)</td>
+<td>3095 K</td>
+<td>3609 K</td>
+<td>3794 K</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1438 K (1280 K)</td>
+<td>not run</td>
+<td>4164 K</td>
+<td>4499 K</td>
+</tr>
+<tr>
+<td>100</td>
+<td>1907 K (1635 K)</td>
+<td>not run</td>
+<td>not run</td>
+<td>not run</td>
+</tr>
+</tbody>
+</table></div>
+<p>At 1500 K, CH<sub>4</sub>/CO is 7e-9 at 1 mbar and 7e-3 at 1 bar, so below about 1 bar the gas is CO-dominated at 1500 K. The 1500 K edge of h1/h2 is therefore the equilibrium CH<sub>4</sub>-to-CO line at about 5 to 10 bar; at photospheric pressures (0.01 to 0.1 bar) the line sits near 900 to 1000 K, and quenching (part 05 s7.3) decides what is seen. The 2200 K edge of h2/h3 corresponds to only 1 to 4 percent H<sub>2</sub>O depletion at 1 mbar to 0.01 bar; real thermal dissociation (half the water) lies at 2570 to 3600 K for 1 mbar to 1 bar, and observed depletion in ultra-hot Jupiters also involves H- opacity and ionization, which this subset cannot do (Ti+ and Mg+ absent). The dayside is hotter than Teq. The edge is a pressure-dependent output; a fixed 2200 K is not supported by the computed table.</p>
+<ol start="3">
+<li>
+<p>Verdict. Derive, do not draw. The &quot;weights&quot; Phi((T-1500)/100) and Phi((T-2200)/100) have no probabilistic content. What can be tuned are the physical inputs (P-T profile, Z, C/O).</p>
+<p>Licence-compatible tools (the repo is CC0, LICENSE.md, so GPL code cannot be linked):</p>
+</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Licence</th>
+<th>Source, status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>easyCHEM 2.1.0 (a from-scratch NASA CEA-style Gibbs solver, Fortran, plus the thermo file)</td>
+<td>MIT</td>
+<td>PyPI metadata (DATA); data file origin is the NASA CEA polynomial format, public-domain status of the NASA/TP-2002-211556 polynomials is RECALLED</td>
+</tr>
+<tr>
+<td>chemicals 1.5.2, thermo 0.6.1</td>
+<td>MIT</td>
+<td>PyPI metadata (DATA)</td>
+</tr>
+<tr>
+<td>pyFastChem 4.0.3, exo_k 1.3.2</td>
+<td>GPL-3.0</td>
+<td>PyPI metadata (DATA); not usable as a linked dependency</td>
+</tr>
+<tr>
+<td>Cantera 3.2.0, GGchem</td>
+<td>PyPI field empty (Cantera); licences RECALLED</td>
+<td>to verify</td>
+</tr>
+<tr>
+<td>NASA/JANAF polynomials</td>
+<td>NASA CEA thermo.inp is a US government product, RECALLED public domain; the JANAF tables are a NIST product whose licence the project doc says is not public domain (body master 15.2 item 5)</td>
+<td>NIST SRD needs permission or re-derivation</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="4">
+<li>
+<p>Knobs: the physical inputs only. Targets for a consistency test: LExACoM retrieved C/O and [M/H] for hot and ultra-hot Jupiters (8 planets in the paper's UHJ subsample: C/O median 0.497, [M/H] mean 0.86 +-0.52), and the dissociation-limited water depth in WASP-121 b-type planets (not tabulated in the public record I reached).</p>
+</li>
+<li>
+<p>Consistency test: for a set of simulated hot Jupiters with computed photospheric (T, P), compare the fraction in the &quot;H2O-rich&quot;, &quot;CO + H2O&quot;, and &quot;dissociated&quot; regimes to the retrieved detection of H<sub>2</sub>O ([R4438]: water in every one of the 16 of 30 planets with significant atmospheres, READ). No selection model beyond transmission signal-to-noise.</p>
+</li>
+<li>
+<p>Flags: none.</p>
+</li>
+<li>
+<p>Group. Builder C (one chemistry module serves h1 to h5, f8, g6, m7 to m9 and n1 to n4).</p>
+</li>
+</ol>
+<h3 id="25-h4-tiovo-kept-kzz-vs-grain-size">2.5 h4: TiO/VO kept, Kzz vs grain size</h3>
+<p><strong>Question 5.</strong></p>
+<ol>
+<li>Ensemble.</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Source</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4172]</td>
+<td>READ (abstract, introduction)</td>
+<td>model of 4 planets</td>
+<td>to loft Ti so TiO can cause inversions Kzz must be at least a few times 10^7 cm2/s for 0.1 micron grains, rising to nearly 10^11 for 10 micron; HD 209458 b needs ~10^9 to ~10^11 for 0.1 to 10 micron; WASP-12 b ~2e7</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1505]</td>
+<td>READ (abstract, section 3)</td>
+<td>6 ultra-hot Jupiters (Teq 2210 to 2641 K)</td>
+<td>Ca, Na, Ti and TiO are under-abundant; Ti-bearing species are constrained only in WASP-189 b</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3611]</td>
+<td>READ</td>
+<td>WASP-189 b (Teq 2641 +-34 K)</td>
+<td>first unambiguous TiO detection in a transmission spectrum, 4.9 sigma; earlier WASP-33 b claims not reproduced</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1968]</td>
+<td>READ (abstract)</td>
+<td>WASP-121 b</td>
+<td>detections of Ca, V, Cr, Mn, Fe, Co, Ni; no Ti or TiO; titanium cold-trap</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3475]</td>
+<td>READ (abstract, discussion)</td>
+<td>WASP-76 b</td>
+<td>VO detected; species with Tcond below ~1550 K near solar, above strongly depleted; Teq of WASP-121 b given as ~2350 K</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4438]</td>
+<td>READ (abstract)</td>
+<td>30 planets, 600 to 2400 K</td>
+<td>TiO and/or VO at 4 sigma in WASP-76 b, probably in WASP-121 b (later high-resolution work finds no TiO in either)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4106, R4662]</td>
+<td>READ (abstracts)</td>
+<td>WASP-107 b (about 750 K)</td>
+<td>Kzz 10^11.6 +-0.1 (Sing) vs 10^8.4 to 10^9.0 (Welbanks) from partly the same data; metallicity 43 +-8 vs 10 to 18 solar</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="2">
+<li>
+<p>Physical bracket. A cold trap needs a nightside or deep layer cooler than the Ti condensation temperature (Tcond near 1550 K or above for the Ti-bearing perovskite in Pelletier's and Gandhi's text). Retention requires vertical mixing faster than grain settling, which is Spiegel's Kmin(a), a requirement not a measured Kzz.</p>
+</li>
+<li>
+<p>Verdict. (c) for the Kzz prior LU[1e7, 1e11]: no population measures Kzz, and the two WASP-107 b analyses differ by 2.6 to 3.2 dex for the same planet (verified vs verified: both stand). The design's WASP-107 b 10^11.6 is right for [R4106] but not unique. (b) for a single empirical constraint that can replace the Kzz-grain machinery: the Teq above which Ti-bearing gas survives. In the verified data, WASP-76 b (Teq 2210 K) and WASP-121 b (about 2350 K) have no TiO/Ti, MASCARA-2 b has no TiO, and WASP-189 b (2641 K) has TiO and Ti: the threshold lies between about 2350 and 2640 K, from N = 3 to 6 planets. The design states &quot;TiO above 2000 to 2300 K, VO above 1700 to 1900 K&quot;; the verified record puts the Ti threshold 100 to 300 K or more higher, and shows VO retained at 2210 K (WASP-76 b). Here the verified record overrides the design's partly verified edges.</p>
+<p>Observed rate: TiO detected in 1 of 4 clearly tested ultra-hot Jupiters (WASP-189 b yes; WASP-76 b, WASP-121 b, MASCARA-2 b no; WASP-33 b disputed), no larger compilation found. Wilson 95 percent interval for 1 of 4 is 0.05 to 0.70 (COMPUTED), not a tuning constraint.</p>
+</li>
+<li>
+<p>Knobs: T_trap (threshold Teq for Ti retention): target 2350 to 2640 K bracket from N=3; the Kzz-grain pair stays unconstrained and degenerate: for fixed Teq, retention probability depends on Kzz and grain radius only through Kmin(a) = 10^(7.48 + 1.76 (log10 a + 1)) (design interpolation; reproduces Spiegel's 3e7 at 0.1 micron and 1e11 at 10 micron), so a detection rate cannot separate them.</p>
+</li>
+<li>
+<p>Consistency test: simulated fraction of ultra-hot Jupiters with gaseous TiO against Teq, compared with the list above (yes at 2641 K; no at 2210, 2250, 2260, 2350 K). A step at T_trap reproduces it; the Kzz-grain form (0.44 at 1 micron in the design example) cannot be told from 0.25 or 0.70 at N=4.</p>
+</li>
+<li>
+<p>Flags: none.</p>
+</li>
+<li>
+<p>Group. Builder D.</p>
+</li>
+</ol>
+<h3 id="26-n6-silicate-vs-haze-aerosol-crossover-near-950-k">2.6 n6: silicate vs haze aerosol crossover near 950 K</h3>
+<ol>
+<li>
+<p>Ensemble. [R1513, R1515], [R1513]: an aerosol microphysics model on a grid Teq 700 to 2800 K, gravities 4, 10, 25 m/s2, metallicity 1 and 10 times solar, compared with the 1.4 micron water-band amplitude A_H (difference of maximum and minimum radius between 1.3 and 1.65 micron) of the WFC3 sample of Fu et al. 2017 ([R1469], N=34 hot Jupiters to hot Neptunes, with planets of radius below 0.5 RJ removed by Gao). Result (READ): silicates dominate aerosol opacity above about 950 K, hydrocarbon haze below; water-band amplitude is non-monotonic with Teq (increasing cloudiness with Teq above 2300 K and between 1100 and 1600 K, decreasing between 1600 and 2300 K and below 1100 K); robust to gravity and metallicity. Fu 2017 (READ): Spearman 0.43 between A_H and Teq (binned 0.85), slope 0.0008 +-0.00016 per K, degenerate with mass, hot planets under-sampled. [R1300] (READ, abstract): 62 planets, uniformly processed WFC3; two populations, a cloud-free one over a wide Teq range and a &quot;partial cloud&quot; one that goes from mostly cloudy near 500 K to mostly clear near 1500 K; cloud/haze minimum at 1460.86 (+316, -405) K. [R3438] (READ, abstract): Kepler offsets suggest a silicate to MnS transition near 1600 K. [R4105] ([R4105], READ abstract): a clear-to-cloudy continuum in 10 hot Jupiters.</p>
+</li>
+<li>
+<p>Physical bracket. Silicate clouds form where Teq is high enough for Mg<sub>2</sub>SiO<sub>4</sub> and MgSiO<sub>3</sub> to condense at observable pressures, and photochemical hydrocarbon haze needs methane in the upper atmosphere, which needs T below roughly 1000 K (the equilibrium CH<sub>4</sub>=CO line computed above is 892 to 1156 K at 0.1 to 1 bar). The 950 K of Gao is therefore the CH<sub>4</sub> line plus the silicate-cloud sink depth, not an independent constant. So compute the crossover from the chemistry module (builder C) instead of drawing it.</p>
+</li>
+<li>
+<p>Verdict. (b). A published ensemble (N=34 and N=62) exists, but it constrains cloud amplitude, not which aerosol dominates: the 950 K is a model inference, and no width is published. The 100 K width is a design choice. Estrela's 1461 K minimum and Gao's 950 K are different quantities and do not contradict. Gao predicts mid-infrared silicate features; JWST/MIRI quartz-cloud detections ([R1665], WASP-17 b, RECALLED) would test it and were not reached.</p>
+</li>
+<li>
+<p>Knobs: crossover Teq (target 950 K, model; observed amplitude minimum 1461 +316/-405 K) and width (no published target). Test amplitude: A_H vs Teq slope 0.0008 +-0.00016 per K (Fu 2017) over 700 to 2400 K.</p>
+</li>
+<li>
+<p>Consistency test: simulate A_H for the population with cloud and haze opacities and compare slope and binned Spearman (0.43 raw, 0.85 binned) with Fu 2017; with the Estrela cloud-free fraction as a second test. A transmission-signal selection model is required (only transiting planets with H*&gt;1 ppm at WFC3 precision were observed).</p>
+</li>
+<li>
+<p>Flags: none.</p>
+</li>
+<li>
+<p>Group. Builder D.</p>
+</li>
+</ol>
+<h3 id="27-n7-haze-yield-lu001-1">2.7 n7: haze yield LU[0.01, 1]</h3>
+<ol>
+<li>
+<p>Ensemble. [R2009] (READ abstract): lab haze for super-Earth and mini-Neptune gases at 300 to 600 K and 100 to 10000 times solar, rates 0.04 to about 10 mg/hr (250x), Titan simulation 7.4 mg/hr. [R0932] (READ abstract): 6 warm Neptunes, feature amplitude correlates with Teq or with H/He mass fraction at 95 percent, with more haze at low Teq or higher metallicity (not separable). [R2674] (READ abstract): two Kepler-51 super-puffs flat to 0.6 scale heights, aerosols above 3 mbar; supports the Teq hypothesis, disfavours the H/He one. [R0516] (&quot;Clouds and clarity&quot;, READ abstract): 15 exo-Neptunes, 200 to 1000 K, best described by low sedimentation efficiency f_sed about 0.1 and 100 times solar metallicity, intrinsic scatter about 0.5 scale height, attenuation up to 6 scale heights at 500 to 800 K.</p>
+</li>
+<li>
+<p>Physical bracket. Haze mass production is limited by the photolysis rate of methane ([R1513] parameterise it by comparing methane upwelling with photodissociation, READ), so a yield above one is impossible and zero for carbon-free gas.</p>
+</li>
+<li>
+<p>Verdict. (c). The lab rates were measured on sub-Neptune gases, not on hot giants, in mg/hr, not a fraction of photolysed carbon, so &quot;y = LU[0.01, 1]&quot; is not the lab quantity. The population statistics constrain a combination of haze, cloud, metallicity and mean molecular weight, so the yield cannot be separated: Crossfield and Kreidberg say explicitly that temperature and H/He fraction cannot be separated at N=6, Brande's intrinsic scatter of about 0.5 scale height at N=15 absorbs any single knob, and Fu 2017 finds the temperature trend degenerate with mass. Boss would have to supply a haze production rate per unit methane photolysis for hot gases (none reached) or agree to treat y as a nuisance with the A_H scatter as its prior.</p>
+</li>
+<li>
+<p>Knobs: y (no constraint), with the target amplitude statistic being the Brande 0.5 scale-height intrinsic scatter for 200 to 1000 K planets (N=15, READ abstract).</p>
+</li>
+<li>
+<p>Consistency test: A_H vs Teq for 200 to 1000 K simulated Neptunes against the Brande attenuation (up to 6 scale heights at 500 to 800 K); selection model: transit signal-to-noise cut.</p>
+</li>
+<li>
+<p>Flags: the only lab calibration is a Titan simulation (7.4 mg/hr); Titan is a Solar System body, so any scaling of y to the Titan rate is Solar System-only.</p>
+</li>
+<li>
+<p>Group. Builder D.</p>
+</li>
+</ol>
+<h3 id="28-t12-giant-interior-diluted-vs-compact-core">2.8 T12: giant interior, diluted vs compact core</h3>
+<ol>
+<li>
+<p>Ensemble. The core-plus-envelope population fit (C25: Mcore 14.7 +1.8/-1.6 Earth masses, fZ 0.09 +-0.01) and T16's 57.9 M^0.61 Earth masses fit. T16 tests homogeneous vs central-core extremes on four planets and finds the model effect &quot;much smaller than observational uncertainties&quot; (READ); C25 says the metal distribution (core vs uniform) &quot;leads to differences that are much smaller than the astrophysical scatter&quot; (READ) and adopts 10 Earth masses in the core and the rest in the envelope. WASP-107 b core 11.5 (+3.0, -3.6) Earth masses ([R4106], READ). The core-mass placeholder log-uniform 5 to 20 is consistent with C25's 14.7.</p>
+</li>
+<li>
+<p>Verdict. (c). The population does not distinguish diluted from compact cores; C25's &quot;Mcore&quot; is a population-level parameter of the mass-metal relation, not a measured core. Structure is known only for Jupiter and Saturn (gravity fields) and weakly for WASP-107 b: Solar System-only for the structural question. The generator should keep the continuous Mz and draw the core fraction as a nuisance parameter between &quot;all in envelope&quot; and &quot;10 Earth masses in the core&quot;.</p>
+</li>
+<li>
+<p>Knobs: Mcore 14.7 (+1.8/-1.6) for the mass-metal relation; no knob for dilution.</p>
+</li>
+<li>
+<p>Flag: structure evidence for Jupiter and Saturn is Solar System-only (not re-read here; RECALLED from the project doc).</p>
+</li>
+<li>
+<p>Group. Builder A.</p>
+</li>
+</ol>
+<h3 id="29-where-a-verified-source-overrides-a-partly-verified-one-or-disagrees-with-another-verified-one">2.9 Where a verified source overrides a partly verified one (or disagrees with another verified one)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>Design value (status)</th>
+<th>Verified value</th>
+<th>Winner and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>f7 tail</td>
+<td>DM2010 34 percent (READ)</td>
+<td>B&amp;F 2016 and SA18 (both READ): none above 0.8 in 849 and 99 hosts</td>
+<td>The two are verified; B&amp;F and SA18 are used because DM2010 relied on one blended line ([R4326], READ)</td>
+</tr>
+<tr>
+<td>f5 note</td>
+<td>&quot;C25 gives lower Z for sub-Saturns&quot;</td>
+<td>C25: sub-Saturns have high Z (&gt;= 0.2); C25 Zp/Z* is within 7 percent of T16 at 0.1 MJ and 1.4 to 1.6 times lower at 0.3 to 3 MJ</td>
+<td>READ C25 overrides the note</td>
+</tr>
+<tr>
+<td>f5 width</td>
+<td>0.3 RECALLED, 0.26 READ for the Mz fit</td>
+<td>0.26 dex stands for Mz; no scatter is printed for the Zpl/Zstar fit; C25 gives 0.66 multiplicative for both</td>
+<td>the 0.26 stays as the bulk scatter; atmospheric scatter is 0.4 to 0.9 dex (COMPUTED)</td>
+</tr>
+<tr>
+<td>g4</td>
+<td>gap in part 05 (design)</td>
+<td>500 to 700 K is T8 to T9; Y0 at 371 to 510 K ([R0323], READ)</td>
+<td>continuous map replaces the gap row</td>
+</tr>
+<tr>
+<td>h4</td>
+<td>TiO above 2000 to 2300 K (design)</td>
+<td>Ti-bearing species retained only at Teq 2641 K in the six-planet sample; absent at 2210 to 2350 K</td>
+<td>READ overrides the design edges</td>
+</tr>
+<tr>
+<td>h4</td>
+<td>WASP-107 b Kzz 10^11.6 [R4106]</td>
+<td>[R4662]: 10^8.4 to 10^9.0 (READ)</td>
+<td>both verified, disagree by 2.6+ dex; the disagreement is reported, not resolved</td>
+</tr>
+<tr>
+<td>h2, h3</td>
+<td>edges 1500 and 2200 K (design)</td>
+<td>CH<sub>4</sub>=CO at 966 to 1438 K, 50 percent H<sub>2</sub>O at 2567 to 3609 K for 1 mbar to 1 bar (COMPUTED)</td>
+<td>the computed table replaces fixed edges</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-sources-actually-verified">3. Sources actually verified</h2>
+<p>Each item opened (PDF, or abstract only where stated); N in brackets.</p>
+<ul>
+<li>Bulk metallicity: [R4352] [47]; [R0710] [147, no data statement found]; [R4350] [403, table &quot;available for download&quot;, host not found]; [R4663] [19]; Sun 2024 [R4258] [19].</li>
+<li>Population retrievals: [R2751] [66 in paper, 69 unique planets in the 2026-08-28 CSV]; CSV and MRT fetched from jlothringer.github.io (DATA, table licence not stated); code MIT (raw GitHub LICENSE).</li>
+<li>Stellar C/O: [R0535] [R0536] [849]; [R4248] [499]; Delgado [R1060] [100 hosts, 270 comparison]; [R3294] [R3294, R4326] [R4326] (abstracts and one section); [R0901] [290]; [R4886] (abstract, 598 hosts).</li>
+<li>Planet C/O and metals: Line 2021 [R2701] [1]; JWST WASP-39 b abstracts [R0064], 10487, 10489, 10493, 10490 (metallicity 1 to 100x; C/O sub-solar to solar); [R4106] [R4106, R4662] [R4662] (abstracts, WASP-107 b).</li>
+<li>Hot Jupiters: [R1505] [6]; [R3611] [1]; [R3475] [1]; [R3611] [R1968] [1]; [R4171, R4172] [R4172] [4 model planets].</li>
+<li>Clouds and hazes: [R1513, R1515] [R1513] [model]; Fu 2017 [R1469] [34]; [R1300] [62]; [R4438] [30]; [R4105] [10]; [R3438] [R0932, R3438] [R0932] [6]; [R0516] [15]; [R2674] [2]; [R2009] [lab] (abstracts for the last four).</li>
+<li>Brown dwarfs: [R2374] [525]; [R1370] [198]; astro-ph/0402475 [42]; [R0323] [23]; [R0322] [1].</li>
+<li>PyPI metadata (DATA): pyfastchem 4.0.3 GPL-3.0; exo_k 1.3.2 GPLv3; easychem 2.1.0 MIT; chemicals 1.5.2 MIT; thermo 0.6.1 MIT; cantera 3.2.0 field blank; petitRADTRANS 3.4.0 MIT.</li>
+</ul>
+<h2 id="4-boss-must-supply">4. Boss must supply</h2>
+<ol>
+<li>The [R4350] table (403 planets) and the [R0710] table (147 planets) as machine-readable files, to re-fit the bulk scatter; neither is in the PDFs.</li>
+<li>A TiO/VO/Ti detection and non-detection compilation for ultra-hot Jupiters with more than six planets (a high-resolution atlas or a JWST sample paper); none was found.</li>
+<li>A published haze production rate per unit CH<sub>4</sub> photolysis for 700 to 1500 K H<sub>2</sub>-dominated gas, or a decision that n7 is a nuisance parameter.</li>
+<li>A population measurement of Kzz or a decision to drop the LU[1e7, 1e11] draw.</li>
+<li>[R2374: Tables 11], 14 and 15 as machine-readable files (ApJS online) for the Teff scatter by bin and the space densities per 150 K.</li>
+<li>The structural-interior evidence (Juno and Cassini gravity fits, diluted core) from primary papers, for T12.</li>
+<li>[R0535: Table 1], to draw stellar C/O against [Fe/H] directly.</li>
+</ol>
+<h2 id="5-recalled-or-to-verify">5. Recalled or to verify</h2>
+<ol>
+<li>[R0169] log abundances O 8.69, C 8.43, He/H 0.0851 used in the equilibrium script (RECALLED).</li>
+<li>Public-domain status of NASA CEA polynomials (NASA/TP-2002-211556) and the Burcat set; Cantera 3.2.0 and GGchem licences; ExoComp CSV licence (RECALLED).</li>
+<li>The spectroscopic definition of the Y class (NH<sub>3</sub> feature) is RECALLED; the Teff of Y0 (about 460 K from the fit, 371 to 510 K observed) is READ.</li>
+<li>Candidates not resolved or not read: [R4327]; August 2023, [R0218, R0735] (numbers via ExoComp or Costa-Almeida only); [R1665] quartz clouds.</li>
+<li>Table 13 columns for the ExoComp mass-metallicity fits (garbled extraction).</li>
+<li>The three Kirkpatrick polynomial branches join continuously (COMPUTED: 1277.6 and 1277.7 K at SpT 8.75; 1167.9 and 1168.1 K at 14.75), so the printed coefficients were transcribed correctly.</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

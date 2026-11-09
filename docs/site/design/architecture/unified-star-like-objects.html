@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One chain for everything that can be orbited: stars, star-like objects, planets, moons and wanderers - planetGen docs</title>
+<meta name="description" content="Status: plan (decided).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/unified-star-like-objects.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/unified-star-like-objects.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="one-chain-for-everything-that-can-be-orbited-stars-star-like-objects-planets-moons-and-wanderers">One chain for everything that can be orbited: stars, star-like objects, planets, moons and wanderers</h1><p class="meta">docs/design/architecture/unified-star-like-objects.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary">1. Summary</a></li><li style="margin-left:0px"><a href="#2-how-each-kind-is-made-and-stored-in-the-code">2. How each kind is made and stored in the code</a></li><li style="margin-left:0px"><a href="#3-the-unified-chain">3. The unified chain</a></li><li style="margin-left:14px"><a href="#31-vocabulary">3.1 Vocabulary</a></li><li style="margin-left:14px"><a href="#32-one-body-draw">3.2 One body draw</a></li><li style="margin-left:14px"><a href="#33-host-classes-and-what-can-orbit-them">3.3 Host classes and what can orbit them</a></li><li style="margin-left:14px"><a href="#34-pairs-of-any-mass">3.4 Pairs of any mass</a></li><li style="margin-left:14px"><a href="#35-remnants-as-evolved-stars">3.5 Remnants as evolved stars</a></li><li style="margin-left:14px"><a href="#36-wanderers-through-sector-fill">3.6 Wanderers through sector fill</a></li><li style="margin-left:14px"><a href="#37-storage">3.7 Storage</a></li><li style="margin-left:0px"><a href="#4-sector-fill-as-it-would-run">4. Sector fill, as it would run</a></li><li style="margin-left:0px"><a href="#5-what-it-touches-in-todomd-and-docsplan">5. What it touches in TODO.md and docs/plan</a></li><li style="margin-left:0px"><a href="#6-choices-for-boss-one-card-each">6. Choices for Boss (one card each)</a></li><li style="margin-left:0px"><a href="#7-proposed-items-in-order">7. Proposed items, in order</a></li><li style="margin-left:0px"><a href="#8-what-this-does-not-do">8. What this does not do</a></li><li style="margin-left:0px"><a href="#9-sources">9. Sources</a></li></ul></details>
+<p><strong>Status:</strong> plan (decided). Written after 11:20 PM EDT on 2026-10-17 from a read of <code>main</code> at bc97f75 (11:14 PM EDT); approved by Boss on cards D1 to D8, taps 11:28 to 11:31 PM EDT on 2026-10-17 (as the coordinator relayed), each the recommended option below. Nothing is built; the items are GEN.550 and its children (GEN.552 to GEN.560, DB.73, UX.138, TEST.239, PERF.136).</p>
+<p><strong>Decided (Boss, cards, 11:28 to 11:31 PM EDT, 2026-10-17):</strong> D1 a shared parent link for every kind, the kind tables stay (option 2); D2 derive the neutron star and black hole counts from the mass function and verified explosion maps, his densities become test targets, and the black hole share needs a verified source first (option 2); D3 rogue moons from both origins, ejection survivors and the isolated planet's disk, by origin row (option 3); D4 a rogue planet's composition from a notional formation host through the bound-planet code (option 1); D5 unbound comets as rows above a size cut with the rest a computed count (option 1); D6 a new part of 8.4 for the chain, GEN.315 stays in 8.1 (option 1); D7 Core 4 for the chain, Core 3 for the pair builder, Core 1 for storage (option 1); D8 rogue planets with moons on by default after a PERF measurement shows the fill stays inside its budget (option 1). Order rule from the coordinator (11:31 PM EDT): GEN.428 follows or joins the wanderer item (GEN.557). The group cap stays 12 (<strong>decided: Boss tapped 'Keep 12' at 12:44 AM EDT on 2026-10-18, as the coordinator relayed; his 'group of up to 7' is read as a typical group, not a limit</strong>) and moons stay the lowest level unless Boss says otherwise (asked at 11:30 PM EDT). <strong>Superseded (Boss, card S6 of docs/design/architecture/unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed): moons may have satellites through the same hosting gate, so moons are no longer the lowest level; the cap of 12 is unchanged.</strong></p>
+<p><strong>Boss, 11:18 PM EDT (project thread):</strong> &quot;I want to unify generation of stars and star-like objects (former stars, including stellar black holes and neutron stars as well as brown dwarfs, etc). Then use the same generation chain we use for sector fill that we do with stars. We then use sector fill for unbound comets, rogue planets (which should have the chance to get moons).&quot;</p>
+<p><strong>Boss, 11:20 PM EDT:</strong> &quot;basically I want to unify the process of anything that can have something else orbiting it. Planets have moons at the lowest level, highest level a 7-star-like-object group with each having star systems. Then star system creation is recursive.&quot;</p>
+<p>Evidence tags: [S] read in the repository; [C] computed here; [R] recalled and not verified (a lane verifies each before use, under the standing source rules). Standing rules kept: nothing fixed or copied from the Solar System or the Milky Way, the DB schema is not a constraint, no backward-compatibility shims, every draw through the one wrapper <code>util/draw.py</code> (GEN.56).</p>
+<p><strong>Standing rule (Boss, 5:20 PM EDT on 2026-10-18):</strong> every object with mass follows the same trajectory rules, galactic, planetary and lunar alike, built into the mass object functions; see <a href="mass-object-class.html">mass-object-class.md</a>.</p>
+<h2 id="1-summary">1. Summary</h2>
+<ol>
+<li><strong>The ask in one sentence.</strong> One recursive routine, <code>populate(host)</code>, that works for any body or group of bodies that can be orbited: a group of star-like objects, a star-like object, a planet, a rogue planet, a brown dwarf. It draws the host's own properties from one chain, then what orbits it, then calls itself for each thing that orbits. Moons were the lowest level, so the recursion had three working depths: group, star-like object or planet, moon; moons may have satellites through the same hosting gate (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18), so a moon is a host too.</li>
+<li><strong>It is mostly three half-built pieces joined, not new science.</strong>
+<ul>
+<li>The scatter side already draws a hierarchy of up to twelve star-like members with stability checks (<code>multistar.draw_member_tree</code>) [S], but no fill code reads it (the fill builds only one or two stars with the older <code>StarSystem._companion</code>) [S]. GEN.264 and GEN.315 are the open items that join them.</li>
+<li>The orbit tree tables (<code>orbit_nodes</code>, <code>stars.parent_node_id</code>, <code>planets.host_node_id</code>) exist since migration 0104 and nothing writes them [S].</li>
+<li>Planets and moons already carry <code>parent_type</code> and <code>parent_id</code> (migration 0102 and 0109) [S], and the 96-bit object ID already counts bodies of one system on a single counter and says the kind is not in the ID, so a planet ejected from its star &quot;keeps its ID&quot; [S].</li>
+</ul>
+</li>
+<li><strong>What does not match the vision</strong> (details in section 2):
+<ul>
+<li>Neutron stars and black holes never come out of the star chain. They are separate phenomenon classes with their own mass, age and rate, and they have three mass draws and two radius formulas copied into different files [S].</li>
+<li>A free-floating brown dwarf is a <code>RoguePlanet</code> row with a canned composition sentence, an age uniform in 0.1 to 10 Gy that ignores the population, and no companions [S].</li>
+<li>A rogue planet has <code>has_moons</code>, one boolean at 20%, used only to add tidal heating and one sentence. No moon object exists, and the <code>moons</code> table cannot hold one (<code>planet_id</code> and <code>star_system_id</code> are NOT NULL) [S].</li>
+<li>An interstellar comet is a descriptive row: a diameter, a speed and three names drawn from a fixed list of ten [S].</li>
+</ul>
+</li>
+<li><strong>The recommended shape</strong> (section 3): a registry of host classes, one gated table per class saying what can orbit it and where (the same gated-table pattern as GEN.472), one body draw (mass, age, [Fe/H], state, composition, motion) and one recursive orbiter routine. Remnants become evolved stars with a progenitor, so their counts follow from the same mass function and star formation history as every other star. Wanderers are bodies with no host, drawn by the same routine, so moons for a rogue planet are the ordinary moon process with a different outer limit.</li>
+<li><strong>Where it sits.</strong> Almost all of it changes stored values, so it belongs in 8.4 beside the composition chain, with one prerequisite already in 8.1 (GEN.315, Core 3). It should be built before GEN.428 reaches rogue planets, otherwise composition gets written twice (section 5). Ten choices for Boss are in section 6, each with a recommendation for a card.</li>
+</ol>
+<h2 id="2-how-each-kind-is-made-and-stored-in-the-code">2. How each kind is made and stored in the code</h2>
+<p>Counts per local 64 pc^3 sector use about 8 to 10 stars [S: <code>interstellar-object-rates.md</code>].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Made by</th>
+<th>Entry to sector fill</th>
+<th>Stored in</th>
+<th>What it lacks against the vision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main-sequence, giant, white dwarf star</td>
+<td><code>Star</code> via <code>StarSystem</code>; <code>stellar_evolution.sample_living_star</code> draws mass (the primary mass function, Chabrier IMF less companions, GEN.928), age, then <code>evolve_star</code> picks the phase [S]</td>
+<td>Stage A (pre-placed bright and massive stars, from <code>bright_stars</code> rows) and stage D (the cell's other systems) [S]</td>
+<td><code>stars</code>, <code>star_systems</code>, <code>bright_stars</code> [S]</td>
+<td>At most two stars from the older <code>_companion</code> roll. <code>initial_mass_sol</code> is not stored on a built star [S].</td>
+</tr>
+<tr>
+<td>Neutron star, stellar and intermediate black hole</td>
+<td><code>BlackHole</code>, <code>NeutronStar</code> (<code>compact_remnant.py</code>, subclasses of <code>Star</code>) [S]</td>
+<td>Stage B (scatter rows at or above the cut, default 14 Msun for stars), stage G (below the cut, <code>below_cut_draws</code>), stage J (ejected ones) [S]</td>
+<td><code>phenomenon_scatter</code> while only a point; <code>black_holes</code>, <code>neutron_stars</code> when built [S]</td>
+<td>Mass uniform in 1.1 to 2.2 and 5 to 20 Msun with no progenitor; age uniform in 1e-5 to 10 Gy; rate a fixed density (NS 5.6e-4, BH 7e-5 per pc^3) [S].</td>
+</tr>
+<tr>
+<td>Remnant as a member of a multi-star tree</td>
+<td><code>multistar._remnant</code> and <code>_remnant_leaf</code>: progenitor from the IMF within a range, white dwarf mass from the initial-final relation, NS and BH mass uniform [S]</td>
+<td>Scatter time only (<code>scatter_companions</code>); the fill does not read it [S]</td>
+<td><code>scatter_members</code>, <code>scatter_nodes</code> [S]</td>
+<td>The progenitor is drawn here and not on the standalone path, so the same remnant has two draw rules.</td>
+</tr>
+<tr>
+<td>White dwarf</td>
+<td>Only as an evolved <code>Star</code> (<code>evolve_star</code>, line 495) and in trees [S]</td>
+<td>Stage D</td>
+<td><code>stars</code></td>
+<td>The initial-final relation is applied in four places (<code>stellar_evolution</code>, <code>multistar</code>, <code>scatter_companions</code>, <code>place_terms</code>); a hot central star uses a separate Gaussian and a cool one a uniform draw [S].</td>
+</tr>
+<tr>
+<td>Brown dwarf, in a tree</td>
+<td><code>multistar._star_leaf</code> with <code>brown_dwarf.state</code> (GEN.252) [S]</td>
+<td>Scatter time</td>
+<td><code>scatter_members.kind = 'brown-dwarf'</code></td>
+<td>Not read by the fill.</td>
+</tr>
+<tr>
+<td>Brown dwarf, free-floating</td>
+<td><code>RoguePlanet(mass_bin=&quot;brown-dwarf&quot;)</code>; mass from <code>brown_dwarf.sample_mass_solar</code> [S]</td>
+<td>Stage E, a Poisson count of 0.214 per star [S]</td>
+<td><code>rogue_planets</code> with <code>planet_class</code> NULL</td>
+<td>Canned composition sentence; age uniform 0.1 to 10 Gy [S]; the rogue surface module re-types the Burrows luminosity law with a hard-coded 0.05 [S]; no companion (15% of brown dwarfs are pairs, GEN.331 is open).</td>
+</tr>
+<tr>
+<td>Rogue planet</td>
+<td><code>RoguePlanet</code> [S]</td>
+<td>Stage E, 5.8 per star over four mass bins, drawn from one mass function ([R3191], 2020; [R2178]) [S]</td>
+<td><code>rogue_planets</code></td>
+<td>Terrestrial bulk density uniform in a range, composition a canned sentence per bin, no link to a former host, velocity from the solar circle's speed wherever it sits, <code>has_moons</code> a boolean [S].</td>
+</tr>
+<tr>
+<td>Interstellar comet</td>
+<td><code>InterstellarComet</code> [S]</td>
+<td>Stage E at a design rate of 0.007 per pc^3 (0.05 per star) against a measured 7e14 to 1.8e15 per pc^3 ([R2159], Do et al. 2018; corrected from 1e12 on 2026-10-23) shown as a computed count [S]</td>
+<td><code>interstellar_comets</code>, <code>interstellar_comet_composition</code></td>
+<td>No mass, no size distribution, activity a 50% coin, three components from a list of ten.</td>
+</tr>
+<tr>
+<td>Planet and moon</td>
+<td><code>Planet</code>; moons only for a non-moon planet (<code>generate_moons</code>), stable zone out to 0.4895 of the Hill radius (<code>MOON_PROGRADE_STABLE_HILL_FRACTION</code>) [S]</td>
+<td>Inside <code>StarSystem</code></td>
+<td><code>planets</code>, <code>moons</code></td>
+<td>A moon never has a moon (nesting is fixed at two levels in the class) [S].</td>
+</tr>
+<tr>
+<td>Multi-star hierarchy</td>
+<td><code>draw_member_tree</code>, up to 12 members, Mardling-Aarseth, Eggleton-Kiseleva and Kozai screens, <code>group</code> nodes for young non-hierarchical systems [S]</td>
+<td>Scatter time only</td>
+<td><code>scatter_nodes</code>, <code>scatter_members</code>; <code>orbit_nodes</code> exists and is empty [S]</td>
+<td>Not consumed by the fill.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Other facts the design depends on:</p>
+<ul>
+<li>The fill is a list of stages, each on its own random stream seeded from the sector's stream and the stage name (<code>fill_stages.py</code>, GEN.251) [S]. An object built from a scatter row draws under its own seed (<code>draw.bound(row.seed)</code>), and the system pass uses <code>Stream(f&quot;{seed}:system-pass&quot;)</code> [S]. So a stage or a kind can be added without moving any other draw. This is the property the recursion needs.</li>
+<li>The system pass already is a small version of &quot;anything that can hold something&quot;: <code>SYSTEM_PASS_ODDS</code> says a millisecond pulsar holds planets at 0.7% and a rogue planet a moon at 20% [S].</li>
+<li>The registry (<code>phenomena/registry.py</code>, GEN.250) has a <code>system_model</code> column with five fixed values (<code>none</code>, <code>star-system</code>, <code>central-star</code>, <code>rogue-moon</code>, <code>remnant-planets</code>) [S]. Those five values are what the host model generalises.</li>
+<li>The count of a non-star kind is a Poisson draw with mean <code>rate per star x realised star count x kind factor</code> (<code>run_sector.py:222</code>) [S]. The scatter and below-cut paths instead use the expected star density, on purpose, so their totals match the plan [S].</li>
+<li>A rogue planet or brown dwarf is placed at a uniform point of the cell. It may land inside a star's Hill sphere and is not counted among the massive neighbours [S].</li>
+<li>Galactic orbit fields: stars and remnants pass their galactocentric distance, rogue planets and interstellar comets call the function with none, so they get the solar circle's speed and period anywhere. GEN.142 (peculiar velocity for rogue planets) is open for the same gap [S].</li>
+<li>The default phenomenon mass cut in code is 14 solar masses (<code>tuning.PHENOMENON_MIN_MASS_SOLAR</code>); several sections of <code>phenomenon-scatter-mass-cut.md</code> still print 20 and 8 and are marked superseded there [S].</li>
+</ul>
+<h2 id="3-the-unified-chain">3. The unified chain</h2>
+<h3 id="31-vocabulary">3.1 Vocabulary</h3>
+<ul>
+<li><strong>Body:</strong> anything with a mass that can be orbited or can orbit: a star-like object (protostar, pre-main-sequence star, main-sequence star, giant, white dwarf, neutron star, black hole, brown dwarf), a planet, a moon, a small body (comet, asteroid, belt object).</li>
+<li><strong>Node:</strong> the barycenter of two children (the existing <code>close</code>, <code>wide</code>, <code>compact</code> and <code>group</code> nodes, with up to 12 members as decided earlier; Boss's &quot;7&quot; is read as &quot;the largest group the generator makes&quot;, and the cap of 12 stands: Boss tapped 'Keep 12' at 12:44 AM EDT on 2026-10-18, as the coordinator relayed).</li>
+<li><strong>Host:</strong> a body or a node that has orbiters. A host is either top-level (no parent: a wanderer or the head of a system) or it is itself an orbiter of another host.</li>
+<li><strong>Level:</strong> group, member, planet, moon. A moon was the lowest level by Boss's earlier rule; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate, so a moon can be a host.</li>
+</ul>
+<h3 id="32-one-body-draw">3.2 One body draw</h3>
+<p>Every body, whatever its class, goes through the same five steps, each on a stream derived from the body's seed (<code>Stream(f&quot;{seed}:birth&quot;)</code> and so on), so any body can be rebuilt alone from its seed and its host's state:</p>
+<ol>
+<li><strong>Origin.</strong> A gated table (the GEN.472 format, so rows have classes, weights and a source state) says how a body of this class came about: &quot;formed in a system&quot;, &quot;formed in isolation&quot;, &quot;ejected from a system&quot;, &quot;remnant of a star&quot;. The weights of the rows come from the cited rates.</li>
+<li><strong>Birth.</strong> Birth mass (the IMF, continued below 0.08 Msun by the brown-dwarf mass function; the planet mass function for planets), birth time from the population's star formation history (GEN.469, merged), [Fe/H] from the population and place (GEN.158, merged).</li>
+<li><strong>State at the present.</strong> Evolution to the age: pre-main-sequence, main sequence, giant branch and remnant for star-like objects (<code>evolve_star</code>, the neutron-star radius law, <code>brown_dwarf.state</code>); cooling and surface state for brown dwarfs and rogue planets (<code>rogue_surface</code>, kept, its duplicated Burrows constants replaced by the <code>brown_dwarf</code> module).</li>
+<li><strong>Composition.</strong> Drawn first, as decided on 1:21 AM EDT (composition model section 4a): stellar and remnant composition from GEN.439 and GEN.440, bulk composition of planets, moons and small bodies from GEN.428, GEN.442 and GEN.466. A wanderer needs the same inputs a bound body has (a formation distance, a snow line, a star's abundances), so it is given a notional formation host (section 3.5).</li>
+<li><strong>Motion.</strong> Position in the cell and velocity from the population's dispersion, plus the kick or ejection speed for remnants and ejected bodies (section 3.4).</li>
+</ol>
+<p>What this removes: four copies of the white dwarf initial-final relation, three of the neutron star and black hole mass draw, two Schwarzschild formulas, three age rules, the separate canned composition sentences, and the rogue-only galactic orbit shortcut [S].</p>
+<h3 id="33-host-classes-and-what-can-orbit-them">3.3 Host classes and what can orbit them</h3>
+<p>One registry row per host class, extending <code>phenomena/registry.py</code>. The row's <code>system_model</code> column becomes a pointer to an orbiter table, one gated table per class, in the GEN.472 format:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Host class</th>
+<th>Companion table (nodes)</th>
+<th>Satellite table (zone rule)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Group node</td>
+<td>members, 2 to 12, the existing count tables and shape draw</td>
+<td>none (a group is not a body)</td>
+</tr>
+<tr>
+<td>Star-like object</td>
+<td>the pair rule of <code>multistar</code> (extended in 3.4)</td>
+<td>planets, belts, comets: from the inner limit (engulfment, Roche) to the outer limit from the node tree (Holman-Wiegert for a binary, the Hill sphere in the galaxy for a single star) [S: both exist]</td>
+</tr>
+<tr>
+<td>Remnant</td>
+<td>as a star-like object, with the compact filters (Peters time, direct collapse, kick survival) [S]</td>
+<td>millisecond pulsar planets 0.7%, white dwarf survivors outside 1.5 AU [S]</td>
+</tr>
+<tr>
+<td>Brown dwarf</td>
+<td>its 15% pairs and wide companions (GEN.331)</td>
+<td>disk-limited zone; planets and moons, a few percent [R]</td>
+</tr>
+<tr>
+<td>Planet (bound or free)</td>
+<td>planet pairs (GEN.332)</td>
+<td>moons: Roche limit to 0.4895 of the Hill radius, prograde [S]; for a free planet the limit is set by its history (3.5)</td>
+</tr>
+<tr>
+<td>Moon</td>
+<td>none</td>
+<td>satellites through the same hosting gate (Boss, card S6, 12:10 to 12:13 AM EDT, 2026-10-18; it was &quot;lowest level&quot;)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The routine itself is short:</p>
+<pre><code>populate(host, depth):
+    if host has companion table and depth allows: draw nodes; each member is a new host
+    for each satellite row that passes the gate: draw orbiters inside the zone rule; each orbiter is a new host
+    call populate(orbiter, depth + 1) for every orbiter with a table
+</code></pre>
+<p>Every orbiter is built from <code>Stream(f&quot;{host_seed}:orbit:{slot}&quot;)</code>, so building a system from stored members (the GEN.264 and GEN.315 requirement: &quot;the stars of a built system equal the stored members&quot;) is the same call with a different starting point, and a fill in any order gives the same system.</p>
+<p>A moon of a free planet and a moon of a planet in a system are the same code. This is what makes &quot;rogue planets with the chance of moons&quot; a table row and not a feature.</p>
+<h3 id="34-pairs-of-any-mass">3.4 Pairs of any mass</h3>
+<p><code>multistar._Builder</code> already draws periods, eccentricities and orientations from a law per pair kind and checks stability (60 tries per pair) [S]. Two changes make it host-neutral:</p>
+<ul>
+<li>A pair kind for planet with planet (double planets, GEN.332's &quot;rogue planet pairs&quot;) and brown dwarf with brown dwarf or planetary-mass companion (GEN.331), with period and mass-ratio laws taken from sources the lanes verify.</li>
+<li>A planet with a moon is a hierarchical pair whose mass ratio is extreme; the moon table of 3.3 is the same orbit draw in a smaller zone, so the stability test (Hill fraction) can be shared with the node builder.</li>
+</ul>
+<p>Compact remnants stay in the tree builder with their filters. Nothing about the tree builder's output format changes, so the scatter-time companions (Boss, 5:51 PM EDT on 2026-10-15: companions of stars and star-like objects are made at scatter time, planets, moons and belts at sector fill) stand.</p>
+<h3 id="35-remnants-as-evolved-stars">3.5 Remnants as evolved stars</h3>
+<p>A neutron star or black hole becomes a star-like object whose state is &quot;remnant&quot;, with a progenitor mass and a birth time like every other star. The consequences:</p>
+<ul>
+<li><strong>Counts become derived.</strong> A quick Kroupa integral using the generator's own breaks and slopes (<code>IMF_BREAKS_SOL = (0.08, 0.5, 150)</code>, slopes 1.3 and 2.3) gives the share of stars born above 0.08 Msun that have progenitors in 8 to 20 Msun: 0.45%, in 8 to 30 Msun: 0.53%, and in 20 to 100 Msun: 0.17% [C]. The fixed densities in the generator are 0.4% of stars for neutron stars and 0.05% for black holes [S]. The neutron star number is already the right size from the mass function alone; the black hole number needs a failed-supernova and direct-collapse share and a kick-escape share (about 40% of neutron stars and 2% of black holes leave the galaxy [S: <code>compact-remnant-regions.md</code>]). Boss's research rates then become test targets, as already done for the brown dwarfs in GEN.252, and not inputs. The progenitor ranges used by <code>multistar</code> (8 to 30, 20 to 100) are [S] but their sources are not named in the file; a lane must verify the explosion-model sources ([R1466, R3327, R4251] [R]) before they are inputs.</li>
+<li><strong>Space comes from a kick step.</strong> <code>remnant_distribution.py</code> keeps its role (thicker layer, black hole core excess, the Lorimer pulsar profile) as the placement of the kick, so a remnant is born in the young population and moved [S].</li>
+<li><strong>The scatter and the mass cut stay.</strong> A remnant above the cut is still a scatter row (kind, mass, seed); one below is still drawn at fill from the cell's stream (GEN.168 pattern). Only the draw function behind both changes: they call the body draw with the origin row &quot;remnant of a star&quot;. Intermediate and supermassive black holes keep their own origin rows (cluster runaway growth, nuclear), since they do not come from the stellar mass function.</li>
+<li><strong>Planetary nebula central stars</strong> are drawn once, from the star chain, and the Gaussian and uniform side paths for hot and cool white dwarfs go away.</li>
+</ul>
+<h3 id="36-wanderers-through-sector-fill">3.6 Wanderers through sector fill</h3>
+<p>Stage E becomes &quot;wanderers&quot;: the bodies whose origin row says &quot;ejected from a system&quot; or &quot;formed in isolation&quot;, counted per star as in the code (Poisson, mean <code>rate per star x realised star count x factor</code>, anchored on the cited rates, which stay: 5.8 rogue planets, 0.214 brown dwarfs). What changes is what a wanderer is.</p>
+<p><strong>Rogue planets.</strong></p>
+<ul>
+<li><strong>Origin.</strong> Two rows in the origin table: ejected from a system (most terrestrial and sub-Neptune masses, because disk scattering ejects small bodies while giants stay bound [S: <code>interstellar-object-rates.md</code>]) and formed in isolation (planetary-mass objects continuing the star-like mass function). Weights by mass bin; where only a range is known the Dirichlet draw applies (decided 1:43 AM EDT).</li>
+<li><strong>Formation host.</strong> An ejected planet is given a notional host to feed the composition draw: a host mass from the IMF at its population, a formation distance from the planet formation model, a snow line, and the host's abundances from the population's [Fe/H]. Nothing of the host is stored beyond the draw's inputs on the planet's own seed; when the orbital update unbinds a planet from a stored system (GEN.291), the real host plays this part, and the row simply changes its parent (the ID already allows it).</li>
+<li><strong>Age and motion.</strong> The age is the population's, from the same star formation history as stars (not uniform 0.1 to 10 Gy); the velocity is the population's dispersion plus an ejection speed. This closes GEN.142 and the galactic orbit shortcut.</li>
+<li><strong>Moons.</strong> The moon routine of 3.3 with the planet as host. For a bound planet the outer limit is a fraction of the Hill radius at its orbit; for an ejected one, only moons that were inside a smaller fraction of the Hill radius at ejection survive ([R1032, R1998] [R], to verify), so the draw takes the notional formation distance and gives a smaller zone, hence fewer and tighter moons. For a planet formed in isolation the zone comes from its circumplanetary disk (size limit from the planet's own rotation and tidal radius [R]). The fixed 20% in <code>SYSTEM_PASS_ODDS[&quot;rogue-planet&quot;]</code> goes; the chance of at least one moon becomes an output, with 20% as a test target only until a source replaces it.</li>
+<li><strong>Pairs.</strong> Planet pairs come from the pair builder (3.4), with their own rate (GEN.332).</li>
+<li><strong>Cost.</strong> About 58 rogues per local sector (the code's own docstring figure) [S]; at 20% that is about 12 moon systems per sector. Rogue planets outnumber stars about 5 to 1, so this will be the main cost of the fill; no measurement was made here, so the cost is unknown and has to be measured with the PERF harness before it is switched on.</li>
+</ul>
+<p><strong>Brown dwarfs.</strong> Free-floating ones are star-like objects with no host and take the star chain's age, population and [Fe/H], plus the companion and planet tables of 3.3. They leave <code>rogue_planets</code>.</p>
+<p><strong>Unbound comets.</strong></p>
+<ul>
+<li><strong>Class.</strong> A small body (<code>comet</code>), origin &quot;ejected from a system&quot; (most of them) or &quot;formed in isolation&quot; (none expected, a table row with weight 0 until a source says otherwise).</li>
+<li><strong>Counts.</strong> The measured density is about 7e14 to 1.8e15 per pc^3 ([R2159], Do et al. 2018, read by the bulk composition lane on 2026-10-23 in reports/small-body-size-laws-2026-10-23.md; this replaces the earlier 1e12, range 1e11 to 1e14), so most cannot be rows. Use the same device as the remnant mass cut: a lowest size, rows above it drawn at fill from the cell's stream, and the count below it stays a computed figure on the sector page (<code>interstellar_debris_count</code> exists [S]). The size-frequency law and the cut are a research item (candidates: the inferences from 'Oumuamua and Borisov in [R2159], which <code>tuning.py</code> already cites [S], and Do, [R1124] [R]). The design rate of 0.007 per pc^3 is a placeholder labelled as such until then.</li>
+<li><strong>Properties.</strong> Mass and size from the size law, composition from the comet table (GEN.495, GEN.442; the within-system shape is a stand-in and the two interstellar objects bracket the offset, per decision D6 of the tunable gaps note [S]), activity derived from composition, size and distance to the nearest star (replacing the 50% coin), velocity from the population plus ejection speed. A comet is a body, so a star's captured comet or a comet bound to a wanderer is the same class with a parent.</li>
+</ul>
+<h3 id="37-storage">3.7 Storage</h3>
+<p>&quot;The DB schema is not a constraint&quot;, so three choices exist (section 6, card D1). In every case:</p>
+<ul>
+<li>The object ID is unchanged: body number 0 for the head of a system or a wanderer, 1 and up for the rest on one counter [S]. A planet leaving its star keeps its ID and changes its parent.</li>
+<li><code>parent_type</code> and <code>parent_id</code> (on <code>planets</code> and <code>moons</code> since 0102 and 0109 [S]) widen to every orbiter and add <code>node</code> (using <code>orbit_nodes</code>, which GEN.315 begins to fill) and the free case (no parent).</li>
+<li>Free planets, brown dwarfs and comets need <code>moons</code> that point at them, so <code>moons.star_system_id</code> and <code>planet_id</code> stop being NOT NULL or the rogue gets a system id of its own (the ID scheme already treats it as a top-level object).</li>
+<li>The build that turns a scatter row into a system (GEN.315) deletes <code>scatter_members</code> and <code>scatter_nodes</code> in its own transaction; the same rule applies to every wanderer's stored seed.</li>
+</ul>
+<h2 id="4-sector-fill-as-it-would-run">4. Sector fill, as it would run</h2>
+<p>The stage list of <code>fill_stages.py</code> keeps its letters; the content changes.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>In the code</th>
+<th>Unified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A pre-placed</td>
+<td>bright and massive stars become systems</td>
+<td>the same, built with <code>populate</code> from the stored members and nodes</td>
+</tr>
+<tr>
+<td>B scattered</td>
+<td>scatter rows become bare objects</td>
+<td>rows become bodies by the body draw (remnants by progenitor)</td>
+</tr>
+<tr>
+<td>C system pass</td>
+<td>planets for ms pulsars only, from <code>SYSTEM_PASS_ODDS</code></td>
+<td>removed: <code>populate</code> of B and G objects does it, from each class's table</td>
+</tr>
+<tr>
+<td>D systems</td>
+<td>the cell's other systems, 1 to 2 stars</td>
+<td>the same, with up to 12 members from the tree builder</td>
+</tr>
+<tr>
+<td>E per-star kinds</td>
+<td>rogue planets, brown dwarfs, interstellar comets, each a bare row</td>
+<td>wanderers: bodies with no host, through <code>populate</code></td>
+</tr>
+<tr>
+<td>F nebulae</td>
+<td>unchanged</td>
+<td>unchanged (their required stars use the same star chain)</td>
+</tr>
+<tr>
+<td>G below cut</td>
+<td>NS and BH from independent draws</td>
+<td>the same body draw as B</td>
+</tr>
+<tr>
+<td>J ejecta</td>
+<td>unchanged</td>
+<td>unchanged (a kick strips planets, as stated in the catalogue)</td>
+</tr>
+<tr>
+<td>H flags</td>
+<td>unchanged</td>
+<td>unchanged</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each stage keeps its own stream, so adding wanderers' moons moves no draw of any other stage.</p>
+<h2 id="5-what-it-touches-in-todomd-and-docsplan">5. What it touches in TODO.md and docs/plan</h2>
+<p>Counted from <code>docs/TODO.md</code> on main; owner lines are those the items carry [S].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Relation</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.315 (and GEN.264, Core 3)</td>
+<td><strong>prerequisite, unchanged</strong></td>
+<td>Fill builds from stored members; <code>StarSystem(member_tree=...)</code>. Ask Core 3 to keep its interface host-neutral (a function that takes a tree and returns bodies), at no extra cost.</td>
+</tr>
+<tr>
+<td>GEN.331, GEN.332, GEN.327, GEN.273, GEN.269 to 271, GEN.129 (Core 3 train)</td>
+<td><strong>keep, become rows</strong></td>
+<td>Substellar companions, circumbinary planets, rogue planet pairs, group nodes: all are rows of the tables in 3.3 and builders of 3.4. GEN.332's &quot;rogue planet pairs&quot; is the pair builder with planets.</td>
+</tr>
+<tr>
+<td>GEN.252, GEN.541 (merged), GEN.549 (Core 4, open)</td>
+<td><strong>keep</strong></td>
+<td>The brown dwarf state function is the brown-dwarf branch of step 3 of the body draw. GEN.549 changes only its cooling track.</td>
+</tr>
+<tr>
+<td>GEN.439, GEN.440 (Blocker 1 then Core 4)</td>
+<td><strong>consumed</strong></td>
+<td>Stellar and remnant composition (including brown dwarfs) is step 4 for star-like objects. No conflict.</td>
+</tr>
+<tr>
+<td>GEN.428, GEN.429, GEN.442, GEN.458, GEN.466, GEN.457, GEN.495, DB.69, DB.70 (Core 4, held for 8.4)</td>
+<td><strong>conflict if built first</strong></td>
+<td>They write composition for <code>Planet</code> objects. A <code>RoguePlanet</code> is not one, so rogue composition would be written a second time. Do the wanderer unification (item U8) before or together with GEN.428, or the rogue draw is built twice.</td>
+</tr>
+<tr>
+<td>GEN.142 (rogue planet peculiar velocity)</td>
+<td><strong>superseded by U8</strong></td>
+<td>The wanderer's motion is a step of the body draw. Fold it in.</td>
+</tr>
+<tr>
+<td>GEN.110, GEN.291, GEN.346 (collisions, unbinding)</td>
+<td><strong>simpler</strong></td>
+<td>A planet leaving its star changes its parent and keeps its row, ID and moons. GEN.291 said it becomes a &quot;rogue-planet row&quot;; with one body model there is no second table.</td>
+</tr>
+<tr>
+<td>GEN.130, GEN.317, GEN.318, GEN.253, GEN.263, GEN.377</td>
+<td><strong>keep, one input changes</strong></td>
+<td>Compact remnant systems, pulsar planets, white dwarf rows, scatter pairs and limits stay. U5 changes how a remnant's mass and age are drawn, not what systems it gets.</td>
+</tr>
+<tr>
+<td>GEN.250, GEN.251 (built)</td>
+<td><strong>extended</strong></td>
+<td>The registry's <code>system_model</code> column is replaced by the orbiter table pointer; stage C is absorbed.</td>
+</tr>
+<tr>
+<td>GEN.447 to 450, GEN.463, GEN.467, GEN.469 (merged or in 8.1)</td>
+<td><strong>inputs</strong></td>
+<td>Binary law, derived radius and lifetime, star formation history: the body draw reads them.</td>
+</tr>
+<tr>
+<td>GEN.517, GEN.520, GEN.522 (tuned draw builders B9 brown dwarfs, B12 comet sampler, B14 moons)</td>
+<td><strong>related</strong></td>
+<td>Their tuned rows are inputs to the brown-dwarf, comet and moon tables; B12's two interstellar objects bracket is the offset in 3.6.</td>
+</tr>
+<tr>
+<td>GEN.301 (headline 8.1)</td>
+<td><strong>not a prerequisite; do not add one</strong></td>
+<td>Only GEN.315 is in 8.1. The rest is 8.4.</td>
+</tr>
+<tr>
+<td>MAP.82 to 84, UX.24, UX.25</td>
+<td><strong>touch</strong></td>
+<td>Rogue planet display and the &quot;Mark Rogue Planets&quot; setting follow the new rows; map symbols for moons of a rogue are new.</td>
+</tr>
+<tr>
+<td>ADM.62, ADM.63</td>
+<td><strong>touch</strong></td>
+<td>Aspect catalogues: one catalogue for bodies and hosts is smaller than two.</td>
+</tr>
+<tr>
+<td>TEST.159, TEST.160, TEST.162, TEST.211</td>
+<td><strong>extend</strong></td>
+<td>Representation audit counts per kind and per level; multiplicity audit for planet and moon levels; star composition sweep includes the brown dwarf and remnant branches.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Lanes (from memory of the board, 11:12 PM EDT as the lanes reported): Core 4 owns the composition and stellar chain, so it owns the body draw and the orbiter routine (U4 to U9); Core 3 owns the scatters and the multi-star train, so it owns U6 and the interface of GEN.315; Core 1 owns the identity and repair chain, so it owns the storage items (U11). Core 4's 8.4 items are held until its 8.1 chain is built (Boss, 10:17 AM EDT on 2026-10-17), which fits the order below.</p>
+<p>Epoch and migrations: every item that changes a drawn value bumps the generator epoch (OPS.56 rule; epoch 21 is the last stamped [S]). The full wiped rescatter that already collects the epoch-changing items would be joined by the 8.4 ones, or this chain gets its own, since all of it follows the 8.1 stamp. Migration head is 0109 [S]; new revisions are numbered contiguously at merge. No compatibility code: rows in <code>rogue_planets</code> move to the new rows by regeneration, not conversion.</p>
+<h2 id="6-choices-for-boss-one-card-each">6. Choices for Boss (one card each)</h2>
+<p><strong>D1. How far the storage is unified.</strong></p>
+<ol>
+<li>Code only: one builder and one in-memory tree, tables unchanged. Cheapest; every pair of tables stays and the rogue moon needs a second moon table.</li>
+<li>Code plus one shared parent link for every kind (widen <code>parent_type</code>/<code>parent_id</code>, fill <code>orbit_nodes</code>), kind tables keep their own physical columns. <strong>Recommended:</strong> it gives the &quot;anything can orbit anything&quot; queries and the ID rule without moving 100-column tables.</li>
+<li>One physical <code>bodies</code> table for everything. Cleanest queries, largest migration, and the highest risk for the pages, maps and the orbital update.</li>
+</ol>
+<p><strong>D2. Remnant counts.</strong></p>
+<ol>
+<li>Keep the fixed densities (NS 5.6e-4, BH 7e-5 per pc^3) as inputs.</li>
+<li>Derive them from the mass function, the star formation history and verified explosion maps, with the densities as test targets. <strong>Recommended:</strong> the neutron star count already matches [C]; the black hole needs a verified failed-supernova share; it matches the rule that fixed content gives way to derivation.</li>
+<li>Derive neutron stars and keep black holes fixed until their source is verified.</li>
+</ol>
+<p><strong>D3. Where rogue moons come from.</strong></p>
+<ol>
+<li>Survivors of ejection only (moons inside a small fraction of the original Hill radius).</li>
+<li>Formed with an isolated planet only (circumplanetary disk).</li>
+<li>Both, as rows of the origin table by mass bin. <strong>Recommended:</strong> ejected rogues and isolated planetary-mass objects are different populations in the cited rates; both mechanisms need sources checked first (section 3.6).</li>
+</ol>
+<p><strong>D4. Notional formation host for a rogue planet's composition.</strong></p>
+<ol>
+<li>Draw a notional host (mass from the IMF, a formation distance, a snow line) and use the bound-planet composition code. <strong>Recommended:</strong> one composition code for all planets.</li>
+<li>Use the population's [Fe/H] and one global formation-distance distribution, no host.</li>
+<li>Keep composition descriptive for rogues until 9.0.</li>
+</ol>
+<p><strong>D5. Unbound comet rows.</strong></p>
+<ol>
+<li>Rows above a size cut with a research-backed size law; the rest stays a computed count. <strong>Recommended:</strong> the same pattern as the remnant mass cut that Boss approved on 2026-10-09 (default 14 Msun in the code).</li>
+<li>Keep the 0.007 per pc^3 design rate.</li>
+<li>Raise the design rate and show every comet (not possible at 7e14 to 1.8e15 per pc^3, listed for completeness).</li>
+</ol>
+<p><strong>D6. Version.</strong></p>
+<ol>
+<li>A new phase of 8.4, after the composition fractions and before the surfaces; GEN.315 stays in 8.1. <strong>Recommended.</strong></li>
+<li>Do the structural parts (U2, U3, U6) in 8.1 phase 2 and the drawn-value parts in 8.4. Spreads the work but adds to the 8.1 count (686 open at 3:05 PM EDT on 2026-10-17).</li>
+<li>After 9.0.</li>
+</ol>
+<p><strong>D7. Lanes.</strong></p>
+<ol>
+<li>Core 4 for the chain, Core 3 for the pair builder, Core 1 for storage. <strong>Recommended:</strong> each already owns the neighbouring code.</li>
+<li>One new lane for the whole chain. More coordination, slower start.</li>
+<li>Core 3 for everything.</li>
+</ol>
+<p><strong>D8. Whether the rogue cost is switched on by default.</strong></p>
+<ol>
+<li>On, after a PERF measurement shows the fill stays inside the budget. <strong>Recommended.</strong></li>
+<li>Off by default with a plan-configuration switch, like the halo and satellite switches (GEN.537).</li>
+<li>On without a measurement.</li>
+</ol>
+<p>Two points that I read as decided and did not make cards for: the group cap stays 12 (decided earlier and confirmed by Boss's 'Keep 12' card, 12:44 AM EDT on 2026-10-18; he wrote 7 as a typical group), and moons were the lowest level (Boss's words), so moons of moons were not generated; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate, and the sub-moon stability question is open (unified-system-barycentre.md section 4.5).</p>
+<h2 id="7-proposed-items-in-order">7. Proposed items, in order</h2>
+<p>The TODO thread numbers them and assigns lanes. &quot;8.4&quot; means the composition and new-worlds version; none of these except U1 is needed by 8.1.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Owner (proposed)</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U1</td>
+<td>Approve this note and the cards of section 6</td>
+<td>none</td>
+<td>Boss</td>
+<td>before any build</td>
+</tr>
+<tr>
+<td>U2</td>
+<td>Host registry: replace <code>system_model</code> by orbiter-table pointers; the orbiter tables as gated tables (GEN.472 format) with their sources and states; no behaviour change</td>
+<td>U1, GEN.472 (built)</td>
+<td>Core 4</td>
+<td>8.1 phase 3 (back-scatter, Boss's card 11:38 to 11:40 PM EDT on 2026-10-17; filed as GEN.552)</td>
+</tr>
+<tr>
+<td>U3</td>
+<td>GEN.315 as filed, with a host-neutral interface</td>
+<td>none</td>
+<td>Core 3</td>
+<td>8.1 (unchanged)</td>
+</tr>
+<tr>
+<td>U4</td>
+<td>One star-like body draw: origin, birth, state, [Fe/H]; the initial-final relation, remnant mass, radius and age rules in one place; the free-floating brown dwarf moves in</td>
+<td>U1, GEN.252 (merged), GEN.439, GEN.440</td>
+<td>Core 4</td>
+<td>8.4 phase 1</td>
+</tr>
+<tr>
+<td>U5</td>
+<td>Remnant counts derived from the mass function and star formation history, kick step on <code>remnant_distribution</code>, Boss's densities as tests; verified progenitor maps first</td>
+<td>U4, GEN.463, GEN.467, GEN.469 (merged), D2</td>
+<td>Core 4</td>
+<td>8.4 phase 1</td>
+</tr>
+<tr>
+<td>U6</td>
+<td>The pair builder for any masses: planet pairs, brown dwarf pairs, planet with moon share the stability test</td>
+<td>U3, GEN.331, GEN.332</td>
+<td>Core 3</td>
+<td>8.4 phase 1</td>
+</tr>
+<tr>
+<td>U7</td>
+<td><code>populate(host)</code>: planets, belts, comets and moons from the class tables, replacing <code>StarSystem._generate_planets</code> host logic and <code>generate_moons</code>; stage C absorbed</td>
+<td>U2, U3, U6</td>
+<td>Core 4</td>
+<td>8.4 phase 2</td>
+</tr>
+<tr>
+<td>U8</td>
+<td>Wanderers: origin table, notional formation host, population age and motion, velocity (closes GEN.142), composition by the bound-planet code; rogue planet becomes a <code>Planet</code> with no parent</td>
+<td>U4, GEN.428, GEN.458, D3, D4</td>
+<td>Core 4</td>
+<td>8.4 phase 2 (with or before GEN.428)</td>
+</tr>
+<tr>
+<td>U9</td>
+<td>Moons of wanderers (ejection survival and isolated-disk rows), the 20% boolean and <code>SYSTEM_PASS_ODDS[&quot;rogue-planet&quot;]</code> removed</td>
+<td>U7, U8, GEN.466</td>
+<td>Core 4</td>
+<td>8.4 phase 2</td>
+</tr>
+<tr>
+<td>U10</td>
+<td>Unbound comets: size law and cut, composition from the comet table, derived activity and velocity</td>
+<td>U8, GEN.495, GEN.442, D5</td>
+<td>Core 4</td>
+<td>8.4 phase 2</td>
+</tr>
+<tr>
+<td>U11</td>
+<td>Storage: shared parent link, free parents, <code>orbit_nodes</code> filled, rogue moons storable, <code>rogue_planets</code> and <code>interstellar_comets</code> rows regenerated</td>
+<td>D1</td>
+<td>Core 1</td>
+<td>8.4 phase 1, with U7</td>
+</tr>
+<tr>
+<td>U12</td>
+<td>Pages, class pages, map symbols and descriptions for the new rows and moons of wanderers; GEN.446 text</td>
+<td>U9, U10, MAP.82 to 84</td>
+<td>Interface</td>
+<td>8.4 phase 2</td>
+</tr>
+<tr>
+<td>U13</td>
+<td>Tests: determinism by host (a system rebuilt from seeds and stored members equals the stored one), representation counts per kind and level, rogue and comet rates against the cited ones, derived remnant shares against Boss's densities</td>
+<td>U5, U9, U10</td>
+<td>Core 4 with TEST</td>
+<td>8.4</td>
+</tr>
+<tr>
+<td>U14</td>
+<td>PERF measurement of the fill with wanderers and moons, and the decision of D8</td>
+<td>U9, U10</td>
+<td>Core 5</td>
+<td>8.4</td>
+</tr>
+<tr>
+<td>U15</td>
+<td>Research list for the lanes (each source verified before use): ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, size-frequency law of interstellar objects</td>
+<td>none</td>
+<td>read-only research lane</td>
+<td>8.1 phase 1 (no behaviour change)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Order: U1, then U15 and U3 in parallel with U2; then U4, U6, U11; then U5; then U7 and U8 together; then U9, U10; then U12, U13, U14.</p>
+<h2 id="8-what-this-does-not-do">8. What this does not do</h2>
+<ul>
+<li>It does not change what a user sees in 8.1, and adds nothing to the 8.1 headline chain except GEN.315's interface note.</li>
+<li>It does not generate planets or moons at scatter time: companions of stars and star-like objects stay at scatter time, planets, moons and belts at fill (Boss, 5:51 PM EDT on 2026-10-15).</li>
+<li>It did not make moons of moons; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate.</li>
+<li>It does not fix any number: every rate and law above is either a cited input (already in the repository), a value to derive, or a labelled placeholder until a verified source replaces it.</li>
+<li>It makes no claim about cost; the PERF item U14 exists because rogue planets with moons may be the heaviest new part of the fill and nothing here measured it.</li>
+</ul>
+<h2 id="9-sources">9. Sources</h2>
+<p>In the repository, read for this note: <code>generation/object_first.py</code> (the scatter's object-first pass), <code>generation/run_sector.py</code>, <code>fill_stages.py</code>, <code>system_pass.py</code>, <code>multistar.py</code>, <code>scatter_companions.py</code>, <code>phenomena/registry.py</code>, <code>compact_remnant.py</code>, <code>rogue.py</code>, <code>builders.py</code>, <code>physics/brown_dwarf.py</code>, <code>physics/stellar_evolution.py</code>, <code>galaxy/object_uid.py</code>, <code>db/store.py</code>; docs <code>phenomena-catalogue-and-fill.md</code>, <code>interstellar-object-rates.md</code>, <code>compact-remnant-regions.md</code>, <code>phenomenon-scatter-mass-cut.md</code>, <code>brown-dwarf-state.md</code>, <code>composition-model.md</code>, <code>multistar-and-compact-systems.md</code>, <code>database-schema.md</code>. Recalled and still to verify: [R1032] (ejected planets with moons), [R1998] (exomoon dynamics in scattering), [R1466, R3327, R4251] (explosion and remnant maps), Do, [R1124] (interstellar object density). Already cited in the repository: [R3191] and 2020, [R0606, R1990, R2159, R2178, R2374]. The Kroupa share figures in 3.5 are a quick computation with the generator's own IMF breaks and slopes, not a sourced result, and ignore binary evolution and kicks.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

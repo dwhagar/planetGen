@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host-star activity: the rotation track, row p6 (GEN.523, partly built) - planetGen docs</title>
+<meta name="description" content="Status: partly built 2026-10-24 by lane M (builder B15).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/host-activity-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/host-activity-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="host-star-activity-the-rotation-track-row-p6-gen523-partly-built">Host-star activity: the rotation track, row p6 (GEN.523, partly built)</h1><p class="meta">docs/design/composition/host-activity-tuning.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#1-p6-the-rotation-track">1. p6: the rotation track</a></li><li style="margin-left:0px"><a href="#2-p4-checked-not-changed">2. p4: checked, not changed</a></li><li style="margin-left:0px"><a href="#3-what-is-not-built">3. What is not built</a></li><li style="margin-left:0px"><a href="#4-the-mass-dependence-of-the-saturation-time-gen493-lock-free-step">4. The mass dependence of the saturation time (GEN.493, lock-free step)</a></li></ul></details>
+<p>Status: partly built 2026-10-24 by lane M (builder B15). Row p6 of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>); tests in <code>src/tests/test_tuned_draws.py</code>.</p>
+<h2 id="1-p6-the-rotation-track">1. p6: the rotation track</h2>
+<p>The row picked one of three percentile tracks (10th, 50th, 90th) of the initial rotation distribution of Tu 2015 with weights 0.25, 0.5 and 0.25. No paper gives those weights (they are the probabilities of quartile bins). The row now draws the percentile <code>u</code> uniform from 0.02 to 0.98, the range of the tracks [R2183] offers at every integer percentile, and the saturation time follows from <code>u</code>: the logarithm of the saturation time is linear in <code>u</code> between the published tracks, 5.7 Myr at the 10th, 23 Myr at the 50th and 226 Myr at the 90th percentile, extended by the same slope to the 2nd (4.3 Myr) and 98th (357 Myr; Tu 2015 states saturation lasting from about 10 to about 300 Myr). A uniform percentile needs no tuning, since the percentile is the observed 150 Myr distribution; the 200-fold spread of X-ray luminosity at 100 Myr that this draws is real. The drawn percentile is stored as <code>rotation_percentile</code> for the rows after it.</p>
+<h2 id="2-p4-checked-not-changed">2. p4: checked, not changed</h2>
+<p>Row p4 already carries the mass-dependent saturation time (0.162 Gyr at 0.55, 0.6 at 0.25 and 2.3 at 0.15 solar masses; [R2118, R3017]) from the earlier correction. A test pins the three anchors and their order.</p>
+<h2 id="3-what-is-not-built">3. What is not built</h2>
+<ul>
+<li><strong>The mass dependence of the tracks.</strong> Tu 2015 covers 0.9 to 1.1 solar masses only. Johnstone's tracks (MIT-licensed code, not downloaded) cover 0.1 to 1.25 and would give the saturation time as a function of mass and percentile; until they are fitted the one set of three times was used for every mass until the saturation time of section 4 replaced it (GEN.493 wiring).</li>
+<li><strong>The consistency tests.</strong> The simulated saturated fraction against age and mass, compared with Medina's 2.4 +- 0.3 Gyr, the rotation-period fractions (74, 19 and 8 percent) and the age of rapid rotators (2.0 +- 1.2 Gyr), needs a stellar-population model with the volume-complete and X-ray selection of those samples; it is the remainder of GEN.523 and is filed to the TODO thread.</li>
+<li>The recipes are not yet read by the generator, so no generated value changes and no epoch is taken.</li>
+</ul>
+<h2 id="4-the-mass-dependence-of-the-saturation-time-gen493-lock-free-step">4. The mass dependence of the saturation time (GEN.493, lock-free step)</h2>
+<p><code>physics/saturation_time.py</code> closes the first gap of section 3 without the model's code: Fig. 10 of [R2183] ([R2183], READ) plots the age at which a star falls below the X-ray saturation threshold against mass for the slow, medium and fast rotators, the observed 5th, 50th and 95th percentiles of the rotation distribution at 150 Myr. The table is that figure read by pixel position at thirteen masses (registry RS1, T3, L0).</p>
+<ul>
+<li>At one solar mass the curves give 5.2, 22.8 and 297 Myr, Tu et al.'s 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles are the same numbers where they overlap, so the solar-mass times row p6 already used stay right.</li>
+<li>Lower mass stars stay saturated for gigayears: the median is 4.5 Gyr at 0.1, 1.5 Gyr at 0.3, 0.49 Gyr at 0.5 and 0.15 Gyr at 0.7 solar masses; the mass-function weighted mean over 0.1 to 0.3 solar masses is about 2.7 Gyr, against [R3017]'s measured 2.4 +- 0.3 Gyr for the transition (kinematic ages of 219 stars of those masses; [R3017], READ), a check the figure was not tuned to.</li>
+<li>The percentile of an observed distribution is uniform by construction, so row p6's uniform draw of the percentile (2nd to 98th) needs no weights of its own: that is the distribution, not a design choice. The &quot;no paper weights the tracks&quot; limit of the row goes with the wiring step.</li>
+<li>The activity table's <code>t_sat</code> (<code>ACTIVITY_TABLE</code>, design defaults good to 0.5 dex) agrees at 0.3 solar masses (2.0 against 1.5 Gyr), 0.45 (1.0 against 0.63) and 0.6 (0.4 against 0.3), and is 4 times high at 1 solar mass (0.10 Gyr against the 23 Myr median; [R2118]'s 63 to 200 Myr is the median of the cluster samples and sits between them: 10^7.8 to 10^8.3 yr, with the L_X/L_bol saturation at 10^-3.1 for late K to 10^-4.3 for early F). The wiring step (below) takes the star's own mass and percentile from the module; beyond 1.2 solar masses the module holds the 1.2 value, and the table's saturation ages are gone.</li>
+</ul>
+<p>Not built: the model itself (the spin-down torque and the core-envelope coupling) and the decayed level after saturation (the exponent <code>b</code> of the table).</p>
+<p><strong>Wired (GEN.493, merge train 7).</strong> <code>activity.generate_activity</code> draws a star's initial-rotation percentile uniform from 2 to 98 (<code>PERCENTILE_RANGE</code>, the one draw that replaces the log-normal scatter on <code>t_sat</code>, so the run's stream is unchanged) and takes the saturation age from <code>saturation_time</code> at the star's mass and that percentile. <code>ACTIVITY_TABLE</code> is now <code>DECAY_EXPONENTS</code> (the exponent only); <code>coronal_xuv_at</code>, <code>reference_fluence_j</code> and <code>runaway_history</code> read the median age (<code>saturation_age_gy</code>). The old exponents were calibrated with the old ages, so from 0.45 solar masses up they are retuned (registry AB1, T9, L3) to hold each mass's <code>L_X/L_bol</code> at 5 Gyr where the table put it: the Sun still comes out at 1.3e27 erg/s today, with an exponent of 1.45 inside the Skumanich band. What moves: a star's saturated stretch and its fluence now follow its own spin (a slow solar-mass rotator leaves saturation at 5 Myr, a fast one at 300), so the water a Venus-orbit Earth loses to the runaway greenhouse around the median Sun is two oceans, not seven. Row p6 of the atmosphere recipes reads the same module through the recipe function <code>saturation_time_myr</code>; it draws its own percentile and does not yet read the star's, which waits for the recipes to be wired to the generator.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The comet species model (GEN.1005, k7) - planetGen docs</title>
+<meta name="description" content="Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/comet-species-model.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/comet-species-model.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-comet-species-model-gen1005-k7">The comet species model (GEN.1005, k7)</h1><p class="meta">docs/design/composition/comet-species-model.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-replaces-what">1. What replaces what</a></li><li style="margin-left:0px"><a href="#2-what-this-is-and-is-not">2. What this is and is not</a></li><li style="margin-left:0px"><a href="#3-limits">3. Limits</a></li><li style="margin-left:0px"><a href="#4-the-brackets-between-the-comets-measured-gen1021-comet_speciesbracket_over_h2o">4. The brackets between the comets measured (GEN.1021, comet_species.bracket_over_h2o)</a></li><li style="margin-left:0px"><a href="#5-one-latent-ice-formation-temperature-gen1022-comet_ice_formation">5. One latent ice formation temperature (GEN.1022, comet_ice_formation)</a></li></ul></details>
+<p>Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane. Sections 4 and 5 (GEN.1021 and GEN.1022, Lane 13) are modules not yet wired: the swap of rows k5 and k7 rides one train with one epoch. <code>src/planetgen/physics/comet_species.py</code>; tests in <code>src/tests/test_comet_species.py</code>; registry rows CK1 to CK6 (section 6.59 of the gap-filling plan); the row is <code>atmosphere-k:k7</code>, still a flagged stand-in, replaced by GEN.1021.</p>
+<h2 id="1-what-replaces-what">1. What replaces what</h2>
+<p>Row k7 drew N<sub>2</sub>, O<sub>2</sub>, OCS, SO<sub>2</sub>, Ar, Kr and Xe of a comet as log-normals about the values of 67P [R3835], with a design width of 0.6 dex. Those seven species have a population of one comet, so no median can be taken from a population; the other four species of the row (CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO, H<sub>2</sub>S, 9 to 18 comets each) are unchanged.</p>
+<p>For N<sub>2</sub>, Ar, OCS and SO<sub>2</sub> the median is now a chain: the molecules of the species per CO in the nebula of the comet's host (its own N/C, Ar/C and S/C over the proto-solar ones, new subject quantities <code>n_over_c</code>, <code>ar_over_c</code>, <code>s_over_c</code>, 1 for a host of solar composition), times the share of that which is in the ice, times the population's median CO/H2O (10^-1.602, row k5). The carbon in CO is the 1.5 per 10^4 hydrogen of [R3322] over the proto-solar carbon (0.52). O<sub>2</sub>, Kr and Xe have no host ratio here and keep the value of 67P. The width of every species is 0.4 dex.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Nebular, per CO (solar host)</th>
+<th>Share in the ice (CK1, CK2)</th>
+<th>Median per water</th>
+<th>67P (calibration)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub></td>
+<td>0.225</td>
+<td>0.158</td>
+<td>8.9e-4</td>
+<td>8.9e-4</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>0.016</td>
+<td>0.0145</td>
+<td>5.8e-6</td>
+<td>5.8e-6</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>0.088</td>
+<td>0.187</td>
+<td>4.1e-4</td>
+<td>4.1e-4</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>0.088</td>
+<td>0.592</td>
+<td>1.3e-3</td>
+<td>1.3e-3</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-what-this-is-and-is-not">2. What this is and is not</h2>
+<p>It makes the seven species depend on the star: a host with twice the nitrogen per carbon gives twice the N<sub>2</sub>. It does not remove 67P as the anchor: the four shares and the three unscaled values are tuned to the one comet measured, so the test that the chain gives 67P at a solar host is the calibration, not a check. They are registered stand-ins (tier T7, tweak L3), with GEN.1021 to replace them with a second comet or a laboratory table of trapping by formation temperature. Bar-Nun (NASA N90-16610: the trapped gas drops six decades between 25 and 100 K; CO at 3.5 percent needs 48 +/- 5 K) says the share depends on a temperature the generator does not carry per comet; the NTRS text had no per-species tables.</p>
+<p>The width 0.4 dex is Bar-Nun's 5 K at a decade per 12 K (CK6, T6, L1), against the old design 0.6; the four species a population measures scatter 0.33 to 0.39 dex.</p>
+<h2 id="3-limits">3. Limits</h2>
+<ul>
+<li>The sulfur of OCS and SO<sub>2</sub> (0.78 of the CO-scaled nebular sulfur) plus the population's H<sub>2</sub>S exceeds what the chain allows: the sulfur is not conserved across rows.</li>
+<li>Krypton and xenon are not in the abundance table of the generator (<code>tuning.STELLAR_SOLAR_LOG_EPS</code> stops at the metals the star draw carries), so they keep one value.</li>
+<li>The star's ratios are quantities the subject must carry (<code>required_inputs('comet')</code> now lists them); <code>mixture_subject.subject_of_body</code> builds planets and moons, and a comet's subject is built by its caller until the generator draws comets (the recipes are not yet read by it). A caller with no star composition passes 1.</li>
+</ul>
+<h2 id="4-the-brackets-between-the-comets-measured-gen1021-comet_speciesbracket_over_h2o">4. The brackets between the comets measured (GEN.1021, <code>comet_species.bracket_over_h2o</code>)</h2>
+<p>The 67P calibration is replaced by the range between the comets measured (the widest range where two sources are in question). Report: <code>reports/gen1021-comet-species-second-comet-2026-10-30.md</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Low end</th>
+<th>High end</th>
+<th>Width</th>
+<th>Sources</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub> (per CO, times the median CO/H2O of 2.5 percent)</td>
+<td>0.0287 (67P)</td>
+<td>0.09 (C/2016 R2)</td>
+<td>0.5 dex</td>
+<td>R0109, R0836</td>
+</tr>
+<tr>
+<td>Ar (per water)</td>
+<td>5.8e-6 (67P)</td>
+<td>8.7e-3 (Hale-Bopp)</td>
+<td>3.2 dex</td>
+<td>R3835, R4215</td>
+</tr>
+<tr>
+<td>OCS (per water)</td>
+<td>5e-4</td>
+<td>4e-3, never above the nebular sulfur</td>
+<td>0.64 dex</td>
+<td>range of the comets, 46P paper Table 7</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub> (per water)</td>
+<td>3e-4</td>
+<td>2.3e-3, never above the nebular sulfur</td>
+<td>0.86 dex</td>
+<td>the same</td>
+</tr>
+<tr>
+<td>O<sub>2</sub> (per water)</td>
+<td>0.020</td>
+<td>0.0465</td>
+<td>0.37 dex</td>
+<td>Halley R3836 to 67P R0386, by their errors</td>
+</tr>
+<tr>
+<td>Kr, Xe</td>
+<td>argon times 0.089, krypton times 0.269</td>
+<td>the same</td>
+<td>3.2 dex</td>
+<td>67P R3834 (one comet)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The ends scale with the host: N<sub>2</sub> with <code>n_over_c</code>, argon, krypton and xenon with <code>ar_over_c</code>, OCS and SO<sub>2</sub> with <code>s_over_c</code>. Argon is moved off the CO chain onto the water: Hale-Bopp's argon per CO (0.043) is 2.7 times what the nebula holds per CO, so no trapped share of the CO chain can reach it. Rows to retire when this is wired: CK1, CK2, CK5, CK6 (CK3 stays for the nebular amounts, CK4 is row k5). New rows: CB1 (the brackets, T3, L0) and CB2 (the 67P noble-gas ratios, T2, L1).</p>
+<h2 id="5-one-latent-ice-formation-temperature-gen1022-comet_ice_formation">5. One latent ice formation temperature (GEN.1022, <code>comet_ice_formation</code>)</h2>
+<p>The data say the species move together: the two CO-rich comets are argon-rich and nitrogen-rich per CO and 67P is poor in all of them, and Bar-Nun's trapped gas falls six decades from 25 to 100 K. Independent brackets (section 4) would allow a CO-poor, argon-rich comet, which the data do not show. So a comet has one latent, the temperature its ice formed at, and it is read off CO/H2O, the quantity measured for every comet, so row k5's spread (2.5 percent, 0.65 dex) is unchanged:</p>
+<ol>
+<li><code>T = 48 K + 12.5 K x log10(0.035 / (CO/H2O))</code>: the laboratory law through Halley's anchor (3.5 percent CO at 48 +/- 5 K) at 12.5 K per decade (CY3). The median comet is 49.8 K, Hale-Bopp (CO/H2O 0.2, CY1) 38.5 K.</li>
+<li>The position <code>xi</code> is 0 at the median comet's temperature and 1 at Hale-Bopp's, held at the ends.</li>
+<li>N<sub>2</sub>, Ar, Kr and Xe are interpolated in the logarithm between the two ends of their section 4 brackets at <code>xi</code>, plus a residual of their own (CY2: N<sub>2</sub> 0.05 dex, Ar 0.4 dex from 67P's own season, Kr and Xe 0.15 dex from the lab's 40 percent). N<sub>2</sub> is per CO, so it also follows the comet's own CO/H2O. Krypton is the comet's argon times 0.089 and xenon its krypton times 0.269.</li>
+<li>OCS, SO<sub>2</sub> and O<sub>2</sub> are not driven by the temperature and keep their section 4 brackets (log-uniform).</li>
+</ol>
+<p>Tests (never inputs): the median comet gives the warm end and Hale-Bopp the cold end of every species; the species correlate with CO across a drawn population (above 0.7) and a CO-poor, argon-rich comet is under 1 percent; argon across comets spans 67P to Hale-Bopp and N<sub>2</sub> per CO spans 67P to R2.</p>
+<p>Limits. The temperature is a latent: Ciesla and others 2018 show that the trapping also depends on the deposition rate and the partial pressure. Hale-Bopp's CO/H2O is recalled, not opened (CY1). Comets warmer than the median all take the warm-end values (plus residuals). The sulfur of OCS and SO<sub>2</sub> plus the population's H<sub>2</sub>S is still not conserved across rows.</p>
+<p>Wiring (a later part, rides a train with one epoch): rows k5 and k7 draw the CO/H2O first and then each latent species from <code>latent_species_over_h2o</code> with one standard normal each (a new draw kind in <code>atmosphere_recipes</code>), and OCS, SO<sub>2</sub> and O<sub>2</sub> from <code>bracket_over_h2o</code> as <code>loguniform</code> rows; <code>TRAPPED_OVER_NEBULAR</code>, <code>UNSCALED_OVER_H2O</code>, <code>median_over_h2o</code>, <code>sigma_dex</code> and rows CK1, CK2, CK5 and CK6 go, with their burn-down lines. The stored comet columns move for every comet, so the epoch is named in the note.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

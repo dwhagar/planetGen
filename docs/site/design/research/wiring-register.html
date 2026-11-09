@@ -1,0 +1,1533 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The wiring register: what is built or downloaded and not read yet (GEN.754) - planetGen docs</title>
+<meta name="description" content="Status: hand-kept, checked by scripts/wiringguard.py and src/tests/testwiringguard.py.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/wiring-register.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/wiring-register.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-wiring-register-what-is-built-or-downloaded-and-not-read-yet-gen754">The wiring register: what is built or downloaded and not read yet (GEN.754)</h1><p class="meta">docs/design/research/wiring-register.md</p>
+<p>Status: hand-kept, checked by <code>scripts/wiring_guard.py</code> and <code>src/tests/test_wiring_guard.py</code>. Every module, setup dataset, dataset reader, data file, stand-in registry row (GEN.725), stored column and public function (TEST.520) that nothing in the app reaches is named here with the open item that will wire it, or with the words <code>by design</code> and the reason. The test fails when something unread is missing from this page, when a line names something that is read now (delete the line in the same change that wires it), and when a named item is not open in <code>docs/TODO.md</code>. No shim: an unread piece is wired, filed or deleted.</p>
+<p>What counts as read: the app is every module outside <code>physics</code>, <code>generation</code>, <code>galaxy</code>, <code>datasets</code> and <code>tuning</code> (the CLI, API, web, admin, queue, population, backup and describe packages). A library module is read when an import chain from the app reaches it, a lazy import inside a function counts, and so does a module named by a string (<code>importlib.import_module(&quot;planetgen.x&quot;)</code>, the registry's <code>&quot;planetgen.x:function&quot;</code>). A dataset reader is read when a reachable module outside <code>datasets</code> uses it. A data file is read when a reachable module names it. A registry row is read when one of its <code>module.CONSTANT</code> names is used by a reachable module. A <code>column</code> is a column of a table that holds objects (planets, moons, stars, systems, belts, comets, fields, rogue planets and the other tables of the <code>uid</code> group of <code>db/kind_tables.py</code>) and is read when a module outside the plumbing (<code>PLUMBING</code> in the guard: the schema, models, column units, store, storage checksum, checks, export and repair code and the generic Details sheet) loads its name as an attribute, a name, a dictionary key or a word of a SQL string; a module of physics or generation that loads the value is a reader, so a column read downstream is not listed. A <code>function</code> is a public module-level function of a reachable module of <code>physics</code>, <code>generation</code> or <code>galaxy</code> that no other module, no other function of its module and no string of the package names; only tests call it. The test is by name, so a name two modules share counts as called. A function with a decorator that could register it (anything but a cache or a property) is left out. Wire the piece, delete it, or add a line here with the open item that will; delete the line in the same change that wires it.</p>
+<p><code>python scripts/wiring_guard.py</code> prints what the guard finds; <code>--check</code> is the test.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>name</th>
+<th>item</th>
+<th>reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dataset</td>
+<td>harris_clusters</td>
+<td>GEN.297</td>
+<td>the Harris catalog of 157 globular clusters; the calibration of the cluster generator reads it</td>
+</tr>
+<tr>
+<td>dataset</td>
+<td>noaa_proton_events</td>
+<td>GEN.805</td>
+<td>the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them</td>
+</tr>
+<tr>
+<td>dataset</td>
+<td>hyg_stars</td>
+<td>by design</td>
+<td>the HYG star database v4.1, a test reference only: the sky calibration (<code>test_sky_hyg_calibration.py</code>, VIEW.30) holds the generated sky against it; the generator never reads it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.line_opacity</td>
+<td>by design</td>
+<td>the band opacities of the radiative-convective model, which the greenhouse table is fitted to and the checks hold it to; the generator reads the table, never the model</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.radiative_convective</td>
+<td>by design</td>
+<td>the model the greenhouse table (<code>greenhouse_table.py</code>) is fitted to by <code>scripts/fit_greenhouse_table.py</code>, too slow for the fixed point; run by the fit and the tests, not by generation</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.radiative_kernel</td>
+<td>by design</td>
+<td>the numba sweep of <code>radiative_convective</code>; the web app must not load numba, so only the fit and the tests reach it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.clearance</td>
+<td>by design</td>
+<td>the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.photolysis.outside_templates</td>
+<td>by design</td>
+<td>says when a star's template ratio is the end template's (read by the tests and by the notes of the table)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.venus_spin.retrograde_possible</td>
+<td>by design</td>
+<td>whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.disintegrating_planet.remaining_mass_earth</td>
+<td>by design</td>
+<td>the mass a body has left after an age of the wind, for a page note of how long the planet has left; the tests read it, the W14 effect reads the loss rate over the age</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.climate_branches.bistable_window</td>
+<td>by design</td>
+<td>the flux range where an Earth twin holds both a warm and a snowball branch, for the tests and the census check of WR7; the W20 effect finds the other branch by solving the world's own air again (<code>air_branches</code>)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mantle_stripping.contact_speed_ms</td>
+<td>by design</td>
+<td>the impact speed from the speed at infinity and the escape speed, for a caller that draws an impact from a population (read by the tests; the W10 effect draws the energy ratio, MT8)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mantle_stripping.speed_for_core_fraction</td>
+<td>by design</td>
+<td>the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mantle_stripping.strip_probability</td>
+<td>by design</td>
+<td>the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.nebula_density.octave_bound</td>
+<td>by design</td>
+<td>the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.remnant_orbits.pollution_rate_g_s</td>
+<td>GEN.1231</td>
+<td>the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mixture_trace.draw_trace_gases</td>
+<td>GEN.524</td>
+<td>the mixture-level draw of the trace gases; <code>physics.trace_air</code> reads <code>draw_trace_amounts</code> instead, so a later part of GEN.524 deletes this or wires it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.design_flags</td>
+<td>GEN.524</td>
+<td>gates the trace rows <code>mixture_trace</code> draws</td>
+</tr>
+<tr>
+<td>data</td>
+<td>design_flags.json</td>
+<td>GEN.524</td>
+<td>read by <code>physics/design_flags.py</code> only</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.equilibrium_edges</td>
+<td>GEN.994</td>
+<td>the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.ground_albedo</td>
+<td>GEN.684</td>
+<td>the colour of the ground by band, wired by the ground albedo item</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.galaxy.influence</td>
+<td>GEN.342</td>
+<td>the influence set of an object, read by the acceleration kernel of the orbital update</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.galaxy.influence</td>
+<td>GEN.105</td>
+<td>the influence set of an object, read by the orbital update run through the acceleration kernel</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.galaxy.acceleration</td>
+<td>GEN.105</td>
+<td>the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.158:AK1</td>
+<td>GEN.105</td>
+<td><code>acceleration.MEMBER_SOFTENING_PC</code>, read when the orbital update run calls the kernel</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.radius_valley</td>
+<td>by design</td>
+<td>the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired)</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.iron_branch_tuning</td>
+<td>by design</td>
+<td>the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.generation.redraw_kinds</td>
+<td>by design</td>
+<td>the names and one-line meanings of the redraw counters (TEST.476); <code>draw.redrawn</code> is called by name from the generator and the census reads this registry, so no generation code imports it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.generation.class_sample</td>
+<td>by design</td>
+<td>a sample that holds every class, a helper of the sheet audit tests</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.generation.plausibility</td>
+<td>by design</td>
+<td>the anomaly finder engine; run by the plausibility tests and their command line wrapper in <code>src/tests</code></td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.generation.phenomena_plausibility</td>
+<td>by design</td>
+<td>the exotic-phenomena counterpart of the anomaly finder, run by its tests</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.10:RV2</td>
+<td>by design</td>
+<td><code>radius_valley.CORE_MASS_SIGMA</code>, a width of the simulated survey, read by the tuning tests</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.10:RV3</td>
+<td>by design</td>
+<td><code>radius_valley.ENVELOPE_SIGMA</code>, a width of the simulated survey, read by the tuning tests</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.planet_occurrence</td>
+<td>by design</td>
+<td>the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built)</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.kepler_multiplicity</td>
+<td>by design</td>
+<td>the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built)</td>
+</tr>
+<tr>
+<td>data</td>
+<td>planet_occurrence.json</td>
+<td>by design</td>
+<td>read by <code>physics/planet_occurrence.py</code> only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built)</td>
+</tr>
+<tr>
+<td>data</td>
+<td>partial_pressure_rules.json</td>
+<td>by design</td>
+<td>the list of which oxygen and carbon dioxide rules are pressures and which stay shares, read by <code>test_partial_pressure_rules.py</code> (GEN.1331) to hold the rule files to it; the generator reads the rule files themselves</td>
+</tr>
+<tr>
+<td>data</td>
+<td>potassium_depletion.json</td>
+<td>GEN.492</td>
+<td>the K/U of six bodies ([R1003: Table 1]) with CI chondrites; <code>radiogenic.draw_content</code> will take the potassium depletion and CI K/U from it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.potassium_depletion</td>
+<td>GEN.492</td>
+<td>the potassium depletion drawn by body class; replaces the log-uniform <code>tuning.RADIOGENIC_K_DEPLETION_RANGE</code> once <code>radiogenic</code> calls it with the body's mass</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.61:KD3</td>
+<td>GEN.492</td>
+<td><code>potassium_depletion.CLASS_MASS_EARTH</code>, not read until <code>radiogenic</code> calls the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.61:KD4</td>
+<td>GEN.492</td>
+<td><code>potassium_depletion.MAX_DEPLETION</code>, not read until <code>radiogenic</code> calls the module</td>
+</tr>
+<tr>
+<td>data</td>
+<td>co2_far_wing.json</td>
+<td>GEN.1019</td>
+<td>the carbon dioxide far-wing rules (Perrin and Hartmann chi, widths, reach); <code>line_opacity</code> will read them when the wing replaces IR3</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.co2_far_wing</td>
+<td>GEN.1019</td>
+<td>the far wing of carbon dioxide; replaces the flat <code>CO2_FAR_WING_M2_KG</code> of IR3 once <code>line_opacity</code> calls it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.clearance</td>
+<td>GEN.1016</td>
+<td>the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands</td>
+</tr>
+<tr>
+<td>data</td>
+<td>sulfuric_cloud.json</td>
+<td>GEN.1019</td>
+<td>the sulfuric acid cloud rules (base temperature, published depth and radius brackets, cover); <code>aerosols.draw_cloud</code> will read them in the wiring step</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.sulfuric_cloud</td>
+<td>GEN.1019</td>
+<td>the acid cloud of an air with sulfur; <code>aerosols.draw_cloud</code> will add it to the condensate cloud once wired</td>
+</tr>
+<tr>
+<td>data</td>
+<td>acid_cloud_optics.json</td>
+<td>by design</td>
+<td>the acid droplets' infrared optics per band (made by <code>scripts/build_acid_cloud_optics.py</code>); <code>radiative_convective</code> will read it through <code>cloud_infrared</code> in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built)</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.cloud_infrared</td>
+<td>by design</td>
+<td>the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built)</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.mie</td>
+<td>by design</td>
+<td>Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo)</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.63:CF<sub>3</sub></td>
+<td>by design</td>
+<td><code>cloud_infrared.TOP_OVER_BASE_PRESSURE</code>, read when the column solver calls the cloud (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built)</td>
+</tr>
+<tr>
+<td>data</td>
+<td>quadruple_stability_3p1.json</td>
+<td>GEN.1016</td>
+<td>the 3+1 quadruple stability rules (validity ranges, the stability definition); <code>multistar</code> limits will read them through <code>quadruple_stability</code> in the wiring step</td>
+</tr>
+<tr>
+<td>data</td>
+<td>quadruple_stability_3p1_weights.json</td>
+<td>GEN.1016</td>
+<td>the 8,301 numbers of the authors' network (made by <code>scripts/build_quadruple_stability.py</code>); read by <code>quadruple_stability</code></td>
+</tr>
+<tr>
+<td>data</td>
+<td>quadruple_stability_2p2.json</td>
+<td>GEN.1016</td>
+<td>the 2+2 quadruple stability rules (validity ranges, the stability definition); read by <code>quadruple_stability</code></td>
+</tr>
+<tr>
+<td>data</td>
+<td>quadruple_stability_2p2_weights.json</td>
+<td>GEN.1016</td>
+<td>the 8,301 numbers of the authors' 2+2 network (made by <code>scripts/build_quadruple_stability.py</code>); read by <code>quadruple_stability</code></td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.quadruple_stability</td>
+<td>GEN.1016</td>
+<td>the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.hierarchy_stability</td>
+<td>GEN.1016</td>
+<td>the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the <code>multistar</code> limits once the wiring merges on its train</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.atmosphere_retention</td>
+<td>GEN.1047</td>
+<td>the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.74:SH1</td>
+<td>GEN.1047</td>
+<td><code>atmosphere_retention.SHORELINE_K</code>, not read until the pressure stage takes its cap from the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.74:SH2</td>
+<td>GEN.1047</td>
+<td><code>atmosphere_retention.VERDICT_EDGES</code>, not read until the pressure stage takes its cap from the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.74:SH3</td>
+<td>GEN.1047</td>
+<td><code>atmosphere_retention.PRESSURE_CAPS_PA</code>, not read until the pressure stage takes its cap from the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.74:SH4</td>
+<td>GEN.1047</td>
+<td><code>atmosphere_retention.JEANS_KEEP</code>, not read until the pressure stage takes its cap from the module</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.band_winds</td>
+<td>GEN.1110</td>
+<td>the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW1</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW2</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW3</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW4</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW5</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.98:BW6</td>
+<td>GEN.1110</td>
+<td>a constant of the band winds module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.helium_fractionation</td>
+<td>GEN.1047</td>
+<td>the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.77:HF1</td>
+<td>GEN.1047</td>
+<td>a constant of the helium fractionation module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.77:HF2</td>
+<td>GEN.1047</td>
+<td>a constant of the helium fractionation module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.77:HF3</td>
+<td>GEN.1047</td>
+<td>a constant of the helium fractionation module, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.hycean_candidate</td>
+<td>GEN.1047</td>
+<td>the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.79:HC1</td>
+<td>GEN.1047</td>
+<td>the four ranges of the Hycean box, read when its wiring step lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.dwarf_population</td>
+<td>GEN.1092</td>
+<td>the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.shape_temperature</td>
+<td>GEN.1201</td>
+<td>the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in <code>body_strength</code> and stores it, once GEN.1159's columns are on main</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.162:SHT1</td>
+<td>GEN.1201</td>
+<td><code>shape_temperature.ICE_SPECIFIC_HEAT</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.162:SHT2</td>
+<td>GEN.1201</td>
+<td><code>shape_temperature.WINDOW_SHAPE_FACTOR</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_mass.mass_is_conserved</td>
+<td>by design</td>
+<td>the check the tests hold a field's stored bodies and remainder to; the generator never needs to ask</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_rates.unbound_belt_birth_rate_per_year</td>
+<td>by design</td>
+<td>the birth rate of fields from supernova-unbound belts of a galaxy: the census the host rule's share of remnants is held to (tests/test_field_host.py)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_rates.hosted_age_share</td>
+<td>by design</td>
+<td>the share of remnants that still host their belt's field: the expected share the host rule's census is held to</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_rates.cluster_swarm_standing</td>
+<td>by design</td>
+<td>the young-cluster swarm hook of the design (source S3): no swarm is drawn, a young cluster lists none (low priority)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.rogue_collision.galaxy_rate_per_year</td>
+<td>by design</td>
+<td>the galaxy's rogue-rogue collision rate: the figure the per-sector rate of <code>collision_field</code> is checked against in a test</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.resonance_gaps</td>
+<td>GEN.1069</td>
+<td>the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP2</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.ORDER_WIDTH_EXPONENT</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP3</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.RESONANCE_CLEARING_MYR</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP4</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.MAX_ORDER, MAX_P</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP5</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP6</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP7</td>
+<td>GEN.1069</td>
+<td><code>resonance_gaps.ZONE_ECCENTRICITY_FLOOR</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.resonance_gaps</td>
+<td>GEN.1092</td>
+<td>the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP2</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.ORDER_WIDTH_EXPONENT</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP3</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.RESONANCE_CLEARING_MYR</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP4</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.MAX_ORDER, MAX_P</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP5</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP6</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.116:RGP7</td>
+<td>GEN.1092</td>
+<td><code>resonance_gaps.ZONE_ECCENTRICITY_FLOOR</code>, read when the wiring step lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.trojans</td>
+<td>GEN.1150</td>
+<td>what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.121:TJ1</td>
+<td>GEN.1150</td>
+<td><code>trojans.MU_CRIT</code>, read when the swarm draw lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.121:TJ3</td>
+<td>GEN.1150</td>
+<td><code>trojans.libration_period, TADPOLE_LIMIT_DEG</code>, read when the orbit overlay lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.121:TJ4</td>
+<td>GEN.1150</td>
+<td><code>trojans.LEADING_SHARE_RANGE</code>, read when the swarm draw lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.121:TJ5</td>
+<td>GEN.1150</td>
+<td><code>trojans.ECC_MAX, INCLINATION_MAX_DEG</code>, read when the swarm draw lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.trojan_bodies</td>
+<td>GEN.1151</td>
+<td>how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.125:TB3</td>
+<td>GEN.1151</td>
+<td><code>trojan_bodies.FORMATION_EFFICIENCY</code>, read when the whole-body draw lands</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.125:TB4</td>
+<td>GEN.1151</td>
+<td><code>trojan_bodies.MIN_DISK_LIFETIME_MYR</code>, read when the whole-body draw lands</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.lagrange_geometry</td>
+<td>MAP.354</td>
+<td>the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.126:RN1</td>
+<td>GEN.1201</td>
+<td><code>roundness.SPHERICITY_FACTOR</code>, not read until GEN.1201 wires the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.126:RN2</td>
+<td>GEN.1201</td>
+<td><code>roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA</code>, not read until GEN.1201 wires the module</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.126:RN4</td>
+<td>GEN.1201</td>
+<td><code>roundness.METAL_STRENGTH_PA</code>, not read until GEN.1201 wires the module</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.ice_types</td>
+<td>GEN.1201</td>
+<td>the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); <code>roundness.py</code> takes the ratio as a factor on its ice strength when the types are wired</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.roundness.is_round</td>
+<td>GEN.1201</td>
+<td>whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.126:RN11</td>
+<td>GEN.1201</td>
+<td><code>roundness.ROCK_CREEP_COLUMNS</code>, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine</td>
+</tr>
+<tr>
+<td>column</td>
+<td>binary_epoch_unix</td>
+<td>by design</td>
+<td>the daily orbit update (<code>store.advance_*</code>) reads and writes the pair's clock; nothing outside the store needs it</td>
+</tr>
+<tr>
+<td>column</td>
+<td>binary_next_update_due</td>
+<td>by design</td>
+<td>the daily orbit update (<code>store.advance_*</code>) schedules the pair's next step from it; nothing outside the store needs it</td>
+</tr>
+<tr>
+<td>column</td>
+<td>dynamical_state</td>
+<td>GEN.291</td>
+<td><code>planets</code> and <code>moons</code>: every body is <code>bound</code>; the unbind and capture test of GEN.291 is what sets <code>unbound</code></td>
+</tr>
+<tr>
+<td>column</td>
+<td>formed_at</td>
+<td>GEN.346</td>
+<td><code>asteroid_fields.formed_at</code>, the epoch an event-made field formed; written when a collision makes a field</td>
+</tr>
+<tr>
+<td>column</td>
+<td>host_node_id</td>
+<td>GEN.332</td>
+<td><code>planets.host_node_id</code>, the orbit node a planet orbits; NULL (its star) until circumbinary and S-type planets are placed at nodes</td>
+</tr>
+<tr>
+<td>column</td>
+<td>origin_event_id</td>
+<td>GEN.346</td>
+<td><code>asteroid_fields.origin_event_id</code>, the orbital event that made the field; written when a collision makes a field</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.cellkey.cell_keys</td>
+<td>by design</td>
+<td>the numpy twin of <code>cell_key</code>; the tests hold <code>sphere_runs</code> and the stored key to it on many points at once, the generator keys one point at a time</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.cellkey.sql_cell_key</td>
+<td>by design</td>
+<td>the text of the MySQL generated column's expression; <code>schema.sql</code> holds it written out and the schema test compares the two, so the column cannot drift from the Python key</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.potential.vertical_force</td>
+<td>by design</td>
+<td>the disk's vertical pull <code>K_z</code> at a radius and height, the check of the potential against the Oort limit and the scale height of a disk; read by tests</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.density.component_masses</td>
+<td>by design</td>
+<td>each density component's closed-form mass (GEN.379), the total <code>test_density_components</code> holds the numerical integral (<code>integrated_masses</code>) to; the potential (GEN.338) reads the component masses from <code>density_components</code> directly</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.density.predicted_star_count</td>
+<td>by design</td>
+<td>the sector gate of the density design (<code>predicted_star_count &gt;= 1</code>) as one pure function of the position; <code>run_plan</code> and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.collision_field.standing_density_pc3</td>
+<td>by design</td>
+<td>the collision fields standing per pc3, the figure <code>tuning.PHENOMENON_DENSITY_PC3[&quot;asteroid-field&quot;]</code> is held to by a test (tuning cannot import physics)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.object_uid.is_on_demand</td>
+<td>GEN.1105</td>
+<td>a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.object_uid.captured_member</td>
+<td>GEN.1070</td>
+<td>the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.object_uid.outside_reservoir_member</td>
+<td>GEN.1070</td>
+<td>the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.object_uid.parse_captured</td>
+<td>GEN.1070</td>
+<td>reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.region_run.next_units</td>
+<td>GEN.1128</td>
+<td>the barrier of the region run (stages 0 to 2 for every unit, then the top-up); the command wires it when the top-up stage exists</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.spherical.shell_cells</td>
+<td>by design</td>
+<td>every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.star_formation.star_formation_rate_profile</td>
+<td>by design</td>
+<td>the present star-formation rate against radius that <code>test_star_formation_profile</code> compares with the observed profile; the generator reads <code>recent_factor</code>, never the profile</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.structure_draw.hot_component_bound</td>
+<td>by design</td>
+<td>the most the thick disk can weigh over the thin disk's ([R0860: Eq. 1]), the bound <code>test_structure_draw</code> holds the drawn thick-to-thin ratio under; the draw does not read it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.structure_draw.draw_neutron_star_unbound_share</td>
+<td>by design</td>
+<td>the kick share a seed draws, with the stellar mass pinned, so <code>test_natal_kick</code> and <code>test_halo_threshold</code> probe the halo threshold without building the whole structure; the structure carries the same value</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.bright_stars.cell_band_rate</td>
+<td>by design</td>
+<td>the stars a cell expects in a luminosity band, the independent form of the rate the block path of <code>backfill_cells</code> computes inline; <code>test_block_sampler</code> and <code>test_backfill_block_path</code> check the block path against it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.possibility_table.concentration_from_spread</td>
+<td>by design</td>
+<td>the authoring helper that turns a published spread of a component into a Dirichlet row's concentration; a row written from a source that gives spreads calls it, the tests hold the formula</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.primary_mass_function.systems_per_star</td>
+<td>by design</td>
+<td>the systems born per star born (0.697 in the stellar mass function note) that <code>test_primary_mass_function</code> pins; generation reads <code>systems_per_solar_mass</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.run_galaxy.backfill_bright_stars_around</td>
+<td>by design</td>
+<td>the bright-star backfill (GEN.23) as one call with its own progress bar and shell log (PERF.28); a run does the same draw in <code>scatter-backfill</code> units (<code>expand_backfill_bright_stars</code>), so this form is what the tests and <code>tests/sector_support.make_sector</code> call to backfill one sector</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.stats.job_shells_per_second</td>
+<td>PERF.147</td>
+<td>the stored whole-job rate that starts the ETA of a task that takes over 15 seconds</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.tuning_harness.check_target</td>
+<td>by design</td>
+<td>the entry of the tuning harness: draws a shipped recipe at a target's subject and compares it; the tests hold every recipe to its target through it, the generator never runs it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.belt_history.is_polluted</td>
+<td>GEN.1231</td>
+<td>the pollution flag of a white dwarf from the rate of its belt (GEN.1068 gives the belts that see the giants)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.birth_radioisotopes.fraction_above</td>
+<td>by design</td>
+<td>the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.brown_dwarf_types.type_probabilities</td>
+<td>by design</td>
+<td>the expected share of each class, read by test_brown_dwarf_types against the sampler it describes</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clathrate_brine.hydrate_stable</td>
+<td>GEN.471</td>
+<td>whether a clathrate hydrate is stable at a temperature and guest pressure; the surface, the moons and the methane supply read it when GEN.471 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clathrate_brine.dissociation_temperature_k</td>
+<td>GEN.471</td>
+<td>the temperature above which a hydrate dissociates at a guest pressure; read by the surface, the moons and the methane supply when GEN.471 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clathrate_brine.eutectic_wt_percent</td>
+<td>GEN.471</td>
+<td>the eutectic composition of a brine salt; read with the liquid range when GEN.471 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clathrate_brine.freezing_point_k</td>
+<td>GEN.471</td>
+<td>the freezing point of a brine of a given strength; read by the surface and the moons when GEN.471 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clathrate_brine.liquid_range_k</td>
+<td>GEN.471</td>
+<td>the temperatures at which some solution of a salt is liquid; read by the surface and the moons when GEN.471 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.collision_outcome.conservation_error</td>
+<td>by design</td>
+<td>the mass and momentum check of a collision outcome; the tests and the census run it, the generator never needs it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.comet_admission.observed_sampler</td>
+<td>by design</td>
+<td>the simulated observed sample of the comet admission selection model: the simulated side of the <code>comet_admission</code> selection model, run by test_comet_admission through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.comet_admission.expected_measured</td>
+<td>by design</td>
+<td>the expected count the comet admission model measures: the simulated side of the <code>comet_admission</code> selection model, run by test_comet_admission through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.compaction.taper_weight</td>
+<td>GEN.1201</td>
+<td>the taper of the compaction law in log mass; <code>body_status.roundness</code> calls it, and that module is wired with the roundness engine</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.elements.isotopic_mass_fraction</td>
+<td>by design</td>
+<td>the isotope mass fraction the published specific activities are checked against, read by test_elements</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_kernel.accelerations</td>
+<td>GEN.105</td>
+<td>the pull at an object's exact place; the update's motion vector reads the gravitational field there (the numba kernel <code>sector_path</code> loads)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.giant_tilt.large_tilt_chance</td>
+<td>by design</td>
+<td>the expected share of ice giants tilted over 60 degrees that <code>MERGER_SHARE</code> gives, the check of the tilt draw; read by test_giant_tilt, never by the generator</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.giant_tilt.final_period_h</td>
+<td>by design</td>
+<td>the spin after the impact that tilts an ice giant, the check that the impacts that turn a Uranus also spin it as fast as Uranus; read by test_giant_tilt, the draw keeps the giant's own spin</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.habitability_world.harshness</td>
+<td>POP.40</td>
+<td>one minus the worst core domain score, the 0 to 1 harshness the tech draw and the facility ratings read (population-and-politics.md); POP.40 makes the facility ratings read the host, which is where it is called</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.hosting_gate.moon_survives_tides</td>
+<td>GEN.550</td>
+<td>the tidal-survival gate of a moon that would host a submoon; a moon hosts only through this gate and a sourced satellite-share row, which the recursive generation of GEN.550 adds</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.impact_spin.mean_rms_breakup_fraction</td>
+<td>by design</td>
+<td>the rms birth spin of a mass averaged over the distribution of the mass ratio, the expected value the draws are checked against; read by test_impact_spin and test_tidal_spin, never by the generator</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.jwst_selection.observed_sampler</td>
+<td>by design</td>
+<td>the simulated observed sample of the JWST target selection model: the simulated side of the <code>jwst_selection</code> selection model, run by test_jwst_selection through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.jwst_selection.expected_observed</td>
+<td>by design</td>
+<td>the expected count the JWST target selection observes: the simulated side of the <code>jwst_selection</code> selection model, run by test_jwst_selection through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.kepler_recovery.observed_sampler</td>
+<td>by design</td>
+<td>the simulated Kepler survey sample of the recovery model: the simulated side of the <code>kepler_recovery</code> selection model, run by test_kepler_recovery and test_kepler_multiplicity through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.kepler_recovery.expected_found</td>
+<td>by design</td>
+<td>the expected count the Kepler pipeline finds: the simulated side of the <code>kepler_recovery</code> selection model, run by test_kepler_recovery and test_kepler_multiplicity through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.king.mass_within_pc</td>
+<td>GEN.209</td>
+<td>the share of a cluster's mass inside a radius; the sector fill that draws a cluster's stars reads it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mass_radius_sample.pass_probability</td>
+<td>by design</td>
+<td>the chance a planet passes the mass and radius measurement cut: the simulated side of the <code>mass_radius_sample</code> selection model, run by test_mass_radius_sample and test_iron_branch through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mass_radius_sample.observed_sampler</td>
+<td>by design</td>
+<td>the simulated mass and radius sample of the iron branch tuning: the simulated side of the <code>mass_radius_sample</code> selection model, run by test_mass_radius_sample and test_iron_branch through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.mass_radius_sample.population_pass_fraction</td>
+<td>by design</td>
+<td>the share of a population that passes the measurement cut: the simulated side of the <code>mass_radius_sample</code> selection model, run by test_mass_radius_sample and test_iron_branch through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.materials.class_composition</td>
+<td>by design</td>
+<td>the rows a planet class text names; read by test_materials_table, which fails when a class text of <code>tuning.PLANET_CLASSES</code> resolves to no row</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.moon_orbits.drift_rate_m_s</td>
+<td>by design</td>
+<td>the instantaneous <code>da/dt</code> of one moon at a given spin; <code>evolve</code> integrates all moons together and does not call it, the tests use it to hold the Earth-Moon recession (3.8 cm a year), Phobos and Triton to the torque</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.neutron_star.radius_limits_km</td>
+<td>by design</td>
+<td>the radius bounds of the equation-of-state spread, read by the plausibility gate (phenomena_plausibility, test_phenomena_plausibility, its batch CLI) and test_neutron_star_radius</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.neutron_star_structure.integrated_maximum_mass_solar</td>
+<td>by design</td>
+<td>the integrated maximum mass of an equation of state, read by scripts/build_neutron_star_table.py (run by hand when the table is rebuilt) and test_neutron_star_structure_real</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.neutron_star_structure.integrated_curve</td>
+<td>by design</td>
+<td>the integrated stable branch, read by test_neutron_star_structure_real to check the shipped table against a fresh integration</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.neutron_star_structure.curve_with_crust</td>
+<td>by design</td>
+<td>the arrays scripts/build_neutron_star_table.py writes (run by hand when the table is rebuilt), never read at generation</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.orbits.classify_encounter</td>
+<td>GEN.105</td>
+<td>the guard for very close passes (GEN.108); the orbital update calls it before it moves a body</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.pair_history.widest_forced_axis_au</td>
+<td>by design</td>
+<td>the widest present axis the history rule forces into a post-common-envelope pair, found by bisection; the tree draw asks <code>must_be_post_common_envelope</code> at the drawn axis, and <code>test_pair_history</code> pins the rule's limit with this</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.photometry.blackbody_colour</td>
+<td>VIEW.11</td>
+<td>the VIEW.11 photometry library is the reader: a star page or map colour reads it when VIEW.11 is built</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.planet_architecture.survival_probability</td>
+<td>by design</td>
+<td>Pu and Wu's survival law, whose inverse (<code>survival_decades</code>) is what the build draws; <code>test_planet_architecture</code> pins the inversion against it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.planet_architecture.ejection_yield</td>
+<td>by design</td>
+<td>the expected number and mass of ejected bodies per star, the yield set against microlensing; <code>test_architecture_losses</code> runs it, the generator never needs it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.planet_survival.expected_passes</td>
+<td>by design</td>
+<td>the ionizing passes N(a) whose root <code>planet_survival_limit_au</code> solves in closed form; <code>test_planet_survival</code> pins the root against it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.generation.belt_birth.is_inner</td>
+<td>by design</td>
+<td>the inner-belt test (a belt ending within 1.2 snow lines) the census of GEN.1156 counts with; the prevalence suites and the tests call it, generation does not need the word</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.belt_origin.conservation_error</td>
+<td>by design</td>
+<td>the check that a belt's formed mass equals what is left plus what the giants cleared and what was scattered; the tests hold every generated belt to it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.belt_origin.destroyed_planet</td>
+<td>GEN.1072</td>
+<td>the <code>Debris</code> of a planet the star's history destroyed; the engulfment and white dwarf belt events of GEN.1072 pass it to <code>belt_origin.build</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.planet_zones.flux_at</td>
+<td>GEN.129</td>
+<td>the light on a planet of a window's host from every star of the tree; the multi-star planet climate reads it (design 5.6, 6.5)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.proton_range.csda_range_g_cm2</td>
+<td>GEN.444</td>
+<td>the proton range table of the shielding of GEN.444 (the data file is read through this function)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.rprocess_enrichment.effective_duration_gy</td>
+<td>by design</td>
+<td>the inverse of constant_input_factor by bisection, read by test_rprocess_enrichment to state a history as a duration</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sector_path.box_cell</td>
+<td>by design</td>
+<td>a box domain for the path integrator; the tests integrate through it because its edges are exact, the generator's only domain is <code>sector_inside</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sector_path.ball_cell</td>
+<td>by design</td>
+<td>a ball domain for the path integrator; the tests integrate through it because its edge is exact, the generator's only domain is <code>sector_inside</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.sector_path.relevant_masses</td>
+<td>by design</td>
+<td>the selection step of <code>integrate_path</code> run alone, so the tests and the timing in math-and-library-efficiency.md can check and time it; the integrator calls the kernel's selection itself</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.small_body_composition.draw_ring</td>
+<td>GEN.1055</td>
+<td>the composition of ring material from where it formed in its parent's disk (ice fraction by distance); the stored ring ice share and its darkening by pollution read it when GEN.1055 lands</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.solar_particles.events_per_year_above</td>
+<td>by design</td>
+<td>the expected event rate of the NOAA list, read by test_solar_particles against the sampled record</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.state_vectors.equinoctial_from_state</td>
+<td>GEN.105</td>
+<td>the modified equinoctial elements (Walker) of the orbital update for circular and equatorial orbits</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.state_vectors.state_from_equinoctial</td>
+<td>GEN.105</td>
+<td>the inverse of <code>equinoctial_from_state</code>, the update's propagated state</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.state_vectors.mean_anomaly_from_true</td>
+<td>GEN.105</td>
+<td>the mean anomaly of an orbit the update reads from a state vector</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.stellar_abundances.branch_probabilities</td>
+<td>by design</td>
+<td>the branch table probabilities for a test or a report, read by test_stellar_abundances</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.stellar_spectrum.band_flux_w_m2</td>
+<td>by design</td>
+<td>the band sum of a spectrum, read by test_stellar_spectrum and test_uv_shares_wiring to check the UV shares</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.surface_dose.share_past_cutoffs</td>
+<td>GEN.444</td>
+<td>the shielding of the surface dose from the column and its composition (the spectrum past the cutoffs); radiation.py still uses the single attenuation length</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.surface_dose.effective_air_column_g_cm2</td>
+<td>GEN.444</td>
+<td>the effective stopping column of a mixed air, for the shielding of GEN.444</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.surface_dose.neutron_weight</td>
+<td>GEN.444</td>
+<td>the ICRP 103 neutron weight, for the secondary dose of GEN.444</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.unit_registry.constant_in</td>
+<td>by design</td>
+<td>the number of a physical constant in another unit system (G in AU, year and solar mass); <code>relations.py</code> says a law in those units takes its G from it, and the Gaussian-constant test holds it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.unit_registry.units_of</td>
+<td>by design</td>
+<td>the registry's listing of a kind's units in declaration order; the registry audits and the page-side export tests walk it, the app looks units up by key</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.unit_registry.parts_dimension</td>
+<td>by design</td>
+<td>the dimension a compound unit's parts give it; the registry's self-check holds every compound's stated dimension to it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.unit_registry.parts_factor</td>
+<td>by design</td>
+<td>the factor a compound unit's parts give it; the registry's self-check holds every compound's stated factor to it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.unit_registry.from_base</td>
+<td>by design</td>
+<td>the inverse of <code>to_base</code>; the round-trip property test holds the two together, the app converts unit to unit with <code>convert</code> and <code>converter</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.wd_pollution.observed_sampler</td>
+<td>by design</td>
+<td>the simulated polluted white dwarf sample: the simulated side of the <code>wd_pollution</code> selection model, run by test_wd_pollution and test_tuning_harness through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.wd_pollution.class_probabilities</td>
+<td>by design</td>
+<td>the detection chance by class of a polluted white dwarf: the simulated side of the <code>wd_pollution</code> selection model, run by test_wd_pollution and test_tuning_harness through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.wd_pollution.expected_sample</td>
+<td>by design</td>
+<td>the expected polluted sample of the detection model: the simulated side of the <code>wd_pollution</code> selection model, run by test_wd_pollution and test_tuning_harness through <code>tuning_harness.SELECTION_MODEL_MODULES</code>; the generator never needs an observed sample (TEST.527)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.photometry.bolometric_correction_v</td>
+<td>VIEW.11</td>
+<td>the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.species_thermo.log10_k</td>
+<td>by design</td>
+<td>the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.clearance_ledger.log_uniform_quantile</td>
+<td>GEN.1068</td>
+<td>the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.seasonal_swing.peak_wet_bulb_c</td>
+<td>by design</td>
+<td>the hottest wet bulb of a series for a note; the Temperature score applies the wet bulb rule to each sample (<code>temperature_coverage.coverage</code>, GEN.1265)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_dispersal.column_density_kg_m2</td>
+<td>GEN.361</td>
+<td>the column density through a field; read by the field render (GEN.361)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_dispersal.freeze_out_time_s</td>
+<td>GEN.361</td>
+<td>when a field stops colliding; read by the field render (GEN.361)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_dispersal.member_position_m</td>
+<td>GEN.361</td>
+<td>a field member's place from its parent's; read by the field render (GEN.361)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.field_dispersal.shear_displacement_m</td>
+<td>GEN.361</td>
+<td>the shear of a field's members; read by the field render (GEN.361)</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.impact_history.erosion_efficiency</td>
+<td>by design</td>
+<td>the readable one-diameter form of the sum <code>erosion_per_impactor_mass</code> takes inline (PERF.229 moved the arithmetic into the loop, the same numbers); <code>test_impact_history</code> checks it against the loop</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.heavy_liquid_tide</td>
+<td>by design</td>
+<td>the exact fluid Love numbers of a core under a deep global liquid layer (GEN.1052); the tests hold the thin-sea loading factor of <code>ocean_tides</code> to its rigid-floor limit at any depth and the fluid limits to 3/2 and 5/2, and it is the path for a body with a molten core under a global liquid, which no generated body has</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.nebula_sprites.chord_extinction_mag</td>
+<td>VIEW.8</td>
+<td>the sky route sends the dimming through a cloud's middle and the browser takes the chord (skysprites.js darkOpacity); the per-star dust of nebulae (VIEW.8, 9.1) takes the chord for each line of sight</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.sky_band.face_lookup</td>
+<td>by design</td>
+<td>the nearest-pixel lookup of the cube map: the reference the bilinear <code>face_bilinear</code> that makes the page's image is tested against (test_sky_band), and the CPU twin of the band shader's lookup</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.light_travel.apparent_position_of</td>
+<td>by design</td>
+<td>the one-body form of the law, which the tests hold the array form (retarded_offsets) to</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.light_travel.curvature_bound_m</td>
+<td>by design</td>
+<td>the bound the light-travel tests hold the straight-line law to over a light time</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.galaxy.spherical.sector_quadrant</td>
+<td>DB.112</td>
+<td>the stored quadrant column and this function are deleted together once the migration drops the column</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.class_fit.best_class</td>
+<td>by design</td>
+<td>the public scorer of the best-fit classifier: the generator reads <code>fit</code> and the class sweep, the class-fit command line and the tests read this one-call form</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.class_fit.domain_scores</td>
+<td>by design</td>
+<td>the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined <code>fit</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.planet_classes.classify_values</td>
+<td>by design</td>
+<td>the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.volatile_depletion.earth_over_ci</td>
+<td>by design</td>
+<td>the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.volatile_depletion.retained_fractions</td>
+<td>by design</td>
+<td>the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.comet_species.low_over_h2o</td>
+<td>GEN.1021</td>
+<td>the low end of a species' bracket for the loguniform rows of atmosphere-k:k7 (OCS, SO<sub>2</sub>, O<sub>2</sub>); the wiring swap rides a train with GEN.1022's, in one epoch</td>
+</tr>
+<tr>
+<td>function</td>
+<td>planetgen.physics.comet_species.high_over_h2o</td>
+<td>GEN.1021</td>
+<td>the high end of the same bracket; wired with it</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.comet_ice_formation</td>
+<td>GEN.1022</td>
+<td>the latent ice formation temperature that draws a comet's CO/H2O, N<sub>2</sub>, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.59:CY1</td>
+<td>GEN.1022</td>
+<td>the cold end of the comets (Hale-Bopp's CO/H2O) that <code>comet_ice_formation</code> reads; wired with the swap of rows k5 and k7</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.59:CY2</td>
+<td>GEN.1022</td>
+<td>the residual widths of the latent species; wired with the same swap</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.59:CY3</td>
+<td>GEN.1022</td>
+<td>the laboratory law of formation temperature against CO/H2O; wired with the same swap</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.hot_condensates</td>
+<td>GEN.994</td>
+<td>the host-scaled condensation temperatures of the Cr, MnS, Na<sub>2</sub>S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks</td>
+</tr>
+<tr>
+<td>data</td>
+<td>hot_condensates.json</td>
+<td>GEN.994</td>
+<td>read by <code>physics/hot_condensates.py</code> only</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.217:HK1</td>
+<td>GEN.994</td>
+<td>the trace elements' [X/Fe] follow the cloud and gas reader</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.217:HK2</td>
+<td>GEN.994</td>
+<td>the trace gas ceiling is read when the thermochemistry places the gases</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.217:HK3</td>
+<td>GEN.994</td>
+<td>the chromium cloud temperature is read with the cloud decks</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.217:HK4</td>
+<td>GEN.994</td>
+<td>the potassium chloride cloud temperature is read with the cloud decks</td>
+</tr>
+<tr>
+<td>row</td>
+<td>6.179:NBC18</td>
+<td>by design</td>
+<td>the silicon share of SiC in the diffuse, dense and reflection mixes of <code>GRAIN_MIXES</code> (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what <code>test_nebula_composition</code> holds those three shares to, and the mixes stay written as the dust shares the model uses</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.sulfuric_vapor</td>
+<td>GEN.1425</td>
+<td>the vapor pressure of sulfuric acid and water over aqueous sulfuric acid and the window the liquid condenses in (GEN.1424); the cloud step of the Venus chemistry set reads <code>condensation_temperature_k</code> and <code>window</code> for the cloud base and top</td>
+</tr>
+<tr>
+<td>data</td>
+<td>sulfuric_vapor.json</td>
+<td>GEN.1425</td>
+<td>read by <code>physics/sulfuric_vapor.py</code> only</td>
+</tr>
+<tr>
+<td>module</td>
+<td>planetgen.physics.sulfur_cloud_set</td>
+<td>GEN.1425</td>
+<td>the sulfur-cloud chemistry set and its six gates (part A of GEN.1425); the cloud step (the acid cloud base and strength from the window of <code>sulfuric_vapor</code>, the colour band V10 of <code>absorber_depth</code>) is part B and reads <code>chemistry</code></td>
+</tr>
+<tr>
+<td>data</td>
+<td>sulfur_cloud_set.json</td>
+<td>GEN.1425</td>
+<td>read by <code>physics/sulfur_cloud_set.py</code> only</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

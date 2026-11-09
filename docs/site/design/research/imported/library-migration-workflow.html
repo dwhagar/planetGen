@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open-Source Library Migration and Refactoring Roadmap for planetGen - planetGen docs</title>
+<meta name="description" content="The planetGen codebase currently maintains substantial custom implementations for capabilities that are standard in the open-source Python ecosystem.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/library-migration-workflow.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/library-migration-workflow.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../operations/db-check-and-parity-repair.html">db-check-and-parity-repair</a>, <a href="../../architecture/library-migration.html">library-migration</a>, <a href="../../architecture/units-and-number-formatting.html">units-and-number-formatting</a>.</p>
+</blockquote>
+<h1 id="open-source-library-migration-and-refactoring-roadmap-for-planetgen">Open-Source Library Migration and Refactoring Roadmap for planetGen</h1><p class="meta">docs/design/research/imported/library-migration-workflow.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#executive-summary-and-architectural-principles">Executive Summary and Architectural Principles</a></li><li style="margin-left:0px"><a href="#domain-analysis-alternative-library-evaluations-and-code-impact">Domain Analysis, Alternative Library Evaluations, and Code Impact</a></li><li style="margin-left:14px"><a href="#1-security-two-factor-authentication-and-qr-code-generation">1. Security, Two-Factor Authentication, and QR Code Generation</a></li><li style="margin-left:14px"><a href="#2-astrodynamics-orbital-mechanics-and-physical-constants">2. Astrodynamics, Orbital Mechanics, and Physical Constants</a></li><li style="margin-left:14px"><a href="#3-database-persistence-and-schema-migrations">3. Database Persistence and Schema Migrations</a></li><li style="margin-left:14px"><a href="#4-background-processing-and-work-queue-management">4. Background Processing and Work Queue Management</a></li><li style="margin-left:14px"><a href="#5-rate-limiting-throttling-and-brute-force-guards">5. Rate Limiting, Throttling, and Brute-Force Guards</a></li><li style="margin-left:14px"><a href="#6-in-memory-and-disk-caching">6. In-Memory and Disk Caching</a></li><li style="margin-left:14px"><a href="#7-markdown-rendering-and-data-validation">7. Markdown Rendering and Data Validation</a></li><li style="margin-left:0px"><a href="#implementation-matrix-and-phased-adoption-roadmap">Implementation Matrix and Phased Adoption Roadmap</a></li><li style="margin-left:0px"><a href="#reference-list">Reference List</a></li></ul></details>
+<h2 id="executive-summary-and-architectural-principles">Executive Summary and Architectural Principles</h2>
+<p>The planetGen codebase currently maintains substantial custom implementations for capabilities that are standard in the open-source Python ecosystem. These include custom RFC 6238 TOTP algorithms, QR code matrix generators, Kepler orbital solvers, raw SQL persistence frameworks, custom multi-process work queues, rate limiters, file-backed caches, and regex-based Markdown converters.</p>
+<p>Reinventing these domain utilities increases the managed surface area to over 35,000 lines of Python code, introducing security hazards, numerical precision limitations, and elevated maintenance costs. Modernizing planetGen through strategic adoption of mature third-party open-source libraries will significantly reduce code footprint, enhance security compliance, improve numerical accuracy, and boost execution speed via C-optimized native bindings.</p>
+<p>Architectural refactoring is structured around four primary criteria:</p>
+<ol>
+<li>Security and Standard Compliance: Offload cryptography, authentication, and token handling to audited, industry-standard packages.</li>
+<li>Computational Performance: Leverage C/Fortran bindings (NumPy, SciPy) for intensive mathematical and astrodynamic calculations.</li>
+<li>Operational Reliability: Replace hand-rolled multi-processing queues and database connection managers with battle-tested frameworks.</li>
+<li>Maintainability: Delete single-purpose internal helper modules in favor of declarative schema models and standardized utility libraries.</li>
+</ol>
+<h2 id="domain-analysis-alternative-library-evaluations-and-code-impact">Domain Analysis, Alternative Library Evaluations, and Code Impact</h2>
+<h3 id="1-security-two-factor-authentication-and-qr-code-generation">1. Security, Two-Factor Authentication, and QR Code Generation</h3>
+<h4 id="current-codebase-state">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/admin/totp.py</code> (102 lines): Custom implementation of HMAC-SHA1 Time-Based One-Time Passwords (RFC 6238).</li>
+<li><code>src/planetgen/admin/qrcode.py</code> (907 lines): Single-file copy of Project Nayuki's QR Code generator, handling low-level bit buffers, Reed-Solomon error correction, and SVG matrix generation.</li>
+</ul>
+<h4 id="recommended-stack">Recommended Stack</h4>
+<ul>
+<li><code>pyotp</code>: Standard library for TOTP/HOTP validation.</li>
+<li><code>qrcode</code> (or <code>segno</code>): Industry-standard QR code generation.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>segno</code>: Pure Python, zero-dependency QR code encoder supporting micro QR codes and direct SVG rendering.</li>
+<li><code>authlib</code>: Comprehensive suite covering OAuth 1.0/2.0, JOSE, JWT, and TOTP.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>pyotp</code> Pros: Pure Python, zero external dependencies, strict adherence to RFC 6238 and RFC 4226, fully tested against clock drift and replay attacks.</li>
+<li><code>pyotp</code> Cons: Requires explicit timestamp formatting for customized step intervals.</li>
+<li><code>qrcode</code> Pros: Widespread adoption, native integration with PIL/Pillow for raster rendering and vector SVG output.</li>
+<li><code>segno</code> Pros: Faster SVG generation than <code>qrcode</code>, lighter weight, zero third-party dependencies.</li>
+<li>Code Impact: Removes ~1,000 lines of complex bit manipulation and matrix math. Replaces custom TOTP and QR functions with 5 lines of declarative library calls.</li>
+</ul>
+<h3 id="2-astrodynamics-orbital-mechanics-and-physical-constants">2. Astrodynamics, Orbital Mechanics, and Physical Constants</h3>
+<h4 id="current-codebase-state-1">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/physics/kepler.py</code> (408 lines): Custom bisection and Newton-Raphson solvers for Kepler's equation (elliptical orbits) and Barker's equation (parabolic orbits).</li>
+<li><code>src/planetgen/physics/constants.py</code> (447 lines): Hardcoded astronomical, physical, and conversion constants.</li>
+<li><code>src/planetgen/physics/planets.py</code> (1,154 lines): Custom calculations for orbital period, mean anomaly, and gravitational parameters.</li>
+</ul>
+<h4 id="theoretical-mathematical-models">Theoretical Mathematical Models</h4>
+<p>The orbital propagation logic in <code>keplerMotion.py</code> models two-body celestial dynamics using the following governing equations:</p>
+<p>Kepler's Equation for Elliptical Orbits (<span class="math">\(0 \le e &lt; 1\)</span>):
+<span class="math">\(M = E - e \sin(E)\)</span></p>
+<p>True Anomaly (<span class="math">\(f\)</span>) derived from Eccentric Anomaly (<span class="math">\(E\)</span>):
+<span class="math">\(\tan\left(\frac{f}{2}\right) = \sqrt{\frac{1 + e}{1 - e}} \tan\left(\frac{E}{2}\right)\)</span></p>
+<p>Barker's Equation for Parabolic Orbits ($e = 1$):
+<span class="math">\(M_p = \frac{1}{2} \tan\left(\frac{f}{2}\right) + \frac{1}{6} \tan^3\left(\frac{f}{2}\right)\)</span></p>
+<p>Two-Body Gravitational Parameter (<span class="math">\(\mu\)</span>) in astronomical units (<span class="math">\(AU\)</span>, solar masses <span class="math">\(M_\odot\)</span>, years <span class="math">\(yr\)</span>):
+<span class="math">\(\mu = G (M_1 + M_2) = 4\pi^2 M\)</span></p>
+<h4 id="recommended-stack-1">Recommended Stack</h4>
+<ul>
+<li><code>scipy</code>: Numerical root finding (<code>scipy.optimize.root_scalar</code>) and vectorized array operations.</li>
+<li><code>astropy</code>: Standardized physical constants (<code>astropy.constants</code>) and unit transformation framework (<code>astropy.units</code>).</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-1">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>skyfield</code>: High-precision astrodynamics library designed for planetary position calculation using NASA JPL ephemerides.</li>
+<li><code>poliastro</code>: Specialized orbital mechanics library built on top of Astropy and Numba.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-1">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>scipy</code> Pros: C-optimized vector root finders solve Kepler's equation across thousands of orbital bodies concurrently; eliminates custom bisection loops.</li>
+<li><code>scipy</code> Cons: Large binary footprint (~30 MB wheel size).</li>
+<li><code>astropy</code> Pros: Guarantees unit correctness across metric, imperial, and astronomical coordinate systems; provides IAU-compliant physical constants.</li>
+<li><code>astropy</code> Cons: Slightly higher import latency; unit conversions add minor execution overhead if not vectorized.</li>
+<li><code>skyfield</code> / <code>poliastro</code> Pros: Extremely accurate real-world ephemeris models.</li>
+<li><code>skyfield</code> / <code>poliastro</code> Cons: Overkill for procedurally generated fictional stellar systems.</li>
+<li>Code Impact: Reduces numerical iteration time by up to <span class="math">\(10\times\)</span> via vectorized SciPy calls; replaces manual constant definitions with <code>astropy.constants</code>.</li>
+</ul>
+<h3 id="3-database-persistence-and-schema-migrations">3. Database Persistence and Schema Migrations</h3>
+<h4 id="current-codebase-state-2">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/db/store.py</code> (9,793 lines): Hand-rolled database abstraction layer utilizing raw PyMySQL, custom connection pooling (<code>dbutils</code>), manual SQL string construction, and custom transactional batching scopes.</li>
+<li><code>planetgen.cli.migrate</code> (172 lines): Custom script tracking migrations via raw SQL script files stored as compressed <code>.sql.gz</code> fixtures (<code>schema_v14.sql.gz</code> to <code>schema_v52.sql.gz</code>).</li>
+</ul>
+<h4 id="recommended-stack-2">Recommended Stack</h4>
+<ul>
+<li><code>SQLAlchemy</code>: Industrial-strength SQL toolkit and Object Relational Mapper (ORM).</li>
+<li><code>Alembic</code>: Database migration framework integrated with SQLAlchemy.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-2">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>Peewee</code>: Expressive, lightweight ORM with simple setup and small footprint.</li>
+<li><code>Tortoise ORM</code>: Async-first ORM modeled after Django's syntax.</li>
+<li><code>DuckDB</code> / <code>Polars</code>: In-process analytical database for high-speed sector queries.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-2">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>SQLAlchemy</code> Pros: Complete abstraction over MySQL/MariaDB differences, built-in connection pooling, automatic statement preparation, prevention of SQL injection, declarative schema definitions.</li>
+<li><code>SQLAlchemy</code> Cons: Steeper learning curve for complex ORM query optimization.</li>
+<li><code>Alembic</code> Pros: Programmatic Python-based schema migrations, auto-generation of migration scripts via model diffs, complete replacement of compressed raw SQL files.</li>
+<li><code>Peewee</code> Pros: Easy transition for smaller projects, lighter cognitive overhead.</li>
+<li><code>Peewee</code> Cons: Less robust migration engine compared to Alembic when managing complex foreign keys and constraints.</li>
+<li>Code Impact: Deletes up to 8,000 lines of manual query formatting, parameter binding, cursor lifecycle management, and schema detection logic in <code>store.py</code>.</li>
+</ul>
+<h3 id="4-background-processing-and-work-queue-management">4. Background Processing and Work Queue Management</h3>
+<h4 id="current-codebase-state-3">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/queue/work.py</code> (1,611 lines): Custom process pool supervisor managing independent generation units (sectors, star scattering) with database lease locks (<code>work_lease</code> table), heartbeats, stale run reclamation, and custom process IPC.</li>
+<li><code>planetgen.cli.job</code> (305 lines): Custom process tree runner executing background jobs started by the web administration interface.</li>
+</ul>
+<h4 id="recommended-stack-3">Recommended Stack</h4>
+<ul>
+<li><code>RQ</code> (Redis Queue): Simple, lightweight background task processing built on Redis.</li>
+<li><code>Huey</code>: Lightweight alternative supporting SQLite or Redis backends.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-3">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>Celery</code>: Full-featured, distributed task queue supporting multiple message brokers (RabbitMQ, Redis) and complex workflows.</li>
+<li><code>APScheduler</code>: Advanced Python scheduler for cron-like background jobs.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-3">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>RQ</code> Pros: Minimal setup, native Python decorator integration (<code>@task</code>), built-in process monitoring, job retries, timeout enforcement, and status tracking.</li>
+<li><code>RQ</code> Cons: Requires a Redis server instance.</li>
+<li><code>Huey</code> Pros: Can run directly on SQLite or file-based backends without needing an external service like Redis.</li>
+<li><code>Celery</code> Pros: Multi-broker flexibility, complex task chaining and routing.</li>
+<li><code>Celery</code> Cons: High configuration complexity and heavy operational overhead for single-node deployments.</li>
+<li>Code Impact: Replaces ~1,900 lines of complex IPC, database locking, multi-process signaling, and supervisor polling loops with a standard <code>@task</code> queue architecture.</li>
+</ul>
+<h3 id="5-rate-limiting-throttling-and-brute-force-guards">5. Rate Limiting, Throttling, and Brute-Force Guards</h3>
+<h4 id="current-codebase-state-4">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/admin/throttle.py</code> (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.</li>
+<li><code>src/planetgen/api/limiter.py</code> (108 lines): Flask rate-limiter setup wrapper.</li>
+<li><code>src/planetgen/api/loginguard.py</code> (156 lines): Middleware guarding password checks against brute-force attacks.</li>
+</ul>
+<h4 id="recommended-stack-4">Recommended Stack</h4>
+<ul>
+<li><code>Flask-Limiter</code> / <code>limits</code>: Production-ready rate limiting extension for Flask applications.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-4">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>slowapi</code>: Rate limiting library designed for ASGI/FastAPI applications (useful if migrating web layers).</li>
+<li><code>redis-py</code>: Direct sliding-window implementation using Redis sorted sets.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-4">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>Flask-Limiter</code> Pros: Declarative route decorators (e.g., <code>@limiter.limit(&quot;5 per minute&quot;)</code>), supports multiple storage backends (Redis, Memcached, in-memory), handles rate limit headers (<code>X-RateLimit-*</code>) automatically.</li>
+<li><code>Flask-Limiter</code> Cons: Default memory storage is not shared across Gunicorn worker processes unless configured with Redis or Memcached.</li>
+<li>Code Impact: Removes custom database schema tables (<code>login_throttle</code>), sliding exponential backoff math, and ~650 lines of custom lockout guard code.</li>
+</ul>
+<h3 id="6-in-memory-and-disk-caching">6. In-Memory and Disk Caching</h3>
+<h4 id="current-codebase-state-5">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/web/lib/pagecache.py</code> (183 lines): Custom thread-safe in-memory cache for public API HTTP responses with TTL eviction.</li>
+<li><code>src/planetgen/web/lib/tilecache.py</code> (516 lines): Custom file-backed disk cache for 3D Galaxy Map JSON tiles with manual directory cleanup, stale file eviction, and database stamp checking.</li>
+</ul>
+<h4 id="recommended-stack-5">Recommended Stack</h4>
+<ul>
+<li><code>cachetools</code>: In-memory LRU, LFU, and TTL caching algorithms.</li>
+<li><code>diskcache</code>: SQLite and file-backed disk cache optimized for multi-process Python applications.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-5">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>dogpile.cache</code>: Comprehensive caching API supporting Redis, Memcached, and file backends with stampede protection (lock stealing).</li>
+<li><code>Flask-Caching</code>: High-level wrapper combining in-memory and disk caching for Flask routes.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-5">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>cachetools</code> Pros: Thread-safe, lightweight, declarative function decorators (<code>@ttl_cache</code>, <code>@lru_cache</code>).</li>
+<li><code>diskcache</code> Pros: POSIX file-locking, thread-safe and process-safe concurrent access, fast SQLite index metadata lookups, auto-managed cache size limits.</li>
+<li><code>dogpile.cache</code> Pros: Excellent protection against cache stampedes on expensive generation routes.</li>
+<li>Code Impact: Deletes custom disk traversal loops, tempfile renames, atomic file replacement routines, and ~700 lines of cache management boilerplate.</li>
+</ul>
+<h3 id="7-markdown-rendering-and-data-validation">7. Markdown Rendering and Data Validation</h3>
+<h4 id="current-codebase-state-6">Current Codebase State</h4>
+<ul>
+<li><code>src/planetgen/web/lib/mdconvert.py</code> (179 lines): Custom Markdown-to-HTML converter using regex string parsing to handle ATX headings, GFM pipe tables, and scientific superscript tags (<code>&lt;sup&gt;</code>).</li>
+<li><code>src/planetgen/generation/validation.py</code> (783 lines): Imperative checking functions validating planet parameters, moon system orbits, and physical boundaries.</li>
+</ul>
+<h4 id="recommended-stack-6">Recommended Stack</h4>
+<ul>
+<li><code>markdown</code> (or <code>mistune</code>): Standard Python Markdown parsers.</li>
+<li><code>Pydantic</code>: High-performance data validation using Python type hints.</li>
+</ul>
+<h4 id="alternative-libraries-evaluated-6">Alternative Libraries Evaluated</h4>
+<ul>
+<li><code>mistletoe</code>: Fast, extensible pure-Python CommonMark parser.</li>
+<li><code>marshmallow</code>: Ecosystem for object serialization and payload validation.</li>
+</ul>
+<h4 id="pros-cons-and-code-impact-6">Pros, Cons, and Code Impact</h4>
+<ul>
+<li><code>markdown</code> Pros: Full extension support (tables, superscripts, sanitize HTML), fully compliant with CommonMark/GFM specifications.</li>
+<li><code>mistune</code> Pros: Extremely fast C-compiled parser option, highly customizable renderers.</li>
+<li><code>Pydantic</code> Pros: Rust-backed validation engine (<code>pydantic-core</code>), automatic type coercion, JSON schema generation, declarative dataclass definitions.</li>
+<li>Code Impact: Eliminates custom regex HTML escaping/un-escaping rules in <code>mdconvert.py</code> and removes ~780 lines of imperative validation functions in <code>validation.py</code>.</li>
+</ul>
+<h2 id="implementation-matrix-and-phased-adoption-roadmap">Implementation Matrix and Phased Adoption Roadmap</h2>
+<pre><code>Phase 1: Low Risk / High Reduction (Security &amp; Utility Modules)
+├── Replace src/planetgen/admin/totp.py       --&gt; pyotp
+├── Replace src/planetgen/admin/qrcode.py  --&gt; qrcode / segno
+└── Replace src/planetgen/web/lib/mdconvert.py        --&gt; markdown
+
+Phase 2: Numerical &amp; Cache Refactoring (Performance &amp; Physical Accuracy)
+├── Refactor src/planetgen/physics/kepler.py --&gt; scipy.optimize
+├── Refactor physical_constants.py              --&gt; astropy.constants &amp; astropy.units
+├── Replace src/planetgen/web/lib/pagecache.py           --&gt; cachetools
+└── Replace src/planetgen/web/lib/tilecache.py           --&gt; diskcache
+
+Phase 3: Core Architecture Refactoring (Persistence &amp; Task Execution)
+├── Refactor src/planetgen/db/store.py          --&gt; SQLAlchemy Core / ORM
+├── Replace planetgen.cli.migrate                    --&gt; Alembic
+├── Replace src/planetgen/queue/work.py     --&gt; RQ or Huey
+└── Refactor src/planetgen/generation/validation.py  --&gt; Pydantic
+</code></pre>
+<h2 id="reference-list">Reference List</h2>
+<p>Astropy Collaboration, Price-Whelan, A. M., Lim, P. L., Earl, N., Starkman, N., Bradley, L., Shupe, D. L., Patil, A. A., Corrales, L., Brasseur, C. E., Nöthe, M., Donath, A., Tollerud, E. J., Morris, B. M., Ginsburg, A., Vaher, E., Weaver, B. A., Tocknell, J., Jamieson, W., ... Sipőcz, B. M. (2022). The Astropy Project: Sustaining and growing a community-oriented open-source project and the latest major release (v5.0) of the core package. The Astrophysical Journal, 935(2), Article 167. [R4331]</p>
+<p>[R1823]</p>
+<p>[R3189]</p>
+<p>[R3220]</p>
+<p>Nayuki Project. (2022). QR Code generator library [Computer software]. https://www.nayuki.io/page/qr-code-generator-library</p>
+<p>Python Markdown Developers. (2023). Python-Markdown (Version 3.5) [Computer software]. Python Software Foundation. https://python-markdown.github.io/</p>
+<p>[R4976]</p>
+<p>RQ Contributors. (2024). RQ: Simple job queues for Python (Version 1.16) [Computer software]. GitHub. https://python-rq.org/</p>
+<p>[R4560]</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

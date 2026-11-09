@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08A Verification of Boss's added research note (part A: sublimation, redox, radiative transfer, Rayleigh) - planetGen docs</title>
+<meta name="description" content="Date: 2026-10-17, checked between 1:22 AM and 1:45 AM EDT as the session clock reported (lane clocks drift).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="08a-verification-of-bosss-added-research-note-part-a-sublimation-redox-radiative-transfer-rayleigh">08A Verification of Boss's added research note (part A: sublimation, redox, radiative transfer, Rayleigh)</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#0-what-kind-of-document-the-note-is">0. What kind of document the note is</a></li><li style="margin-left:0px"><a href="#1-cold-ice-sublimation-tier-1-item-1">1. Cold ice sublimation (Tier 1, item 1)</a></li><li style="margin-left:0px"><a href="#2-magma-ocean-redox-tier-1-item-2-r4154">2. Magma-ocean redox (Tier 1, item 2): [R4154]</a></li><li style="margin-left:0px"><a href="#3-radiative-transfer-items-tier-2">3. Radiative transfer items (Tier 2)</a></li><li style="margin-left:14px"><a href="#31-r3439-equation-note-infrared-optical-depth-line-lists-and-analytical-profiles">3.1 [R3439] equation (note, "Infrared optical depth line lists and analytical profiles")</a></li><li style="margin-left:14px"><a href="#32-forcing-and-co2-note-r3229">3.2 Forcing and CO2 (note, [R3229])</a></li><li style="margin-left:14px"><a href="#33-line-lists-and-continuum">3.3 Line lists and continuum</a></li><li style="margin-left:0px"><a href="#4-rayleigh-and-king-factors-tier-2">4. Rayleigh and King factors (Tier 2)</a></li><li style="margin-left:0px"><a href="#5-other-items-in-the-note-touched-here">5. Other items in the note touched here</a></li><li style="margin-left:0px"><a href="#6-items-from-the-note-that-were-not-checked-here">6. Items from the note that were not checked here</a></li></ul></details>
+<p>Date: 2026-10-17, checked between 1:22 AM and 1:45 AM EDT as the session clock reported (lane clocks drift). Checked by the research lane itself. Part B (Mars dust, Titan haze, comets, ICRP, licences, NH<sub>3</sub>/CH4 visible) is <code>08-verification-of-boss-added-research-B.md</code>.</p>
+<p>Boss posted a long research note at 1:22 AM EDT (&quot;Here is additional research on requested topics&quot;, Tier 1 to Tier 5 and a 14-row priority matrix). Rule applied here: every claim is unverified data until read in a primary source or recomputed. Verdict words: CONFIRMED, PARTLY, CONTRADICTED, UNSUPPORTED (no source found either way), NOT REACHED. Labels as in the master file (READ, DATA, COMPUTED, 2ND-HAND, RECALLED, NOT REACHED).</p>
+<h2 id="0-what-kind-of-document-the-note-is">0. What kind of document the note is</h2>
+<p>The note reads as a machine-written expansion of the &quot;Boss must research&quot; list from the first draft (it keeps stray <code>[cite: n]</code> markers and its 14 matrix rows are our 14 ranked items). Several of its numbers are copies of numbers already in the parts: its water-ice coefficients e0 to e6 are identical to the ones in part 06 section 2.4, its sublimation form <code>ln P(bar) = A0 + sum A_i/T^i</code> is the form part 01 section 7.2 uses, and its Sossi numbers match the snippet part 05 quoted. So agreement between the note and the parts is not independent confirmation. Where this file says CONFIRMED the confirmation comes from a primary source or a recomputation made after the note arrived.</p>
+<h2 id="1-cold-ice-sublimation-tier-1-item-1">1. Cold ice sublimation (Tier 1, item 1)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Claim in the note</th>
+<th>Verdict</th>
+<th>Evidence</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>Water ice: ln(P/P_tr) = 1.5 ln(T/T_tr) + (1 - T_tr/T) eta(T/T_tr), eta = sum_{i=0..6} e_i x^i, P_tr = 6.116577e-3 bar, T_tr = 273.16 K, e0..e6 = 20.9969665, 3.7243748, -13.9205483, 29.6988765, -40.1972393, 29.7880481, -9.1305096</td>
+<td>CONFIRMED (numerically)</td>
+<td>Evaluated with exactly these coefficients: 611.657 Pa at 273.16 K, 76.03 Pa at 250 K, 0.16260 Pa at 200 K, 5.394e-3 Pa at 180 K, 1.086e-14 Pa at 100 K. Against two independently coded water-ice formulas (the IAPWS-2008 sublimation form, coefficients a1..a3, b1..b3 recalled; [R3217]) the Feistel-Wagner form and the IAPWS form agree to 3e-4 from 273 K down to 60 K and to 0.3 percent at 40 K (3.65e-53 Pa and 3.64e-53 Pa); Murphy-Koop is within 3e-3 down to 100 K and 5 percent low at 40 K (3.45e-53 Pa), as expected for a fit that is known to degrade below about 150 K. Changing e3 to 29.7088765 (a plausible typo) moves 200 K to 0.16237 Pa, so the stated e3 is the right one. The primary paper ([R1345], Geochim. Cosmochim. Acta 71, 36) and the IAPWS release R14-08(2011) text were not opened (the release page loads but not the PDF)</td>
+<td>COMPUTED; formulas RECALLED</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>&quot;Current operational numbers originate from supplementary tables in secondary preprints with coefficient sign inversions and truncated precision&quot;</td>
+<td>UNSUPPORTED as stated</td>
+<td>The only secondary source used is the supplementary table of [R2711] ([R2711]; the same table is the NASA NTRS record 20210019502 and is quoted in two Icarus papers). Two independent copies of that table (arXiv SOM text and the NTRS PDF) were compared: all coefficients of CO, CO<sub>2</sub>, CH<sub>4</sub>, N<sub>2</sub> (alpha and beta), NH<sub>3</sub>, HCN, C<sub>2</sub>H<sub>2</sub>, C<sub>2</sub>H<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, O<sub>2</sub> agree in mantissa and sign. The only defects found were two typesetting glitches in the arXiv text (SO<sub>2</sub> &quot;3.5.08&quot;, Kr &quot;-s1.210e8&quot;), fixed by the triple-point check. No sign inversion was found. The table's exponents are partly lost in text extraction, so exponent agreement rests on the triple-point check (within 2 percent for every row except N<sub>2</sub>-2, -2.75 percent)</td>
+<td>COMPUTED, DATA</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>The real error source</td>
+<td>PARTLY the note's concern</td>
+<td>Not a sign error but model error at low temperature: [R1708] ([R1708], READ) measured vapor pressures of alpha-N2, beta-N2, alpha-CO, beta-CO and CH<sub>4</sub> I with a quartz microbalance; against it the Fray and Schmitt fits are too high by factors 1.4 to 2.3 for alpha-N2 at 25 to 33 K, 6 for alpha-CO at 31 K, 1.9 for CH<sub>4</sub> at 30 K, 4 for beta-O2 at 24 K ([R0418] (PSS 244, 105863, [R0418]; NASA NTRS record dated 2025), NTRS 20250005811). They agree near 60 K (CO) and 70 K (CH<sub>4</sub>). So the note's point that errors below 50 K matter is right; the cure is to take the Grundy lab fits below about 50 K, not to change a sign. Details and coefficients: part 01 section 7.3</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>Validity ranges: N<sub>2</sub> 20-63 K, CO 20-68 K, CH<sub>4</sub> 30-90 K, CO<sub>2</sub> 70-195 K, SO<sub>2</sub> 100-200 K, H<sub>2</sub>S 80-180 K, NH<sub>3</sub> 100-195 K</td>
+<td>UNSUPPORTED, partly inconsistent</td>
+<td>The origin[R1445] table with validity limits was not reached (ScienceDirect refused; no HAL or repository copy found). The ranges in the note are one interval per species, but Fray and Schmitt (as quoted in Lisse) give separate alpha and beta fits (N<sub>2</sub>: alpha below 36.08 K, beta above; CO: below and above 60.7 K; CO<sub>2</sub>: two fits; O<sub>2</sub>: three), so a single interval cannot be right for those. The upper ends 63 K (N<sub>2</sub>), 68 K (CO), 90 K (CH<sub>4</sub>), 195 K (CO<sub>2</sub>) are the triple points (63.15, 68.1, 90.69, 216.6 K for CO<sub>2</sub> with 194.7 K the 1 bar sublimation point), so they are physically sensible but not sourced. Treat as plausible, not verified</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td>The unit of the fits is bar</td>
+<td>CONFIRMED (inferred)</td>
+<td>The fits reproduce the triple pressures in bar to within 2 percent (N<sub>2</sub> 0.1217 against 0.1252, CH<sub>4</sub> 0.1188 against 0.117, CO<sub>2</sub> reproduces 5.18 bar through CO<sub>2</sub>-2 within 0.5 percent; CO<sub>2</sub>-2 is valid only from 195.3 K up and CO<sub>2</sub>-1 serves below it, part 01 section 7.4, DOC.74). The table caption does not state a unit</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1.6</td>
+<td>Ranking: cold sublimation is priority 1 for the chain</td>
+<td>Agreed</td>
+<td>Same as our ranked list; unchanged</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>What this changes for the items: (a) GEN.410/GEN.422 use the composite recipe of part 01 section 7: liquid Wagner curves above the triple point; below it Fray and Schmitt (2ND-HAND) above about 50 K and the [R1708] / [R0418] lab fits (READ) below; (b) the original Fray and Schmitt table stays on Boss's research list, now only for the validity limits and for H<sub>2</sub>, HD, He, which Lisse's table does not contain; (c) no coefficient needs a sign change; (d) the water-ice formula of the note replaces the part 06 line only as a cross-check (same numbers).</p>
+<h2 id="2-magma-ocean-redox-tier-1-item-2-r4154">2. Magma-ocean redox (Tier 1, item 2): [R4154]</h2>
+<p>Source READ in full: Sossi, Burnham, [R3363], &quot;Redox state of Earth's magma ocean and its Venus-like early atmosphere&quot;, Science Advances 6 (48), eabd1387, [R4154] (Europe PMC PMC7688334, open access XML).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Claim in the note</th>
+<th>Verdict</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.1</td>
+<td>Fe3+/(Fe3+ + Fe2+) = 0.037 +- 0.005 for mantle-derived rocks; magma ocean fO2 is 0.5 log units above the iron-wustite buffer; experiments at 2173 K and 1 bar</td>
+<td>CONFIRMED</td>
+<td>Abstract: &quot;Mantle-derived rocks have Fe3+/(Fe3++Fe2+) = 0.037 +- 0.005, at which the magma ocean defines an fO2 0.5 log units above the iron-wustite buffer&quot;; liquids of silicate-Earth composition equilibrated at 2173 K and 1 bar, Fe K-edge XANES (READ)</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td>About 99 percent of the planet's water is dissolved in the magma ocean</td>
+<td>CONFIRMED</td>
+<td>&quot;~99% of the H<sub>2</sub>O ... are initially dissolved in the magma ocean at 2173 K&quot; (BSE inventory, existing solubility laws)</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>Carbon has &quot;extremely low melt solubility&quot; so carbon goes to the gas</td>
+<td>CONTRADICTED in degree</td>
+<td>Same sentence: &quot;~35% of the CO2&quot; is initially dissolved; N<sub>2</sub> stays almost entirely in the atmosphere. So carbon is about two thirds in the gas, not nearly all. The atmosphere is still CO-rich at IW+0.5</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>CO-rich early gas; after H<sub>2</sub>O condenses, water-gas shift gives a CO<sub>2</sub>-N2 atmosphere like Venus; Earth and Venus began with nearly identical atmospheres, divergence from heliocentric distance and carbonate sequestration</td>
+<td>CONFIRMED</td>
+<td>Abstract: CO-rich atmosphere; cooling and condensation of H<sub>2</sub>O gives &quot;CO2-N2, in proportions and at pressures akin to those observed on Venus&quot;; differences &quot;result from Earth's heliocentric location and mass, which allowed geologically long-lived oceans&quot;. The same CO<sub>2</sub>-N2 ratio (97:3) occurs on Mars at much lower pressure (~0.0061 bar)</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td>(not in the note) mass and redox</td>
+<td>NEW, relevant</td>
+<td>The CO<sub>2</sub>-N2 outcome holds until about 80 percent of the H inventory has degassed if the magma ocean starts at IW+0.5, but only until about 30 percent if the initial fO2 was set by core formation (about IW-2), &quot;as would be expected for smaller planetary bodies or planetesimal precursors&quot;; an fO2 above IW+1 prevents a reduced atmosphere for H/C at or below the BSE value. This supports a mass-dependent prior: small bodies near IW-2, an Earth-mass body at the magma-ocean stage near IW+0.5, then oxidizing later</td>
+</tr>
+</tbody>
+</table></div>
+<p>What this changes: the redox prior of <code>atmosphere.py</code> (mean IW+3.5 for an Earth mass, slope 2.0 per dex of mass, sigma 1.0) describes the later upper mantle. The magma-ocean stage that sets the first atmosphere sits near IW+0.5 for Earth-mass and near IW-2 for small bodies. GEN.422 and the outgassing recipe of part 05 section 3.5 should draw the magma-ocean fO2 from that (center IW+0.5 at 1 Earth mass, falling toward IW-2 for small bodies, scatter from the Fe3+/sumFe uncertainty), run the speciation, and only then oxidise the mantle. The dissolved fractions (99 percent H<sub>2</sub>O, 35 percent CO<sub>2</sub>, about 0 percent N<sub>2</sub>) are READ and can seed the degassing fractions of part 05 section 3.1. [R1491]/2021 and [R1953] remain unread.</p>
+<h2 id="3-radiative-transfer-items-tier-2">3. Radiative transfer items (Tier 2)</h2>
+<h3 id="31-r3439-equation-note-infrared-optical-depth-line-lists-and-analytical-profiles">3.1 [R3439] equation (note, &quot;Infrared optical depth line lists and analytical profiles&quot;)</h3>
+<p>The equation in the note, <code>T^4(tau) = 3 T_int^4/4 (2/3 + tau) + 3 T_irr^4/4 mu* [2/3 + sum_j gamma_vj E_j(tau, mu*)]</code>, is NOT the published equation (CONTRADICTED as a statement of the paper). Source READ from the arXiv LaTeX source (export.arxiv.org/e-print/1311.6597, [R3439]):</p>
+<ul>
+<li>Semi-grey case ([R1715] form, paper eq. 30): <code>T^4 = (3 T_int^4/4)(2/3 + tau) + (3 T_irr^4/4) mu* [2/3 + mu*/gamma_v + (gamma_v/(3 mu*) - mu*/gamma_v) exp(-gamma_v tau/mu*)]</code>.</li>
+<li>Picket-fence case (eq. 98 for several visible bands): <code>T^4 = (3 T_int^4/4)(tau + A + B exp(-tau/tau_lim)) + sum_i (3 beta_vi T_irr^4/4) mu* (C_i + D_i exp(-tau/tau_lim) + E_i exp(-gamma_vi* tau))</code>, with gamma_v* = gamma_v/mu*, thermal opacities kappa_1 (spectral fraction beta) and kappa_2, kappa_R = kappa_1 kappa_2/(beta kappa_2 + (1-beta) kappa_1), kappa_P = beta kappa_1 + (1-beta) kappa_2, gamma_1 = kappa_1/kappa_R, gamma_2 = kappa_2/kappa_R, gamma_P = kappa_P/kappa_R, tau_lim = sqrt(gamma_P/3)/(gamma_1 gamma_2).</li>
+<li>Coefficients (paper eqs. 66 to 81): A = (a0 + a1 b0)/3; B = -(gamma_1 gamma_2)^2 b0/(3 gamma_P); C = -[b0 b1 (1+b2+b3) a1 + a2 + a3]/3; D = (gamma_1 gamma_2)^2 b0 b1 (1+b2+b3)/(3 gamma_P); E = [3 - (gamma_v*/gamma_1)^2][3 - (gamma_v*/gamma_2)^2] / (9 gamma_v* [(gamma_v* tau_lim)^2 - 1]); a0 = 1/gamma_1 + 1/gamma_2; a1 = -(1/(3 tau_lim^2)) [gamma_P/(1-gamma_P) (gamma_1+gamma_2-2)/(gamma_1+gamma_2) + (gamma_1+gamma_2) tau_lim - (A_t1 + A_t2) tau_lim^2]; a2, a3, b0 to b3 and the logarithmic terms A_ti = gamma_i^2 ln(1 + 1/(tau_lim gamma_i)), A_vi = gamma_i^2 ln(1 + gamma_v*/gamma_i) are listed in the paper's LaTeX source (Appendix of the derivation, equations labelled a0 to b3 in <code>Parmentier2013b.tex</code>).</li>
+<li>Check made: the coefficients were coded from the LaTeX source and evaluated in the near-grey limit (kappa_1 = kappa_2 within 1e-4). They return A = 0.6667 and B = D = 0, and C and E equal the paper's stated grey limits <code>C -&gt; 2/3 - 2/gamma_v*^2 + 2/gamma_v* + 2 ln(1+gamma_v*) (1/gamma_v*^3 - 1/(3 gamma_v*))</code>, <code>E -&gt; gamma_v*/3 - 1/gamma_v*</code> at gamma_v* = 0.25, 1, 3, 10 (C = 4.6340, 1.5909, 0.9057, 0.6916; E = -3.9167, -0.6667, 0.6667, 3.2333). That is a COMPUTED check that the transcription is right.</li>
+<li>Mean angle and irradiation: <code>mu* = 1/sqrt(3)</code> and <code>T_irr = (1-A_B)^(1/4) f^(1/4) T_sub</code> with f = 1/4 (global mean) or 1/2 (dayside); the paper says this isotropic approximation is within 2 percent of the exact semi-grey average (READ).</li>
+</ul>
+<p>This upgrades part 03's item 3 of the Boss list (&quot;Parmentier and Guillot coefficient formulas NOT REACHED&quot;) to READ for the formulas (the opacity tables of [R3440], that give gamma_P and tau_lim by T_irr and Rosseland opacity are still to extract). Use: giants and hot planets get a composition-dependent T-P profile from eq. 98 once gamma_v, kappa_R and the picket-fence ratios are tied to the mixture (the opacity link is the open point).</p>
+<h3 id="32-forcing-and-co2-note-r3229">3.2 Forcing and CO<sub>2</sub> (note, [R3229])</h3>
+<p>Delta F = 5.35 ln(C/C0) W/m2 is the [R3229] coefficient (already READ in part 03 via IPCC and Etminan 2016). The note's caution that the logarithmic law fails in dense CO<sub>2</sub> atmospheres is right and is already part 03 section 2 (use correlated-k or the grey tau0 route above 1 bar). CONFIRMED, no change.</p>
+<h3 id="33-line-lists-and-continuum">3.3 Line lists and continuum</h3>
+<p>HITRAN, HITEMP and ExoMol are reachable as web pages, but the line-by-line HITRAN service needs a login and the big ExoMol line lists were not downloaded. Statement &quot;greenhouse remains an unphysical parameterization without line-by-line or correlated-k tables&quot; matches part 03 findings (finding 5 of the master). Open as before.</p>
+<h2 id="4-rayleigh-and-king-factors-tier-2">4. Rayleigh and King factors (Tier 2)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.1</td>
+<td>sigma = 24 pi^3/(lambda^4 N_s^2) ((n_s^2-1)/(n_s^2+2))^2 F, F = (6+3 rho)/(6-7 rho)</td>
+<td>CONFIRMED</td>
+<td>Same law as the first report ([R2384] eq. 6-7, [R0623] eq. 12, READ)</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td>N_s = 2.68678e19 cm^-3 for all gases</td>
+<td>CONTRADICTED for most gases</td>
+<td>That is the 273.15 K Loschmidt number. The refractivity formulas for N<sub>2</sub>, Ar, CO<sub>2</sub>, CO and CH<sub>4</sub> are defined at 288.15 K (N = 2.546899e19 cm^-3) and only O<sub>2</sub> at 273.15 K (first report 2.1; part 02 table). Using 2.68678e19 with a 288.15 K refractivity biases sigma by 5.5 percent, which is the size of the &quot;5 to 9 percent&quot; the note blames on missing King factors</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>F(N2) = 1.034 + 3.17e-4 lambda^-2 (lambda in um); F(CO2) about 1.15; F(Ar) = 1</td>
+<td>CONFIRMED</td>
+<td>N<sub>2</sub> and Ar as in the first report; CO<sub>2</sub> F = 1.1364 + 2.53e-3/lambda^2 = 1.145 at 550 nm (part 02)</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td>SO<sub>2</sub> and H<sub>2</sub>S have depolarization ratios above 0.04 &quot;producing King factors exceeding 1.20&quot;</td>
+<td>CONTRADICTED (arithmetic)</td>
+<td>F(rho) = (6+3 rho)/(6-7 rho): rho = 0.04 gives F = 1.070, rho = 0.06 gives 1.108, and F = 1.20 needs rho = 0.105. No measured depolarization of SO<sub>2</sub> or H<sub>2</sub>S was found ([R0443] not reached); part 02's DFT estimate is unverified. So the claim that their King factors exceed 1.20 has no support and its own numbers contradict it</td>
+</tr>
+<tr>
+<td>4.5</td>
+<td>Neglecting the King factor produces &quot;shallow atmospheric scale height retrievals in transmission spectroscopy&quot;</td>
+<td>UNSUPPORTED</td>
+<td>Rayleigh slope affects the transit radius vs wavelength; the claim is not backed by a cited study. Irrelevant to the generator</td>
+</tr>
+<tr>
+<td>4.6</td>
+<td>[R0282, R0443, R0575, R4138] &quot;established&quot; the King factors</td>
+<td>PARTLY</td>
+<td>Sneep and Ubachs, Bates are the sources of the coded N<sub>2</sub>/O2/CO2 formulas (2ND-HAND in the first report); Bucholtz is a fit for air; [R0443] is the source for polarizability and depolarization of SO<sub>2</sub> and H<sub>2</sub>S but the numbers were never read. Still Boss's research item 6</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-other-items-in-the-note-touched-here">5. Other items in the note touched here</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AP9/AE9/SPM [R1573] is the benchmark for trapped fluxes</td>
+<td>CONFIRMED to exist</td>
+<td>Crossref lists &quot;AE9/AP9/SPM Radiation Environment Model: User's Guide&quot; [R3822] and the Space Weather release note for version 1.20.002; the model is for Earth's belts, so it does not give belts for other planets</td>
+</tr>
+<tr>
+<td>Domain list for &quot;direct ingestion pipelines&quot;</td>
+<td>PARTLY</td>
+<td>The Project settings network allow-list is Boss's choice. Measured at 12:03 AM EDT and again at 1:30 AM EDT: reachable are arxiv.org, NIST, NTRS, Copernicus, Optica pages, IOPscience, Nature, Springer, Crossref, Zenodo, UNSCEAR, PDG, ICRP, Europe PMC and more; still refused are doi.org, science.org, sciencedirect.com, agupubs, aanda.org, academic.oup.com, cambridge.org, pubs.acs.org, usgs.gov, mindat.org, lpi.usra.edu and github.com pages; jpldataeval.jpl.nasa.gov answered 502. Programmatic APIs (Crossref, Europe PMC) work now</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-items-from-the-note-that-were-not-checked-here">6. Items from the note that were not checked here</h2>
+<p>Tier 2 giant-planet visible absorption, Mars dust and Titan haze optics, Tier 3 energetic particles (ICRP) and cometary ratios, the dataset licences and the NH<sub>3</sub> and CH<sub>4</sub> coefficient sources are in part 08B. The silicate vaporisation reactions (SiO<sub>2</sub> and Na<sub>2</sub>O decomposition), the H<sub>2</sub>SO<sub>4</sub>-H2O, brine and clathrate statements (<code>ln(P_diss/P0) = A + B/T</code> with no constants given) and the radiogenic-heating remarks (Thorngren scatter &quot;0.3 to 0.5 dex&quot; with no source; K/U and Th/U effects on stagnant lid) carry no numbers that can be checked or used, and are not adopted. The chemistry of the vaporisation reactions is standard and consistent with part 05 section 4 ([R3059, R3943] are the cited sources there).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

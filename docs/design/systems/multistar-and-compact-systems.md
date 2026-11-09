@@ -585,11 +585,26 @@ the mean total `L_h/d^2 + L_c/(a^2 sqrt(1 - e^2))`; for a circumbinary planet it
 `4 delta / d` with `delta = |L1 r1 - L2 r2| / (L1 + L2)` the luminosity centroid's offset
 from the barycentre (`r1 = a m2/M`, `r2 = a m1/M`). The Temperature domain scores the
 worse of the cold and hot extremes `T (1 -+ f/2)^(1/4)` of the cycle, and the wet-bulb
-test reads the hot one. The equilibrium temperature itself still comes from the host star's
-light alone: the companion's mean share is at most a few percent of a planet's light
-(under 0.1% for a companion beyond 100 AU) and a planetGen simplification kept for now.
+test reads the hot one. The equilibrium temperature itself came from the host star's
+light alone until GEN.1441.
+
+**As built (GEN.1441).** `physics/radiation_field.py` sums every star's light on a body by position: the host's own light plus, for each other star, its luminosity
+times the mean of `1 / (R^2 - d^2)` over its orbit round the host (`R` its distance from the host, `d` the body's), an average over the body's own orbit too. Light, XUV,
+flare index and far-ultraviolet are each given as a total and per source. The mean starlight of a planet or moon feeds its temperature and air solve, its albedo and ice,
+the runaway greenhouse test, the zone letter and the energy flux; a companion beyond 100 AU moves the temperature by under 0.1 percent, and an equal one at 5 AU
+adds about 10 percent of the light to a planet at 1.5 AU. The simplification that kept the companion's share out is retired; the limits (coplanar orbits, a
+subtree as one point) are the registry rows RF1 to RF5 of section 6.239 of the gap plan.
 Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
 largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
+
+**As built (GEN.1442).** The rest of the radiation reads the same field. `magnetism.update_exposure` stores the XUV flux, the cumulative XUV index and the flare index of
+a body as the host's value plus the other stars' parts (`radiation_field.companion_part`); the free-space particle dose adds each star's `sqrt(N33 w) / d^2`
+(`radiation.companion_free_sep_msv_yr`); the far-ultraviolet of the haze and methane law adds each star's (`aerosols.far_uv_of`, the chromospheric share weighted by
+the light); the DNA dose and UV index at the ground add each star's own spectrum through the one air and ozone column (`body_radiation.companion_spectra`); and the loss
+of air and of envelope follow each star's XUV decay through time (`thermosphere._mixed_history`, `envelope_escape.envelope_left_earth(emitters=)`, the
+`host_distance_au` and `xuv_companions` quantities of the recipe subject), the host's XUV taking its own distance now that the light is the whole system's. A lone star
+keeps its numbers to the last digit. Limits are registry rows DS1 to DS4 of section 6.241 of the gap plan (the ozone fit by the host's colour, coplanar and shadow-free
+doses).
 
 ### 6.6 Placement by population (GEN.103)
 

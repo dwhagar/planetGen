@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud albedo on the surface-air fixed point (GEN.974) - planetGen docs</title>
+<meta name="description" content="Status: built (GEN.974, Core 5, 2026-11-06).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/cloud-albedo.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/cloud-albedo.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="cloud-albedo-on-the-surface-air-fixed-point-gen974">Cloud albedo on the surface-air fixed point (GEN.974)</h1><p class="meta">docs/design/composition/cloud-albedo.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#what-the-build-found">What the build found</a></li><li style="margin-left:0px"><a href="#what-is-missing">What is missing</a></li><li style="margin-left:0px"><a href="#what-the-sources-say">What the sources say</a></li><li style="margin-left:0px"><a href="#the-law">The law</a></li><li style="margin-left:0px"><a href="#how-it-is-wired">How it is wired</a></li><li style="margin-left:0px"><a href="#checks-to-build">Checks to build</a></li><li style="margin-left:0px"><a href="#stand-ins-for-the-registry-gen725-with-tier-and-tweak-level">Stand-ins for the registry (GEN.725), with tier and tweak level</a></li><li style="margin-left:0px"><a href="#what-this-does-not-do">What this does not do</a></li></ul></details>
+<p>Status: built (GEN.974, Core 5, 2026-11-06). <code>physics/cloud_albedo.py</code> is the pure module (the amount and deck terms, <code>CloudLaw</code>, the lock estimate); <code>surface_air.Setting</code> carries <code>cloud_law</code>, <code>albedo_at</code> and <code>absorbed_flux_at</code> take the step's ocean, and <code>surface_air.cloud_law_of</code> builds the law for a body that has the ice law. Generated output changes (the albedo of every wet body away from 288 K), so it rides a train with an epoch. Stand-in rows CA1 to CA5 are in <code>gap-filling-plan.md</code> section 6.199 (the design's CL1 to CL4 clash with the planet-class rows of that name, and a fifth row, the lock estimate, was needed).</p>
+<h2 id="what-the-build-found">What the build found</h2>
+<ul>
+<li><strong>The twin's response is inside the published range.</strong> With the cloud in the fixed point the Earth twin of <code>test_climate_sweep.py</code> responds with 0.65 and 0.56 K per W/m2 above 288 K (the lower bound is 0.54; it was 0.44 without the cloud), and the strict expected failure that named GEN.973 and GEN.974 is gone.</li>
+<li><strong>The snowball comes sooner, then later (GEN.1304).</strong> With the cloud and the table before GEN.1304 the twin was bistable at 4 to 5 percent less light (5 percent down, started from the airless Earth's temperature, ended at 224 K and started warm at 276 K; 10 percent down was a snowball from any start), the ice catastrophe of the energy balance models ([R0580, R4008]: a few percent of the Earth's light), so the cooling half of the sweep stops 3 percent down. The GEN.1304 table (the temperate wet branch no longer 12 K cold) moved the threshold: the twin holds the freezing edge at 10 percent down (273 K) and falls to the snowball between 12 and 14 percent, and it does so with the cloud or without it (the table moved it, not the cloud: main without GEN.974 reads 273.3 K at 10 percent down). <code>test_a_flux_fifteen_percent_down_ends_in_a_snowball</code> holds the snowball at 15 percent. Whether 13 percent is a believable threshold for the Earth is a question for the sweep's next review, not a cloud constant.</li>
+<li><strong>The lock is an estimate.</strong> The spin is drawn after the air, so the deck term reads the standard despin time with a stand-in Q/k2 (row CA5), and a moon is taken as locked. The deck matters only above 1,000 W/m2 of starlight.</li>
+<li><strong>Not wired, as designed:</strong> <code>temperature_coverage.ice_law_of</code> (the stored body's cells) and <code>seasonal_swing</code> keep the ice law alone; they read the stored albedo, which already holds the cloud shift at the stored temperature.</li>
+</ul>
+<h2 id="what-is-missing">What is missing</h2>
+<p>The albedo of a wet body is drawn once (<code>ALBEDO_WET_RANGE</code>, 0.25 to 0.40) and held while the air is solved. GEN.972 lets the ice move it. The clouds do not move it: a world that warms keeps the cloud it was drawn with. Real clouds change with the climate, and that is the largest single spread in the sensitivity of the Earth (IPCC AR6, 2021, table 7.10, from memory, not opened: cloud feedback +0.42 W/m2 per K, very likely range -0.10 to +0.94).</p>
+<p>The published range matters for the test the sweep holds (<code>test_climate_sweep.py</code>). At 288 K the fixed point responds with 0.40 K per W/m2 (TEST.509), its outgoing flux rising 2.5 W/m2 per K. With the ice-albedo gain (+0.35, GEN.972) and the cloud gain (+0.42) the response is 1 / (2.5 - 0.77) = 0.58, over the lower bound of 0.54. With the low ends of both published ranges (+0.10 and -0.10) it is 0.40: the test passes only if the cloud gain is near its central value, so the size of the gain, not just its sign, is the point of this item.</p>
+<h2 id="what-the-sources-say">What the sources say</h2>
+<ul>
+<li><strong>Earth, the cold and moderate side.</strong> Warming thins the low cloud and brightens less: the net low-cloud feedback of the CMIP models rose from 0.09 to 0.21 W/m2 per K between CMIP5 and CMIP6, almost entirely in the shortwave (Zelinka and others 2020, GRL 47, section 3.2, opened; the paper gives the total only in a figure, not in its text, and the abstract names the cause as falling extratropical low-cloud cover and albedo). The sign is a loss of reflection with warming, so the albedo falls as the temperature rises.</li>
+<li><strong>The hot side of a slow rotator.</strong> A tidally locked ocean planet builds a thick substellar cloud deck as the light rises, and its albedo goes up with the flux: 0.42 at 1,000 W/m2, 0.47 at 1,400, 0.51 at 2,000 and 0.53 at 2,200 for an M-star spectrum ([R0914] L45, table 1 group 3, opened). A fast rotator in the same paper does the opposite: 0.21 at 1,600 W/m2 for the 6:1 case. The two signs belong to the circulation, not to the temperature, so the rotation is an input.</li>
+<li><strong>Water limits the cloud.</strong> The aerosol model (<code>aerosols.py</code>, GEN.414) already puts a cloud where a condensable crosses saturation going up and bounds its depth by the vapor above the base (<code>cloud_depth_limit</code>). A world with no ocean has no water cloud (the sulfuric cloud of Venus is GEN.1019 and GEN.1020, wired elsewhere).</li>
+</ul>
+<p>None of these gives a law for a generated body, so the module is a registered stand-in with the sources as its bounds (rows below).</p>
+<h2 id="the-law">The law</h2>
+<p>The cloud term moves the Bond albedo of the drawn body by a bounded amount, in two regimes that add:</p>
+<pre><code>A(T, S) = A_ice(T) + dA_amount(T) + dA_deck(S)
+</code></pre>
+<p><code>A_ice</code> is the law of GEN.972 (the drawn albedo is its ice-free value). The two cloud terms:</p>
+<ol>
+<li><strong>Amount, every wet body with an ocean:</strong> <code>dA_amount = -beta (T - T_REF)</code>, clipped to plus or minus <code>DELTA_MAX</code>. Warmer than <code>T_REF</code> the low cloud thins and the albedo falls; cooler it thickens and rises. <code>beta</code> is set so the cloud feedback of the Earth at 288 K is the assessment's central +0.42 W/m2 per K: <code>beta = 0.42 x 4 / 1361 = 1.2e-3 per K</code> (the same arithmetic as the ice law's calibration to AR6 table 7.10). <code>T_REF = 288 K</code>, the Earth's mean, because the albedo range of a wet body is centered on the Earth's 0.30: a body at 288 K keeps exactly its drawn albedo, and a hot one is 0.04 darker at 320 K. <code>DELTA_MAX = 0.12</code>, the shortwave cloud effect of the Earth (about 47 W/m2 over 340, Hartmann's budget, from memory, not opened) less the share that cannot thin, so no body loses or gains more cloud than the Earth holds.</li>
+<li><strong>Deck, a locked ocean body only:</strong> <code>dA_deck = +gamma (S - S_REF)</code> for <code>S</code> above <code>S_REF</code>, with <code>gamma = (0.53 - 0.42) / (2200 - 1000) = 9.2e-5 per W/m2</code> from table 1 of Yang and others, <code>S_REF = 1000 W/m2</code>, clipped at <code>DELTA_DECK_MAX = 0.12</code>. A body that is not locked in 1:1 (spin from the tide model, GEN.842) has no deck; that is the sign of the fast rotators of the same paper, which the amount term already carries. The deck term takes the stellar spectrum of the Yang M-star runs as the one in hand and is a stand-in for the others.</li>
+</ol>
+<p>Both terms vanish where there is no liquid ocean (<code>air.ocean_present</code> false) or no air; the amount term vanishes where the air has no water vapor to condense. A giant, a dry body and an airless body are unchanged, as in GEN.972.</p>
+<h2 id="how-it-is-wired">How it is wired</h2>
+<p><code>Setting</code> gains <code>cloud_law</code> (the pure function of <code>cloud_albedo</code>, None for none) and <code>locked</code> (a bool the caller reads from the body's spin state; GEN.842 holds it). Each step of <code>surface_air.solve</code> reads <code>albedo = ice_law(T) + cloud_law(T, S, locked)</code> at the temperature of the step before, as GEN.972 does for the ice. Only the temperature is an unknown, so the loop gain is the sum of the two slopes: the amount term adds 0.0012 per K to the ice slope, small beside the ramp's, and the deck term has no temperature in it, so the iteration's damping stays as it is. <code>Air.albedo</code> carries the sum and the stored GEN.412 pair is the last step's, so the inversion reproduces the temperature.</p>
+<h2 id="checks-to-build">Checks to build</h2>
+<ul>
+<li>The cloud feedback at 288 K for the Earth twin is <code>-beta x 1361 / 4 = +0.42 W/m2 per K</code>, inside AR6's -0.10 to +0.94 (a pure-module test, like the ice law's).</li>
+<li>The climate sweep of the Earth twin (TEST.509) responds above 0.54 once GEN.972 and GEN.974 are both in; the strict expected failure comes off with whichever of GEN.972, GEN.973 (closed) and GEN.974 lands last.</li>
+<li>The deck term reproduces the albedos of Yang's table 1 (0.42 at 1,000, 0.53 at 2,200 W/m2) at its two ends.</li>
+<li>A dry body, a giant and an airless body do not move (their temperatures and albedos are unchanged against the golden).</li>
+<li>The census (Bug 2) shows the albedo and temperature shift of wet bodies by temperature band; only bodies away from 288 K move, by at most <code>DELTA_MAX</code>.</li>
+</ul>
+<h2 id="stand-ins-for-the-registry-gen725-with-tier-and-tweak-level">Stand-ins for the registry (GEN.725), with tier and tweak level</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>what</th>
+<th>tier</th>
+<th>level</th>
+<th>replaced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CL1</td>
+<td><code>beta</code> 1.2e-3 per K (the cloud feedback of +0.42 W/m2 per K at 288 K)</td>
+<td>T6 educated guess from a published statistic (AR6, from memory)</td>
+<td>L2 tuned to a published statistic</td>
+<td>a cloud-resolving or at least a two-layer cloud model on the fixed point</td>
+</tr>
+<tr>
+<td>CL2</td>
+<td><code>T_REF</code> 288 K and <code>DELTA_MAX</code> 0.12</td>
+<td>T6</td>
+<td>L0 as envisioned for the reference, L2 for the bound</td>
+<td>the same</td>
+</tr>
+<tr>
+<td>CL3</td>
+<td><code>gamma</code> 9.2e-5 per W/m2, <code>S_REF</code> 1,000 W/m2, <code>DELTA_DECK_MAX</code> 0.12</td>
+<td>T2 Confident Unverified (Yang and others 2013, table 1, M-star spectrum, one model)</td>
+<td>L1 nudged inside the source's spread</td>
+<td>the circulation (a 3D model, or its published scalings with rotation and flux)</td>
+</tr>
+<tr>
+<td>CL4</td>
+<td>the cloud acts only with a liquid ocean and (for the deck) a 1:1 lock</td>
+<td>T6</td>
+<td>L0</td>
+<td>an amount from the condensate depth of <code>aerosols.cloud_depth_limit</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>No row is at L3 or L4, so none needs a burn-down line.</p>
+<h2 id="what-this-does-not-do">What this does not do</h2>
+<ul>
+<li>No cloud longwave effect: the model's cloud is a reflector only. The AR6 figure is a net of shortwave and longwave, so sizing the albedo term to the net lets one term stand for both, which overstates the albedo change by the longwave share (unknown from the text opened; Zelinka's paper puts most of the CMIP6 increase in the shortwave). The longwave effect of clouds is part of the reason the model stands 6.5 K under the Earth's 288 K at the Earth's own flux (TEST.509), and belongs to a later item.</li>
+<li>No change to the cloud of the colour model: <code>aerosols.draw_aerosols</code> still draws <code>cloud_cover</code> and <code>tau_cloud</code> from the finished air for the sky (they do not feed back on the temperature here).</li>
+<li>No runaway: the water-window opacity that lets the outgoing flux plateau is GEN.1194, which may share the epoch. The deck term raises the albedo of a locked world with the flux, as the cloud does in Yang's runs, but the dayside's moist greenhouse is not modelled here.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

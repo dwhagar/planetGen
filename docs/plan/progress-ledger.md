@@ -2995,3 +2995,27 @@ Baseline: PR #1817.
 | TEST.692 | 8.1 | Bugs and flaky tests |
 | TEST.691 | 8.1 | Bugs and flaky tests |
 | PERF.253 | 8.1 | Bugs and flaky tests |
+| DOC.116 | 8.1 | Bugs and flaky tests |
+| DOC.113 | 8.1 | Bugs and flaky tests |
+| OPS.130 | 8.1 | Bugs and flaky tests |
+| TEST.711 | 8.1 | Stand-in replacements |
+| TEST.712 | 8.1 | Stand-in replacements |
+| ADM.148 | 8.1 | Bugs and flaky tests |
+| ADM.149 | 8.1 | Bugs and flaky tests |
+| ADM.150 | 8.1 | Bugs and flaky tests |
+| ADM.151 | 8.1 | Bugs and flaky tests |
+| GEN.1469 | 8.1 | Stand-in replacements |
+| PERF.249 | 8.1 | Bugs and flaky tests |
+| PERF.257 | 8.1 | Stand-in replacements |
+| GEN.1482 | 8.1 | Stand-in replacements |
+| GEN.1474 | 8.1 | Stand-in replacements |
+| PERF.258 | 8.1 | Stand-in replacements |
+| GEN.1377 | 8.1 | Stand-in replacements |
+| GEN.1420 | 8.1 | Stand-in replacements |
+| GEN.1421 | 8.1 | Stand-in replacements |
+| GEN.1441 | 8.1 | Stand-in replacements |
+| GEN.1442 | 8.1 | Stand-in replacements |
+| GEN.1452 | 8.1 | Stand-in replacements |
+| GEN.1349 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1472 | 8.1 | Stand-in replacements |
+| GEN.1481 | 8.1 | Stand-in replacements |

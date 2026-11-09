@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Units, number formatting and the shared unit-ladder module - planetGen docs</title>
+<meta name="description" content="How every measurement planetGen shows should be turned into text: one ladder of units per quantity, one number rule, one place where the data lives, and one generic algorithm in Python and in the browser.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/units-and-number-formatting.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/units-and-number-formatting.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="units-number-formatting-and-the-shared-unit-ladder-module">Units, number formatting and the shared unit-ladder module</h1><p class="meta">docs/design/architecture/units-and-number-formatting.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#summary-and-recommendation">Summary and recommendation</a></li><li style="margin-left:0px"><a href="#1-what-the-project-displays-today-and-the-proposed-ladders">1. What the project displays today, and the proposed ladders</a></li><li style="margin-left:14px"><a href="#where-the-formatter-lives-now">Where the formatter lives now</a></li><li style="margin-left:14px"><a href="#existing-ladder-spans-c">Existing ladder spans [C]</a></li><li style="margin-left:14px"><a href="#proposed-ladders">Proposed ladders</a></li><li style="margin-left:0px"><a href="#2-libraries-and-the-serverbrowser-split">2. Libraries and the server/browser split</a></li><li style="margin-left:14px"><a href="#astropyunits-pint-custom">astropy.units, pint, custom</a></li><li style="margin-left:14px"><a href="#python-and-js-without-two-implementations">Python and JS without two implementations</a></li><li style="margin-left:14px"><a href="#number-rendering-decisions-this-implies">Number rendering decisions this implies</a></li><li style="margin-left:0px"><a href="#3-number-formatting-rules-ux36-and-the-rest">3. Number formatting rules (UX.36 and the rest)</a></li><li style="margin-left:0px"><a href="#4-unit-preference-and-tests">4. Unit preference and tests</a></li><li style="margin-left:0px"><a href="#5-recommended-module-api-and-migration-order">5. Recommended module API and migration order</a></li><li style="margin-left:14px"><a href="#data-structure">Data structure</a></li><li style="margin-left:14px"><a href="#functions">Functions</a></li><li style="margin-left:14px"><a href="#migration-order">Migration order</a></li><li style="margin-left:0px"><a href="#6-units-the-research-documents-use">6. Units the research documents use</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li></ul></details>
+<p>How every measurement planetGen shows should be turned into text: one ladder
+of units per quantity, one number rule, one place where the data lives, and
+one generic algorithm in Python and in the browser. This note holds the
+proposed ladders for the 14 families the repository shows today, the
+module API, the migration order, the defects found in the current formatter
+and the tests that keep the Python and JavaScript copies identical.</p>
+<p>Informs: UX.23, UX.22, UX.36, UX.30, UX.32, GEN.66 (and, only where relevant, UX.3 and UX.42)</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p><strong>Update (2026-10-15).</strong> Astropy is no longer a runtime dependency (GEN.211, #1310): <code>physics/constants.py</code> is a literal table, so &quot;the ladder module imports from <code>physics/constants.py</code>, which reads astropy&quot; is out of date and the lock-file reproducibility gap in finding 3 is closed. The recommendation (a custom table) stands and is easier. The project floor is Python 3.12 (OPS.42), so the Python 3.9 rows and the &quot;Python 3.9 compatible&quot; module header are history.</p>
+<p><strong>Update (DOC.70, 2026-10-23): where the units live now.</strong> This note was written before the unit registry existed; its
+ladders and the migration order below are still the display design, but a unit's number is no longer stated here or
+anywhere else a second time. One list of units exists, and everything else reads it
+(design: <code>docs/design/architecture/unified-unit-quantity.md</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>What</th>
+<th>Where</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>The unit registry</strong></td>
+<td><code>physics/unit_registry.py</code> (GEN.568)</td>
+<td>One row per unit: its kind, the factor to the kind's base unit (SI), the offset of its zero, a symbol, an ASCII key and names. Exact numbers come from <code>physics/constants.py</code>; the registry states only definitions (SI prefixes, 60 s in a minute). A kind has a dimension (five exponents of length, mass, time, temperature, angle) and the bounds a value may take. Unit systems (<code>au-yr-msun</code>) and physical constants in a system (<code>constant_in</code>) are worked out from dimensions, never typed. No astropy.</td>
+</tr>
+<tr>
+<td><strong><code>Quantity</code></strong></td>
+<td><code>physics/quantity.py</code> (GEN.569)</td>
+<td>A number in one registry unit, kept as given, answered in any other unit of its kind on demand; for the edges (store, load, show, API), never in a kernel loop. A conversion between units a power of ten apart is one correctly rounded step.</td>
+</tr>
+<tr>
+<td><strong>Relations</strong></td>
+<td><code>physics/relations.py</code> (GEN.586)</td>
+<td>Named laws (surface gravity, Hill radius, fluid Roche limit, a period and its frequency) declared once as SI kernels with a <code>Quantity</code> form; a dimension test checks each formula's output dimension.</td>
+</tr>
+<tr>
+<td><strong>Field declarations</strong></td>
+<td><code>MassObject.FIELD_UNITS</code> (GEN.570)</td>
+<td>Each persisted attribute of a body family with the unit its instance holds it in; <code>SERIALIZABLE_FIELDS</code> is its names.</td>
+</tr>
+<tr>
+<td><strong>The column registry</strong></td>
+<td><code>db/column_units.py</code> (DB.76)</td>
+<td>Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (<code>tests/test_column_units.py</code>). See <code>docs/reference/database-schema.md</code>, &quot;Units of a column&quot;.</td>
+</tr>
+<tr>
+<td><strong>The display ladders</strong></td>
+<td><code>util/ladders.py</code>, <code>scripts/build_unit_ladders.py</code></td>
+<td>A ladder rung is built from its registry row (<code>rung</code>, <code>companion</code>): the factor, offset and name are the registry's; the ladder adds only display data (a different symbol, the start threshold, the singular form, the unit systems).</td>
+</tr>
+<tr>
+<td><strong>The browser</strong></td>
+<td><code>html/static/unitregistry.js</code>, written by <code>scripts/build_unit_registry.py</code></td>
+<td>The registry in JavaScript, tested to give bit-identical conversions; a browser script that declares its own unit factor fails <code>tests/test_unit_registry_js.py</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the <code>Rung</code> structure of section 5 below is the display record, not a place that owns a factor: its <code>factor</code> is read from
+the registry row of the same unit. No other page of the project describes a second table of units; a new unit is one new
+row in <code>unit_registry.py</code>.</p>
+<p>Evidence tags: [S] seen in a search result or a fetched primary file (URL in
+Sources), [C] computed or measured in the research sandbox, [R] recalled and
+unconfirmed. The research environment could only read search-result text and
+raw files, not whole papers or standards, and the web-search budget ran out
+partway through, so the screen-reader, exoplanet-catalogue and unit-toggle
+points are [R]. Every [R] is on the Evidence notes list.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Distances (Boss, 2026-09-30): a parsec-family value carries one familiar unit in parentheses, &quot;4.2 pc (13.7 ly)&quot;, &quot;2.4 mpc (495 AU)&quot; (<code>DISTANCE_PAREN_MIN_LY</code>, <code>DISTANCE_PAREN_MIN_AU</code> in <code>util/format.py</code>).</li>
+<li>Body radii (Boss, 2026-09-30): a planet, moon or star radius is always km in scientific notation, the one exception to the distance ladder (<code>format_body_radius_km</code>).</li>
+<li>Speed (Boss, 2026-10-01, UX.13): &quot;km/h on the low speed end to Mm/s on the high speed end&quot;, then multiples of c from a tenth of light speed.</li>
+<li>UX.22 (Boss, 2026-10-01 15:10Z): &quot;standardize ALL measurements into trees like we have so that we always have meaningful units ... just everything that can have units. Atmospheric pressure and surface conditions should show customary units as well as a secondary to help contextualize the metric values given.&quot; Surface temperature in K, °C and °F and pressure in Pa-ladder, atm and psi shipped in PR #234.</li>
+<li>Number rule (UX.20, UX.36, Boss 2026-10-02): scientific notation for a whole number only from the 7th digit, and from the 5th digit before the point when decimals are shown. Implemented and verified (section 3).</li>
+<li>UX.23 plan (2026-10-07): the ladder is built on astropy.units (GEN.66, done in PR #767).</li>
+</ul>
+<h2 id="summary-and-recommendation">Summary and recommendation</h2>
+<ol>
+<li><strong>Build the module data-driven, not as more hand-written twins.</strong> One Python table of ladders (rungs with a symbol, an SI factor, an optional start threshold, a singular form, a spelled-out name and an optional aside unit), one generic picking-and-formatting function, and a generated JS data file consumed by one generic JS function. A prototype of this reproduced the existing <code>format_distance_m</code>, <code>format_speed_kms</code> and <code>format_duration_seconds</code> exactly on 600,000 random values with 0 mismatches [C], so step 0 of the migration can change no output at all. The generated file also removes the three hand-kept JS twins (<code>distance.js</code>, <code>speed.js</code>, <code>period.js</code>, 189 lines) and the constants hard-coded in them.</li>
+<li><strong>Use astropy.units for the numbers and the tests, not in the display path.</strong> Derive every rung factor from <code>astropy.units</code> and <code>astropy.constants</code> at import (as <code>physics/constants.py</code> already does since GEN.66) and cross-check every rung in tests. Format plain floats: a plain divide costs 0.17 to 0.5 µs, <code>Unit.to(value)</code> 4.5 to 5.6 µs, a Quantity round trip 22 to 37 µs, pint 87 µs [C]. Speed is not decisive; astropy's output style (&quot;km s⁻¹&quot;, no grouping, no UX.36 rule), numpy scalars and version drift are. Do not adopt pint (its 0.24.1 fails to import on Python 3.9) or a JS unit library (none knows AU, pc or Earth and Jupiter masses). Detail in section 2.</li>
+<li><strong>Pin astropy's constant sets: a real reproducibility gap in the lock file today.</strong> <code>requirements.lock</code> resolves astropy 6.0.1 (Python 3.9), 6.1.7 (3.10) and 8.0.1 (3.11 and later), and astropy 8.0 switched its default physical constants from [R4361] to [R3117] [C]. G, M_sun, M_earth, M_jup, R_sun, L_sun and the au are identical, but the proton and electron masses differ by about 1.4e-9, so <code>HYDROGEN_ATOM_MASS_KG</code> differs between a 3.9 and a 3.12 install, and <code>tests/test_astropy_constants.py</code> allows 1e-4 on it. Fix: call <code>astropy.physical_constants.set(&quot;codata2018&quot;)</code> and <code>astropy.astronomical_constants.set(&quot;iau2015&quot;)</code> once, before <code>astropy.units</code> is first imported (it raises <code>RuntimeError: astropy.units is already imported</code> otherwise [C]); this gives identical values on 6.0.1 and 8.0.1 [C]. The IAU 2015 B3 nominal values (R_sun 6.957e8 m, L_sun 3.828e26 W, R_jup 7.1492e7 m, GM_sun 1.3271244e20 m³/s²) are the same in every astropy version [C].</li>
+<li><strong>Fix four concrete defects in the current formatter while moving it.</strong>
+<ul>
+<li>(a) Python and JS round half-way values differently: <code>_three_figures(9.995)</code> gives &quot;9.99&quot; in Python and &quot;10&quot; in JS, and <code>1.005</code> gives &quot;1&quot; versus &quot;1.01&quot; [C]. Round half-up on the shortest decimal representation in both (<code>Decimal(repr(x))</code> with <code>ROUND_HALF_UP</code>); that matched <code>Intl.NumberFormat</code> on 400,000 cases including ties, at 5.8 µs per call against 1.3 µs for <code>format()</code> [C].</li>
+<li>(b) Between 1,000,000 km and 1 AU every distance is scientific km (&quot;5.79 × 10⁷ km&quot; for Mercury's 0.387 AU) [C]. Start AU at 1,000,000 km (0.0067 AU).</li>
+<li>(c) A value below the bottom rung prints a row of zeros (&quot;0.00000000000025 Pa&quot;, a Hawking luminosity) [C]. Use scientific text when the mantissa is under 1e-3.</li>
+<li>(d) &quot;Gy&quot; means gigayear in the period ladder but is the gray in SI, and GEN.87 will add doses. Use &quot;kyr&quot;, &quot;Myr&quot; and &quot;Gyr&quot;.</li>
+</ul>
+</li>
+<li><strong>Every quantity gets one ladder and one aside rule</strong> (section 1). The rogue-planet and phenomenon pages (<code>web/system_pages.py</code>) and the 3D views (<code>systemview3d.js</code>, <code>galaxysystem.js</code>, <code>galaxymap3d.js</code>) still bypass the ladders; section 5 names the files.</li>
+<li><strong>Wrap values in <code>&lt;span class=&quot;qty&quot; data-q=&quot;length&quot; data-si=&quot;…&quot;&gt;</code> and keep NBSP out of the text.</strong> That gives a no-wrap rule, tabular numerals, a hook for a unit preference and for copy behaviour, without putting non-breaking spaces into the Markdown and wikitext the same formatter writes.</li>
+</ol>
+<h2 id="1-what-the-project-displays-today-and-the-proposed-ladders">1. What the project displays today, and the proposed ladders</h2>
+<h3 id="where-the-formatter-lives-now">Where the formatter lives now</h3>
+<p>Function names are given instead of line numbers, which drift; grep for them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>File</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number rule (UX.20, UX.36)</td>
+<td><code>src/planetgen/util/format.py</code>: <code>format_number</code>, <code>scientific_text</code>, <code>_shows_too_many_digits</code>, <code>_three_figures</code></td>
+<td>7+ whole digits with no decimals, or 5+ digits before the point with decimals, becomes &quot;1.23 × 10⁶&quot; (3 significant figures, Unicode superscripts).</td>
+</tr>
+<tr>
+<td>Ladders</td>
+<td><code>format.py</code>: <code>DISTANCE_LADDER</code>, <code>SPEED_LADDER</code>, <code>PERIOD_LADDER</code>, <code>PRESSURE_LADDER</code>; <code>format_temperature_k</code></td>
+<td>Hand-written per quantity, each with its own loop.</td>
+</tr>
+<tr>
+<td>HTML wrappers</td>
+<td><code>src/planetgen/web/lib/fmt.py</code></td>
+<td><code>dash_unless_finite(...)</code> around each formatter (TEST.53).</td>
+</tr>
+<tr>
+<td>Ad hoc</td>
+<td><code>web/lib/tabledisplay.py</code>, <code>web/system_pages.py</code> (<code>FIELD_SPECS</code>, <code>_temperature_text</code>, <code>_pressure_text</code>), <code>web/lib/systempage.py</code> (<code>_gravity_text</code>), <code>generation/planet.py</code> (gravity line)</td>
+<td>Mass as &quot;kg (x Earth masses)&quot;, luminosity as &quot;W (x Sol)&quot;, Gy, G, W/m², particles/cm³ all formatted inline.</td>
+</tr>
+<tr>
+<td>JS twins</td>
+<td><code>src/html/static/numberformat.js</code>, <code>distance.js</code>, <code>speed.js</code>, <code>period.js</code></td>
+<td>Tested against Python by spawning node (<code>tests/test_number_format.py</code>, <code>test_distance_format.py</code>, <code>test_speed_period_format.py</code>).</td>
+</tr>
+<tr>
+<td>JS bypassing the ladders</td>
+<td><code>systemview3d.js</code> (orbit and period fields), <code>galaxysystem.js</code> (period), <code>galaxymap3d.js</code> (17 <code>toFixed</code>/<code>toPrecision</code> calls), <code>galaxystages.js</code> (sector counts)</td>
+<td><code>toPrecision(3)</code> gives &quot;1.50e+3&quot; style output for four-digit values; <code>Math.round(radius).toLocaleString()</code> ignores the &quot;radius is always scientific km&quot; rule.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Stored strings are not a migration worry: schema v5 dropped the pre-rendered <code>table_*</code> columns, so display text is computed at read time. The Markdown and wikitext render in <code>generation/*.py</code> still bakes strings (for example <code>star.py</code> writes <code>f&quot;{format_number(self.temperature)} K&quot;</code>), so those files need the same wrappers.</p>
+<h3 id="existing-ladder-spans-c">Existing ladder spans [C]</h3>
+<p>The existing rungs cover: distance km to 1.5e8 km, AU 1 to 206 AU, mpc 1 to 10, cpc 1 to 30.7, ly 1 to 3.26, pc 1 to 1000; speed km/h to 3,600, km/s 1 to 1,000, Mm/s 1 to 29.98, c from 0.1 c; duration µs to years as usual, then ky and My to 1000 and Gy unbounded. The km rung is 8 orders of magnitude wide (hence the scientific-km gap). The Mm/s rung runs only to 29.98 Mm/s, so a speed just under 0.1 c prints &quot;30 Mm/s&quot; while 0.1 c prints &quot;0.1 c&quot;; this follows Boss's UX.13 wording.</p>
+<h3 id="proposed-ladders">Proposed ladders</h3>
+<p>Rule of thumb for every rung choice: show the largest rung whose mantissa is at least 1, as today, so mantissas are in [1, 1000) wherever neighbouring rungs are at most 1000 apart (NIST SP 811 advises a prefix that puts the number between 0.1 and 1000 [R]). Where a family has natural astronomical anchors (Earth, Jupiter, Sun) the switch points sit at the anchors' conventional ranges. All thresholds are defaults, not facts.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Base</th>
+<th>Ladder (start threshold)</th>
+<th>Aside / companion</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Distance (existing, keep Boss's rungs)</td>
+<td>m</td>
+<td>km; AU from <strong>1,000,000 km (0.0067 AU)</strong>; mpc, cpc, ly, pc, kpc, Mpc, Gpc as now</td>
+<td>parsec rungs keep &quot;(ly)&quot; / &quot;(AU)&quot; / &quot;(km)&quot; aside</td>
+<td>AU is the IAU 2012 B2 exact 149,597,870,700 m [S: syrte.obspm.fr]. Mercury at 0.387 AU is &quot;0.387 AU&quot; in every textbook, not &quot;5.79 × 10⁷ km&quot;.</td>
+</tr>
+<tr>
+<td>Body radius</td>
+<td>m</td>
+<td>Stays km in scientific notation with &quot;(x Earth radii)&quot; (Boss, 2026-09-30)</td>
+<td>Earth radii for planets; add Jupiter radii for gas giants</td>
+<td><code>format_body_radius_km</code> is a recorded decision. R_jup nominal 7.1492e7 m [S: IAU 2015 B3].</td>
+</tr>
+<tr>
+<td>Mass</td>
+<td>kg</td>
+<td>kg (scientific) below 0.01 lunar mass (7.3e20 kg); lunar masses to 0.1 Earth mass; Earth masses to 0.1 Jupiter mass (31.8 M⊕); Jupiter masses to 0.075 M☉ (hydrogen-burning limit, about 79 M_J); solar masses above</td>
+<td>none needed</td>
+<td>Prototype outputs [C]: Ceres 0.0128 lunar masses, Mercury 4.49 lunar masses, Mars 0.107 Earth masses, Neptune 17.1 Earth masses, Saturn 0.299 Jupiter masses, Proxima 0.122 solar masses, Sgr A* 4.30 × 10⁶ solar masses. Exoplanet catalogues quote both M⊕ and M_J for giants; the 0.1 M_J switch is a convention [R]. IAU 2015 B3 defines the nominal GM, not a mass, so M_sun, M_earth and M_jup depend on G. The project's M_moon (not in astropy; 7.34e22 kg [R]) should be defined as a project-nominal constant, as the IAU does.</td>
+</tr>
+<tr>
+<td>Time, duration, period</td>
+<td>s</td>
+<td>as now, but symbols <strong>kyr, Myr, Gyr</strong></td>
+<td>none</td>
+<td>Gy collides with the gray. Myr and Gyr are the usual astronomy and geoscience durations [S: GSA Today and stratigraphy search results; the IAU Style Manual page did not display the year rows]. The Julian year of 365.25 d is what astropy's <code>u.year</code> gives (31,557,600 s) [C].</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>km/s</td>
+<td>km/h; km/s from 1; Mm/s from 1,000 km/s; c from 0.1 c</td>
+<td>none</td>
+<td>As built (UX.13). mph only under the Customary preset (section 4).</td>
+</tr>
+<tr>
+<td>Luminosity, power</td>
+<td>W</td>
+<td>W, kW, MW, GW, TW, PW, EW (SI prefixes); <strong>L☉ from 1e-6 L☉</strong></td>
+<td>for stars, &quot;x L☉&quot; stays in the aside</td>
+<td>L_sun nominal 3.828e26 W [S: IAU 2015 B3]. Prototype [C]: Earth intrinsic 47 TW, Jupiter 335 PW, quasar 2.61 × 10¹³ L☉. Below the lowest rung use scientific text (Hawking luminosities).</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>K</td>
+<td>K to 3 figures; mK, µK, nK below 1 K; scientific below 1 pK</td>
+<td><strong>°C and °F beside K for surface conditions only</strong> (Boss, UX.22); stars K alone</td>
+<td>Affine units, so the table needs an <code>offset</code>. Cross-check against <code>u.temperature()</code> (300 K gives 26.85 deg_C and 80.33 deg_F on astropy 6.0.1 and 8.0.1 [C]).</td>
+</tr>
+<tr>
+<td>Pressure</td>
+<td>Pa</td>
+<td>nPa, µPa, mPa, Pa, kPa, MPa, GPa, TPa; scientific below nPa</td>
+<td><strong>atm and psi</strong> (shipped, PR #234); add <strong>bar</strong> for gas giants and <strong>mbar</strong> under 0.01 atm</td>
+<td>Planetary science quotes bar, mbar, µbar (Venus about 92 bar, Mars about 6 mbar) [R], and the habitability research documents quote bar and kPa throughout (section 6). <code>PSI_PA = 6894.757293168361</code> in <code>constants.py</code> is the exact value; <strong>do not use astropy's <code>imperial.psi</code></strong>, which is 6894.757388 (rounded lbf, 1.4e-8 relative error) [C]. <code>format_pressure_pa(2.5e-13)</code> currently prints &quot;0.00000000000025 Pa&quot; [C].</td>
+</tr>
+<tr>
+<td>Gravity (acceleration)</td>
+<td>m/s²</td>
+<td>m/s² primary</td>
+<td><strong>g</strong> (standard gravity 9.80665 m/s², exact) and, under Customary, ft/s²</td>
+<td>Today only &quot;0.38 g&quot; is shown (<code>systempage._gravity_text</code>, <code>generation/planet.py</code>), and a bare &quot;g&quot; collides with the gram. Show &quot;3.71 m/s² (0.378 g)&quot; in detail panels, &quot;0.378 g&quot; in rows. Compact objects: scientific m/s².</td>
+</tr>
+<tr>
+<td>Density (bulk)</td>
+<td>kg/m³</td>
+<td><strong>g/cm³</strong> for bodies (planet range 0.69 to 5.51 in <code>constants.PLANET_DENSITY</code>), kg/m³ for atmospheres</td>
+<td>the other of the two</td>
+<td>Both are already in the code (<code>PLANET_DENSITY</code> in g/cm³, <code>ATMOSPHERE_DENSITY</code> in kg/m³).</td>
+</tr>
+<tr>
+<td>Number and space density</td>
+<td>m⁻³</td>
+<td>particles/cm³ (nebulae, <code>_CLOUD_CONTENTS</code>), systems/ly³ (<code>fmt.format_density</code>), stars/pc³</td>
+<td>none</td>
+<td>Keep the three; one number-density ladder per spatial unit.</td>
+</tr>
+<tr>
+<td>Flux, heat flow</td>
+<td>W/m²</td>
+<td>nW/m² to kW/m² with SI prefixes; planetary heat flow in mW/m² (Earth about 87 mW/m² [R]); stellar insolation as <strong>S⊕</strong> (1361 W/m² nominal total solar irradiance [S: IAU 2015 B3])</td>
+<td>S⊕ beside W/m²</td>
+<td><code>generation/rogue.py</code> and <code>system_pages.py</code> show W/m²; GEN.86 and GEN.87 will add insolation.</td>
+</tr>
+<tr>
+<td>Magnetic field</td>
+<td>T</td>
+<td>planets: nT, µT, mT (Earth 25 to 65 µT [R]); compact objects: gauss in scientific text (&quot;1.0 × 10¹² G&quot;)</td>
+<td>the other (1 G = 1e-4 T, checked in astropy [C])</td>
+<td>Pulsar and magnetar fields are quoted in gauss in the literature [R]; the DB column is <code>magnetic_field_gauss</code> and the page shows <code>v:.2e G</code>. A magnetic moment (A m²) is not stored or shown; GEN.86 stores field strength only.</td>
+</tr>
+<tr>
+<td>Radiation dose</td>
+<td>Gy (absorbed), Sv (effective)</td>
+<td>nGy to kGy as dose per year (the habitability documents use Gy/yr, with an L_rad threshold of 10 Gy/yr); Sv/yr (mSv/yr) for human-relevant</td>
+<td>none</td>
+<td>astropy 6.0.1 has <strong>no</strong> <code>Gy</code> or <code>Sv</code> unit; 7.2.0 and 8.0.1 do [C]. The dose ladder cannot rely on astropy on Python 3.9, so define the factors by hand. Earth background about 2.4 mSv/yr and Mars surface about 0.2 to 0.3 Sv/yr (MSL/RAD) are [R].</td>
+</tr>
+<tr>
+<td>Angles</td>
+<td>rad</td>
+<td>degrees with no space before ° (orbital angles); arcmin, arcsec, mas for angular sizes and parallax</td>
+<td>none</td>
+<td>NIST SP 811: degree, minute and second signs attach to the number, the only exception to the space rule [S: NIST checklist search result]. <code>pitch_angle_rad</code> and <code>*_deg</code> columns exist.</td>
+</tr>
+<tr>
+<td>Rates</td>
+<td>kg/s, M☉/yr</td>
+<td>&quot;x solar masses/year&quot; as now (quasar accretion)</td>
+<td>none</td>
+<td>One rung; no ladder needed.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-libraries-and-the-serverbrowser-split">2. Libraries and the server/browser split</h2>
+<h3 id="astropyunits-pint-custom">astropy.units, pint, custom</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>astropy.units</th>
+<th>pint</th>
+<th>custom table (recommended core)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Already in the project</td>
+<td>yes: <code>physics/constants.py</code> imports <code>astropy.constants</code> and <code>astropy.units</code>; locked</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Python 3.9</td>
+<td>astropy <strong>6.0.1</strong> (2024-03-26) is the last release for 3.9: 6.0.x <code>requires_python &gt;=3.9</code>, 6.1.0 and later <code>&gt;=3.10</code>, 7.0 <code>&gt;=3.11</code>, 8.0 <code>&gt;=3.11</code> [C: PyPI JSON]</td>
+<td>0.24.4 is the last for 3.9, but 0.24.1 fails to import in a fresh venv on 3.9 (<code>cannot inherit frozen dataclass from a non-frozen one</code>, flexparser mismatch) [C]; 0.25 needs 3.11, 0.26 needs 3.12</td>
+<td>any</td>
+</tr>
+<tr>
+<td>numpy 2</td>
+<td>6.0.1 pins <code>numpy&lt;2</code> (so Python 3.9 stays on numpy 1.26.4, as in the lock); 6.1.x and 7.x accept numpy 2; 8.0.1 requires <code>numpy&gt;=2.0</code> [C]. astropy 6.1.7 and 7.0.0 fail to import under numpy 2.5 (<code>np.in1d</code> removed) [C], which the lock avoids by pinning numpy 2.2.6 for 3.10.</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Per-conversion cost, 1e5 values [C]</td>
+<td><code>Unit.to(v)</code> 4.5 to 5.6 µs; Quantity <code>.to().value</code> 22 to 37 µs; precomputed factor 0.1 to 0.17 µs; array <code>.to</code> 0.08 to 0.16 µs per element</td>
+<td>87 µs (Python 3.13 only; did not import on 3.9)</td>
+<td>0.17 to 0.5 µs</td>
+</tr>
+<tr>
+<td>Astronomy units</td>
+<td>au, pc, lyr, Msun, Mjup, Mearth, Rsun, Rjup, Rearth, Lsun, yr, Myr, Gyr, <code>imperial</code>; no lunar mass</td>
+<td>some, fewer</td>
+<td>whatever the table says</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td><code>u.temperature()</code> equivalency (K, deg_C, imperial.deg_F)</td>
+<td>offset units supported</td>
+<td><code>offset</code> field</td>
+</tr>
+</tbody>
+</table></div>
+<p>astropy's own formatting gives &quot;0.999999995320789 AU&quot;, &quot;km s⁻¹&quot; and (with <code>precision=3</code>) &quot;1.000 AU&quot;: no grouping, no UX.36 rule, no singular or plural. Importing <code>astropy.units</code> costs 0.6 to 0.8 s and 45 to 51 MB, already paid by the web process because <code>util/format.py</code> imports <code>physics/constants.py</code> [C].</p>
+<p><strong>Recommendation:</strong> a custom table, with astropy supplying the numbers and the cross-checks. The ladder module imports from <code>physics/constants.py</code> (which already reads astropy), and a test asserts for every rung <code>rung.factor == pytest.approx(u.Unit(rung.astropy_name).to(base), rel=1e-12)</code>. Where astropy lacks the unit (lunar mass; Gy and Sv on 6.0.1) the test skips and the factor is project-nominal. <code>find_equivalent_units()</code> is a test helper here: &quot;every rung of the length ladder is in <code>u.m.find_equivalent_units(include_prefix_units=True)</code>&quot; catches a typo'd symbol. <code>astropy.units.imperial</code> is fine for lb, mi and deg_F, but not for psi.</p>
+<p>This narrows the <code>Library Migration Workflow.md</code> proposal (lines 70 to 85, 221), which lists <code>astropy.units</code> as the &quot;unit transformation framework&quot; that &quot;guarantees unit correctness&quot;. What shipped in GEN.66 is the constants half (<code>physics/constants.py</code> on <code>astropy.constants</code>); the display path stays on plain floats, for the reasons in point 2 of the summary.</p>
+<h3 id="python-and-js-without-two-implementations">Python and JS without two implementations</h3>
+<p>The page-building code is server-side (Jinja and Python), but the maps and panels (<code>systemmap.js</code>, <code>galaxymap3d.js</code>, <code>facilityform.js</code>, <code>phenomenonmap.js</code>, <code>galaxysystem.js</code>) format values live in the browser, so a JS formatter cannot be avoided. Options:</p>
+<ol>
+<li><strong>Server renders everything.</strong> Fails: hover text and live readouts (facility form slider, route lengths) change without a round trip.</li>
+<li><strong>Intl.NumberFormat with <code>style: &quot;unit&quot;</code>.</strong> Tested on Node 22 (ICU 77) [C]: supported units include meter, kilometer, mile, foot, kilogram, second to year, celsius, fahrenheit, percent, degree, kilometer-per-hour; <strong>not</strong> supported: kelvin, pascal, atmosphere, bar, psi, watt, au, parsec, lightyear, gauss, tesla, sievert, gray. <code>notation: &quot;scientific&quot;</code> gives &quot;1.235E6&quot;, not &quot;1.23 × 10⁶&quot; (parts are available through <code>formatToParts</code>, so a custom renderer is possible). Compact gives &quot;1.2M&quot;. Useful only as the digit-grouping engine, which <code>numberformat.js</code> already uses.</li>
+<li><strong>A JS unit library</strong> (<code>js-quantities</code> 1.8.0, <code>convert-units</code> 2.3.4, <code>unitmath</code> 1.1.1, <code>mathjs</code> 15.2.0 [C: registry.npmjs.org]). None has astronomical rungs or the UX.36 rule; the project would carry the ladder table anyway.</li>
+<li><strong>Shared ladder table, one algorithm per language (recommended).</strong> Python holds the table; <code>scripts/build_unit_ladders.py</code> writes <code>src/html/static/unitladders.js</code> (<code>export const LADDERS = {...}</code>, committed), and a test fails if the committed file differs from the generator's output. A generated ES module avoids <code>fetch</code> and JSON import attributes (recent browser support [R]) and fits the existing <code>?v=</code> fingerprint loading in <code>systemmap.js</code> and <code>components.js</code>. The algorithm is about 25 lines per language. Agreement is tested by a table of values run through node, which the existing <code>tests/test_*_format.py</code> already do, extended with a Hypothesis-generated batch (section 4).</li>
+</ol>
+<p>Exactly this experiment was run [C]: Python and JS generic formatters consuming one JSON of the three ladders, 90,184 values (random log-uniform plus every boundary value and its neighbours). 21 mismatches, all from the half-way rounding defect (the existing <code>_three_figures</code> versus <code>numberformat.js</code> behaviour, not the prototype). After the rounding fix the twins agree.</p>
+<p>A grid library (the TanStack Table proposal in <code>Web UX Development Notes.md</code>, section 1; see <a href="../interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries.md</a> for what was decided about libraries) would need no change here: its cell renderers call the JS ladder, and it sorts on the raw <code>data-si</code> value, as <code>datatable.js</code> does today with the server's <code>data-sort</code> key.</p>
+<h3 id="number-rendering-decisions-this-implies">Number rendering decisions this implies</h3>
+<ul>
+<li><strong>Locale:</strong> keep fixed English (comma grouping, point decimal). Boss's examples are &quot;384,400 km&quot; and &quot;4.2 pc (13.7 ly)&quot;, and Markdown, wikitext and the DB must stay locale-neutral. Keep the grouping separator in one constant. NIST and the SI brochure recommend a thin space and note the comma is a decimal marker in much of the world [S, secondhand]; this is a documented deviation.</li>
+<li><strong>Rounding:</strong> half-up on the shortest decimal form, in both languages.</li>
+<li><strong>Significant figures versus decimals:</strong> three significant figures for ladder values (existing), but whole numbers to the unit in a rung that is not scaled (km: &quot;384,400 km&quot;, not &quot;384,000 km&quot;). Keep.</li>
+<li><strong>Scientific text:</strong> &quot;1.23 × 10⁶&quot; with the ISO ×, which matches ISO 80000-1 [R]. It pastes as text and spreadsheets do not parse it. The raw value goes in <code>data-si</code>; a <code>copy</code> handler that writes the plain number is possible but not worth building yet. Default: accept the limitation.</li>
+</ul>
+<h2 id="3-number-formatting-rules-ux36-and-the-rest">3. Number formatting rules (UX.36 and the rest)</h2>
+<p><strong>UX.36 is correctly implemented</strong> (done in PR #457; <code>SCIENTIFIC_MIN_INTEGER_DIGITS = 7</code>, <code>SCIENTIFIC_MIN_DECIMAL_INTEGER_DIGITS = 5</code>). Verified [C]: 999,999 plain; 999,999.6 rounds to seven digits and becomes &quot;1.00 × 10⁶&quot;; 12,345.6 with one decimal becomes &quot;1.23 × 10⁴&quot;; 1,234.57 stays plain. The code docstrings, <code>numberformat.js</code> and <code>tests/test_number_format.py</code> agree with the rule. Statements that still describe the older UX.20 rule (&quot;past 4 whole digits&quot;, &quot;5 or more digits before the decimal point&quot;): <code>docs/design/architecture/architecture.md</code> (the <code>numberformat.js</code> row, fixed with this note), <code>docs/reference/html-interface.md</code> (the <code>numberformat.js</code> row), the comment above <code>num(x, &quot;,.2f&quot;)</code> in <code>web/__init__.py</code> and the comment in <code>galaxystages.js</code> (&quot;scientific past 4 digits (UX.20)&quot;). The last three are code and a non-design doc, listed in the handoff.</p>
+<p>Inconsistencies worth fixing in the same PRs:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Evidence</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Negative values that round to zero print &quot;-0&quot; in Python and JS (<code>format_number(-0.4)</code>, <code>-0.0</code>); Python <code>_three_figures(-0.0)</code> gives &quot;-0&quot;, JS gives &quot;0&quot;</td>
+<td>probe and node [C]</td>
+<td>Normalise negative zero to &quot;0&quot; in both. <code>_whole_or_tenths</code> already does for temperatures.</td>
+</tr>
+<tr>
+<td>Tiny values print long zero strings</td>
+<td>summary point 4c</td>
+<td>Scientific below mantissa 1e-3 (<code>_three_figures_or_tiny</code> already exists for atm and psi; apply it to every rung).</td>
+</tr>
+<tr>
+<td>Minus sign: ASCII hyphen-minus everywhere</td>
+<td>grep</td>
+<td>ISO 80000-1 prefers U+2212 [R], but U+2212 breaks pasting into most spreadsheets and Python <code>float()</code>. Keep ASCII in text output; optionally render U+2212 only inside <code>.qty</code> spans, with the raw value in <code>data-si</code>. Default: keep ASCII.</td>
+</tr>
+<tr>
+<td>Number and unit separated by a normal space (no NBSP anywhere in <code>util/format.py</code>, <code>web/lib/*.py</code>, <code>static/*.js</code>)</td>
+<td>grep</td>
+<td>A value can wrap to &quot;384,400&quot; / &quot;km&quot;. NIST SP 811 requires a space and implies no break [S]. Do <strong>not</strong> put U+00A0 in the strings: the same strings go to Markdown and wikitext, tests compare them, and a pasted NBSP defeats <code>float()</code>. Wrap each value in <code>&lt;span class=&quot;qty&quot;&gt;</code> with <code>white-space: nowrap</code>.</td>
+</tr>
+<tr>
+<td>Tabular numerals</td>
+<td><code>font-variant-numeric: tabular-nums</code> exists on <code>.num</code> and <code>.stat-value</code> in <code>style.css</code> only</td>
+<td>Add <code>.qty { white-space: nowrap; font-variant-numeric: tabular-nums; }</code>.</td>
+</tr>
+<tr>
+<td>Different units down a table column</td>
+<td>the ladder picks per value</td>
+<td>Add <code>format_column(ladder, values)</code> that picks one rung for the whole column (rung of the median or largest value) so rows are comparable. Sorting is by the server's <code>data-sort</code> key (<code>datatable.js</code>), unaffected.</td>
+</tr>
+<tr>
+<td>Screen readers</td>
+<td><code>aria-label</code> is used on lists and menus only; <code>facilityform.js</code> feeds <code>aria-valuetext</code> the abbreviated &quot;1.5 AU&quot;</td>
+<td>Each rung gets a <code>name</code> (&quot;astronomical units&quot;, &quot;light-years&quot;, &quot;solar masses&quot;); use it in <code>aria-valuetext</code>. For inline values, <code>aria-label</code> on a plain span is not reliably announced (ARIA gives no accessible name to generic elements) [R]; <code>&lt;abbr title&gt;</code> is only a tooltip. The ambiguous symbols are the ones that matter for speech: AU, ly, pc, c, g, G, K, Gyr. Default: visually hidden expansion for those only, <code>aria-hidden</code> on the abbreviation. Cost: hidden text is copied with the selection [R].</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-unit-preference-and-tests">4. Unit preference and tests</h2>
+<p><strong>Presets (default):</strong> <code>Automatic</code> (the ladders in section 1, the current behaviour), <code>Metric only</code> (SI base and prefixed units, no AU, ly, pc or Earth masses), <code>Customary</code> (mi, ft, lb, °F primary; mph, psi, atm). UX.42 is about wording (&quot;Chart&quot; instead of &quot;Generate&quot;) and says nothing about units, and the &quot;in-universe units&quot; idea is not in the TODO text. A preference is a new child of UX.23.</p>
+<p><strong>Which rung belongs to which preset (built).</strong> Every rung and companion carries a <code>systems</code> tag, and <code>Ladder.for_system(system)</code> (Python) / <code>forSystem</code> (JavaScript) keeps the ones for the chosen preset; the one algorithm then runs unchanged. Length: Metric ends in metres, km, then Mm..Ym (no AU, ly, pc); Customary is ft, mi, then AU and up. Speed: Customary mph and mi/s. Temperature: Customary is °F all the way down (offset rung) with °C and K beside it; Metric is K with °C. Pressure: Customary psi with atm; Metric Pa to TPa with bar and mbar. Gravity: Customary ft/s² with g. Mass: Metric stays in kg and prefixed tonnes, Customary is lb; the astronomical masses are Automatic only. Power: Metric runs on to QW, Customary keeps solar luminosity. Magnetic field: Customary gauss. An unknown preset is an error, not a silent fallback.</p>
+<p><strong>Where to store it:</strong> <code>localStorage</code> key <code>planetgen.units</code>, the same pattern as <code>theme.js</code>, <code>bookmarks.js</code> and <code>generatefolds.js</code> (try/catch around every access, page works without it). Account sync later if bookmarks (UX.45) get an account store.</p>
+<p><strong>How to apply it without a flash and without breaking caches:</strong> the server always renders the default (Automatic) inside <code>&lt;span class=&quot;qty&quot; data-q=&quot;length&quot; data-si=&quot;384400000&quot;&gt;384,400 km&lt;/span&gt;</code>; a small script reads the preference at load and re-renders each <code>.qty</code> from <code>data-si</code> with the shared JS ladder. This needs no cookie and no per-preference server render, and the page cache (<code>web/lib/pagecache.py</code>) keeps one variant. A script that runs in the head before first paint avoids layout shift for Customary users.</p>
+<p><strong>What shipped for the control (built).</strong> The Units button sits in the settings (gear) menu beside the theme button and cycles Automatic, Metric only and Customary, rather than a nested <code>sl-dropdown</code> inside the gear's own dropdown; it is hidden until the script runs. <code>static/unitpreference.js</code> reads and writes the preference; <code>unitladder.js</code> uses it as the default for <code>formatQuantity</code>, so panels the scripts build follow it when they render; <code>static/units.js</code> re-renders the server's <code>&lt;span class=&quot;qty&quot;&gt;</code> cells from <code>data-si</code> and fires <code>planetgen:units</code>. A panel already open does not change until it is next built. Server side, <code>fmt.quantity_html</code> (a <code>Quantity</code>) and <code>fmt.measured_html</code> (a number in a registry unit, a dash for one its kind refuses) write the span; the system page's star table, body, belt and comet rows and the phenomenon property grids use it, while map titles, attributes and JSON stay plain text.</p>
+<p><strong>Toggle patterns:</strong> a global header menu built on <code>sl-dropdown</code> and <code>sl-menu-item</code> with checkable items (both already vendored in <code>components.js</code>; <code>sl-tooltip</code> and <code>sl-radio-group</code> are not) is the primary control. Per-value click-to-cycle costs many tab stops in tables. A tooltip showing the same value in other units (&quot;384,400 km = 0.00257 AU = 1.28 light-seconds&quot;) serves the &quot;contextualize&quot; request in UX.22 without a toggle [R: pattern, not a cited source].</p>
+<p><strong>Tests.</strong> Hypothesis is already in the test extras (<code>hypothesis&gt;=6.100.0</code>, used by <code>test_fuzz_*.py</code>; the lock caps it at 6.141.1 for Python 3.9 [C]). Properties, with the property-based tests written first:</p>
+<ol>
+<li>Round trip: for any finite value, parsing the primary part of the output and multiplying by the rung factor is within 0.51% of the input (3 figures). 20,000 examples per ladder on length, speed and duration: pass [C].</li>
+<li>Monotone rung: a larger magnitude never selects an earlier rung. 20,000 examples: pass [C].</li>
+<li>Conversion identity: for every pair of rungs, <code>convert(convert(x, a, b), b, a)</code> equals x within 1e-12, and equals <code>(x*u.Unit(a)).to(b)</code> from astropy within 1e-12 where astropy has the unit.</li>
+<li>Boundary table: each rung's <code>start</code>, <code>start*(1±1e-13)</code>, and 9.995, 99.95 and 999.5 times the factor (the tie-rounding cases).</li>
+<li>Python/JS parity: one node call per test run on a Hypothesis-drawn list of 5,000 values per ladder; compare strings. The existing tests already shell out to node and skip when it is missing.</li>
+<li>Never raises and never prints &quot;nan&quot; or &quot;inf&quot; (the current <code>dash_unless_finite</code> behaviour, TEST.53).</li>
+<li>Generated-file drift: <code>unitladders.js</code> equals the generator's output.</li>
+</ol>
+<h2 id="5-recommended-module-api-and-migration-order">5. Recommended module API and migration order</h2>
+<h3 id="data-structure">Data structure</h3>
+<pre><code class="language-python"># src/planetgen/util/unitladder.py  (Python 3.9 compatible)
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
+@dataclass(frozen=True)
+class Rung:
+    symbol: str                      # &quot;AU&quot;
+    factor: float                    # base units per one of this unit (read from its unit_registry row)
+    start: Optional[float] = None    # smallest |value| in base units shown in this rung; default = factor
+    singular: Optional[str] = None   # label when the shown number is exactly 1 (&quot;year&quot;)
+    name: Optional[str] = None       # spelled out, for aria and tooltips (&quot;astronomical units&quot;)
+    offset: float = 0.0              # temperature only: K -&gt; deg C
+    aside: Tuple[Tuple[float, str], ...] = ()   # ((min |value| in base, rung symbol), ...) high to low
+
+@dataclass(frozen=True)
+class Ladder:
+    quantity: str                    # &quot;length&quot;
+    base: str                        # &quot;m&quot;
+    rungs: Tuple[Rung, ...]          # smallest first
+    companions: Tuple[str, ...] = () # always-shown secondaries, e.g. (&quot;atm&quot;, &quot;psi&quot;) for pressure
+</code></pre>
+<h3 id="functions">Functions</h3>
+<pre><code class="language-python">def format_quantity(ladder, value, *, system=&quot;auto&quot;, companions=True, empty=&quot;–&quot;) -&gt; str
+def quantity_parts(ladder, value, *, system=&quot;auto&quot;) -&gt; Parts   # Parts(number, symbol, name, raw_si, text)
+def quantity_html(ladder, value, *, system=&quot;auto&quot;) -&gt; str      # &lt;span class=&quot;qty&quot; data-q=... data-si=...&gt;
+def format_column(ladder, values, *, system=&quot;auto&quot;) -&gt; list[str]   # one rung for the column
+def pick_rung(ladder, size, system=&quot;auto&quot;) -&gt; Rung
+def convert(value, from_symbol, to_symbol, ladder) -&gt; float
+</code></pre>
+<p><code>format.py</code> keeps its public names as one-line wrappers (<code>format_distance_m = partial(format_quantity, LENGTH)</code>) so the many call sites (about 40 files use them) do not change in step 0. JS: <code>unitladder.js</code> exports the same functions over <code>LADDERS</code> from the generated <code>unitladders.js</code> and re-exports the old names (<code>formatDistanceKm</code>, <code>formatSpeedKms</code>, <code>formatPeriodYears</code>, <code>LIGHTYEAR_M</code>, <code>PARSEC_M</code>) so <code>galaxymap3d.js</code>, <code>facilityform.js</code>, <code>systemmap.js</code>, <code>phenomenonmap.js</code>, <code>galaxysystem.js</code> and <code>generatebuttons.js</code> keep working.</p>
+<p>Example outputs (prototype) [C]:</p>
+<pre><code>format_quantity(LENGTH, 6.4e12)      -&gt; &quot;42.8 AU&quot;
+format_quantity(LENGTH, 3.9e16)      -&gt; &quot;1.26 pc (4.12 ly)&quot;
+format_quantity(MASS, 5.683e26)      -&gt; &quot;0.299 Jupiter masses&quot;
+format_quantity(PERIOD, 3.1557600e7) -&gt; &quot;1 year&quot;
+</code></pre>
+<h3 id="migration-order">Migration order</h3>
+<p>One quantity family per PR; every step keeps pages identical except where stated. Function and file names are given instead of line numbers.</p>
+<ol start="0">
+<li><strong>Module and generated JS, no output change.</strong> New: <code>src/planetgen/util/unitladder.py</code>, <code>src/planetgen/util/ladders.py</code> (data), <code>scripts/build_unit_ladders.py</code>, <code>src/html/static/unitladder.js</code>, generated <code>src/html/static/unitladders.js</code>, <code>src/tests/test_unit_ladders.py</code>. Changed: <code>util/format.py</code> (wrappers), <code>html/static/distance.js</code>, <code>speed.js</code>, <code>period.js</code> (re-export), <code>physics/constants.py</code> (pin the constant sets; the first import of astropy must follow the <code>set()</code> calls, so also check <code>planetgen/__init__.py</code> and any module that imports astropy earlier), <code>tests/test_astropy_constants.py</code> (tighten <code>HYDROGEN_ATOM_MASS_KG</code> to 1e-12 and add a &quot;constant set is [R4361] / IAU 2015&quot; assertion). Include the rounding fix (summary point 4a) here, with the test table, since it is a deliberate output change in a handful of tie cases.</li>
+<li><strong>Distance:</strong> AU start at 1,000,000 km; <code>systemview3d.js</code> and <code>galaxysystem.js</code> orbit fields onto the ladder (radii stay scientific km); the local wrapper in <code>systemmap.js</code> removed; <code>searchpage.py</code>, <code>cli/query.py</code> and the <code>population/facilities.py</code> messages (they print raw km).</li>
+<li><strong>Time:</strong> kyr/Myr/Gyr symbols; <code>system_pages.py</code> age rows (<code>age_years</code>), <code>generation/star.py</code> age text, <code>format.format_age_string</code>, <code>population_pages.py</code>, and the period fields in <code>galaxysystem.js</code> and <code>systemview3d.js</code>.</li>
+<li><strong>Temperature, pressure, gravity (UX.22 remainder):</strong> replace <code>system_pages._temperature_text</code> and <code>_pressure_text</code> (rogue planets: K and °C only, bar only; the shipped <code>format_temperature_k</code> and <code>format_pressure_pa</code> exist but this page does not use them), <code>systempage._gravity_text</code>, the gravity line in <code>generation/planet.py</code>, <code>sector_page.py</code> (<code>int(temperature_k) K</code>), <code>star.py</code> (temperature text). Pressure gains sub-Pa rungs and bar/mbar.</li>
+<li><strong>Mass:</strong> <code>tabledisplay.format_star_mass</code>, <code>format_body_mass</code>, <code>format.format_relative_to_sol</code>, and the black-hole, neutron-star, rogue and quasar mass rows in <code>system_pages.py</code>.</li>
+<li><strong>Luminosity, power, flux:</strong> <code>tabledisplay.format_star_luminosity</code>, the luminosity rows in <code>system_pages.py</code>, <code>internal_heat_flux_w_m2</code>, <code>generation/rogue.py</code>, the L☉ text in <code>galaxymap3d.js</code>.</li>
+<li><strong>Density, number density, magnetic field, angles:</strong> <code>fmt.format_density</code>, <code>_CLOUD_CONTENTS</code>, <code>magnetic_field_gauss</code>, the density and field text in <code>galaxymap3d.js</code>. GEN.86 and GEN.87 add the dose and field ladders at birth.</li>
+<li><strong>JS stragglers:</strong> the 17 <code>toFixed</code>/<code>toPrecision</code> calls in <code>galaxymap3d.js</code>, <code>galaxystages.js</code>, <code>galaxystageview.js</code>; a lint-style test: no <code>toPrecision</code> or <code>toLocaleString</code> on a measurement outside <code>numberformat.js</code>.</li>
+<li><strong>Preference menu and <code>.qty</code> re-render</strong> (section 4); then UX.30's property grids call <code>quantity_html</code>.</li>
+</ol>
+<p>UX.30 (structured HTML in place of the Markdown render) should wait for step 0, so the new property grids emit <code>.qty</code> spans from the start and do not re-hard-code strings. UX.32 touches only the row chips (distance, period, gravity), which come from steps 0 and 3.</p>
+<h2 id="6-units-the-research-documents-use">6. Units the research documents use</h2>
+<p>Boss's research documents in this folder carry no formatting rules, but they fix which units the habitability model works in, and the display ladders should agree with them. <code>Web UX Development Notes.md</code> has no unit or number-formatting guidance (it proposes libraries for grids, 3D tiles, logs, progress bars and queues); nothing in it needed carrying over beyond the grid-library point in section 2.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source document</th>
+<th>Units it uses</th>
+<th>Consequence for the ladders</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Atmospheric Toxicity.md</code>, <code>Chemical Habitability.md</code></td>
+<td>partial and total pressures in bar (0.005 to 100+ bar), with kPa beside it for the human range (50 to 250 kPa, <code>Atmospheric Toxicity.md</code>)</td>
+<td>The pressure ladder needs bar and mbar rungs (section 1), and partial pressures (pO₂, pCO₂) should use the same ladder as total pressure.</td>
+</tr>
+<tr>
+<td><code>Naturally Occuring Ionizing Radiation.md</code></td>
+<td>atmospheric column mass in g/cm² (X, with 1000 g/cm² at about 1 bar), human-relevant doses in mSv/yr, field in µT (a 0.05 bar, 30 µT case)</td>
+<td>Column mass is a new quantity (g/cm², or kg/m²); doses split between Sv/yr for people and Gy/yr for the habitability thresholds.</td>
+</tr>
+<tr>
+<td><code>Planetary Habitability Index.md</code></td>
+<td>unshielded dose above 10 Gy/yr as the harshest class, 50 mSv/yr as the occupational limit</td>
+<td>The dose ladder shows Gy/yr and Sv/yr as separate quantities, never a bare &quot;Gy&quot; for a duration (point 4d).</td>
+</tr>
+<tr>
+<td><code>Planetary Habitability and Speculative Xenobiology.md</code></td>
+<td>radiolytic energy deposition in eV g⁻¹ s⁻¹</td>
+<td>Internal to the habitability score; it needs no ladder unless a page shows it.</td>
+</tr>
+</tbody>
+</table></div>
+<p><a href="../habitability/habitability-index.html">habitability-index.md</a> already flags that the L_rad threshold (10 Gy/yr) disagrees with the Mars figure in the source table; that is a unit-and-magnitude question for the dose ladder when GEN.87 lands, and is not settled here.</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>IAU 2015 Resolution B3 (nominal solar and planetary conversion constants): https://www.iau.org/common/Uploaded%20files/IAUGA2015-Resolution-B3-recommended-nominal-conversion.pdf , https://www.pas.rochester.edu/~emamajek/IAU/IAUres_B3.pdf , [R3618] (search results only: R_sun 6.957e8 m, GM_sun 1.3271244e20, L_sun 3.828e26 W, S 1361 W/m², R_jup(eq) 7.1492e7 m, &quot;nominal values are exact conversion factors, not best estimates&quot;)</li>
+<li>IAU 2012 Resolution B2 (au = 149,597,870,700 m, symbol &quot;au&quot;): https://syrte.obspm.fr/IAU_resolutions/IAUResol_2012_0.html , https://syrte.obspm.fr/~capitaine/AU.html</li>
+<li>NIST SP 811 chapter 7 and checklist (space between number and unit, plane-angle exception, comma not for grouping): https://nist.gov/pml/special-publication-811/nist-guide-si-chapter-7-rules-and-style-conventions-expressing-values , https://www.nist.gov/document/sp-811-2008-checklist-reviewing-manuscriptspdf (snippets via search)</li>
+<li>SI brochure digit-grouping excerpt (8th edition, via mailing-list quote in search results): https://febo.com/pipermail/time-nuts/2009-October/041350.html</li>
+<li>IAU Style Manual reprint: https://iauarchive.eso.org/publications/proceedings_rules/units/ ; Myr/Gyr usage: https://rock.geosociety.org/gsatoday/archive/22/2/pdf/i1052-5173-22-2-28.pdf , https://www.micropress.org/microaccess/stratigraphy/issue-260/article-1641</li>
+<li>Intl.NumberFormat: https://github.com/tc39/proposal-unified-intl-numberformat/blob/master/README.md , https://v8.dev/features/intl-numberformat (plus Node 22 / ICU 77 tests)</li>
+<li>PyPI JSON: https://pypi.org/pypi/astropy/json , https://pypi.org/pypi/pint/json , https://pypi.org/pypi/hypothesis/json ; npm registry for js-quantities, convert-units, unitmath, mathjs</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[C] results came from throwaway scripts in the research sandbox, not in the repository: equivalence of the data-driven ladders with the existing formatters (600,000 values, 0 mismatches); the Python/JS cross-check (90,184 values, 21 mismatches, all tie rounding); tie-rounding tests (<code>Decimal(repr(x))</code> half-up equals Intl on 400,000 values); astropy constants per version; missing <code>Gy</code> and <code>Sv</code> in astropy 6.0.1; the <code>imperial.psi</code> value; benchmarks (Python 3.9 + astropy 6.0.1 + numpy 1.26.4, and Python 3.13 + astropy 8.0.1 + numpy 2.5.3); Intl unit support on Node 22; the Hypothesis properties; the pint 0.24.1 import failure on 3.9; astropy 6.1.7 and 7.0.0 failing under numpy 2.5. The repository checks (UX.36 limits, <code>PSI_PA</code>, the lock's astropy versions, the 189-line JS twins, the <code>HYDROGEN_ATOM_MASS_KG</code> tolerance, the stale &quot;4 whole digits&quot; statements) were re-verified against the checkout on 2026-10-09.</p>
+<p>[R], to confirm when web access allows: NIST SP 811 &quot;prefix so the number lies between 0.1 and 1000&quot;; ISO 80000-1 minus sign, thin-space grouping and the &quot;×&quot; sign; IAU 2015 Resolution B2 on the parsec (astropy's reference string for <code>pc</code> reads &quot;Derived from au + IAU 2015 Resolution B ...&quot;, truncated at 40 characters in the output, which supports it); Moon mass 7.34e22 kg; Earth heat flow 87 mW/m²; Earth field 25 to 65 µT; Earth and Mars dose figures; exoplanet-catalogue use of M⊕ versus M_J and the 0.1 M_J switch; hydrogen-burning limit 0.075 M☉; planetary pressures in bar and mbar; ARIA naming of generic elements and the copy behaviour of visually hidden text; browser support for JSON import attributes; unit-toggle UX patterns; the Python 3.9 end-of-life date; whether astropy 6.1.x and 7.0 have <code>Gy</code> and <code>Sv</code> (not tested because they fail to import under numpy 2.5).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy coordinate system and sector grid - planetGen docs</title>
+<meta name="description" content="Status: built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/galaxy-coordinate-system.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/galaxy-coordinate-system.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-coordinate-system-and-sector-grid">Galaxy coordinate system and sector grid</h1><p class="meta">docs/design/galaxy/galaxy-coordinate-system.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-galaxy-frame">1. The galaxy frame</a></li><li style="margin-left:0px"><a href="#2-the-spherical-sector-grid">2. The spherical sector grid</a></li><li style="margin-left:0px"><a href="#3-sector-size-4-pc">3. Sector size: 4 pc</a></li><li style="margin-left:0px"><a href="#4-the-outline-one-band-range-per-shell">4. The outline: one band range per shell</a></li><li style="margin-left:0px"><a href="#5-things-that-move">5. Things that move</a></li><li style="margin-left:0px"><a href="#6-migrations-that-cleared-or-converted-sectors">6. Migrations that cleared or converted sectors</a></li><li style="margin-left:0px"><a href="#7-why-it-works-this-way">7. Why it works this way</a></li><li style="margin-left:14px"><a href="#alternatives-considered-and-rejected">Alternatives considered and rejected</a></li><li style="margin-left:0px"><a href="#open-questions-still-standing">Open questions still standing</a></li></ul></details>
+<p><strong>Status:</strong> built. The sector grid is spherical: shells, bands and wedges.
+Boss decided the move on 2026-10-15 06:39Z; the plan is
+<a href="spherical-sector-coordinates.html"><code>spherical-sector-coordinates.md</code></a> and the
+study behind it is <a href="spherical-shell-sectors.html"><code>spherical-shell-sectors.md</code></a>.
+The grid went in with schema v91 (migration <code>0091_spherical_sectors.py</code>).
+Code: <code>src/planetgen/galaxy/spherical.py</code> (the grid), <code>skeleton.py</code> (the
+outline), <code>density.py</code> (the density model, see <code>galaxy-disk-density.md</code>) and
+<code>planetgen plan</code> / <code>planetgen galaxy</code>. The Galaxy Map's block ladder, stages
+and windows sit on the same grid (<code>galaxy/drill.py</code>, <code>galaxy/window.py</code>,
+<code>spherical-block-ladder.md</code>; MAP.205, MAP.206).</p>
+<p>The cylindrical ring, layer and slot grid this replaced is kept in
+<a href="../../archive/galaxy-coordinate-system-cylinder.html"><code>archive/galaxy-coordinate-system-cylinder.md</code></a>,
+and the older spherical-shell design before it in
+<a href="../../archive/galaxy-coordinate-system-shells.html"><code>archive/galaxy-coordinate-system-shells.md</code></a>.
+Words matter here: <strong>shell</strong>, <strong>band</strong> and <strong>wedge</strong> are the only names for
+the three coordinates. &quot;Ring&quot;, &quot;layer&quot;, &quot;slot&quot; and &quot;slab&quot; name nothing in the
+current grid and are not reused.</p>
+<h2 id="1-the-galaxy-frame">1. The galaxy frame</h2>
+<ul>
+<li>Origin at the galactic center, <code>(0, 0, 0)</code>. The quasar, when a galaxy has
+one, sits in the core, shell 0.</li>
+<li>Right-handed axes: <code>X</code> and <code>Y</code> in the galactic plane, <code>+Z</code> toward galactic
+north. <code>+X</code> is the zero meridian (wedges are counted counterclockwise from
+it). This is a generation-space convention and does not match any real sky
+frame.</li>
+<li>Galaxy-scale distances are stored in parsecs (<code>_pc</code> columns); positions
+inside a sector in milliparsecs (<code>_mpc</code>); bodies inside a system in km
+(shown in AU). <code>planetgen/physics/units.py</code> has <code>mpc_to_pc</code>, <code>pc_to_mpc</code>,
+<code>pc_to_ly</code> and <code>ly_to_pc</code>.</li>
+</ul>
+<h2 id="2-the-spherical-sector-grid">2. The spherical sector grid</h2>
+<p>Every galaxy-placed sector is one cell of a grid of nested spherical shells
+around the galactic origin. With edge <code>e</code> (4 pc, section 3), a cell is named
+by three integers, <code>(shell, band, wedge)</code>, stored as <code>sectors.shell_index</code>,
+<code>sectors.band_index</code> and <code>sectors.wedge_index</code>:</p>
+<ul>
+<li><strong>Shell <code>k</code></strong> (radius): <code>r</code> in <code>[(k - 1/2) * e, (k + 1/2) * e)</code>, so its
+centerline radius is <code>k * e</code>. A shell is always <code>e</code> deep; that is the one
+length the grid never adjusts. <strong>Shell 0 is the core</strong>, the ball of radius
+<code>e / 2</code> (2 pc), a single cell.</li>
+<li><strong>Band</strong> (latitude): a ring of cells around a shell between two colatitudes.
+Each shell's two polar caps are cut off first, and the rest is cut into an
+odd number of bands of equal colatitude step, each about <code>e</code> of arc, so the
+galactic plane runs through the middle of the equatorial band. Bands are
+signed: band 0 is the equatorial band, positive bands lie north (<code>z &gt; 0</code>),
+negative bands south.</li>
+<li><strong>Wedge</strong> (longitude): a band is cut by meridians, pole to pole, into
+<code>wedge_count</code> equal wedges. Wedge <code>w</code> spans longitude <code>[2*pi*w/W, 2*pi*(w+1)/W)</code> from <code>+X</code> counterclockwise.</li>
+<li><strong>Cap:</strong> the circular segment of a shell within colatitude <code>alpha</code> of a
+pole, one cell at each pole. Six wedges meet its rim with a gap of exactly
+one edge, so the rim is <code>6 * e</code> around and the cap's chord radius is
+<code>6 * e / (2 * pi) = 3.82 pc</code> (4 pc would be 6.28 wedges, and 6 is the
+nearest whole number); <code>alpha = asin(rho / R)</code>. A cap is band <code>+/-(h + 1)</code>
+with wedge 0, where <code>h</code> is the shell's highest ordinary band (the shell
+holds <code>2 * h + 1</code> ordinary bands). A cap holds about 2.9 edge cubes.</li>
+</ul>
+<p><strong>One wedge rule everywhere (Boss, 2026-10-15 07:17Z).</strong> Every band of every
+shell has <code>W = 6 * m</code> wedges, where <code>m</code> is the number whose prime factors are
+only 2, 3, 5 and 7 that is nearest (in ratio) to
+<code>2 * pi * R * sin(phi) / (6 * e)</code>, <code>phi</code> being the band's center colatitude,
+and <code>m</code> is at least 1 (<code>spherical.wedge_count</code>). The wedge's arc at the
+band's center therefore stays near one edge, and the six meridians that cut
+every cap's rim are wedge boundaries in every band. The rule never looks at
+the outline, the window or the neighbouring shell, so every lookup stays
+closed form. Measured on shell 3,000 (plan section 2): arcs 0.981 to 1.019 of
+4 pc, and 99.8% of all cells within 0.5% of an edge cube's volume; near the
+poles the small counts let arcs stray further (about 0.76 to 1.06 at shell
+10). A shell's band count is the odd integer nearest
+<code>R * (pi - 2 * alpha) / e</code> (<code>spherical.shell_layout</code>).</p>
+<p><strong>Shell 1 is cut by hand</strong> (<code>HAND_CUT_SHELLS</code>). The rule would leave it caps
+of 4.8 edge cubes against 0.67 for the cells between, so its caps end at 37.5
+degrees and it holds one band of 12 wedges (14 cells, volumes about 0.9 to
+1.4 edge cubes). Shells 2 and 3 follow the rule like every other shell.</p>
+<p><strong>No undefined space (Boss, 2026-10-15 06:59Z).</strong> The core ball, every shell,
+every cap, band and wedge together tile all of space: every point has exactly
+one address, with no gap and no overlap, whether or not that sector was ever
+generated. The outline (section 4) only says which cells may be generated; it
+never decides which cells exist. <code>sector_address_at</code> answers for any point,
+inside or outside the outline, as far as the 40-bit birth-sector field
+reaches (shell below 4,096, about 53,000 ly; the default galaxy's outline
+ends at shell 3,764).</p>
+<p><strong>Lookups are closed form.</strong> <code>sector_address_at</code> maps a point to its cell
+(shell from <code>|p|</code>, band from <code>acos(z / |p|)</code>, wedge from <code>atan2(y, x)</code>);
+<code>sector_position_pc</code> gives a cell's center (a cap's is on the axis at
+<code>+/-shell * e</code>, the core's is the origin); <code>cell_volume</code>,
+<code>sector_cell_vertices_pc</code> (8 corners) and <code>sector_cell_test</code> (a predicate for
+one cell) are computed. Only the address and center are stored
+(<code>uq_sectors_address</code> makes the address unique). <code>cell_count</code>,
+<code>cells_in_band_range</code> and <code>nth_cell_in_band_range</code> count and index the cells
+of a shell without listing them.</p>
+<p><strong>Neighbors.</strong> <code>neighbor_addresses</code> lists the cells sharing a face of nonzero
+area: the two wedges either side in the same band; the cells above and below
+in the shell (one or several, because neighbouring bands hold different
+wedge counts and are offset like brick courses); and, in the shell inside and
+the shell outside, every cell whose band overlaps this one's colatitudes and
+whose wedge overlaps its longitudes. A cap touches every wedge of the nearest
+band, and the core touches the whole of shell 1. A cell has about 7 face
+neighbours, against 6 for a cube, up to roughly 10 to 15 near a cap or a
+change in wedge count. Flat height slabs and aligned vertical columns do not
+exist any more: a region is an arc per (shell, band), not per ring.</p>
+<p><strong>Local frame.</strong> A sector's local axes (<code>sector_orientation</code>) are <code>+X</code>
+radially outward from the galactic axis, <code>+Y</code> toward increasing longitude and
+<code>+Z</code> galactic north, unchanged in meaning from before. System and phenomenon
+offsets (<code>star_systems.position_x/y/z_mpc</code> and the phenomenon equivalents) use
+this frame, and generation samples them inside the real cell (<code>SectorCell</code>:
+cube root for the radius, uniform in the cosine of the colatitude, uniform in
+longitude; a cap samples a disk), not a cube. The octant label
+(<code>star_systems.quadrant</code>, and on every placed phenomenon) comes from this
+frame.</p>
+<p><strong>Designations.</strong> <code>provisional_sector_designation</code> packs the address into the
+40-bit birth-sector field of the object ID: <code>shell &lt;&lt; 28 | (band + 2048) &lt;&lt; 16 | wedge</code>, printed as uppercase hex; <code>parse_sector_designation</code> reverses it. It
+allows shells 0 to 4,095, bands -2048 to 2047 and 65,536 wedges a band (the
+default galaxy's widest band holds about 23,650). The core is <code>8000000</code>, and
+for example <code>(12, 3, 5)</code> is <code>C8030005</code>. A sector's ID is its designation (see
+<a href="../architecture/object-ids.html">object-ids.md</a>), the first group of every object ID born in
+the sector. Object IDs were renumbered from the new sectors when the grid
+changed (section 6).</p>
+<p><strong>Seeds.</strong> A unit of work is seeded from the galaxy seed and its address
+(<code>galaxy/seed.py</code>): a sector's seed string is <code>sector:&lt;shell&gt;/&lt;band&gt;/&lt;wedge&gt;</code>,
+for example <code>sector:12/3/0</code>, hashed with the galaxy seed. A sector's numbers
+therefore depend only on the seed and its address, never on the order sectors
+run in.</p>
+<p><strong>Zones.</strong> The Galaxy pages group sectors in Zones of <code>ZONE_SHELL_DEPTH = round(100 ly / 13.05 ly) = 8</code> consecutive shells
+(<code>planetgen/web/maps/galaxymap.py</code>, <code>spherical.sector_zone</code>).</p>
+<h2 id="3-sector-size-4-pc">3. Sector size: 4 pc</h2>
+<p><code>tuning.DEFAULT_SECTOR_EDGE_PC = 4</code> (13.05 ly) is the shell depth and the
+arc every band and wedge aims at, used by the generator, the skeleton, the
+Galaxy pages and the Galaxy Map. <code>planetgen plan</code> has no edge option. It
+replaced 11.5 ly (3.53 pc) in 7.0.0.</p>
+<p>The edge sets where the galaxy ends, because a sector exists only where it
+expects at least one star (<code>predicted_star_count &gt;= 1</code>), and a bigger cell
+holds more stars at the same density. At the default Milky Way shape a 4 pc
+sector holds about 6.3 stars at local density, the galaxy reaches about
+50,300 ly (shell 3,764) and the grid holds about 23.9 billion candidate cells
+(plan section 2, measured on the real density model). 2 pc was rejected
+because a local-density sector would average under one star, so ordinary
+solar-neighborhood space would not qualify, and 11.5 ly was the older,
+arbitrary default.</p>
+<h2 id="4-the-outline-one-band-range-per-shell">4. The outline: one band range per shell</h2>
+<p>Shell <code>k</code> can hold content in bands <code>-high .. high</code> around the plane (the two
+caps too when <code>high</code> is the shell's top band). <code>planetgen plan</code> walks the
+shells outward from the core and stops at the first shell whose equatorial
+band can no longer reach the qualification threshold (a sector expected to
+hold at least one star; the exponential density model never reaches zero, so
+the threshold is the edge). Each shell's run is found by bisection on an
+upper bound of the density over longitude
+(<code>skeleton.build_shell_extents</code>, the bound is <code>bound_relative_density_at</code>:
+the bar bulge at its long axis plus the disks times the largest arm factor),
+with the cap checked first, because the bound falls moving north from the
+plane until the last step toward the pole, where it can rise again.</p>
+<p><code>planetgen plan</code> stores:</p>
+<ul>
+<li><code>galaxy_shape</code>: one row with the shape parameters, <code>edge_pc</code>,
+<code>expected_system_count_at_density_1</code>, <code>outer_shell_index</code>, the bright-star
+threshold and seed, and the phenomenon scatter seed.</li>
+<li><code>galaxy_shell</code>: <code>(shell_index, high_band_index, cell_count)</code>, one row per
+shell that can hold content. A shell with no row has none.</li>
+</ul>
+<p>The build takes a few milliseconds. The outline is a safe superset: a sector
+inside its shell's range may still fall short (an inter-arm trough), and that
+exact check is one density call when the sector is visited. A band is never
+left partly in; the outline decides whole bands and the exact check decides
+sectors.</p>
+<p><strong>Validation before generation.</strong> Every <code>planetgen galaxy</code> mode (an address, a
+span of shells, bands and wedges, a neighborhood, a random start, a course)
+and <code>regenerate_sector_cell</code> ask
+<code>skeleton.GalaxyBounds.contains(shell, band)</code> first, and that asks only
+whether the cell is inside the grid's reach (GEN.235): the one refusal, with
+the reason (<code>describe_beyond_reach</code>). A cell outside the outline but inside
+the reach is not refused: it is generated from its own density with a random
+draw around the expected count, however sparse (GEN.76), even with
+<code>--density</code> or <code>--num-systems</code>. The outline only shapes the choices nobody
+named: a random start draws a uniformly random sector from inside the
+outline, every sector equally likely (<code>GalaxyBounds.random_address</code>), and a
+neighborhood, the map's planned slots and a span that names no range stay
+inside it (<code>GalaxyBounds.qualifies</code>). <code>planetgen galaxy</code>
+refuses to run before <code>planetgen plan</code>.</p>
+<p><strong>The reach, the outline and the profile (GEN.233, GEN.235).</strong> Three things bound a galaxy and they are not the same.
+The <em>reach</em> is every cell the grid can name: shells 0 to <code>skeleton.DEFAULT_REACH_SHELL</code> (65,535, 262 kpc at the 4 pc edge,
+which holds the Magellanic Clouds, the Sagittarius remnant, the globular clusters and the satellites out to Leo I),
+checked against what the object ID can address (<code>spherical.check_reach</code>, <code>MAX_ADDRESSABLE_SHELL</code> 83,037, 332 kpc). The
+<em>outline</em> is the part of the reach where the disk, the bulge or a component is expected to put a system in a sector
+(<code>GalaxyBounds.qualifies</code>); it reads the disk, the bulge and the clusters and satellites (their bound is added in
+<code>skeleton.bound_relative_density_at</code>), and not the stellar halo, so a cell with only halo stars is inside the reach and
+outside the outline. The <em>profile</em> is what a cell holds, wherever it is: <code>galaxy/profile.py</code>'s
+<code>sector_profile(address, skeleton)</code> gives the region that dominates (<code>nuclear</code>, <code>bulge</code>, <code>disk</code>, <code>halo</code>, <code>cluster</code> or
+<code>satellite</code>), the expected systems, the mix of stellar populations with each one's age window, [Fe/H] peaks, velocity
+dispersion and rotation, the gas (including the superbubble the place lies in), the dark matter, the factor per rare kind
+and the neutron stars and black holes ejected from the galaxy that stream through it. It is a pure function of the shape,
+the sector edge, the address and the galaxy's seed, reads no database and draws no random number, so a preview, a scatter
+and a fill agree on it. The outline decides which cells the planner and the random start name; the reach decides which
+cells may be generated; the profile decides what a generated cell holds. See
+<a href="intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.</p>
+<p><strong>Bright stars (schema v43).</strong> <code>planetgen plan</code> also places every star at or
+above <code>BRIGHT_STAR_MIN_LUMINOSITY_SOL</code> at a fixed point in its sector, in
+<code>bright_stars</code>, before any sector is filled (the default is 1,000 L_sun, with
+the dimmer stars filled in near generated sectors by the mass backfill of
+GEN.187, <code>sector_stats.bright_mass_sol</code>). Filling the sector later builds a
+full system around each of them. The Galaxy Map draws them, so the arms show
+before any sector is filled. How much of a planet's naked-eye sky these stars
+and the backfill cover is in <a href="../orbits/sky-view.html">sky-view.md</a> section 3.</p>
+<p><strong>Adding a system to a stored sector.</strong> <code>POST /api/systems</code> with a
+<code>sector_id</code> places a new system in an existing sector
+(<code>store.add_system_to_sector</code>): at a given position inside it, or else clear
+of the other systems' Hill spheres, with its location, containment and
+nearest systems filled in like a generated one.</p>
+<h2 id="5-things-that-move">5. Things that move</h2>
+<ul>
+<li><strong>Hill spheres follow the real radius.</strong> <code>Star.calculate_system_perimeter</code>
+takes <code>galactic_center_dist_ly</code>, threaded from the owning sector's
+<code>galactic_radius_pc</code>. A system generated outside the galaxy is taken at the radius that holds half of the disk's stars
+(<code>galaxy.scales.default_galactocentric_pc</code>, GEN.404).</li>
+<li><strong>Galactic orbits.</strong> <code>planetgen.cli.orbits</code> turns every system, phenomenon
+and stand-alone facility along its galactic orbit, moves anything that
+drifts into another generated sector over to it, then recomputes
+containment and the stored nearest systems (<code>nearest_systems</code>).
+Which sector holds a moved point is <code>spherical.sector_address_at</code>; the
+object keeps its ID wherever it drifts (the ID names the birth sector).</li>
+<li><strong>The object ID is 96 bits.</strong> <code>galaxy/object_uid.py</code>: a birth sector address of 56 bits (shell 19, band 18, wedge 19), a
+serial of 28 bits and a body number of 12 bits; 24 hex digits, <code>BINARY(12)</code>, the same for every object in every galaxy
+(GEN.230). The band is stored biased so a negative band packs as a plain integer. The top two bits of the serial say how
+it was given out (generated, runtime, field or region), so no allocator needs another's state. The 80-bit ID it replaced
+could not name a polar cell beyond shell 1,303; the 96-bit one names every cell out to shell 83,037. The kind of object
+is not in the ID (an ejected planet that becomes a rogue planet keeps it).</li>
+<li><strong>The cell key follows the position.</strong> Every table that holds a point in
+the galaxy frame (<code>star_systems</code>, the phenomenon tables, <code>facilities</code>,
+<code>nebula_field</code>, <code>bright_stars</code>, <code>phenomenon_scatter</code>) has <code>cell_key</code>, a
+stored generated column the database works out from the position
+columns: the object's 0.25 pc cube over a box of plus or minus 262,144 pc
+(the grid's reach), the three 21-bit cube numbers woven into one 63-bit
+Morton number, NULL for a point outside the box. A covering index
+<code>(cell_key, x, y, z)</code> lets a sphere be asked as a short list of key runs
+(<code>galaxy/cellkey.py</code>: <code>cell_key</code>, <code>sphere_runs</code>), which is how &quot;what is
+nearby&quot; reads (NAV.60). It is not the object ID: the ID is the permanent
+birth address, the key is where the object is now and changes when it
+moves into another cube (schema v93, DB.34, DB.35; see
+<a href="spherical-region-queries.html">spherical-region-queries.md</a> and the
+<a href="../../reference/database-schema.html">schema</a>).</li>
+</ul>
+<h2 id="6-migrations-that-cleared-or-converted-sectors">6. Migrations that cleared or converted sectors</h2>
+<p>Earlier grid changes deleted what no longer had a cell. <code>_migrate_v31_to_v32</code>
+(cylinder) deleted every galaxy-placed sector with its systems and
+phenomena; the v33 edge change did the same and rebuilt the outline at 4 pc;
+the v35 slot rule deleted the sectors in every ring whose slot count changed.
+Sectors never placed in the galaxy were kept each time.</p>
+<p>The move to shells (v91) deleted nothing. Migration 0091 renames the address
+columns and converts the data: every star system, phenomenon and facility
+keeps its place in the galaxy, its velocity and its epoch; the sector rows are
+rebuilt (one for every cell that holds an object and one for every cell whose
+center lay inside a generated sector, each new sector taking the name of the
+old sector holding its center); object IDs are renumbered for the new birth
+sector; the bright stars and the phenomenon scatter get the address of the
+cell holding their position; <code>sector_stats</code> is counted again; and
+<code>galaxy_shell</code> is built again from the stored shape. The details are in
+<a href="../../reference/database-schema.html"><code>../database-schema.md</code></a> under v91.</p>
+<h2 id="7-why-it-works-this-way">7. Why it works this way</h2>
+<ul>
+<li><strong>Spherical shells again, with a round core (Boss, 2026-10-15).</strong> The
+cylinder gave cells that were close to cubes, but it put the galactic center
+on an axis rather than at a point, made the core a column, and tied every
+region and block to flat height slabs. Boss chose &quot;two meridian lines from
+pole to pole make a wedge (vert), shell (radius), and band (horizontal),
+together they identify a single 3D segment of the sphere&quot;, with the core a
+ball 4 pc across, the shell depth always 4 pc, and bands and wedges kept as
+close to 4 pc arcs as possible, especially at the poles. The study
+recommended keeping the cylinder; Boss decided otherwise, and the plan
+records the costs it accepted: more face neighbours, no flat slabs or
+aligned columns, and heavier cells at the poles near the core (a cap there
+holds about 2,800 systems against 1,114 for the cylinder's densest cell).</li>
+<li><strong>Caps with six rim wedges.</strong> Six is the whole number nearest the 6.28
+wedges a 4 pc gap would give. Five (3.18 pc) and seven (4.46 pc) were
+measured and left cap volumes of 2.0 and 3.9 edge cubes against 2.9.</li>
+<li><strong>Wedges in multiples of 6 with primes up to 7 (Boss, 07:17Z).</strong> Any wedge
+count per band gave cell volumes of 0.94 to 1.09 of a cube but boundaries
+that shift between bands; doubling 6, 12, 24 left only 23% of cells within
+10% of a cube. Multiples of 6 whose cofactor uses only 2, 3, 5 and 7 keep
+the six pole meridians as boundaries in every band and neighbouring bands
+mostly nested (95% on shell 3,000), with the same rule everywhere.</li>
+<li><strong>Equal-volume bands were not adopted (Boss, 07:22Z).</strong></li>
+<li><strong>The plane through the middle of a band.</strong> An odd number of bands puts the
+galactic plane through the equatorial band's center, so band 0 is
+symmetric and the outline is symmetric about the plane.</li>
+<li><strong>Object IDs renumbered (Boss, 07:32Z).</strong> Every object got a new ID from
+its new sector in the conversion; positions are unchanged.</li>
+<li><strong>Validate before generating.</strong> Earlier random starts drew from a fixed
+region that could land outside the galaxy; checking afterwards wasted
+generation. Storing the reach lets every path refuse an address the grid
+cannot name up front; the outline only says which cells are planned.</li>
+<li><strong>Parsecs for galaxy scale.</strong> Milliparsecs give 8-digit numbers across the
+galaxy, and light-years would need an AU round trip to compare with the
+<code>_mpc</code> sector columns. Parsecs stay in the same unit family as
+milliparsecs.</li>
+<li><strong>Store the address and center only.</strong> Position, density and outline are
+pure functions of the address, so storing them would only copy a formula's
+output. <code>galactic_radius_pc</code> is stored anyway so &quot;sectors within R of the
+core&quot; can use an index.</li>
+<li><strong>Lazy generation.</strong> At about 23.9 billion candidate cells, generating
+everything up front is not possible. Sectors are generated when visited or
+asked for.</li>
+</ul>
+<h3 id="alternatives-considered-and-rejected">Alternatives considered and rejected</h3>
+<ul>
+<li>The cylindrical ring, layer and slot grid (built 6.0.0 to 8.0, replaced by
+v91; see the archive copy).</li>
+<li>The first spherical-shell design with Fibonacci slots and Voronoi prisms
+(built in 5.3.6, replaced in 6.0.0; see the older archive copy).</li>
+<li>A per-sector plan table of every qualifying sector, about 10.5 billion
+rows and about 1 TB (see <code>archive/galaxy-disk-density-rev2.md</code>).</li>
+<li>A k-d tree or octree over sector addresses: not needed, since every lookup
+is closed form.</li>
+<li>2 pc, 3 pc and 5 pc edges (section 3).</li>
+</ul>
+<h2 id="open-questions-still-standing">Open questions still standing</h2>
+<ul>
+<li><strong>One galaxy per database.</strong> There is no <code>galaxy_id</code>. Several galaxies in
+one database would need one on every galaxy table. The plan for other
+galaxies (GEN.9) recommends keeping it that way: a second galaxy is a
+second database, and the neighbours are rows of one new table. See
+<a href="multiple-galaxies.html">multiple-galaxies.md</a>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
