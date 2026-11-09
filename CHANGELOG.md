@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3733] - 2026-11-09
+
+**Headline:** The admin pages lose the Compact checkbox and the Show on Galaxy Map button on generate jobs.
+
+### Changed
+- **Compact checkbox removed from the admin shell.** The compact layout is now always on; the switch, its script and its remembered browser setting are gone.
+- **"Show on Galaxy Map" removed from generate job pages.** The button, the `made_url` field, `GET /api/galaxy/made`, the Galaxy page's `?made=` view and the map's ring layer for a run's sectors are removed, since the map cannot be loaded while a run is in progress.
+
 ## [8.0.3732] - 2026-11-09
 
 **Headline:** Two tests that failed about half the time on any machine, the deferred-climate moons test and the wide-binary re-roll console test, no longer depend on luck.
