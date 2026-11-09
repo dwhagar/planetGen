@@ -57875,6 +57875,166 @@
       ],
       "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",
       "title": "Stand-ins of the belt dust and comet influx of a planet"
+    },
+    {
+      "key": "6.248",
+      "number": "6.248",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_control.JUPITER_FAMILY_TISSERAND (2, 3): a Jupiter-family comet is an orbit whose Tisserand parameter about its controlling giant lies between 2 and 3"
+            ],
+            [
+              "The range it moves in",
+              "the two edges"
+            ],
+            [
+              "Where it holds",
+              "comets of a star with a giant on a near-circular orbit in the comets' reference plane"
+            ],
+            [
+              "What would show it wrong",
+              "a population of short-period comets about a known giant with a measured Tisserand parameter outside 2 to 3 for a large share"
+            ],
+            [
+              "What replaces it",
+              "the range from an integration of encounters of the star's own planets"
+            ],
+            [
+              "Evidence",
+              "recalled from Levison and Duncan 1997 (the Solar System's family is 2 < T_J < 3), not read; registered in the second-hand list when read; 67P gives 2.75 (computed here)"
+            ]
+          ],
+          "id": "CT1",
+          "key": "6.248:CT1",
+          "kind": "T",
+          "slug": "6-248-ct1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "comet_control.JUPITER_FAMILY_TISSERAND (2, 3): a Jupiter-family comet is an orbit whose Tisserand parameter about its controlling giant lies between 2 and 3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the controlling giant of a star is its most massive giant (comet_control.controlling_giant_au); the others, the terrestrial planets and the secular drift of the giant's orbit do not move the range"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose most massive giant is also the one that scatters most"
+            ],
+            [
+              "What would show it wrong",
+              "a system where a lighter, nearer giant holds the family (the Solar System's Saturn and Neptune hold a share of it)"
+            ],
+            [
+              "What replaces it",
+              "the Tisserand parameter taken about each giant in turn with the Safronov number of GEN.1456 as the weight"
+            ],
+            [
+              "Evidence",
+              "design: the largest Hill sphere and the largest Safronov number go with the largest mass"
+            ]
+          ],
+          "id": "CT2",
+          "key": "6.248:CT2",
+          "kind": "T",
+          "slug": "6-248-ct2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the controlling giant of a star is its most massive giant (comet_control.controlling_giant_au); the others, the terrestrial planets and the secular drift of the giant's orbit do not move the range"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a Jupiter-family comet is drawn again up to tuning.COMET_CEILING_ATTEMPTS times (perihelion, eccentricity, inclination) until it is in the range; with none it is of another family (weights of the other classes); a star with no giant draws as before"
+            ],
+            [
+              "The range it moves in",
+              "COMET_CEILING_ATTEMPTS"
+            ],
+            [
+              "Where it holds",
+              "all stars"
+            ],
+            [
+              "What would show it wrong",
+              "a star with no giant whose measured short-period comets are fewer than the family's weight"
+            ],
+            [
+              "What replaces it",
+              "a capture rate from the giant's cross-section"
+            ],
+            [
+              "Evidence",
+              "design; reuse of the redraw loop of StarSystem._generate_comets"
+            ]
+          ],
+          "id": "CT3",
+          "key": "6.248:CT3",
+          "kind": "T",
+          "slug": "6-248-ct3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a Jupiter-family comet is drawn again up to tuning.COMET_CEILING_ATTEMPTS times (perihelion, eccentricity, inclination) until it is in the range; with none it is of another family (weights of the other classes); a star with no giant draws as before"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the companion star's tide on the orbits is the ceiling_au cut already in place (GEN.228, GEN.591); the galactic tide on the far cloud is not in this slice (GEN.1466)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "wide pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a comet reservoir of a wide pair that reaches past the ceiling"
+            ],
+            [
+              "What replaces it",
+              "a tide integrated on the orbit"
+            ],
+            [
+              "Evidence",
+              "reuse of the ceiling; design"
+            ]
+          ],
+          "id": "CT4",
+          "key": "6.248:CT4",
+          "kind": "T",
+          "slug": "6-248-ct4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the companion star's tide on the orbits is the ceiling_au cut already in place (GEN.228, GEN.591); the galactic tide on the far cloud is not in this slice (GEN.1466)"
+        }
+      ],
+      "slug": "6-248-stand-ins-of-the-giant-that-controls-a-star-s-jupiter-family-comets",
+      "title": "Stand-ins of the giant that controls a star's Jupiter-family comets"
     }
   ]
 }

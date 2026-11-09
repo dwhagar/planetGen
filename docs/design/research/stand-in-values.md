@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1479 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1483 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1453 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1457 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
-| T2 | 138 | 59 | 1 | 1 | 0 | 199 |
+| T2 | 139 | 59 | 1 | 1 | 0 | 200 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
 | T4 | 73 | 11 | 3 | 21 | 10 | 118 |
 | T5 | 73 | 23 | 6 | 1 | 0 | 103 |
-| T6 | 176 | 104 | 27 | 76 | 2 | 385 |
+| T6 | 179 | 104 | 27 | 76 | 2 | 388 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 827 | 298 | 71 | 236 | 47 | 1479 |
+| All | 831 | 298 | 71 | 236 | 47 | 1483 |
 
 ## How the labels were given
 
@@ -2602,3 +2602,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
 | IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
 | IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+
+## 6.248 Stand-ins of the giant that controls a star's Jupiter-family comets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CT1 | T | T2 | L0 | `comet_control.JUPITER_FAMILY_TISSERAND` (2, 3): a Jupiter-family comet is an orbit whose Tisserand parameter about its controlling giant lies between 2 and 3 | the two edges | comets of a star with a giant on a near-circular orbit in the comets' reference plane | a population of short-period comets about a known giant with a measured Tisserand parameter outside 2 to 3 for a large share | the range from an integration of encounters of the star's own planets | recalled from Levison and Duncan 1997 (the Solar System's family is 2 < T_J < 3), not read; registered in the second-hand list when read; 67P gives 2.75 (computed here) | predicted only | - | - |
+| CT2 | T | T6 | L0 | the controlling giant of a star is its most massive giant (`comet_control.controlling_giant_au`); the others, the terrestrial planets and the secular drift of the giant's orbit do not move the range | none | systems whose most massive giant is also the one that scatters most | a system where a lighter, nearer giant holds the family (the Solar System's Saturn and Neptune hold a share of it) | the Tisserand parameter taken about each giant in turn with the Safronov number of GEN.1456 as the weight | design: the largest Hill sphere and the largest Safronov number go with the largest mass | predicted only | - | - |
+| CT3 | T | T6 | L0 | a Jupiter-family comet is drawn again up to `tuning.COMET_CEILING_ATTEMPTS` times (perihelion, eccentricity, inclination) until it is in the range; with none it is of another family (weights of the other classes); a star with no giant draws as before | `COMET_CEILING_ATTEMPTS` | all stars | a star with no giant whose measured short-period comets are fewer than the family's weight | a capture rate from the giant's cross-section | design; reuse of the redraw loop of `StarSystem._generate_comets` | predicted only | - | - |
+| CT4 | T | T6 | L0 | the companion star's tide on the orbits is the `ceiling_au` cut already in place (GEN.228, GEN.591); the galactic tide on the far cloud is not in this slice (GEN.1466) | none | wide pairs | a comet reservoir of a wide pair that reaches past the ceiling | a tide integrated on the orbit | reuse of the ceiling; design | predicted only | - | - |

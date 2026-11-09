@@ -31,6 +31,14 @@ comets are sector phenomena, drawn per star at the design rate in
 - Perihelion `q` is drawn from `COMET_PERIHELION_DISTANCE_RANGE_AU`
   (0.05 to 5 AU). The semi-major axis is `q / (1 - e)`, and the period comes
   from Kepler's third law with the host star's mass.
+- **A giant holds the Jupiter family (GEN.1457).** A star with a giant gives its Jupiter-family comets the orbits a giant can control: the
+  Tisserand parameter `T = a_g / a + 2 cos i sqrt((a / a_g)(1 - e^2))` about the star's most massive giant (`a_g` its distance) must lie in
+  2 to 3 (`physics/comet_control.py`, stand-in rows CT1 to CT4 of section 6.248). `StarSystem._generate_comets` passes the giant's distance
+  (`Comet(giant_au=...)`), the perihelion, eccentricity and inclination are drawn again (the redraw kind `comet.tisserand`) up to
+  `COMET_CEILING_ATTEMPTS` times, and a comet no orbit of which that giant holds is of another family, drawn among the others by their
+  weights. A star with no giant, and every other family, draw exactly as before. The ceiling cut of a wide pair (GEN.228, GEN.591) is
+  applied to every redraw. 67P (a = 3.46 AU, e = 0.64, i = 7.0 degrees, giant at 5.2 AU) gives T = 2.75, inside the range. Left out: a
+  lighter giant that also holds part of the family, the giant's own eccentricity and drift, and the galactic tide on the far cloud (GEN.1466).
 - The class's `period_range_years` is not used by generation. Because the
   period is computed from `q` and `e`, a comet tagged Jupiter-family can come
   out with a period outside 3.3 to 20 years. The tag is descriptive only.
