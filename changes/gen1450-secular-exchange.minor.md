@@ -6,6 +6,7 @@
 - The spacing the generator keeps between neighbours is not broken: an eccentricity the exchange would raise is raised only as far as the spacing allows (a chain packed to the limit keeps its eccentricities and takes the inclinations and turned periapses), and a planet beyond the theory's limits (eccentricity over 0.3 or inclination over 30 degrees) is held where it is and pulls on the others as it is. The moons' stable range is checked against the new eccentricity.
 - On 120 seeded systems the 56 stars with several planets change 644 planets' orbits; the mean eccentricity of the rocky planets in them falls from 0.048 to 0.039 (the exchange moves the angular momentum deficit of the hot draws to the neighbours and the spacing holds back the rise). Stand-ins SC1 to SC5 are registered (section 6.244).
 - `secular_chain.precession_rates` gives each planet's own apsidal and nodal rates for the Kozai screen of GEN.1447 and the spin-orbit drift of GEN.1454.
+- A planet the exchange moved has its air, class and spin made again once, on the orbit the settle pass leaves (the exchange marks the air stale and the final-age refresh makes it), not at the exchange's eccentricity: the tide wears the eccentricity down after the exchange, and the stored temperature has to follow the stored orbit.
 
 generation-output: changed
 generation-affects: fill
