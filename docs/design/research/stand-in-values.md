@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1531 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1532 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1505 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1506 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 78 | 11 | 3 | 21 | 12 | 125 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
 | T6 | 189 | 104 | 30 | 75 | 2 | 400 |
-| T7 | 53 | 19 | 9 | 31 | 0 | 112 |
+| T7 | 54 | 19 | 9 | 31 | 0 | 113 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 872 | 300 | 74 | 235 | 50 | 1531 |
+| All | 873 | 300 | 74 | 235 | 50 | 1532 |
 
 ## How the labels were given
 
@@ -2694,3 +2694,4 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TS3 | P | T7 | L0 | the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (`radiation_field.separations_au`), and two circles closer than `tide_sources._MIN_SEPARATION_SHARE` = 0.01 of the larger are held that far apart | 0.01 | planets spaced by the mutual-Hill rule and eccentricities under 0.5 | an eccentric receiver whose orbit crosses a neighbour's | the receiver's own radius in the average (a double grid) | derived: the grid is the one the radiation field uses for the same orbits; the floor is never reached by neighbours several mutual Hill radii apart | predicted only | - | - |
 | TS4 | P | T7 | L0 | a source other than the host raises a tide that goes round at the synodic rate `abs(n_receiver - n_source)`, on a circle at the distance whose `1 / d^3` is the source's mean, and adds to the spring and neap range as one more raiser | none | any source that is not the receiver's host (the host's own tide moves at the receiver's orbital rate) | a receiver locked to a source it shares an orbit with (a Trojan pair) | the true tide of the moving source at each phase | derived: the tide a body feels at a phase goes as the mean of `1 / d^3` over the pair's phase difference | predicted only | - | - |
 | TS5 | T | T6 | L0 | no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources | none | the planets and moons of the sample | a system whose belt mass is a large share of a planet's | the belts as sources through the ledger of GEN.1464 | design: the item order; a belt's mass is a small share of its planet's in every sample census | predicted only | - | - |
+| TS6 | P | T7 | L0 | the spin torque of a source other than the host or the own moons uses the raiser at the distance whose `1 / d^3` is its mean, so its torque goes as the square of that mean and not the mean of `1 / d^6`; the line to it turns at the rate of the larger orbit radius | none | sources far from the receiver compared with its own orbit (companion stars, outer planets), whose torque is under 1e-9 of the host's in every census system | a sibling planet close enough that the `1 / d^6` mean is far above the square of the `1 / d^3` mean (a neighbour within two mutual Hill radii) | the mean of `1 / d^6` between the two orbits | derived: for circles the mean of `1 / d^6` exceeds the square of the mean of `1 / d^3`, by under a factor of two at three mutual Hill radii; census over 40 systems (148 bodies): one rotation period moves, by 5e-9 of itself | predicted only | - | - |

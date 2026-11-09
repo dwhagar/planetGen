@@ -84,3 +84,31 @@ def test_extra_raisers_add_to_the_ranges_of_the_ocean_tide():
     with_jupiter = ocean_tides.ocean_tide(constants.EARTH_MASS_TO_KG, 6.371e6, 7.292e-5, [base, extra], 0.3)
     assert with_jupiter.spring_range_m > without.spring_range_m
     assert with_jupiter.spring_range_m / without.spring_range_m - 1.0 < 1e-3
+
+
+def test_register_tags_siblings_and_the_parent_and_the_spin_raisers_are_the_others_only():
+    from planetgen.physics import spin_torques
+    star, earth, moon, jupiter = _system()
+    for body in (earth, jupiter):
+        body.body_type = "t"
+    moon.body_type = "t"
+    tide_sources.register([earth, jupiter])
+    assert earth._tide_siblings == (jupiter,) and moon._tide_parent is earth and moon._tide_siblings == (jupiter,)
+    planet_raisers = tide_sources.spin_raisers(earth)
+    assert len(planet_raisers) == 1 and isinstance(planet_raisers[0], spin_torques.Raiser)
+    assert planet_raisers[0].mass_kg == pytest.approx(317.8 * constants.EARTH_MASS_TO_KG)
+    moon_raisers = tide_sources.spin_raisers(moon)
+    assert len(moon_raisers) == 2, "the host star at the planet's place and the sibling planet; the planet is the first raiser"
+    tide_sources.register([earth])
+    assert tide_sources.spin_raisers(earth) == ()
+
+
+def test_an_inner_source_turns_the_line_at_the_receivers_rate_and_an_outer_one_at_its_own():
+    star, earth, moon, jupiter = _system()
+    inner = tide_sources.planet_sources(jupiter, [earth, jupiter])
+    outer = tide_sources.planet_sources(earth, [earth, jupiter])
+    n_earth = math.sqrt(constants.G * (star.mass + earth.mass) / (earth.distance * constants.AU_TO_M) ** 3)
+    n_jupiter = math.sqrt(constants.G * (star.mass + jupiter.mass) / (jupiter.distance * constants.AU_TO_M) ** 3)
+    assert {s.name: s.rate_rad_s for s in inner}["earth"] == pytest.approx(n_jupiter)
+    assert {s.name: s.rate_rad_s for s in outer}["jupiter"] == pytest.approx(n_jupiter)
+    assert {s.name: s.rate_rad_s for s in outer}["star"] == pytest.approx(n_earth)

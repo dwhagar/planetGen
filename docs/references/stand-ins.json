@@ -59927,6 +59927,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the spin torque of a source other than the host or the own moons uses the raiser at the distance whose 1 / d^3 is its mean, so its torque goes as the square of that mean and not the mean of 1 / d^6; the line to it turns at the rate of the larger orbit radius"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "sources far from the receiver compared with its own orbit (companion stars, outer planets), whose torque is under 1e-9 of the host's in every census system"
+            ],
+            [
+              "What would show it wrong",
+              "a sibling planet close enough that the 1 / d^6 mean is far above the square of the 1 / d^3 mean (a neighbour within two mutual Hill radii)"
+            ],
+            [
+              "What replaces it",
+              "the mean of 1 / d^6 between the two orbits"
+            ],
+            [
+              "Evidence",
+              "derived: for circles the mean of 1 / d^6 exceeds the square of the mean of 1 / d^3, by under a factor of two at three mutual Hill radii; census over 40 systems (148 bodies): one rotation period moves, by 5e-9 of itself"
+            ]
+          ],
+          "id": "TS6",
+          "key": "6.260:TS6",
+          "kind": "P",
+          "slug": "6-260-ts6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the spin torque of a source other than the host or the own moons uses the raiser at the distance whose 1 / d^3 is its mean, so its torque goes as the square of that mean and not the mean of 1 / d^6; the line to it turns at the rate of the larger orbit radius"
         }
       ],
       "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",

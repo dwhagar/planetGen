@@ -22,8 +22,10 @@ planet's system (a companion star, a sibling planet) at the planet's place: the 
 a sibling planet and its moons are one point at the planet's place with the sum of their masses; a belt, asteroid or comet is not a source here (GEN.1464 adds them as tiny sources);
 a source with no stored mass or orbit gives nothing.
 
-**Receivers' rate.** A source other than the host does not move at the receiver's orbital rate: the tide it raises goes round at the synodic rate `|n_receiver - n_source|`
-(both about their primary), which is the rate `ocean_tides.oscillates` compares the body's spin to. A body locked to its host therefore still feels a sibling's tide moving.
+**The rate a tide goes round at.** The line from the receiver to a source turns, averaged over the two orbits, at the rate of the larger of the two radii about their primary (the
+winding number of `R e_s - d e_r`): a source farther out than the receiver (a companion star, an outer planet, an outer moon) turns it at the source's own mean motion, one farther in
+(the host, an inner planet, an inner moon) at the receiver's. `Source.rate_rad_s` is that rate, which `ocean_tides.oscillates` and the spin torques (`spin_torques.Raiser`) compare the
+body's spin to: a body locked to its host feels an outer sibling's tide move and an inner sibling's stand still.
 """
 
 import math
@@ -32,7 +34,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy import special
 
-from planetgen.physics import constants, ocean_tides, radiation_field
+from planetgen.physics import constants, ocean_tides, radiation_field, spin_torques
 
 _MIN_SEPARATION_SHARE = 0.01
 """float: Two circles closer than this share of the larger are held that far apart, so the mean cannot blow up (never in a stable system: neighbours stand several Hill radii apart)."""
@@ -98,14 +100,14 @@ def planet_sources(planet, siblings):
         star = companion.star
         g3 = orbit_mean_inverse_cube(a_au, companion.axis_au, companion.eccentricity) / constants.AU_TO_M ** 3
         n_star = _rate(host.mass, star.mass, companion.axis_au * constants.AU_TO_M)
-        found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, abs(n_planet - n_star)))
+        found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, n_star))
     for other in siblings:
         if other is planet or not getattr(other, "distance", None):
             continue
         b_au = other.distance
         g3 = orbit_mean_inverse_cube(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
         n_other = _rate(host.mass, other.mass, b_au * constants.AU_TO_M)
-        found.append(Source(other, getattr(other, "name", None) or "planet", "planet", _mass_of(other), g3, abs(n_planet - n_other)))
+        found.append(Source(other, getattr(other, "name", None) or "planet", "planet", _mass_of(other), g3, n_other if b_au > a_au else n_planet))
     return found
 
 
@@ -120,13 +122,14 @@ def moon_sources(moon, planet, siblings):
     a_m = moon.distance * constants.AU_TO_M
     n_moon = _rate(planet.mass, moon.mass, a_m)
     for source in planet_sources(planet, siblings):
-        found.append(Source(source.body, source.name, source.kind, source.mass_kg, source.g3, abs(n_moon - source.rate_rad_s)))
+        found.append(source)       # a source outside the planet's system turns the line to it at the rate it turns the planet's, whatever the moon does
     for other in getattr(planet, "moons", ()) or ():
         if other is moon or not getattr(other, "distance", None):
             continue
         b_m = other.distance * constants.AU_TO_M
         g3 = orbit_mean_inverse_cube(moon.distance, other.distance, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
-        found.append(Source(other, getattr(other, "name", None) or "moon", "moon", float(other.mass), g3, abs(n_moon - _rate(planet.mass, other.mass, b_m))))
+        n_other = _rate(planet.mass, other.mass, b_m)
+        found.append(Source(other, getattr(other, "name", None) or "moon", "moon", float(other.mass), g3, n_other if other.distance > moon.distance else n_moon))
     return found
 
 
@@ -179,3 +182,34 @@ def raisers_of(sources, already):
         distance_m = source.g3 ** (-1.0 / 3.0)
         made.append(ocean_tides.Raiser(source.name, source.mass_kg, distance_m, 0.0, source.rate_rad_s))
     return made
+
+
+def register(planets):
+    """
+    Tells every planet and moon of a system who else pulls on it: `_tide_siblings` (the other planets of its host, with their moons) on each planet and moon, and `_tide_parent` (the planet) on
+    each moon. `planets` is every planet and belt of the system; a belt is not a source here (GEN.1464). Nothing is stored; the spin history reads these (`spin_raisers`) when it is
+    run again at the final age.
+    """
+    bodies = [planet for planet in planets if getattr(planet, "body_type", None) != "a"]
+    for planet in bodies:
+        siblings = tuple(other for other in bodies if other is not planet and other.star is planet.star)
+        planet._tide_siblings, planet._tide_parent = siblings, None
+        for moon in getattr(planet, "moons", ()) or ():
+            moon._tide_siblings, moon._tide_parent = siblings, planet
+
+
+def spin_raisers(body):
+    """
+    The `spin_torques.Raiser`s of the sources `body_spin` does not count for `body`: every companion star and sibling planet (and, for a moon, the host star at its planet's place and the
+    other moons of its planet), each at the distance whose `1 / d^3` is its mean and at the rate it turns the line to it. A planet's own host and a moon's planet are the first raiser
+    already, and a planet's own moons come with the moon history. `()` for a lone body.
+    """
+    parent = getattr(body, "_tide_parent", None)
+    siblings = getattr(body, "_tide_siblings", ())
+    try:
+        sources = moon_sources(body, parent, siblings) if parent is not None else planet_sources(body, siblings)
+    except (AttributeError, TypeError, ZeroDivisionError):
+        return ()
+    skip = id(getattr(body, "star", None)) if parent is None else None
+    return tuple(spin_torques.Raiser(source.mass_kg, source.g3 ** (-1.0 / 3.0), source.rate_rad_s)
+                 for source in sources if id(source.body) != skip and source.g3 > 0.0 and source.mass_kg > 0.0)
