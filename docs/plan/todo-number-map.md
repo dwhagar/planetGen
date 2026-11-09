@@ -2315,10 +2315,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | open |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | open |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | open |
-| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | open |
-| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | open |
-| ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | open |
-| ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | open |
+| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | done, PR #5795 |
+| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | done, PR #5795 |
+| ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | done, PR #5795 |
+| ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | done, PR #5795 |
 | ADM.153 | The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line | none | open |
 | ADM.152 | An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit | SEC.47 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
