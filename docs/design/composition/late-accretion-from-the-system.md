@@ -1,0 +1,67 @@
+# The air reads the system's late accretion (GEN.1493, design)
+
+Status: design for review by TODO and Boss; nothing is built. Written by Lane 22 on 2026-11-09. Slice A (GEN.1453, `physics/influx.py`) is merged.
+
+## The question
+
+A rocky planet's air and ocean are drawn with one late-accretion number: `impact_history.late_accreted_fraction` gives 0.7 percent of the planet's mass times `mass^(-1/3)`, scattered
+log-normally, and `surface_air._late_accretion` feeds it to `impact_history.veneer_balance` (what the impactors bring, less what they erode; GEN.739, GEN.819). That is one Solar-System
+leftover for every system. A system with a heavy belt, a giant that sweeps the inner region clean, or a companion that stirs the reservoir has a different supply, and the air cannot know it,
+because it is drawn when the planet is made and the belts and comets of the system come after.
+
+## What the code does today (read, not assumed)
+
+1. `Planet.__init__` calls `planetPhysics.calculate_atmospheric_conditions` (planet.py 468 and 500); `validation.py` calls it again where a planet is changed (183, 192, 605). This is the first and
+   only draw of the late accretion (the gauss and the volatile scale come from the ambient stream and are recorded in `design`).
+2. `StarSystem._add_belts` and `_generate_comets` run after the planet loop has settled (system.py ~420 and ~509). Habitable-world guarantees and `system.planets_regenerated` read the finished
+   air, so the air must exist before the belts do.
+3. `StarSystem._finish_planet` runs once the system is whole: `refresh_at_final_age` already remakes the hydrosphere, the ground and the score from the body's own stream (`draw.Stream` seeded
+   from what is final about it), so a second pass that moves no draw of the run's stream is an established pattern. `Planet._surface_w` is kept (not stored) for it.
+4. Slice A's `influx.planet_influx_kg_per_yr` is a present-day rate of dust and comets on a sheet. It is not the late accretion: that is the whole early supply, over the first hundreds of millions of
+   years, when a belt of `M(t) = A / t` held several times its present mass. Belts store `primordial_mass_earth`, `cleared_mass_earth` and `scattered_mass_earth` (belt.py 126 to 183), so the early
+   supply is on hand without a new stored value.
+
+## Findings that shape the design
+
+* **The slice A cross-section is the wrong geometry for a veneer.** `cross_section_share = R^2 / (4 a^2)` is the share of an isotropic stream that crosses the planet's orbit sphere once. For a
+  planetesimal on a crossing orbit that is not lost, the chance of hitting the planet over gigayears is the sum over many encounters (an Opik/Wetherill collision probability with gravitational
+  focusing, `R^2 (1 + v_esc^2/v^2) / (pi ...)` per orbit), several orders larger. With the direct share the primordial asteroid-belt-sized reservoir of the Sun gives about 1e14 kg to Earth against
+  the published 0.2 to 0.7 percent of its mass (about 1e22 kg): eight orders short. So the build needs the cumulative collision probability of a reservoir's planetesimals with the planet over the
+  reservoir's decline, not the stream share. That is a new stand-in row set, and the calibration target is the published veneer range, not a Solar-System copy.
+* **The giants cut both ways.** A giant between the reservoir and the planet ejects (slice A's shield, `scatter.THETA_EJECT`) but also scatters bodies inward (row IF6, not built). A first build keeps
+  the shield only; the inward scattering is a named second step, because it is the part with no source in hand.
+* **A lone star with the Solar System's architecture must stay inside the published range.** There is nothing fixed from the Solar System in the code (project rule), so the range is a test (a
+  census over many Solar-System-like synthetic architectures), never an input.
+
+## Options for the order
+
+A. **Second pass at the end of the planet's making (recommended).** Keep the first solve with the present number as the provisional air the loop and the guarantees see. In `_finish_planet`, before
+   `refresh_at_final_age`, work out the fraction from the system's reservoirs, and when it differs from the provisional one, solve the air again (`surface_air.solve`, same setting) with the new
+   fraction and re-store it, then let `refresh_at_final_age` remake the hydrosphere, the ground and the score on it. The extra draws come from the body's own stream, so nothing of the run's stream
+   moves. Cost: one more air solve per rocky planet (PERF: the solve is the dearest step; measure on a census, and skip the re-solve when the fraction moves under a stated tolerance). Downstream
+   fields that read the first air before the pass (the class is re-applied in `_finish_planet`, so is the score; the habitable-world count in `habitable_request_status` is read after) follow.
+B. **Make belts and comets before any air.** The air then reads the true reservoirs once. But the planet loop retries and guarantees on the finished air (habitable requests, forced classes), and
+   belt birth reads the planet chain; the order would be circular, and every draw of the run's stream moves (a wide epoch, `--affects plan, scatter, fill`). Not recommended.
+C. **Leave one number, make it depend on system properties.** A closed-form fraction from the star's metallicity, the giants' masses and the planet's place, with no reservoirs. Smaller, but it is the
+   hand-fitted rule the item says to replace, and would not see a belt that is present or absent.
+
+## Build in slices (each small, each its own PR)
+
+0. **Calibration without wiring:** a pure `late_supply_kg(planet, reservoirs, giants, star)` (collision probability with focusing, the early reservoir from `primordial_mass_earth`, the slice A shield),
+   a synthetic-architecture census against the published veneer range (0.2 to 0.7 percent for an Earth). Rows in GEN.725, the share and the collision constants honestly L3 or L4 (no source prints them).
+   Lock-free: no output changes.
+1. **Wire the second pass** (option A): the re-solve in `_finish_planet`, the first solve's gauss kept as the scatter about the new mean (so the distribution keeps its spread), a stored-field-free
+   change. Lock item, `generation-affects: fill, population`; epoch with `--affects plan, scatter, fill` if the order of any draw of the run's stream moves, which option A is built not to do.
+2. **Inward scattering by the giants and the companion's stirring** (rows IF6 and GEN.1492), after GEN.1492.
+3. **Census and report:** the veneer by architecture (no giant, a Jupiter, a hot Jupiter, a companion), the share of planets whose air changed, and the cost of the extra solve.
+
+## Done when
+
+A Solar-System-like architecture (a census of synthetic ones, not the real one) gives a veneer inside the published range; a system with no belt and no comet gives a smaller one than a system with
+a heavy belt and no giant; a giant between the belt and the planet lowers it by the shield; the cost of the second solve is measured and stated; stand-ins are registered with tier and tweak.
+
+## Questions for Boss (plain words)
+
+1. Is the published veneer range of the Earth (0.2 to 0.7 percent of its mass) the right target for the calibration, with the share and the collision constants honestly marked as fitted (L3 or L4)?
+   Recommended: yes; nothing else measures it.
+2. Is one extra air solve per rocky planet an acceptable cost for the end-of-making pass? Recommended: yes, with the skip when the fraction barely moves.
