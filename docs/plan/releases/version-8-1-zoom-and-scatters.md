@@ -497,6 +497,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.142 | Heartbeat part 9: the same beat wrapper for the web job runner, the API jobs and the tile prefetch | OPS.136, OPS.137 | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
 | OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
 | OPS.144 | Admin Queue page: a Resume run button, and a stored killed flag on the run record | none | Boss, 5:16 PM EST on 2026-11-09. |
+| OPS.145 | Heartbeat part 11: the other tasks pause while a restarted unit runs alone | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
+| OPS.146 | Heartbeat part 12: a restarted job runs in debug mode with its own debug log (config, on by default) | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123 | Generation rescan audit, 2026-11-09. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
