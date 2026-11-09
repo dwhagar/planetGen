@@ -2364,10 +2364,17 @@ def fill_map_luminosity_unit(params, report):
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
+        # block light stage rolls the parts up instead of making them again from every object.
+        cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+            "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
+            " AND map_luminosity_sol IS NULL AND built_at IS NULL", (params["low"], params["high"])).fetchall()]
         cursor = conn.execute(
             f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
             " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
             (params["low"], params["high"]))
+        if cells:
+            block_lights.sync_cells(conn, cells)
         conn.commit()
         return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
     finally:
@@ -2439,7 +2446,7 @@ def fill_map_luminosity(args):
 def planned_map_luminosity(args):
     """The map luminosity fill and the block lights after it as a `followed.Planned`; its result is the rows filled."""
     follower = MapLuminosityFollower(args)
-    return followed.Planned([follower, BlockLightsFollower(args, rebuild=True)], "Map luminosity", lambda: follower.total)
+    return followed.Planned([follower, BlockLightsFollower(args)], "Map luminosity", lambda: follower.total)
 
 
 HABITABILITY_BATCH_SYSTEMS = 500
@@ -2562,7 +2569,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False):
 
     The totals are rolled up from the parts the scatter writers kept (`db.block_lights.roll`, GEN.1476), and the uncharted cells are the parts' too, so
     neither reads the two scatter tables; the parts are checked first and made again from the objects when they do not match. `rebuild` makes them
-    again from the objects whatever the check says: a luminosity fill changes the sums in place (`fill-map-luminosity`), and `fill-block-totals` is the repair.
+    again from the objects whatever the check says: `fill-block-totals` is the repair and the proof.
 
     Args:
         conn (Connection): A writable connection.
@@ -2865,7 +2872,7 @@ class BlockLightsFollower(followed.Follower):
     def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
-        self.rebuild = rebuild      # a luminosity fill changes the sums in place, so its totals are made again from the objects (GEN.1476)
+        self.rebuild = rebuild      # make the parts again from the objects whatever the check says (GEN.1476)
 
     def params(self):
         return {"run_id": getattr(self.args, "generation_run_id", None),      # the run the uncharted rows (MAP.402) are recorded under
@@ -2873,7 +2880,7 @@ class BlockLightsFollower(followed.Follower):
 
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept"
-                   + ("; made again from every pre-placed object, as the luminosities changed)..." if self.rebuild else ")..."))
+                   + ("; made again from every pre-placed object)..." if self.rebuild else ")..."))
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 

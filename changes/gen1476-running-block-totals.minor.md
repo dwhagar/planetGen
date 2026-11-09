@@ -7,6 +7,6 @@
 
 ### Changed
 
-- The `refresh-block-lights` stage no longer reads the star and phenomenon tables up to four times: the totals and the uncharted sector index both come from the parts. A luminosity fill and `planetgen fill-block-totals` still make everything again from the objects.
+- The `refresh-block-lights` stage no longer reads the star and phenomenon tables up to four times: the totals and the uncharted sector index both come from the parts. `fill-map-luminosity` puts right the parts of the cells it fills, and `planetgen fill-block-totals` still makes everything again from the objects, as the repair and the proof.
 
 generation-output: unchanged
