@@ -57639,6 +57639,242 @@
       ],
       "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
       "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
+    },
+    {
+      "key": "6.247",
+      "number": "6.247",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "belts that have ground down along M = A / t"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of a debris belt's loss that drifts inward past its edge"
+            ],
+            [
+              "What replaces it",
+              "a grain-size cascade with radiation-force and drag lifetimes"
+            ],
+            [
+              "Evidence",
+              "no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing"
+            ]
+          ],
+          "id": "IF1",
+          "key": "6.247:IF1",
+          "kind": "P",
+          "slug": "6-247-if1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.COMET_LIFETIME_YR 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets"
+            ],
+            [
+              "The range it moves in",
+              "1e6 to 1e8"
+            ],
+            [
+              "Where it holds",
+              "comets of the short-period and Halley kinds"
+            ],
+            [
+              "What would show it wrong",
+              "dynamical lifetimes of the comets of a system that differ by over a factor of ten"
+            ],
+            [
+              "What replaces it",
+              "lifetime from the comet's period class"
+            ],
+            [
+              "Evidence",
+              "no source: the tens-of-millions-of-years order of dynamical lifetimes"
+            ]
+          ],
+          "id": "IF2",
+          "key": "6.247:IF2",
+          "kind": "P",
+          "slug": "6-247-if2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "influx.COMET_LIFETIME_YR 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "streams much faster than the planet's escape speed"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose escape speed is comparable to the stream's"
+            ],
+            [
+              "What replaces it",
+              "the focused cross-section R^2 (1 + v_esc^2 / v^2)"
+            ],
+            [
+              "Evidence",
+              "derived: a cross-section over a sphere's area"
+            ]
+          ],
+          "id": "IF3",
+          "key": "6.247:IF3",
+          "kind": "T",
+          "slug": "6-247-if3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "each giant between the source and the planet ejects the share 1 - exp(-Theta / 10) of what drifts past, Theta its Safronov number (the rule the swept disk of the giants already follows, row SX3)"
+            ],
+            [
+              "The range it moves in",
+              "THETA_EJECT"
+            ],
+            [
+              "Where it holds",
+              "giants with Theta of a few to a few tens"
+            ],
+            [
+              "What would show it wrong",
+              "a system where a giant measurably passes more or less than this"
+            ],
+            [
+              "What replaces it",
+              "an integration of encounters"
+            ],
+            [
+              "Evidence",
+              "reuse of scatter.THETA_EJECT (SX3)"
+            ]
+          ],
+          "id": "IF4",
+          "key": "6.247:IF4",
+          "kind": "T",
+          "slug": "6-247-if4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "each giant between the source and the planet ejects the share 1 - exp(-Theta / 10) of what drifts past, Theta its Safronov number (the rule the swept disk of the giants already follows, row SX3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets near the star"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose dust is seen outside its own ring"
+            ],
+            [
+              "What replaces it",
+              "outward transport of the cascade"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "IF5",
+          "key": "6.247:IF5",
+          "kind": "T",
+          "slug": "6-247-if5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems with no giant beyond a comet reservoir"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose measured comet flux is set by a giant's inward scattering"
+            ],
+            [
+              "What replaces it",
+              "inward scattering by each giant, a stirring factor from the companion"
+            ],
+            [
+              "Evidence",
+              "design; GEN.1453 slice B (GEN.1493) is the air reading the influx"
+            ]
+          ],
+          "id": "IF6",
+          "key": "6.247:IF6",
+          "kind": "T",
+          "slug": "6-247-if6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+        }
+      ],
+      "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",
+      "title": "Stand-ins of the belt dust and comet influx of a planet"
     }
   ]
 }

@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import model
+from planetgen.describe import influx_row, model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
@@ -1351,6 +1351,11 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
+    if arriving:
+        value = [model.qty("mass", arriving, "kg")]
+        by_group["dust"].append({"key": influx_row.INFLUX_KEY, "label": "Belt dust and comets reaching it, a year", "value": value, "text": inline_text(value),
+                                 "raw": arriving, "stored": True, "absent": False, "source": None, "show_absent": False})
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
     if variable:
