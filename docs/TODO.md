@@ -13495,6 +13495,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 14. Prerequisites: none. Related: GEN.1490.
   Filed by the TODO thread.
 
+- [ ] **GEN.1508 (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 or count only that system's belts**
+  Boss live observation, 5:57 PM EST on 2026-11-09 ('why am I getting asteroid belts with numbers like Asteroid Belt 5, but it's the only one?'); Boss did not name the system. Do: find a system with a lone belt numbered above 1 by searching generated systems (a query over belts per system against the number in the name); find the cause: the number may come from a slot index, a global or per-star count, or belts merged, dropped or cut (GEN.1451 disk cuts, GEN.1453 belts) after naming. Fix so numbering starts at 1 and counts only the belts of that system (and, if the name carries the star, that star's belts, by one rule written down), and a lone belt reads without a number or as 1 (read the naming rules in the design docs first and keep them). Check comets, dwarf planets and other small-body names for the same fault. Done: a sample of generated systems has contiguous belt numbers from 1; a lone belt is not numbered above 1; a test. Lock-free if the number is made at display; a lock item (epoch, generation-affects fill) if names are stored.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 22 (belts). Prerequisites: none. Related: GEN.1451, GEN.1453, GEN.1492.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
