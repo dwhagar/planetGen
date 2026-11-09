@@ -2,6 +2,79 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3759] - 2026-11-09
+
+**Headline:** The generation-mix test draws its 250 systems from a fixed seed and bounds the giants a sample holds per star, so it no longer fails on main by chance.
+
+### Changed
+
+- `tests/test_generation_mix.py`: the sample is a pure function of `SAMPLE_SEED` (`deterministic_entropy`). Eleven unseeded samples of the same code on 2026-11-09 held 26 to 58 giants (0.08 to 0.17 a star), and the flat bound of 50 giants and the 5 percent super-Jupiter floor failed on main about one run in three. Giants made per 200 systems were 40 before Train 18 and 45 after, so no generation change lies behind it.
+- The giant bound is per star, as the registry states the rate (PA2: 0.045 to 0.16 a star): over 0.045 and under a third more than 0.16 of the sample's stars.
+- The median density ceiling is Neptune's 1.64 plus 0.4: the median of a sample of 40 to 50 giants swings by about 0.2 (1.41, 1.69 and 1.84 on three samples, the same before Train 18 as after). The generated median sitting above the Solar System's 1.3 is left to the planet-type owners.
+
+generation-affects: none
+
+## [8.0.3758] - 2026-11-09
+
+**Headline:** A rocky world's property sheet now lists the isotope ratios of its mantle against its surface, including the xenon-129 excess that iodine-129 left.
+
+### Changed
+
+- A rocky planet or moon lists the D/H of its mantle's water (8 percent under the surface water's), the 15N/14N and 13C/12C of its mantle, and the 129Xe/130Xe of its mantle gas, worked out from its own isotope record (GEN.1490). The xenon excess is the Earth's scaled by the star's birth ratio of 129I, so a star that made less iodine-129 gives its worlds a smaller excess.
+- Nothing is stored and nothing generated changes. The 136Xe from 244Pu fission is not built (no size of the Earth's excess in hand) and a stored mantle reservoir would need a migration; both are noted open.
+- New stand-ins ISO23 to ISO28 in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3757] - 2026-11-09
+
+**Headline:** The burn-down register now has a line for each of the two hand-fitted influx stand-ins, which fixes the red guard on main.
+
+### Changed
+
+- Rows IF1 (the share of a belt's loss that reaches the inner system) and IF2 (the lifetime of a comet reservoir) of section 6.247 are at tweak level L4 and had no line in the burn-down register; both now say `no data` and what would replace them (GEN.1453).
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3756] - 2026-11-09
+
+**Headline:** A star's property sheet now lists the isotopes of its surface: its deuterium, carbon and nitrogen ratios and the count of isotopes.
+
+### Changed
+
+- A star lists D/H, 13C/12C and 15N/14N and the count of isotopes of its surface, worked out from the surface composition the chemistry rows already use and the star's [Fe/H] and age, through the same isotope record as the planets (GEN.1488). Before, a star showed none.
+- A star past its protostar stage has burned its deuterium (a tiny floor shows); a red giant's carbon is the 12C/13C of the first dredge-up; the rest take the birth gas's ratios.
+- Nothing is stored and nothing generated changes. New stand-ins ISO21 and ISO22 are in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3755] - 2026-11-09
+
+**Headline:** A rocky planet's sheet now shows how much belt dust and how many comets reach it each year, shielded by the giants in the way.
+
+### Added
+- **The dust and comet influx of a planet (GEN.1440, GEN.1453 slice A).** `physics/influx.py` works out, from the belts and comets stored for a star and the giants of its system, the mass a planet takes in each year: each belt loses `M / t` to collisions and a share of that drifts inward, a comet reservoir sends its nucleus in over its lifetime, the planet takes the share `R^2 / (4 a^2)` of the stream, and each giant between the source and the planet ejects the share `1 - exp(-Theta / THETA_EJECT)` of what drifts past (the rule the swept disk of the giants already uses). It is a pure function of stored data, derived when the sheet is made (`describe/influx_row.py`), so no column holds it and a rescan cannot leave a stale copy. A sample of 120 whole systems (`tests/audit/influx_sample.py`) shows the influx varying with the belts of the system and a giant shielding the planets inside it. Stand-ins IF1 to IF6 are registered (section 6.247). The air does not read it yet: that needs the belts built before the planet's atmosphere, GEN.1493. Reused, not rebuilt: `scatter.safronov_number` and `THETA_EJECT`, the stored belts, comets and giants, the sheet's derived-row pattern (the eclipse row). No migration.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3754] - 2026-11-09
+
+**Headline:** Belts, comets, interstellar comets and interstellar fields now show a full isotope record on their property sheet and in the API.
+
+### Changed
+
+- A belt, a comet, an interstellar comet and an interstellar field list D/H, 13C/12C and 15N/14N (where the ice holds the element) and the count of isotopes, worked out from their stored ice share, the host star's [Fe/H] and age and the temperature the ice formed at, through the same record and ice fractionation law as a planet's (GEN.1487). Before, a belt or comet showed only two ice lines.
+- Nothing is stored and nothing generated changes: the record is derived each time from stored values and a seeded stream named by the body, so a body always shows the same line.
+- New stand-ins ISO18 to ISO20 (the ices a small body holds, the budget margin at the water line, the formation temperature and metallicity of a body with no star) are in section 6.236 of the registry.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3753] - 2026-11-09
 
 **Headline:** The four scatter commands no longer carry a finish hook: the work queue's executor records their speeds and counts from what each unit reports (OPS.123 slice 1).
