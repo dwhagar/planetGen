@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3763] - 2026-11-09
+
+**Headline:** The repair test reads the inserted-row count as a whole number, so "90 inserted" no longer fails the check for "0 inserted".
+
+### Changed
+
+- `tests/test_repair.py`: the check that the reason does not say "0 inserted" matched inside "90 inserted" now that the repaired sector reports 90 rows; it uses a word boundary (`\b0 inserted`).
+
+generation-output: unchanged
+
 ## [8.0.3762] - 2026-11-09
 
 **Headline:** A design note says how the air could read the belts, comets and giants of its own system for its late accretion; nothing is built.
