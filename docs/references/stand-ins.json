@@ -57365,6 +57365,166 @@
       ],
       "slug": "6-243-stand-ins-of-the-spacing-of-orbits-against-every-neighbour",
       "title": "Stand-ins of the spacing of orbits against every neighbour"
+    },
+    {
+      "key": "6.245",
+      "number": "6.245",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step"
+            ],
+            [
+              "The range it moves in",
+              "the pressure: 0.75 TPa; Clapeyron slope -10 MPa/K at 5,000 K; the sequence holds to 10,000 K, while another study predicts a different sequence above about 6,000 K"
+            ],
+            [
+              "Where it holds",
+              "mantles of rocky planets with a central pressure over 0.75 TPa (about 5 Earth masses and more)"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement or a second calculation that puts the first dissociation outside 0.6 to 0.9 TPa"
+            ],
+            [
+              "What replaces it",
+              "a table of the density of the products at each step"
+            ],
+            [
+              "Evidence",
+              "PREDICTED. READ [R5213: Section 3.1]"
+            ]
+          ],
+          "id": "SE1",
+          "key": "6.245:SE1",
+          "kind": "T",
+          "slug": "6-245-se1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step"
+            ],
+            [
+              "The range it moves in",
+              "the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K"
+            ],
+            [
+              "Where it holds",
+              "mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more)"
+            ],
+            [
+              "What would show it wrong",
+              "a second calculation outside 1.1 to 1.5 TPa"
+            ],
+            [
+              "What replaces it",
+              "a table of the density of the products at each step"
+            ],
+            [
+              "Evidence",
+              "PREDICTED. READ [R5213: Section 3.1]"
+            ]
+          ],
+          "id": "SE2",
+          "key": "6.245:SE2",
+          "kind": "T",
+          "slug": "6-245-se2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step"
+            ],
+            [
+              "The range it moves in",
+              "the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K"
+            ],
+            [
+              "Where it holds",
+              "mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more)"
+            ],
+            [
+              "What would show it wrong",
+              "a second calculation outside 2.5 to 3.5 TPa"
+            ],
+            [
+              "What replaces it",
+              "a table of the density of the products at each step"
+            ],
+            [
+              "Evidence",
+              "PREDICTED. READ [R5213: Section 3.1, Section 5]"
+            ]
+          ],
+          "id": "SE3",
+          "key": "6.245:SE3",
+          "kind": "T",
+          "slug": "6-245-se3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bulk_structure mantle table (_MANTLE_RHO to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach"
+            ],
+            [
+              "What replaces it",
+              "SE1 to SE3 with a density of the products"
+            ],
+            [
+              "Evidence",
+              "the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered"
+            ]
+          ],
+          "id": "SE4",
+          "key": "6.245:SE4",
+          "kind": "P",
+          "slug": "6-245-se4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "bulk_structure mantle table (_MANTLE_RHO to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is"
+        }
+      ],
+      "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
+      "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
     }
   ]
 }

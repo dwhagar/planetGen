@@ -89225,6 +89225,45 @@
    "volume": "471",
    "year": 2017
   },
+  "10.1016/j.epsl.2017.08.032": {
+   "authors": [
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Ji",
+     "M."
+    ],
+    [
+     "Wang",
+     "C. Z."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2017.08.032",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "40",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles",
+   "type": "journal-article",
+   "volume": "478",
+   "year": 2017
+  },
   "10.1016/j.epsl.2018.05.033": {
    "authors": [
     [
@@ -282577,7 +282616,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5213,
+ "id_next": 5214,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283141,6 +283180,7 @@
   "10.1016/j.epsl.2016.09.013": "R0518",
   "10.1016/j.epsl.2017.03.008": "R1182",
   "10.1016/j.epsl.2017.04.046": "R4135",
+  "10.1016/j.epsl.2017.08.032": "R5213",
   "10.1016/j.epsl.2018.05.033": "R2936",
   "10.1016/j.epsl.2018.06.029": "R4725",
   "10.1016/j.epsl.2018.07.006": "R3356",
