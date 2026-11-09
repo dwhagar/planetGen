@@ -32,6 +32,11 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | MAP.280 | Body rendering R14; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.281 | Giant chemistry bands once the band strengths exist |  | Body rendering R6b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface |  | Body rendering R4b; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.416 | Census of cloud and haze data by class | none | Boss, 2026-11-09 (render report); haze and clouds need not be in 8.1. |
+| MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | Boss, 2026-11-09 (render report); haze and clouds need not be in 8.1. |
+| MAP.420 | Coloured haze shell and limb, sized from tau_haze | MAP.418 | Boss, 2026-11-09 (render report); haze and clouds need not be in 8.1. |
+| MAP.421 | Giants get a haze and cloud-deck tint | MAP.418 | Boss, 2026-11-09 (render report); haze and clouds need not be in 8.1. |
+| MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | Boss, 2026-11-09 (render report); haze and clouds need not be in 8.1. |
 
 ### Resource layer
 

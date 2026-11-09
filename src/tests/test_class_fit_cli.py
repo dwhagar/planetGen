@@ -46,3 +46,30 @@ def test_a_table_compared_with_itself_changes_no_class_and_one_with_a_moved_edge
     assert changed >= 1 and sum(pairs.values()) == changed
     assert class_fit.CLASSES is not None and "o2_partial_pa" in {c["quantity"] for k in class_fit.CLASSES if k.letter == "M" for c in k.when}      # the table is put back
     assert "## Class codes against the fit table at X" in cli.format_changes("X", changed, total, pairs)
+
+
+def test_the_fudge_sweep_fits_the_cases_fully_and_moves_one_value_for_a_world_just_past_an_edge():
+    """GEN.1312: no fudge for a body that fits a class; the fewest values, then the smallest move, for one that does not."""
+    recs = records()
+    rows = cli.fudge_sweep(recs)
+    assert all(r["best"][0] == 0 for r in rows[:len(CASES)]), "every case fits a class fully, so the rule fudges nothing"
+    near = rows[-1]                       # the light world: past the edge of a class by gravity alone
+    assert near["best"] is not None and near["best"][0] <= 1
+    for r in rows:
+        if r["best"][0] == 0:
+            assert r["best"][1] == 0.0 and not r["best"][3]
+    text = cli.format_fudge(rows)
+    assert "## The fudge sweep (no cap)" in text and "| cap (widths) | bodies placed | share | added |" in text
+
+
+def test_the_thermal_quantities_count_as_one_value_and_a_cap_leaves_a_far_world_unplaced():
+    options = [("X", 2, {"thermal": 0.5, "pressure_pa": 3.0}), ("Y", 3, {"thermal": 1.2})]
+    assert cli.minimal_fudge(options)[2] == "Y", "one value moved beats two"
+    assert cli.minimal_fudge(options, 1.0) is None, "Y needs 1.2 widths and X needs 3.0 on the pressure"
+    assert cli.minimal_fudge(options, 1.5)[2] == "Y"
+    found = {"temperature_k": 100.0, "hottest_region_k": 100.0}
+    far = {"quantity": "temperature_k", "min": 200.0}
+    near = {"quantity": "hottest_region_k", "min": 150.0}
+    assert cli.overshoot(far, found) > 0.0 and cli.overshoot(near, found) > 0.0
+    assert cli.overshoot({"quantity": "temperature_k", "min": 50.0}, found) == 0.0
+    assert cli.overshoot({"quantity": "missing", "min": 1.0}, found) == float("inf")
