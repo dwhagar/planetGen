@@ -1,12 +1,12 @@
 # Items: VIEW, Views
 
-The life of every VIEW item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every VIEW item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## VIEW.1
 
 2026-10-17 to 2026-10-17; 1 commits; not open.
 
-- 2026-10-17: TODO: file GEN.544 (disc vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
+- 2026-10-17: TODO: file GEN.544 (disk vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
 
 ## VIEW.5
 

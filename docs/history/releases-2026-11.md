@@ -1,7 +1,11 @@
 # Release headlines, 2026-11
 
-702 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).
+703 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).
 
+
+## 2026-11-09
+
+- **8.0.3732**: Two tests that failed about half the time on any machine, the deferred-climate moons test and the wide-binary re-roll console test, no longer depend on luck.
 
 ## 2026-11-08
 
@@ -46,10 +50,10 @@
 - **8.0.3693**: An ocean's phosphate now comes from the star's phosphorus, the crust it ends up in and the weathering that carries it to the water, instead of a high, limited or starved label drawn from the ocean's kind.
 - **8.0.3692**: The salts on a dried ocean floor, and in the ocean itself, now come from the chemistry of the body's own water instead of a fixed halite, gypsum and calcite mix.
 - **8.0.3691**: A rocky planet's mantle now stores water in the minerals its pressure makes, and the page shows what it can hold and what form its carbon takes.
-- **8.0.3690**: A rocky body's metal core now has a make-up (nickel, sulfur, silicon, oxygen, carbon, hydrogen) that follows how oxidised its rock is and how deep its mantle is, and that make-up decides when its inner core freezes and how strongly its dynamo is driven.
-- **8.0.3689**: A gas giant's carbon-to-oxygen ratio now comes from the disc it formed in (its snow lines and its star's carbon and oxygen), spread as the observed giants are, instead of a draw around 0.57 (GEN.1363 part C).
-- **8.0.3688**: The most water an icy body can hold now follows the disc's budget, where carbon monoxide and dioxide hold part of the oxygen, so it falls from 0.54 to 0.34 of the solids for the Sun (GEN.1363 part B).
-- **8.0.3687**: The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
+- **8.0.3690**: A rocky body's metal core now has a make-up (nickel, sulfur, silicon, oxygen, carbon, hydrogen) that follows how oxidized its rock is and how deep its mantle is, and that make-up decides when its inner core freezes and how strongly its dynamo is driven.
+- **8.0.3689**: A gas giant's carbon-to-oxygen ratio now comes from the disk it formed in (its snow lines and its star's carbon and oxygen), spread as the observed giants are, instead of a draw around 0.57 (GEN.1363 part C).
+- **8.0.3688**: The most water an icy body can hold now follows the disk's budget, where carbon monoxide and dioxide hold part of the oxygen, so it falls from 0.54 to 0.34 of the solids for the Sun (GEN.1363 part B).
+- **8.0.3687**: The disk a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
 - **8.0.3686**: A progress bar now appears for any step that takes more than 5 seconds, and a random start's first sector has one.
 - **8.0.3685**: On a small phone screen the Galaxy Map's info card no longer scrolls itself when it is expanded: its three values scroll in their own box and the "more" region keeps room.
 - **8.0.3684**: On a phone the Galaxy Map's info card for a star system fits in half the map again: each row's label now stands over its value instead of beside it in a column too narrow for it.
@@ -62,7 +66,7 @@
 - **8.0.3677**: A rocky body's rock now holds sodium, potassium, titanium, chromium, manganese, nickel and phosphorus oxides, so its minerals include feldspar, ilmenite, chromite and apatite.
 - **8.0.3676**: A law now says how much of each moderately volatile element a rocky body keeps.
 - **8.0.3675**: Every star now carries titanium, vanadium, chromium, manganese, phosphorus, zinc, cobalt, copper and lithium (GEN.1360).
-- **8.0.3674**: Every body with a magnetic field now has a stored direction for it (the tilt from the spin axis and whether it is off centre), neutron stars store their magnetic inclination, and stars a polar dipole field.
+- **8.0.3674**: Every body with a magnetic field now has a stored direction for it (the tilt from the spin axis and whether it is off center), neutron stars store their magnetic inclination, and stars a polar dipole field.
 - **8.0.3673**: A cool world with a global oxygen ocean is now an ocean world (O), and a cool world with a little water is now a desert world (H), where before they fell between the classes.
 - **8.0.3672**: Two tests that expected every rocky planet to have a ground now skip the planets under a deep envelope.
 - **8.0.3671**: A sub-Neptune no longer has a rocky planet's ground under its envelope: its air is the hydrogen and helium of its 1 bar level, and it has no ocean, land, surface dose or life.
@@ -92,7 +96,7 @@
 - **8.0.3647**: A browser that will not start now fails the test run instead of skipping 1,500 tests.
 - **8.0.3646**: Two tests that assumed asteroid fields are rolled in a sector, or stand wider than a light year, now follow the rules that retired both.
 - **8.0.3645**: Two class descriptions that ran past 30 words are now two sentences each.
-- **8.0.3644**: The disc a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
+- **8.0.3644**: The disk a body forms in now has a species-by-species condensation budget (CO, CO2, CH4, N2, H2S, noble-gas clathrates, ammonium salts, refractory carbon) with its snow lines and the C/O of its gas and solids (GEN.1363 part A).
 - **8.0.3643**: Bringing a galaxy to a new epoch no longer generates the empty cells rogue planets landed in.
 - **8.0.3642**: `planetgen system --output` with an unwritable path now prints a one-line error instead of a traceback.
 - **8.0.3641**: A world that spins very fast no longer makes the generator split its temperature record into hundreds of millions of empty windows; the numbers do not change (PERF.249).
@@ -402,7 +406,7 @@
 - **8.0.3346**: The bulk-insert test rows carry every bright-star column again, so test_literal_insert passes; no generated output changes.
 - **8.0.3345**: One British spelling in a test docstring is American now.
 - **8.0.3344**: Two bright-star tests no longer disturb each other when they run in one process.
-- **8.0.3343**: The field-cloud placement tests use a cloud that fills its sphere, so they no longer fail when a drawn nebula's lumpy shape leaves its centre empty.
+- **8.0.3343**: The field-cloud placement tests use a cloud that fills its sphere, so they no longer fail when a drawn nebula's lumpy shape leaves its center empty.
 - **8.0.3342**: The web app no longer pulls in numba through the post-main-sequence module, and the belt members table has its documented precision floor.
 - **8.0.3341**: The job runs test counts only the sectors a fill charted, so it passes now that a rogue planet can put a sector row in a cell nobody charted.
 - **8.0.3340**: The gas table builder and its research parts spell water vapor and band center the same way again
@@ -438,9 +442,9 @@
 - **8.0.3310**: A world that holds an oxygenic class beside an anoxygenic or hydrogen-eating one now keeps the methane the second one's fuel supports.
 - **8.0.3309**: Generating a system around a luminous star is faster, and two small slips that the old time limits were hiding are fixed.
 - **8.0.3308**: Seas of methane, ethane and other liquids now have an equilibrium tide, and a new module holds the exact tide numbers of a deep global liquid layer.
-- **8.0.3307**: The regular moons of a giant planet now form close in, inside the planet's circumplanetary disc, instead of tens of planet radii out.
-- **8.0.3306**: A galaxy whose centre is smaller than the grid no longer packs the nuclear stellar disc into one cell: the disc is switched off when it is shorter than 2 pc.
-- **8.0.3305**: Lighter discs now form their stars later and heavier ones earlier, because the disc's inflow carries the mass term of the Milky Way infall model.
+- **8.0.3307**: The regular moons of a giant planet now form close in, inside the planet's circumplanetary disk, instead of tens of planet radii out.
+- **8.0.3306**: A galaxy whose center is smaller than the grid no longer packs the nuclear stellar disk into one cell: the disk is switched off when it is shorter than 2 pc.
+- **8.0.3305**: Lighter disks now form their stars later and heavier ones earlier, because the disk's inflow carries the mass term of the Milky Way infall model.
 - **8.0.3304**: Every body now stores how much of its mass is a hydrogen-rich air, a body type (terrestrial, transitional or gas) and the digit of its class code.
 - **8.0.3303**: A planet's or moon's page and map read the words of its class from one table when they are shown, so a change to the wording reaches every world at once.
 - **8.0.3302**: A sector that already holds rogue planets or asteroid fields that came from elsewhere now draws that much less mass in systems of its own.
@@ -530,7 +534,7 @@
 - **8.0.3218**: The help links on a planet page say "More information", and the ones that repeated a link the page already has are gone.
 - **8.0.3217**: The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
 - **8.0.3216**: The bands table now calls its two rows "Longest unbroken day" and "Longest unbroken night", which is what they are.
-- **8.0.3215**: The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disc rates.
+- **8.0.3215**: The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disk rates.
 - **8.0.3214**: The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
 - **8.0.3213**: The update's cache warm-up gets four hours instead of thirty minutes, and a warm-up that is stopped says what stopped it instead of printing a traceback.
 
@@ -548,7 +552,7 @@
 - **8.0.3203**: The property sheet knows that only some life classes have a variant letter, so a body whose class has none is no longer flagged as an empty column.
 - **8.0.3202**: The plain-words check reads sixteen systems instead of ten so its corpus stays big enough, and two wording slips it found are fixed.
 - **8.0.3201**: The life census now also counts how many worlds have two or more living classes and how common each class is.
-- **8.0.3200**: Paths and pulls in a sector far from the galaxy's centre are as exact as in one beside it.
+- **8.0.3200**: Paths and pulls in a sector far from the galaxy's center are as exact as in one beside it.
 - **8.0.3199**: Giant planets are drawn with a wide equatorial zone, belts and zones from the equator outward, and storms sized by the Rossby deformation radius.
 - **8.0.3198**: The belt property sheet shows whether a giant stirs the belt, and the three stored lists of a belt's origin say why they are not rows.
 - **8.0.3197**: A planet or moon hotter than about 800 K now glows by its own heat, in the colour of that heat, on the System Map and the object page.
@@ -567,7 +571,7 @@
 - **8.0.3184**: The two ozone presence rows that nothing read are gone; the ozone column is the temperature and oxygen fit of the ozone module.
 - **8.0.3183**: Hydrogen chloride and hydrogen fluoride in an air now come from the rock's chlorine and fluorine, not from a coin flip.
 - **8.0.3182**: A body held at the 2000 K surface cap now stores the greenhouse factor that gives that temperature, so the stored temperature, greenhouse and starlight agree.
-- **8.0.3181**: The galaxy's thin disc now forms its stars from the Milky Way's inside-out infall, so the reference galaxy forms 2.8 solar masses a year, not 4.0.
+- **8.0.3181**: The galaxy's thin disk now forms its stars from the Milky Way's inside-out infall, so the reference galaxy forms 2.8 solar masses a year, not 4.0.
 - **8.0.3180**: A world's air is now the sum of the life classes that live on it, with the oxygen rise counting the methane its earlier classes made.
 - **8.0.3179**: More than one kind of life can now live on the same world, each on its own schedule.
 - **8.0.3178**: The planet pages, the API, the search filter and the population pass now see every life class on a world, not only the dominant one.
@@ -634,7 +638,7 @@
 - **8.0.3117**: The search page writes every gas formula with its subscripts, in the gas rows, the sort menu and the filter chips.
 - **8.0.3116**: A planet with no star can now be built through the one planet chain: it keeps the air its own gravity and heat allow, and it is warmed by its own heat instead of sitting at the 2.725 K floor.
 - **8.0.3115**: The nav chart and the System Map diagram stay inside the browser window instead of running past its bottom.
-- **8.0.3114**: A system can now be checked and summed as one list of every body with a mass, including a barycentre that has the belts in it and a measure of how much the belts move the star.
+- **8.0.3114**: A system can now be checked and summed as one list of every body with a mass, including a barycenter that has the belts in it and a measure of how much the belts move the star.
 - **8.0.3113**: The old-URL error tests know the new life help route, so the HEAD and OPTIONS checks run on it again.
 - **8.0.3112**: The "Hours outside in a day" line of a body's survival equipment now goes through the unit ladder, so a short stay reads in minutes.
 - **8.0.3111**: The map scripts no longer carry the light-theme code that black map backgrounds left unused. Nothing changes on screen.
@@ -684,11 +688,11 @@
 - **8.0.3070**: A star counts as pre-main-sequence until its radius has settled, as the BHAC15 tracks have it, not until MIST's later nuclear arrival.
 - **8.0.3069**: A star still contracting toward the main sequence now keeps both of its times, when its radius settles and when hydrogen burning arrives.
 - **8.0.3068**: A white dwarf made by a close companion is now a helium core of 0.18 to 0.45 solar masses, the one its giant had when it filled its lobe, instead of always 0.5 solar masses or more.
-- **8.0.3067**: The disc's gas now thins out the way star formation does at low density, so a Milky Way mass disc keeps about twice as much gas, depletes it in 3.7 Gy instead of 2.2 and has 7.2 solar masses per pc2 at the Sun's radius instead of 4.3.
+- **8.0.3067**: The disk's gas now thins out the way star formation does at low density, so a Milky Way mass disk keeps about twice as much gas, depletes it in 3.7 Gy instead of 2.2 and has 7.2 solar masses per pc2 at the Sun's radius instead of 4.3.
 - **8.0.3066**: A Titan-like air now gets its nitrogen from the ammonia ice of its body, so a Titan-sized ice moon holds an air of the order of Titan's.
 - **8.0.3065**: The air of a rocky planet now holds the carbon and nitrogen that the late accretion brought and did not blow away, so an Earth twin's nitrogen comes out near the Earth's.
 - **8.0.3064**: A giant planet's page now shows the energy it radiates and the swing of its starlight, which were empty for every gas and ice giant.
-- **8.0.3063**: The 23 flavour lines a system can carry are rewritten in plain words: short sentences, one idea each, and no claim about a world the data could contradict.
+- **8.0.3063**: The 23 flavor lines a system can carry are rewritten in plain words: short sentences, one idea each, and no claim about a world the data could contradict.
 - **8.0.3062**: A small body is now an Asteroid or a round Class D or C world by whether its own weight beats its strength, not by how much ice it holds.
 - **8.0.3061**: Every planet, moon and comet now keeps how round it is, how strong its material is and how tightly it is bound, and every belt and asteroid field keeps the mean density and ice share of its members.
 - **8.0.3060**: The share of a world's surface its ocean covers now follows a two-level surface (basins and continents) instead of a square-root law, and a mantle stores 2 to 8 Earth oceans by mass.
@@ -720,5 +724,5 @@
 - **8.0.3034**: The update asks only the API address set in config.json whether the site answers, and never tries localhost on its own.
 - **8.0.3033**: The update shows a progress bar while it records the version key, so the quiet stretch after the migration is no longer a blank wait.
 - **8.0.3032**: The update says what it is doing while it records the version key, so the quiet stretch after the migration no longer looks hung.
-- **8.0.3031**: Cancelling a job from its own page takes you back to the page you came from.
+- **8.0.3031**: Canceling a job from its own page takes you back to the page you came from.
 - **8.0.3030**: every stage with units now holds its workers to what a worker and its horse really take of the host's memory

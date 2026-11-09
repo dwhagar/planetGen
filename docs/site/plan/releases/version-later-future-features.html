@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="plan/releases/version-later-future-features.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="version-later-future-features-not-scheduled">Version later: Future features (not scheduled)</h1><p class="meta">docs/plan/releases/version-later-future-features.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-multiple-galaxies">Phase 1: Multiple galaxies</a></li><li style="margin-left:14px"><a href="#multiple-galaxies">Multiple galaxies</a></li><li style="margin-left:0px"><a href="#phase-2-waiting-on-other-projects">Phase 2: Waiting on other projects</a></li><li style="margin-left:14px"><a href="#optional-unit-edge-arithmetic">Optional unit edge arithmetic</a></li><li style="margin-left:14px"><a href="#paging-audit">Paging audit</a></li><li style="margin-left:14px"><a href="#upstream-follow-ups">Upstream follow-ups</a></li><li style="margin-left:0px"><a href="#phase-3-speed-ups-that-change-generated-values">Phase 3: Speed-ups that change generated values</a></li><li style="margin-left:14px"><a href="#value-changing-speed-ups">Value-changing speed-ups</a></li></ul></details>
+<h1 id="version-later-future-features-not-scheduled">Version later: Future features (not scheduled)</h1><p class="meta">docs/plan/releases/version-later-future-features.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-multiple-galaxies">Phase 1: Multiple galaxies</a></li><li style="margin-left:14px"><a href="#multiple-galaxies">Multiple galaxies</a></li><li style="margin-left:0px"><a href="#phase-2-waiting-on-other-projects">Phase 2: Waiting on other projects</a></li><li style="margin-left:14px"><a href="#optional-unit-edge-arithmetic">Optional unit edge arithmetic</a></li><li style="margin-left:14px"><a href="#paging-audit">Paging audit</a></li><li style="margin-left:14px"><a href="#upstream-follow-ups">Upstream follow-ups</a></li><li style="margin-left:0px"><a href="#phase-3-speed-ups-that-change-generated-values">Phase 3: Speed-ups that change generated values</a></li><li style="margin-left:14px"><a href="#value-changing-speed-ups">Value-changing speed-ups</a></li><li style="margin-left:0px"><a href="#phase-4-after-the-wiki-link">Phase 4: After the wiki link</a></li><li style="margin-left:14px"><a href="#account-sync">Account sync</a></li></ul></details>
 <p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 <a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
 This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
@@ -202,6 +202,27 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td><code>seo.privacy_note</code> text, &quot;download my data&quot; and &quot;delete my account&quot; on the account page</td>
 <td>USR.7, USR.26</td>
 <td>Research suggestion; not requested.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-4-after-the-wiki-link">Phase 4: After the wiki link</h2>
+<p>Features that wait for 9.1 (the wiki link, held until spakr has its public API).</p>
+<h3 id="account-sync">Account sync</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>USR.32</td>
+<td>Optional account sync between PlanetGen and the wiki site (spakr): one sign-in for both, as a later feature</td>
+<td>SEC.47, USR.28</td>
+<td>Boss, 7:08 PM EST on 2026-11-08: separate accounts in 9.1, the sync later. Design note first.</td>
 </tr>
 </tbody>
 </table></div>

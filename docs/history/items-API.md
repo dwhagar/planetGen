@@ -1,6 +1,6 @@
 # Items: API, API
 
-The life of every API item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every API item that a commit title names, from the git history as of `27813f061`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## API.3
 
@@ -215,4 +215,10 @@ The life of every API item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: Docs: file the twenty fictional materials parts for 8.2 (GEN.1408 to GEN.1419, DB.116/117, ADM.143/144, API.42, UX.293, TEST.699, DOC.110) (#5710)
+
+## API.43
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: Plan 9.1 wiki link: 11 items (API.43-47, SEC.47, ADM.152-153, UX.296, TEST.710, DOC.118-119) and USR.32 account sync (later), held until spakr has its API (#5800)
 
