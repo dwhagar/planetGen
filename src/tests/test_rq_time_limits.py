@@ -175,6 +175,20 @@ def test_the_units_of_a_stage_get_a_multiple_of_its_expected_time_or_the_ceiling
     assert [timeout for _name, _func, timeout in limits] == [20_000, redisqueue.MAX_TIMEOUT_SECONDS]
 
 
+def test_a_unit_that_names_its_own_expected_time_gets_the_limit_of_it_when_that_is_longer(redis_server, limits):
+    """OPS.134: the stage's expected seconds are the stage's small units'; a sky cell that takes half an hour in a stage of seconds names its own, or the stage's limit (10 x 188.5 s) ends it."""
+    connection = redisqueue.connect(redis_server)
+    run_id = f"timed-{secrets.token_hex(4)}"
+    try:
+        units.enqueue_units(connection, run_id, 0, "scatter-backfill",
+                            [({"items": []}, 1.0), ({"sky": {}, "expected_seconds": 1826.0}, 1.0), ({"expected_seconds": 10.0}, 1.0), ({"expected_seconds": "soon"}, 1.0)],
+                            expected_seconds=188.5)
+    finally:
+        redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
+    stage_limit = max(units.unit_timeout(188.5), 1)
+    assert [timeout for _name, _func, timeout in limits] == [stage_limit, 18_260, stage_limit, stage_limit] and stage_limit == 1885
+
+
 @pytest.fixture
 def jobs_root(tmp_path, monkeypatch):
     root = tmp_path / "jobs"
