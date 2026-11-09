@@ -2998,3 +2998,5 @@ Baseline: PR #1817.
 | DOC.116 | 8.1 | Bugs and flaky tests |
 | DOC.113 | 8.1 | Bugs and flaky tests |
 | OPS.130 | 8.1 | Bugs and flaky tests |
+| TEST.711 | 8.1 | Stand-in replacements |
+| TEST.712 | 8.1 | Stand-in replacements |
