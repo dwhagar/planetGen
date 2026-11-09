@@ -13476,6 +13476,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free, small. Prerequisites: none. Related: GEN.1482, GEN.1479.
   Filed by the TODO thread.
 
+- [ ] **GEN.1484 Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light**
+  Found by Lane 15 in GEN.1462 (reports/gen1462-eclipse-census-2026-11-09.md, 2026-11-09). Sibling planets and moons cover under 1e-4 of a planet's light for 93 percent of planets, so nothing changes for them. A circumbinary planet loses a median 3e-4 of its light, and up to 1.9 percent, to its two stars eclipsing each other (56 planets in the census). Do: apply the eclipse functions GEN.1462 built as a per-planet factor in the light law, so the stored light of a circumbinary planet carries it; the factor is 1.0 for every other planet, and a lone-star system must give today's numbers. This changes stored light, so it is a lock item (epoch, golden). The eclipse functions are also the on-demand sources for the GEN.1465 effect ledger; reuse them and add no second eclipse model.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 15 (offered), lock item for a train after GEN.1462 is on main. Prerequisites: GEN.1462. Related: GEN.1441, GEN.1465.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
