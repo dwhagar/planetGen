@@ -6,6 +6,7 @@ DB.47: `planetgen repair-db` (`db/repair.py`) rebuilds damaged sectors from the 
 """
 
 import os
+import re
 
 import pytest
 
@@ -96,7 +97,7 @@ def test_a_lost_row_is_inserted_again_and_a_row_that_does_not_belong_is_removed(
     assert sc.check_sector(conn, sector_id) == sc.DAMAGED
     report = repair.repair(conn)
     assert [(r.sector_id, r.outcome) for r in report.results] == [(sector_id, repair.REPAIRED)]
-    assert " inserted" in report.results[0].reason and "0 inserted" not in report.results[0].reason       # the planet, and any rows under it
+    assert " inserted" in report.results[0].reason and not re.search(r"\b0 inserted", report.results[0].reason)       # the planet, and any rows under it (a count of 90 is not 0)
     assert conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["n"] == planets
     assert sc.check_sector(conn, sector_id) == sc.OK
     # And the other way: a planet the sector never had.
