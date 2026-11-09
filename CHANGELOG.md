@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3774] - 2026-11-09
+
+**Headline:** Any body of a system can now be asked how much of a star's light it covers, orbit-averaged: sibling planets, moons and the two stars of a close pair, with textbook checks and a census of how large each is.
+
+### Added
+- **Eclipses of a star by a body of the system (GEN.1462).** `physics/eclipses.py` gives the mean share of a star's light a blocker covers and the share of the time it touches the star's disk, for a sibling planet inside the observer's orbit, a moon of the observer and the two stars of a close pair seen from a circumbinary planet. Nothing is stored and no result changes. The Moon and the Sun (1.5e-4 of the time touched), the transits of Venus (2.4e-5) and the overlap of two disks are tested. A census of 120 systems finds sibling planets and moons cover under 1e-4 of the light for 93 percent of planets, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (registry rows EC1 to EC4, section 6.249).
+
+generation-affects: none
+
 ## [8.0.3773] - 2026-11-09
 
 **Headline:** A planet or moon with more than one bright sun in its sky has a longer day: the share of the time some sun is up is the union of the arcs each one lights.
