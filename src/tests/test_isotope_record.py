@@ -323,3 +323,18 @@ def test_a_member_with_its_own_fractions_and_an_interstellar_body_with_no_star_g
 def test_a_body_with_no_ice_shows_no_ice_lines():
     assert not [key for key in _ratios("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") if key != "isotope_count"]
     assert not [key for key in _ratios("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") if key != "isotope_count"]
+
+
+def test_a_star_surface_has_the_natural_mix_with_its_birth_gas_ratios_and_a_burned_deuterium():
+    surface = {"H": 0.7, "He": 0.28, "C": 0.003, "N": 0.001, "O": 0.01, "Fe": 0.002, "other metals": 0.004}
+    ratios = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 4.5))}
+    assert ratios["isotope_D/H"] == pytest.approx(ir.SURFACE_D_H, rel=1e-6)
+    assert 0.5 * ir.COMET_D_H > ratios["isotope_D/H"]                                        # far below any ice or gas value
+    protostar = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 0.01, deuterium_burned=False))}
+    assert protostar["isotope_D/H"] > 1.0e-5                                                 # a protostar keeps the birth gas's
+    giant = {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.star_surface_record(surface, 0.0, 4.5, dredged_up=True))}
+    assert 1.0 / giant["isotope_13C/12C"] == pytest.approx(ir.DREDGED_C12_OVER_C13) and giant["isotope_13C/12C"] > ratios["isotope_13C/12C"]
+    assert ratios["isotope_15N/14N"] == pytest.approx(ir.gas_n15_over_n14(type("S", (), {"metallicity_fe_h": 0.0, "age": 4.5})()))
+    elements_held = {row["element"] for row in ir.star_surface_record(surface, 0.0, 4.5)}
+    assert elements_held == {"H", "He", "C", "N", "O", "Fe"}                                 # "other metals" is not an element
+    assert ir.star_surface_record({}, 0.0, 4.5) is None
