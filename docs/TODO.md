@@ -13471,6 +13471,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 12 (storage), after GEN.1476. Prerequisites: GEN.1476. Related: GEN.1476.
   Filed by the TODO thread.
 
+- [ ] **PERF.258 check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output**
+  Generation rescan audit (Boss, 8:49 PM EST on 2026-11-08: build the whole chain), Lane 14's second read for GEN.1482 (reports/gen1482-checks-and-web-reads-2026-11-09.md, 2026-11-09): of the 11 check-* commands 5 take a scope by shell and sector address, and check-values scans each big table many times (34 COUNT scans over planets, moons and stars). Do: one scan per table computing every count at once (34 scans to 5), identical output (the report text compared byte for byte before and after); no epoch. Also for the other whole-table checks: where a check can take the sector scope, give it one, but check-storage stays unscoped (its job is to catch damage in unchanged sectors; a rotating share is the right form, not a change scope). Reuse the check framework and its scope arguments; add no second one.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free, small. Prerequisites: none. Related: GEN.1482, GEN.1479.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
