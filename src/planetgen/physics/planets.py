@@ -918,6 +918,13 @@ def finish_orbit_oddities(planet):
     apply_orbit_oddities(planet)
     if abs(planet.eccentricity - before) <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
+    remake_after_orbit_change(planet)
+    return True
+
+
+def remake_after_orbit_change(planet):
+    """What follows a planet's eccentricity having moved once the orbit is final: its moons' host eccentricity, its place on the new ellipse, the exposure at the new mean light and, for a
+    rocky planet, its air, class and spin (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities` and `secular_exchange`."""
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = planet.eccentricity
     update_orbital_position(planet)
@@ -927,7 +934,81 @@ def finish_orbit_oddities(planet):
             magnetism.update_exposure(body, light_au)
     if planet.body_type == "t":
         remake_end_stages(planet, planet)
-    return True
+
+
+SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
+"""tuple: What `secular_exchange` reports for a star's planets: the orbits took the exchange; some eccentricity was held short of what the exchange gave because the spacing would not hold;
+nothing moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`; or the planets or the result were beyond the first-order theory's limits."""
+SECULAR_BISECTION_STEPS = 12
+"""int: The steps of the bisection for the largest eccentricity the spacing allows a planet (the interval narrows to 2.4e-4 of the rise)."""
+
+
+def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
+    """
+    GEN.1450: gives the planets of one star the orbits the Laplace-Lagrange secular exchange (`secular_chain`) leaves them at the star's age, from the eccentricities and inclinations the
+    generator made them with (after `generate_orbit_shape`, the spacing pass and the moons; the exchange comes before the tide wears an eccentricity down again, so `settle_orbit` takes the
+    lower of the tide's and the exchange's). Semi-major axes stay; the eccentricity, the longitude of periapsis, the inclination and the node move. Draws nothing.
+
+    The spacing the generator keeps between neighbours (mutual Hill radii between the inner one's apoapsis and the outer one's periapsis) is its screen for a chain that stays stable, and it
+    is not broken: the eccentricities the exchange lowers are lowered, then those it raises are raised planet by planet, each to what the exchange gave or, if the spacing will not hold,
+    to the most it will (a bisection). A chain packed to the screen's limit therefore keeps its eccentricities and takes the rest of the exchange (the inclinations, the periapses, the nodes).
+
+    Args:
+        planets (list): One star's planets and belts in orbital order (belts and moons do not take part).
+        host_mass_kg (float): The star's mass.
+        age_yr (float): The star's age, years.
+        keeps_spacing (callable): Given `planets`, whether their spacing and the moons' stable ranges hold (no problem beyond those the system already had), asked with the new
+            eccentricities set.
+
+    Returns:
+        str: One of `SECULAR_OUTCOMES`.
+    """
+    from planetgen.physics import secular_chain
+
+    bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
+    if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
+        return "unchanged"
+    start = []
+    for body in bodies:
+        orbit = body.orbit_from_vector()
+        start.append((orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
+    result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr)
+    if not result.linear:
+        return "outside the theory"
+    old = [body.eccentricity for body in bodies]
+    ceilings = [orbit_elements.max_planet_eccentricity(body.distance, body.star, body) for body in bodies]
+    targets = [min(e, ceiling) for e, ceiling in zip(result.eccentricity, ceilings)]
+    moved = [i for i, body in enumerate(bodies) if abs(targets[i] - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE
+             or abs(math.degrees(result.inclination[i]) - (body.orbital_inclination_deg or 0.0)) > 1e-3]
+    if not moved:
+        return "unchanged"
+    for i, body in enumerate(bodies):
+        if targets[i] < old[i]:
+            body.eccentricity = targets[i]
+    held = False
+    for i in sorted((i for i in range(len(bodies)) if targets[i] > old[i]), key=lambda i: old[i] - targets[i]):
+        body = bodies[i]
+        body.eccentricity = targets[i]
+        if keeps_spacing(planets):
+            continue
+        held = True
+        low, high = old[i], targets[i]
+        for _ in range(SECULAR_BISECTION_STEPS):
+            body.eccentricity = 0.5 * (low + high)
+            low, high = (body.eccentricity, high) if keeps_spacing(planets) else (low, body.eccentricity)
+        body.eccentricity = low
+    for i in moved:
+        body = bodies[i]
+        phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+        body.orbital_inclination_deg = math.degrees(result.inclination[i])
+        body.orbital_ascending_node_deg = math.degrees(result.node_longitude[i])
+        update_orbital_position(body, phase, math.degrees((result.periapsis_longitude[i] - result.node_longitude[i]) % (2.0 * math.pi)))
+        for moon in getattr(body, "moons", ()):
+            moon.host_eccentricity = body.eccentricity
+        if abs(body.eccentricity - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE:
+            remake_after_orbit_change(body)
+    return "held by the spacing" if held else "exchanged"
 
 
 def draw_birth_spin(planet):

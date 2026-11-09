@@ -2151,6 +2151,36 @@ class StarSystem:
         Blue or Green (GEN.1250, GEN.1275, GEN.1387: a rating from the conditions, never a list of class letters; life on a world a human cannot live on is not barred)."""
         return habitable_request.meets(body) or habitability.is_habitable(getattr(body, "phi4", None))
 
+    def _secular_exchange(self):
+        """
+        GEN.1450: every star's planets take the orbits the Laplace-Lagrange exchange (`physics.secular_chain`) leaves them at the star's final age (`planets.secular_exchange`). It is
+        kept only where the spacing and the moons' stable range still hold with the new eccentricities, judged against the problems the system already had; `self.secular_outcomes`
+        counts what became of each star's planets (a record for the census, not stored).
+        """
+        self.secular_outcomes = {}
+        for star, planets in validation.star_lists(self):
+            bodies = [p for p in planets if p.body_type != 'a']
+            baseline = {tuple(problem) for problem in self._planet_problems(planets)}
+
+            def keeps(group, baseline=baseline):
+                return all(tuple(problem) in baseline for problem in self._planet_problems(group))
+
+            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
+            self.secular_outcomes[star.name] = outcome
+            if outcome != "unchanged":
+                log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
+
+    @staticmethod
+    def _planet_problems(planets):
+        """The problems of one star's planets for the secular exchange to compare: their spacing and each planet with its moons."""
+        problems = list(validation.check_orbit_spacing(planets))
+        problems.extend(validation.Problem("belt", f"the belt at {belt.distance:.6g} AU would be pushed outward") for last, belt in zip(planets, planets[1:])
+                        if belt.body_type == 'a' and validation.belt_needs_pushing(belt, last))
+        for planet in planets:
+            if planet.body_type != 'a':
+                problems.extend(validation.check_lunar_system(planet))
+        return problems
+
     def _settle_to_final_age(self):
         """
         Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
@@ -2162,6 +2192,7 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":

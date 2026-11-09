@@ -250,3 +250,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | sulfuric_vapor.json | GEN.1425 | read by `physics/sulfuric_vapor.py` only |
 | module | planetgen.physics.sulfur_cloud_set | GEN.1425 | the sulfur-cloud chemistry set and its six gates (part A of GEN.1425); the cloud step (the acid cloud base and strength from the window of `sulfuric_vapor`, the colour band V10 of `absorber_depth`) is part B and reads `chemistry` |
 | data | sulfur_cloud_set.json | GEN.1425 | read by `physics/sulfur_cloud_set.py` only |
+| function | planetgen.physics.secular_chain.precession_rates | GEN.1447 | each planet's own apsidal and nodal rates from its siblings and relativity; the Kozai screen of a planet with a distant companion (Lane 23) compares its cycle time against the apsidal rate, and the spin-orbit drift of GEN.1454 against the nodal one |

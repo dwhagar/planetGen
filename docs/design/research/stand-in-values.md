@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1433 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1438 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1407 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1412 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 175 | 20 | 11 | 1 | 0 | 207 |
 | T2 | 137 | 59 | 1 | 1 | 0 | 198 |
 | T3 | 102 | 47 | 9 | 10 | 0 | 168 |
-| T4 | 72 | 11 | 3 | 21 | 10 | 117 |
-| T5 | 64 | 23 | 6 | 1 | 0 | 94 |
-| T6 | 159 | 102 | 27 | 75 | 0 | 363 |
+| T4 | 74 | 11 | 3 | 21 | 10 | 119 |
+| T5 | 65 | 23 | 6 | 1 | 0 | 95 |
+| T6 | 161 | 102 | 27 | 75 | 0 | 365 |
 | T7 | 37 | 17 | 9 | 31 | 0 | 94 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 787 | 295 | 71 | 235 | 45 | 1433 |
+| All | 792 | 295 | 71 | 235 | 45 | 1438 |
 
 ## How the labels were given
 
@@ -493,7 +493,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BO1 | P | T2 | L3 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | RECALLED ([R1859], about 1e13 mol C a year) | predicted only | - | no data |
 | BO2 | P | T3 | L3 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | RECALLED ([R1980] few 1e12) | predicted only | - | no data |
-| BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | no data |
+| BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | - |
 | BO4 | P | T6 | L3 | biogenic_oxygen.LIGHT_EXPONENT 0.5 and LIGHT_RANGE (0, 2): production goes as the active light to this power | 0.3 to 1.0 | worlds with a sunlit sea | test_biogenic_oxygen.test_the_sea_makes_nothing_outside_its_liquid_range_and_most_near_the_reference | a measured productivity against light | design (production saturates) | predicted only | - | no data |
 | BO5 | T | T4 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | RECALLED (about half a heterotroph's) | predicted only | - | - |
 | BO6 | P | T6 | L3 | biogenic_oxygen.OCEAN_SPAN_K (258, 275, 315, 343): where the liquid range's factor rises to 1 and falls to 0 | a few K each | worlds with a sunlit sea | the same | a measured temperature range of marine production | design | predicted only | - | no data |
@@ -2521,3 +2521,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | UC16 | T | T6 | L0 | a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number | none | neutron-star cores | a measured mass and radius that exclude it | none | EXISTENCE 35 percent for any exotic core, 5 percent for a pure strange-quark star, PROPERTIES 15 percent (the report's judgment). Changes no number now: at most one text line on the kind of core; there is no equation of state on offer. Recalled, not opened | predicted only | - | - |
 | UC17 | T | T4 | L0 | azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number | none | Titan's liquid methane | a measurement that the vesicles cannot form there | none | EXISTENCE 5 percent, PROPERTIES 5 percent (the report's judgment). Changes no number now: PlanetGen has no use for it; later energetics work cast doubt on it. Recalled, not opened | predicted only | - | - |
 | UC18 | T | T4 | L0 | superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number | none | r-process ejecta and cosmic rays | a measured superheavy nuclide in nature | none | EXISTENCE 3 percent, PROPERTIES 20 percent (the report's judgment). Changes no number now: PlanetGen has no use for it. Recalled, not opened | predicted only | - | - |
+
+## 6.244 Stand-ins of the secular exchange of a star's planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SC1 | P | T6 | L0 | secular_chain.LINEAR_ECCENTRICITY_LIMIT 0.3 and LINEAR_INCLINATION_LIMIT_RAD 30 degrees: a planet beyond them is held where it is and pushes on the others as it is | 0.2 to 0.4, 20 to 40 degrees | planets of eccentricity under 0.3 and inclination under 30 degrees | an N-body run of a held giant with a rocky planet inside it whose eccentricity disagrees with the fixed point by more than a factor of two | the second-order secular theory (Brouwer and van Woerkom 1950 reach beyond the first order) | the expansion of the disturbing function in eccentricity converges to the Laplace limit 0.6627; first-order terms are good to a few percent well short of it (recalled, not opened) | predicted only | - | - |
+| SC2 | P | T6 | L0 | secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star | the set of bodies in the matrices | planets in a plane within a few degrees; a companion beyond about 50 AU | a census in which a belt of a tenth of an Earth mass changes a planet's eccentricity by more than a tenth | belts as real masses (GEN.1462); the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads `precession_rates` | the companion at an isotropic mutual inclination is outside the small-angle expansion; the belts' masses are far below a planet's | predicted only | - | - |
+| SC3 | P | T4 | L0 | planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (`settle_orbit` keeps the lower of the tide's and the exchange's) | none (it is the order of the steps) | systems whose secular times are short against their age | a census in which running the tide before the exchange moves the eccentricity of a tide-circularised planet by more than a tenth | the tide and the exchange integrated together (the tidal damping added to the diagonal of the matrix), which needs a Q per planet at every step | the draws (`orbit_elements`) were made for the observed present-day orbits; taking them as the starting state is the reading that keeps the ensemble's total angular momentum deficit and lets the exchange share it out | predicted only | - | - |
+| SC4 | P | T4 | L0 | planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, `SECULAR_BISECTION_STEPS` 12); one it lowers is lowered | the screen is `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii between the inner apoapsis and the outer periapsis | chains packed to the screen | a census in which respacing the chain after the exchange (instead of holding the eccentricity) moves more than a tenth of the planets by a tenth of their distance | respacing after the exchange, which changes the semi-major axes the theory was run with | holding the spacing rule keeps the generator's invariant (`validation.check_star_system` is empty); the angular momentum deficit that cannot be raised is dropped, so the exchange cools a packed chain (the report counts the planets) | predicted only | - | - |
+| SC5 | P | T5 | L0 | secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets | none | held planets whose own secular time is longer than the others' | an N-body run in which the held giant's eccentricity changes by more than a tenth over the age | the full matrix with the giant's own motion, once the theory covers it | the held planet's AMD is far larger than the rocky planets', so its own change is small | predicted only | - | - |

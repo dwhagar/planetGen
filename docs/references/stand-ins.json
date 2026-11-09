@@ -56071,6 +56071,204 @@
       ],
       "slug": "6-238-known-gaps-kept-as-watch-lines",
       "title": "Known gaps kept as watch lines"
+    },
+    {
+      "key": "6.244",
+      "number": "6.244",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain.LINEAR_ECCENTRICITY_LIMIT 0.3 and LINEAR_INCLINATION_LIMIT_RAD 30 degrees: a planet beyond them is held where it is and pushes on the others as it is"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.4, 20 to 40 degrees"
+            ],
+            [
+              "Where it holds",
+              "planets of eccentricity under 0.3 and inclination under 30 degrees"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a held giant with a rocky planet inside it whose eccentricity disagrees with the fixed point by more than a factor of two"
+            ],
+            [
+              "What replaces it",
+              "the second-order secular theory (Brouwer and van Woerkom 1950 reach beyond the first order)"
+            ],
+            [
+              "Evidence",
+              "the expansion of the disturbing function in eccentricity converges to the Laplace limit 0.6627; first-order terms are good to a few percent well short of it (recalled, not opened)"
+            ]
+          ],
+          "id": "SC1",
+          "key": "6.244:SC1",
+          "kind": "P",
+          "slug": "6-244-sc1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "secular_chain.LINEAR_ECCENTRICITY_LIMIT 0.3 and LINEAR_INCLINATION_LIMIT_RAD 30 degrees: a planet beyond them is held where it is and pushes on the others as it is"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
+            ],
+            [
+              "The range it moves in",
+              "the set of bodies in the matrices"
+            ],
+            [
+              "Where it holds",
+              "planets in a plane within a few degrees; a companion beyond about 50 AU"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which a belt of a tenth of an Earth mass changes a planet's eccentricity by more than a tenth"
+            ],
+            [
+              "What replaces it",
+              "belts as real masses (GEN.1462); the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads precession_rates"
+            ],
+            [
+              "Evidence",
+              "the companion at an isotropic mutual inclination is outside the small-angle expansion; the belts' masses are far below a planet's"
+            ]
+          ],
+          "id": "SC2",
+          "key": "6.244:SC2",
+          "kind": "P",
+          "slug": "6-244-sc2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (settle_orbit keeps the lower of the tide's and the exchange's)"
+            ],
+            [
+              "The range it moves in",
+              "none (it is the order of the steps)"
+            ],
+            [
+              "Where it holds",
+              "systems whose secular times are short against their age"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which running the tide before the exchange moves the eccentricity of a tide-circularised planet by more than a tenth"
+            ],
+            [
+              "What replaces it",
+              "the tide and the exchange integrated together (the tidal damping added to the diagonal of the matrix), which needs a Q per planet at every step"
+            ],
+            [
+              "Evidence",
+              "the draws (orbit_elements) were made for the observed present-day orbits; taking them as the starting state is the reading that keeps the ensemble's total angular momentum deficit and lets the exchange share it out"
+            ]
+          ],
+          "id": "SC3",
+          "key": "6.244:SC3",
+          "kind": "P",
+          "slug": "6-244-sc3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (settle_orbit keeps the lower of the tide's and the exchange's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, SECULAR_BISECTION_STEPS 12); one it lowers is lowered"
+            ],
+            [
+              "The range it moves in",
+              "the screen is MUTUAL_HILL_RADII_SEPARATION mutual Hill radii between the inner apoapsis and the outer periapsis"
+            ],
+            [
+              "Where it holds",
+              "chains packed to the screen"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which respacing the chain after the exchange (instead of holding the eccentricity) moves more than a tenth of the planets by a tenth of their distance"
+            ],
+            [
+              "What replaces it",
+              "respacing after the exchange, which changes the semi-major axes the theory was run with"
+            ],
+            [
+              "Evidence",
+              "holding the spacing rule keeps the generator's invariant (validation.check_star_system is empty); the angular momentum deficit that cannot be raised is dropped, so the exchange cools a packed chain (the report counts the planets)"
+            ]
+          ],
+          "id": "SC4",
+          "key": "6.244:SC4",
+          "kind": "P",
+          "slug": "6-244-sc4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, SECULAR_BISECTION_STEPS 12); one it lowers is lowered"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "held planets whose own secular time is longer than the others'"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run in which the held giant's eccentricity changes by more than a tenth over the age"
+            ],
+            [
+              "What replaces it",
+              "the full matrix with the giant's own motion, once the theory covers it"
+            ],
+            [
+              "Evidence",
+              "the held planet's AMD is far larger than the rocky planets', so its own change is small"
+            ]
+          ],
+          "id": "SC5",
+          "key": "6.244:SC5",
+          "kind": "P",
+          "slug": "6-244-sc5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "secular_chain._drive: a held planet is a fixed perturber, the others go round the fixed point it sets"
+        }
+      ],
+      "slug": "6-244-stand-ins-of-the-secular-exchange-of-a-star-s-planets",
+      "title": "Stand-ins of the secular exchange of a star's planets"
     }
   ]
 }
