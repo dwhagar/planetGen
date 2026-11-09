@@ -6,7 +6,7 @@ Pebble drift and evaporation at the ice lines of a protoplanetary disk (GEN.1473
 
 `disk_condensation` holds a disk that stays as it was born: the gas at a place has the composition the temperature there gives. Pebbles do not stay: they grow, drift inward
 faster than the gas, and evaporate where they cross each ice line, so the gas inside a line gets that line's ice at a rate set by the pebble flux over the gas flux
-([R5208], [R5209], [R5210]). One number does the work, the **enrichment ratio** `E` of a species: the flux of its ice that pebbles carry in, over the flux the static budget
+[R5208, R5209, R5210]. One number does the work, the **enrichment ratio** `E` of a species: the flux of its ice that pebbles carry in, over the flux the static budget
 would carry with the gas. `E = 1` is the static budget (`disk_condensation`, GEN.1363) exactly; `E > 1` while the pebbles last; `E = 0` before the pebble front reaches the
 line and after the pebbles are gone.
 
