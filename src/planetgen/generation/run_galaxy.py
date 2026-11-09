@@ -599,7 +599,7 @@ def _sky_units(params, centers):
         cells[cell] = center
     units = []
     for cell in sorted(cells):
-        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
         owed = [tier for tier in (*tiers.luminosity, *tiers.rings)
                 if not ledger.drawn(tier.ledger, float(tier.low), tier.high, center, sky_charting.padded_radius(tier))]
         if owed:

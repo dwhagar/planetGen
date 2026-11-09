@@ -77,10 +77,49 @@ def observer_cell(observer_pc):
     return cell, sky_band.cell_center(cell)
 
 
-def plan(observer_pc, limit_mag, edge_pc, *, limits=None, **options):
+RING_COST_ROWS = 2000
+"""int: About how many rows of a ring's sphere are looked at to cost it (`cost_rings`); the sphere of a ring holds some hundred thousand rows at a 7.5 sky."""
+
+
+def walk_edges_and_ceiling(limits):
+    """
+    What a ring's walk is made of, from the galaxy's `ScatterLimits`: the mass edges of the sector backfill (1, 2, 5, 8 and the galaxy's mass limits) with the sky's near rings under
+    them, and the luminosity ceiling a ring leaves to the bright-star scatter (`_Context` draws with both; `cost_rings` costs with both).
+    """
+    found = list(limits.tiers or ())
+    edges = bright_stars.mass_band_edges([tier.mass_limit_sol for tier in found],
+                                         sorted({*sky_tiers.NEAR_RING_MASSES_SOL, *tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL}))
+    return edges, max([tier.min_luminosity_sol for tier in found] or [0.0])
+
+
+def cost_rings(center, tiers, skeleton, limits, rows=RING_COST_ROWS):
+    """
+    `tiers` with each mass ring costed by what its walk does (GEN.1485): `Tier.visits` of a ring is the visits `bright_stars.mass_sphere_walk_visits` counts over its drawn sphere (a
+    visit to every block of a row whose bands are on the candidate path, to every cell of a row with a band on the cell path), looked at on about `rows` rows of the sphere. Before, every
+    ring was costed one visit to each cell of its sphere (`sky_tiers.build` still does, with no galaxy to ask), which overstates a sparse ring by the cells a block holds.
+
+    Args:
+        skeleton (GalaxyShape): The stored galaxy.
+        limits (ScatterLimits): The galaxy's limits, which say the ring's edges and ceiling (`walk_edges_and_ceiling`).
+    """
+    if not tiers.rings:
+        return tiers
+    edges, ceiling = walk_edges_and_ceiling(limits)
+    costed = []
+    for ring in tiers.rings:
+        radius = padded_radius(ring)
+        stride = max(1, int(math.ceil(math.pi * (radius / tiers.edge_pc) ** 2 / rows)))
+        visits = bright_stars.mass_sphere_walk_visits(skeleton.shape, center, radius, tiers.edge_pc, skeleton.expected_system_count_at_density_1,
+                                                      float(ring.low), float(ring.high), ceiling, edges, stride)
+        costed.append(ring._replace(visits=visits))
+    return tiers._replace(rings=tuple(costed))
+
+
+def plan(observer_pc, limit_mag, edge_pc, *, limits=None, skeleton=None, **options):
     """
     The tier table for the cell of `observer_pc` (`sky_tiers.build` at the cell's center) and that center. With `limits` (the galaxy's `ScatterLimits`) the top ring ends at the
-    galaxy's own mass limit instead of the default one, so no mass between the ring and the scatter is left out.
+    galaxy's own mass limit instead of the default one, so no mass between the ring and the scatter is left out. With `skeleton` as well, each ring is costed by what its walk does
+    (`cost_rings`) and not by the cells of its sphere.
 
     Returns:
         tuple: `(center, SkyTiers)`; the radii are not padded (see `padded_radius`).
@@ -93,6 +132,8 @@ def plan(observer_pc, limit_mag, edge_pc, *, limits=None, **options):
             rings = list(tiers.rings)
             rings[-1] = rings[-1]._replace(high=float(max(top)))
             tiers = tiers._replace(rings=tuple(rings))
+    if skeleton is not None and limits is not None:
+        tiers = cost_rings(center, tiers, skeleton, limits)
     return center, tiers
 
 
@@ -116,11 +157,9 @@ class _Context:
         tiers = list(self.limits.tiers or ())
         caps = [found.mass_limit_sol for found in tiers]
         self.walk_mass_range = None if (not caps or any(cap is None for cap in caps)) else (None, float(max(caps)))
-        self.walk_ceiling = max([found.min_luminosity_sol for found in tiers] or [0.0])
         # The edges of the sector backfill (1, 2, 5, 8 and the galaxy's mass limits) and the sky's near rings under them: the bands from 1 solar mass up are the same bands, so
         # a star is the same star whichever backfill draws it.
-        self.edges = bright_stars.mass_band_edges([found.mass_limit_sol for found in tiers],
-                                                  sorted({*sky_tiers.NEAR_RING_MASSES_SOL, *tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL}))
+        self.edges, self.walk_ceiling = walk_edges_and_ceiling(self.limits)
         self.blocks = {}
 
     def own_level(self, address, locked):
