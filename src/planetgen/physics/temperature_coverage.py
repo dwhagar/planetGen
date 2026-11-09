@@ -38,7 +38,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, daylight, habitability, latitude_bands, regional_temperature, ring_darkening, seasonal_swing, surface_cycle
+from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, daylight, habitability, latitude_bands, regional_temperature, ring_darkening, seasonal_swing, sky_suns, surface_cycle
 
 KELVIN = 273.15
 MOST_OF_THE_TIME = 0.5
@@ -379,7 +379,7 @@ def _inputs(values):
     solar_day, days = values.get("solar_day_hours"), values.get("days_per_year")
     year_h = solar_day * days if solar_day and days else period * _YEAR_H       # a moon is lit through its planet's year, not its own orbit of the planet
     return (rotation, year_h, values.get("axial_tilt_deg") or 0.0, mean, flux, albedo, values.get("atmospheric_pressure_pa") or 0.0,
-            (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY, values.get("ground_ocean_fraction") or 0.0, ring, water)
+            (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY, values.get("ground_ocean_fraction") or 0.0, ring, water, values.get("sky_suns") or None)
 
 
 _YEAR_H = 8766.0
@@ -388,14 +388,14 @@ _YEAR_H = 8766.0
 
 @functools.lru_cache(maxsize=64)
 def _series(key):
-    rotation, orbital, tilt, mean, flux, albedo, pressure, gravity, ocean, ring, water = key
+    rotation, orbital, tilt, mean, flux, albedo, pressure, gravity, ocean, ring, water, suns_text = key
     values = {"ring_inner_km": ring[0], "ring_outer_km": ring[1], "ring_optical_depth": ring[2], "radius_km": ring[3], "axial_tilt_deg": tilt,
               "water_mass_fraction": water[0], "mass_kg": water[1], "star_teff_k": water[2], "ground_ice_fraction": water[3]}
     law = ice_law_of(values, albedo)
     locked = regional_temperature.is_locked(rotation, orbital / _YEAR_H)
     return seasonal_swing.temperature_series(
         rotation, orbital, tilt, mean, flux, albedo, pressure, gravity, ocean, ice_fraction=water[3], ice_law=law,
-        transmission=None if locked else ring_transmission(values))
+        transmission=None if locked else ring_transmission(values), suns=sky_suns.decode(suns_text))        # GEN.1458: the other suns of the sky
 
 
 def series_of_values(values):

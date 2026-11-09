@@ -1548,6 +1548,7 @@
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
+-- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2542,6 +2543,7 @@ CREATE TABLE IF NOT EXISTS planets (
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3074,6 +3076,7 @@ CREATE TABLE IF NOT EXISTS moons (
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4556,6 +4559,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     runner_up_class               CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)

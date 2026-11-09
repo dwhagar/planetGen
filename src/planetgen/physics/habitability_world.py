@@ -183,6 +183,7 @@ def values_from_body(body):
         "solar_day_hours": getattr(body, "solar_day_hours", None),
         "days_per_year": getattr(body, "days_per_year", None),                  # GEN.1265: with the solar day they give the year of the star a moon is lit through
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
+        "sky_suns": getattr(body, "sky_suns", None),                              # GEN.1458: the other suns of the sky; the temperature of every place and the bands read them
         "period_years": getattr(body, "period", None),
         "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
         "ring_outer_km": getattr(body, "ring_outer_km", None),
