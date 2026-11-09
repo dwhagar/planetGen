@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store
+from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import insolation, unit_registry as units
 
@@ -206,6 +206,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
+    system_summary.refresh(conn, [system_id])    # GEN.1478: the masses, luminosities and counts the edit changed
     store.refresh_system_dose(conn, system_id)   # ADM.132: also works every scored body's habitability, Suitability and life scores out again from the rows just written
     store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)

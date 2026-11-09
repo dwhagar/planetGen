@@ -70,7 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum, system_summary
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
@@ -4999,6 +4999,7 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     for comet in star_system.secondary_comets:
         insert_comet(conn, comet, star_system_id, star_id=secondary_star_id)
 
+    system_summary.refresh(conn, [star_system_id])  # GEN.1478: what the rows just written add up to
     stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
     return star_system_id
 
