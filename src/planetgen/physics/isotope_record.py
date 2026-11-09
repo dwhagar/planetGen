@@ -42,7 +42,7 @@ over the pool the isotope mixes into (the air, and the surface ocean for hydroge
 A body with no air has none.
 
 Left out, and where it goes: 10Be and 26Al made in the air (no source in hand for a global rate; the pool for beryllium is the crust's); cosmic-ray production in an airless surface and an ocean-covered one; the xenon excess
-from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the natural mix); the isotope split of a body's reservoirs (a mantle against an ocean); belts, comets and stars.
+from I-129 and Pu-244 and the mass-independent oxygen anomalies (O stays at the natural mix); the isotope split of a body's reservoirs (a mantle against an ocean).
 """
 
 import math
@@ -603,6 +603,47 @@ def small_body_record(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distanc
     if kind not in SMALL_BODY_KINDS:
         raise ValueError(f"no small body of kind {kind!r}")
     return record_of(small_body_view(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distance_km, snow_line_au, seed, **fractions))
+
+
+SURFACE_D_H = 1.0e-10
+"""float: The deuterium over hydrogen left at the surface of a star that has passed its protostar stage, 1e-10: deuterium burns above about 1e6 K and a convective young star mixes its whole envelope through that, so the surface keeps almost none (the Sun's is below any measure). [Stand-in ISO21, tier T5, tweak L4.]"""
+
+DREDGED_C12_OVER_C13 = 20.0
+"""float: The 12C/13C at the surface of a red giant after the first dredge-up, 20: the CN cycle of the dredged layers turns the 12C there into 13C, and giants of 1 to 3 solar masses are seen at 15 to 30. [Stand-in ISO22, tier T3, tweak L1.]"""
+
+SURFACE_NATURAL_ONLY = ("other metals",)
+"""tuple: The entries of a star's element mass fractions that are not one element and so have no isotopes."""
+
+
+def star_surface_record(surface_elements, metallicity_fe_h, age_gy, deuterium_burned=True, dredged_up=False):
+    """
+    The isotope record of a star's surface (GEN.1488; `ROW_FIELDS` dicts, by atomic number then mass number), worked out from the element mass fractions of its surface (`stellar_abundances.StellarComposition.elements`, from
+    `stellar_composition.star_makeup(...).surface`) and the star's [Fe/H] and age. Every element with a share above zero gets the natural mix, with the laws of the planet record where the star changes it: carbon and
+    nitrogen take the ratios of the star's birth gas (`gas_c13_over_c12`, `gas_n15_over_n14`), a red giant's carbon the 12C/13C of the first dredge-up (`DREDGED_C12_OVER_C13`), and the hydrogen of a star past its
+    protostar stage the deuterium it has left (`SURFACE_D_H`; a protostar keeps the birth gas's `gas_d_h`). The short-lived isotopes and the cosmogenic ones belong to bodies, not a star's surface. `None` for a star with no composition.
+    """
+    star = SimpleNamespace(metallicity_fe_h=float(metallicity_fe_h), age=None if age_gy is None else float(age_gy))
+    rows = []
+    for symbol, share in surface_elements.items():
+        if symbol in SURFACE_NATURAL_ONLY or not share or share <= 0.0:
+            continue
+        mix = _natural(symbol)
+        if not mix:
+            continue
+        origin = NATURAL
+        if symbol == "H" and "H-2" in mix:
+            ratio = SURFACE_D_H if deuterium_burned else gas_d_h(star)
+            origin, mix = PHYSICAL, _two("H", "H-1", "H-2", ratio / (1.0 + ratio))
+        elif symbol == "C":
+            ratio = 1.0 / DREDGED_C12_OVER_C13 if dredged_up else gas_c13_over_c12(star)
+            origin, mix = PHYSICAL, _two("C", "C-12", "C-13", ratio / (1.0 + ratio))
+        elif symbol == "N":
+            ratio = gas_n15_over_n14(star)
+            origin, mix = PHYSICAL, _two("N", "N-14", "N-15", ratio / (1.0 + ratio))
+        for name in sorted(mix, key=lambda isotope_name: elements.isotope(isotope_name).a):
+            rows.append({"element": symbol, "isotope": name, "fraction": mix[name], "initial_ratio": None, "origin": origin})
+    rows.sort(key=lambda row: (elements.isotope(row["isotope"]).z, elements.isotope(row["isotope"]).a))
+    return rows or None
 
 
 def record_of(body):
