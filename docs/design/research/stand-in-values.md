@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1467 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1471 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1441 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1445 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 178 | 20 | 11 | 1 | 0 | 210 |
+| T1 | 181 | 20 | 11 | 1 | 0 | 213 |
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
-| T4 | 72 | 11 | 3 | 21 | 10 | 117 |
+| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
 | T6 | 173 | 104 | 27 | 76 | 0 | 380 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 817 | 298 | 71 | 236 | 45 | 1467 |
+| All | 821 | 298 | 71 | 236 | 45 | 1471 |
 
 ## How the labels were given
 
@@ -2575,3 +2575,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE8 | D | T5 | L0 | planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
 | DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
+
+## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SE1 | T | T1 | L0 | MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step | the pressure: 0.75 TPa; Clapeyron slope -10 MPa/K at 5,000 K; the sequence holds to 10,000 K, while another study predicts a different sequence above about 6,000 K | mantles of rocky planets with a central pressure over 0.75 TPa (about 5 Earth masses and more) | a measurement or a second calculation that puts the first dissociation outside 0.6 to 0.9 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1, Section 5] | predicted only | - | - |
+| SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |
