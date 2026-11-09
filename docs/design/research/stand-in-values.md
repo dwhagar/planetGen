@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1445 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1449 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1419 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1423 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 103 | 47 | 9 | 10 | 0 | 169 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 64 | 23 | 6 | 1 | 0 | 94 |
-| T6 | 163 | 102 | 27 | 75 | 0 | 367 |
-| T7 | 43 | 18 | 9 | 31 | 0 | 101 |
+| T6 | 164 | 102 | 27 | 75 | 0 | 368 |
+| T7 | 46 | 18 | 9 | 31 | 0 | 104 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 798 | 296 | 71 | 235 | 45 | 1445 |
+| All | 802 | 296 | 71 | 235 | 45 | 1449 |
 
 ## How the labels were given
 
@@ -2548,3 +2548,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DS2 | P | T7 | L0 | the polar circle, the solar day and the day count stay the host's: a second sun's own circle is a few degrees from the host's and a day that two suns share has no single length | none | a companion that stands near the host in the sky or is faint | a body whose second sun sets while the host stays up for weeks | a polar circle per sun and a day that follows the brightest | design: the circle depends on the tilt only; the union changes the share of the day, not its period | predicted only | - | - |
 | DS3 | P | T7 | L0 | each counted sun stands where the planet's place against it puts it, the planet taken on its circle of mean flux at the year's longitude and the companion fixed at its offset from the host at the orbit nodes' epoch | none | a companion whose period is longer than the planet's year | a companion whose orbit moves it by tens of degrees in the planet's year | the companion at its own place for each step of the year | derived: the planet-to-companion direction is the offset plus the planet's displacement from the host, which this keeps; the companion's period is at least `(R / d)^1.5` of the planet's | predicted only | - | - |
 | DS4 | P | T7 | L0 | a moon reads its planet's suns and the parent's shadow as before (the share of the moon's day the planet takes is multiplied on the union), its own spin axis against the planet's orbit decides the arcs | none | a moon that stands in no sibling's shadow | a moon whose sibling blocks one of two suns (GEN.1462) | the eclipse calendar of GEN.1462 | design: the shadow share is the parent's disk against the star in the union's mean | predicted only | - | - |
+
+## 6.244 Stand-ins of the eclipses of a star by a body of the system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EC1 | P | T7 | L0 | circular orbits, the observer a point, the blocker and the star as flat disks, one crossing per synodic period (two per period for the stars of a close pair) | none | blockers whose orbit is much smaller than the observer's distance from the star, or a pair seen from well outside it | a blocker so close that the observer is inside its penumbra, or an eccentric orbit whose crossing speed differs by tens of percent | the crossing speed from the orbits' true anomalies | derived: the Moon touches the Sun for 1.5e-4 of the time and covers 3.6e-5 of its light; Venus crosses the Sun for Earth 2.4e-5 of the time (eight transits of about six hours in 243 years) | predicted only | - | - |
+| EC2 | P | T7 | L0 | the height of a crossing above the line to the star is `beta_max sin(u)` with `u` uniform: a node phase that is uniform in time, `beta_max` the mutual inclination's reach at the blocker's distance | none | orbits whose nodes precess through many turns in the age of the system | a pair of orbits locked in nodal phase (resonant or tidally aligned) | the node phase from the stored ascending nodes | derived: a tilted circular orbit crosses the line to the star at a height that goes as the sine of the phase along it | predicted only | - | - |
+| EC3 | P | T7 | L0 | the two stars of a close pair are taken in the pair's own plane at the stored separation and period, each in front of the other half the time, and the light lost is the mean of the two covered shares weighted by the light of the star behind | none | detached pairs with circular orbits | a contact or semidetached pair whose stars are not spheres | the stars' shapes (GEN.597 Roche lobes) | derived from the geometry of two spheres seen from afar | predicted only | - | - |
+| EC4 | T | T6 | L0 | no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56) | 1e-4 | the planets and moons of the census | a planet whose sibling covers more than 1e-3 of its light | the shares applied to the light of a circumbinary planet and stored in the effect ledger (GEN.1465) | measured here: reports/gen1462-eclipse-census-2026-11-09.md | predicted only | - | - |
