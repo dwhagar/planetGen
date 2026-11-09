@@ -59735,8 +59735,8 @@
       "title": "Stand-ins of the effect ledger"
     },
     {
-      "key": "6.253",
-      "number": "6.253",
+      "key": "6.260",
+      "number": "6.260",
       "rows": [
         {
           "burn_down": null,
@@ -59767,9 +59767,9 @@
             ]
           ],
           "id": "TS1",
-          "key": "6.253:TS1",
+          "key": "6.260:TS1",
           "kind": "P",
-          "slug": "6-253-ts1",
+          "slug": "6-260-ts1",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59805,9 +59805,9 @@
             ]
           ],
           "id": "TS2",
-          "key": "6.253:TS2",
+          "key": "6.260:TS2",
           "kind": "P",
-          "slug": "6-253-ts2",
+          "slug": "6-260-ts2",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59843,9 +59843,9 @@
             ]
           ],
           "id": "TS3",
-          "key": "6.253:TS3",
+          "key": "6.260:TS3",
           "kind": "P",
-          "slug": "6-253-ts3",
+          "slug": "6-260-ts3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59881,9 +59881,9 @@
             ]
           ],
           "id": "TS4",
-          "key": "6.253:TS4",
+          "key": "6.260:TS4",
           "kind": "P",
-          "slug": "6-253-ts4",
+          "slug": "6-260-ts4",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -59919,9 +59919,9 @@
             ]
           ],
           "id": "TS5",
-          "key": "6.253:TS5",
+          "key": "6.260:TS5",
           "kind": "T",
-          "slug": "6-253-ts5",
+          "slug": "6-260-ts5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -59929,7 +59929,7 @@
           "what": "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
         }
       ],
-      "slug": "6-253-stand-ins-of-the-tide-raised-by-every-body-of-a-system",
+      "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",
       "title": "Stand-ins of the tide raised by every body of a system"
     }
   ]

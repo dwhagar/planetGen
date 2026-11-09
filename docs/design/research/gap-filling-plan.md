@@ -3836,7 +3836,7 @@ The effect ledger changes no result; the floor under which a source is summed an
 |---|---|---|---|---|---|---|---|---|---|
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value |
 
-### 6.253 Stand-ins of the tide raised by every body of a system (GEN.1446)
+### 6.260 Stand-ins of the tide raised by every body of a system (GEN.1446)
 
 Every star, planet and moon raises a tide on every other by its mean `1 / d^3` (`physics/tide_sources.py`); the ocean tide takes the raisers it did not have (`ocean_tides.compute(..., extra)`), and every pull is noted in the effect ledger as a tide-raising acceleration. The locking, spin-down and tidal heating of the same pulls are the next parts of the item.
 
