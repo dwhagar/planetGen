@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explosion islands: which massive stars leave a black hole (GEN.554, slice 2) - planetGen docs</title>
+<meta name="description" content="Status: built (GEN.554 slice 2).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/explosion-islands.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/explosion-islands.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="explosion-islands-which-massive-stars-leave-a-black-hole-gen554-slice-2">Explosion islands: which massive stars leave a black hole (GEN.554, slice 2)</h1><p class="meta">docs/design/systems/explosion-islands.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-changed">What changed</a></li><li style="margin-left:0px"><a href="#the-windows">The windows</a></li><li style="margin-left:0px"><a href="#which-share">Which share</a></li><li style="margin-left:0px"><a href="#stand-ins-and-open-items">Stand-ins and open items</a></li><li style="margin-left:0px"><a href="#tests">Tests</a></li></ul></details>
+<p>Status: built (GEN.554 slice 2). The kick step is the next slice. Code: <code>physics/remnant_progenitors.py</code>, <code>tuning.EXPLOSION_FAILURE_ISLANDS_SOL</code>, the progenitor draws of <code>generation/multistar.py</code> and <code>physics/remnant_progenitors.collapse_age_gy</code>, and the remnant moments of <code>generation/place_terms.py</code>.</p>
+<h2 id="what-changed">What changed</h2>
+<p>Before: a neutron star's progenitor was drawn over 8 to 30 solar masses and a black hole's over 20 to 100 (<code>NEUTRON_STAR_PROGENITOR_SOL</code>, <code>BLACK_HOLE_PROGENITOR_SOL</code>, &quot;a design default&quot;), the two ranges overlapped, and a black hole was a direct collapse when its progenitor was 40 solar masses or more. None of it knew the failed share of <code>black-hole-density.md</code>, so the neutron star and black hole counts and the progenitors behind them could disagree.</p>
+<p>After: the star's initial mass decides, in windows. A population that fails a share <code>F</code> of its 8 to 150 solar mass stars (<code>black_hole_formation.failed_share</code>) fails them in the initial masses of <code>failure_windows(F)</code>, and the neutron stars are the massive stars outside them. A progenitor is drawn from the IMF over its kind's windows (<code>sample_mass_sol</code>), and a black hole whose progenitor lies in a window failed outright, which is a direct collapse (<code>multistar.DIRECT_COLLAPSE_PROGENITOR_SOL</code> is gone). The windows hold exactly <code>F</code> of the massive stars (a test), so the counts of <code>neutron-star-density.md</code> and the progenitors agree by construction.</p>
+<h2 id="the-windows">The windows</h2>
+<p>Only two windows are sourced: [R3327] give, for the [R4765] progenitors at solar metallicity, black holes &quot;only in ~23-25 Msun and ~35-45 Msun&quot; (0 to 7% of the massive stars), the &quot;islands of 'explodability' in a sea of black hole formation&quot; of [R4251] (<code>black-hole-formation-sources.md</code>, sections 2.1 and 2.2). The generator's IMF puts 6.8% of the massive stars in those two windows, which is the top of O'Connor and Ott's solar band. How the windows grow with the share is not sourced and is a stand-in:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Share <code>F</code></th>
+<th>Windows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>none: every massive star leaves a neutron star</td>
+</tr>
+<tr>
+<td>up to 6.8%</td>
+<td>the two islands, shrunk about their centres in log mass until they hold <code>F</code></td>
+</tr>
+<tr>
+<td>above 6.8%</td>
+<td>the two islands and the top of the mass range down to the mass that makes up <code>F</code> (9%: 89.7 to 150; 20%: 28.5 to 150 with 23 to 25; 32%: 18.6 to 150)</td>
+</tr>
+<tr>
+<td>45% (the widest verified share)</td>
+<td>14.5 to 150, where [R1286]) put the lowest island at about 15</td>
+</tr>
+</tbody>
+</table></div>
+<p>The windows nest: a larger share fails every mass a smaller one does (a test).</p>
+<h2 id="which-share">Which share</h2>
+<p>A draw with a galaxy's structure around it could take that galaxy's share at its place, but the companion and age draws (<code>multistar._remnant</code>, <code>collapse_age_gy</code>) have no structure. They take the share of the middle draw at solar metallicity (<code>reference_failed_share</code>, 13.6%), the same for every galaxy; a caller that knows the place's share passes it (<code>failed_share</code>). The count of black holes and neutron stars at a place still follows the galaxy's own draws (slice 1).</p>
+<h2 id="stand-ins-and-open-items">Stand-ins and open items</h2>
+<ul>
+<li><strong>[stand-in]</strong> The nesting of the windows above the islands (the top of the range first) is not sourced; it only has to hold <code>F</code>, and it makes the heaviest stars fail first, as at low metallicity (O'Connor and Ott: black holes for &quot;MZAMS &gt;~ 30 Msun&quot;).</li>
+<li>The direct-collapse flag of a black hole with no progenitor (a scatter row) keeps the hole mass rule (<code>DIRECT_COLLAPSE_HOLE_SOL</code>, 20 solar masses, <strong>[stand-in]</strong>).</li>
+<li><strong>[stand-in]</strong> Remnant masses are unchanged: the black hole's mass is still uniform over 5 to 20 and the neutron star's over 1.1 to 2.2 solar masses. A mass that follows the progenitor (helium core 7.7 to 9.2, Sukhbold) is a later slice with the mass law (card 6 of <code>black-hole-density.md</code>).</li>
+<li>The magnetar rate keeps the tuning rate as a <strong>[stand-in]</strong> (GEN.554's later slice). The empirical placement of <code>remnant_distribution</code> is unchanged. Rotation, binaries and the metallicity shift of the windows ([R2845]'s carbon-oxygen core windows) are not modelled.</li>
+</ul>
+<h2 id="tests">Tests</h2>
+<p><code>tests/test_remnant_progenitors.py</code>: the windows hold the share across 0 to 100%, are ordered and inside 8 to 150, nest, equal the two islands at their own share and reach 14.5 solar masses at 45%; the two kinds share the range; progenitors lie in their windows and above the lowest mass asked, follow the IMF over the windows and repeat for a seed; a black hole of a failed progenitor is a direct collapse; the multi-star builder's remnants come from the windows.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

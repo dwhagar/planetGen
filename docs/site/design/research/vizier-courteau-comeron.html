@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VizieR search for [R0908] and Comerón thick-disc tables (GR5 and GR3 rank 2) - planetGen docs</title>
+<meta name="description" content="Status: research result.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/vizier-courteau-comeron.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/vizier-courteau-comeron.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="vizier-search-for-r0908-and-comerón-thick-disc-tables-gr5-and-gr3-rank-2">VizieR search for [R0908] and Comerón thick-disc tables (GR5 and GR3 rank 2)</h1><p class="meta">docs/design/research/vizier-courteau-comeron.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#1-answer-in-short">1. Answer in short</a></li><li style="margin-left:0px"><a href="#2-what-i-checked-and-what-is-not-reachable">2. What I checked and what is not reachable</a></li><li style="margin-left:0px"><a href="#3-gr5-scatter-of-log10vcσ0">3. GR5: scatter of log10(Vc/σ0)</a></li><li style="margin-left:14px"><a href="#31-where-the-letters-data-come-from-read-from-astro-ph0610721-section-2">3.1 Where the Letter's data come from (read from astro-ph/0610721 section 2)</a></li><li style="margin-left:14px"><a href="#32-data-used">3.2 Data used</a></li><li style="margin-left:14px"><a href="#33-numbers-log10-of-vc-over-σ0-standard-deviation-with-n--1">3.3 Numbers (log10 of Vc over σ0, standard deviation with N − 1)</a></li><li style="margin-left:14px"><a href="#34-how-to-read-these-against-the-plan">3.4 How to read these against the plan</a></li><li style="margin-left:14px"><a href="#35-what-would-settle-it">3.5 What would settle it</a></li><li style="margin-left:0px"><a href="#4-gr3-rank-2-thick-to-thin-ratios-from-r0865">4. GR3 rank 2: thick-to-thin ratios from [R0865]</a></li><li style="margin-left:14px"><a href="#41-table-and-columns-jaa610a5-readme-in-c18readme">4.1 Table and columns (J/A+A/610/A5, ReadMe in c18/ReadMe)</a></li><li style="margin-left:14px"><a href="#42-fits-table-b-only-unless-stated-analyse_c18outtxt">4.2 Fits (table B only unless stated; analyse_c18.out.txt)</a></li><li style="margin-left:14px"><a href="#43-comparison-with-the-plans-fills-gap-filling-plan-section-44-and-the-gr3-row">4.3 Comparison with the plan's fills (gap-filling-plan section 4.4 and the GR3 row)</a></li><li style="margin-left:14px"><a href="#44-the-hot-component-bound-against-the-same-galaxies">4.4 The hot-component bound against the same galaxies</a></li><li style="margin-left:0px"><a href="#5-corrections-to-the-plans-references">5. Corrections to the plan's references</a></li><li style="margin-left:0px"><a href="#6-limits">6. Limits</a></li><li style="margin-left:0px"><a href="#7-files-vizier-courteau-comeron-2026-10-17-files">7. Files (vizier-courteau-comeron-2026-10-17-files/)</a></li></ul></details>
+<p>Status: research result. Written 11:40 AM EDT on 2026-10-17 as the VizieR search thread's clock reported (the thread &quot;VizieR table search (2026-10-17)&quot;, started 11:29 AM EDT and finished 11:39 AM EDT as the coordinator reported; read-only) and filed by the TODO thread on 2026-10-17. It answers Boss's decision 6 of the gap-filling plan (<a href="gap-filling-plan.html">gap-filling-plan.md</a> section 8): the plan's GR5 fill stays, and GR3 rank 2 becomes the [R0865] fit. The scripts and downloaded copies sit in <code>/mnt/project-files/reports/vizier-courteau-comeron-2026-10-17-files/</code>. The replacement of the stand-ins in GEN.401 and GEN.402 is a new stand-in version after GEN.401 merges (Core 1's gate ends about 12:20 PM EDT).</p>
+<p>Written 11:40 AM EDT on 2026-10-17 for the coordinator and TODO. Serves GEN.401 and GEN.402. Nothing here changes code, TODO.md or docs/plan. The result replaces the plan's fills only after GEN.401 merges (Core 1's gate runs until about 12:20 PM EDT).</p>
+<p>Scripts, the downloaded copies and the raw outputs are in <code>/mnt/project-files/reports/vizier-courteau-comeron-2026-10-17-files/</code> (listed at the end).</p>
+<h2 id="1-answer-in-short">1. Answer in short</h2>
+<ol>
+<li><strong>[R0908]: the 64-galaxy table is not on VizieR and not reachable anywhere I could open.</strong> The paper in the plan, astro-ph/0610721, is the Letter ApJ 655, L21 (not ApJ 671, 203), and its own text uses 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarfs in Fig. 1 and concentrations for 77 galaxies in Fig. 2. The number 64 does not appear in it. The authors' file (www.astro.queensu.ca/~courteau/data/VSigmaC28.txt) is refused by the proxy (connection reset, HTTP 503). The residual scatter about Eq. 5 (which needs the SDSS concentration C28 of each galaxy) therefore <strong>cannot be computed</strong>.</li>
+<li><strong>What I could compute instead is the raw scatter of log10(Vc/σ0) for the spirals that feed Courteau's compilation</strong>, from two of its source samples that are reachable: [R3619] (VizieR J/A+A/366/68, table1; 69 usable spirals) and [R3540] (Table 1 of astro-ph/0503649, transcribed from the PDF; 40 high-surface-brightness plus 8 low-surface-brightness spirals). The standard deviation of log10(Vc/σ0) is <strong>0.114 dex (PMS01, N = 69), 0.119 dex (P05 HSB, N = 40), 0.123 dex for the 113 de-duplicated spirals, 0.118 dex without the LSB galaxies (N = 105)</strong>. About Hubble-type means (a weak stand-in for concentration) it is <strong>0.104 dex</strong> (PMS01, five type groups).</li>
+<li><strong>Against the plan's GR5 fill (log-normal 0.09 dex, bracket 0.06 to 0.12): the raw data sit at the top edge of the bracket and above the centre.</strong> The values 0.104 to 0.123 are inside or within 0.003 dex of the 0.12 edge, so the plan's rule (&quot;the table gives an RMS outside 0.06 to 0.12&quot;) is <strong>not triggered</strong>, but 0.09 is below every number I could measure. These numbers include measurement error and the unexplained concentration dependence, so the true scatter about Eq. 5 is smaller and unknown (see section 3.4).</li>
+<li><strong>Comerón thick discs: the usable table is [R0865], on VizieR as J/A+A/610/A5</strong> (tableb.dat 124 galaxies with at least two distinct discs, tablec.dat 17 without; per-galaxy circular velocity, gas, thin, thick and central-mass masses, scale heights and scale lengths). It supersedes the 2011 sample (47 galaxies) and the 2012 sample (70) by re-fitting them with a better point spread function and more than doubling the sample to 141.</li>
+<li><strong>Fit for GR3 rank 2 (table B, N = 124): log10(M_thick/M_thin) = 2.113 − 1.086 log10(Vc), scatter 0.268 dex</strong> (slope error ± 0.178, correlation coefficient r = −0.48). Against the plan's 0.2 dex scatter the data give <strong>0.27 dex, outside the plan's value</strong> (0.32 dex if the 17 single-disc galaxies of table C are added).</li>
+<li><strong>The plan's hot-component bound does not hold galaxy by galaxy.</strong> Built from [R0860: Eq. 1] on each galaxy's own stellar mass, the bound is exceeded by <strong>48 of 124 galaxies (39 percent)</strong>; the median galaxy sits 0.10 dex below it, the 84th percentile 0.18 dex above it, the maximum 0.57 dex above. The bound is a statement about the mean hot-component mass, which has 0.13 dex scatter itself. The plan's &quot;any seed breaks the bound (a test, not a tolerance)&quot; would reject 39 percent of real galaxies, so the test needs a margin or should be applied to the mean relation only (section 4.4).</li>
+</ol>
+<h2 id="2-what-i-checked-and-what-is-not-reachable">2. What I checked and what is not reachable</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VizieR web service (<code>vizier.cds.unistra.fr/viz-bin/votable</code>, <code>/VizieR?-source=</code>)</td>
+<td>reachable; catalogue list queries work with <code>-source=</code> wildcards and keywords</td>
+</tr>
+<tr>
+<td>VizieR TAP (<code>tapvizier.cds.unistra.fr/TAPVizieR/tap/sync</code>)</td>
+<td>HTTP 503 &quot;No server is available&quot; at about 11:30 AM EDT</td>
+</tr>
+<tr>
+<td>CDS archive (<code>cdsarc.cds.unistra.fr/ftp/J/...</code> ReadMe and data files)</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>arXiv abstracts, PDFs and the arXiv API</td>
+<td>reachable</td>
+</tr>
+<tr>
+<td>Authors' page (www.astro.queensu.ca/~courteau/data/VSigmaC28.txt)</td>
+<td>not reachable: connection reset (https) and HTTP 503 (http)</td>
+</tr>
+<tr>
+<td>J/ApJ/671/203</td>
+<td>not found in VizieR (the relay's journal reference is for a different paper; the Letter is ApJ 655, L21)</td>
+</tr>
+<tr>
+<td>J/ApJ/655/L21 (the actual Letter)</td>
+<td>not found in VizieR</td>
+</tr>
+<tr>
+<td>Keyword and author searches for &quot;Courteau&quot;</td>
+<td>only [R0906] (J/AJ/114/2402, 304 Sb-Sc galaxies, no σ0) and unrelated catalogues</td>
+</tr>
+<tr>
+<td>J/ApJ/631/785 [R3540], J/ApJ/578/90 [R1357], J/MNRAS/341/L44 [R0227], J/MNRAS/371/1912 [R0311], J/A+AS/144/53 [R2494]</td>
+<td>none in VizieR (all 404 on the archive)</td>
+</tr>
+<tr>
+<td>J/A+A/366/68 [R3619]</td>
+<td>found: table1 (93 rows), table3 (155 rows)</td>
+</tr>
+<tr>
+<td>[R0861] and 2012 (ApJ 759, 98; [R0863])</td>
+<td>no VizieR table (J/ApJ/741/28 and J/ApJ/759/98 not found, archive 404); the tables exist only in the papers and are superseded by 2018</td>
+</tr>
+<tr>
+<td>[R0864] as named in the brief (A&amp;A 562, A121)</td>
+<td>that id is <strong>ARRAKIS</strong>, the atlas of resonance rings (J/A+A/562/A121, 1343 features), not thick discs. The thick-disc paper of 2014 is A&amp;A 571, A58 [R0864]; it has no VizieR table (archive 404)</td>
+</tr>
+<tr>
+<td>[R0865]</td>
+<td><strong>found</strong>: J/A+A/610/A5 (Comerón, Salo, Knapen, &quot;The reports of thick discs' deaths are greatly exaggerated&quot;), [R0865]</td>
+</tr>
+</tbody>
+</table></div>
+<p>The relay named &quot;Courteau, Dutton, van [R4492]&quot;. That is a different paper (&quot;Scaling relations of spiral galaxies&quot;). The Vc/σ0 work in the plan is the Letter by Courteau, McDonald, Widrow and Holtzman, ApJ 655, L21 (2007), [R0908]. I did not look for a VizieR table of the other paper because the plan's equation and citation are the Letter's.</p>
+<h2 id="3-gr5-scatter-of-log10vcσ0">3. GR5: scatter of log10(Vc/σ0)</h2>
+<h3 id="31-where-the-letters-data-come-from-read-from-astro-ph0610721-section-2">3.1 Where the Letter's data come from (read from astro-ph/0610721 section 2)</h3>
+<p>Courteau's compilation is built on the P05 list (40 HSB and 8 LSB spirals, 20 ellipticals with dynamical-model Vc and 5 ellipticals with HI Vc), extended by the 66 spirals of [R3619] (PMS01), plus [R0311] and the Southern galaxies of [R0227]. Fig. 1 shows 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarf irregulars. Concentrations C28 were measured from SDSS i-band images for 32 spirals, 12 ellipticals and 33 lenticulars. The Letter prints no scatter, no per-galaxy table and no &quot;64&quot;.</p>
+<h3 id="32-data-used">3.2 Data used</h3>
+<ul>
+<li><strong>PMS01, VizieR J/A+A/366/68 table1</strong>, columns <code>Vmrot</code> (bytes 43 to 45, km/s, &quot;maximum velocity of rotation, from PGC96&quot;) and <code>Sig0</code> (bytes 47 to 49, km/s, &quot;central velocity dispersion from Hypercat&quot;), plus <code>MType</code>. 93 rows, of which 69 have both values positive (the Letter says 66 spirals; the three extra galaxies may have been dropped by Courteau's cuts, which are not stated).</li>
+<li><strong>P05, Table 1 of [R3540]</strong> [R3540], columns σc and Vc for the 40 HSB and the first 8 LSB rows. Parsed from pdftotext output; the 48 rows are in <code>parse_p05.py</code> output form and the excerpts are saved.</li>
+<li>Four galaxies appear in both samples (NGC 2844, NGC 5055, NGC 7331, NGC 7606); the union takes the P05 row for them (113 galaxies).</li>
+</ul>
+<h3 id="33-numbers-log10-of-vc-over-σ0-standard-deviation-with-n--1">3.3 Numbers (log10 of Vc over σ0, standard deviation with N − 1)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>N</th>
+<th>mean</th>
+<th>standard deviation (dex)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PMS01 spirals (Vmrot and Sig0)</td>
+<td>69</td>
+<td>+0.206 (ratio 1.61)</td>
+<td><strong>0.114</strong></td>
+</tr>
+<tr>
+<td>P05 HSB spirals</td>
+<td>40</td>
+<td>+0.246 (1.76)</td>
+<td><strong>0.119</strong></td>
+</tr>
+<tr>
+<td>P05 LSB spirals</td>
+<td>8</td>
+<td>+0.360 (2.29)</td>
+<td>0.107</td>
+</tr>
+<tr>
+<td>P05 HSB + LSB</td>
+<td>48</td>
+<td>+0.265 (1.84)</td>
+<td>0.124</td>
+</tr>
+<tr>
+<td>Union PMS01 + P05, de-duplicated</td>
+<td>113</td>
+<td>+0.230 (1.70)</td>
+<td><strong>0.123</strong></td>
+</tr>
+<tr>
+<td>Union without LSB</td>
+<td>105</td>
+<td>+0.220 (1.66)</td>
+<td><strong>0.118</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Further PMS01 results (<code>analyse_pms01.out.txt</code>): the 16th to 84th percentile of log10(Vc/σ0) is +0.131 to +0.298; the mean by morphological group rises from +0.139 (Sa) through +0.177 (Sab, Sb) and +0.267 (Sbc) to +0.281 (Sc), which is the dependence on concentration the Letter describes; <strong>the RMS about the five type means is 0.104 dex</strong>; a fit of log(Vc/σ0) against log σ0 leaves 0.094 dex.</p>
+<h3 id="34-how-to-read-these-against-the-plan">3.4 How to read these against the plan</h3>
+<ul>
+<li>The brief asked for the RMS of log(Vc/σ0). The Letter's relation is log(Vc/σ0) = 0.63 − 0.11 C28 (Eq. 5), so the generator's scatter is the scatter <strong>about that line at fixed C28</strong> (or fixed B/T). The raw standard deviations above are <strong>larger than that</strong>, because they include the whole morphology trend (the mean changes from 1.4 to 1.9 in Vc/σ0 across Hubble types) and the measurement error of an HI line width and an aperture-dependent σ0. Removing even a crude proxy (five type groups) lowers 0.114 to 0.104. I cannot estimate the final residual without C28.</li>
+<li><strong>Compared with the plan (centre 0.09 dex, bracket 0.06 to 0.12):</strong> the measurable scatters (0.094 to 0.123) lie inside the bracket or touch its upper edge (0.123 for the 113-galaxy union). The plan's replacement rule needs a value outside the bracket, so the fill stays. The centre 0.09 is slightly below the data; 0.10 to 0.11 would match the type-corrected PMS01 value and P05.</li>
+<li><strong>A consistency check the Letter allows:</strong> the relation Vc/σ0 = 2 (1 − B/T) for spirals. At the sample mean ratio of 1.6 to 1.8 this means B/T of about 0.1 to 0.2, which is a plausible spiral mix and agrees with the plan's use of the row 6 B/T law.</li>
+<li><strong>Selection bias to state:</strong> HI width and stellar-dispersion samples favour galaxies with well-defined flat curves and measurable absorption lines. PMS01 is mostly the Heraudeau sample of bright spirals. The LSB galaxies (mean ratio 2.29) sit at the high end, as the Letter says.</li>
+</ul>
+<h3 id="35-what-would-settle-it">3.5 What would settle it</h3>
+<p>The file <code>VSigmaC28.txt</code> from the authors' page (blocked here) or the 77-galaxy concentration list; or SDSS i-band r20 and r80 for the 113 spirals above. Neither is reachable from this session.</p>
+<h2 id="4-gr3-rank-2-thick-to-thin-ratios-from-r0865">4. GR3 rank 2: thick-to-thin ratios from [R0865]</h2>
+<h3 id="41-table-and-columns-jaa610a5-readme-in-c18readme">4.1 Table and columns (J/A+A/610/A5, ReadMe in <code>c18/ReadMe</code>)</h3>
+<p>Two data files with identical columns: <code>tableb.dat</code> (124 galaxies with at least two distinct discs) and <code>tablec.dat</code> (17 without). Columns used: <code>vc</code> (km/s, maximum circular velocity, references to HyperLeda, Springob, Courtois, Bedregal, ATLAS3D and others, listed in note 3), <code>GasM</code>, <code>ThinM</code>, <code>ThickM</code>, <code>CMCM</code> (10^9 solar masses), <code>sc-thin</code>, <code>sc-thick</code> (scale heights in arcsec), and for each of total, thin and thick disc the scale lengths <code>h1</code> to <code>h4</code> of up to four exponential sections with their break radii. Distances, absolute 3.6 µm magnitudes and the fitting types are also given. Source: 3.6 µm images of edge-on galaxies from S4G and its early-type extension, 141 galaxies in all. Masses assume (Υ_thick/Υ_thin) at 3.6 µm = 1.2, which the authors call the smallest and most conservative value; M_T/M_t scales roughly with that ratio, so every mass ratio below scales with it.</p>
+<h3 id="42-fits-table-b-only-unless-stated-analyse_c18outtxt">4.2 Fits (table B only unless stated; <code>analyse_c18.out.txt</code>)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Relation</th>
+<th>N</th>
+<th>Fit</th>
+<th>Scatter about the fit</th>
+<th>r</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>log(M_thick/M_thin) against log Vc</td>
+<td>124</td>
+<td>2.113 − 1.086 log Vc (slope ± 0.178)</td>
+<td><strong>0.268 dex</strong></td>
+<td>−0.48</td>
+</tr>
+<tr>
+<td>same, tables B and C</td>
+<td>141</td>
+<td>2.382 − 1.190 log Vc (± 0.193)</td>
+<td>0.318 dex</td>
+<td>−0.46</td>
+</tr>
+<tr>
+<td>log(M_thick/M_thin) against log M* (M* = thin + thick + central mass)</td>
+<td>124</td>
+<td>2.849 − 0.302 log M* (± 0.053)</td>
+<td>0.272 dex</td>
+<td>−0.46</td>
+</tr>
+<tr>
+<td>log(height ratio) against log Vc</td>
+<td>124</td>
+<td>0.240 + 0.189 log Vc (± 0.086)</td>
+<td>0.129 dex</td>
+<td>0.20</td>
+</tr>
+<tr>
+<td>log(length ratio) against log Vc, outermost exponential section of each disc</td>
+<td>104</td>
+<td>−1.638 + 0.817 log Vc (± 0.233)</td>
+<td>0.316 dex</td>
+<td>0.33</td>
+</tr>
+</tbody>
+</table></div>
+<p>Medians: thick-to-thin scale-height ratio <strong>4.24</strong> (mean 4.61, scatter 0.13 dex, nearly independent of Vc); thick-to-thin scale-length ratio <strong>1.46</strong> using each disc's outermost section (1.57 for the six galaxies where both discs are a single exponential, Type I, too few to fit). The scale-length ratio depends on which section is chosen; the first sections (<code>h1</code>) are often hundreds of arcseconds for a flat inner region and are not usable.</p>
+<p>Binned ratio of thick to thin mass (median, 16th to 84th percentile):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Vc (km/s)</th>
+<th>N</th>
+<th>median</th>
+<th>16 to 84 percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>below 100</td>
+<td>16</td>
+<td>1.13</td>
+<td>0.81 to 2.02</td>
+</tr>
+<tr>
+<td>100 to 150</td>
+<td>55</td>
+<td>0.73</td>
+<td>0.42 to 1.35</td>
+</tr>
+<tr>
+<td>150 to 200</td>
+<td>44</td>
+<td>0.45</td>
+<td>0.23 to 0.77</td>
+</tr>
+<tr>
+<td>above 200</td>
+<td>9</td>
+<td>0.42</td>
+<td>0.14 to 0.94</td>
+</tr>
+</tbody>
+</table></div>
+<p>These agree with the statements printed in the 2018 paper (comparable masses below 120 km/s, 0.2 to 1 above, up to about 3 at the low-mass end).</p>
+<h3 id="43-comparison-with-the-plans-fills-gap-filling-plan-section-44-and-the-gr3-row">4.3 Comparison with the plan's fills (gap-filling-plan section 4.4 and the GR3 row)</h3>
+<p>Values at the three masses of the plan's table (plan Vc about 89, 181, 255 km/s). The &quot;upper bound&quot; is the plan's M_h/(M* − M_h) with Eq. 1 of [R0860], recomputed here (0.98, 0.64, 0.53; the plan prints 0.96, 0.64, 0.54).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M*</th>
+<th>Plan upper bound (no classical bulge)</th>
+<th>Plan, Yoachim and Dalcanton formula</th>
+<th><strong>[R0865] fit</strong></th>
+<th>Comerón fit, 1-sigma range (× or ÷ 1.86)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3e9 (Vc 89)</td>
+<td>0.98</td>
+<td>0.69</td>
+<td><strong>0.99</strong></td>
+<td>0.53 to 1.84</td>
+</tr>
+<tr>
+<td>5e10 (Vc 181)</td>
+<td>0.64</td>
+<td>0.14</td>
+<td><strong>0.46</strong></td>
+<td>0.25 to 0.86</td>
+</tr>
+<tr>
+<td>2e11 (Vc 255)</td>
+<td>0.53</td>
+<td>0.06</td>
+<td><strong>0.32</strong></td>
+<td>0.17 to 0.60</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>The fit lies close to the bound with B/T about 0.1</strong> (plan values 0.76, 0.48, 0.38 at the three masses), not with the Yoachim and Dalcanton formula at high mass (0.14 and 0.06 are 3 to 5 times lower than the measured 0.46 and 0.32). That resolves the conflict the plan describes in favour of [R0865] on the data side, and the plan's morphology explanation (high B/T early-type spirals have small thick discs) is consistent with the fact that Comerón's central mass concentration is a separate component from the thick disc (it carries the bulge mass), so a large bulge leaves less for the thick disc in the bound.</li>
+<li><strong>Scatter: 0.27 dex measured, 0.2 dex in the plan.</strong> The plan's fill is therefore too narrow; 0.27 dex (0.32 with the single-disc galaxies) is the data value. This falls outside the plan's value of 0.2 dex, so the plan's own rule (&quot;a published fit equation with scatter replaces the scatter only&quot;) applies and this is that fit, with the caveats in 4.4 and the Υ ratio of 1.2.</li>
+<li><strong>Length ratio:</strong> the plan uses 1.15 (Vc/100)^−0.2 from Yoachim and Dalcanton; the [R0865] outermost-section median is 1.46 with 0.32 dex scatter, rising with Vc (slope 0.82 ± 0.23). These differ in direction of the Vc trend (Yoachim falls, Comerón rises). The Comerón numbers depend on the section choice, so I do not recommend replacing the Yoachim length ratio without a decision on that choice.</li>
+<li><strong>Height ratio:</strong> the plan uses 2.5 ± 30 percent (Yoachim and Dalcanton). [R0865] gives a median of 4.24 (scatter 0.13 dex, which is 35 percent). These differ by a factor 1.7; the Comerón heights are from edge-on 3.6 µm decompositions with their own definition of the scale height, so the two are not the same measurement.</li>
+</ul>
+<h3 id="44-the-hot-component-bound-against-the-same-galaxies">4.4 The hot-component bound against the same galaxies</h3>
+<ul>
+<li>The thick disc plus the central mass concentration (the hot component in [R0860]'s sense) of these 124 galaxies matches [R0860: Eq. 1] on M* on average (mean deviation 0.000 dex, standard deviation 0.132 dex, median +0.016). That is <strong>not an independent check</strong>, since the 2021 relation was built from the same family of fits; it only shows that the plan transcribed Eq. 1 correctly.</li>
+<li>Taking the bound <strong>galaxy by galaxy</strong> with that mean relation, 48 of 124 galaxies (39 percent) have M_thick/M_thin above the bound, 22 percent by more than the 0.13 dex scatter of the hot component itself, and the worst case is 0.57 dex above. The median is 0.10 dex below. So the plan's test text &quot;any seed breaks the bound&quot; will fail for roughly four draws in ten if the generator reproduces the observed scatter. Options for the plan (not my decision): apply the bound to the mean ratio only; add a 0.13 dex margin to the bound (then 22 percent of real galaxies still exceed it); or bound the hot-component fraction instead of the ratio. The bound as a mean statement is supported.</li>
+</ul>
+<h2 id="5-corrections-to-the-plans-references">5. Corrections to the plan's references</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>In the plan or brief</th>
+<th>What I found</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R0908] = ApJ 671, 203, &quot;64 galaxies&quot;</td>
+<td>[R0908] is ApJ 655, L21; no &quot;64&quot; in its text; samples are 154/24/54/11 (Fig. 1) and 32/12/33 with concentrations (Fig. 2). <code>docs/design/galaxy/galaxy-laws-research.md</code> row &quot;(64 galaxies)&quot; and R5 should drop the number</td>
+</tr>
+<tr>
+<td>[R0864] = A&amp;A 562, A121</td>
+<td>ARRAKIS ring atlas; the thick-disc paper is A&amp;A 571, A58 [R0864]</td>
+</tr>
+<tr>
+<td>[R0861], 2012 tables on VizieR</td>
+<td>not on VizieR; superseded by J/A+A/610/A5 (2018, 141 galaxies)</td>
+</tr>
+<tr>
+<td>[R0865] &quot;prints ranges only&quot;</td>
+<td>the numbers are in the VizieR table J/A+A/610/A5 with per-galaxy masses, so a fit with scatter is possible</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-limits">6. Limits</h2>
+<ul>
+<li>The Courteau residual scatter about Eq. 5 is not computed; only raw scatter of the source samples is. The sources are 113 of Fig. 1's 154 spirals (about 73 percent) with Vc and σ0 from several heterogeneous papers; Courteau notes a 24 km/s systematic offset in Vc and 9 km/s in σ0 between samples.</li>
+<li>P05 numbers were read from pdftotext output of the arXiv PDF (not a machine-readable table); I checked the count (40 plus 8) and spot-read the first and last rows, but did not re-transcribe by hand.</li>
+<li>The PMS01 type groups are crude (five groups, 11 to 22 galaxies each).</li>
+<li>The Comerón masses carry a systematic from the assumed Υ ratio of 1.2; the fit is for that choice. The fits treat vc as exact; its errors are not in the table, so the scatter includes them.</li>
+<li>Nothing here was compared with a Milky Way value, and no value was copied from one.</li>
+</ul>
+<h2 id="7-files-vizier-courteau-comeron-2026-10-17-files">7. Files (<code>vizier-courteau-comeron-2026-10-17-files/</code>)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>c18/ReadMe</code>, <code>c18/tableb.dat</code>, <code>c18/tablec.dat</code></td>
+<td>[R0865], J/A+A/610/A5, copied from cdsarc.cds.unistra.fr</td>
+</tr>
+<tr>
+<td><code>c18_meta.xml</code>, <code>c14_meta.xml</code></td>
+<td>VizieR metadata queries (the second shows 562/A121 is ARRAKIS)</td>
+</tr>
+<tr>
+<td><code>pms01/ReadMe</code>, <code>pms01/table1.dat</code>, <code>pms01/table3.dat</code></td>
+<td>[R3619], J/A+A/366/68</td>
+</tr>
+<tr>
+<td><code>p05/pizzella2005-astro-ph-0503649.txt</code>, <code>p05/table1-hsb-excerpt.txt</code>, <code>p05/table1-lsb-excerpt.txt</code></td>
+<td>text of the arXiv PDF and the two Table 1 excerpts</td>
+</tr>
+<tr>
+<td><code>parse_c18.py</code>, <code>analyse_c18.py</code>, <code>analyse_c18.out.txt</code></td>
+<td>parsing and fits for GR3</td>
+</tr>
+<tr>
+<td><code>analyse_pms01.py</code>, <code>analyse_pms01.out.txt</code></td>
+<td>PMS01 scatter, type groups</td>
+</tr>
+<tr>
+<td><code>parse_p05.py</code>, <code>analyse_courteau_samples.py</code>, <code>analyse_courteau_samples.out.txt</code></td>
+<td>P05 parsing and the combined scatter table</td>
+</tr>
+</tbody>
+</table></div>
+<p>Run each script with <code>python3 -I</code>; the command is in the file's docstring.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

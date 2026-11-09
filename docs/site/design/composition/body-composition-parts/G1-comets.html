@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part G1: Boss's second note, section 6 (comet volatiles and photochemical lifetimes) - planetGen docs</title>
+<meta name="description" content="Task G1 of brief G.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/G1-comets.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/G1-comets.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-g1-bosss-second-note-section-6-comet-volatiles-and-photochemical-lifetimes">Part G1: Boss's second note, section 6 (comet volatiles and photochemical lifetimes)</h1><p class="meta">docs/design/composition/body-composition-parts/G1-comets.md</p><details class="toc"><summary>On this page (20 headings)</summary><ul><li style="margin-left:0px"><a href="#verdicts">Verdicts</a></li><li style="margin-left:14px"><a href="#g11-abundances-relative-to-h2o-percent-per-species">G1.1 Abundances relative to H2O (percent, per species)</a></li><li style="margin-left:14px"><a href="#g12-photochemical-lifetimes-at-1-au-seconds-photodissociation-plus-photoionisation">G1.2 Photochemical lifetimes at 1 AU (seconds; photodissociation plus photoionisation)</a></li><li style="margin-left:14px"><a href="#g13-photolysis-products">G1.3 Photolysis products</a></li><li style="margin-left:14px"><a href="#g14-diagnostic-bands">G1.4 Diagnostic bands</a></li><li style="margin-left:14px"><a href="#g15-classify-comets-by-chemistry-r9-suggestion">G1.5 Classify comets by chemistry (R9 suggestion)</a></li><li style="margin-left:0px"><a href="#figures-for-the-generator">Figures for the generator</a></li><li style="margin-left:14px"><a href="#21-species-table-constants-not-per-comet">2.1 Species table (constants, not per comet)</a></li><li style="margin-left:14px"><a href="#22-computed-quiet-sun-photolysis-table-unshielded-1-au">2.2 Computed quiet-Sun photolysis table (unshielded, 1 AU)</a></li><li style="margin-left:14px"><a href="#23-composition-distributions-for-comets-parametrisation-from-the-database-r_h-at-most-2-au-per-comet-median">2.3 Composition distributions for comets (PARAMETRISATION, from the database, r_h at most 2 AU, per-comet median)</a></li><li style="margin-left:14px"><a href="#24-relations-between-species">2.4 Relations between species</a></li><li style="margin-left:14px"><a href="#25-taxonomy-facts-answers-to-g15">2.5 Taxonomy facts (answers to G1.5)</a></li><li style="margin-left:0px"><a href="#how-the-generator-should-compute-or-draw-it">How the generator should compute or draw it</a></li><li style="margin-left:14px"><a href="#31-per-comet-store-or-draw">3.1 Per comet: store or draw</a></li><li style="margin-left:14px"><a href="#32-route-recommendation-for-comets-route-2">3.2 Route recommendation for comets (route 2)</a></li><li style="margin-left:14px"><a href="#33-consistency-tests-a-test-could-assert">3.3 Consistency tests a test could assert</a></li><li style="margin-left:0px"><a href="#calibration-and-test-targets-solar-system-only-never-presets">Calibration and test targets (Solar System only, never presets)</a></li><li style="margin-left:0px"><a href="#changes-to-parts-a-to-f">Changes to parts A to F</a></li><li style="margin-left:0px"><a href="#still-unreachable-boss-must-research">Still unreachable (Boss must research)</a></li><li style="margin-left:0px"><a href="#counts">Counts</a></li></ul></details>
+<p>Task G1 of brief G. Each claim in the note is treated as a pointer, not a source. Labels as in the common brief: READ (text or table read in an arXiv PDF or a reachable open file), 2ND-HAND (read in a reachable paper or open code that cites the original), COMPUTED (re-derived here with Python from READ inputs), SNIPPET, RECALLED, NOT REACHED.</p>
+<p>Scripts and outputs are in <code>parts/G-files/</code> with the prefix <code>G1_</code>:
+<code>G1_robinson_stats.py</code> and <code>.out.txt</code> (per-species statistics), <code>G1_class_test.py</code> and <code>.out.txt</code> (dynamical type against composition), <code>G1_co_vs_size_and_hypervolatile_corr.py</code> and <code>.out.txt</code> (CO against nucleus size; rank correlations), <code>G1_heays_solar_lifetimes.py</code> and <code>.out.txt</code> (quiet-Sun photolysis lifetimes).</p>
+<p>Sources actually read (all from reachable hosts):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Short name</th>
+<th>Reference</th>
+<th>How reached</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HP22</td>
+<td>Harrington [R3535] (CO, CO<sub>2</sub>, H<sub>2</sub>O in comets)</td>
+<td>arXiv PDF</td>
+<td>CO and CO<sub>2</sub> ranges, dynamical-class split, bands</td>
+</tr>
+<tr>
+<td>Rub19</td>
+<td>[R3835] (67P ROSINA, Table 2)</td>
+<td>arXiv PDF</td>
+<td>67P bulk ratios</td>
+</tr>
+<tr>
+<td>Rob24 + DB</td>
+<td>Robinson, Malamud, Opitom, Perets, [R3782], and its database (Edinburgh DataShare, [R4972], <code>df_comp_all.csv</code>, 909 rows, 69 comets, CC BY 4.0)</td>
+<td>arXiv PDF and CSV</td>
+<td>per-species statistics; most CO values are Dello [R1063], others [R3835], Biver and Bockelee-Morvan papers</td>
+</tr>
+<tr>
+<td>Coch15</td>
+<td>[R0835], &quot;The Composition of Comets&quot;, Space Sci. Rev. 197, 9, [R0835]</td>
+<td>arXiv PDF</td>
+<td>taxonomies (optical and IR), CN/OH bands</td>
+</tr>
+<tr>
+<td>Eis19</td>
+<td>[R1234]</td>
+<td>arXiv PDF</td>
+<td>chemical-evolution taxonomy</td>
+</tr>
+<tr>
+<td>Cro16</td>
+<td>[R0937], &quot;Comets at radio wavelengths&quot;, [R0937]</td>
+<td>arXiv PDF</td>
+<td>OH 18 cm, HCN 88.6 GHz, NH<sub>3</sub> radio</td>
+</tr>
+<tr>
+<td>dVB13</td>
+<td>[R1088] (C/2001 Q4 and C/2002 T7 at mm wavelengths), Table 2</td>
+<td>arXiv PDF</td>
+<td>photodissociation rates at 1 AU (quiet Sun), CO 230.538 GHz, r^-2 scaling</td>
+</tr>
+<tr>
+<td>Odin07</td>
+<td>[R0407], Planet. Space Sci., [R0407]</td>
+<td>arXiv PDF</td>
+<td>NH<sub>3</sub> 572.498 GHz, NH<sub>3</sub> lifetime 6700 s</td>
+</tr>
+<tr>
+<td>Hat05</td>
+<td>Hatchell, Bird, van [R1844]</td>
+<td>arXiv PDF</td>
+<td>NH<sub>3</sub> inversion lines, lifetime 5400 to 5800 s</td>
+</tr>
+<tr>
+<td>Hea17</td>
+<td>[R1873]</td>
+<td>arXiv PDF</td>
+<td>Tables 18, 19, 22: rates, ionisation, branching, spectral dependence</td>
+</tr>
+<tr>
+<td>sbpy</td>
+<td>sbpy 0.6.0 source (PyPI), <code>activity/gas/data/__init__.py</code> and <code>core.py</code></td>
+<td>files.pythonhosted.org</td>
+<td>[R2040] quiet/active values (2ND-HAND), [R2041]</td>
+</tr>
+<tr>
+<td>Rag20</td>
+<td>Raghuram, [R3647: Table 6]</td>
+<td>arXiv PDF</td>
+<td>photodissociation frequencies into excited O and C</td>
+</tr>
+<tr>
+<td>Tegler</td>
+<td>Long-slit NH<sub>2</sub> paper, NTRS 19930010041</td>
+<td>NTRS PDF</td>
+<td>NH<sub>3</sub> 7.0e3 to 7.7e3 s</td>
+</tr>
+<tr>
+<td>Cor25</td>
+<td>[R0890] (JWST, 3I/ATLAS)</td>
+<td>arXiv PDF</td>
+<td>interstellar object</td>
+</tr>
+<tr>
+<td>Bel26</td>
+<td>[R4752, R4754], [R0336] (JWST MIRI, 3I/ATLAS)</td>
+<td>arXiv PDF</td>
+<td>CH<sub>4</sub> nu3 band</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not reached: [R0435] (Phil. Trans. R. Soc. A 375, 20160252; royalsocietypublishing.org returns 403, the HAL record has no PDF link, not on PMC), Dello [R1063, R2040, R3206] (PSS 106, 11; ScienceDirect refused), [R0410, R0934, R2041] (no single paper identified). Where a number from them is used below it came through one of the papers in the table above and is labelled 2ND-HAND.</p>
+<h2 id="verdicts">Verdicts</h2>
+<p>Rule used for G1.1: CONFIRMED when the observed range at heliocentric distance r_h at or below 2 AU lies inside the claimed range or within a factor 1.5 of its ends; PARTLY otherwise. &quot;Observed&quot; means comet-to-comet spread of the coma production-rate ratio to water (the quantity every table below reports), not a measured nucleus bulk ratio, except 67P.</p>
+<h3 id="g11-abundances-relative-to-h2o-percent-per-species">G1.1 Abundances relative to H<sub>2</sub>O (percent, per species)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>Claim as written</th>
+<th>Verdict</th>
+<th>The right figure (percent of H<sub>2</sub>O)</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1.1a</td>
+<td>CO 0.5 to 30</td>
+<td>PARTLY</td>
+<td>0.3 to 26 within 2.5 AU (32 comets), median 3 +- 1 (3.3 +- 1.3 in the figure caption); mean 6.4 +- 1.3 (Dello [R1063] mean for 24 comets 5.2 +- 1.3). Lowest: 103P/Hartley 2 0.3 (Dello [R1063]), 0.15 to 0.45; 8P/Tuttle 0.4, 2P/Encke 0.43. Highest at r_h at most 2 AU: Hale-Bopp 26. Values above 30 exist only far out (C/2010 G2 Hill 91 at 2.5 AU; C/2006 W3 230 at 3.4 AU; 29P 460 at 6.2 AU) and mostly reflect the water cut-off, not the nucleus. The lower bound 0.5 is too high; 30 is fine for r_h at most 2.5 AU</td>
+<td>HP22 abstract, Sect. 3.1, Table 3; Rob24 DB (COMPUTED); Coch15 Sect. 2.3</td>
+<td>READ / COMPUTED</td>
+</tr>
+<tr>
+<td>G1.1b</td>
+<td>CO<sub>2</sub> 2 to 20</td>
+<td>PARTLY</td>
+<td>2 to 30 within 2.5 AU (23 comets), median 12 +- 2 (HP22 Table 3). In the database at r_h at most 2 AU: 4 to 37 (N = 14, median 11). Hartley 2 about 20 ([R0047] as quoted in Coch15). 67P bulk 4.7 +- 1.4. Upper bound 20 is too low; values near 87 at 6 AU are outside the usable regime</td>
+<td>HP22; Rub19 Table 2; Rob24 DB</td>
+<td>READ / COMPUTED</td>
+</tr>
+<tr>
+<td>G1.1c</td>
+<td>CH<sub>4</sub> 0.2 to 1.5</td>
+<td>CONFIRMED</td>
+<td>0.15 to 2.2 at r_h at most 2 AU (N = 12): C/2001 A2 LINEAR 0.15, 67P 0.34 (in situ), Hale-Bopp 1.22, 73P/Schwassmann-Wachmann 3 2.17; inter-quartile 0.36 to 1.08, median 0.95, geometric mean 0.68. (C/2010 G2 Hill 9 at 2.5 AU is an outlier.) The Les Houches table gives comets 0.2 to 1.2</td>
+<td>Rob24 DB (COMPUTED); Rub19; BM-slides</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>G1.1d</td>
+<td>C<sub>2</sub>H<sub>6</sub> 0.1 to 1.5</td>
+<td>CONFIRMED</td>
+<td>0.09 to 0.82 at r_h at most 2 AU (N = 17), median 0.39, geometric mean 0.37; 67P 0.29. Holmes 1.85 (2.5 AU) and Hill 3.8 (2.5 AU) are outliers. Slides: 0.4 to 1.2</td>
+<td>Rob24 DB (COMPUTED); Rub19; BM-slides</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>G1.1e</td>
+<td>NH<sub>3</sub> 0.2 to 1.5</td>
+<td>PARTLY</td>
+<td>0.125 to 0.9 (N = 14, r_h at most 2 AU), median 0.66; the lowest comet is 73P/Schwassmann-Wachmann 3 at 0.125, then Lulin 0.24. 67P bulk 0.67 +- 0.20 (the hemisphere values quoted from Le Roy are 0.06 to 0.15). Odin tentative detections 0.5 and 0.3. Upper bound 1.5 not reached in the database (slides: 0.6 to 1.8). Radio upper limits 0.13 to 0.74 (Hat05)</td>
+<td>Rob24 DB (COMPUTED); Rub19; Odin07; Hat05; BM-slides</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>G1.1f</td>
+<td>HCN 0.05 to 0.5</td>
+<td>PARTLY</td>
+<td>0.03 to 0.36 at r_h at most 2 AU (N = 21), median 0.14, geometric mean 0.13; lowest 6P/d'Arrest 0.03, 19P/Borrelly 0.06; highest Hale-Bopp 0.36 (Holmes 0.54 after outburst at 2.5 AU). 67P 0.14 +- 0.04. Range is narrow ([R0936], via Coch15). Lower bound 0.05 too high by a factor 1.7</td>
+<td>Rob24 DB (COMPUTED); Rub19; Coch15</td>
+<td>COMPUTED / READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Added species for the weighted table T16 (not claims; same basis, r_h at most 2 AU, from the same database, geometric mean and 1-sigma scatter in dex):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>N</th>
+<th>Observed range</th>
+<th>Median</th>
+<th>Geo-mean</th>
+<th>sigma (dex)</th>
+<th>67P bulk (Rub19)</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>9</td>
+<td>0.09 to 1.5</td>
+<td>1.1</td>
+<td>0.71</td>
+<td>0.37</td>
+<td>1.10 +- 0.46</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>20</td>
+<td>0.21 to 4.5</td>
+<td>2.15</td>
+<td>1.89</td>
+<td>0.32</td>
+<td>0.21 +- 0.06</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>15</td>
+<td>0.09 to 1.1</td>
+<td>0.22</td>
+<td>0.245</td>
+<td>0.34</td>
+<td>0.32 +- 0.10</td>
+<td>COMPUTED / READ</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>11</td>
+<td>0.03 to 0.28</td>
+<td>0.074</td>
+<td>0.09</td>
+<td>0.28</td>
+<td>not tabulated here</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>1 comet</td>
+<td>no population data in any file read</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.089 +- 0.024 (Rub19 Table 2)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>O<sub>2</sub> (for the record)</td>
+<td>1 comet</td>
+<td>67P only</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.1 +- 1.1</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Note the 67P values are not typical for CH<sub>3</sub>OH (0.21 against a population median about 2) and are lower than the median for CH<sub>4</sub> (0.34 against 0.95). See &quot;Changes to parts A to F&quot;.</p>
+<h3 id="g12-photochemical-lifetimes-at-1-au-seconds-photodissociation-plus-photoionisation">G1.2 Photochemical lifetimes at 1 AU (seconds; photodissociation plus photoionisation)</h3>
+<p>All source values are for an optically thin coma and a stated solar activity; the lifetime scales as r_h squared (rate as r_h^-2) (dVB13 Sect. 3: &quot;photodissociation rates were scaled by the heliocentric distance as r_h^-2&quot;, READ).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Quiet Sun</th>
+<th>Active Sun</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1.2a</td>
+<td>H<sub>2</sub>O 8.0e4</td>
+<td>CONFIRMED (this is the quiet-Sun value)</td>
+<td>8.29e4</td>
+<td>4.94e4</td>
+<td>[R2040] as coded in sbpy (<code>[8.294e4, 4.939e4] s</code>, ordered quiet, active); also [R0837] 5.2e4 &quot;intermediate activity&quot; in sbpy; Hea17 computed 1.13e5 (unshielded, factor 1.4 higher)</td>
+<td>2ND-HAND (sbpy), COMPUTED (Hea17)</td>
+</tr>
+<tr>
+<td>G1.2b</td>
+<td>CO 1.5e6</td>
+<td>CONFIRMED (quiet Sun)</td>
+<td>1.5e6; dVB13 Table 2 beta0 = 6.5e-7 1/s from [R0934] gives 1.54e6</td>
+<td>not given</td>
+<td>sbpy; dVB13 Table 2</td>
+<td>2ND-HAND / READ</td>
+</tr>
+<tr>
+<td>G1.2c</td>
+<td>CO<sub>2</sub> 5.0e5</td>
+<td>CONFIRMED (quiet Sun)</td>
+<td>4.95e5 (HM15), 5.0e5 (CE83)</td>
+<td>2.10e5</td>
+<td>sbpy. Hea17 computed 1.2e6 is 2.4 times longer; the CO<sub>2</sub> to O(1D) channel alone is 1.6e-6 1/s (Rag20 Table 6), so 5e5 is the safer value</td>
+<td>2ND-HAND; COMPUTED</td>
+</tr>
+<tr>
+<td>G1.2d</td>
+<td>CH<sub>4</sub> 1.2e5</td>
+<td>PARTLY</td>
+<td>1.2e5 appears in the 1976 table (Jac76 Table 1, from Samson cross sections) but no modern comet table was reached; Hea17 computed quiet-Sun total 1.9e5 (photodissociation 2.0e5, ionisation adds 7 percent)</td>
+<td>active Sun about 1.7 to 2.4 times shorter (see below)</td>
+<td>Jac76 (READ, OCR of exponent partly lost); Hea17 (COMPUTED)</td>
+<td>READ / COMPUTED</td>
+</tr>
+<tr>
+<td>G1.2e</td>
+<td>C<sub>2</sub>H<sub>6</sub> 1.0e5</td>
+<td>UNVERIFIABLE as stated</td>
+<td>no 1 AU comet table found. Hea17 computed 1.45e5 (photodissociation 1.66e5, ionisation adds 13 percent). Tried: sbpy data (no C<sub>2</sub>H<sub>6</sub>), dVB13, Cro16, Odin07, Jac76 Table 1 (not listed), NTRS search; missing: [R2041] [R0934]</td>
+<td></td>
+<td></td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>G1.2f</td>
+<td>NH<sub>3</sub> 2.5e4</td>
+<td>CONTRADICTED</td>
+<td>6.7e3 (Odin07, &quot;6700 s at 1 AU&quot;); 5.4e3 to 5.8e3 near solar minimum (Hat05); 7.0e3 to 7.7e3 (used in the Tegler paper); Hea17 computed 6.5e3. The 1976 table gives a value of order 2e3 (exponent garbled by OCR). Use 6.7e3 (range 5.4e3 to 7.7e3). Boss's value is about 3.7 times too long. Reconciliation with the atmosphere lane's 5.6e3 s (GEN.496, 6.5e3 to 5.6e3 range): their 5.6e3 comes from k = 1.8e-4 per s, the mean of quiet and active Sun ([R2041] and HM15 as quoted by [R1163]); mine is the quiet Sun from [R1873] (rate 1.55e-4 per s from cross sections times the quiet solar field, 91.2 to 200 nm only, scale 37 700) and [R0407]. Ratio 1.2, no disagreement in data; the HM15 quiet and active NH<sub>3</sub> rates themselves were not read by either lane</td>
+<td></td>
+<td>Odin07, Hat05, NTRS 19930010041, Hea17</td>
+<td>READ / COMPUTED</td>
+</tr>
+<tr>
+<td>G1.2g</td>
+<td>HCN 7.0e4</td>
+<td>CONFIRMED (quiet Sun)</td>
+<td>6.7e4 ([R0934] via dVB13: beta0 = 1.5e-5 1/s). A search snippet puts the range at 3.2e4 to 7.7e4 over solar activity ([R2041], not read). Hea17 computed 1.2e5 (lower rate)</td>
+<td>likely 3.2e4</td>
+<td>dVB13 Table 2</td>
+<td>READ; SNIPPET for range</td>
+</tr>
+</tbody>
+</table></div>
+<p>Other species from the same sources (dVB13 Table 2, quiet Sun, 1 AU, from [R0934]): CH<sub>3</sub>OH 1.3e-5 1/s (7.7e4 s), H<sub>2</sub>CO 2.0e-4 1/s (5.0e3 s; as a parent), HNC 1.9e-5, CS 2.5e-5 (parent), CN ([R2041] via sbpy) 3.15e5 s quiet and 1.35e5 s active. Hea17 computed: H<sub>2</sub>CO 5.2e3 s, H<sub>2</sub>S 4.3e3 s, N<sub>2</sub> 2.2e6 s, CH<sub>3</sub>OH 1.2e5 s.</p>
+<p>Solar activity: sbpy's two-element arrays are (quiet Sun, active Sun); the active/quiet shortening is 1.68 for H<sub>2</sub>O, 2.35 for CO<sub>2</sub>, 2.33 for CN. Rag20 (quoting [R2041]) says rates vary by about a factor 2 between solar minimum and maximum. dVB13 and [R0408] note that rates for species absorbing at 130 to 200 nm vary little with activity; Lyman-alpha and the extreme UV drive the variation. Therefore: Boss's H<sub>2</sub>O, CO, CO<sub>2</sub>, HCN are all quiet-Sun values and must be labelled so.</p>
+<h3 id="g13-photolysis-products">G1.3 Photolysis products</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>The right figure</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1.3a</td>
+<td>H<sub>2</sub>O to OH + H and O(1D) + H<sub>2</sub></td>
+<td>CONFIRMED (add branching)</td>
+<td>Solar field: OH + H 0.88, O + 2H or O + H<sub>2</sub> 0.12 (not state-resolved); Lyman-alpha field 0.74 / 0.26. Emission-line model: H<sub>2</sub>O to O(1D) 1.0e-6 1/s at 1 AU, about 8 percent of the total rate</td>
+<td>Hea17 Table 22; Rag20 Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.3b</td>
+<td>CO to C + O and CO+ + e</td>
+<td>CONFIRMED</td>
+<td>Photodissociation C + O, rate 3.0e-7 1/s; photoionisation CO+ + e, 2.45e-7 1/s (so about 45 percent of the destruction is ionisation); C(1D) from CO 7.6e-8 1/s</td>
+<td>Hea17 Tables 1, 18, 19 (COMPUTED x 37 700); Rag20</td>
+<td>READ / COMPUTED</td>
+</tr>
+<tr>
+<td>G1.3c</td>
+<td>CO<sub>2</sub> to CO + O(1D)</td>
+<td>PARTLY</td>
+<td>CO + O is the dominant channel; O(1D) is one excited state of it (1.6e-6 1/s of a total near 2.0e-6 at the quiet Sun, Rag20 Table 6, baseline-model values; do not sum with the O(1S) channel in the same table). Photoionisation to CO<sub>2</sub>+ + e is about 2e-7 1/s (Hea17 COMPUTED)</td>
+<td>Hea17 Table 1; Rag20 Table 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.3d</td>
+<td>CH<sub>4</sub> to CH<sub>3</sub> + H and CH<sub>2</sub> + H<sub>2</sub></td>
+<td>CONFIRMED</td>
+<td>Both channels are real. Hea17 lists CH<sub>3</sub> + H as the main channel; Jac76 gives CH<sub>2</sub> + H<sub>2</sub> 0.42 to 0.52 and CH<sub>3</sub> + H 0.48 to 0.58 at 121.6 nm (OCR of the inequalities is partly garbled). A third channel CH + H<sub>2</sub> + H exists (RECALLED, not checked)</td>
+<td>Hea17 Table 1 and Sect. 4.3.19; Jac76</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.3e</td>
+<td>C<sub>2</sub>H<sub>6</sub> to C<sub>2</sub>H<sub>4</sub> + H<sub>2</sub> and CH<sub>3</sub> + CH<sub>3</sub></td>
+<td>UNVERIFIABLE</td>
+<td>Not in any file read: Hea17 gives only the cross section and ionisation fraction for C<sub>2</sub>H<sub>6</sub>. Tried Hea17 Sect. 4.3.23, Jac76, Rag20. Missing: Lee et al. or Gans et al. branching at Lyman-alpha. RECALLED: C<sub>2</sub>H<sub>4</sub> + H<sub>2</sub> and C<sub>2</sub>H<sub>4</sub> + 2H dominate, CH<sub>3</sub> + CH<sub>3</sub> and CH<sub>4</sub> + CH<sub>2</sub> are minor</td>
+<td></td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>G1.3f</td>
+<td>NH<sub>3</sub> to NH<sub>2</sub> + H</td>
+<td>CONFIRMED</td>
+<td>Solar field: NH<sub>2</sub> + H 0.99, NH + H<sub>2</sub> or NH + 2H 0.01. At Lyman-alpha the split reverses (NH<sub>2</sub> + H 0.05, NH + H<sub>2</sub> 0.95). The NH<sub>2</sub> daughter then lives 3.4e4 s</td>
+<td>Hea17 Table 22; NTRS 19930010041</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.3g</td>
+<td>HCN to CN + H</td>
+<td>CONFIRMED</td>
+<td>H + CN is the listed dissociation product (grade A); photoionisation rate 2.8e-7 1/s (COMPUTED)</td>
+<td>Hea17 Table 1</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="g14-diagnostic-bands">G1.4 Diagnostic bands</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>The right figure</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1.4a1</td>
+<td>OH 18 cm</td>
+<td>CONFIRMED</td>
+<td>OH radical lines at 18 cm (Nancay); the 1665 and 1667 MHz frequencies are not printed there</td>
+<td>Cro16 Sect. 2</td>
+<td>READ (frequencies RECALLED)</td>
+</tr>
+<tr>
+<td>G1.4a2</td>
+<td>OH 309 nm</td>
+<td>PARTLY</td>
+<td>The OH ultraviolet band is quoted as 3080 Angstrom (308 nm); 309 nm is the upper edge</td>
+<td>Coch15; HP22</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4b</td>
+<td>CO 4.67 um and 230 GHz (J = 2-1)</td>
+<td>CONFIRMED</td>
+<td>4.67 um fundamental; CO 2-1 at 230.538 GHz</td>
+<td>HP22; dVB13 Table 1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4c</td>
+<td>CO<sub>2</sub> 4.26 um</td>
+<td>CONFIRMED</td>
+<td>nu3 antisymmetric stretch at 4.26 um</td>
+<td>HP22</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4d</td>
+<td>CH<sub>4</sub> 3.30 um (nu3)</td>
+<td>CONFIRMED</td>
+<td>nu3 asymmetric stretch &quot;near 3.3 um&quot;</td>
+<td>Bel26</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4e</td>
+<td>C<sub>2</sub>H<sub>6</sub> 3.35 um (nu7)</td>
+<td>PARTLY</td>
+<td>The nu7 band lies in the 3.3 um region (NTRS 20110023457 title &quot;nu7 Band at 3.3 Micrometers&quot;); the 3.35 um head is not printed in any file read</td>
+<td>NTRS 20110023457</td>
+<td>READ (3.3 um); 3.35 um SNIPPET</td>
+</tr>
+<tr>
+<td>G1.4f1</td>
+<td>NH<sub>3</sub> 1.15 mm sub-mm rotational</td>
+<td>CONTRADICTED</td>
+<td>The ground-state rotational line JK = 1_0 to 0_0 is at 572.498 GHz (0.524 mm), searched by Odin. The inversion lines (J, K = J, J = 1 to 4) are in the 18 to 26 GHz range (1.2 to 1.7 cm; 23.694 GHz for (1,1) is RECALLED); NH<sub>3</sub> was detected at centimetre wavelengths with the Effelsberg 100-m telescope (Hale-Bopp). No NH<sub>3</sub> line near 1.15 mm (261 GHz) exists in these sources</td>
+<td>Odin07 (Sect. 2, 6); Hat05 abstract; Cro16 Sect. 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4f2</td>
+<td>NH<sub>3</sub> 3.0 um</td>
+<td>UNVERIFIABLE</td>
+<td>iSHELL covers 2.8 to 5.3 um and detects NH<sub>3</sub> ([R1312] abstract, SNIPPET); the band position was not read</td>
+<td></td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>G1.4g</td>
+<td>HCN 88.6 GHz (J = 1-0)</td>
+<td>CONFIRMED</td>
+<td>three hyperfine components of J = 1-0 at 88.6 GHz (IRAM)</td>
+<td>Cro16 Fig. 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G1.4h</td>
+<td>CN violet 388 nm</td>
+<td>CONFIRMED</td>
+<td>CN band at 3880 Angstrom</td>
+<td>Coch15 Fig. 2 caption</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="g15-classify-comets-by-chemistry-r9-suggestion">G1.5 Classify comets by chemistry (R9 suggestion)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>What the literature gives</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1.5</td>
+<td>Classify by hyper-volatiles (CO/H2O, CH<sub>4</sub>/H2O) and D/H instead of dynamical class</td>
+<td>PARTLY</td>
+<td>Sound in spirit, not an established taxonomy. See Findings 2.5</td>
+<td>Coch15; Eis19; HP22; Rob24 DB; Alt15</td>
+<td>READ / COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figures-for-the-generator">Figures for the generator</h2>
+<h3 id="21-species-table-constants-not-per-comet">2.1 Species table (constants, not per comet)</h3>
+<p>Keep these on the species record (all PARAMETRISATION or table constants, not draws):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Source of the numbers</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>beta0_diss</code>, <code>beta0_ion</code> (1/s at 1 AU, quiet Sun, unshielded)</td>
+<td>Hea17 Tables 18 and 19 times 37 700 (COMPUTED), cross-checked with HM15 via sbpy and with [R0934] via dVB13</td>
+<td>Values in the table in 2.2</td>
+</tr>
+<tr>
+<td><code>lifetime_1au_s</code> (quiet) and <code>activity_factor</code> (about 1.7 to 2.4 for the active Sun; PARAMETRISATION from HM15 and Rag20)</td>
+<td>sbpy; Rag20</td>
+<td>H<sub>2</sub>O 1.68, CO<sub>2</sub> 2.35</td>
+</tr>
+<tr>
+<td><code>spectral_ratio_cool</code> and <code>spectral_ratio_hot</code> (rate for a 4000 K and a 10 000 K black body divided by the solar rate at equal 91.2 to 200 nm flux)</td>
+<td>Hea17 Table 18 (COMPUTED)</td>
+<td>See 2.2: the correction is species-specific and spans five orders of magnitude</td>
+</tr>
+<tr>
+<td>photolysis <code>branching</code> table</td>
+<td>Hea17 Table 22 for H<sub>2</sub>O and NH<sub>3</sub>; Table 1 for the others</td>
+<td>For C<sub>2</sub>H<sub>6</sub> no source read</td>
+</tr>
+<tr>
+<td><code>band</code> list (wavelength or frequency, transition)</td>
+<td>section G1.4</td>
+<td>Display and detection only</td>
+</tr>
+</tbody>
+</table></div>
+<p>Scaling law for the generator (PARAMETRISATION assembled from READ parts): beta_i(r, star) = beta0_i x S_i(T_eff) x A_activity / r^2, with r in AU, S_i interpolated in log between the three template spectra of the species record (4000 K, Sun, 10 000 K) by the star's effective temperature, A_activity = 1 for a quiet star and the species factor above for an active one. Comet-coma length scale L = v_exp / beta. The r^-2 law is READ (dVB13); S_i and A_activity are not a published law, they are a reduction of Hea17's templates.</p>
+<h3 id="22-computed-quiet-sun-photolysis-table-unshielded-1-au">2.2 Computed quiet-Sun photolysis table (unshielded, 1 AU)</h3>
+<p>Hea17 text: the solar field is a &quot;quiet period&quot; spectrum (SOHO-SUMER plus UARS SOLSTICE); the tabulated rates are for the Draine-normalised field and the solar rates &quot;should be scaled by 37 700&quot; (flux 0.098 W per square metre between 91.2 and 200 nm). Output of <code>G1_heays_solar_lifetimes.py</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>beta_diss 1/s</th>
+<th>beta_ion 1/s</th>
+<th>tau total s</th>
+<th>Rate ratio 4000 K / Sun</th>
+<th>Rate ratio 10 000 K / Sun</th>
+<th>Compare</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>8.67e-6</td>
+<td>1.58e-7</td>
+<td>1.13e5</td>
+<td>0.70</td>
+<td>2.0</td>
+<td>HM15 8.3e4</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>3.02e-7</td>
+<td>2.45e-7</td>
+<td>1.83e6</td>
+<td>3.5e-4</td>
+<td>2.2</td>
+<td>1.54e6 (dVB13)</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>6.41e-7</td>
+<td>1.96e-7</td>
+<td>1.20e6</td>
+<td>0.14</td>
+<td>6.5</td>
+<td>HM15 4.95e5</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>4.90e-6</td>
+<td>3.51e-7</td>
+<td>1.90e5</td>
+<td>0.013</td>
+<td>2.1</td>
+<td>Jac76 1.2e5</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>6.03e-6</td>
+<td>8.67e-7</td>
+<td>1.45e5</td>
+<td>0.037</td>
+<td>3.0</td>
+<td>none read</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>1.55e-4</td>
+<td>3.62e-7</td>
+<td>6.46e3</td>
+<td>0.88</td>
+<td>0.41</td>
+<td>Odin07 6.7e3</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>7.92e-6</td>
+<td>2.83e-7</td>
+<td>1.22e5</td>
+<td>0.027</td>
+<td>1.3</td>
+<td>dVB13 6.7e4</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>7.92e-6</td>
+<td>6.03e-7</td>
+<td>1.17e5</td>
+<td>0.57</td>
+<td>2.5</td>
+<td>dVB13 7.7e4</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>1.92e-4</td>
+<td>4.90e-7</td>
+<td>5.19e3</td>
+<td>0.78</td>
+<td>0.19</td>
+<td>dVB13 5.0e3</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>2.30e-4</td>
+<td>9.80e-7</td>
+<td>4.33e3</td>
+<td>0.69</td>
+<td>0.36</td>
+<td>none read</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>4.15e-7</td>
+<td>4.90e-8</td>
+<td>2.16e6</td>
+<td>2.9e-5</td>
+<td>1.0</td>
+<td>none read</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading it: Hea17-derived lifetimes agree with comet-community values within a factor 1.1 for NH<sub>3</sub>, H<sub>2</sub>CO, within 1.2 for CO, and are 1.4 to 2.4 times longer for H<sub>2</sub>O, HCN, CH<sub>3</sub>OH, CO<sub>2</sub>. Use the HM15/Crovisier values where they exist (G1.2 table) and the Hea17 values only for C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>S, N<sub>2</sub>, with an uncertainty factor 2. Shielding (self-shielding of CO and N<sub>2</sub> in a dense inner coma) is not included in any number here. Spectral dependence is the larger problem: for a 4000 K star the CO and N<sub>2</sub> photodissociation rates fall by 3.5e-4 and 2.9e-5 relative to the Sun at the same 91.2 to 200 nm flux, CH<sub>4</sub> by 80, HCN by 40, while NH<sub>3</sub> and H<sub>2</sub>CO barely change. A single &quot;stellar UV&quot; scalar is wrong by orders of magnitude for CO, N<sub>2</sub>, CH<sub>4</sub>, HCN, CO<sub>2</sub> around cool stars.</p>
+<h3 id="23-composition-distributions-for-comets-parametrisation-from-the-database-r_h-at-most-2-au-per-comet-median">2.3 Composition distributions for comets (PARAMETRISATION, from the database, r_h at most 2 AU, per-comet median)</h3>
+<p>Each species: log-normal in the ratio to water with the geometric mean and sigma below. Hard bounds are the observed extremes. These are coma ratios; 67P is the only bulk estimate.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Geo-mean %</th>
+<th>sigma dex</th>
+<th>Hard bounds %</th>
+<th>P-type median</th>
+<th>C-type median</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO</td>
+<td>2.6</td>
+<td>0.64</td>
+<td>0.15 to 30</td>
+<td>1.2</td>
+<td>8.4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>11</td>
+<td>0.27</td>
+<td>2 to 37</td>
+<td>14.5</td>
+<td>8 (N = 3 only)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>0.68</td>
+<td>0.31</td>
+<td>0.15 to 2.2</td>
+<td>0.54</td>
+<td>0.95</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>0.37</td>
+<td>0.29</td>
+<td>0.09 to 0.9</td>
+<td>0.30</td>
+<td>0.62</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>0.55</td>
+<td>0.22</td>
+<td>0.12 to 0.9</td>
+<td>0.66</td>
+<td>0.48</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>0.13</td>
+<td>0.25</td>
+<td>0.03 to 0.4</td>
+<td>0.13</td>
+<td>0.165</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>1.9</td>
+<td>0.32</td>
+<td>0.2 to 4.5</td>
+<td>1.95</td>
+<td>2.4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>0.25</td>
+<td>0.34</td>
+<td>0.09 to 1.1</td>
+<td>0.19</td>
+<td>0.30</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>0.71</td>
+<td>0.37</td>
+<td>0.09 to 1.5</td>
+<td>0.71</td>
+<td>1.2</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Limits of the database: it contains the comets that also have a measured nucleus size, mixes several instruments, and 67P enters with in situ data. The type split is Periodic (P: JFC and Halley type) against Long-period or Hyperbolic (C); it does not separate JFC from Halley type or dynamically new from old. Dello [R1063] itself was not read.</p>
+<h3 id="24-relations-between-species">2.4 Relations between species</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Relation</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(CO + CO<sub>2</sub>)/H2O</td>
+<td>median 18 +- 4 percent for most comets (18 comets)</td>
+<td>HP22 abstract, Table 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Rank correlation CO against CO<sub>2</sub></td>
+<td>rho = -0.86 (N = 8): CO and CO<sub>2</sub> trade off</td>
+<td>G1 script</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Rank correlation CO against CH<sub>4</sub></td>
+<td>rho = 0.34 (N = 12); CO against C<sub>2</sub>H<sub>6</sub> 0.11; CH<sub>4</sub> against C<sub>2</sub>H<sub>6</sub> 0.28; CO against HCN 0.48 (N = 14); CO against CH<sub>3</sub>OH -0.12 (N = 13). The hyper-volatiles CO and CH<sub>4</sub> are weakly or not correlated, consistent with a search snippet that they vary most and are not correlated</td>
+<td>G1 script; SNIPPET</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO/H2O against nucleus radius, r_h at most 2 AU</td>
+<td>log10(CO percent) = 0.08 + 0.91 log10(R in km), residual 0.52 dex, Pearson 0.66, N = 16</td>
+<td>G1 script on Rob24 DB. Rob24 reports the CO correlation as the only strongest one (three-sigma level) and stronger for ecliptic comets than nearly isotropic ones</td>
+<td>COMPUTED / READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The size relation is confounded: Oort-type comets are larger and have higher CO. Treat as a candidate driver (Rob24's model: radiogenic heating redistributes hyper-volatiles in larger nuclei), not a law.</p>
+<h3 id="25-taxonomy-facts-answers-to-g15">2.5 Taxonomy facts (answers to G1.5)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement</th>
+<th>Number</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Optical (daughter-species photometry and spectroscopy: [R0049] 85 comets, [R2559] 130 comets, about 250 in total)</td>
+<td>the majority are alike; 25 to 30 percent are different, mostly depleted in C2 and C3. Typical share quoted 75 to 91 percent and about 70 percent (Schleicher and Bair)</td>
+<td>Coch15 Sect. 2.2; Eis19</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Number of optical classes</td>
+<td>7 (typical about 70 percent; strongly C2+C3 depleted; weakly C2+C3 depleted; C2 only; C3 only; NH only; CN-low)</td>
+<td>Coch15</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Dynamical type of depleted comets</td>
+<td>any type, &quot;more common for Jupiter Family&quot;; two thirds of depleted comets are JFC and one third long period; depleted fraction 37 percent of JFC against 18.5 percent of long-period</td>
+<td>Coch15</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Infrared (primary parent volatiles, [R3206], Dello [R1063])</td>
+<td>three groups: typical, organic-enriched, organic-severely-depleted; 8P/Tuttle is typical in the optical but peculiar in the IR</td>
+<td>Coch15 Sect. 2.3 (Mumma and Charnley read second-hand)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Radio ([R0936], about 30 comets)</td>
+<td>no evidence for the three IR categories; no JFC/other difference; wide spread for most species; HCN narrow</td>
+<td>Coch15</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Dello [R1063] (30 comets, 8 volatiles)</td>
+<td>JFCs depleted in volatiles relative to long-period (press summary only)</td>
+<td>SNIPPET</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Dynamical class against composition (G1 test, permutation on per-comet log ratios, r_h at most 2 AU)</td>
+<td>share of variance explained by P against C: CO 0.28 (p = 0.035; N = 9 against 7), H<sub>2</sub>S 0.25 (p = 0.16), CO<sub>2</sub> 0.14 (p = 0.17), HCN 0.08, NH<sub>3</sub> 0.06, CH<sub>3</sub>OH 0.05, H<sub>2</sub>CO 0.05, C<sub>2</sub>H<sub>6</sub> 0.04, CH<sub>4</sub> 0.00 (all p above 0.2)</td>
+<td>G1 script</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO against CO<sub>2</sub> by family (HP22 Table 2)</td>
+<td>JFC: 8 of 9 CO<sub>2</sub>-dominated; OCC: 5 CO<sub>2</sub>-dominated, 6 CO-dominated, 3 comparable; dynamically new Oort comets have more CO<sub>2</sub> relative to CO than older ones</td>
+<td>HP22</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>A chemical taxonomy from formation location</td>
+<td>15 comets fall on a &quot;trail&quot; tracing the CO iceline at about 30 AU early to 12 AU later; proposed as an alternative taxonomy and a formation-time classification</td>
+<td>Eis19 abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>D/H in water</td>
+<td>67P (5.3 +- 0.7) e-4; 103P (1.61 +- 0.24) e-4; 45P below 2.0e-4 (upper limit); Halley about 3e-4; protosolar nebula (2.1 +- 0.5) e-5</td>
+<td>Alt15 text; Coch15</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>JWST era</td>
+<td>no Solar System comet abundance table found. 3I/ATLAS (interstellar): CO<sub>2</sub>/H2O = 7.6 +- 0.3 and CO/H2O = 1.65 +- 0.09 at r_h = 3.32 AU (ratios, i.e. 760 and 165 percent), CH<sub>4</sub> enriched</td>
+<td>Cor25; Bel26</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>So: chemistry-based classes exist, but the best-documented ones are on optical daughter species or on IR primary species (3 groups), not on CO and CH<sub>4</sub>; no source read defines hyper-volatile classes with fractions; D/H has too few values (3 to 4 JFC or Halley comets) to classify and does not follow dynamical class (the two JFCs differ by a factor 3).</p>
+<h2 id="how-the-generator-should-compute-or-draw-it">How the generator should compute or draw it</h2>
+<h3 id="31-per-comet-store-or-draw">3.1 Per comet: store or draw</h3>
+<p>Already stored in the comet record: nucleus radius, dynamical <code>period_class</code>, interstellar flag. New stored quantities (PARAMETRISATION, seeded draws):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Draw</th>
+<th>Per body or constant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x_CO</code>, <code>x_CO2</code>, <code>x_CH4</code>, <code>x_C2H6</code>, <code>x_NH3</code>, <code>x_HCN</code>, <code>x_CH3OH</code>, <code>x_H2CO</code>, <code>x_H2S</code>, <code>x_N2</code></td>
+<td>percent of H<sub>2</sub>O (number ratio)</td>
+<td>log-normal, geometric mean and sigma from 2.3, truncated at the hard bounds</td>
+<td>per body</td>
+</tr>
+<tr>
+<td><code>carbon_chain_depleted</code></td>
+<td>flag</td>
+<td>Bernoulli: p = 0.37 for JFC, 0.185 for long-period, 0.25 otherwise (from Coch15)</td>
+<td>per body</td>
+</tr>
+<tr>
+<td><code>dh_water</code></td>
+<td>ratio</td>
+<td>PARAMETRISATION only: uniform in log between 1.5e-4 and 5.5e-4 (the span of three measured JFC or Halley values); not tied to class</td>
+<td>per body (optional)</td>
+</tr>
+<tr>
+<td>coma <code>beta_i(r)</code></td>
+<td>1/s</td>
+<td>computed from the species constants and the star, never stored per comet</td>
+<td>derived</td>
+</tr>
+</tbody>
+</table></div>
+<p>Constants of the species table (not per comet): <code>beta0_diss</code>, <code>beta0_ion</code>, quiet lifetime, <code>activity_factor</code>, spectral templates, branching, bands. A photolysis lifetime is a species constant at 1 AU scaled by r squared and by the star's spectrum, not a body property.</p>
+<h3 id="32-route-recommendation-for-comets-route-2">3.2 Route recommendation for comets (route 2)</h3>
+<p>Draw composition first, then derive bulk density, as part D already recommends. For the hyper-volatile block I recommend a three-step draw that keeps the observed anticorrelation and the 18 percent carbon budget:</p>
+<ol>
+<li>S = (CO + CO<sub>2</sub>)/H2O: log-normal with median 18 percent and sigma 0.2 dex (GEN.629: the scatter among single comets from the [R3782] database, 0.197 dex for 9 comets within 2.5 AU and 0.138 within 2.0 AU, the widest kept; the first draft took the +-4 of 18 in HP22, 0.1 dex, which is the median's uncertainty and not the comets' spread).</li>
+<li>f = CO/(CO + CO<sub>2</sub>): logit-normal with class median 0.08 for JFC and 0.5 for Oort type (from P and C medians 1.2/(1.2 + 14.5) and 8.4/(8.4 + 8), computed from different comet subsets, so rough), logit sigma about 1.5 so that 0.01 to 0.9 is covered (PARAMETRISATION).</li>
+<li>All other species independent log-normals from 2.3.</li>
+</ol>
+<p>Alternative (single-variable): draw log10(CO percent) = 0.08 + 0.91 log10(R) + N(0, 0.52), clipped to 0.15 to 30, and CO<sub>2</sub> from S minus CO. Use either, not both. The dynamical-class split of CO (28 percent of variance) is the largest class effect found; all others are below 10 percent and not significant, so apart from CO (or the f step) and the depleted flag, composition draws should not depend on class.</p>
+<p>A classification by CO/H2O and CH<sub>4</sub>/H2O alone is not supported as a taxonomy by what was read. Proposed instead: store the continuous fractions, derive a descriptive label at read time (for example CO/H2O below 1 percent &quot;CO-poor&quot;, above 10 percent &quot;CO-rich&quot;; these thresholds are a PARAMETRISATION from the observed range) and keep dynamical class as the source of the <code>carbon_chain_depleted</code> probability.</p>
+<h3 id="33-consistency-tests-a-test-could-assert">3.3 Consistency tests a test could assert</h3>
+<ol>
+<li>For every comet: sum of x_i for the drawn volatiles stays below a cap implied by the ice mass fraction (part D, 40 to 50 percent ices by mass).</li>
+<li>beta_i(r) = beta0_i x S_i x A / r^2: doubling r divides beta by 4 (exact).</li>
+<li>Quiet-Sun lifetimes reproduce the table in G1.2 within the stated tolerance (2 percent for H<sub>2</sub>O, CO, CO<sub>2</sub>, HCN, CH<sub>3</sub>OH, H<sub>2</sub>CO; 10 percent for NH<sub>3</sub>).</li>
+<li>The star at 4000 K gives CO beta below 1e-3 of the solar value; at 10 000 K above the solar value (Hea17 ratios).</li>
+</ol>
+<h2 id="calibration-and-test-targets-solar-system-only-never-presets">Calibration and test targets (Solar System only, never presets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Value</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>67P bulk ratios (CO<sub>2</sub> 4.7, CO 3.1, CH<sub>4</sub> 0.34, C<sub>2</sub>H<sub>6</sub> 0.29, NH<sub>3</sub> 0.67, HCN 0.14, CH<sub>3</sub>OH 0.21, H<sub>2</sub>CO 0.32, H<sub>2</sub>S 1.10, N<sub>2</sub> 0.089 percent of H<sub>2</sub>O)</td>
+<td>Rub19 Table 2 (READ)</td>
+<td>the draw should be able to reach each value inside its 2-sigma</td>
+</tr>
+<tr>
+<td>103P/Hartley 2: CO 0.3 (0.15 to 0.45), CO<sub>2</sub> about 20</td>
+<td>Dello [R0047, R1063]</td>
+<td>CO-poor, CO<sub>2</sub>-rich corner</td>
+</tr>
+<tr>
+<td>Hale-Bopp: CO 26, CH<sub>4</sub> 1.22, HCN 0.36, H<sub>2</sub>S 1.5</td>
+<td>Rob24 DB</td>
+<td>CO-rich corner</td>
+</tr>
+<tr>
+<td>Lifetimes</td>
+<td>table G1.2</td>
+<td>species constants</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="changes-to-parts-a-to-f">Changes to parts A to F</h2>
+<ol>
+<li>Part D, 3.4.2 step 3: &quot;other species as lognormal around the 67P table with sigma 0.5 dex&quot; should change. The population geometric means differ from 67P by 10 times for CH<sub>3</sub>OH (1.9 against 0.21) and 2 times for CH<sub>4</sub> (0.68 against 0.34), and the scatter is 0.22 to 0.37 dex (CO 0.64), not 0.5 dex. Use the table in 2.3 and keep 67P as a test target.</li>
+<li>Part D, 3.4.2 step 6 (interstellar CO/H2O log-uniform on 0.01 to 1.6): the 3I/ATLAS value 1.65 +- 0.09 (at 3.3 AU, Cor25) sits at the top edge and the CO<sub>2</sub>/H2O value 7.6 is far beyond the 2 to 30 percent range of Solar System comets; widen the interstellar range or draw CO<sub>2</sub> separately (one measurement; PARAMETRISATION).</li>
+<li>Part F row 8: the lower CO bound 0.15 percent is real (Hartley 2, Coch15), so &quot;not in what was read&quot; is now closed; the CO figure in Part D (median 3.3, 0.3 to 26) is confirmed against HP22 and against Rob24.</li>
+<li>Part D, comet record (<code>period_class</code> weights jupiter_family 50, halley_type 30, long_period 20): not checked here; unchanged.</li>
+</ol>
+<h2 id="still-unreachable-boss-must-research">Still unreachable (Boss must research)</h2>
+<ol>
+<li>Dello [R1063]: the tier definitions, number of classes and fractions of the IR taxonomy. All of its per-comet values are in the Rob24 database but not the classes.</li>
+<li>[R3206]: the three-group IR taxonomy and abundance ranges for about 20 species (only second-hand here).</li>
+<li>[R0435], Phil. Trans. R. Soc. A 375, 20160252: the range table for 28 molecules; HAL record obspm-02268099 shows a link only to the refused publisher PDF.</li>
+<li>[R2040] (PSS 106, 11) and [R2041] (Ap&amp;SS 195, 1): quiet and active photo rates for CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, NH<sub>3</sub>, H<sub>2</sub>S, N<sub>2</sub> and the full branching tables; [R0934]. The PHIDRATES site (phidrates.space.swri.edu) resets the connection.</li>
+<li>C<sub>2</sub>H<sub>6</sub> photolysis branching at Lyman-alpha and the NH<sub>3</sub> 3.0 um band position in a comet paper [R1312].</li>
+<li>[R0410] (the note's reference): no single paper was identified; [R0408] is read for HNCO, HCOOH, CO below 2 percent and H<sub>2</sub>S 0.15 percent in C/2021 A1 and C/2022 E3 only.</li>
+<li>Solar System JWST comet papers (for example abundance tables for 12P/Pons-Brooks or C/2017 K2): searches returned only 3I/ATLAS papers and ground-based C/2017 K2.</li>
+</ol>
+<h2 id="counts">Counts</h2>
+<p>31 verdict rows (G1.1 six, G1.2 seven, G1.3 seven, G1.4 ten, G1.5 one). The five added species rows are not claims and are not counted.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Count</th>
+<th>Rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CONFIRMED</td>
+<td>17</td>
+<td>G1.1c, G1.1d; G1.2a, b, c, g; G1.3a, b, d, f, g; G1.4a1, b, c, d, g, h</td>
+</tr>
+<tr>
+<td>PARTLY</td>
+<td>9</td>
+<td>G1.1a, b, e, f; G1.2d; G1.3c; G1.4a2, e; G1.5</td>
+</tr>
+<tr>
+<td>CONTRADICTED</td>
+<td>2</td>
+<td>G1.2f (NH<sub>3</sub> lifetime); G1.4f1 (NH<sub>3</sub> 1.15 mm)</td>
+</tr>
+<tr>
+<td>UNVERIFIABLE</td>
+<td>3</td>
+<td>G1.2e (C<sub>2</sub>H<sub>6</sub> lifetime); G1.3e (C<sub>2</sub>H<sub>6</sub> products); G1.4f2 (NH<sub>3</sub> 3.0 um)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Approximate label counts for the figures in this file: READ about 55 items, 2ND-HAND about 8, COMPUTED about 60 (table cells), SNIPPET 4, RECALLED 4 (OH 18 cm frequencies, NH<sub>3</sub> 23.694 GHz, CH + H<sub>2</sub> + H channel, C<sub>2</sub>H<sub>6</sub> products), NOT REACHED 7 sources (list above).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

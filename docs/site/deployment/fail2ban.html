@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocking login brute force with fail2ban - planetGen docs</title>
+<meta name="description" content="planetGen locks an address out by itself after failed sign-ins (3 failures, then 5 minutes doubling to a day; api.md).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/deployment/fail2ban.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="deployment/fail2ban.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="blocking-login-brute-force-with-fail2ban">Blocking login brute force with fail2ban</h1><p class="meta">docs/deployment/fail2ban.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#before-you-start">Before you start</a></li><li style="margin-left:0px"><a href="#install-debian-ubuntu">Install (Debian, Ubuntu)</a></li><li style="margin-left:0px"><a href="#what-the-jail-does">What the jail does</a></li><li style="margin-left:0px"><a href="#apache-level-options">Apache-level options</a></li><li style="margin-left:0px"><a href="#other-platforms">Other platforms</a></li></ul></details>
+<p>planetGen locks an address out by itself after failed sign-ins (3
+failures, then 5 minutes doubling to a day; <a href="../reference/api.html"><code>api.md</code></a>). On
+Linux, fail2ban can go further and drop a guessing address at the
+firewall, so it can't reach the site at all. It reads the activity log
+(<a href="../reference/config.html#the-activity-log"><code>config.md</code></a>), which writes one line per
+failed sign-in with the client's address.</p>
+<p>The filter and jail are in <a href="https://github.com/dwhagar/planetGen/tree/main/examples/fail2ban"><code>examples/fail2ban/</code></a>.
+They match four events:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AUTH login.failed</code></td>
+<td>A wrong username or password at <code>/login</code> or <code>POST /api/auth/login</code>.</td>
+</tr>
+<tr>
+<td><code>AUTH login.locked</code></td>
+<td>A sign-in refused, unchecked, while planetGen's own lockout is on.</td>
+</tr>
+<tr>
+<td><code>AUTH password.failed</code></td>
+<td>A wrong current password on the account page (change credentials).</td>
+</tr>
+<tr>
+<td><code>AUTH totp.failed</code></td>
+<td>A wrong two-factor code at sign-in, or when turning two-factor sign-in off.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="before-you-start">Before you start</h2>
+<ul>
+<li>The activity log must be written. <code>update.sh</code> creates
+<code>/var/log/planetgen/</code> and the log (<code>planetgen.log</code>); check that it
+fills when you fail a sign-in on purpose:
+<code>sudo tail /var/log/planetgen/planetgen.log</code>.</li>
+<li><strong>Behind a reverse proxy</strong> (Cloudflare, a load balancer, nginx in front
+of Apache), set <code>proxy_fix</code> in <code>config.json</code> first. Without it every
+visitor has the proxy's address, the log shows that address, and the
+jail would ban the proxy: the whole site for everyone.</li>
+<li>Add your own fixed address to <code>ignoreip</code> in the jail, and to
+<code>login_allowlist</code> in <code>config.json</code> if you'd like planetGen itself to
+never lock it either.</li>
+</ul>
+<h2 id="install-debian-ubuntu">Install (Debian, Ubuntu)</h2>
+<pre><code class="language-sh">sudo apt install fail2ban
+sudo cp examples/fail2ban/planetgen.filter.conf /etc/fail2ban/filter.d/planetgen.conf
+sudo cp examples/fail2ban/planetgen.jail.conf /etc/fail2ban/jail.d/planetgen.conf
+# Check the filter against the log (shows how many lines match):
+sudo fail2ban-regex /var/log/planetgen/planetgen.log /etc/fail2ban/filter.d/planetgen.conf
+sudo fail2ban-client reload
+sudo fail2ban-client status planetgen
+</code></pre>
+<p>If you set <code>log_dir</code> in <code>config.json</code>, change <code>logpath</code> in the jail to
+that folder's <code>planetgen.log</code>.</p>
+<h2 id="what-the-jail-does">What the jail does</h2>
+<p>10 failed sign-ins from one address within 10 minutes ban it for an hour
+(<code>maxretry</code>, <code>findtime</code>, <code>bantime</code>). Each later ban of the same address
+lasts twice as long as the last, up to a week (<code>bantime.increment</code>,
+<code>bantime.factor</code>, <code>bantime.maxtime</code>). Loopback is never banned. The
+numbers sit above planetGen's own lockout on purpose: a typo or two never
+reaches the firewall, but a script that keeps guessing through the
+lockout does.</p>
+<p>The log's times are local with the offset of their zone (<code>2026-10-01T05:43:33-0400</code>), and the filter's <code>datepattern</code> reads the offset, so it works whatever the server's own time zone is.</p>
+<p>To lift a ban: <code>sudo fail2ban-client set planetgen unbanip &lt;address&gt;</code>.
+To lift planetGen's own lockout as well: Admin › Stats › Login lockouts,
+or <code>python3 -m planetgen.cli.lift_lockout --ip &lt;address&gt;</code>.</p>
+<h2 id="apache-level-options">Apache-level options</h2>
+<p>Apache modules can also throttle or filter requests before they reach
+planetGen. Both are optional, and neither is set up by <code>install.sh</code>:</p>
+<ul>
+<li><strong>mod_evasive</strong> blocks an address that sends too many requests in a
+short time. It counts every request, not failed sign-ins, so the Galaxy
+Map's many tile requests can trip it; raise its limits well above a
+normal page load if you try it.</li>
+<li><strong>mod_security</strong> (with the OWASP Core Rule Set) is a web application
+firewall. It guards against attacks planetGen already handles (its
+forms are CSRF-protected and its SQL is parameterized), and its rules
+need tuning to avoid blocking normal use.</li>
+</ul>
+<p>planetGen's own lockout plus this fail2ban jail cover password guessing
+without either.</p>
+<h2 id="other-platforms">Other platforms</h2>
+<p>fail2ban is Linux only. On macOS, planetGen's own lockout is
+the protection; the activity log has the same lines for any other tool
+that reads logs.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

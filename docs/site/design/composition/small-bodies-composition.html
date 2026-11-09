@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small bodies and moons: the composition draws, compaction, moon origins and the ice fraction - planetGen docs</title>
+<meta name="description" content="Status (2026-10-21): design note for GEN.457, written from the Body composition research lane&#x27;s part D (D-small-bodies-moons.md), its comet check (G1-comets.md), the master note composition-model.md and the bulk note bulk-composition.md ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/small-bodies-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/small-bodies-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="small-bodies-and-moons-the-composition-draws-compaction-moon-origins-and-the-ice-fraction">Small bodies and moons: the composition draws, compaction, moon origins and the ice fraction</h1><p class="meta">docs/design/composition/small-bodies-composition.md</p><details class="toc"><summary>On this page (23 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-exists-at-main">1. What exists at main</a></li><li style="margin-left:0px"><a href="#2-the-decisions">2. The decisions</a></li><li style="margin-left:0px"><a href="#3-which-kinds-draw-what-first">3. Which kinds draw what first</a></li><li style="margin-left:0px"><a href="#4-the-mixing-rule-the-compaction-law-and-the-hand-over">4. The mixing rule, the compaction law and the hand-over</a></li><li style="margin-left:14px"><a href="#41-the-rule">4.1 The rule</a></li><li style="margin-left:14px"><a href="#42-the-hand-over-a-finding">4.2 The hand-over: a finding</a></li><li style="margin-left:14px"><a href="#43-the-fast-path">4.3 The fast path</a></li><li style="margin-left:0px"><a href="#5-the-tables-in-the-gated-format">5. The tables, in the gated format</a></li><li style="margin-left:14px"><a href="#51-the-taxon-table-belts-and-fields">5.1 The taxon table (belts and fields)</a></li><li style="margin-left:14px"><a href="#52-the-comet-and-icy-body-volatile-tables">5.2 The comet and icy-body volatile tables</a></li><li style="margin-left:14px"><a href="#53-the-icy-bodies">5.3 The icy bodies</a></li><li style="margin-left:14px"><a href="#54-the-moon-origin-table">5.4 The moon origin table</a></li><li style="margin-left:14px"><a href="#55-disk-moons-the-system-the-ice-line-and-the-ramp">5.5 Disk moons: the system, the ice line and the ramp</a></li><li style="margin-left:0px"><a href="#6-what-is-stored-and-what-is-derived">6. What is stored and what is derived</a></li><li style="margin-left:0px"><a href="#7-the-parametrisations-and-when-each-is-replaced">7. The parametrisations and when each is replaced</a></li><li style="margin-left:0px"><a href="#8-worked-example-five-bodies-as-test-targets-only">8. Worked example: five bodies, as test targets only</a></li><li style="margin-left:0px"><a href="#9-test-targets-and-invariants">9. Test targets and invariants</a></li><li style="margin-left:0px"><a href="#10-open-weights-and-gaps">10. Open weights and gaps</a></li><li style="margin-left:0px"><a href="#11-the-items-that-follow">11. The items that follow</a></li><li style="margin-left:0px"><a href="#12-decisions-for-boss">12. Decisions for Boss</a></li><li style="margin-left:0px"><a href="#13-the-derived-taxon-kernel-gen473-lock-free-step">13. The derived taxon kernel (GEN.473, lock-free step)</a></li><li style="margin-left:0px"><a href="#14-the-mass-left-in-a-belt-gen477-e2-lock-free-step">14. The mass left in a belt (GEN.477 E2, lock-free step)</a></li><li style="margin-left:0px"><a href="#15-the-meteorite-groups-as-outputs-gen475-lock-free-step">15. The meteorite groups as outputs (GEN.475, lock-free step)</a></li></ul></details>
+<p><strong>Status (2026-10-21):</strong> design note for GEN.457, written from the Body composition research lane's part D (<a href="body-composition-parts/D-small-bodies-moons.html">D-small-bodies-moons.md</a>), its comet check (<a href="body-composition-parts/G1-comets.html">G1-comets.md</a>), the master note <a href="composition-model.html">composition-model.md</a> and the bulk note <a href="bulk-composition.html">bulk-composition.md</a> (GEN.426). It changes no stored value and no draw; the build items do (section 11). It settles what part D left to the design: which kinds of body draw their composition first and which derive their density, the compaction law and its hand-over to the structure solver (with a finding that changes the way Boss's 2:10 PM EDT ruling of 2026-10-17 can be met), the taxon, comet, icy-body and moon-origin tables in the gated format of the GEN.472 loader, what is stored and what is derived, the parametrisations with their replace-when-sourced rule, a worked example for five bodies and the test targets. Times are EDT as the lane that reported them gave them, on 2026-10-17 unless a date is shown. Verification states follow the rule of 3:02 AM EDT: <strong>verified</strong>, <strong>partly verified</strong> (with the limit named), <strong>open</strong> (no source; the seeded range used meanwhile is shown), <strong>stand-in</strong> (a measured Solar System shape or a placeholder, flagged, with the item that replaces it). Where two sources disagree the rules of composition-model.md section 4a item 12 decide.</p>
+<p>The numbers marked COMPUTED were made for this note with the two small programs in <code>/mnt/project-files/design-drafts/small-bodies/</code> (<code>handoff.py</code>, <code>taper.py</code>: a uniform-composition sphere in hydrostatic balance, Bierson and Nimmo's two porosity laws mixed by volume, third-order Birch-Murnaghan grains: ice K0 9.2 GPa, K' 5.5, silicate K0 110 GPa, K' 4.0, which are my stand-ins for the solver's EOS). They are a check of the shape of the design, not a replacement for the reference solver of GEN.429.</p>
+<p><strong>Implementation status (2026-10-23, GEN.442):</strong> sections 3 to 5 and the compaction of section 4 are built in <code>physics/compaction.py</code> (with the table <code>physics/data/compaction_table.json</code>, made by <code>scripts/build_compaction_table.py</code>) and <code>physics/small_body_composition.py</code> (the taxon table, the comet, icy-body and ring draws). Belts, comets and interstellar comets read them (<code>AsteroidBelt</code> takes its star for the stored snow line; a comet stores <code>mass_kg</code> from its makeup; <code>tuning.COMET_COMPOSITION</code> and <code>tuning.COMET_NUCLEUS_DENSITY_KG_M3</code> are gone). Section 1 below describes main before that work. Stored composition rows are DB.70; the condition-based classes of lane D read the stored rows. Lane K's interface note: <code>/mnt/project-files/reports/lane-k-contracts-2026-10-23.md</code>.</p>
+<p><strong>Implementation status (2026-10-24, GEN.466 wiring):</strong> every generated moon draws its origin (GEN.714), and its metal, rock, water and ice shares, rock porosity and mass come from the origin's makeup in <code>bulk_draw</code> (<code>_draw_moon</code>): a giant's moons share one disk system (<code>draw_disk_system</code>, drawn once before the moons), the formation distance of a disk moon is its present distance (moons migrate, so a stand-in), the rock's FeO, Al<sub>2</sub>O<sub>3</sub> and Mg/Si still come from the star, and a moon lighter than 1e21 kg takes its mass from its class radius by the tapered brittle law (<code>moon_composition.mass_from_radius_kg</code>) while a heavier one goes to the structure solver with no macroporosity. The moon's class letter still decides its radius, atmosphere and life until the class cut-over (GEN.646), so a class and a composition can disagree until then. The disk system's partition of the total moon mass among the large moons is drawn but the room-filling loop of <code>generate_moons</code> still sets the number and size of the moons. The origin and disk are held while the moon is generated and are not stored (DB.70).</p>
+<h2 id="1-what-exists-at-main">1. What exists at main</h2>
+<ul>
+<li><strong>Belts and fields.</strong> <code>AsteroidBelt</code> (generation/belt.py) draws four names from the flat list <code>tuning.ASTEROID_COMPONENTS</code> and gives them the words high, moderate, small and trace; the density word (dense, sparse, typical) is a separate uniform draw; the mass is stated as zero (NAV.62). A standalone field draws one of eight families by frequencies with no source. The replacement of that draw is GEN.477; this note gives it the taxon table it reads.</li>
+<li><strong>Comets.</strong> <code>Comet</code> (generation/comet.py) draws a nucleus diameter of 0.5 to 20 km, an orbit and a list of ten components; <code>bulk_mass.comet_nucleus_mass_kg</code> takes the mass from one tuning density. No volatile abundance, ratio or porosity is stored.</li>
+<li><strong>Dwarf planets, class D.</strong> A class D body (GEN.1091: small, airless (surface pressure under 10 Pa) and at least 1 percent of its mass water or ice; size is not in the rule; the intended scale is a dwarf planet or a moon, radius 50 to 500 km) draws the rocky density of every terrestrial class, 3.93 to 5.37 g/cm3 (finding F3).</li>
+<li><strong>Moons.</strong> <code>generate_moons</code> (physics/planets.py) fills the room around a planet with independent <code>Planet(is_moon=True)</code> bodies: class from the terrestrial classes except <code>MOON_BLACKLIST</code>, radius up to the parent's divided by 10^(1/3), mass at most a tenth of the parent's, distance log-uniform from a Roche-like bound. Nothing about the parent's composition, the circumplanetary disk or the age enters.</li>
+<li><strong>The loader and the snow line.</strong> The gated table loader exists (GEN.472, <code>generation/possibility_table.py</code>); <code>formation.snow_line_au</code> is 2.34 AU times the square root of the luminosity (a 182 K blackbody value, [R2726]; 2.7 AU at the 170 K first used); the per-system snow line with its 0.2 dex scatter is GEN.458.</li>
+</ul>
+<h2 id="2-the-decisions">2. The decisions</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>State</th>
+<th>Used meanwhile, source, limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>New small bodies and moons draw their composition first and derive the bulk figures (route 2); a stored body (an old row, an edit, an imported density) takes route 1, the inverse of D 3.3</td>
+<td>Decided (Boss, 1:21 AM, card &quot;Composition first&quot;); part D's advice to keep route 1 for bodies whose density is already drawn is answered by this table</td>
+<td>Section 3 says kind by kind what is the stored size and what is derived</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td>The bulk density of a small body is the zero-pressure mixing rule with a porosity, <code>rho = rho_g (1 - phi)</code>, <code>rho_g = 1 / sum(w_i / rho_i)</code>, and the porosity is the Bierson and Nimmo brittle law tapered to zero between 1e19 and 1e21 kg (section 4)</td>
+<td>Law verified (Bierson and Nimmo Table 1 and Eqs. 1 and 2, re-read); taper is a parametrisation</td>
+<td>The paper's law alone cannot close the jump at the solver (section 4.2): a finding that needs Boss's card</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>Ice and silicate grain densities are 920 and 3500 kg/m3; other ices are close to water ice</td>
+<td>Verified (Bierson and Nimmo Table 1; Fray and Schmitt stays on Boss's list, the NIST and PubChem bracket is the labelled stand-in, Boss, 3:07 PM on 2026-10-18)</td>
+<td>N<sub>2</sub> 950, NH<sub>3</sub> 850, CO 1000, CO<sub>2</sub> 1000 to 1600, CH<sub>4</sub> 500 kg/m3 (bulk-composition.md section 6)</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Belts and fields draw their taxon mass shares as a Dirichlet draw around a kernel in <code>x = a / a_snow,sys</code>; the kernel and the shares are flagged <code>stand-in</code> rows</td>
+<td>Decided (Boss, 1:43 and 1:43 AM); stand-in until GEN.473</td>
+<td>Section 5.1; the concentration is open</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Comets, Kuiper belt objects and dwarf planets draw a refractory-to-ice ratio and, for comets, volatile percentages of water from the population table of GEN.495</td>
+<td>Verified for the ranges ([R0776, R3835], Harrington [R3535, R3782] database); the log-normal widths from G1</td>
+<td>Section 5.2; the carbon-chain-depleted flag and the organic share are parametrisations</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Icy bodies draw a rock mass fraction from a truncated normal with centre 0.70 and a collisional tail</td>
+<td>Verified for the centre (Bierson and Nimmo: 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma); the 0.08 width and the 0.45 to 0.95 limits are not in the paper</td>
+<td>Decision 26 of the bulk note: 0.30 to 0.82 range, most permissive; section 5.3</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>A moon takes an origin type from a gated table (disk, impact, captured, ring, binary) and its composition from the origin</td>
+<td>Weights all open; the rules of each origin are part D 2.8, 2.9 and 3.4.3 to 3.4.5</td>
+<td>Section 5.4</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>A disk moon's ice fraction rises with its formation distance past the disk's ice line: <code>f_ice = f_inf clamp(ln(r / (0.4 r_ice)) / ln 2.5, 0, 1)</code>, <code>f_inf</code> N(0.35, 0.10) on [0.1, 0.6]; the bracket over all moon systems is 0.5 to 0.85 with [R0804] at the centre</td>
+<td>Decided (Boss, contradiction sweep, taps 6:10 to 6:12 PM on 2026-10-18, fork 15) for the bracket; the ramp is a parametrisation</td>
+<td>Section 5.5. [R0804, R3922] disagree on the ice fraction: the newest wins</td>
+</tr>
+<tr>
+<td>S9</td>
+<td>The hand-over mass to the structure solver is a continuity condition per composition, not the constant 1e20 kg</td>
+<td>Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): taper porosity to zero between 1e19 and 1e21 kg</td>
+<td>Section 4.2</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>One storage for every body's composition (DB.69 and DB.70), one thresholded text writer (GEN.430, GEN.446); belts keep their four-line text from the stored shares</td>
+<td>Decided (composition-model.md section 4b)</td>
+<td>Section 6</td>
+</tr>
+<tr>
+<td>S11</td>
+<td>Everything here rides the one generator epoch bump of the 8.4 chain (GEN.428 to GEN.430 and DB.69)</td>
+<td>Decided (Boss, taps 6:08 to 6:10 PM on 2026-10-18, fork 1)</td>
+<td>The table versions pin in <code>Registry.versions</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-which-kinds-draw-what-first">3. Which kinds draw what first</h2>
+<p>The stored size is the quantity the generator draws today and keeps. Composition is drawn before density; the density, and the mass where the size is a radius, follow.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Composition first</th>
+<th>Stored size (unchanged)</th>
+<th>Derived</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Asteroid belt or field</td>
+<td>taxon mass shares (5.1), then per taxon the bulk density, albedo and analogue</td>
+<td>belt distance, limits, mass (NAV.62: the mass stays an input of the disc, GEN.477 E2)</td>
+<td>mean bulk density <code>1 / sum(w_i / rho_i)</code>, mean albedo, ice, metal and water mass fractions, radiogenic heat, the density word and the text</td>
+</tr>
+<tr>
+<td>Comet, interstellar object</td>
+<td>refractory-to-ice ratio, organic share, volatile percentages (5.2)</td>
+<td>nucleus diameter</td>
+<td>porosity from its draw, bulk density, mass <code>rho V</code> (replaces the tuning density of <code>bulk_mass.py</code>)</td>
+</tr>
+<tr>
+<td>Class D body, Kuiper belt object, dwarf planet</td>
+<td>rock fraction (5.3), metal fraction</td>
+<td>radius</td>
+<td>grain density, porosity from the compaction law (4), bulk density, mass, gravity; above the hand-over the solver</td>
+</tr>
+<tr>
+<td>Ring</td>
+<td>as the icy body or the moon that made it (5.4)</td>
+<td>ring extent</td>
+<td>ice fraction and albedo from the composition</td>
+</tr>
+<tr>
+<td>Moon</td>
+<td>origin (5.4), then its row of 5.5 or the impact, captured, ring or binary rule</td>
+<td>radius, mass (the existing limits stay the cap), distance</td>
+<td>density, ice fraction, mix of rock and metal</td>
+</tr>
+</tbody>
+</table></div>
+<p>One exception to &quot;the size stays&quot;: a moon of a disk system has its mass partition drawn from the disk's total (alpha over f, GEN.466); the existing room-filling loop of <code>generate_moons</code> stays for impact, captured and binary moons and caps the disk moons' total at <code>M_T</code>.</p>
+<h2 id="4-the-mixing-rule-the-compaction-law-and-the-hand-over">4. The mixing rule, the compaction law and the hand-over</h2>
+<h3 id="41-the-rule">4.1 The rule</h3>
+<p>Per body: mass fractions <code>f_ice</code>, <code>f_rock</code>, <code>f_metal</code> adding to 1 (tested to 1e-9) and the grain densities of S3. Then <code>rho_g = 1 / (f_ice/920 + f_rock/rho_rock + f_metal/rho_metal)</code>, <code>rho = rho_g (1 - phi)</code>, with the porosity <code>phi</code> of the law below. A bulk density under the ice grain density at the porosity ceiling (0.8 for a pristine comet, 0.6 otherwise) is refused and the porosity lowered, with a flag.</p>
+<p>The law (Bierson and Nimmo, Table 1 and Eqs. 1 and 2, <code>P</code> in MPa): ice <code>phi_i = max(0.60 exp(-0.1 P), 0.20)</code>, silicate <code>phi_s = min(0.6 P^-0.11, 0.6)</code>; the two layers' porosities mix by volume. The earlier 1e6 Pa guess is dropped (decision 25 of the bulk note). A comet nucleus does not use the law: its porosity is drawn (5.2). The viscous law (their Eq. 3) prints a positive sign and is not coded.</p>
+<h3 id="42-the-hand-over-a-finding">4.2 The hand-over: a finding</h3>
+<p>Boss ruled at 2:10 PM EDT that the paper's law stays and the hand-over at 1e20 kg is shifted until the porosity jump (0.86 to 1.55 g/cm3) disappears. The computation for this note says that <strong>shifting alone cannot do it</strong>. The law has a porosity floor of 0.20 for ice and the silicate law falls as a slow power of pressure, so the mean porosity of a uniform body stays near 0.26 to 0.30 even at the mass of Ganymede, and the zero-porosity density of the solver stays 1.32 to 1.35 times the law's from 1e22 to 3e23 kg (COMPUTED, <code>handoff.py</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rock fraction</th>
+<th>Mass (kg)</th>
+<th>Law radius (km)</th>
+<th>Law density (kg/m3)</th>
+<th>Zero-porosity density (kg/m3)</th>
+<th>Ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.70</td>
+<td>1e19</td>
+<td>143</td>
+<td>815</td>
+<td>1901</td>
+<td>2.33</td>
+</tr>
+<tr>
+<td>0.70</td>
+<td>1e20</td>
+<td>283</td>
+<td>1049</td>
+<td>1902</td>
+<td>1.81</td>
+</tr>
+<tr>
+<td>0.70</td>
+<td>1e21</td>
+<td>573</td>
+<td>1272</td>
+<td>1907</td>
+<td>1.50</td>
+</tr>
+<tr>
+<td>0.70</td>
+<td>1e22</td>
+<td>1198</td>
+<td>1389</td>
+<td>1931</td>
+<td>1.39</td>
+</tr>
+<tr>
+<td>0.70</td>
+<td>1e23</td>
+<td>2515</td>
+<td>1500</td>
+<td>2020</td>
+<td>1.35</td>
+</tr>
+<tr>
+<td>0.55</td>
+<td>1e23</td>
+<td>2681</td>
+<td>1238</td>
+<td>1640</td>
+<td>1.32</td>
+</tr>
+<tr>
+<td>0.85</td>
+<td>1e23</td>
+<td>2326</td>
+<td>1897</td>
+<td>2602</td>
+<td>1.37</td>
+</tr>
+</tbody>
+</table></div>
+<p>The ratio 1.81 at 1e20 kg is the jump Boss named (0.86 to 1.55 is 1.8). A real body does not hold that porosity: the paper itself says viscous compaction decides the density above about 200 to 500 km radius and its brittle model is a lower bound, and the observations the design is tested against say the same ([R0666]: the compact-to-rubble transition lies at 1e19 to 1e20 kg and dwarf planets have near-zero macroporosity; Orcus, 6.3e20 kg, 1.6 to 1.75 g/cm3; Quaoar 1.99 g/cm3).</p>
+<p><strong>Proposed means (parametrisation, flagged):</strong> keep the paper's law and taper its porosity to zero in log mass, <code>phi_eff = w(M) phi_law</code>, <code>w = clamp((log10 1e21 - log10 M) / 2, 0, 1)</code>, between <code>M_a</code> = 1e19 kg (Carry's lower edge of the transition) and <code>M_b</code> = 1e21 kg (above it dwarf planets are near zero). Above <code>M_b</code> the body has no macroporosity and the solver of GEN.429 takes over with the same grains, so the density is continuous there by construction (the solver adds only its own compression). The computed densities (rock fraction 0.70, COMPUTED, <code>taper.py</code>): 815 at 1e19 kg, 1526 at 1e20, 1739 at 3e20, 1847 at 6.3e20 (Orcus: radius 433 km, density 1.85 against 1.6 to 1.75 measured), 1907 at 1e21, with no step. The endpoints are the one place the design leans on a measured Solar System shape, so they are <code>stand-in</code> until viscous compaction (Eq. 3 with its sign checked against [R0372] or the published paper) replaces the taper; the Galilean-class solver test of decision 25 still comes before the 1e21 kg to 0.1 Earth mass range is called validated.</p>
+<p>Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): the taper, with the endpoints flagged <code>stand-in</code>.</p>
+<h3 id="43-the-fast-path">4.3 The fast path</h3>
+<p>The law costs a hydrostatic integration. A body is generated millions of times, so the compaction module returns the mean porosity from a table indexed by log radius and rock fraction, built once by the reference integration, interpolated at generation and pinned by a table version (<code>Registry.versions</code>, composition-model.md section 4b); a test says the interpolation is within 2 percent of the integration on a fixed grid. The table has the taper in it. A small-body radius is the stored size, so the table is indexed by radius and the hand-over mass follows from the radius and the density.</p>
+<h2 id="5-the-tables-in-the-gated-format">5. The tables, in the gated format</h2>
+<p>Each row has the columns of composition-model.md section 4b: possibility, supported classes (the gate, which is the object kind and never a class letter), weight or weight function, source and licence (<code>open</code> where none is found), state, and the notes. Weights that depend on the star or the formation distance read the stored <code>snow_line_au_sys</code> (GEN.458) and the stored [Fe/H] (GEN.440). Every table has a version; a change of row or weight is a version change inside the one epoch bump.</p>
+<h3 id="51-the-taxon-table-belts-and-fields">5.1 The taxon table (belts and fields)</h3>
+<p>Possibility: a taxon of Bus and DeMeo, with its analogue and its grain figures. Gate: object kind belt or field. Weight: the zone kernel at <code>x = a / (a_snow 10^s)</code>, where <code>s</code> is the system's stored snow-line scatter (N(0, 0.2) in log10, GEN.458). State: <strong>stand-in</strong> for every row; replaced by GEN.473.</p>
+<p>The kernel is [R1065: Table 6] (READ), in percent of the zone's mass, with the zone limits converted to <code>x</code> by the Solar System's 2.7 AU (the only place a Solar System number sets a boundary, and the reason the rows are stand-ins):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Zone</th>
+<th>x from to</th>
+<th>Classes (percent of zone mass)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hungaria</td>
+<td>0.66 to 0.76</td>
+<td>E 50, C 21, S 9, A 7, L 7, K 5</td>
+</tr>
+<tr>
+<td>Inner belt</td>
+<td>0.76 to 0.93</td>
+<td>V 69, S 21, C 6</td>
+</tr>
+<tr>
+<td>Middle belt</td>
+<td>0.93 to 1.04</td>
+<td>C 70, B 15, S 8, P 4</td>
+</tr>
+<tr>
+<td>Outer belt</td>
+<td>1.04 to 1.21</td>
+<td>C 52, P 15, B 13, M 10, S 5</td>
+</tr>
+<tr>
+<td>Cybele</td>
+<td>1.21 to 1.37</td>
+<td>P 84, C 13</td>
+</tr>
+<tr>
+<td>Hilda</td>
+<td>1.37 to 1.56</td>
+<td>P 71, D 15, C 14</td>
+</tr>
+<tr>
+<td>Trojans</td>
+<td>1.87 to 2.00</td>
+<td>D 67, P 26</td>
+</tr>
+</tbody>
+</table></div>
+<p>Between zone centres the weights interpolate linearly in log <code>x</code> (the width of 0.3 in log AU of the open-gaps report, BC14, a placeholder); outside the table the nearest zone holds (no extrapolation). The kernel gives the sequence of dry and igneous inside, hydrated C in the middle, ice-rich P and D beyond, and nothing in the sources tests it for other stars.</p>
+<p>The shares are a Dirichlet draw around the kernel (Decided, 1:43 AM). <strong>The concentration is open</strong> (no source gives the spread among belts; the Solar System has one belt). Meanwhile the draw uses 10, written in the row as <code>open</code> and listed in the report; the widest range reading (Boss, 1:12 PM) says a lower value is the safer reading. For each taxon: bulk density from [R0666: Table 3] (mean and scatter, truncated normal), albedo from DeMeo and Carry Table 4 times a log-normal scatter (the sigma is not in anything read: open), analogue chemistry and grain density from the meteorite group (Britt and Consolmagno). The aggregate follows by section 3.</p>
+<p>The eight field families of today become a gated table of their own (GEN.477 E3): carbonaceous = C, B (and P), stony = S, Q and L, metallic = M and X, icy = P and D, basaltic = V, mixed = a Dirichlet over all, dust = no fixed taxon (CI and CM chemistry at porosity 0), collisional = fragments of its dominant taxon. Their frequencies have no source: stand-in, replaced under GEN.473.</p>
+<h3 id="52-the-comet-and-icy-body-volatile-tables">5.2 The comet and icy-body volatile tables</h3>
+<p>The population table of GEN.495 gives the comet rows; this note fixes the interface and the figures it holds meanwhile.</p>
+<ul>
+<li><strong>Refractory-to-ice ratio <code>delta_RI</code>:</strong> log-uniform on [0.5, 8] ([R0776]: Rosetta RSI 3 to 7, CONSERT above 3, Fulle 7.5, COSIMA 0.2 to 3). <code>f_ice = 1 / (1 + delta_RI)</code>. Verified range, parametrised shape.</li>
+<li><strong>Refractory split:</strong> silicate and organics; the organic share of the refractories is N(0.60, 0.15) clipped to [0, 1], a labelled stand-in at the widest bracket (Boss, 1:23 PM: no measurement exists; COSIMA's 0.45 lies inside it). Silicate dust 3500 kg/m3 (a stand-in: [R0430] say the density of cometary refractories is not known and gives 2600 to 5000 for minerals); organics from the shared materials table, 1500 kg/m3, the middle of the same paper's 1000 to 2000 (GEN.712: the earlier 2000 was attributed to [R0776] without the paper being read).</li>
+<li><strong>Volatiles as percent of water</strong> ([R3835] for 67P; Harrington [R3535, R3782] for the population, G1): CO median 3.3, range 0.3 to 26; CO<sub>2</sub> median 12, range 2 to 30 (CO + CO<sub>2</sub> about 18); CH<sub>4</sub> 0.15 to 2.2, geometric mean 0.68, sigma 0.37 dex; C<sub>2</sub>H<sub>6</sub> 0.09 to 0.82; NH<sub>3</sub> 0.125 to 0.9 with Mumma and Charnley's bound near 1.5; HCN 0.03 to 0.36; H<sub>2</sub>S 0.09 to 1.5; CH<sub>3</sub>OH 0.21 to 4.5, geometric mean 1.9; H<sub>2</sub>CO 0.09 to 1.1; C<sub>2</sub>H<sub>2</sub> 0.03 to 0.28. These replace part D's single-comet centre with sigma 0.5 dex (67P is a test target only, G1: its CH<sub>3</sub>OH 0.21 and CH<sub>4</sub> 0.34 are low for the population). N<sub>2</sub>, O<sub>2</sub>, Ar, Kr and Xe have no population (67P only): open, stand-in. Class by dynamical type predicts only CO (28 percent of the variance), so it is not a gate.</li>
+<li><strong>Interstellar objects:</strong> the same draw with the CO/H2O ratio widened to include 2I/Borisov and 3I/ATLAS (0.01 to 1.65 log-uniform), one object each, so a parametrisation.</li>
+<li><strong>Porosity:</strong> a comet nucleus draws <code>phi</code> from U(0.5, 0.8) (Choukroun 65 to 79 percent); a Kuiper belt object under 100 km U(0.3, 0.6); larger bodies the compaction law of section 4.</li>
+</ul>
+<h3 id="53-the-icy-bodies">5.3 The icy bodies</h3>
+<p>Possibility: the rock mass fraction of a class D body, Kuiper belt object or dwarf planet. Weight: a truncated normal with centre 0.70 and width 0.08 on [0.45, 0.95], with a collisional tail toward 0.9 for the dwarf planets ([R0269]: Haumea, Eris). The centre is verified (Bierson and Nimmo); the width and the limits are the repository's and not in the paper (decision 26 of the bulk note keeps the most permissive range, 0.30 to 0.82, for the small bodies, with dwarf planets 0.78 plus or minus 0.12). Computed rock fractions of the measured dwarf planets (Barr and Schwamb densities, rock 2700 or 3500): Pluto 0.69 to 0.77, Charon 0.63 to 0.70, Orcus 0.58 to 0.65, Quaoar 0.73 to 0.82, Eris 0.86 to 0.96, Gonggong 0.65 to 0.72; they are test targets, not rows. The metal fraction is zero for a class D body and a small draw for a differentiated one.</p>
+<h3 id="54-the-moon-origin-table">5.4 The moon origin table</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Possibility</th>
+<th>Supported (the gate)</th>
+<th>Weight</th>
+<th>Composition rule</th>
+<th>Source and state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>disk</td>
+<td>parent is a giant (an envelope on it)</td>
+<td>open</td>
+<td>regular moons from the circumplanetary disk, section 5.5</td>
+<td>[R0643, R0804, R3922]; weight open</td>
+</tr>
+<tr>
+<td>impact</td>
+<td>parent is terrestrial (no envelope)</td>
+<td>open</td>
+<td>no metal phase in the condensate (iron enters as FeO), metal U(0.01, 0.05), moderately volatile elements depleted, water 1 to 1000 ppm, ice 0; the parent's mantle oxides are the source composition</td>
+<td>[R2724] (verified for the rule); the metal range is a parametrisation; weight open</td>
+</tr>
+<tr>
+<td>captured</td>
+<td>any parent (GEN.714: the origin is drawn first and the orbit follows from it, so there is no inclination cut)</td>
+<td>open</td>
+<td>the icy-body rule of 5.3, then ice lost by a factor U(0, 0.5)</td>
+<td>[R0269] (qualitative); the factor is a parametrisation; weight open</td>
+</tr>
+<tr>
+<td>ring</td>
+<td>the parent has a massive ring and the moon forms near the Roche radius</td>
+<td>open</td>
+<td>ice-rich, near the ring's composition; masses rise with distance</td>
+<td>[R0920] (abstract only, RECALLED for the composition); rules not sourced</td>
+</tr>
+<tr>
+<td>binary</td>
+<td>the primary is a dwarf planet</td>
+<td>open</td>
+<td>the icy-body rule of 5.3; mass ratio q in 5e-4 to 0.11</td>
+<td>Barr and Schwamb Table 2; weight open</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every weight is <code>open</code>: the open rows of one gate share the probability equally (a giant's moon is a disk moon or a captured one with equal chance, a terrestrial planet's an impact moon or a captured one) and each is in the loader's report until a source or a derivation replaces it.</p>
+<p><strong>The orbit follows the origin (GEN.714, <code>moon_composition.draw_inclination_deg</code>).</strong> A regular moon (disk, impact, ring, binary) lies near the parent's equator: uniform on 0 to 25 degrees, the generator's long-standing bound, wider than the regular satellites show (the Galilean moons lie within 0.5 degrees) and so a flagged stand-in. A captured moon takes an isotropic orbit (cosine of the inclination uniform) outside the Kozai-unstable band of 55 to 130 degrees ([R3263]; the bounds as used in [R1747], Shen and Tremaine give 60 to 130, partly verified), so it is prograde below the band or retrograde above it: 43 percent prograde and 57 percent retrograde by the width of the cosines. The distance range of a moon is unchanged (retrograde orbits are stable out to about 0.7 Hill radii, prograde to 0.4; the generator keeps 0.49 for both). The origin is held by the moon while it is generated and is not stored until DB.70. A gate that no row passes is an error that names the parent and the table.</p>
+<h3 id="55-disk-moons-the-system-the-ice-line-and-the-ramp">5.5 Disk moons: the system, the ice line and the ramp</h3>
+<ol>
+<li>The disk lifetime <code>tau</code> log-uniform 1 to 10 Myr (Sasaki used 5 as reference); <code>alpha/f</code> log-uniform on [1e-6, 5e-4]; the total satellite mass <code>M_T / M_p = 2.5e-4 (alpha/f / 3e-5)^(1/3)</code> (Canup and Ward Eq. 4.15), a range of 0.8e-4 to 6.4e-4 (COMPUTED); the number <code>N</code> of large moons 1 to 5 and the partition a Dirichlet draw (parametrisations; Sasaki Table 1 is the calibration for the shape only).</li>
+<li>The ice line, in kilometres and not in planet radii: <code>r_ice = 20 R_J (M_p / M_J)^(2/3) (tau / 5 Myr)^(-1/3)</code> with <code>R_J</code> = 71 492 km: 1.43e6 km at 1 Jupiter mass and 5 Myr (COMPUTED), 6.4e5 km at 0.3, 3.0e6 km at 3. The formula was fitted for a Jupiter-like disk; it is untested far from 1 Jupiter mass, so outside 0.1 to 3 the row carries a flag (partly verified, limit named).</li>
+<li>The ramp of S<sub>8</sub>, with <code>r</code> the formation distance and not the present one (moons migrate): Io 0, Europa 0.061, Ganymede 0.239, Callisto 0.35 for <code>f_inf</code> = 0.35 at <code>r_ice</code> = 20 R_J (COMPUTED); the ordering is a test and the values are under the interior-model figures, as the simple-mixing failure of D 2.11 says they should be.</li>
+<li>The rocky block: anhydrous inside 0.4 <code>r_ice</code>, partly hydrated between 0.4 and 1.0 (serpentine, density 2585), C-like or CI-like beyond; the metal fraction by chondrite group (H about 17, L 8, LL 3 percent, RECALLED) or from the star's iron minus the oxidised share.</li>
+<li>Density by the rule of section 4.1, and above the hand-over by the solver; a regular moon of 1e22 kg and more is differentiated, so the zero-pressure rule under-predicts the ice of Ganymede by 10 to 15 points and is not used there.</li>
+</ol>
+<h2 id="6-what-is-stored-and-what-is-derived">6. What is stored and what is derived</h2>
+<p>The rule of composition-model.md section 7.4: store what was drawn, cannot be derived or is expensive and exact; derive the rest and test that a cache equals the recomputation. A recalculation after an orbit validation or a zone change never redraws a composition (finding F10).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Body</th>
+<th>Stored (drawn)</th>
+<th>Derived on demand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Belt or field</td>
+<td><code>snow_line_au_sys</code> and its scatter (once per system), taxon mass shares (child table <code>asteroid_belt_taxa</code>: belt, taxon, mass fraction), the main component mass fractions (DB.70)</td>
+<td>mean bulk density, mean albedo, mean porosity, ice, metal and water fractions, radiogenic heat, density word and the four-line text (thresholds stored as parametrisations)</td>
+</tr>
+<tr>
+<td>Comet</td>
+<td><code>refractory_ice_ratio</code>, organic share, <code>porosity</code>, the volatile percentages of water (child table <code>comet_volatiles</code>: comet, species, percent)</td>
+<td><code>f_ice</code>, grain density, bulk density, mass</td>
+</tr>
+<tr>
+<td>Icy body or moon</td>
+<td>rock, ice and metal fractions (the one mixture storage of DB.69 and DB.70: body, component, mass fraction), <code>origin</code>, <code>formation_distance_ratio</code> (<code>r / r_ice</code> or <code>a / a_snow</code>), the surface porosity draw <code>phi0</code>, <code>drawn</code> or <code>inverse</code>, the hand-over flag</td>
+<td>grain density, porosity, bulk density, mass or radius, gravity</td>
+</tr>
+</tbody>
+</table></div>
+<p>Names, units and ranges are those of part D 3.6; the columns belong to DB.69 and DB.70, not to this note. A route-1 row (an edited or imported density) stores <code>inverse</code> and the range of fractions that fit, as the bulk note section 7 says.</p>
+<h2 id="7-the-parametrisations-and-when-each-is-replaced">7. The parametrisations and when each is replaced</h2>
+<p>Each is a stored, flagged constant; a better published distribution replaces it and bumps the table version.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value now</th>
+<th>Basis</th>
+<th>Replaced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Snow-line scatter</td>
+<td>log10 N(0, 0.2)</td>
+<td>[R3193, R3196] as the coordinator quoted it (RECALLED)</td>
+<td>GEN.458 when read</td>
+</tr>
+<tr>
+<td>Taxon kernel and shares</td>
+<td>section 5.1</td>
+<td>[R1065: Table 6] (stand-in)</td>
+<td>GEN.473</td>
+</tr>
+<tr>
+<td>Dirichlet concentration of the taxon shares</td>
+<td>10</td>
+<td>none (open)</td>
+<td>a spread among belts, when one is found</td>
+</tr>
+<tr>
+<td>Albedo scatter within a taxon</td>
+<td>none found</td>
+<td>open</td>
+<td>a measured spread</td>
+</tr>
+<tr>
+<td>Compaction taper</td>
+<td>1e19 to 1e21 kg</td>
+<td>[R0666] (stand-in)</td>
+<td>viscous compaction (Eq. 3 sign checked)</td>
+</tr>
+<tr>
+<td>Surface porosity <code>phi0</code></td>
+<td>C-like U(0.25, 0.55), S-like U(0.10, 0.35), comets U(0.5, 0.8)</td>
+<td>[R0544, R0666, R0776]</td>
+<td>a measured distribution</td>
+</tr>
+<tr>
+<td>Rock fraction of icy bodies</td>
+<td>N(0.70, 0.08) on [0.45, 0.95]</td>
+<td>Bierson and Nimmo (centre only)</td>
+<td>a derived distribution</td>
+</tr>
+<tr>
+<td><code>delta_RI</code>, organic share</td>
+<td>log-uniform [0.5, 8]; N(0.60, 0.15)</td>
+<td>[R0776]; Boss 1:23 PM stand-in</td>
+<td>a measurement of the organic share</td>
+</tr>
+<tr>
+<td>Comet volatiles</td>
+<td>G1 ranges and sigma</td>
+<td>[R3782] database, [R3835]</td>
+<td>GEN.495 and a larger database</td>
+</tr>
+<tr>
+<td>Moon system</td>
+<td><code>alpha/f</code>, <code>tau</code>, <code>N</code>, partition, ice ramp, <code>f_inf</code></td>
+<td>[R0643, R0804, R3922]</td>
+<td>[R3180] when read</td>
+</tr>
+<tr>
+<td>Impact-moon metal, captured-moon ice loss</td>
+<td>U(0.01, 0.05); U(0, 0.5)</td>
+<td>[R2724], Barr and Schwamb (qualitative)</td>
+<td>[R0638, R0958] when read</td>
+</tr>
+<tr>
+<td>Al-26 ratio per system</td>
+<td>log-uniform [0.1, 10] x 5.25e-5</td>
+<td>[R2678]</td>
+<td>GEN.476</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-worked-example-five-bodies-as-test-targets-only">8. Worked example: five bodies, as test targets only</h2>
+<p>Nothing here is a preset (TEST.215); each is a body some draw inside the allowed distributions can reach.</p>
+<ol>
+<li><strong>A belt in the middle zone (<code>x</code> about 0.97).</strong> Kernel C 70, B 15, S 8, P 4, renormalised to 0.722, 0.155, 0.082, 0.041. With the [R0666] bulk densities 1570, 2190, 2660, 1450 kg/m3 the mean bulk density is <code>1 / sum(w/rho)</code> = 1696 kg/m3 and the mass-weighted albedo 0.094 (COMPUTED). A draw moves the shares by the Dirichlet scatter; the sequence (C-dominated here, more P and D at larger <code>x</code>) is the test.</li>
+<li><strong>A comet.</strong> <code>delta_RI</code> = 3 (inside Rosetta's 3 to 7): <code>f_ice</code> 0.25; organics 0.45 of the refractories, silicate 3500 and organics 1500 kg/m3 give a refractory grain density of 2188 and <code>rho_g</code> = about 1630 kg/m3; porosity 0.70 gives about 490 kg/m3 (COMPUTED), against 537.8 for 67P (test tolerance 100). With the organic share at the stand-in centre 0.60 the result is about 460; at porosity 0.65 it is about 570, at 0.79 it is about 345: the porosity range alone spans 67P's measurement.</li>
+<li><strong>A Kuiper belt object near 6.3e20 kg and rock fraction 0.70.</strong> Taper weight 0.10, radius 433 km, density 1847 kg/m3 (COMPUTED, section 4.2), against Orcus at 430 to 450 km and 1.6 to 1.75 g/cm3: inside the 0.3 g/cm3 tolerance; the same fraction at 1e19 kg (143 km) has density 815.</li>
+<li><strong>A regular moon system at 1 Jupiter mass and 5 Myr.</strong> <code>r_ice</code> = 1.43e6 km; formation distances of 5.9, 9.4, 15.0 and 26.3 Jupiter radii give ice fractions 0, 0.061, 0.239, 0.35 (COMPUTED): Io, Europa, Ganymede and Callisto in order, the ordering exact.</li>
+<li><strong>A captured moon.</strong> Rock fraction 0.70, ice lost by a factor 0.3 of the ice: rock 0.79, grain density 2203 kg/m3, a mass above 1e21 kg so no macroporosity: 2203 against Triton's 2061 kg/m3, inside 0.3 g/cm3 (COMPUTED).</li>
+</ol>
+<h2 id="9-test-targets-and-invariants">9. Test targets and invariants</h2>
+<p>Invariants (TEST.210 style; part D 3.7): fractions sum to 1 within 1e-9; the stored bulk density is reproduced from the stored fractions, grain densities and porosity within 1e-6 relative; the grain density lies between the smallest and largest component density; the ice fraction of a disk moon is 0 inside 0.4 <code>r_ice</code> and does not fall with distance; porosity does not rise with mass for a fixed family; a class D body has density under 3000 kg/m3 when its rock fraction is under 0.9 (F3); the long-lived heating of a belt is within 10 percent of the taxon's chondrite value; Al-26 exceeds the long-lived heating by more than 1000 at formation; a body above the hand-over carries the flag for a solver-sourced density; the density is continuous in mass across 1e19 and 1e21 kg within 5 percent of a step of 10 percent in mass (section 4.2, the test that Boss's ruling asks for); the same system gives the same shares and moons at any worker count; a recalculation moves nothing stored (F10); the table sums of the taxon, icy-body and origin tables are 1 within 1e-12 for every gate (TEST.214).</p>
+<p>Targets from part D section 4 (each met for some draw, never for one): ordinary chondrite bulk density 3.42, 3.36, 3.22 g/cm3 within 0.2; 67P 537.8 kg/m3 within 100; mean Kuiper belt object 0.77 and comet 0.47 g/cm3 within 0.3; rock fractions 0.58 to 0.82 for Pluto, Charon, Quaoar and Orcus inside the draw; compaction transition near 1e20 kg within a factor 3; Galilean ice order exact and densities 3.53, 3.01, 1.94, 1.83 g/cm3 within 0.3 (Ganymede needs the solver); total regular-satellite mass ratio 2.1e-4 (Jupiter) and 2.5e-4 (Saturn) within a factor 3; Io 3.53 g/cm3 within 0.2; dwarf-planet mass ratio q from 5e-4 to 0.11 covered; Near-Earth object mix S/Sq/Q about 50 and C about 20 percent within 15 points; comet NH<sub>3</sub> up to 1.5, H<sub>2</sub>S 0.25 to 1.5 and SO<sub>2</sub> 0.2 percent of water inside the draw; Makemake and 2007 OR10 near 1800 and MU69 near 750 kg/m3 reachable.</p>
+<h2 id="10-open-weights-and-gaps">10. Open weights and gaps</h2>
+<ul>
+<li>Open weights (the loader lists them): the five weights of the moon origin table; the Dirichlet concentration; the albedo scatter; the share of captured moons (an equal share with the other rows); the Kozai band's edges; the comet N<sub>2</sub>, O<sub>2</sub>, Ar, Kr and Xe; the field family frequencies (stand-in).</li>
+<li>No validated solver from 1e21 kg to 0.1 Earth masses (bulk note section 12 item 1): Ganymede-class moons and dwarf planets sit in the gap and run flagged extrapolated until the Galilean test passes.</li>
+<li>Not read (part D section 5): [R0638, R0958] (the impact moon's iron), [R3180], the full text of Bierson and Nimmo (Eq. 3), [R0920, R3206] (the ring rules), and a metal weight percent per chondrite group.</li>
+<li>The 1e19 to 1e21 kg taper endpoints are two numbers read off [R0666]'s statements, not a fit.</li>
+</ul>
+<h2 id="11-the-items-that-follow">11. The items that follow</h2>
+<p>GEN.442 (belts, comets, rings, dwarf planets) reads sections 3, 4 and 5.1 to 5.3; GEN.466 (moons) reads 5.4 and 5.5; GEN.477 reads 5.1; GEN.495 (comet population table) fills 5.2; GEN.473 replaces the stand-ins; DB.69 and DB.70 store section 6; the compaction module and its table (section 4.3) are part of GEN.442's build with the test of 4.2. All ride the one epoch bump of the 8.4 chain.</p>
+<h2 id="12-decisions-for-boss">12. Decisions for Boss</h2>
+<ol>
+<li><strong>Decided (taper, 8:13 PM EDT on 2026-10-21). Close the porosity jump at the solver.</strong> Boss ruled at 2:10 PM EDT on 2026-10-17 to shift the 1e20 kg hand-over until the jump disappears. It does not disappear: the paper's law leaves the density 1.32 to 1.35 times low up to 3e23 kg (section 4.2). Recommended: keep the paper's law and taper its porosity to zero between 1e19 and 1e21 kg (continuous, matches Orcus and Triton, endpoints flagged <code>stand-in</code>). Alternatives: keep the step and move it to about 1e23 kg with a 1.35 times jump left; or leave the step at 1e20 kg until viscous compaction is coded.</li>
+<li><strong>The taxon and field-family rows stay <code>stand-in</code> with an open Dirichlet concentration of 10.</strong> Recommended yes (nothing sourced exists; GEN.473 replaces it).</li>
+<li><strong>The organic share of comet refractories N(0.60, 0.15).</strong> Recommended yes (the widest bracket around COSIMA's 0.45, as ruled at 1:23 PM EDT).</li>
+</ol>
+<h2 id="13-the-derived-taxon-kernel-gen473-lock-free-step">13. The derived taxon kernel (GEN.473, lock-free step)</h2>
+<p><code>physics/taxon_kernel.py</code> replaces the Solar System's zone table (<code>small_body_composition.ZONES</code>, [R1065: Table 6]) with a kernel built from what makes the zones, in four steps (registry TK1 to TK6, section 6.41):</p>
+<ol>
+<li><strong>Four families by disk temperature.</strong> Dry (S, V, A, M, K, L), hydrated carbonaceous (C, B), primitive (P) and ice-rich (D). The dry family ends at the water line of [R2726] (182 K, the temperature a body must be colder than to accrete water ice), the primitive one at the ammonia line (131 K); the line between hydrated and primitive has no condensation line and is fitted (166 K, tweak L3). The temperature at a distance is the star's blackbody one, so the zones scale with the star's own luminosity and nothing is in the Solar System's 2.7 AU.</li>
+<li><strong>A prediction, not a fit.</strong> Ammonia hydrate condenses at 1.93 snow-line distances, and the Trojans (5.2 AU, 1.9 snow lines) are 67 percent D in Table 6: the one zone boundary that no number was chosen for. The C onset at the snow line (x of 0.93 to 1.04 in the table) and the P onset at about x 1.2 are the water line and the fitted one.</li>
+<li><strong>Mixing.</strong> 8 percent of each family's mass is exchanged with its neighbours (scattering by giant planets), fitted to the C share of the inner belt and the S share of the outer one (tweak L2). [R3681, R4603] are not read; the wiring step can give a system with no giant none.</li>
+<li><strong>Melting from the star's own aluminium-26.</strong> The dry family splits into the undifferentiated taxa (S, K, L) and a melted share's core (M), mantle (A) and crust (V). A body melts when its aluminium-26 heating exceeds the heat to its solidus: the ratio <code>Q / (X_Al / M_Al N_A E_decay)</code> is 1.1e-5, and with accretion times spread over 3 Myr after the isotope formed the melted share is 0.55 at the Solar System's 5.2e-5 and zero below the melting ratio. So the star's birth environment (GEN.476) decides how igneous its belt is: round a typical star (a median 26Al ratio of a few percent of the mean, <code>birth_radioisotopes</code>) a belt has no V, A or M at all.</li>
+</ol>
+<p>The measured zones come back as one realisation: the families summed from Table 6 agree with the model to 0.16 rms in the share by zone (middle belt worst: the table has C 88 percent at x 0.98 where the model has the water line at 50 percent). What is not derived: the E taxon (a reduced, igneous one; zero here), the hot refractory K and L taxa (no temperature of their own), and the shares within each family (TK6, a stand-in at tweak L4; the meteorite-group map of GEN.475 is the replacement). The wiring step replaces <code>small_body_composition.kernel(x)</code> with <code>taxon_kernel.kernel(temperature, ratio)</code> for belts and fields, gives the belt the star's aluminium-26 ratio from <code>birth_radioisotopes</code>, and moves the taxon shares of every belt (fill stage, no migration).</p>
+<p><strong>Wired (GEN.473, step 2, train 7).</strong> <code>small_body_composition.draw_belt(distance_au, luminosity_w, al26_ratio)</code> takes the blackbody disk temperature at the belt's distance (<code>condensate_shares.disk_temperature_k</code>) and the aluminium-26 its star was born with (<code>radiogenic.star_al26_ratio</code>, shared by every body of the star, GEN.476) and draws the Dirichlet shares around <code>taxon_kernel.kernel</code>; <code>kernel(x)</code> over the Solar System's zones is gone and <code>ZONES</code> stays as the measured table the tests compare with. A belt's <code>detail</code> has <code>temperature_k</code> and <code>al26_ratio</code> in place of <code>x</code>. The star's snow line no longer decides the taxa (the water line is Lodders's 182 K at the star's luminosity, 2.2 AU for the Sun, against the stored snow line of GEN.458 which is 2.7 AU for it); the taxon rows stay stand-ins for their mixes of materials (GEN.475). Effect on generated systems: belt taxa and so belt density, albedo and water shift (a dry belt is as igneous as its star's aluminium-26 allows; the middle belt is hydrated carbonaceous, the outer primitive and ice-rich), the belt's stored composition words change.</p>
+<h2 id="14-the-mass-left-in-a-belt-gen477-e2-lock-free-step">14. The mass left in a belt (GEN.477 E2, lock-free step)</h2>
+<p>The belt density (dense, sparse, typical) was a uniform draw and the belt's mass was stated as zero (NAV.62); the item's E2 asked for a mass per area from the disc with a depletion factor that had no source. <code>physics/belt_mass.py</code> gives both from one law (registry BM1 and BM2, section 6.43):</p>
+<ul>
+<li><strong>What formed</strong> is the disc's solids over the belt's annulus (<code>planet_mass.solids_surface_density_gcm2</code> integrated): 6.9 Earth masses at 2.2 to 3.4 AU round a Sun-like star.</li>
+<li><strong>What is left</strong> follows [R4785] ([R4785], READ): a planetesimal belt in collisional equilibrium falls as <code>M0 / (1 + t / tc)</code> with <code>tc</code> falling with the mass, so the late-time mass does not depend on the mass that formed (Eq. 14 and 15): <code>M_max = 3.8e-6 rho r^3.5 (dr/r) Dc / (M*^0.5 t) * ... / G(11/6, Xc)</code>, which reproduces their Eq. 17 (0.009 at their stated assumptions, tested). It depends on the belt's radius and width, the star's mass, the age, the largest body <code>Dc</code> and the strength of the largest bodies (<code>Q*D</code>: the generator's gravity-bound Leinhardt and Stewart threshold, 2.5e3 J/kg at 100 km and 2.5e5 at 1000 km, with Wyatt's 200 J/kg of km-size bodies as a floor) and the particles' eccentricity (the belt's width gives it: <code>e = (upper - lower) / (upper + lower)</code>).</li>
+<li><strong>The Solar System's belt is a test, never an input:</strong> 2.2 to 3.4 AU, 4.5 Gyr, Ceres-size bodies, gives 0.5 thousandths of an Earth mass at 500 km and 2.6 at 1000 km, against the 0.6 inferred ([R2471], as Wyatt et al. quote it); Wyatt et al. themselves quote 0.4 for their belt at 3 AU. The primordial disc is over 1000 times the result: the depletion factor of E2 is not a constant but the collisional law's.</li>
+</ul>
+<p>The mass goes as <code>Dc</code> to a power near 2.3, so the belt is only as good as its largest body: <code>Dc</code> comes from the size laws (<code>small-body-size-laws.md</code>) once GEN.566 is built, and a belt stirred by a giant has more eccentricity than its width gives (so less mass). The density word is the belt's mass per area over a reference by a factor of 3 each way (BM2, T9, tweak L4, burn-down line); the reference is the same belt with the median largest body, around a star of the Sun's metals. What E1, E3 and E4 asked (taxon shares, the four-level words by thresholds, the field families) were built with GEN.442.</p>
+<p><strong>Wired (GEN.477, train 7).</strong> <code>AsteroidBelt</code> takes its mass and density word from <code>belt_mass.belt_state</code> at the star's mass, snow line, metals and age (<code>bulk_draw.metal_ratio_to_solar</code>), and stores the mass in <code>asteroid_belts.mass_kg</code> (a stated zero before; the column existed, so there is no migration). No size law is built, so <code>Dc</code> is a stand-in (LB1, T9, tweak L3): log-uniform between 100 and 1000 km, drawn from the belt's own stream, so the run's draws do not move; GEN.1000 replaces it with a draw from the size law. At that range a tenth of a decade of <code>Dc</code> is a factor 1.3 in mass and the shares come out 38 percent typical, 34 sparse and 28 dense over 300 belts, about the thirds of the old uniform draw. A belt's page lists its mass. The sectors' summed mass (<code>sector_stats.total_mass_kg</code>) now includes the belts' real masses for new belts; belts stored before keep their stated zero. The composition thresholds still take the Dirichlet draw's shares (the mass is not an input there).</p>
+<h2 id="15-the-meteorite-groups-as-outputs-gen475-lock-free-step">15. The meteorite groups as outputs (GEN.475, lock-free step)</h2>
+<p><code>small_body_composition.TAXON_DATA</code> takes each taxon's mix from a meteorite analogue (CI and CM, ordinary, CV and so on): the groups are inputs. <code>physics/meteorite_groups.py</code> holds them as points of a space instead, so a derived body is given a group as a label (registry MG1 and MG2, section 6.44):</p>
+<ul>
+<li><strong>The axes</strong> are four rows of [R4658: Table 1]: the olivine's mol percent fayalite (the oxidation state, <code>fayalite_mol_percent</code> from the body's FeO and MgO), and the volume percent of metal, of refractory inclusions (CAIs and amoeboid olivine aggregates) and of matrix (the fine grains that carry water and organics).</li>
+<li><strong>The groups</strong> are the table's averages for CI, CM, CO, CV, CK, CR, CH, CB, H, L, LL, EH, EL, R and K. <code>nearest_group</code> returns the closest by a scaled distance over the axes both have (CO and CV have only an olivine range, so they are placed by the other three), or <code>none</code> past <code>NEAREST_LIMIT</code>: a metal-rich, ice-rich or differentiated body is not forced into a chondrite group.</li>
+<li><strong>What it cannot do:</strong> EH and EL have the same coordinates here (they differ in the table by sulfide and silicon in the metal, which are not axes), and CV against CK differ only by oxidation. The oxygen isotopes, chondrule sizes and petrologic types are not in the space.</li>
+</ul>
+<p><strong>Wired (GEN.475, train 7).</strong> <code>small_body_composition.chondrite_group(components)</code> reads the four axes off the grains of a belt or field (<code>group_axes</code>: the olivine's fayalite against forsterite in mol percent, then the volume percent of the metal rows, the refractory rows (spinel, anorthite) and the matrix rows (serpentine, magnetite, organics, calcite)), asks <code>nearest_group</code>, and calls the mix <code>none</code> when it holds <code>ICE_MAX</code> (5 percent) of ice or water, since the groups are rocks (MG3, T9, tweak L1). The draw is unchanged and takes no random number: the label is written into the makeup's detail (<code>group</code>, <code>group_distance</code>), kept on <code>AsteroidBelt.chondrite_group</code> and <code>AsteroidField.chondrite_group</code>, stored in <code>asteroid_belts.chondrite_group</code> and <code>asteroid_fields.chondrite_group</code> (schema migration 0187, NULL on a row made before, which the sheet leaves out) and shown as &quot;Nearest Meteorite Group&quot;. The map does not give the within-family shares of the taxa (TK6 stays a stand-in, now <code>no data</code> in the burn-down register): it names what a derived mix looks like, it does not yet build the mix.</p>
+<p><strong>Accessory minerals (GEN.1368, <code>physics/accessory_minerals.py</code>).</strong> Each taxon's mix carries the accessory minerals of its meteorite analogue besides the major ones of section 5.1: chromite and the phosphates (merrillite, chlorapatite) in the ordinary and differentiated taxa, the calcium-aluminium-rich inclusion phases (melilite, spinel, hibonite, perovskite) and nepheline in the CO and CV taxa, the Fe-Ni sulfides, carbonates, sulfates and phyllosilicates (cronstedtite, saponite, tochilinite, dolomite, magnesite, epsomite, gypsum) in the altered carbonaceous taxa, the oldhamite family in the enstatite taxon, and nanodiamond and presolar silicon carbide. The reference mass shares are a recalled modal list (stand-ins ACC1 and ACC2); a mineral that one element sets is scaled by that element's atoms per magnesium atom in the host star over the reference ratio (chromium, titanium, phosphorus, aluminium, nickel, manganese, sodium: <code>bulk_draw.HostRatios</code>), and the minerals no tracked element sets are not scaled. The accessories are added to the base mix and the whole renormalised; no draw is made. A belt passes its host star (<code>draw_belt(host=...)</code>); a field has none and takes the reference. The metal, refractory and matrix axes of the group label count the new rows (<code>REFRACTORY_ROWS</code>, <code>MATRIX_ROWS</code>). GEN.1369 reconciles the 84-name vocabulary with the rows drawn here.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

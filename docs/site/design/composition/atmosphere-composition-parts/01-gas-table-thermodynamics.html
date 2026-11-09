@@ -1,0 +1,5586 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 Gas table: thermodynamics, phase data, vapour pressure curves, real-gas and mixture formulas - planetGen docs</title>
+<meta name="description" content="Part 01 of the v9.0 atmosphere and composition notes (research worker output; the repository was not edited).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="01-gas-table-thermodynamics-phase-data-vapour-pressure-curves-real-gas-and-mixture-formulas">01 Gas table: thermodynamics, phase data, vapour pressure curves, real-gas and mixture formulas</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md</p><details class="toc"><summary>On this page (25 headings)</summary><ul><li style="margin-left:0px"><a href="#0-provenance-and-which-domains-worked">0. Provenance and which domains worked</a></li><li style="margin-left:0px"><a href="#1-scope-and-generator-feed">1. Scope and generator feed</a></li><li style="margin-left:0px"><a href="#2-t1-identity-mass-flags-photolysis-threshold">2. T1: identity, mass, flags, photolysis threshold</a></li><li style="margin-left:0px"><a href="#3-t2-phase-points-and-critical-constants">3. T2: phase points and critical constants</a></li><li style="margin-left:0px"><a href="#4-t3-heat-capacity-gamma-enthalpies">4. T3: heat capacity, gamma, enthalpies</a></li><li style="margin-left:0px"><a href="#5-extras-refractory-and-hot-atmosphere-species">5. Extras: refractory and hot-atmosphere species</a></li><li style="margin-left:0px"><a href="#6-saturation-vapour-pressure-correlations">6. Saturation vapour pressure correlations</a></li><li style="margin-left:14px"><a href="#61-t4-best-published-correlation-per-species-tested-against-tb-and-tt">6.1 T4: best published correlation per species, tested against Tb and Tt</a></li><li style="margin-left:14px"><a href="#62-t5-wagner-fits-to-nist-eos-saturation-tables-liquid-branch">6.2 T5: Wagner fits to NIST EOS saturation tables (liquid branch)</a></li><li style="margin-left:14px"><a href="#63-t6-nasa-polynomial-equilibrium-vapour-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapour pressure (metals, salts, TiO, sulfur, H2SO4)</a></li><li style="margin-left:0px"><a href="#7-replacement-for-the-two-point-condensation_k-rows">7. Replacement for the two-point CONDENSATION_K rows</a></li><li style="margin-left:14px"><a href="#71-recipe">7.1 Recipe</a></li><li style="margin-left:14px"><a href="#72-t9-r1445-sublimation-polynomials">7.2 T9: [R1445] sublimation polynomials</a></li><li style="margin-left:14px"><a href="#73-t10-laboratory-curves-versus-f-and-s-at-low-temperature">7.3 T10: laboratory curves versus F and S at low temperature</a></li><li style="margin-left:14px"><a href="#74-new-entries-nh3-h2s-nh4sh-hcn-c2h6-h2so4">7.4 New entries: NH3, H2S, NH4SH, HCN, C2H6, H2SO4</a></li><li style="margin-left:14px"><a href="#75-t8-old-two-point-rows-against-the-checked-curves">7.5 T8: old two-point rows against the checked curves</a></li><li style="margin-left:0px"><a href="#8-henry-constants">8. Henry constants</a></li><li style="margin-left:0px"><a href="#9-viscosity">9. Viscosity</a></li><li style="margin-left:0px"><a href="#10-ideal-versus-real-gas">10. Ideal versus real gas</a></li><li style="margin-left:0px"><a href="#11-formulas-for-the-generator">11. Formulas for the generator</a></li><li style="margin-left:0px"><a href="#12-test-case-table">12. Test-case table</a></li><li style="margin-left:0px"><a href="#13-boss-must-research">13. Boss must research</a></li><li style="margin-left:0px"><a href="#14-recalled--to-verify">14. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#15-row-counts-by-status">15. Row counts by status</a></li><li style="margin-left:0px"><a href="#16-cross-links">16. Cross-links</a></li></ul></details>
+<p>Part 01 of the v9.0 atmosphere and composition notes (research worker output; the repository was not edited).</p>
+<h2 id="0-provenance-and-which-domains-worked">0. Provenance and which domains worked</h2>
+<p>Worked: export.arxiv.org PDFs ([R2711], 2309.05078 [R1708], astro-ph/0511136 [R4562], 2410.11138 [R2732], 1312.3750 [R1516]; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov ([R0418] (PSS 244, 105863, [R0418]; NASA NTRS record dated 2025), equilibrium vapour pressures of NH<sub>3</sub> and O<sub>2</sub> ices). Refused or not reached: ScienceDirect [R1445], NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.</p>
+<p>Cp tags: J JANAF 1998 (chemicals), N NASA-7 (cantera), S Shomate, f NIST fluid at 1e-4 MPa, x NASA-7 extrapolated below its 200 K range (unreliable), C computed 5R/2, P Poling polynomial. Phase-point tags: h heos_constants (EOS values), e NIST EOS table, n NIST WebBook median, y Yaws, c CRC; &quot;sub&quot; marks a sublimation point at 101325 Pa. Row counts by label are in section 15.</p>
+<h2 id="1-scope-and-generator-feed">1. Scope and generator feed</h2>
+<p>Input: species, T, total pressure P, partial pressures. Output: molar mass, saturation pressure or condensation temperature, ideal and real density, Cp and gamma, scale height, Henry solubility, viscosity and flags (condenses, absorbs IR, photolysed). The species are the 72 gases of T1 plus the extras of section 5. Section 7 replaces the two-point rows of <code>CONDENSATION_K</code> in <code>src/planetgen/physics/atmosphere.py</code> (lines 77 to 84; <code>vapour_pressure_kpa</code>, line 137, interpolates ln P between the temperature at 100 kPa and at 0.001 kPa). Solar System bodies appear only as labelled test points (section 12).</p>
+<p>Flags (defined here, not sourced): IR column: monatomic none, homonuclear diatomics CIA only (collision-induced absorption), all others IR (greenhouse candidate; strengths are in the infrared part). Volatility class from the normal boiling or sublimation point: UV below 30 K, SV 30 to 150 K, V 150 to 350 K, SmV 350 to 1000 K, Ref above 1000 K; &quot;condensible&quot; on a body when the class is SV or V and x_i P exceeds the saturation curve. NUV = Y when the thermodynamic photolysis threshold is at or beyond 300 nm. This is a necessary condition only (threshold = lowest bond-energy channel from NASA enthalpies, lambda_nm = 119626.565 / dH in kJ/mol); H<sub>2</sub>, CH<sub>4</sub> and H<sub>2</sub>O have long thresholds but absorb only in the vacuum UV. True fragility needs cross sections (part 03).</p>
+<h2 id="2-t1-identity-mass-flags-photolysis-threshold">2. T1: identity, mass, flags, photolysis threshold</h2>
+<p>M (g/mol) is COMPUTED from periodictable 2.1.0 element masses (isotope masses for 3He, HD, HDO). CAS from NIST WebBook (DATA). Threshold: nm and products of the lowest channel (cantera nasa_gas.yaml enthalpies), COMPUTED.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>CAS</th>
+<th>M</th>
+<th>IR</th>
+<th>Vol</th>
+<th>Threshold nm (channel)</th>
+<th>NUV</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>1333-74-0</td>
+<td>2.0160</td>
+<td>CIA</td>
+<td>UV</td>
+<td>274 (H+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HD</td>
+<td>13983-20-5</td>
+<td>3.0219</td>
+<td>IR(weak)</td>
+<td>?</td>
+<td>272 (H+D)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>He</td>
+<td>7440-59-7</td>
+<td>4.0026</td>
+<td>-</td>
+<td>UV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>3He</td>
+<td>14762-55-1</td>
+<td>3.0160</td>
+<td>-</td>
+<td>UV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>7440-01-9</td>
+<td>20.1797</td>
+<td>-</td>
+<td>UV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>7440-37-1</td>
+<td>39.9500</td>
+<td>-</td>
+<td>SV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>7439-90-9</td>
+<td>83.7980</td>
+<td>-</td>
+<td>SV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>7440-63-3</td>
+<td>131.2930</td>
+<td>-</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Rn</td>
+<td>10043-92-2</td>
+<td>222.0176</td>
+<td>-</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>7727-37-9</td>
+<td>28.0140</td>
+<td>CIA</td>
+<td>SV</td>
+<td>127 (N+N)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>7782-44-7</td>
+<td>31.9980</td>
+<td>CIA</td>
+<td>SV</td>
+<td>240 (O+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>10028-15-6</td>
+<td>47.9970</td>
+<td>IR</td>
+<td>V</td>
+<td>1114 (O<sub>2</sub>+O)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>7732-18-5</td>
+<td>18.0150</td>
+<td>IR</td>
+<td>SmV</td>
+<td>240 (H+OH)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HDO</td>
+<td>14940-63-7</td>
+<td>19.0209</td>
+<td>IR</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>7722-84-1</td>
+<td>34.0140</td>
+<td>IR</td>
+<td>SmV</td>
+<td>556 (OH+OH)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>630-08-0</td>
+<td>28.0100</td>
+<td>IR</td>
+<td>SV</td>
+<td>111 (C+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>124-38-9</td>
+<td>44.0090</td>
+<td>IR</td>
+<td>V</td>
+<td>225 (CO+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>74-82-8</td>
+<td>16.0430</td>
+<td>IR</td>
+<td>SV</td>
+<td>272 (CH<sub>3</sub>+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>74-86-2</td>
+<td>26.0380</td>
+<td>IR</td>
+<td>V</td>
+<td>215 (C<sub>2</sub>H+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>74-85-1</td>
+<td>28.0540</td>
+<td>IR</td>
+<td>V</td>
+<td>257 (C<sub>2</sub>H<sub>3</sub>+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>74-84-0</td>
+<td>30.0700</td>
+<td>IR</td>
+<td>V</td>
+<td>317 (CH<sub>3</sub>+CH<sub>3</sub>)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>74-98-6</td>
+<td>44.0970</td>
+<td>IR</td>
+<td>V</td>
+<td>323 (CH<sub>3</sub>+C<sub>2</sub>H<sub>5</sub>)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>106-97-8</td>
+<td>58.1240</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>71-43-2</td>
+<td>78.1140</td>
+<td>IR</td>
+<td>SmV</td>
+<td>253 (C<sub>6</sub>H<sub>5</sub>+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>74-90-8</td>
+<td>27.0260</td>
+<td>IR</td>
+<td>V</td>
+<td>229 (H+CN)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>2</sub>O</td>
+<td>50-00-0</td>
+<td>30.0260</td>
+<td>IR</td>
+<td>V</td>
+<td>325 (H+HCO)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>67-56-1</td>
+<td>32.0420</td>
+<td>IR</td>
+<td>V</td>
+<td>309 (CH<sub>3</sub>+OH)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>7664-41-7</td>
+<td>17.0310</td>
+<td>IR</td>
+<td>V</td>
+<td>264 (NH<sub>2</sub>+H)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>H<sub>4</sub></td>
+<td>302-01-2</td>
+<td>32.0460</td>
+<td>IR</td>
+<td>SmV</td>
+<td>423 (NH<sub>2</sub>+NH<sub>2</sub>)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>10024-97-2</td>
+<td>44.0130</td>
+<td>IR</td>
+<td>V</td>
+<td>714 (N<sub>2</sub>+O)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>10102-43-9</td>
+<td>30.0060</td>
+<td>IR</td>
+<td>SV</td>
+<td>190 (N+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>10102-44-0</td>
+<td>46.0050</td>
+<td>IR</td>
+<td>V</td>
+<td>391 (NO+O)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O<sub>4</sub></td>
+<td>10544-72-6</td>
+<td>92.0100</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HNO<sub>3</sub></td>
+<td>7697-37-2</td>
+<td>63.0120</td>
+<td>IR</td>
+<td>SmV</td>
+<td>577 (OH+NO<sub>2</sub>)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HNCO</td>
+<td>75-13-8</td>
+<td>43.0250</td>
+<td>IR</td>
+<td>?</td>
+<td>241 (H+NCO)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>O<sub>2</sub></td>
+<td>504-64-3</td>
+<td>68.0310</td>
+<td>IR</td>
+<td>V</td>
+<td>436 (C2O+CO)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CN</td>
+<td>2074-87-5</td>
+<td>26.0180</td>
+<td>IR</td>
+<td>?</td>
+<td>160 (C+N)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub></td>
+<td>460-19-5</td>
+<td>52.0360</td>
+<td>IR</td>
+<td>V</td>
+<td>209 (CN+CN)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>CN</td>
+<td>75-05-8</td>
+<td>41.0530</td>
+<td>IR</td>
+<td>SmV</td>
+<td>229 (CH<sub>3</sub>+CN)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HC<sub>3</sub>N</td>
+<td>1070-71-9</td>
+<td>51.0480</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>2</sub></td>
+<td>460-12-8</td>
+<td>50.0600</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>7803-51-2</td>
+<td>33.9978</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>7783-06-4</td>
+<td>34.0760</td>
+<td>IR</td>
+<td>V</td>
+<td>317 (SH+H)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>7446-09-5</td>
+<td>64.0580</td>
+<td>IR</td>
+<td>V</td>
+<td>217 (SO+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>3</sub></td>
+<td>7446-11-9</td>
+<td>80.0570</td>
+<td>IR</td>
+<td>V</td>
+<td>344 (SO<sub>2</sub>+O)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub></td>
+<td>7664-93-9</td>
+<td>98.0720</td>
+<td>IR</td>
+<td>SmV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>463-58-1</td>
+<td>60.0700</td>
+<td>IR</td>
+<td>V</td>
+<td>392 (CO+S)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>75-15-0</td>
+<td>76.1310</td>
+<td>IR</td>
+<td>V</td>
+<td>272 (CS+S)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td>23550-45-0</td>
+<td>64.1200</td>
+<td>CIA</td>
+<td>?</td>
+<td>281 (S+S)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>10544-50-0</td>
+<td>256.4800</td>
+<td>IR</td>
+<td>?</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>13827-32-2</td>
+<td>48.0590</td>
+<td>IR</td>
+<td>?</td>
+<td>230 (S+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>SH</td>
+<td>74-93-1</td>
+<td>48.1030</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>(CH<sub>3</sub>)2S</td>
+<td>75-18-3</td>
+<td>62.1300</td>
+<td>IR</td>
+<td>V</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>7647-01-0</td>
+<td>36.4580</td>
+<td>IR</td>
+<td>V</td>
+<td>277 (H+Cl)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>7664-39-3</td>
+<td>20.0064</td>
+<td>IR</td>
+<td>V</td>
+<td>210 (H+F)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>7782-50-5</td>
+<td>70.9000</td>
+<td>CIA</td>
+<td>V</td>
+<td>493 (Cl+Cl)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>74-87-3</td>
+<td>50.4850</td>
+<td>IR</td>
+<td>V</td>
+<td>342 (CH<sub>3</sub>+Cl)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HBr</td>
+<td>10035-10-6</td>
+<td>80.9120</td>
+<td>IR</td>
+<td>V</td>
+<td>327 (H+Br)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HClO<sub>4</sub></td>
+<td>7601-90-3</td>
+<td>100.4540</td>
+<td>IR</td>
+<td>SmV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>75-73-0</td>
+<td>88.0046</td>
+<td>IR</td>
+<td>SV</td>
+<td>221 (CF<sub>3</sub>+F)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>2551-62-4</td>
+<td>146.0504</td>
+<td>IR</td>
+<td>V</td>
+<td>306 (SF5+F)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SiH<sub>4</sub></td>
+<td>7803-62-5</td>
+<td>32.1170</td>
+<td>IR</td>
+<td>V</td>
+<td>304 (SiH<sub>3</sub>+H)</td>
+<td>Y</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>10097-28-6</td>
+<td>44.0840</td>
+<td>IR</td>
+<td>?</td>
+<td>150 (Si+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>7440-23-5</td>
+<td>22.9898</td>
+<td>-</td>
+<td>Ref</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>K</td>
+<td>7440-09-7</td>
+<td>39.0983</td>
+<td>-</td>
+<td>Ref</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>7440-70-2</td>
+<td>40.0780</td>
+<td>-</td>
+<td>Ref</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>7439-95-4</td>
+<td>24.3050</td>
+<td>-</td>
+<td>Ref</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>7439-89-6</td>
+<td>55.8450</td>
+<td>-</td>
+<td>Ref</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>12137-20-1</td>
+<td>63.8660</td>
+<td>IR</td>
+<td>?</td>
+<td>179 (Ti+O)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NaCl</td>
+<td>7647-14-5</td>
+<td>58.4398</td>
+<td>IR</td>
+<td>Ref</td>
+<td>292 (Na+Cl)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>KCl</td>
+<td>7447-40-7</td>
+<td>74.5483</td>
+<td>IR</td>
+<td>Ref</td>
+<td>281 (K+Cl)</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>Cl</td>
+<td>12125-02-9</td>
+<td>53.4890</td>
+<td>IR</td>
+<td>SmV</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-t2-phase-points-and-critical-constants">3. T2: phase points and critical constants</h2>
+<p>Tt (K), Pt (Pa), Tb (K), Tc (K) [min-max over sources / n sources, outliers beyond 15% dropped], Pc (MPa) likewise, acentric factor omega. Where sources disagree, draw within the spread. Warnings: single-source metal and salt Tc, Pc are estimates (Mg Pc 280 MPa, Fe Pc 1015 MPa and Tc 9340 K are implausible as measurements); NH<sub>4</sub>Cl omega 3.92 is meaningless (it dissociates); HClO<sub>4</sub> and H<sub>2</sub>SO<sub>4</sub> values are Yaws estimates for compounds that decompose on boiling; 3He Tb is Yaws; HD Tt is a NIST median; Rn Tt is NOT REACHED.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Tt K</th>
+<th>Pt Pa</th>
+<th>Tb K</th>
+<th>Tc K [range/n]</th>
+<th>Pc MPa [range/n]</th>
+<th>omega</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>13.957h</td>
+<td>7358e</td>
+<td>20.369h</td>
+<td>33.15 [33.15-33.20/5]</td>
+<td>1.296 [1.296-1.313/5]</td>
+<td>-0.219</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HD</td>
+<td>16.600n</td>
+<td>--</td>
+<td>--</td>
+<td>36.00 [36.00-36.00/1]</td>
+<td>1.479 [1.479-1.479/1]</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>He</td>
+<td>2.1768h</td>
+<td>5039e</td>
+<td>4.2238h</td>
+<td>5.20 [5.19-5.30/5]</td>
+<td>0.228 [0.227-0.232/5]</td>
+<td>-0.383</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>3He</td>
+<td>--</td>
+<td>--</td>
+<td>3.2000y</td>
+<td>3.31 [3.31-3.31/2]</td>
+<td>0.114 [0.114-0.117/2]</td>
+<td>-0.471</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>24.556h</td>
+<td>43355e</td>
+<td>27.100h</td>
+<td>44.40 [44.40-44.40/5]</td>
+<td>2.662 [2.653-2.756/5]</td>
+<td>-0.036</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>83.806h</td>
+<td>68891e</td>
+<td>87.302h</td>
+<td>150.69 [150.65-150.86/8]</td>
+<td>4.863 [4.855-4.898/7-1out]</td>
+<td>-0.002</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>115.78h</td>
+<td>73534e</td>
+<td>119.73h</td>
+<td>209.48 [209.35-209.48/6]</td>
+<td>5.525 [5.502-5.525/6]</td>
+<td>-0.001</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>161.41h</td>
+<td>81772e</td>
+<td>165.05h</td>
+<td>289.73 [289.70-289.74/6]</td>
+<td>5.842 [5.836-5.842/5]</td>
+<td>0.004</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Rn</td>
+<td>--</td>
+<td>--</td>
+<td>211.45y</td>
+<td>377.00 [377.00-377.50/3]</td>
+<td>6.282 [6.280-6.282/3]</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>63.151h</td>
+<td>12520e</td>
+<td>77.355h</td>
+<td>126.19 [126.19-128.45/9]</td>
+<td>3.396 [3.394-3.460/7-2out]</td>
+<td>0.037</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>54.361h</td>
+<td>146.3e</td>
+<td>90.188h</td>
+<td>154.58 [154.58-155.15/8]</td>
+<td>5.043 [4.985-5.046/9]</td>
+<td>0.022</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>--</td>
+<td>--</td>
+<td>161.30n</td>
+<td>261.10 [261.00-261.15/6]</td>
+<td>5.573 [5.532-5.573/4]</td>
+<td>0.212</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>273.16h</td>
+<td>611.7e</td>
+<td>373.12h</td>
+<td>647.10 [647.00-647.30/6]</td>
+<td>22.064 [22.046-22.064/10]</td>
+<td>0.344</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HDO</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>--</td>
+<td>--</td>
+<td>423.35y</td>
+<td>728.00 [728.00-730.15/3]</td>
+<td>22.000 [21.700-22.000/3]</td>
+<td>0.358</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>68.160h</td>
+<td>15537e</td>
+<td>81.638h</td>
+<td>132.86 [132.86-134.45/6]</td>
+<td>3.494 [3.475-3.521/9]</td>
+<td>0.050</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>216.59h</td>
+<td>5.180e5e</td>
+<td>194.67y sub</td>
+<td>304.13 [304.10-304.35/10]</td>
+<td>7.377 [7.340-7.383/8]</td>
+<td>0.225</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>90.694h</td>
+<td>11696e</td>
+<td>111.67h</td>
+<td>190.56 [190.56-190.60/8]</td>
+<td>4.599 [4.599-4.610/8]</td>
+<td>0.011</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>191.75h</td>
+<td>1.235e5h</td>
+<td>189.30n sub</td>
+<td>308.30 [308.30-309.70/11]</td>
+<td>5.988 [5.988-6.240/8]</td>
+<td>0.191</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>103.99h</td>
+<td>122.0e</td>
+<td>169.38h</td>
+<td>282.35 [282.34-282.50/8]</td>
+<td>5.042 [5.032-5.060/8]</td>
+<td>0.087</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>90.368h</td>
+<td>1.142e</td>
+<td>184.57h</td>
+<td>305.32 [305.30-305.42/8]</td>
+<td>4.872 [4.872-4.900/8]</td>
+<td>0.100</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>85.525h</td>
+<td>1.724e-4e</td>
+<td>231.04h</td>
+<td>369.89 [369.82-369.95/8]</td>
+<td>4.251 [4.246-4.251/8]</td>
+<td>0.153</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>134.90h</td>
+<td>0.6657e</td>
+<td>272.66h</td>
+<td>425.12 [425.00-425.20/8]</td>
+<td>3.796 [3.790-3.800/8]</td>
+<td>0.201</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>278.67h</td>
+<td>4785e</td>
+<td>353.22h</td>
+<td>562.02 [562.00-562.16/8]</td>
+<td>4.907 [4.890-4.907/8]</td>
+<td>0.211</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>259.86n</td>
+<td>--</td>
+<td>299.00n</td>
+<td>456.80 [456.65-457.00/5]</td>
+<td>5.390 [5.390-5.400/5]</td>
+<td>0.410</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>2</sub>O</td>
+<td>155.10n</td>
+<td>--</td>
+<td>253.85n</td>
+<td>408.00 [408.00-408.00/2]</td>
+<td>6.586 [6.586-6.586/2]</td>
+<td>0.282</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>175.61h</td>
+<td>0.1864e</td>
+<td>337.63h</td>
+<td>513.38 [512.50-513.38/7]</td>
+<td>8.216 [8.010-8.216/7]</td>
+<td>0.561</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>195.49h</td>
+<td>6053e</td>
+<td>239.83h</td>
+<td>405.56 [405.40-405.65/7]</td>
+<td>11.363 [11.277-11.363/6]</td>
+<td>0.256</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>H<sub>4</sub></td>
+<td>274.62n</td>
+<td>--</td>
+<td>386.65n</td>
+<td>653.00 [653.00-653.15/4]</td>
+<td>14.692 [14.692-14.700/4]</td>
+<td>0.314</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>182.33h</td>
+<td>87837e</td>
+<td>184.68h</td>
+<td>309.52 [309.49-309.65/9]</td>
+<td>7.245 [7.235-7.270/8]</td>
+<td>0.162</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>--</td>
+<td>--</td>
+<td>121.38y</td>
+<td>180.00 [180.00-180.15/4]</td>
+<td>6.485 [6.480-6.485/4]</td>
+<td>0.583</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>--</td>
+<td>--</td>
+<td>295.08n</td>
+<td>431.15 [431.00-431.15/2]</td>
+<td>10.133 [10.133-10.133/2]</td>
+<td>0.851</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O<sub>4</sub></td>
+<td>--</td>
+<td>--</td>
+<td>294.31y</td>
+<td>431.00 [431.00-431.15/3]</td>
+<td>10.133 [10.133-10.133/3]</td>
+<td>0.853</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNO<sub>3</sub></td>
+<td>--</td>
+<td>--</td>
+<td>356.15y</td>
+<td>520.00 [520.00-520.00/2]</td>
+<td>6.890 [6.890-6.890/2]</td>
+<td>0.714</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNCO</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>O<sub>2</sub></td>
+<td>--</td>
+<td>--</td>
+<td>279.95y</td>
+<td>431.80 [431.80-431.80/1]</td>
+<td>5.119 [5.119-5.119/1]</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CN</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub></td>
+<td>245.32n</td>
+<td>75100n</td>
+<td>252.00n</td>
+<td>400.00 [397.00-400.15/6]</td>
+<td>5.978 [5.924-6.303/6]</td>
+<td>0.312</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>CN</td>
+<td>229.32n</td>
+<td>--</td>
+<td>354.80n</td>
+<td>545.00 [545.00-548.00/6]</td>
+<td>4.870 [4.833-4.880/6]</td>
+<td>0.338</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HC<sub>3</sub>N</td>
+<td>--</td>
+<td>--</td>
+<td>315.70n</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>2</sub></td>
+<td>--</td>
+<td>--</td>
+<td>284.00n</td>
+<td>478.02 [478.02-478.02/1]</td>
+<td>5.863 [5.863-5.863/1]</td>
+<td>0.100</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>139.41n</td>
+<td>--</td>
+<td>185.41y</td>
+<td>324.80 [324.75-324.80/3]</td>
+<td>6.535 [6.535-6.540/3]</td>
+<td>0.045</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>187.70h</td>
+<td>23259e</td>
+<td>212.85h</td>
+<td>373.10 [372.80-373.53/7]</td>
+<td>9.000 [8.937-9.000/7]</td>
+<td>0.100</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>197.70h</td>
+<td>1666e</td>
+<td>263.14h</td>
+<td>430.64 [430.34-430.80/6]</td>
+<td>7.887 [7.883-7.887/5]</td>
+<td>0.256</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>3</sub></td>
+<td>--</td>
+<td>--</td>
+<td>317.90y</td>
+<td>491.00 [490.85-491.00/4]</td>
+<td>8.207 [8.207-8.210/4]</td>
+<td>0.424</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub></td>
+<td>--</td>
+<td>--</td>
+<td>610.00y</td>
+<td>924.00 [924.00-924.00/1]</td>
+<td>6.400 [6.400-6.400/1]</td>
+<td>0.494</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>134.30h</td>
+<td>64.43e</td>
+<td>222.99h</td>
+<td>378.77 [375.00-378.80/6]</td>
+<td>6.370 [5.877-6.370/6]</td>
+<td>0.097</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>161.35n</td>
+<td>--</td>
+<td>319.20n</td>
+<td>552.00 [552.00-552.49/5]</td>
+<td>7.903 [7.329-7.903/4]</td>
+<td>0.111</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>SH</td>
+<td>150.15n</td>
+<td>--</td>
+<td>279.10n</td>
+<td>469.90 [469.90-470.00/7]</td>
+<td>7.230 [7.230-7.240/6]</td>
+<td>0.158</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>(CH<sub>3</sub>)2S</td>
+<td>174.85n</td>
+<td>--</td>
+<td>311.00n</td>
+<td>503.00 [503.00-503.04/8]</td>
+<td>5.530 [5.400-5.532/6]</td>
+<td>0.194</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>159.07h</td>
+<td>13828h</td>
+<td>188.17h</td>
+<td>324.68 [324.60-324.68/6]</td>
+<td>8.313 [8.256-8.313/6]</td>
+<td>0.132</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>--</td>
+<td>--</td>
+<td>292.70n</td>
+<td>461.00 [461.00-461.15/3]</td>
+<td>6.485 [6.480-6.485/3]</td>
+<td>0.382</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>172.17h</td>
+<td>1381h</td>
+<td>239.20h</td>
+<td>416.87 [416.87-417.15/7]</td>
+<td>7.642 [7.642-7.991/7]</td>
+<td>0.069</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>175.51h</td>
+<td>870.0n</td>
+<td>249.17h</td>
+<td>416.30 [416.00-416.30/7]</td>
+<td>6.690 [6.677-7.400/10]</td>
+<td>0.153</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HBr</td>
+<td>--</td>
+<td>--</td>
+<td>206.45y</td>
+<td>363.20 [363.15-363.20/4]</td>
+<td>8.552 [8.552-8.552/4]</td>
+<td>0.069</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HClO<sub>4</sub></td>
+<td>--</td>
+<td>--</td>
+<td>385.00y</td>
+<td>631.00 [631.00-631.00/1]</td>
+<td>3.860 [3.860-3.860/1]</td>
+<td>0.050</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>120.00h</td>
+<td>11294e</td>
+<td>145.10h</td>
+<td>227.51 [227.50-227.54/8]</td>
+<td>3.750 [3.680-3.750/7]</td>
+<td>0.181</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>223.56h</td>
+<td>2.314e5e</td>
+<td>209.30n sub</td>
+<td>318.72 [318.69-318.76/8-2out]</td>
+<td>3.755 [3.755-3.760/6-1out]</td>
+<td>0.218</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SiH<sub>4</sub></td>
+<td>--</td>
+<td>--</td>
+<td>161.00y</td>
+<td>269.70 [269.00-269.70/3]</td>
+<td>4.840 [4.840-4.855/3]</td>
+<td>0.094</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>370.98n</td>
+<td>--</td>
+<td>1156.0n</td>
+<td>2573.00 [2573.00-2573.00/1]</td>
+<td>35.464 [35.464-35.464/1]</td>
+<td>-0.105</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>K</td>
+<td>336.35n</td>
+<td>--</td>
+<td>1037.0n</td>
+<td>2223.00 [2223.00-2223.00/1]</td>
+<td>16.000 [16.000-16.000/1]</td>
+<td>-0.203</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>1112.9n</td>
+<td>--</td>
+<td>1757.0n</td>
+<td>3267.00 [3267.00-3267.00/1]</td>
+<td>15.300 [15.300-15.300/1]</td>
+<td>0.117</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>922.00n</td>
+<td>--</td>
+<td>1363.0n</td>
+<td>2241.04 [2241.04-2241.04/1]</td>
+<td>280.240 [280.240-280.240/1]</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>--</td>
+<td>--</td>
+<td>3133.3y</td>
+<td>9340.00 [9340.00-9340.00/1]</td>
+<td>1015.000 [1015.000-1015.000/1]</td>
+<td>-0.011</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+<td>- [-]</td>
+<td>- [-]</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>NaCl</td>
+<td>--</td>
+<td>--</td>
+<td>1738.2y</td>
+<td>3400.00 [3400.00-3400.00/1]</td>
+<td>35.500 [35.500-35.500/1]</td>
+<td>0.189</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>KCl</td>
+<td>--</td>
+<td>--</td>
+<td>1689.0y</td>
+<td>3470.00 [3470.00-3470.00/1]</td>
+<td>18.000 [18.000-18.000/1]</td>
+<td>-0.121</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>Cl</td>
+<td>--</td>
+<td>--</td>
+<td>612.00y</td>
+<td>882.00 [882.00-882.00/1]</td>
+<td>1.640 [1.640-1.640/1]</td>
+<td>3.920</td>
+<td>DATA</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sources: chemicals 1.5.2 (Misc/heos_constants.tsv, Critical Properties, Triple Properties, Vapor Pressure), NIST fluid saturation tables, NIST WebBook phase-change pages.</p>
+<h2 id="4-t3-heat-capacity-gamma-enthalpies">4. T3: heat capacity, gamma, enthalpies</h2>
+<p>Ideal-gas Cp (J/mol/K) at 100, 300, 1000 K; gamma = Cp/(Cp - R) at 300 K (R = 8.31446261815 J/mol/K); spread = percent spread among other reachable sources (JANAF, NASA-7, Shomate) at 300 K / 1000 K; dHvap (kJ/mol) at Tb (e NIST EOS table, c CRC); dHsub = NIST WebBook range. Cautions: x values are extrapolations; C<sub>6</sub>H<sub>6</sub> at 100 K is withheld (unphysical extrapolation); C<sub>2</sub>H<sub>6</sub> and C<sub>3</sub>H<sub>8</sub> at 100 K are x values because the NIST 1e-4 MPa isotherm returns liquid there; H<sub>2</sub> at 100 K depends on the ortho-para state (NIST 22.57, NASA-7 extrapolation 24.67, JANAF not read), so treat H<sub>2</sub> Cp below 250 K as uncertain by about 10%. Monatomic gases are 5R/2 = 20.786 and gamma = 5/3 (COMPUTED).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Cp 100</th>
+<th>Cp 300</th>
+<th>Cp 1000</th>
+<th>gamma 300</th>
+<th>spread %</th>
+<th>dHvap</th>
+<th>dHsub</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>22.57f</td>
+<td>28.85N</td>
+<td>30.16N</td>
+<td>1.405</td>
+<td>0.0/0.1</td>
+<td>0.90e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HD</td>
+<td>29.29J</td>
+<td>29.20J</td>
+<td>30.71J</td>
+<td>1.398</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>He</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>0.08e</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>3He</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>-/-</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>1.73e</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>6.44e</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>8.97e</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>12.55e</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Rn</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>20.786C</td>
+<td>1.667</td>
+<td>-/-</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>29.10f</td>
+<td>29.13N</td>
+<td>32.68N</td>
+<td>1.400</td>
+<td>0.0/0.0</td>
+<td>5.58e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>29.11f</td>
+<td>29.39N</td>
+<td>34.88N</td>
+<td>1.395</td>
+<td>0.0/0.1</td>
+<td>6.82e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>33.29J</td>
+<td>39.33J</td>
+<td>55.02J</td>
+<td>1.268</td>
+<td>0.3/1.9</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>33.30J</td>
+<td>33.60J</td>
+<td>41.27J</td>
+<td>1.329</td>
+<td>0.0/0.1</td>
+<td>40.65e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HDO</td>
+<td>33.30J</td>
+<td>33.80J</td>
+<td>43.28J</td>
+<td>1.326</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>33.53J</td>
+<td>43.22J</td>
+<td>62.84J</td>
+<td>1.238</td>
+<td>1.8/0.8</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>29.10f</td>
+<td>29.14J</td>
+<td>33.18J</td>
+<td>1.399</td>
+<td>0.0/0.1</td>
+<td>6.01e</td>
+<td>7.6-8.1</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>29.21J</td>
+<td>37.22J</td>
+<td>54.31J</td>
+<td>1.288</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>25.2-27.2</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>33.28f</td>
+<td>35.71J</td>
+<td>71.80J</td>
+<td>1.304</td>
+<td>0.1/2.5</td>
+<td>8.19e</td>
+<td>0.1-10.0</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>29.35J</td>
+<td>44.23J</td>
+<td>68.28J</td>
+<td>1.232</td>
+<td>0.2/0.5</td>
+<td>-</td>
+<td>21.8-25.2</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>33.27J</td>
+<td>43.06J</td>
+<td>93.90J</td>
+<td>1.239</td>
+<td>0.1/0.3</td>
+<td>13.53e</td>
+<td>15.0-18.4</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>35.52x</td>
+<td>52.72N</td>
+<td>122.69N</td>
+<td>1.187</td>
+<td>-/-</td>
+<td>14.72e</td>
+<td>20.5-22.6</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>41.58x</td>
+<td>73.95N</td>
+<td>174.84N</td>
+<td>1.127</td>
+<td>-/-</td>
+<td>18.77e</td>
+<td>28.5</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>58.29x</td>
+<td>99.11N</td>
+<td>227.75N</td>
+<td>1.092</td>
+<td>-/-</td>
+<td>22.42e</td>
+<td>35.9</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>-</td>
+<td>82.48N</td>
+<td>211.32N</td>
+<td>1.112</td>
+<td>-/-</td>
+<td>30.75e</td>
+<td>38.0-53.9</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>29.17J</td>
+<td>35.93J</td>
+<td>50.23J</td>
+<td>1.301</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>35.6-37.6</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>2</sub>O</td>
+<td>33.26J</td>
+<td>35.46J</td>
+<td>61.99J</td>
+<td>1.306</td>
+<td>0.1/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>39.71x</td>
+<td>44.15N</td>
+<td>89.66N</td>
+<td>1.232</td>
+<td>-/-</td>
+<td>35.28e</td>
+<td>-</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>33.28J</td>
+<td>35.70J</td>
+<td>56.49J</td>
+<td>1.304</td>
+<td>0.1/0.4</td>
+<td>23.33e</td>
+<td>31.2</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>H<sub>4</sub></td>
+<td>34.37J</td>
+<td>51.02J</td>
+<td>96.36J</td>
+<td>1.195</td>
+<td>5.0/4.3</td>
+<td>41.80c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>29.35J</td>
+<td>38.70J</td>
+<td>54.87J</td>
+<td>1.274</td>
+<td>0.0/0.7</td>
+<td>16.47e</td>
+<td>23.6-25.1</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>32.30J</td>
+<td>29.84J</td>
+<td>33.99J</td>
+<td>1.386</td>
+<td>0.1/0.0</td>
+<td>13.83c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>33.28J</td>
+<td>37.03J</td>
+<td>52.17J</td>
+<td>1.290</td>
+<td>0.6/1.6</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O<sub>4</sub></td>
+<td>46.26J</td>
+<td>77.49J</td>
+<td>119.21J</td>
+<td>1.120</td>
+<td>2.5/0.5</td>
+<td>38.12c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNO<sub>3</sub></td>
+<td>33.92J</td>
+<td>53.53J</td>
+<td>90.42J</td>
+<td>1.184</td>
+<td>1.5/1.6</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNCO</td>
+<td>33.47J</td>
+<td>45.16J</td>
+<td>67.52J</td>
+<td>1.226</td>
+<td>0.0/0.1</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>O<sub>2</sub></td>
+<td>45.31J</td>
+<td>67.16J</td>
+<td>97.64J</td>
+<td>1.141</td>
+<td>0.6/0.1</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CN</td>
+<td>29.10J</td>
+<td>29.16J</td>
+<td>33.46J</td>
+<td>1.399</td>
+<td>0.0/0.1</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub></td>
+<td>36.40J</td>
+<td>56.86J</td>
+<td>76.30J</td>
+<td>1.171</td>
+<td>0.6/0.7</td>
+<td>23.33c</td>
+<td>32.4-34.4</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>CN</td>
+<td>36.77x</td>
+<td>52.39N</td>
+<td>98.42N</td>
+<td>1.189</td>
+<td>-/-</td>
+<td>29.75c</td>
+<td>-</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>HC<sub>3</sub>N</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-/-</td>
+<td>-</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>2</sub></td>
+<td>32.91x</td>
+<td>73.92N</td>
+<td>111.25N</td>
+<td>1.127</td>
+<td>-/-</td>
+<td>-</td>
+<td>36.2-36.3</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>33.26J</td>
+<td>37.18J</td>
+<td>64.30J</td>
+<td>1.288</td>
+<td>0.1/0.0</td>
+<td>14.60c</td>
+<td>17.2</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>33.26J</td>
+<td>34.21J</td>
+<td>45.79J</td>
+<td>1.321</td>
+<td>0.0/0.1</td>
+<td>18.62e</td>
+<td>22.5-25.4</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>33.53J</td>
+<td>39.95J</td>
+<td>54.48J</td>
+<td>1.263</td>
+<td>0.0/0.0</td>
+<td>24.96e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>3</sub></td>
+<td>34.08J</td>
+<td>50.80J</td>
+<td>75.97J</td>
+<td>1.196</td>
+<td>0.1/0.0</td>
+<td>40.69c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub></td>
+<td>42.10J</td>
+<td>84.05J</td>
+<td>132.69J</td>
+<td>1.110</td>
+<td>0.0/0.1</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>29.61J</td>
+<td>41.59J</td>
+<td>56.99J</td>
+<td>1.250</td>
+<td>0.1/0.0</td>
+<td>18.56e</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>31.00J</td>
+<td>45.75J</td>
+<td>59.28J</td>
+<td>1.222</td>
+<td>0.0/0.0</td>
+<td>26.74c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td>29.37J</td>
+<td>32.52J</td>
+<td>37.28J</td>
+<td>1.343</td>
+<td>0.2/0.3</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>87.16J</td>
+<td>156.31J</td>
+<td>180.06J</td>
+<td>1.056</td>
+<td>0.2/0.2</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>29.11J</td>
+<td>30.20J</td>
+<td>36.05J</td>
+<td>1.380</td>
+<td>0.0/0.1</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>SH</td>
+<td>37.24P</td>
+<td>50.51P</td>
+<td>93.97P</td>
+<td>1.197</td>
+<td>-/-</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>(CH<sub>3</sub>)2S</td>
+<td>-</td>
+<td>74.38P</td>
+<td>146.87P</td>
+<td>1.126</td>
+<td>-/-</td>
+<td>27.00c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>29.12J</td>
+<td>29.14J</td>
+<td>31.63J</td>
+<td>1.399</td>
+<td>0.0/0.0</td>
+<td>16.15c</td>
+<td>19.6-19.7</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>29.13J</td>
+<td>29.14J</td>
+<td>30.17J</td>
+<td>1.399</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>28.16x</td>
+<td>33.98N</td>
+<td>37.43N</td>
+<td>1.324</td>
+<td>0.0/0.0</td>
+<td>20.41c</td>
+<td>-</td>
+<td>DATA (x)</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>33.28J</td>
+<td>40.86J</td>
+<td>78.84J</td>
+<td>1.255</td>
+<td>0.0/0.2</td>
+<td>21.40c</td>
+<td>31.6</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HBr</td>
+<td>29.11J</td>
+<td>29.14J</td>
+<td>32.32J</td>
+<td>1.399</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HClO<sub>4</sub></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-/-</td>
+<td>-</td>
+<td>-</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>34.74J</td>
+<td>61.29J</td>
+<td>98.80J</td>
+<td>1.157</td>
+<td>0.0/0.0</td>
+<td>11.83e</td>
+<td>14.0-17.0</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>38.72J</td>
+<td>97.40J</td>
+<td>149.27J</td>
+<td>1.093</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>23.2-23.3</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SiH<sub>4</sub></td>
+<td>33.27J</td>
+<td>42.98J</td>
+<td>84.51J</td>
+<td>1.240</td>
+<td>0.0/0.0</td>
+<td>12.10c</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>29.11J</td>
+<td>29.92J</td>
+<td>35.72J</td>
+<td>1.385</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>K</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>20.79J</td>
+<td>1.667</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>21.39J</td>
+<td>25.68J</td>
+<td>22.49J</td>
+<td>1.479</td>
+<td>0.0/0.2</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>33.88J</td>
+<td>32.50J</td>
+<td>37.74J</td>
+<td>1.344</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NaCl</td>
+<td>30.39J</td>
+<td>35.81J</td>
+<td>37.92J</td>
+<td>1.302</td>
+<td>0.1/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>KCl</td>
+<td>31.70J</td>
+<td>36.51J</td>
+<td>38.06J</td>
+<td>1.295</td>
+<td>0.0/0.0</td>
+<td>-</td>
+<td>-</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>Cl</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-/-</td>
+<td>-</td>
+<td>168.6-176.6</td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-extras-refractory-and-hot-atmosphere-species">5. Extras: refractory and hot-atmosphere species</h2>
+<p>Cp from ExoMol partition functions Q(T) (exomol.com *.pf), COMPUTED: Cp = 5R/2 + R (2 T dlnQ/dT + T^2 d2lnQ/dT2), finite differences of 5 K.</p>
+<p>The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the atoms, radicals and oxides that a hot or lava-world gas holds in equilibrium (<code>physics/gas_equilibrium.py</code>), so that a mixture drawn there is in the table. Their Cp is the NASA Glenn 9-coefficient fit of <code>physics/species_thermo.py</code> ([R2968]; the fits start at 200 or 300 K, so Cp 100 is not given), COMPUTED; their molar mass is the element table's.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>M g/mol</th>
+<th>Cp 100</th>
+<th>Cp 300</th>
+<th>Cp 1000</th>
+<th>Phase or vapour data</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FeH</td>
+<td>56.853</td>
+<td>33.19</td>
+<td>36.33</td>
+<td>43.90</td>
+<td>NOT REACHED (formation Gibbs data)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CrH</td>
+<td>53.004</td>
+<td>27.00</td>
+<td>29.70</td>
+<td>35.01</td>
+<td>NOT REACHED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>AlH</td>
+<td>27.990</td>
+<td>29.13</td>
+<td>29.38</td>
+<td>35.06</td>
+<td>NOT REACHED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>VO</td>
+<td>66.941</td>
+<td>29.14</td>
+<td>30.73</td>
+<td>36.49</td>
+<td>NOT REACHED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CaOH</td>
+<td>57.085</td>
+<td>31.93</td>
+<td>46.85</td>
+<td>53.59</td>
+<td>NOT REACHED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>63.866</td>
+<td>33.89</td>
+<td>31.88</td>
+<td>36.98</td>
+<td>JANAF Cp in T3 agrees within 4% at 300 K; vapor curve in T6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>SH</td>
+<td>51.107</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>condensation only, section 7.4</td>
+<td>NOT REACHED (Cp)</td>
+</tr>
+<tr>
+<td>H</td>
+<td>1.008</td>
+<td>-</td>
+<td>20.79</td>
+<td>20.79</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O</td>
+<td>15.999</td>
+<td>-</td>
+<td>21.90</td>
+<td>20.92</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>OH</td>
+<td>17.007</td>
+<td>-</td>
+<td>29.88</td>
+<td>30.68</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C</td>
+<td>12.011</td>
+<td>-</td>
+<td>20.84</td>
+<td>20.79</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N</td>
+<td>14.007</td>
+<td>-</td>
+<td>20.79</td>
+<td>20.79</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>S</td>
+<td>32.060</td>
+<td>-</td>
+<td>23.67</td>
+<td>21.49</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Si</td>
+<td>28.085</td>
+<td>-</td>
+<td>22.23</td>
+<td>20.97</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ti</td>
+<td>47.867</td>
+<td>-</td>
+<td>24.40</td>
+<td>21.32</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>V</td>
+<td>50.942</td>
+<td>-</td>
+<td>25.98</td>
+<td>25.24</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Cr</td>
+<td>51.996</td>
+<td>-</td>
+<td>20.79</td>
+<td>20.84</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>61.948</td>
+<td>-</td>
+<td>32.07</td>
+<td>36.83</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>FeO</td>
+<td>71.844</td>
+<td>-</td>
+<td>31.44</td>
+<td>36.69</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>MgO</td>
+<td>40.304</td>
+<td>-</td>
+<td>32.15</td>
+<td>54.74</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SiO<sub>2</sub></td>
+<td>60.083</td>
+<td>-</td>
+<td>44.14</td>
+<td>58.56</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TiO<sub>2</sub></td>
+<td>79.865</td>
+<td>-</td>
+<td>44.16</td>
+<td>55.71</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NaOH</td>
+<td>39.997</td>
+<td>-</td>
+<td>48.03</td>
+<td>54.54</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>KOH</td>
+<td>56.105</td>
+<td>-</td>
+<td>49.24</td>
+<td>54.71</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Na2</td>
+<td>45.980</td>
+<td>-</td>
+<td>37.58</td>
+<td>39.39</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NaO</td>
+<td>38.989</td>
+<td>-</td>
+<td>35.11</td>
+<td>39.72</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>MgOH</td>
+<td>41.312</td>
+<td>-</td>
+<td>46.56</td>
+<td>54.28</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mg(OH)<sub>2</sub></td>
+<td>58.319</td>
+<td>-</td>
+<td>80.80</td>
+<td>96.12</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Fe(OH)<sub>2</sub></td>
+<td>89.859</td>
+<td>-</td>
+<td>71.74</td>
+<td>98.26</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CaO</td>
+<td>56.077</td>
+<td>-</td>
+<td>32.49</td>
+<td>37.25</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SiS</td>
+<td>60.145</td>
+<td>-</td>
+<td>32.31</td>
+<td>36.91</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCOOH</td>
+<td>46.025</td>
+<td>-</td>
+<td>45.84</td>
+<td>89.40</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Al</td>
+<td>26.982</td>
+<td>-</td>
+<td>21.38</td>
+<td>20.84</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>78.196</td>
+<td>-</td>
+<td>37.99</td>
+<td>37.05</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>KO</td>
+<td>55.097</td>
+<td>-</td>
+<td>35.38</td>
+<td>38.09</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>K<sub>2</sub>O</td>
+<td>94.195</td>
+<td>-</td>
+<td>54.22</td>
+<td>57.76</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Na<sub>2</sub>O</td>
+<td>61.979</td>
+<td>-</td>
+<td>56.82</td>
+<td>61.71</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>AlO</td>
+<td>42.981</td>
+<td>-</td>
+<td>30.91</td>
+<td>37.14</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Al<sub>2</sub>O</td>
+<td>69.963</td>
+<td>-</td>
+<td>52.04</td>
+<td>60.65</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>AlO<sub>2</sub></td>
+<td>58.980</td>
+<td>-</td>
+<td>51.73</td>
+<td>60.70</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Al<sub>2</sub>O<sub>2</sub></td>
+<td>85.962</td>
+<td>-</td>
+<td>68.23</td>
+<td>83.80</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Cl</td>
+<td>35.450</td>
+<td>-</td>
+<td>21.85</td>
+<td>22.23</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>F</td>
+<td>18.998</td>
+<td>-</td>
+<td>22.74</td>
+<td>21.27</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>F<sub>2</sub></td>
+<td>37.996</td>
+<td>-</td>
+<td>31.34</td>
+<td>37.06</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Li</td>
+<td>6.940</td>
+<td>-</td>
+<td>20.79</td>
+<td>20.79</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>LiH</td>
+<td>7.948</td>
+<td>-</td>
+<td>29.75</td>
+<td>36.07</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>LiOH</td>
+<td>23.947</td>
+<td>-</td>
+<td>46.08</td>
+<td>54.02</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>LiCl</td>
+<td>42.390</td>
+<td>-</td>
+<td>33.29</td>
+<td>37.53</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>The last three rows (Cl, F, F<sub>2</sub>; GEN.1337) are the halogen atoms and fluorine that a hot outgassed gas holds once its hydrogen halides dissociate: <code>physics/gas_equilibrium.py</code> already carries their free energies, and a drawn mixture whose unlisted share was above the 1e-3 limit of <code>mixture_base.finish</code> failed with a MixtureError (about 1 in 240 G2V systems) until the table listed them. Cp is the NASA Glenn fit, as above.</p>
+<p>The four lithium rows (Li, LiH, LiOH, LiCl; GEN.1374) are the lithium gases of a brown dwarf's air: atomic Li down to 1520 K at 1 bar, then LiCl, with LiOH and LiH beside them ([R2731] section 1.5.5). Cp is the NASA Glenn fit, as above. The FeH and CrH rows above are no longer &quot;NOT REACHED&quot; for their free energy: <code>species_thermo</code> holds both since GEN.1374, made from atoms and the equilibrium constants of [R5162].</p>
+<h2 id="6-saturation-vapour-pressure-correlations">6. Saturation vapour pressure correlations</h2>
+<h3 id="61-t4-best-published-correlation-per-species-tested-against-tb-and-tt">6.1 T4: best published correlation per species, tested against Tb and Tt</h3>
+<p>All candidates in chemicals (NIST Antoine, Poling Antoine, Landolt-Bornstein Antoine, Perry DIPPR101, Alcock and Wagner forms) were evaluated at Tb and Tt; the table shows the best by error at Tb (solid fits penalised). Forms: A log10(P/bar) = a - b/(T + c); a log10(P/Pa) = a - b/(T + c); L ln(P/Pa) = a - b/(T + c); P ln(P/Pa) = a + b/T + c ln T + d T^e; suffix S = sublimation. Error columns: pressure error at Tb against 101325 Pa (percent, with the equivalent temperature shift) and at Tt against Pt. Several fits (Xe, K, Rn, NO<sub>2</sub>, N<sub>2</sub>O<sub>4</sub>, C<sub>4</sub>H<sub>2</sub>) sit at or beyond their published range at Tb and must not be used there; N<sub>2</sub>O<sub>4</sub> and NO<sub>2</sub> interconvert and the tabulated curve belongs to the mixture.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Form</th>
+<th>Coefficients</th>
+<th>Range K</th>
+<th>Err at Tb % (K)</th>
+<th>Err at Tt %</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>A</td>
+<td>3.5431, 99.395, 7.7260</td>
+<td>21.01-32.27</td>
+<td>-0.09 (+0.00 K)</td>
+<td>-</td>
+<td>NIST van Itterbeek, Verbeke</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>He</td>
+<td>P</td>
+<td>11.533, -8.9900, 0.67240, 0.27430, 1.0000</td>
+<td>1.760-5.200</td>
+<td>+0.59 (-0.01 K)</td>
+<td>-0.18</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>3He</td>
+<td>a</td>
+<td>6.3975, 5.5940, 0.69000</td>
+<td>1.120-4.410</td>
+<td>-10.10 (+0.13 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>P</td>
+<td>29.755, -271.06, -2.6081, 5.2700e-4, 2.0000</td>
+<td>24.56-44.40</td>
+<td>+0.82 (-0.03 K)</td>
+<td>+0.88</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>P</td>
+<td>42.127, -1093.1, -4.1425, 5.7254e-5, 2.0000</td>
+<td>83.78-150.9</td>
+<td>+0.20 (-0.02 K)</td>
+<td>+0.05</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>a</td>
+<td>8.7556, 416.38, -8.7000</td>
+<td>111.3-129.2</td>
+<td>-0.02 (+0.00 K)</td>
+<td>+0.10</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>A</td>
+<td>2.8388, 326.60, -49.796</td>
+<td>161.4-162.6</td>
+<td>-0.13 (+0.02 K)</td>
+<td>-0.01</td>
+<td>NIST Chen, Lim, et al., 197</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Rn</td>
+<td>a</td>
+<td>9.6204, 884.41, -18.150</td>
+<td>158.0-222.9</td>
+<td>+9.49 (-1.65 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>L</td>
+<td>20.024, 611.76, -5.3660</td>
+<td>63.50-78.00</td>
+<td>-0.00 (+0.00 K)</td>
+<td>+0.21</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>L</td>
+<td>20.284, 732.89, -6.5060</td>
+<td>72.00-93.00</td>
+<td>-0.00 (+0.00 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>A</td>
+<td>4.2364, 712.49, 6.9820</td>
+<td>92.80-162.0</td>
+<td>-0.74 (+0.13 K)</td>
+<td>-</td>
+<td>NIST [R4245]</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>A</td>
+<td>5.0835, 1663.1, -45.622</td>
+<td>344.0-373.0</td>
+<td>-0.09 (+0.02 K)</td>
+<td>-</td>
+<td>NIST Bridgeman and Aldrich,</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>L</td>
+<td>23.242, 4344.4, -52.550</td>
+<td>330.0-446.0</td>
+<td>+0.00 (-0.00 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>P</td>
+<td>45.698, -1076.6, -4.8814, 7.5673e-5, 2.0000</td>
+<td>68.15-132.9</td>
+<td>-0.06 (+0.01 K)</td>
+<td>-0.52</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>A</td>
+<td>6.8123, 1301.7, -3.4940</td>
+<td>154.3-195.9</td>
+<td>-0.51 (+0.06 K)</td>
+<td>-</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>P</td>
+<td>39.205, -1324.4, -3.4366, 3.1019e-5, 2.0000</td>
+<td>90.69-190.6</td>
+<td>+0.01 (-0.00 K)</td>
+<td>-0.02</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>LS</td>
+<td>25.522, 2645.6, -0.31000</td>
+<td>148.0-190.0</td>
+<td>-0.26 (+0.03 K)</td>
+<td>-2.13</td>
+<td>Landolt sub</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>A</td>
+<td>3.8726, 584.15, -18.307</td>
+<td>149.4-188.6</td>
+<td>+0.05 (-0.01 K)</td>
+<td>-</td>
+<td>NIST Michels and Wassenaar,</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>a</td>
+<td>8.9541, 663.72, -16.469</td>
+<td>133.8-198.2</td>
+<td>-0.01 (+0.00 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>A</td>
+<td>4.0116, 834.26, -22.763</td>
+<td>166.0-231.4</td>
+<td>+0.06 (-0.01 K)</td>
+<td>-</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>L</td>
+<td>20.568, 2154.7, -34.361</td>
+<td>196.0-298.0</td>
+<td>+0.01 (-0.00 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>L</td>
+<td>20.689, 2726.8, -55.623</td>
+<td>280.0-374.0</td>
+<td>+0.04 (-0.01 K)</td>
+<td>-0.89</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>L</td>
+<td>21.886, 2886.9, -20.307</td>
+<td>261.0-300.0</td>
+<td>+0.17 (-0.05 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>2</sub>O</td>
+<td>P</td>
+<td>101.51, -4917.2, -13.765, 0.022031, 1.0000</td>
+<td>181.2-408.0</td>
+<td>-0.73 (+0.17 K)</td>
+<td>-</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>a</td>
+<td>10.203, 1580.1, -33.650</td>
+<td>262.6-356.0</td>
+<td>-0.20 (+0.05 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>P</td>
+<td>90.483, -4669.7, -11.607, 0.017194, 1.0000</td>
+<td>195.4-405.6</td>
+<td>+0.43 (-0.09 K)</td>
+<td>+1.60</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>H<sub>4</sub></td>
+<td>a</td>
+<td>9.9268, 1679.1, -45.450</td>
+<td>298.9-408.4</td>
+<td>+0.00 (-0.00 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>L</td>
+<td>21.020, 1506.5, -25.990</td>
+<td>185.0-197.0</td>
+<td>+0.08 (-0.01 K)</td>
+<td>+0.07</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>a</td>
+<td>10.868, 682.94, -4.8800</td>
+<td>106.9-127.6</td>
+<td>+0.01 (-0.00 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>A</td>
+<td>3.3525, 540.63, -131.93</td>
+<td>217.6-294.0</td>
+<td>+7.90 (-1.61 K)</td>
+<td>-</td>
+<td>NIST [R4245]</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O<sub>4</sub></td>
+<td>L</td>
+<td>21.897, 2730.2, -38.970</td>
+<td>264.0-320.0</td>
+<td>-27.48 (+7.91 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNO<sub>3</sub></td>
+<td>L</td>
+<td>22.190, 3237.4, -52.150</td>
+<td>274.0-376.0</td>
+<td>+1.41 (-0.40 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub></td>
+<td>P</td>
+<td>81.565, -4808.9, -9.3748, 1.3901e-5, 2.0000</td>
+<td>245.2-400.1</td>
+<td>+0.15 (-0.03 K)</td>
+<td>-1.29</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>CN</td>
+<td>L</td>
+<td>21.923, 3436.3, -24.208</td>
+<td>280.0-354.0</td>
+<td>+0.26 (-0.08 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HC<sub>3</sub>N</td>
+<td>L</td>
+<td>22.254, 3384.8, 0</td>
+<td>279.0-315.0</td>
+<td>+0.68 (-0.20 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>2</sub></td>
+<td>L</td>
+<td>19.203, 1628.5, -71.198</td>
+<td>237.0-283.0</td>
+<td>+2.45 (-0.67 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>a</td>
+<td>8.8405, 645.51, -17.080</td>
+<td>137.4-199.5</td>
+<td>-0.01 (+0.00 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>L</td>
+<td>21.250, 1858.0, -21.761</td>
+<td>185.0-228.0</td>
+<td>+0.09 (-0.02 K)</td>
+<td>-0.14</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>a</td>
+<td>9.4072, 999.90, -35.960</td>
+<td>199.7-279.5</td>
+<td>+0.02 (-0.00 K)</td>
+<td>+0.77</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>3</sub></td>
+<td>a</td>
+<td>11.176, 1735.3, -36.650</td>
+<td>284.5-332.0</td>
+<td>+0.01 (-0.00 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>L</td>
+<td>20.773, 1845.7, -23.427</td>
+<td>161.0-284.0</td>
+<td>-0.15 (+0.03 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>L</td>
+<td>20.843, 2672.5, -32.498</td>
+<td>255.0-354.0</td>
+<td>-0.49 (+0.15 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>SH</td>
+<td>A</td>
+<td>4.1920, 1031.4, -32.720</td>
+<td>221.9-279.1</td>
+<td>-0.01 (+0.00 K)</td>
+<td>-</td>
+<td>NIST Russell, Osborne, et a</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>(CH<sub>3</sub>)2S</td>
+<td>P</td>
+<td>84.390, -5740.6, -9.6454, 1.0073e-5, 2.0000</td>
+<td>174.9-503.0</td>
+<td>+1.72 (-0.49 K)</td>
+<td>-</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>L</td>
+<td>21.402, 1717.3, -14.268</td>
+<td>160.0-201.0</td>
+<td>+0.14 (-0.03 K)</td>
+<td>+0.84</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>L</td>
+<td>22.579, 3397.7, 14.730</td>
+<td>212.0-313.0</td>
+<td>+0.09 (-0.02 K)</td>
+<td>-</td>
+<td>Landolt</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>P</td>
+<td>71.334, -3855.0, -8.5171, 0.012378, 1.0000</td>
+<td>172.1-417.1</td>
+<td>+0.17 (-0.04 K)</td>
+<td>-0.61</td>
+<td>Perry</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>A</td>
+<td>4.1545, 916.22, -28.466</td>
+<td>183.0-249.4</td>
+<td>-0.57 (+0.13 K)</td>
+<td>-</td>
+<td>NIST Beersmans and Jungers,</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HBr</td>
+<td>a</td>
+<td>8.4124, 540.82, -47.710</td>
+<td>185.1-221.5</td>
+<td>-0.06 (+0.01 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>a</td>
+<td>8.9589, 510.60, -15.950</td>
+<td>106.2-155.5</td>
+<td>-0.03 (+0.00 K)</td>
+<td>-0.26</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>a</td>
+<td>10.541, 1096.5, -11.150</td>
+<td>162.0-220.4</td>
+<td>+0.35 (-0.05 K)</td>
+<td>+3.32</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>K</td>
+<td>A</td>
+<td>4.4572, 4691.6, 24.195</td>
+<td>679.4-1033</td>
+<td>+7.26 (-7.25 K)</td>
+<td>-</td>
+<td>NIST Fiock and Rodebush, 19</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>4</sub>Cl</td>
+<td>a</td>
+<td>11.481, 3703.7, -41.150</td>
+<td>494.0-640.5</td>
+<td>-2.98 (+1.16 K)</td>
+<td>-</td>
+<td>Poling</td>
+<td>DATA</td>
+</tr>
+</tbody>
+</table></div>
+<p>No reachable correlation: HDO, HNCO, CN, S<sub>2</sub>, S<sub>8</sub>, SO, SiO, TiO, HClO<sub>4</sub>, SO<sub>3</sub> above 332 K. Na, Ca, Mg, Fe, NaCl, KCl, S<sub>2</sub>, TiO and H<sub>2</sub>SO<sub>4</sub> use the NASA route (T6).</p>
+<h3 id="62-t5-wagner-fits-to-nist-eos-saturation-tables-liquid-branch">6.2 T5: Wagner fits to NIST EOS saturation tables (liquid branch)</h3>
+<p>P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5)/Tr), x = 1 - T/Tc, Tr = T/Tc, P in Pa. Tc is fixed from heos_constants; Pc, a to d are least-squares fits to the NIST saturation table between Tt and Tc; max err is the largest relative deviation from the table; dHvap(Tb) in kJ/mol from the same table. Valid from Tt to Tc only.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Range K</th>
+<th>Tc</th>
+<th>Pc Pa</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+<th>max err %</th>
+<th>dHvap Tb</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>13.957-33.15</td>
+<td>33.145</td>
+<td>1296303.5</td>
+<td>-4.89948</td>
+<td>1.05654</td>
+<td>0.74762</td>
+<td>0.04196</td>
+<td>0.015</td>
+<td>0.90</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>He</td>
+<td>2.177-5.20</td>
+<td>5.195</td>
+<td>228365.6</td>
+<td>-4.11659</td>
+<td>1.15844</td>
+<td>1.01625</td>
+<td>0.29612</td>
+<td>0.064</td>
+<td>0.08</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>24.556-44.40</td>
+<td>44.400</td>
+<td>2661458.2</td>
+<td>-5.78536</td>
+<td>1.14227</td>
+<td>-0.07076</td>
+<td>-1.30581</td>
+<td>0.007</td>
+<td>1.73</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>83.806-150.69</td>
+<td>150.687</td>
+<td>4863032.1</td>
+<td>-5.92648</td>
+<td>1.21423</td>
+<td>-0.52935</td>
+<td>-1.54635</td>
+<td>0.004</td>
+<td>6.44</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>115.775-209.48</td>
+<td>209.480</td>
+<td>5525731.7</td>
+<td>-5.98453</td>
+<td>1.34328</td>
+<td>-0.66158</td>
+<td>-1.31519</td>
+<td>0.008</td>
+<td>8.97</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>161.405-289.73</td>
+<td>289.733</td>
+<td>5841283.1</td>
+<td>-5.99720</td>
+<td>1.34294</td>
+<td>-0.72630</td>
+<td>-1.33548</td>
+<td>0.012</td>
+<td>12.55</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>63.151-126.19</td>
+<td>126.192</td>
+<td>3395710.6</td>
+<td>-6.12290</td>
+<td>1.25875</td>
+<td>-0.75882</td>
+<td>-1.79283</td>
+<td>0.007</td>
+<td>5.58</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>54.361-154.58</td>
+<td>154.581</td>
+<td>5044902.0</td>
+<td>-6.07788</td>
+<td>1.31005</td>
+<td>-0.72890</td>
+<td>-1.49664</td>
+<td>0.110</td>
+<td>6.82</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>273.160-647.10</td>
+<td>647.096</td>
+<td>22071748.8</td>
+<td>-7.87987</td>
+<td>1.92877</td>
+<td>-2.32932</td>
+<td>-2.05762</td>
+<td>0.101</td>
+<td>40.65</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>68.160-132.86</td>
+<td>132.860</td>
+<td>3497225.4</td>
+<td>-6.18485</td>
+<td>1.29617</td>
+<td>-0.91665</td>
+<td>-2.03164</td>
+<td>0.028</td>
+<td>6.01</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>216.592-304.13</td>
+<td>304.128</td>
+<td>7376475.3</td>
+<td>-7.01631</td>
+<td>1.48903</td>
+<td>-2.15456</td>
+<td>-3.18597</td>
+<td>0.011</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>90.694-190.56</td>
+<td>190.564</td>
+<td>4599091.9</td>
+<td>-6.02354</td>
+<td>1.26790</td>
+<td>-0.57083</td>
+<td>-1.36956</td>
+<td>0.010</td>
+<td>8.19</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>103.986-282.35</td>
+<td>282.350</td>
+<td>5044941.7</td>
+<td>-6.42322</td>
+<td>1.47150</td>
+<td>-1.24789</td>
+<td>-1.99668</td>
+<td>0.138</td>
+<td>13.53</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>90.368-305.32</td>
+<td>305.322</td>
+<td>4881269.7</td>
+<td>-6.58230</td>
+<td>1.69617</td>
+<td>-1.48179</td>
+<td>-1.56810</td>
+<td>0.212</td>
+<td>14.72</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>85.525-369.89</td>
+<td>369.890</td>
+<td>4261023.3</td>
+<td>-6.88163</td>
+<td>1.86363</td>
+<td>-1.92801</td>
+<td>-1.86160</td>
+<td>0.231</td>
+<td>18.77</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>134.895-425.13</td>
+<td>425.125</td>
+<td>3798336.6</td>
+<td>-7.11781</td>
+<td>1.88057</td>
+<td>-2.10643</td>
+<td>-2.20494</td>
+<td>0.090</td>
+<td>22.42</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>175.610-513.38</td>
+<td>513.380</td>
+<td>8194162.4</td>
+<td>-8.67443</td>
+<td>1.35531</td>
+<td>-2.74480</td>
+<td>-0.58626</td>
+<td>0.262</td>
+<td>35.28</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>195.490-405.56</td>
+<td>405.560</td>
+<td>11367055.2</td>
+<td>-7.28265</td>
+<td>1.57703</td>
+<td>-1.88641</td>
+<td>-2.28486</td>
+<td>0.072</td>
+<td>23.33</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>182.330-309.52</td>
+<td>309.520</td>
+<td>7240558.2</td>
+<td>-6.77061</td>
+<td>1.52561</td>
+<td>-1.74908</td>
+<td>-2.49144</td>
+<td>0.057</td>
+<td>16.47</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>187.700-373.10</td>
+<td>373.100</td>
+<td>8993628.0</td>
+<td>-6.48162</td>
+<td>1.46237</td>
+<td>-1.29817</td>
+<td>-2.06320</td>
+<td>0.057</td>
+<td>18.62</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>197.700-430.64</td>
+<td>430.640</td>
+<td>7884667.6</td>
+<td>-7.25016</td>
+<td>1.62324</td>
+<td>-2.21507</td>
+<td>-2.85747</td>
+<td>0.024</td>
+<td>24.96</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>134.300-378.77</td>
+<td>378.770</td>
+<td>6359936.9</td>
+<td>-6.46670</td>
+<td>1.44102</td>
+<td>-1.21326</td>
+<td>-2.18411</td>
+<td>0.137</td>
+<td>18.56</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>278.674-562.02</td>
+<td>562.020</td>
+<td>4905466.6</td>
+<td>-7.11487</td>
+<td>1.80003</td>
+<td>-2.11804</td>
+<td>-3.45642</td>
+<td>0.037</td>
+<td>30.75</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>120.000-226.93</td>
+<td>227.510</td>
+<td>3772442.6</td>
+<td>-6.99615</td>
+<td>1.77979</td>
+<td>-1.87108</td>
+<td>-2.12372</td>
+<td>0.051</td>
+<td>11.83</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>223.555-318.72</td>
+<td>318.723</td>
+<td>3754644.4</td>
+<td>-7.07990</td>
+<td>1.59103</td>
+<td>-1.93730</td>
+<td>-2.38244</td>
+<td>0.009</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="63-t6-nasa-polynomial-equilibrium-vapour-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapour pressure (metals, salts, TiO, sulfur, H<sub>2</sub>SO<sub>4</sub>)</h3>
+<p>P = exp(-dG/RT) x 1 bar for the condensed phase and gas from NASA-7 polynomials (cantera nasa_gas.yaml, nasa_condensed.yaml), COMPUTED from DATA. Columns: T (K) at 1 mPa, 1 Pa, 100 Pa, 10 kPa, 100 kPa; Tb (Yaws); fit ln(P/Pa) = a + b/T + c ln T with a, b, c, its range in K and its maximum fit error in percent. Check: the 100 kPa temperature agrees with Yaws Tb within 0.1 to 1.2% for Na, K, Ca, Mg and Fe and 3.0 to 3.5% for NaCl and KCl (100 versus 101.325 kPa explains up to 0.4%). The ideal-vapour assumption fails at high pressure: H<sub>2</sub>O is within 1% to 348 K, -4% at 423 K, -12% at 498 K and -25% at 572 K against the NIST table. S<sub>2</sub> is the S<sub>2</sub> partial pressure only; S<sub>8</sub> was computed to 100 Pa only.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>1 mPa</th>
+<th>1 Pa</th>
+<th>100 Pa</th>
+<th>10 kPa</th>
+<th>100 kPa</th>
+<th>Tb</th>
+<th>Fit a, b, c; range K; max err %</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>-</td>
+<td>213</td>
+<td>253</td>
+<td>319</td>
+<td>373</td>
+<td>-</td>
+<td>94.6794, -8514.7, -10.1913; 200-394; 7.8</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Na</td>
+<td>422</td>
+<td>552</td>
+<td>697</td>
+<td>951</td>
+<td>1168</td>
+<td>1156</td>
+<td>31.6630, -13041.8, -1.2735; 306-1253; 10.2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>K</td>
+<td>359</td>
+<td>472</td>
+<td>601</td>
+<td>834</td>
+<td>1039</td>
+<td>1037</td>
+<td>32.0734, -10944.2, -1.4459; 261-1122; 10.5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ca</td>
+<td>674</td>
+<td>868</td>
+<td>1077</td>
+<td>1453</td>
+<td>1778</td>
+<td>1757</td>
+<td>46.6015, -23075.2, -2.9532; 499-1899; 7.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mg</td>
+<td>548</td>
+<td>699</td>
+<td>859</td>
+<td>1135</td>
+<td>1364</td>
+<td>1363</td>
+<td>45.1718, -19114.1, -2.7187; 413-1442; 9.5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Fe</td>
+<td>1383</td>
+<td>1729</td>
+<td>2094</td>
+<td>2683</td>
+<td>3139</td>
+<td>3133</td>
+<td>60.7921, -53555.1, -4.0033; 1189-3311; 4.8</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NaCl</td>
+<td>752</td>
+<td>935</td>
+<td>1129</td>
+<td>1489</td>
+<td>1791</td>
+<td>1738</td>
+<td>91.0374, -32883.4, -8.1684; 571-1902; 16.3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>KCl</td>
+<td>729</td>
+<td>907</td>
+<td>1096</td>
+<td>1447</td>
+<td>1748</td>
+<td>1689</td>
+<td>91.7153, -31937.9, -8.2971; 560-1867; 16.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TiO</td>
+<td>1774</td>
+<td>2188</td>
+<td>2629</td>
+<td>3320</td>
+<td>3841</td>
+<td>-</td>
+<td>88.0351, -78033.7, -6.8179; 1372-4034; 15.2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub></td>
+<td>-</td>
+<td>332</td>
+<td>400</td>
+<td>513</td>
+<td>609</td>
+<td>-</td>
+<td>81.4810, -11911.9, -7.8600; 300-647; 1.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>S<sub>2</sub></td>
+<td>406</td>
+<td>504</td>
+<td>605</td>
+<td>763</td>
+<td>882</td>
+<td>-</td>
+<td>65.2805, -16872.9, -5.1118; 312-925; 8.8</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>S<sub>8</sub></td>
+<td>307</td>
+<td>374</td>
+<td>454</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-replacement-for-the-two-point-condensation_k-rows">7. Replacement for the two-point <code>CONDENSATION_K</code> rows</h2>
+<h3 id="71-recipe">7.1 Recipe</h3>
+<p>Psat(T) is composite: Wagner liquid (T5) for Tt &lt;= T &lt;= Tc; below Tt the solid curve (T9). The pieces join within the &quot;Err at Tt&quot; column of T9 (O<sub>2</sub>, CO, Ar, H<sub>2</sub>O, H<sub>2</sub> within 0.15%; CO<sub>2</sub> +0.5%; CH<sub>4</sub> +1.6%; H<sub>2</sub>S +1.7%; NH<sub>3</sub> +1.8%; N<sub>2</sub> -2.8%; SO<sub>2</sub> +3.8%, accepted as the published spread). Condensation temperature at pressure p is the root of Psat(T) = p (bisection; Psat is monotonic); for a gas of mole fraction x use p = x P. H<sub>2</sub> solid: Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with dHsub = dHvap(Tt) + dHfus (CRC via chemicals), COMPUTED and not checked against a measurement.</p>
+<h3 id="72-t9-r1445-sublimation-polynomials">7.2 T9: [R1445] sublimation polynomials</h3>
+<p>ln(P/bar) = A0 + A1/T + ... + A6/T^6, transcribed from SOM Table 2 of [R2711], 2ND-HAND. That paper's caption does not state the unit; bar was established here by reproducing the triple pressures (Err at Tt, COMPUTED). The original Fray and Schmitt paper was not reached, so per-polynomial validity ranges are NOT REACHED. Not used: CH<sub>3</sub>OH-1 (+23%), C<sub>6</sub>H<sub>6</sub>-1 (+7%), N<sub>2</sub>O-1 (+5.7%), N<sub>2</sub>O-2 (-100% at Tt).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>A0</th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+<th>A6</th>
+<th>Err at Tt %</th>
+<th>Use</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O<sub>2</sub>-1</td>
+<td>15.41</td>
+<td>-1148</td>
+<td>334.9</td>
+<td>60.21</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+154.22</td>
+<td>alpha, T&lt;23.14 K</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>O<sub>2</sub>-2</td>
+<td>13.35</td>
+<td>-1012</td>
+<td>-2971</td>
+<td>2.926e+04</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+54.95</td>
+<td>beta, 23.14-43.78 K</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>O<sub>2</sub>-3</td>
+<td>10.18</td>
+<td>-803.5</td>
+<td>-7080</td>
+<td>7.553e+04</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+0.09</td>
+<td>gamma, 43.78 K to Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>O<sub>3</sub>-1</td>
+<td>17.46</td>
+<td>-2352</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CO-1</td>
+<td>10.43</td>
+<td>-721.3</td>
+<td>-1.074e+04</td>
+<td>2.341e+05</td>
+<td>-2.392e+06</td>
+<td>9.478e+06</td>
+<td>0</td>
+<td>+3.32</td>
+<td>T&lt;60.7 K</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CO-2</td>
+<td>10.25</td>
+<td>-748.2</td>
+<td>-5843</td>
+<td>3.939e+04</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+0.15</td>
+<td>60.7 K to Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-1</td>
+<td>14.76</td>
+<td>-2571</td>
+<td>-7.781e+04</td>
+<td>4.325e+06</td>
+<td>-1.207e+08</td>
+<td>1.35e+09</td>
+<td>0</td>
+<td>-3.92</td>
+<td>alternative (Tt error -3.9%)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-2</td>
+<td>18.61</td>
+<td>-4154</td>
+<td>1.041e+05</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+0.54</td>
+<td>recommended only from 195.3 K up (Tt error +0.5%); in the cold it is 4 K too cold at 100 Pa and 17 K too cold at 1 mPa against this table's own sublimation heat (25.2 to 27.2 kJ/mol), so use CO<sub>2</sub>-1 below 195.3 K (GEN.452 lane, #2593)</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH-1</td>
+<td>19.18</td>
+<td>-5648</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+23.47</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH-2</td>
+<td>17.06</td>
+<td>-5314</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-0.72</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub>-1</td>
+<td>10.51</td>
+<td>-1110</td>
+<td>-4341</td>
+<td>1.035e+05</td>
+<td>-7.91e+05</td>
+<td>0</td>
+<td>0</td>
+<td>+1.64</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub>-1</td>
+<td>13.4</td>
+<td>-2536</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub>-1</td>
+<td>15.4</td>
+<td>-2206</td>
+<td>-1.216e+04</td>
+<td>2.843e+05</td>
+<td>-2.203e+06</td>
+<td>0</td>
+<td>0</td>
+<td>+0.43</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub>-1</td>
+<td>15.11</td>
+<td>-2207</td>
+<td>-2.411e+04</td>
+<td>7.744e+05</td>
+<td>-1.161e+07</td>
+<td>6.763e+07</td>
+<td>0</td>
+<td>+0.18</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub>-1</td>
+<td>17.35</td>
+<td>-5663</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+7.09</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>HCN-1</td>
+<td>13.93</td>
+<td>-3624</td>
+<td>-1.325e+05</td>
+<td>6.314e+06</td>
+<td>-1.128e+08</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>HC<sub>3</sub>N-1</td>
+<td>13.01</td>
+<td>-4426</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub>-1</td>
+<td>16.53</td>
+<td>-4109</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>N<sub>2</sub>-1</td>
+<td>19.09</td>
+<td>-6036</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>-1</td>
+<td>12.4</td>
+<td>-807.4</td>
+<td>-3926</td>
+<td>6.297e+04</td>
+<td>-4.633e+05</td>
+<td>1.325e+06</td>
+<td>0</td>
+<td>+153.55</td>
+<td>alpha T&lt;36.08 K</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>-2</td>
+<td>8.514</td>
+<td>-458.4</td>
+<td>-1.987e+04</td>
+<td>4.8e+05</td>
+<td>-4.524e+06</td>
+<td>0</td>
+<td>0</td>
+<td>-2.75</td>
+<td>beta, 36.08 K to Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub>-1</td>
+<td>15.96</td>
+<td>-3537</td>
+<td>-3.31e+04</td>
+<td>1.742e+06</td>
+<td>-2.995e+07</td>
+<td>0</td>
+<td>0</td>
+<td>+1.83</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O-1</td>
+<td>16.22</td>
+<td>-2971</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+5.66</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O-2</td>
+<td>6.566</td>
+<td>-1271</td>
+<td>-6.684e+05</td>
+<td>4.496e+07</td>
+<td>-1.097e+09</td>
+<td>0</td>
+<td>0</td>
+<td>-100.00</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S-1</td>
+<td>12.98</td>
+<td>-2707</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>+1.67</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S-2</td>
+<td>8.933</td>
+<td>-726</td>
+<td>-3.504e+05</td>
+<td>2.724e+07</td>
+<td>-8.582e+08</td>
+<td>0</td>
+<td>0</td>
+<td>+0.57</td>
+<td>low T alternative</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub>-1</td>
+<td>15.6</td>
+<td>-3508</td>
+<td>-9.401e+04</td>
+<td>4.152e+06</td>
+<td>-6.946e+07</td>
+<td>0</td>
+<td>0</td>
+<td>+3.79</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Ne-1</td>
+<td>9.886</td>
+<td>-269.9</td>
+<td>128.3</td>
+<td>-162.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-6.54</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Ne-2</td>
+<td>10.61</td>
+<td>-308.6</td>
+<td>986</td>
+<td>-9069</td>
+<td>3.514e+04</td>
+<td>0</td>
+<td>0</td>
+<td>-0.21</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Ar-1</td>
+<td>10.69</td>
+<td>-893.2</td>
+<td>-3567</td>
+<td>6.574e+04</td>
+<td>-4.28e+05</td>
+<td>0</td>
+<td>0</td>
+<td>-0.02</td>
+<td>all T&lt;Tt</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Kr-1</td>
+<td>10.77</td>
+<td>-1223</td>
+<td>-8903</td>
+<td>2.635e+05</td>
+<td>-4.26e+06</td>
+<td>3.575e+07</td>
+<td>-1.21e+08</td>
+<td>-0.26</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Xe-1</td>
+<td>10.98</td>
+<td>-1737</td>
+<td>-1.332e+04</td>
+<td>4.349e+05</td>
+<td>-7.027e+06</td>
+<td>4.447e+07</td>
+<td>0</td>
+<td>+0.17</td>
+<td></td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="73-t10-laboratory-curves-versus-f-and-s-at-low-temperature">7.3 T10: laboratory curves versus F and S at low temperature</h3>
+<p>ln(p/bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 from [R1708] ([R1708: Table 2]: alpha-N2, beta-N2, alpha-CO, beta-CO, CH<sub>4</sub> I) and [R0418] (PSS 244, 105863, [R0418]; NASA NTRS record dated 2025) (NTRS 20250005811 Table 1: NH<sub>3</sub>, beta-O2), READ. Script check against the Grundy reference pressures at T0: alpha-N2 at 27 K 0.79e-9 bar (listed 0.76), alpha-CO at 31 K 1.66e-9 (1.64), CH<sub>4</sub> I at 37 K 0.48e-9 (0.43), so the transcribed coefficients reproduce Grundy's Table 1 reference pressures within 11%. F and S exceeds the lab curves by up to 1.4 to 2.3 (alpha-N2, 25 to 33 K), 1.9 (CH<sub>4</sub>, 30 K), 4 (beta-O2, 24 K) and 6 (alpha-CO, 31 K); they agree near 60 K (CO) and 70 K (CH<sub>4</sub>), and within 12% at 40 K (O<sub>2</sub>). Prefer the lab curves for bodies colder than 40 K.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Curve</th>
+<th>Ratio lab / F and S</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>alpha-N2 lab/F&amp;S [R1708]</td>
+<td>25 K: 0.72; 27 K: 0.61; 30 K: 0.51; 33 K: 0.43</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>alpha-CO lab/F&amp;S [R1708]</td>
+<td>31 K: 0.17; 40 K: 0.38; 50 K: 0.70; 60 K: 1.02</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> I lab/F&amp;S [R1708]</td>
+<td>30 K: 0.52; 37 K: 0.65; 50 K: 0.83; 70 K: 1.01</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>beta-O2 lab/F&amp;S [R0418]</td>
+<td>24 K: 0.24; 30 K: 0.46; 40 K: 0.88</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub> lab/F&amp;S [R0418]</td>
+<td>100 K: 0.68; 150 K: 0.92; 195.49 K: 1.05</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="74-new-entries-nh3-h2s-nh4sh-hcn-c2h6-h2so4">7.4 New entries: NH<sub>3</sub>, H<sub>2</sub>S, NH<sub>4</sub>SH, HCN, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>SO<sub>4</sub></h3>
+<p>NH<sub>3</sub>, H<sub>2</sub>S, C<sub>2</sub>H<sub>6</sub>: composite recipe (T5, T9). HCN: Perry DIPPR101 liquid ln P = 36.75 - 3927.1/T - 2.1245 ln T + 3.8948e-17 T^6 (259.83 to 456.65 K; DATA chemicals) above Tt = 259.86 K, F and S HCN-1 below (3.3% step at Tt); Tb from the fit 298.81 K against NIST 298.79 K and Landolt 298.95 K (COMPUTED). H<sub>2</sub>SO<sub>4</sub>: T6 NASA fit.</p>
+<p>NH<sub>4</sub>SH condenses from NH<sub>3</sub> + H<sub>2</sub>S; the condition needs both partial pressures. READ in [R2732] (2410.11138): log10 Kvap = 14.89 - 4732/T, Kvap = p(NH<sub>3</sub>) p(H<sub>2</sub>S) over the solid; 14.82 - 4705/T (condensation temperatures within 0.5 K). Cloud forms when log Kvap(T) &lt;= log(x_NH3 x_H2S) + 2 log P_T (bar). Closed forms, valid for solar N/S only (about 5): [R4562] (astro-ph/0511136 eq. 32) 10^4/Tcond = 48.91 - 4.15 (log P_T + 0.5 [N/H] + 0.5 [S/H]); [R2732] 10^4/Tcond = 49.18 - 4.225 (same bracket). COMPUTED with Kelley and the combined log(x_NH3 x_H2S) = -8.378 of that paper: Tcond = 151.3, 161.7, 173.5, 187.3, 203.4, 222.5, 245.6 K at log P_T = -4 to 2 (printed table 151, 162, 174, 187, 203, 222, 246). The 2006 fit is up to 1.3 K higher. At [M/H] = +0.5 and 1 bar the 2006 fit gives 213.5 K; each +1 in [M/H] adds about 17 K at 1 bar. Pure-solid dissociation pressure 2 sqrt(Kvap): 0.121 bar at 273.15 K, 0.646 bar at 298.15 K (COMPUTED; Kelley's pressure unit not stated, effect below 1%).</p>
+<p>H<sub>2</sub>SO<sub>4</sub> (2[R1516] eqs. 4a to 4c, read from the page image): ln p(atm) = ln p0 + 10156 [-1/T + 1/T0 + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] - H/(R T), T0 = 340 K, Tc = 905 K, ln p0 = -10156/T0 + 16.259 ([R0210] as modified by [R2516]); H = 4.184e7 [23624.8 - 1.14208e8/(4798.69 + (W - 105.315)^2)] erg/mol, W the acid weight percent from [R4289] (not reached). With H = 0 (pure acid) at 300, 340, 400, 500, 600 K this gives 0.0022, 0.124, 10.1, 1124, 20716 Pa (COMPUTED); Ayers alone gives 0.0023, 0.124, 11, 1760, 52000 Pa; the NASA H2SO4(L) route gives 0.048, 1.87, 99.6, 6750, 84800 Pa (20 times higher at 300 K). Solution factor exp(-H/RT) at 340 K for W = 98, 90, 80, 70, 60 %: 0.88, 0.25, 0.020, 9.1e-4, 3.4e-5 (COMPUTED from the READ formula). A droplet of 75 to 85 percent acid holds the acid at about 2e-3 to 8e-2 of the pure-acid pressure at 300 to 340 K; W(T, pH2O) is a Boss item.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Entry</th>
+<th>T 100 kPa</th>
+<th>10 kPa</th>
+<th>1 kPa</th>
+<th>100 Pa</th>
+<th>10 Pa</th>
+<th>1 Pa</th>
+<th>1 mPa</th>
+<th>Max dev two-point K</th>
+<th>Recipe</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>20.3</td>
+<td>14.5</td>
+<td>11.4</td>
+<td>9.4</td>
+<td>8.0</td>
+<td>7.0</td>
+<td>5.0</td>
+<td>0.2</td>
+<td>Wagner liquid above Tt 13.957 K; solid by Clausius-Clapeyron from the triple point</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>77.2</td>
+<td>62.2</td>
+<td>52.8</td>
+<td>46.0</td>
+<td>40.8</td>
+<td>36.7</td>
+<td>28.7</td>
+<td>1.1</td>
+<td>Wagner liquid; F&amp;S N<sub>2</sub>-2 (beta) 36.08 K to Tt; N<sub>2</sub>-1 (alpha) below</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>81.5</td>
+<td>65.9</td>
+<td>56.6</td>
+<td>49.6</td>
+<td>44.3</td>
+<td>40.0</td>
+<td>31.0</td>
+<td>1.6</td>
+<td>Wagner liquid; F&amp;S CO-2 above 60.7 K, CO-1 below</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>87.2</td>
+<td>71.7</td>
+<td>61.2</td>
+<td>53.4</td>
+<td>47.4</td>
+<td>42.6</td>
+<td>32.7</td>
+<td>0.4</td>
+<td>Wagner liquid; F&amp;S Ar-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>90.1</td>
+<td>72.7</td>
+<td>61.3</td>
+<td>53.2</td>
+<td>47.4</td>
+<td>42.9</td>
+<td>33.8</td>
+<td>1.2</td>
+<td>Wagner liquid; F&amp;S O<sub>2</sub>-3 (43.78 K to Tt), O<sub>2</sub>-2 (23.14-43.78 K), O<sub>2</sub>-1 below</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>111.5</td>
+<td>89.5</td>
+<td>76.1</td>
+<td>66.3</td>
+<td>58.7</td>
+<td>52.7</td>
+<td>40.3</td>
+<td>1.7</td>
+<td>Wagner liquid; F&amp;S CH<sub>4</sub>-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>194.4</td>
+<td>169.2</td>
+<td>148.8</td>
+<td>131.8</td>
+<td>117.5</td>
+<td>105.0</td>
+<td>74.4</td>
+<td>7.9</td>
+<td>Wagner liquid above 216.592 K; F&amp;S CO<sub>2</sub>-2 solid below (CO<sub>2</sub>-2 is wrong in the cold, use CO<sub>2</sub>-1 below 195.3 K: see the CO<sub>2</sub>-2 row)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>262.8</td>
+<td>221.0</td>
+<td>192.7</td>
+<td>174.3</td>
+<td>159.3</td>
+<td>146.7</td>
+<td>118.9</td>
+<td>6.9</td>
+<td>Wagner liquid; F&amp;S SO<sub>2</sub>-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>372.8</td>
+<td>318.9</td>
+<td>280.1</td>
+<td>252.8</td>
+<td>231.0</td>
+<td>212.6</td>
+<td>171.5</td>
+<td>6.3</td>
+<td>Wagner liquid above 273.16 K; Feistel-Wagner ice formula below</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>212.6</td>
+<td>177.1</td>
+<td>153.9</td>
+<td>136.1</td>
+<td>122.0</td>
+<td>110.5</td>
+<td>86.2</td>
+<td>2.3</td>
+<td>Wagner liquid; F&amp;S H<sub>2</sub>S-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>239.6</td>
+<td>202.0</td>
+<td>178.6</td>
+<td>161.0</td>
+<td>146.6</td>
+<td>134.6</td>
+<td>108.1</td>
+<td>5.3</td>
+<td>Wagner liquid; F&amp;S NH<sub>3</sub>-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>184.3</td>
+<td>150.4</td>
+<td>127.9</td>
+<td>111.8</td>
+<td>99.5</td>
+<td>89.9</td>
+<td>72.2</td>
+<td>3.4</td>
+<td>Wagner liquid; F&amp;S C<sub>2</sub>H<sub>6</sub>-1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>298.5</td>
+<td>250.1</td>
+<td>221.4</td>
+<td>198.9</td>
+<td>180.8</td>
+<td>165.8</td>
+<td>133.2</td>
+<td>7.2</td>
+<td>Perry DIPPR101 liquid above 259.86 K; F&amp;S HCN-1 solid below (+3.3% step at Tt)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>SO<sub>4</sub></td>
+<td>608.4</td>
+<td>512.9</td>
+<td>448.0</td>
+<td>399.9</td>
+<td>362.5</td>
+<td>332.3</td>
+<td>-</td>
+<td>8.8</td>
+<td>NASA H2SO4(L) to gas fit, 300-647 K only</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Columns give the checked condensation temperature (K) at each pressure; the H<sub>2</sub>SO<sub>4</sub> row is the NASA fit (the pure-acid K and L curve is 42 K warmer at 100 Pa, 442 K versus 400 K, and 71 K warmer at 100 kPa, 679 K versus 608 K; it is extrapolated far above the temperatures of the Venus aerosol layer). &quot;Max dev two-point&quot; is the largest temperature error between 1 mPa and 100 kPa of a two-point Clausius-Clapeyron interpolation anchored at this table's 100 kPa and 1 Pa temperatures (the form <code>vapour_pressure_kpa</code> uses): 0.2 to 2.3 K for H<sub>2</sub>, Ar, N<sub>2</sub>, O<sub>2</sub>, CO, CH<sub>4</sub>, H<sub>2</sub>S; 3.4 K for C<sub>2</sub>H<sub>6</sub>; 5.3 to 8.8 K for NH<sub>3</sub>, H<sub>2</sub>O, SO<sub>2</sub>, HCN, CO<sub>2</sub> and H<sub>2</sub>SO<sub>4</sub>. Corrected two-point anchors are enough for the first group and not for the second, which should use the composite curve.</p>
+<h3 id="75-t8-old-two-point-rows-against-the-checked-curves">7.5 T8: old two-point rows against the checked curves</h3>
+<p>Each cell: checked / project temperature (K) at that pressure; last column checked minus project at 1 Pa (the project's 0.001 kPa anchor). H<sub>2</sub>S in the project is a copy of the SO<sub>2</sub> row: 20 to 50 K warm. CO<sub>2</sub> project row is 0.6 to 7 K warm, worst at low pressure. N<sub>2</sub>, CO, Ar, O<sub>2</sub>, CH<sub>4</sub> are 0.7 to 5 K cold, worst at low pressure. SO<sub>2</sub> is 2 to 16 K cold. H<sub>2</sub>O is 3 to 6 K warm at 100 Pa to 10 kPa (its pressure low by 18 to 31% mid-range). NH<sub>3</sub>, C<sub>2</sub>H<sub>6</sub> have no project row.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>100 kPa</th>
+<th>10 kPa</th>
+<th>1 kPa</th>
+<th>100 Pa</th>
+<th>1 Pa</th>
+<th>1 mPa</th>
+<th>dT at 1 Pa K</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>20.32 / 20</td>
+<td>14.51 / 13.64</td>
+<td>11.40 / 10.34</td>
+<td>9.42 / 8.33</td>
+<td>6.98 / 6.00</td>
+<td>5.0 / 4.2</td>
+<td>+1.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>77.24 / 77</td>
+<td>62.18 / 60.79</td>
+<td>52.84 / 50.22</td>
+<td>46.03 / 42.78</td>
+<td>36.70 / 33.00</td>
+<td>28.7 / 24.6</td>
+<td>+3.7</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>81.52 / 81</td>
+<td>65.94 / 64.80</td>
+<td>56.55 / 54.00</td>
+<td>49.64 / 46.29</td>
+<td>39.98 / 36.00</td>
+<td>31.0 / 27.0</td>
+<td>+4.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>87.18 / 87</td>
+<td>71.68 / 69.16</td>
+<td>61.18 / 57.40</td>
+<td>53.40 / 49.05</td>
+<td>42.62 / 38.00</td>
+<td>32.7 / 28.4</td>
+<td>+4.6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>90.06 / 90</td>
+<td>72.68 / 72.00</td>
+<td>61.28 / 60.00</td>
+<td>53.24 / 51.43</td>
+<td>42.85 / 40.00</td>
+<td>33.8 / 30.0</td>
+<td>+2.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>111.51 / 112</td>
+<td>89.50 / 88.42</td>
+<td>76.15 / 73.04</td>
+<td>66.29 / 62.22</td>
+<td>52.70 / 48.00</td>
+<td>40.3 / 35.7</td>
+<td>+4.7</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>194.45 / 195</td>
+<td>169.22 / 169.83</td>
+<td>148.80 / 150.41</td>
+<td>131.85 / 134.98</td>
+<td>104.98 / 112.00</td>
+<td>74.4 / 89.2</td>
+<td>-7.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>262.84 / 263</td>
+<td>220.98 / 218.89</td>
+<td>192.71 / 187.45</td>
+<td>174.33 / 163.91</td>
+<td>146.71 / 131.00</td>
+<td>118.9 / 100.7</td>
+<td>+15.7</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>372.77 / 373</td>
+<td>318.95 / 323.82</td>
+<td>280.12 / 286.09</td>
+<td>252.81 / 256.24</td>
+<td>212.58 / 212.00</td>
+<td>171.5 / 168.4</td>
+<td>+0.6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>212.60 / 263</td>
+<td>177.13 / 218.89</td>
+<td>153.94 / 187.45</td>
+<td>136.11 / 163.91</td>
+<td>110.52 / 131.00</td>
+<td>86.2 / 100.7</td>
+<td>-20.5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>239.57 / none</td>
+<td>201.99 / -</td>
+<td>178.60 / -</td>
+<td>161.04 / -</td>
+<td>134.64 / -</td>
+<td>108.1 / -</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>184.32 / none</td>
+<td>150.44 / -</td>
+<td>127.92 / -</td>
+<td>111.76 / -</td>
+<td>89.93 / -</td>
+<td>72.2 / -</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-henry-constants">8. Henry constants</h2>
+<p>kH(T) = kH(298.15 K) exp(d (1/T - 1/298.15)), kH in mol/(kg bar), d = -dln kH/d(1/T) in K. Columns: NIST WebBook (compiling [R3909]) median with [min-max, n], its median d, and the independent thermo 0.6.1 fit (Sander_henry_const.json, Sander_henry_T_dep.json; converted from mole-fraction constants assuming dilute solution). For dilute physical solubility between 273 and 323 K. CO<sub>2</sub>, SO<sub>2</sub>, NH<sub>3</sub>, HCl, H<sub>2</sub>S and HCN dissolve more with pH or dissociation (not modelled); the HCl and H<sub>2</sub>O<sub>2</sub> spread shows this.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>kH NIST median [range, n]</th>
+<th>d K</th>
+<th>kH thermo</th>
+<th>d thermo K</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>0.034 [0.031-0.045, n=15]</td>
+<td>2400</td>
+<td>0.0375</td>
+<td>2357</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>1.2 [1.2-1.5, n=14]</td>
+<td>3100</td>
+<td>2.26</td>
+<td>2853</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>58 [10-78, n=15]</td>
+<td>4100</td>
+<td>52.5</td>
+<td>3256</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>0.1 [0.001-0.1, n=9]</td>
+<td>2150</td>
+<td>0.0952</td>
+<td>1976</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>0.0013 [0.0012-0.0013, n=6]</td>
+<td>1700</td>
+<td>0.00128</td>
+<td>1602</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>0.000625 [0.0006-0.00065, n=2]</td>
+<td>1300</td>
+<td>0.000628</td>
+<td>1427</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>0.0014 [0.00097-0.0092, n=10]</td>
+<td>1750</td>
+<td>0.00159</td>
+<td>1731</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>19.5 [1.1-2.5e+03, n=6]</td>
+<td>2000</td>
+<td>6.05</td>
+<td>1521</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub></td>
+<td>0.00078 [0.00078-0.00078, n=4]</td>
+<td>500</td>
+<td>0.000782</td>
+<td>560</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>He</td>
+<td>0.000375 [0.00037-0.00038, n=2]</td>
+<td>226</td>
+<td>0.00039</td>
+<td>135</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>0.00045 [0.00045-0.00045, n=2]</td>
+<td>490</td>
+<td>0.000457</td>
+<td>488</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>0.0014 [0.0014-0.0014, n=2]</td>
+<td>1300</td>
+<td>0.0014</td>
+<td>1621</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>0.00245 [0.0024-0.0025, n=2]</td>
+<td>1700</td>
+<td>0.00199</td>
+<td>1840</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>0.0043 [0.0043-0.0043, n=2]</td>
+<td>2050</td>
+<td>0.0045</td>
+<td>2386</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>0.00095 [0.00086-0.0074, n=5]</td>
+<td>1300</td>
+<td>0.00101</td>
+<td>1503</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>0.0019 [0.0014-0.0019, n=5]</td>
+<td>1500</td>
+<td>0.00166</td>
+<td>1446</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>0.025 [0.024-0.026, n=7]</td>
+<td>2650</td>
+<td>0.0219</td>
+<td>2683</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>0.0115 [0.0088-0.013, n=10]</td>
+<td>2400</td>
+<td>0.00155</td>
+<td>2413</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>0.002 [0.0018-0.011, n=6]</td>
+<td>2350</td>
+<td>0.00171</td>
+<td>2438</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>0.041 [0.039-0.042, n=3]</td>
+<td>1800</td>
+<td>0.0584</td>
+<td>1713</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>9.3 [7.5-12, n=3]</td>
+<td>5000</td>
+<td>6.56</td>
+<td>4623</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>8.95e+04 [6.9e+04-1.4e+05, n=8]</td>
+<td>7300</td>
+<td>9.02e+04</td>
+<td>6973</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HNO<sub>3</sub></td>
+<td>2.1e+05 [8.9e+04-2.1e+05, n=3]</td>
+<td>8700</td>
+<td>2.22e+05</td>
+<td>8750</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>0.088 [0.061-0.095, n=6]</td>
+<td>2550</td>
+<td>0.0937</td>
+<td>2360</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>0.11 [0.029-0.13, n=11]</td>
+<td>2900</td>
+<td>0.0806</td>
+<td>2560</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>(CH<sub>3</sub>)2S</td>
+<td>0.55 [0.08-0.7, n=11]</td>
+<td>3500</td>
+<td>0.587</td>
+<td>3611</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>0.021 [0.015-0.033, n=9]</td>
+<td>3300</td>
+<td>0.00324</td>
+<td>2787</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>0.055 [0.044-0.075, n=5]</td>
+<td>3400</td>
+<td>0.0352</td>
+<td>3351</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>NO<sub>2</sub></td>
+<td>0.024 [0.007-0.041, n=7]</td>
+<td>2150</td>
+<td>0.0123</td>
+<td>2377</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>0.0081 [0.0081-0.0081, n=1]</td>
+<td>2000</td>
+<td>0.00616</td>
+<td>2871</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Rn</td>
+<td>0.0093 [0.0093-0.0093, n=1]</td>
+<td>2600</td>
+<td>0.00893</td>
+<td>2983</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>220 [1.4e+02-230, n=7]</td>
+<td>5400</td>
+<td>47.3</td>
+<td>5275</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>0.18 [0.12-0.22, n=23]</td>
+<td>4050</td>
+<td>0.18</td>
+<td>3303</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>0.0002 [0.00019-0.00021, n=4]</td>
+<td>1650</td>
+<td>0.000221</td>
+<td>971</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>0.00024 [0.00024-0.00024, n=1]</td>
+<td>2400</td>
+<td>0.00021</td>
+<td>2745</td>
+<td>DATA</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="9-viscosity">9. Viscosity</h2>
+<p>Chapman-Enskog: mu = 2.6693 sqrt(M T)/(sigma^2 Omega22) in uPa s (M g/mol, T K, sigma Angstrom; the part first printed 26.693, which is micropoise: GEN.410 corrected it to 2.6693 and the table below reproduces), Omega22 = 1.16145 T*^-0.14874 + 0.52487 exp(-0.7732 T*) + 2.16178 exp(-2.43787 T*), T* = kT/eps (Neufeld constants RECALLED, validated against NIST fluid values at 300 K). sigma and eps/k from chemicals (Poling table). H<sub>2</sub>O is 10% off (polar): use NIST. Dilute gas only. Diffusion coefficients are not tabulated (Boss item 14).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>sigma A</th>
+<th>eps/k K</th>
+<th>mu 300 K</th>
+<th>NIST 300 K</th>
+<th>diff %</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>2.827</td>
+<td>59.7</td>
+<td>8.89</td>
+<td>8.94</td>
+<td>-0.6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>He</td>
+<td>2.551</td>
+<td>10.22</td>
+<td>20.23</td>
+<td>19.93</td>
+<td>+1.5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ne</td>
+<td>2.82</td>
+<td>32.8</td>
+<td>31.24</td>
+<td>31.84</td>
+<td>-1.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>3.542</td>
+<td>93.3</td>
+<td>22.82</td>
+<td>22.72</td>
+<td>+0.4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Kr</td>
+<td>3.655</td>
+<td>178.9</td>
+<td>25.24</td>
+<td>25.45</td>
+<td>-0.8</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Xe</td>
+<td>4.047</td>
+<td>231.0</td>
+<td>23.09</td>
+<td>23.15</td>
+<td>-0.2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>3.798</td>
+<td>71.4</td>
+<td>17.70</td>
+<td>17.88</td>
+<td>-1.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>3.467</td>
+<td>106.7</td>
+<td>20.57</td>
+<td>20.63</td>
+<td>-0.3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>2.641</td>
+<td>809.1</td>
+<td>10.76</td>
+<td>9.77</td>
+<td>+10.1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O<sub>2</sub></td>
+<td>4.196</td>
+<td>289.3</td>
+<td>9.80</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>3.69</td>
+<td>91.7</td>
+<td>17.68</td>
+<td>17.84</td>
+<td>-0.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>3.941</td>
+<td>195.2</td>
+<td>15.18</td>
+<td>14.99</td>
+<td>+1.3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>3.758</td>
+<td>148.6</td>
+<td>11.19</td>
+<td>11.12</td>
+<td>+0.6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>4.033</td>
+<td>231.8</td>
+<td>10.34</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>4.163</td>
+<td>224.7</td>
+<td>10.22</td>
+<td>10.36</td>
+<td>-1.4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>4.443</td>
+<td>215.7</td>
+<td>9.46</td>
+<td>9.28</td>
+<td>+2.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>3</sub>H<sub>8</sub></td>
+<td>5.118</td>
+<td>237.1</td>
+<td>8.27</td>
+<td>8.18</td>
+<td>+1.1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>4</sub>H<sub>10</sub></td>
+<td>4.687</td>
+<td>531.4</td>
+<td>7.46</td>
+<td>7.45</td>
+<td>+0.1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>3.63</td>
+<td>569.1</td>
+<td>8.20</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>3.626</td>
+<td>481.8</td>
+<td>9.74</td>
+<td>9.72</td>
+<td>+0.2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>2.9</td>
+<td>558.3</td>
+<td>10.30</td>
+<td>10.18</td>
+<td>+1.1</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>3.828</td>
+<td>232.4</td>
+<td>14.90</td>
+<td>14.90</td>
+<td>+0.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NO</td>
+<td>3.492</td>
+<td>116.7</td>
+<td>19.14</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>3.981</td>
+<td>251.5</td>
+<td>11.67</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>3.623</td>
+<td>301.1</td>
+<td>12.89</td>
+<td>12.45</td>
+<td>+3.5</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>4.112</td>
+<td>335.4</td>
+<td>12.97</td>
+<td>12.97</td>
+<td>-0.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>OCS</td>
+<td>4.13</td>
+<td>336.0</td>
+<td>12.43</td>
+<td>12.45</td>
+<td>-0.2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CS<sub>2</sub></td>
+<td>4.483</td>
+<td>467.0</td>
+<td>9.98</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HCl</td>
+<td>3.339</td>
+<td>344.7</td>
+<td>14.62</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HF</td>
+<td>3.148</td>
+<td>330.0</td>
+<td>12.47</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Cl<sub>2</sub></td>
+<td>4.217</td>
+<td>316.0</td>
+<td>13.38</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>4.182</td>
+<td>350.0</td>
+<td>10.88</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SiH<sub>4</sub></td>
+<td>4.084</td>
+<td>207.6</td>
+<td>11.77</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>N<sub>2</sub></td>
+<td>4.361</td>
+<td>348.6</td>
+<td>10.18</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>C<sub>6</sub>H<sub>6</sub></td>
+<td>5.349</td>
+<td>412.3</td>
+<td>7.58</td>
+<td>7.62</td>
+<td>-0.6</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CF<sub>4</sub></td>
+<td>4.662</td>
+<td>134.0</td>
+<td>17.62</td>
+<td>17.29</td>
+<td>+1.9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>5.128</td>
+<td>222.1</td>
+<td>15.45</td>
+<td>15.29</td>
+<td>+1.0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>HBr</td>
+<td>3.353</td>
+<td>449.0</td>
+<td>18.77</td>
+<td>-</td>
+<td>-</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="10-ideal-versus-real-gas">10. Ideal versus real gas</h2>
+<p>Z = P/(rho_molar R T). van der Waals: a = 27 R^2 Tc^2/(64 Pc), b = R Tc/(8 Pc). Peng-Robinson: a = 0.45724 R^2 Tc^2 alpha/Pc, b = 0.07780 R Tc/Pc, alpha = (1 + kappa (1 - sqrt(Tr)))^2, kappa = 0.37464 + 1.54226 omega - 0.26992 omega^2 (RECALLED constants, validated by the table). Largest real root. omega from the NIST EOS saturation table (T2). Z NIST = fluid EOS (DATA). At 90 bar CO<sub>2</sub> and 1000 bar H<sub>2</sub>, Peng-Robinson is within 0.3 to 1.1% (CO<sub>2</sub> at 735 and 400 K), 7% (CO<sub>2</sub> at 300 K, liquid-like) and 0.3 to 3.9% (H<sub>2</sub>); van der Waals is off by 2.6 to 48%. CO<sub>2</sub> at 735 K and 90 bar has Z = 1.0053, so the ideal density 64.81 kg/m3 is 0.5% high. H<sub>2</sub> at 300 K and 1000 bar has Z = 1.64: the ideal gas overstates molar density by 64%. N<sub>2</sub> there has Z = 1.97 and PR is 10% low. Mixtures need mixing rules and interaction parameters (Boss item 13).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>T K</th>
+<th>P bar</th>
+<th>Z NIST</th>
+<th>Z vdW (err)</th>
+<th>Z PR (err)</th>
+<th>omega</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>735</td>
+<td>90.0</td>
+<td>1.0053</td>
+<td>0.9789 (-2.6%)</td>
+<td>1.0081 (+0.3%)</td>
+<td>0.225</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>735</td>
+<td>92.1</td>
+<td>1.0055</td>
+<td>0.9785 (-2.7%)</td>
+<td>1.0083 (+0.3%)</td>
+<td>0.225</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>300</td>
+<td>90.0</td>
+<td>0.2033</td>
+<td>0.3000 (+47.6%)</td>
+<td>0.2176 (+7.0%)</td>
+<td>0.225</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>400</td>
+<td>90.0</td>
+<td>0.8366</td>
+<td>0.7969 (-4.7%)</td>
+<td>0.8273 (-1.1%)</td>
+<td>0.225</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub></td>
+<td>300</td>
+<td>1000.0</td>
+<td>1.6415</td>
+<td>1.9727 (+20.2%)</td>
+<td>1.5771 (-3.9%)</td>
+<td>-0.219</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub></td>
+<td>1000</td>
+<td>1000.0</td>
+<td>1.1865</td>
+<td>1.2988 (+9.5%)</td>
+<td>1.1824 (-0.3%)</td>
+<td>-0.219</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>300</td>
+<td>1000.0</td>
+<td>1.9673</td>
+<td>2.2446 (+14.1%)</td>
+<td>1.7633 (-10.4%)</td>
+<td>0.037</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>700</td>
+<td>220.0</td>
+<td>0.6793</td>
+<td>0.6720 (-1.1%)</td>
+<td>0.6694 (-1.5%)</td>
+<td>0.344</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>300</td>
+<td>90.0</td>
+<td>0.8663</td>
+<td>0.8288 (-4.3%)</td>
+<td>0.8445 (-2.5%)</td>
+<td>0.011</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="11-formulas-for-the-generator">11. Formulas for the generator</h2>
+<ol>
+<li>M_bar = sum x_i M_i (g/mol), x_i = p_i / sum p_j.</li>
+<li>Molar density n = P/(Z R T) (mol/m3); mass density rho = n M_bar/1000 (kg/m3, M_bar in g/mol). Z = 1 when P is below about 1 bar and T above 1.5 Tc of the major species; otherwise PR Z (section 10) with Kay's rule for mixture critical constants (RECALLED, untested).</li>
+<li>n_i = x_i n.</li>
+<li>Scale height H = R T/(M_bar g) (M_bar in kg/mol); P(z) = P0 exp(-integral dz/H); for tall columns g(z) = g0 (Rb/(Rb + z))^2 and local T(z). Well-mixed below the homopause; above it each species has its own H_i.</li>
+<li>Cp = sum x_i Cp_i, gamma = Cp/(Cp - R), dry adiabat Gamma = g/cp with cp = Cp/M_bar (J/kg/K). Dry air at 300 K from T3: Cp = 29.10, gamma = 1.400, Gamma = 9.76 K/km (COMPUTED).</li>
+<li>Saturation: composite (section 7); condensation level is the lowest height where x_i P(z) &gt;= Psat_i(T(z)). Local slope dlnP/dT = dH/(R T^2) (accurate to a few percent over 30 K).</li>
+<li>Henry: dissolved mol per kg water = kH(T) x_i P(bar).</li>
+<li>Photolysis threshold lambda_nm = 119626.565/dH(kJ/mol).</li>
+</ol>
+<h2 id="12-test-case-table">12. Test-case table</h2>
+<p>All rows are TEST POINTS (known outcome). Planet inputs are calibration, not presets.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Test point</th>
+<th>Input</th>
+<th>Reference</th>
+<th>Computed here</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST POINT: Earth dry air M</td>
+<td>N<sub>2</sub> 0.7812, O<sub>2</sub> 0.2096, Ar 0.0092; or nine-species N<sub>2</sub> 0.78084, O<sub>2</sub> 0.209476, Ar 0.00934, CO<sub>2</sub> 314e-6, Ne, He, CH<sub>4</sub>, Kr, H<sub>2</sub> (RECALLED fractions)</td>
+<td>28.96 g/mol (task)</td>
+<td>28.9589 (three gases), 28.9648 (nine species)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: Earth sea-level density</td>
+<td>101325 Pa, 288.15 K</td>
+<td>1.225 kg/m3 (RECALLED)</td>
+<td>1.2247 kg/m3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: H<sub>2</sub>O at 273.16 K</td>
+<td>T = 273.16 K</td>
+<td>611.657 Pa (task)</td>
+<td>NIST EOS table 611.6544 Pa (-0.0004%); Feistel-Wagner ice formula 611.6577 (equal by construction); Wagner fit T5 611.04 (-0.10%); NASA route 612.24 (+0.10%)</td>
+<td>DATA / COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: ice below the triple point</td>
+<td>273.15, 250, 200 K</td>
+<td>none</td>
+<td>611.15, 76.03, 0.1626 Pa</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: CO<sub>2</sub> triple point</td>
+<td>216.58 K</td>
+<td>517.95 kPa (task)</td>
+<td>EOS 518.0 kPa at 216.592 K; Wagner fit 517.99 kPa (216.592 K), 517.72 kPa (216.58 K, -0.05%); F and S CO<sub>2</sub>-2 520.76 kPa (+0.54%); CO<sub>2</sub>-1 497.7 kPa (-3.9%); NIST Antoine extrapolated 505.3 kPa (-2.4%)</td>
+<td>DATA / COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: CO<sub>2</sub> sublimation at 101325 Pa</td>
+<td>solve Psat = 101325</td>
+<td>194.686 K (RECALLED)</td>
+<td>194.607 (CO<sub>2</sub>-2), 194.747 (CO<sub>2</sub>-1), 194.733 K (NIST Antoine)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: boiling points</td>
+<td>N<sub>2</sub>, O<sub>2</sub>, Ar, CH<sub>4</sub>, CO, H<sub>2</sub>O</td>
+<td>heos Tb 77.355, 90.188, 87.302, 111.67, 81.638, 373.12 K</td>
+<td>composite at 100 kPa: 77.24, 90.06, 87.18, 111.51, 81.52, 372.77 K (0.12 to 0.35 K lower, as 1.3% pressure implies)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>TEST POINT: scale heights</td>
+<td>listed inputs</td>
+<td>Earth 8.4, Mars 11, Venus 16, Titan 21 km (RECALLED)</td>
+<td>Earth 288.15 K, 9.80665: 8.44 km; Mars 210 K, 3.71, CO<sub>2</sub> 0.9532 N<sub>2</sub> 0.027 Ar 0.016 O<sub>2</sub> 0.0013 CO 0.0008 (M 43.48): 10.82; Venus 737 K, 8.87, CO<sub>2</sub> 0.965 N<sub>2</sub> 0.035 (M 43.45): 15.90; Titan 94 K, 1.352, N<sub>2</sub> 0.95 CH<sub>4</sub> 0.05 (M 27.42): 21.09 km</td>
+<td>COMPUTED, inputs RECALLED</td>
+</tr>
+<tr>
+<td>TEST POINT: ideal vs real CO<sub>2</sub></td>
+<td>735 K, 90 bar</td>
+<td>none</td>
+<td>Z 1.0053; ideal 64.81, real 64.47 kg/m3</td>
+<td>COMPUTED / DATA</td>
+</tr>
+<tr>
+<td>TEST POINT: conversion</td>
+<td>79.1 kPa N<sub>2</sub>, 21.2 kPa O<sub>2</sub>, 0.9 kPa Ar, 288.15 K</td>
+<td>none</td>
+<td>P 101.2 kPa; x 0.7816, 0.2095, 0.0089; n 42.2 mol/m3</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="13-boss-must-research">13. Boss must research</h2>
+<ol>
+<li>[R1445] (Planet. Space Sci. 57, 2053): validity per polynomial, enthalpies, data. ScienceDirect refused; T9 rests on it.</li>
+<li>Solid H<sub>2</sub> vapour pressure (Woolley); HD, HDO, D2O, 3He, 4He vapour pressures.</li>
+<li>[R2137, R4166] (CO<sub>2</sub> sublimation and EOS; 0.5% spread at Tt).</li>
+<li>H<sub>2</sub>SO<sub>4</sub>-H2O: [R4289] W(T, pH2O), [R2895, R4877], and the [R0210] original. Venus cloud acid pressure depends on W by orders of magnitude.</li>
+<li>NH<sub>4</sub>SH constant, units and range; [R2726] abundances.</li>
+<li>Clathrate hydrate dissociation curves (NIST SRD 156 subscription only; Sloan and Koh; [R0779]).</li>
+<li>Perchlorates and carbonates: HClO<sub>4</sub> has no NIST data or Cp; the salts need decomposition and vapour data.</li>
+<li>Ortho-para equilibrium H<sub>2</sub> Cp, 20 to 300 K (JANAF H<sub>2</sub>); Lobo-Ferreira data ranges (openknowledge.nau.edu/id/eprint/6246).</li>
+<li>Gibbs formation data for FeH, CrH, CaOH, VO, AlH (FastChem fits).</li>
+<li>Ideal-gas Cp for HC<sub>3</sub>N, HClO<sub>4</sub>, NH<sub>4</sub>Cl.</li>
+<li>Rn triple point and a better vapour curve (Poling Antoine is +9.5% at Tb).</li>
+<li>Vapour pressure for SiO, SiH<sub>4</sub>, SO, HNCO, C<sub>3</sub>O<sub>2</sub>, CN, S<sub>2</sub> (total sulfur vapour), SO<sub>3</sub> above 332 K; real critical constants for metals.</li>
+<li>Binary interaction parameters and tested mixing rules (H<sub>2</sub>-He, H<sub>2</sub>-CH4, CO<sub>2</sub>-N2, CO<sub>2</sub>-H2O).</li>
+<li>Photolysis channels, cross sections and yields for NUV-flagged species; diffusion coefficients (parts 03 and neighbours).</li>
+</ol>
+<h2 id="14-recalled--to-verify">14. Recalled / to verify</h2>
+<ol>
+<li>Neufeld Omega22 constants (matched NIST viscosity within 2% for non-polar species).</li>
+<li>Peng-Robinson constants 0.45724, 0.07780, 0.37464, 1.54226, 0.26992 (matched NIST Z within a few percent).</li>
+<li>h c N_A = 119626.565 kJ nm/mol.</li>
+<li>Mars, Venus, Titan T, g, compositions; Earth fractions; 28.9644 g/mol; 1.225 kg/m3; scale-height references.</li>
+<li>The task figures 611.657 Pa, 517.95 kPa and 194.686 K (task statement; not read in a source here).</li>
+<li>A search snippet showed Lewis as 14.83/4715; the READ value is 14.82/4705.</li>
+<li>Flag rules (IR, volatility, NUV) are definitions of this note, not sourced.</li>
+<li>Kay's rule for mixtures.</li>
+</ol>
+<h2 id="15-row-counts-by-status">15. Row counts by status</h2>
+<p>Table rows by label (a row carries its dominant label): DATA 206; DATA with extrapolated Cp (x) 7; COMPUTED 195; 2ND-HAND 32 (T9); READ 5 (T10); NOT REACHED 13; RECALLED 0 and SNIPPET 0 (RECALLED items are listed only in section 14, one SNIPPET noted there). Formula-level READ or 2ND-HAND items outside tables: NH<sub>4</sub>SH constants (READ), H<sub>2</sub>SO<sub>4</sub> Ayers, Kulmala-Laaksonen and Giauque terms (2ND-HAND).</p>
+<h2 id="16-cross-links">16. Cross-links</h2>
+<p>Feeds: 02 and 05 composition (05-mixing-ratios-by-class.md uses T1, T2 and the condensation test), infrared greenhouse (T3, IR flag), photochemistry (T1 threshold, Boss 14), gas optics (CIA flags, densities), condensates, clouds, hazes (T5, T6, T9, NH<sub>4</sub>SH and H<sub>2</sub>SO<sub>4</sub> entries), radiation shielding (column mass, formulas 1 to 4), volcanic outgassing and escape (Henry constants, scale height, critical constants).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

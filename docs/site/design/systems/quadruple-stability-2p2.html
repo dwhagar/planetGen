@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stability of a 2+2 quadruple star system (GEN.1031) - planetGen docs</title>
+<meta name="description" content="Part of GEN.1006 (overlap-free multi-star systems, overlap-free-systems.md).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/quadruple-stability-2p2.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/quadruple-stability-2p2.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stability-of-a-22-quadruple-star-system-gen1031">Stability of a 2+2 quadruple star system (GEN.1031)</h1><p class="meta">docs/design/systems/quadruple-stability-2p2.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-problem-and-the-form-chosen">1. The problem and the form chosen</a></li><li style="margin-left:0px"><a href="#2-accuracy">2. Accuracy</a></li><li style="margin-left:0px"><a href="#3-what-it-does-not-cover">3. What it does not cover</a></li><li style="margin-left:0px"><a href="#4-for-the-wiring-gen1016">4. For the wiring (GEN.1016)</a></li><li style="margin-left:0px"><a href="#5-the-axis-margin-gen1155">5. The axis margin (GEN.1155)</a></li></ul></details>
+<p>Part of GEN.1006 (overlap-free multi-star systems, <a href="overlap-free-systems.html">overlap-free-systems.md</a>). This is the 2+2 counterpart of <a href="quadruple-stability-3p1.html">quadruple-stability-3p1.md</a> (GEN.1029); how the network is ported, why a plain numpy forward pass, and the reading of &quot;stable&quot; are the same and are not repeated. The module is <code>physics/quadruple_stability.py</code> (functions with the suffix <code>_2p2</code>); GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QT1 to QT4 in section 6.81 of <a href="../research/gap-filling-plan.html">gap-filling-plan.md</a>.</p>
+<h2 id="1-the-problem-and-the-form-chosen">1. The problem and the form chosen</h2>
+<p>A 2+2 quadruple is two binaries, <code>(m1 &gt;= m2)</code> and <code>(m3 &gt;= m4)</code> with <code>m1 + m2 &gt;= m3 + m4</code>, that orbit each other. <code>physics/stability.py</code> can test it as two nested triples (each binary with the other as one point mass) and that is right for 83 percent of the paper's systems ([R4575: Table 3], Mardling-Aarseth), 88 percent with their triple network. The paper's 2+2 network is right for 94 percent. It is the same kind of network as the 3+1 one: 11 inputs, four hidden layers of 50 logistic units, one output (the probability of &quot;unstable&quot;), 8,301 numbers. <code>scripts/build_quadruple_stability.py 2p2 &lt;model&gt;</code> makes <code>data/quadruple_stability_2p2_weights.json</code> from the authors' <code>mlp_model_2p2_ghost_v1.2.2.pkl</code> without running the pickle (the restricted reader of GEN.1029); the numpy forward pass gives the probabilities of the same network built as a scikit-learn model from that state to 1e-6 on five stored cases (the test file carries them).</p>
+<p>Inputs (dimensionless): <code>q_in1 = m2/m1</code>, <code>q_in2 = m4/m3</code>, <code>q_out = (m3+m4)/(m1+m2)</code>, <code>alpha_in1_out = a_in1/a_out</code>, <code>alpha_in2_out = a_in2/a_out</code>, the three eccentricities, the three mutual inclinations (radians, over pi inside). <code>ratios_2p2</code> makes the five ratios from masses and axes, <code>outside_range_2p2</code> names inputs outside what the paper documents (mass ratios under 0.1, <code>q_out</code> above 1, eccentricity above 0.95, an axis ratio outside 0 to 1), <code>hierarchy_holds_2p2</code> is the apoapsis-inside-periapsis test the training sample kept for both inner binaries.</p>
+<h2 id="2-accuracy">2. Accuracy</h2>
+<p><strong>The authors' figures</strong> (their Table 3, 20 percent test set of 1e5 systems): overall 0.94; precision 0.94 stable and 0.95 unstable; recall 0.94 and 0.95. Nested Mardling-Aarseth: 0.83 overall, precision 0.77 stable.</p>
+<p><strong>Independent N-body check (this lane):</strong> REBOUND 5.2.2 (IAS15), the paper's labelling rule (100 outer orbits, a twin with the inner axis of the lighter binary larger by a relative 1e-8, unstable if a binary unbinds, the outer orbit unbinds, or the twin's inner axis differs by more than 1 percent), masses log-uniform over a decade, isotropic angles, eccentricities uniform to 0.4 (to 0.95 for a fifth of the draws), the heavier binary first. Scripts and results: <code>/mnt/project-files/data/gen1031-nbody/</code>. Two samples, none dropped:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Systems</th>
+<th>N-body stable</th>
+<th>Network right</th>
+<th>Nested MA01 right</th>
+<th>All &quot;unstable&quot; right</th>
+<th>Network precision stable</th>
+<th>Network recall stable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>paper-like: axis ratios uniform 0.03 to 0.6, 30 percent of MA01-unstable draws kept (the paper keeps 30)</td>
+<td>185</td>
+<td>26</td>
+<td>91.4 percent (90 percent range 87.3 to 94.2)</td>
+<td>81.6 percent</td>
+<td>85.9 percent</td>
+<td>0.62 (16 false stable of 42)</td>
+<td>1.00</td>
+</tr>
+<tr>
+<td>near the boundary: axis ratios 0.06 to 0.35, MA01 margin 0.8 to 3, 50 percent of MA01-unstable kept</td>
+<td>787</td>
+<td>124</td>
+<td>68.6 percent</td>
+<td>39.5 percent</td>
+<td>84.2 percent</td>
+<td>0.33 (246 false stable of 369)</td>
+<td>0.99</td>
+</tr>
+</tbody>
+</table></div>
+<p>What it shows and does not show:</p>
+<ol>
+<li><strong>On the paper's kind of sample the result is close to the paper's.</strong> 91 percent for the network against the paper's 94, and 82 percent for the nested test against the paper's 83 (the second number matching is the best sign that my sample and labels resemble theirs). The network is better than the nested test, by 10 points here and 11 in the paper.</li>
+<li><strong>The network is lenient.</strong> It never missed a truly stable system (one false unstable in 972), but it calls a share of the unstable ones stable: precision for &quot;stable&quot; is 0.62 on the paper-like sample (paper 0.94) and 0.33 near the boundary. This is the same direction as for the 3+1 network (precision 0.57 near the boundary) but stronger.</li>
+<li><strong>The false stables are marginal.</strong> Of 30 near-boundary systems that MA01 calls stable (margin above 1.3) and the N-body run broke, which I re-ran to see how, 29 were still bound with the twin's inner axis diverging by mostly 1 to 5 percent, not disrupted; in one the twin unbound. Re-labelling the paper-like sample with a divergence limit of 3 percent (instead of 1) makes the network right in 95 percent of the systems, with 10 percent it is 98 percent. The 1 percent limit is the paper's, so the leniency is partly the weak chaos of systems on the edge of the label, not a failure of the network. Other differences I cannot close: their code (MSTAR), their twin offset (1e-6 au on an unstated inner axis, against my relative 1e-8), their exact sampling.</li>
+<li><strong>Few stable systems in my samples</strong> (14 and 16 percent against about half in the paper), so the stable-class scores have wide error and always saying &quot;unstable&quot; scores 84 to 86 percent. The comparison of the network with the nested test on the same systems is the sturdier statement.</li>
+<li><strong>Conclusion for the generator:</strong> the network is a better 2+2 test than two nested triples, which are already good (83 percent). Use it after the nested screen, treat &quot;stable&quot; as likely and keep a margin on the axis ratio, as for the 3+1 case. Where the generator needs a hard guarantee of no overlap, the nested test with a margin is the cheaper first screen.</li>
+</ol>
+<h2 id="3-what-it-does-not-cover">3. What it does not cover</h2>
+<ol>
+<li><strong>Stable means 100 outer orbits and not chaotic</strong>, a short-span chaos test; slow secular evolution is not in the label.</li>
+<li><strong>Training range.</strong> Masses within a factor 10 (inner mass ratios at least 0.1), <code>q_out</code> at most 1, eccentricities to 0.95, isotropic angles, systems near the Mardling-Aarseth boundary of the two nested triples (the paper excludes 70 percent of the MA01-unstable draws). Far from the boundary the network extrapolates.</li>
+<li><strong>No arguments of periapsis or mean anomalies</strong> are inputs.</li>
+<li><strong>Only the two quadruple shapes of the paper.</strong> Higher multiples are the nested-triple test at each node.</li>
+<li><strong>Licence.</strong> As for the 3+1 file: the authors' repository has no licence file; Boss handles DATA-LICENSE.md. Cite [R4575] wherever the rule is used.</li>
+</ol>
+<h2 id="4-for-the-wiring-gen1016">4. For the wiring (GEN.1016)</h2>
+<p>Call <code>quadruple_stability.is_stable_2p2(*ratios_2p2(...), e_in1, e_in2, e_out, i_in1_in2, i_in1_out, i_in2_out)</code> on every 2+2 node of a tree after the nested-triple screen, treat a non-empty <code>outside_range_2p2(...)</code> as lower confidence, and keep a margin on the axis ratios of systems it calls stable.</p>
+<h2 id="5-the-axis-margin-gen1155">5. The axis margin (GEN.1155)</h2>
+<p><code>axis_margin</code> multiplies <code>alpha_in1_out</code> and <code>alpha_in2_out</code> before the network is asked, so a system is accepted only when it is stable with both inner axes that much wider. The GEN.1016 value of 1.3 was the 3+1 margin carried over. GEN.1155 ran 302 more systems through the same REBOUND label (IAS15, 100 outer orbits, a twin with a relative 1e-8 inner-axis offset, unstable above 1 percent divergence or an unbound orbit; <code>nbody2p2_margin.py</code>): masses log-uniform over a decade (inner mass ratios at least 0.1), both inner axis ratios log-uniform from 0.02 to 0.5, eccentricities to 0.95 for a fifth of the draws and to 0.4 for the rest, isotropic angles. Only systems the network calls stable with no margin and that sit inside its documented range were run (the others cannot become stable with a margin); those still stable at a margin of 2.5 were run one in seven and weighted by seven.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>margin</th>
+<th>new sample: precision, recall</th>
+<th>paper-like (185): precision, recall</th>
+<th>near boundary (787): precision, recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>0.83, 1.00</td>
+<td>0.62, 1.00</td>
+<td>0.33, 0.99</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>0.95, 0.93</td>
+<td>0.81, 0.85</td>
+<td>0.62, 0.77</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td>0.99, 0.83</td>
+<td>0.94, 0.58</td>
+<td>0.80, 0.51</td>
+</tr>
+<tr>
+<td>1.7</td>
+<td>1.00, 0.73</td>
+<td>1.00, 0.38</td>
+<td>0.90, 0.31</td>
+</tr>
+<tr>
+<td>2.0</td>
+<td>1.00, 0.63</td>
+<td>1.00, 0.27</td>
+<td>1.00, 0.12</td>
+</tr>
+</tbody>
+</table></div>
+<p>The paper reports 0.94 precision for stable calls. 1.5 is the smallest margin that reaches it on the paper-like sample and is above it on the wider one; the near-boundary set is built from the hardest systems and stays below at every margin under 1.7. The value is tuned to a published statistic (tier T6, tweak level L2).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

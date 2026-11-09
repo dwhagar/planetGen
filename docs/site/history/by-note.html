@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design notes and the work behind them - planetGen docs</title>
+<meta name="description" content="For each design note, the items it names, with the dates those items were worked (git history as of d02661568) and where they stand.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/by-note.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/by-note.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="design-notes-and-the-work-behind-them">Design notes and the work behind them</h1><p class="meta">docs/history/by-note.md</p><details class="toc"><summary>On this page (241 headings)</summary><ul><li style="margin-left:0px"><a href="#readmemd">README.md</a></li><li style="margin-left:0px"><a href="#architecturearchitecturemd">architecture/architecture.md</a></li><li style="margin-left:0px"><a href="#architecturecommand-inventorymd">architecture/command-inventory.md</a></li><li style="margin-left:0px"><a href="#architecturedesign-decisionsmd">architecture/design-decisions.md</a></li><li style="margin-left:0px"><a href="#architecturedesignation-historymd">architecture/designation-history.md</a></li><li style="margin-left:0px"><a href="#architecturelibrary-migrationmd">architecture/library-migration.md</a></li><li style="margin-left:0px"><a href="#architecturemass-object-classmd">architecture/mass-object-class.md</a></li><li style="margin-left:0px"><a href="#architecturemath-and-library-efficiencymd">architecture/math-and-library-efficiency.md</a></li><li style="margin-left:0px"><a href="#architecturenumeric-precision-auditmd">architecture/numeric-precision-audit.md</a></li><li style="margin-left:0px"><a href="#architectureobject-id-optionsmd">architecture/object-id-options.md</a></li><li style="margin-left:0px"><a href="#architectureobject-idsmd">architecture/object-ids.md</a></li><li style="margin-left:0px"><a href="#architecturesystem-descriptionmd">architecture/system-description.md</a></li><li style="margin-left:0px"><a href="#architectureunified-star-like-objectsmd">architecture/unified-star-like-objects.md</a></li><li style="margin-left:0px"><a href="#architectureunified-system-barycentremd">architecture/unified-system-barycentre.md</a></li><li style="margin-left:0px"><a href="#architectureunified-unit-quantitymd">architecture/unified-unit-quantity.md</a></li><li style="margin-left:0px"><a href="#architectureunits-and-number-formattingmd">architecture/units-and-number-formatting.md</a></li><li style="margin-left:0px"><a href="#compositionaerosol-tuningmd">composition/aerosol-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-colourmd">composition/atmosphere-colour.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts01-gas-table-thermodynamicsmd">composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts02-gas-optics-uv-visiblemd">composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts03-infrared-greenhouse-thermalmd">composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts06-condensates-clouds-hazes-dust-mineralsmd">composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts08-verification-of-boss-added-research-amd">composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts09-weighted-composition-tablesmd">composition/atmosphere-composition-parts/09-weighted-composition-tables.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts10-verification-second-note-amd">composition/atmosphere-composition-parts/10-verification-second-note-A.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts10-verification-second-note-cmd">composition/atmosphere-composition-parts/10-verification-second-note-C.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-composition-parts10-verification-second-note-dmd">composition/atmosphere-composition-parts/10-verification-second-note-D.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-compositionmd">composition/atmosphere-composition.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-sources-checkmd">composition/atmosphere-sources-check.md</a></li><li style="margin-left:0px"><a href="#compositionatmosphere-statemd">composition/atmosphere-state.md</a></li><li style="margin-left:0px"><a href="#compositionatmospheric-escape-modelmd">composition/atmospheric-escape-model.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsa-starsmd">composition/body-composition-parts/A-stars.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsc-volatile-and-giantsmd">composition/body-composition-parts/C-volatile-and-giants.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsd-small-bodies-moonsmd">composition/body-composition-parts/D-small-bodies-moons.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partse-ground-radiogenic-shieldingmd">composition/body-composition-parts/E-ground-radiogenic-shielding.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsf-boss-note-checkmd">composition/body-composition-parts/F-boss-note-check.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsg1-cometsmd">composition/body-composition-parts/G1-comets.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-partsh-gen465-second-pass-tablesmd">composition/body-composition-parts/H-gen465-second-pass-tables.md</a></li><li style="margin-left:0px"><a href="#compositionbody-composition-researchmd">composition/body-composition-research.md</a></li><li style="margin-left:0px"><a href="#compositionbrown-dwarf-typesmd">composition/brown-dwarf-types.md</a></li><li style="margin-left:0px"><a href="#compositionbulk-composition-sources-checkmd">composition/bulk-composition-sources-check.md</a></li><li style="margin-left:0px"><a href="#compositionbulk-compositionmd">composition/bulk-composition.md</a></li><li style="margin-left:0px"><a href="#compositionclathrate-brine-wiringmd">composition/clathrate-brine-wiring.md</a></li><li style="margin-left:0px"><a href="#compositionclimate-branchesmd">composition/climate-branches.md</a></li><li style="margin-left:0px"><a href="#compositioncloud-albedomd">composition/cloud-albedo.md</a></li><li style="margin-left:0px"><a href="#compositioncomet-admissionmd">composition/comet-admission.md</a></li><li style="margin-left:0px"><a href="#compositioncomet-composition-tuningmd">composition/comet-composition-tuning.md</a></li><li style="margin-left:0px"><a href="#compositioncomet-species-modelmd">composition/comet-species-model.md</a></li><li style="margin-left:0px"><a href="#compositioncomposition-modelmd">composition/composition-model.md</a></li><li style="margin-left:0px"><a href="#compositioncomposition-spine-contractsmd">composition/composition-spine-contracts.md</a></li><li style="margin-left:0px"><a href="#compositiondesign-flagsmd">composition/design-flags.md</a></li><li style="margin-left:0px"><a href="#compositiondisk-condensationmd">composition/disk-condensation.md</a></li><li style="margin-left:0px"><a href="#compositiondry-carbon-modelmd">composition/dry-carbon-model.md</a></li><li style="margin-left:0px"><a href="#compositionenvelope-escape-wiringmd">composition/envelope-escape-wiring.md</a></li><li style="margin-left:0px"><a href="#compositionequilibrium-chemistrymd">composition/equilibrium-chemistry.md</a></li><li style="margin-left:0px"><a href="#compositiongiant-heavy-element-lawmd">composition/giant-heavy-element-law.md</a></li><li style="margin-left:0px"><a href="#compositiongiant-interiorsmd">composition/giant-interiors.md</a></li><li style="margin-left:0px"><a href="#compositiongreenhouse-tablemd">composition/greenhouse-table.md</a></li><li style="margin-left:0px"><a href="#compositionhost-activity-tuningmd">composition/host-activity-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionimpact-erosion-and-late-deliverymd">composition/impact-erosion-and-late-delivery.md</a></li><li style="margin-left:0px"><a href="#compositioninterior-heatmd">composition/interior-heat.md</a></li><li style="margin-left:0px"><a href="#compositioniron-branch-tuningmd">composition/iron-branch-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionisotope-recordmd">composition/isotope-record.md</a></li><li style="margin-left:0px"><a href="#compositionjwst-selectionmd">composition/jwst-selection.md</a></li><li style="margin-left:0px"><a href="#compositionkepler-recoverymd">composition/kepler-recovery.md</a></li><li style="margin-left:0px"><a href="#compositionline-opacitymd">composition/line-opacity.md</a></li><li style="margin-left:0px"><a href="#compositionmagma-ocean-redox-against-massmd">composition/magma-ocean-redox-against-mass.md</a></li><li style="margin-left:0px"><a href="#compositionmagma-ocean-redox-modelmd">composition/magma-ocean-redox-model.md</a></li><li style="margin-left:0px"><a href="#compositionmantle-oxidesmd">composition/mantle-oxides.md</a></li><li style="margin-left:0px"><a href="#compositionmass-radius-samplemd">composition/mass-radius-sample.md</a></li><li style="margin-left:0px"><a href="#compositionmixture-drawmd">composition/mixture-draw.md</a></li><li style="margin-left:0px"><a href="#compositionnebula-compositionmd">composition/nebula-composition.md</a></li><li style="margin-left:0px"><a href="#compositionnightside-collapse-modelmd">composition/nightside-collapse-model.md</a></li><li style="margin-left:0px"><a href="#compositionore-processesmd">composition/ore-processes.md</a></li><li style="margin-left:0px"><a href="#compositionplanet-architecturemd">composition/planet-architecture.md</a></li><li style="margin-left:0px"><a href="#compositionplanet-mass-lawmd">composition/planet-mass-law.md</a></li><li style="margin-left:0px"><a href="#compositionplanetary-ringsmd">composition/planetary-rings.md</a></li><li style="margin-left:0px"><a href="#compositionradiation-modelmd">composition/radiation-model.md</a></li><li style="margin-left:0px"><a href="#compositionradioisotope-tuningmd">composition/radioisotope-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionradius-valley-tuningmd">composition/radius-valley-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionretention-tuningmd">composition/retention-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionsky-colour-analysismd">composition/sky-colour-analysis.md</a></li><li style="margin-left:0px"><a href="#compositionsmall-bodies-compositionmd">composition/small-bodies-composition.md</a></li><li style="margin-left:0px"><a href="#compositionsmall-body-size-lawsmd">composition/small-body-size-laws.md</a></li><li style="margin-left:0px"><a href="#compositionstellar-compositionmd">composition/stellar-composition.md</a></li><li style="margin-left:0px"><a href="#compositionsurface-compositionmd">composition/surface-composition.md</a></li><li style="margin-left:0px"><a href="#compositionsurface-liquid-compositionmd">composition/surface-liquid-composition.md</a></li><li style="margin-left:0px"><a href="#compositionsurface-pressure-supply-lawmd">composition/surface-pressure-supply-law.md</a></li><li style="margin-left:0px"><a href="#compositiontunable-gapsmd">composition/tunable-gaps.md</a></li><li style="margin-left:0px"><a href="#compositionvolatile-delivery-formation-distancemd">composition/volatile-delivery-formation-distance.md</a></li><li style="margin-left:0px"><a href="#compositionvolatile-inventory-against-planet-totalsmd">composition/volatile-inventory-against-planet-totals.md</a></li><li style="margin-left:0px"><a href="#compositionwater-delivery-tuningmd">composition/water-delivery-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionwd-pollution-detectionmd">composition/wd-pollution-detection.md</a></li><li style="margin-left:0px"><a href="#compositionwd-redox-tuningmd">composition/wd-redox-tuning.md</a></li><li style="margin-left:0px"><a href="#compositionweight-research-dispositionsmd">composition/weight-research-dispositions.md</a></li><li style="margin-left:0px"><a href="#galaxydisk-star-formation-historymd">galaxy/disk-star-formation-history.md</a></li><li style="margin-left:0px"><a href="#galaxyfill-order-curves-and-coremd">galaxy/fill-order-curves-and-core.md</a></li><li style="margin-left:0px"><a href="#galaxygalactic-potentialmd">galaxy/galactic-potential.md</a></li><li style="margin-left:0px"><a href="#galaxygalaxy-coordinate-systemmd">galaxy/galaxy-coordinate-system.md</a></li><li style="margin-left:0px"><a href="#galaxygalaxy-disk-densitymd">galaxy/galaxy-disk-density.md</a></li><li style="margin-left:0px"><a href="#galaxygalaxy-laws-researchmd">galaxy/galaxy-laws-research.md</a></li><li style="margin-left:0px"><a href="#galaxygalaxy-typesmd">galaxy/galaxy-types.md</a></li><li style="margin-left:0px"><a href="#galaxygen533-bar-sourcesmd">galaxy/gen533-bar-sources.md</a></li><li style="margin-left:0px"><a href="#galaxyglobular-clustersmd">galaxy/globular-clusters.md</a></li><li style="margin-left:0px"><a href="#galaxyintergalactic-and-halo-contentsmd">galaxy/intergalactic-and-halo-contents.md</a></li><li style="margin-left:0px"><a href="#galaxymultiple-galaxiesmd">galaxy/multiple-galaxies.md</a></li><li style="margin-left:0px"><a href="#galaxynamed-regionsmd">galaxy/named-regions.md</a></li><li style="margin-left:0px"><a href="#galaxypost-main-sequence-starsmd">galaxy/post-main-sequence-stars.md</a></li><li style="margin-left:0px"><a href="#galaxyrealistic-galactic-coremd">galaxy/realistic-galactic-core.md</a></li><li style="margin-left:0px"><a href="#galaxyspherical-block-laddermd">galaxy/spherical-block-ladder.md</a></li><li style="margin-left:0px"><a href="#galaxyspherical-region-queriesmd">galaxy/spherical-region-queries.md</a></li><li style="margin-left:0px"><a href="#galaxyspherical-sector-coordinatesmd">galaxy/spherical-sector-coordinates.md</a></li><li style="margin-left:0px"><a href="#galaxyspherical-shell-sectorsmd">galaxy/spherical-shell-sectors.md</a></li><li style="margin-left:0px"><a href="#galaxystar-types-by-galactic-radiusmd">galaxy/star-types-by-galactic-radius.md</a></li><li style="margin-left:0px"><a href="#galaxystellar-mass-functionmd">galaxy/stellar-mass-function.md</a></li><li style="margin-left:0px"><a href="#galaxysuperbubble-densitymd">galaxy/superbubble-density.md</a></li><li style="margin-left:0px"><a href="#generationgeneration-benchmark-reportmd">generation/generation-benchmark-report.md</a></li><li style="margin-left:0px"><a href="#generationgeneration-determinismmd">generation/generation-determinism.md</a></li><li style="margin-left:0px"><a href="#generationgeneration-performance-studymd">generation/generation-performance-study.md</a></li><li style="margin-left:0px"><a href="#generationgeneration-performancemd">generation/generation-performance.md</a></li><li style="margin-left:0px"><a href="#generationmass-backfillmd">generation/mass-backfill.md</a></li><li style="margin-left:0px"><a href="#generationplacement-by-populationmd">generation/placement-by-population.md</a></li><li style="margin-left:0px"><a href="#generationreproducible-galaxiesmd">generation/reproducible-galaxies.md</a></li><li style="margin-left:0px"><a href="#generationsampling-backfill-and-resumemd">generation/sampling-backfill-and-resume.md</a></li><li style="margin-left:0px"><a href="#generationscatter-queue-feasibilitymd">generation/scatter-queue-feasibility.md</a></li><li style="margin-left:0px"><a href="#generationsystem-interactionsmd">generation/system-interactions.md</a></li><li style="margin-left:0px"><a href="#generationvoid-fill-censusmd">generation/void-fill-census.md</a></li><li style="margin-left:0px"><a href="#habitabilityactivity-magnetism-radiation-hydrospheremd">habitability/activity-magnetism-radiation-hydrosphere.md</a></li><li style="margin-left:0px"><a href="#habitabilityadaptation-traitsmd">habitability/adaptation-traits.md</a></li><li style="margin-left:0px"><a href="#habitabilityatmospheres-retention-and-classesmd">habitability/atmospheres-retention-and-classes.md</a></li><li style="margin-left:0px"><a href="#habitabilitycondition-based-planet-classesmd">habitability/condition-based-planet-classes.md</a></li><li style="margin-left:0px"><a href="#habitabilityday-and-nightmd">habitability/day-and-night.md</a></li><li style="margin-left:0px"><a href="#habitabilityhabitability-indexmd">habitability/habitability-index.md</a></li><li style="margin-left:0px"><a href="#habitabilitylife-class-rulesmd">habitability/life-class-rules.md</a></li><li style="margin-left:0px"><a href="#habitabilitylife-classesmd">habitability/life-classes.md</a></li><li style="margin-left:0px"><a href="#habitabilitylife-timeline-and-oxygenmd">habitability/life-timeline-and-oxygen.md</a></li><li style="margin-left:0px"><a href="#habitabilitypopulation-and-politicsmd">habitability/population-and-politics.md</a></li><li style="margin-left:0px"><a href="#habitabilitysurvival-equipment-fieldsmd">habitability/survival-equipment-fields.md</a></li><li style="margin-left:0px"><a href="#interfaceadmin-control-suitemd">interface/admin-control-suite.md</a></li><li style="margin-left:0px"><a href="#interfacebody-renderingmd">interface/body-rendering.md</a></li><li style="margin-left:0px"><a href="#interfacedrilldown-region-sizesmd">interface/drilldown-region-sizes.md</a></li><li style="margin-left:0px"><a href="#interfaceedit-everythingmd">interface/edit-everything.md</a></li><li style="margin-left:0px"><a href="#interfacefly-through-view-distancemd">interface/fly-through-view-distance.md</a></li><li style="margin-left:0px"><a href="#interfacegalaxy-drilldown-navigationmd">interface/galaxy-drilldown-navigation.md</a></li><li style="margin-left:0px"><a href="#interfacegalaxy-map-performancemd">interface/galaxy-map-performance.md</a></li><li style="margin-left:0px"><a href="#interfacegalaxy-map-wire-formatmd">interface/galaxy-map-wire-format.md</a></li><li style="margin-left:0px"><a href="#interfacemap-ui-and-frontend-librariesmd">interface/map-ui-and-frontend-libraries.md</a></li><li style="margin-left:0px"><a href="#interfacenebula-map-visibilitymd">interface/nebula-map-visibility.md</a></li><li style="margin-left:0px"><a href="#interfaceobject-pagesmd">interface/object-pages.md</a></li><li style="margin-left:0px"><a href="#interfacereferencesmd">interface/references.md</a></li><li style="margin-left:0px"><a href="#interfaceroles-and-requestsmd">interface/roles-and-requests.md</a></li><li style="margin-left:0px"><a href="#interfacesettings-seo-and-accountsmd">interface/settings-seo-and-accounts.md</a></li><li style="margin-left:0px"><a href="#interfacesystem-sky-wire-formatmd">interface/system-sky-wire-format.md</a></li><li style="margin-left:0px"><a href="#interfacetext-stylemd">interface/text-style.md</a></li><li style="margin-left:0px"><a href="#interfacezoom-star-visibilitymd">interface/zoom-star-visibility.md</a></li><li style="margin-left:0px"><a href="#operationsapi-design-standardsmd">operations/api-design-standards.md</a></li><li style="margin-left:0px"><a href="#operationsbackups-and-repairmd">operations/backups-and-repair.md</a></li><li style="margin-left:0px"><a href="#operationscache-warm-upmd">operations/cache-warm-up.md</a></li><li style="margin-left:0px"><a href="#operationsdb-check-and-parity-repairmd">operations/db-check-and-parity-repair.md</a></li><li style="margin-left:0px"><a href="#operationsjob-graph-and-memory-brokermd">operations/job-graph-and-memory-broker.md</a></li><li style="margin-left:0px"><a href="#operationslogging-standardmd">operations/logging-standard.md</a></li><li style="margin-left:0px"><a href="#operationslogin-brute-force-protectionmd">operations/login-brute-force-protection.md</a></li><li style="margin-left:0px"><a href="#operationsone-run-per-jobmd">operations/one-run-per-job.md</a></li><li style="margin-left:0px"><a href="#operationsops-scheduling-and-rotationmd">operations/ops-scheduling-and-rotation.md</a></li><li style="margin-left:0px"><a href="#operationsperformance-eta-queue-and-cachingmd">operations/performance-eta-queue-and-caching.md</a></li><li style="margin-left:0px"><a href="#operationsredis-and-the-work-queuemd">operations/redis-and-the-work-queue.md</a></li><li style="margin-left:0px"><a href="#operationsslow-page-answersmd">operations/slow-page-answers.md</a></li><li style="margin-left:0px"><a href="#operationsslow-reads-and-timeoutsmd">operations/slow-reads-and-timeouts.md</a></li><li style="margin-left:0px"><a href="#operationstest-suite-rebuildmd">operations/test-suite-rebuild.md</a></li><li style="margin-left:0px"><a href="#operationswork-queue-auditmd">operations/work-queue-audit.md</a></li><li style="margin-left:0px"><a href="#orbitscollisions-and-mergersmd">orbits/collisions-and-mergers.md</a></li><li style="margin-left:0px"><a href="#orbitscourse-avoidancemd">orbits/course-avoidance.md</a></li><li style="margin-left:0px"><a href="#orbitscourse-routingmd">orbits/course-routing.md</a></li><li style="margin-left:0px"><a href="#orbitsgravity-mapmd">orbits/gravity-map.md</a></li><li style="margin-left:0px"><a href="#orbitsnavigation-framesmd">orbits/navigation-frames.md</a></li><li style="margin-left:0px"><a href="#orbitsocean-tidesmd">orbits/ocean-tides.md</a></li><li style="margin-left:0px"><a href="#orbitsorbital-solvers-and-integratorsmd">orbits/orbital-solvers-and-integrators.md</a></li><li style="margin-left:0px"><a href="#orbitsorbital-update-check-2026-10-18md">orbits/orbital-update-check-2026-10-18.md</a></li><li style="margin-left:0px"><a href="#orbitsorbital-updatesmd">orbits/orbital-updates.md</a></li><li style="margin-left:0px"><a href="#orbitssky-system-viewmd">orbits/sky-system-view.md</a></li><li style="margin-left:0px"><a href="#orbitssky-viewmd">orbits/sky-view.md</a></li><li style="margin-left:0px"><a href="#orbitstidal-chainmd">orbits/tidal-chain.md</a></li><li style="margin-left:0px"><a href="#researchad1-methane-sources-check-2026-10-17md">research/ad1-methane-sources-check-2026-10-17.md</a></li><li style="margin-left:0px"><a href="#researchboss-papers-2026-10-17md">research/boss-papers-2026-10-17.md</a></li><li style="margin-left:0px"><a href="#researchburn-down-registermd">research/burn-down-register.md</a></li><li style="margin-left:0px"><a href="#researchcaptured-moon-sourcesmd">research/captured-moon-sources.md</a></li><li style="margin-left:0px"><a href="#researchdata-catalogmd">research/data-catalog.md</a></li><li style="margin-left:0px"><a href="#researchevidence-registermd">research/evidence-register.md</a></li><li style="margin-left:0px"><a href="#researchgap-filling-planmd">research/gap-filling-plan.md</a></li><li style="margin-left:0px"><a href="#researchgemini-batch1-checkmd">research/gemini-batch1-check.md</a></li><li style="margin-left:0px"><a href="#researchinterstellar-field-sourcesmd">research/interstellar-field-sources.md</a></li><li style="margin-left:0px"><a href="#researchoddity-ratesmd">research/oddity-rates.md</a></li><li style="margin-left:0px"><a href="#researchopen-gaps-closest-laws-2026-10-17md">research/open-gaps-closest-laws-2026-10-17.md</a></li><li style="margin-left:0px"><a href="#researchpapers-to-fetchmd">research/papers-to-fetch.md</a></li><li style="margin-left:0px"><a href="#researchrogue-ejection-kickmd">research/rogue-ejection-kick.md</a></li><li style="margin-left:0px"><a href="#researchrogue-planet-reviewmd">research/rogue-planet-review.md</a></li><li style="margin-left:0px"><a href="#researchstand-in-valuesmd">research/stand-in-values.md</a></li><li style="margin-left:0px"><a href="#researchvizier-courteau-comeronmd">research/vizier-courteau-comeron.md</a></li><li style="margin-left:0px"><a href="#researchwiring-registermd">research/wiring-register.md</a></li><li style="margin-left:0px"><a href="#systemsalpha-and-age-metallicitymd">systems/alpha-and-age-metallicity.md</a></li></ul></details>
+<p>For each design note, the items it names, with the dates those items were worked (git history as of <code>d02661568</code>) and where they stand. Use it to jump from a note to the history of its items in <a href="README.html">items-<category>.md</a>.</p>
+<h2 id="readmemd"><a href="../design/README.html">README.md</a></h2>
+<p>185 items with commits, 2026-10-08 to 2026-11-08; 18 still open (GEN.510, GEN.523, GEN.531, GEN.554, GEN.944, GEN.1006, GEN.1016, GEN.1021, GEN.1129, GEN.1150, GEN.1151, GEN.1377, ...).</p>
+<h2 id="architecturearchitecturemd"><a href="../design/architecture/architecture.html">architecture/architecture.md</a></h2>
+<p>220 items with commits, 2026-10-01 to 2026-11-05; 2 still open (MAP.253, VIEW.11).</p>
+<h2 id="architecturecommand-inventorymd"><a href="../design/architecture/command-inventory.html">architecture/command-inventory.md</a></h2>
+<p>24 items with commits, 2026-10-01 to 2026-11-08; 0 still open.</p>
+<h2 id="architecturedesign-decisionsmd"><a href="../design/architecture/design-decisions.html">architecture/design-decisions.md</a></h2>
+<p>21 items with commits, 2026-10-01 to 2026-10-29; 0 still open.</p>
+<h2 id="architecturedesignation-historymd"><a href="../design/architecture/designation-history.html">architecture/designation-history.md</a></h2>
+<p>12 items with commits, 2026-10-09 to 2026-11-06; 2 still open (GEN.1129, GEN.1141).</p>
+<h2 id="architecturelibrary-migrationmd"><a href="../design/architecture/library-migration.html">architecture/library-migration.md</a></h2>
+<p>23 items with commits, 2026-10-07 to 2026-10-29; 0 still open.</p>
+<h2 id="architecturemass-object-classmd"><a href="../design/architecture/mass-object-class.html">architecture/mass-object-class.md</a></h2>
+<p>11 items with commits, 2026-10-15 to 2026-10-30; 7 still open (DB.74, DB.75, GEN.315, GEN.565, GEN.578, GEN.584, TEST.240).</p>
+<h2 id="architecturemath-and-library-efficiencymd"><a href="../design/architecture/math-and-library-efficiency.html">architecture/math-and-library-efficiency.md</a></h2>
+<p>16 items with commits, 2026-10-09 to 2026-11-05; 3 still open (GEN.115, GEN.198, GEN.199).</p>
+<h2 id="architecturenumeric-precision-auditmd"><a href="../design/architecture/numeric-precision-audit.html">architecture/numeric-precision-audit.md</a></h2>
+<p>14 items with commits, 2026-10-08 to 2026-11-04; 1 still open (GEN.109).</p>
+<h2 id="architectureobject-id-optionsmd"><a href="../design/architecture/object-id-options.html">architecture/object-id-options.md</a></h2>
+<p>15 items with commits, 2026-10-01 to 2026-10-10; 0 still open.</p>
+<h2 id="architectureobject-idsmd"><a href="../design/architecture/object-ids.html">architecture/object-ids.md</a></h2>
+<p>22 items with commits, 2026-10-01 to 2026-11-07; 2 still open (API.38, UX.259).</p>
+<h2 id="architecturesystem-descriptionmd"><a href="../design/architecture/system-description.html">architecture/system-description.md</a></h2>
+<p>26 items with commits, 2026-10-01 to 2026-10-24; 0 still open.</p>
+<h2 id="architectureunified-star-like-objectsmd"><a href="../design/architecture/unified-star-like-objects.html">architecture/unified-star-like-objects.md</a></h2>
+<p>56 items with commits, 2026-10-01 to 2026-10-30; 12 still open (GEN.129, GEN.264, GEN.301, GEN.315, GEN.332, GEN.377, GEN.537, GEN.550, PERF.136, TEST.162, TEST.239, UX.138).</p>
+<h2 id="architectureunified-system-barycentremd"><a href="../design/architecture/unified-system-barycentre.html">architecture/unified-system-barycentre.md</a></h2>
+<p>35 items with commits, 2026-10-09 to 2026-10-31; 13 still open (DB.78, DOC.71, GEN.264, GEN.315, GEN.316, GEN.332, GEN.550, GEN.565, GEN.576, GEN.578, GEN.581, GEN.584, ...).</p>
+<h2 id="architectureunified-unit-quantitymd"><a href="../design/architecture/unified-unit-quantity.html">architecture/unified-unit-quantity.md</a></h2>
+<p>28 items with commits, 2026-10-09 to 2026-10-28; 8 still open (DB.74, GEN.301, GEN.315, GEN.570, GEN.571, GEN.575, GEN.587, GEN.588).</p>
+<h2 id="architectureunits-and-number-formattingmd"><a href="../design/architecture/units-and-number-formatting.html">architecture/units-and-number-formatting.md</a></h2>
+<p>19 items with commits, 2026-10-01 to 2026-10-23; 1 still open (GEN.570).</p>
+<h2 id="compositionaerosol-tuningmd"><a href="../design/composition/aerosol-tuning.html">composition/aerosol-tuning.md</a></h2>
+<p>1 items with commits, 2026-10-23 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionatmosphere-colourmd"><a href="../design/composition/atmosphere-colour.html">composition/atmosphere-colour.md</a></h2>
+<p>44 items with commits, 2026-10-09 to 2026-10-31; 3 still open (GEN.471, GEN.684, VIEW.11).</p>
+<h2 id="compositionatmosphere-composition-parts01-gas-table-thermodynamicsmd"><a href="../design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html">composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md</a></h2>
+<p>6 items with commits, 2026-10-17 to 2026-11-08; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts02-gas-optics-uv-visiblemd"><a href="../design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.html">composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md</a></h2>
+<p>7 items with commits, 2026-10-22 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts03-infrared-greenhouse-thermalmd"><a href="../design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.html">composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.md</a></h2>
+<p>3 items with commits, 2026-10-24 to 2026-10-30; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts06-condensates-clouds-hazes-dust-mineralsmd"><a href="../design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.html">composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md</a></h2>
+<p>7 items with commits, 2026-10-17 to 2026-11-08; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts08-verification-of-boss-added-research-amd"><a href="../design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.html">composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md</a></h2>
+<p>3 items with commits, 2026-10-22 to 2026-10-25; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts09-weighted-composition-tablesmd"><a href="../design/composition/atmosphere-composition-parts/09-weighted-composition-tables.html">composition/atmosphere-composition-parts/09-weighted-composition-tables.md</a></h2>
+<p>13 items with commits, 2026-10-17 to 2026-10-30; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts10-verification-second-note-amd"><a href="../design/composition/atmosphere-composition-parts/10-verification-second-note-A.html">composition/atmosphere-composition-parts/10-verification-second-note-A.md</a></h2>
+<p>5 items with commits, 2026-10-22 to 2026-10-25; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts10-verification-second-note-cmd"><a href="../design/composition/atmosphere-composition-parts/10-verification-second-note-C.html">composition/atmosphere-composition-parts/10-verification-second-note-C.md</a></h2>
+<p>1 items with commits, 2026-10-24 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionatmosphere-composition-parts10-verification-second-note-dmd"><a href="../design/composition/atmosphere-composition-parts/10-verification-second-note-D.html">composition/atmosphere-composition-parts/10-verification-second-note-D.md</a></h2>
+<p>4 items with commits, 2026-10-22 to 2026-10-28; 0 still open.</p>
+<h2 id="compositionatmosphere-compositionmd"><a href="../design/composition/atmosphere-composition.html">composition/atmosphere-composition.md</a></h2>
+<p>42 items with commits, 2026-10-01 to 2026-10-30; 3 still open (GEN.91, GEN.444, GEN.471).</p>
+<h2 id="compositionatmosphere-sources-checkmd"><a href="../design/composition/atmosphere-sources-check.html">composition/atmosphere-sources-check.md</a></h2>
+<p>6 items with commits, 2026-10-16 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionatmosphere-statemd"><a href="../design/composition/atmosphere-state.html">composition/atmosphere-state.md</a></h2>
+<p>5 items with commits, 2026-10-24 to 2026-10-30; 0 still open.</p>
+<h2 id="compositionatmospheric-escape-modelmd"><a href="../design/composition/atmospheric-escape-model.html">composition/atmospheric-escape-model.md</a></h2>
+<p>9 items with commits, 2026-10-23 to 2026-10-30; 1 still open (GEN.804).</p>
+<h2 id="compositionbody-composition-partsa-starsmd"><a href="../design/composition/body-composition-parts/A-stars.html">composition/body-composition-parts/A-stars.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-28; 0 still open.</p>
+<h2 id="compositionbody-composition-partsc-volatile-and-giantsmd"><a href="../design/composition/body-composition-parts/C-volatile-and-giants.html">composition/body-composition-parts/C-volatile-and-giants.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionbody-composition-partsd-small-bodies-moonsmd"><a href="../design/composition/body-composition-parts/D-small-bodies-moons.html">composition/body-composition-parts/D-small-bodies-moons.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-30; 0 still open.</p>
+<h2 id="compositionbody-composition-partse-ground-radiogenic-shieldingmd"><a href="../design/composition/body-composition-parts/E-ground-radiogenic-shielding.html">composition/body-composition-parts/E-ground-radiogenic-shielding.md</a></h2>
+<p>1 items with commits, 2026-10-23 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionbody-composition-partsf-boss-note-checkmd"><a href="../design/composition/body-composition-parts/F-boss-note-check.html">composition/body-composition-parts/F-boss-note-check.md</a></h2>
+<p>2 items with commits, 2026-10-22 to 2026-10-25; 0 still open.</p>
+<h2 id="compositionbody-composition-partsg1-cometsmd"><a href="../design/composition/body-composition-parts/G1-comets.html">composition/body-composition-parts/G1-comets.md</a></h2>
+<p>2 items with commits, 2026-10-22 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionbody-composition-partsh-gen465-second-pass-tablesmd"><a href="../design/composition/body-composition-parts/H-gen465-second-pass-tables.html">composition/body-composition-parts/H-gen465-second-pass-tables.md</a></h2>
+<p>2 items with commits, 2026-10-23 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionbody-composition-researchmd"><a href="../design/composition/body-composition-research.html">composition/body-composition-research.md</a></h2>
+<p>60 items with commits, 2026-10-16 to 2026-10-30; 6 still open (GEN.444, GEN.471, GEN.473, GEN.474, GEN.475, GEN.477).</p>
+<h2 id="compositionbrown-dwarf-typesmd"><a href="../design/composition/brown-dwarf-types.html">composition/brown-dwarf-types.md</a></h2>
+<p>6 items with commits, 2026-10-17 to 2026-11-08; 0 still open.</p>
+<h2 id="compositionbulk-composition-sources-checkmd"><a href="../design/composition/bulk-composition-sources-check.html">composition/bulk-composition-sources-check.md</a></h2>
+<p>9 items with commits, 2026-10-17 to 2026-10-28; 0 still open.</p>
+<h2 id="compositionbulk-compositionmd"><a href="../design/composition/bulk-composition.html">composition/bulk-composition.md</a></h2>
+<p>42 items with commits, 2026-10-16 to 2026-11-08; 2 still open (GEN.473, GEN.510).</p>
+<h2 id="compositionclathrate-brine-wiringmd"><a href="../design/composition/clathrate-brine-wiring.html">composition/clathrate-brine-wiring.md</a></h2>
+<p>3 items with commits, 2026-10-17 to 2026-10-30; 1 still open (GEN.471).</p>
+<h2 id="compositionclimate-branchesmd"><a href="../design/composition/climate-branches.html">composition/climate-branches.md</a></h2>
+<p>8 items with commits, 2026-10-24 to 2026-11-07; 0 still open.</p>
+<h2 id="compositioncloud-albedomd"><a href="../design/composition/cloud-albedo.html">composition/cloud-albedo.md</a></h2>
+<p>12 items with commits, 2026-10-24 to 2026-11-07; 1 still open (GEN.1019).</p>
+<h2 id="compositioncomet-admissionmd"><a href="../design/composition/comet-admission.html">composition/comet-admission.md</a></h2>
+<p>3 items with commits, 2026-10-17 to 2026-10-24; 0 still open.</p>
+<h2 id="compositioncomet-composition-tuningmd"><a href="../design/composition/comet-composition-tuning.html">composition/comet-composition-tuning.md</a></h2>
+<p>3 items with commits, 2026-10-17 to 2026-10-30; 1 still open (GEN.595).</p>
+<h2 id="compositioncomet-species-modelmd"><a href="../design/composition/comet-species-model.html">composition/comet-species-model.md</a></h2>
+<p>3 items with commits, 2026-10-30 to 2026-11-08; 2 still open (GEN.1021, GEN.1022).</p>
+<h2 id="compositioncomposition-modelmd"><a href="../design/composition/composition-model.html">composition/composition-model.md</a></h2>
+<p>100 items with commits, 2026-10-01 to 2026-11-05; 8 still open (GEN.444, GEN.471, GEN.473, GEN.474, GEN.475, GEN.477, GEN.510, TEST.212).</p>
+<h2 id="compositioncomposition-spine-contractsmd"><a href="../design/composition/composition-spine-contracts.html">composition/composition-spine-contracts.md</a></h2>
+<p>35 items with commits, 2026-10-17 to 2026-10-31; 2 still open (GEN.553, GEN.565).</p>
+<h2 id="compositiondesign-flagsmd"><a href="../design/composition/design-flags.html">composition/design-flags.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-24; 0 still open.</p>
+<h2 id="compositiondisk-condensationmd"><a href="../design/composition/disk-condensation.html">composition/disk-condensation.md</a></h2>
+<p>3 items with commits, 2026-11-07 to 2026-11-08; 0 still open.</p>
+<h2 id="compositiondry-carbon-modelmd"><a href="../design/composition/dry-carbon-model.html">composition/dry-carbon-model.md</a></h2>
+<p>2 items with commits, 2026-10-24 to 2026-10-31; 0 still open.</p>
+<h2 id="compositionenvelope-escape-wiringmd"><a href="../design/composition/envelope-escape-wiring.html">composition/envelope-escape-wiring.md</a></h2>
+<p>6 items with commits, 2026-10-23 to 2026-10-29; 0 still open.</p>
+<h2 id="compositionequilibrium-chemistrymd"><a href="../design/composition/equilibrium-chemistry.html">composition/equilibrium-chemistry.md</a></h2>
+<p>5 items with commits, 2026-10-23 to 2026-11-08; 1 still open (GEN.524).</p>
+<h2 id="compositiongiant-heavy-element-lawmd"><a href="../design/composition/giant-heavy-element-law.html">composition/giant-heavy-element-law.md</a></h2>
+<p>2 items with commits, 2026-10-23 to 2026-10-28; 0 still open.</p>
+<h2 id="compositiongiant-interiorsmd"><a href="../design/composition/giant-interiors.html">composition/giant-interiors.md</a></h2>
+<p>21 items with commits, 2026-10-17 to 2026-10-31; 0 still open.</p>
+<h2 id="compositiongreenhouse-tablemd"><a href="../design/composition/greenhouse-table.html">composition/greenhouse-table.md</a></h2>
+<p>14 items with commits, 2026-10-24 to 2026-11-07; 1 still open (GEN.1019).</p>
+<h2 id="compositionhost-activity-tuningmd"><a href="../design/composition/host-activity-tuning.html">composition/host-activity-tuning.md</a></h2>
+<p>2 items with commits, 2026-10-23 to 2026-10-30; 1 still open (GEN.523).</p>
+<h2 id="compositionimpact-erosion-and-late-deliverymd"><a href="../design/composition/impact-erosion-and-late-delivery.html">composition/impact-erosion-and-late-delivery.md</a></h2>
+<p>3 items with commits, 2026-10-23 to 2026-11-04; 0 still open.</p>
+<h2 id="compositioninterior-heatmd"><a href="../design/composition/interior-heat.html">composition/interior-heat.md</a></h2>
+<p>11 items with commits, 2026-10-09 to 2026-11-08; 1 still open (GEN.1364).</p>
+<h2 id="compositioniron-branch-tuningmd"><a href="../design/composition/iron-branch-tuning.html">composition/iron-branch-tuning.md</a></h2>
+<p>2 items with commits, 2026-10-23 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionisotope-recordmd"><a href="../design/composition/isotope-record.html">composition/isotope-record.md</a></h2>
+<p>3 items with commits, 2026-11-08 to 2026-11-08; 3 still open (GEN.1377, GEN.1420, GEN.1421).</p>
+<h2 id="compositionjwst-selectionmd"><a href="../design/composition/jwst-selection.html">composition/jwst-selection.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionkepler-recoverymd"><a href="../design/composition/kepler-recovery.html">composition/kepler-recovery.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionline-opacitymd"><a href="../design/composition/line-opacity.html">composition/line-opacity.md</a></h2>
+<p>12 items with commits, 2026-10-18 to 2026-11-06; 1 still open (GEN.1019).</p>
+<h2 id="compositionmagma-ocean-redox-against-massmd"><a href="../design/composition/magma-ocean-redox-against-mass.html">composition/magma-ocean-redox-against-mass.md</a></h2>
+<p>2 items with commits, 2026-10-24 to 2026-10-24; 0 still open.</p>
+<h2 id="compositionmagma-ocean-redox-modelmd"><a href="../design/composition/magma-ocean-redox-model.html">composition/magma-ocean-redox-model.md</a></h2>
+<p>2 items with commits, 2026-10-24 to 2026-10-31; 0 still open.</p>
+<h2 id="compositionmantle-oxidesmd"><a href="../design/composition/mantle-oxides.html">composition/mantle-oxides.md</a></h2>
+<p>4 items with commits, 2026-11-07 to 2026-11-08; 0 still open.</p>
+<h2 id="compositionmass-radius-samplemd"><a href="../design/composition/mass-radius-sample.html">composition/mass-radius-sample.md</a></h2>
+<p>5 items with commits, 2026-10-17 to 2026-10-24; 1 still open (GEN.510).</p>
+<h2 id="compositionmixture-drawmd"><a href="../design/composition/mixture-draw.html">composition/mixture-draw.md</a></h2>
+<p>33 items with commits, 2026-10-17 to 2026-11-08; 1 still open (GEN.492).</p>
+<h2 id="compositionnebula-compositionmd"><a href="../design/composition/nebula-composition.html">composition/nebula-composition.md</a></h2>
+<p>8 items with commits, 2026-11-04 to 2026-11-08; 1 still open (GEN.1268).</p>
+<h2 id="compositionnightside-collapse-modelmd"><a href="../design/composition/nightside-collapse-model.html">composition/nightside-collapse-model.md</a></h2>
+<p>2 items with commits, 2026-10-30 to 2026-11-07; 0 still open.</p>
+<h2 id="compositionore-processesmd"><a href="../design/composition/ore-processes.html">composition/ore-processes.md</a></h2>
+<p>20 items with commits, 2026-10-17 to 2026-11-08; 6 still open (DB.106, GEN.473, GEN.477, GEN.798, GEN.1383, TEST.455).</p>
+<h2 id="compositionplanet-architecturemd"><a href="../design/composition/planet-architecture.html">composition/planet-architecture.md</a></h2>
+<p>15 items with commits, 2026-10-24 to 2026-11-07; 3 still open (GEN.510, GEN.1068, TEST.395).</p>
+<h2 id="compositionplanet-mass-lawmd"><a href="../design/composition/planet-mass-law.html">composition/planet-mass-law.md</a></h2>
+<p>12 items with commits, 2026-10-17 to 2026-11-08; 1 still open (GEN.510).</p>
+<h2 id="compositionplanetary-ringsmd"><a href="../design/composition/planetary-rings.html">composition/planetary-rings.md</a></h2>
+<p>11 items with commits, 2026-10-23 to 2026-11-07; 2 still open (GEN.1055, GEN.1058).</p>
+<h2 id="compositionradiation-modelmd"><a href="../design/composition/radiation-model.html">composition/radiation-model.md</a></h2>
+<p>22 items with commits, 2026-10-16 to 2026-10-31; 1 still open (GEN.444).</p>
+<h2 id="compositionradioisotope-tuningmd"><a href="../design/composition/radioisotope-tuning.html">composition/radioisotope-tuning.md</a></h2>
+<p>6 items with commits, 2026-10-17 to 2026-10-30; 0 still open.</p>
+<h2 id="compositionradius-valley-tuningmd"><a href="../design/composition/radius-valley-tuning.html">composition/radius-valley-tuning.md</a></h2>
+<p>8 items with commits, 2026-10-23 to 2026-11-08; 0 still open.</p>
+<h2 id="compositionretention-tuningmd"><a href="../design/composition/retention-tuning.html">composition/retention-tuning.md</a></h2>
+<p>1 items with commits, 2026-10-23 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionsky-colour-analysismd"><a href="../design/composition/sky-colour-analysis.html">composition/sky-colour-analysis.md</a></h2>
+<p>1 items with commits, 2026-10-09 to 2026-10-09; 0 still open.</p>
+<h2 id="compositionsmall-bodies-compositionmd"><a href="../design/composition/small-bodies-composition.html">composition/small-bodies-composition.md</a></h2>
+<p>28 items with commits, 2026-10-16 to 2026-11-08; 3 still open (GEN.473, GEN.475, GEN.477).</p>
+<h2 id="compositionsmall-body-size-lawsmd"><a href="../design/composition/small-body-size-laws.html">composition/small-body-size-laws.md</a></h2>
+<p>7 items with commits, 2026-10-17 to 2026-10-30; 1 still open (GEN.559).</p>
+<h2 id="compositionstellar-compositionmd"><a href="../design/composition/stellar-composition.html">composition/stellar-composition.md</a></h2>
+<p>29 items with commits, 2026-10-09 to 2026-11-08; 1 still open (GEN.249).</p>
+<h2 id="compositionsurface-compositionmd"><a href="../design/composition/surface-composition.html">composition/surface-composition.md</a></h2>
+<p>10 items with commits, 2026-10-17 to 2026-11-08; 2 still open (GEN.474, GEN.1384).</p>
+<h2 id="compositionsurface-liquid-compositionmd"><a href="../design/composition/surface-liquid-composition.html">composition/surface-liquid-composition.md</a></h2>
+<p>13 items with commits, 2026-10-10 to 2026-11-07; 0 still open.</p>
+<h2 id="compositionsurface-pressure-supply-lawmd"><a href="../design/composition/surface-pressure-supply-law.html">composition/surface-pressure-supply-law.md</a></h2>
+<p>17 items with commits, 2026-10-23 to 2026-11-07; 0 still open.</p>
+<h2 id="compositiontunable-gapsmd"><a href="../design/composition/tunable-gaps.html">composition/tunable-gaps.md</a></h2>
+<p>32 items with commits, 2026-10-17 to 2026-11-01; 3 still open (GEN.510, GEN.523, GEN.524).</p>
+<h2 id="compositionvolatile-delivery-formation-distancemd"><a href="../design/composition/volatile-delivery-formation-distance.html">composition/volatile-delivery-formation-distance.md</a></h2>
+<p>5 items with commits, 2026-10-23 to 2026-10-28; 1 still open (GEN.510).</p>
+<h2 id="compositionvolatile-inventory-against-planet-totalsmd"><a href="../design/composition/volatile-inventory-against-planet-totals.html">composition/volatile-inventory-against-planet-totals.md</a></h2>
+<p>8 items with commits, 2026-10-23 to 2026-11-04; 0 still open.</p>
+<h2 id="compositionwater-delivery-tuningmd"><a href="../design/composition/water-delivery-tuning.html">composition/water-delivery-tuning.md</a></h2>
+<p>2 items with commits, 2026-10-24 to 2026-10-28; 1 still open (GEN.510).</p>
+<h2 id="compositionwd-pollution-detectionmd"><a href="../design/composition/wd-pollution-detection.html">composition/wd-pollution-detection.md</a></h2>
+<p>1 items with commits, 2026-10-17 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionwd-redox-tuningmd"><a href="../design/composition/wd-redox-tuning.html">composition/wd-redox-tuning.md</a></h2>
+<p>1 items with commits, 2026-10-23 to 2026-10-23; 0 still open.</p>
+<h2 id="compositionweight-research-dispositionsmd"><a href="../design/composition/weight-research-dispositions.html">composition/weight-research-dispositions.md</a></h2>
+<p>26 items with commits, 2026-10-17 to 2026-11-01; 6 still open (GEN.483, GEN.492, GEN.510, GEN.523, GEN.524, GEN.595).</p>
+<h2 id="galaxydisk-star-formation-historymd"><a href="../design/galaxy/disk-star-formation-history.html">galaxy/disk-star-formation-history.md</a></h2>
+<p>16 items with commits, 2026-10-09 to 2026-11-04; 1 still open (GEN.301).</p>
+<h2 id="galaxyfill-order-curves-and-coremd"><a href="../design/galaxy/fill-order-curves-and-core.html">galaxy/fill-order-curves-and-core.md</a></h2>
+<p>15 items with commits, 2026-10-01 to 2026-10-16; 0 still open.</p>
+<h2 id="galaxygalactic-potentialmd"><a href="../design/galaxy/galactic-potential.html">galaxy/galactic-potential.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-10-31; 1 still open (GEN.115).</p>
+<h2 id="galaxygalaxy-coordinate-systemmd"><a href="../design/galaxy/galaxy-coordinate-system.html">galaxy/galaxy-coordinate-system.md</a></h2>
+<p>12 items with commits, 2026-10-01 to 2026-10-18; 0 still open.</p>
+<h2 id="galaxygalaxy-disk-densitymd"><a href="../design/galaxy/galaxy-disk-density.html">galaxy/galaxy-disk-density.md</a></h2>
+<p>21 items with commits, 2026-10-07 to 2026-10-30; 0 still open.</p>
+<h2 id="galaxygalaxy-laws-researchmd"><a href="../design/galaxy/galaxy-laws-research.html">galaxy/galaxy-laws-research.md</a></h2>
+<p>13 items with commits, 2026-10-15 to 2026-10-30; 2 still open (GEN.297, GEN.531).</p>
+<h2 id="galaxygalaxy-typesmd"><a href="../design/galaxy/galaxy-types.html">galaxy/galaxy-types.md</a></h2>
+<p>22 items with commits, 2026-10-14 to 2026-11-01; 5 still open (GEN.297, GEN.301, GEN.382, GEN.384, USR.11).</p>
+<h2 id="galaxygen533-bar-sourcesmd"><a href="../design/galaxy/gen533-bar-sources.html">galaxy/gen533-bar-sources.md</a></h2>
+<p>1 items with commits, 2026-10-17 to 2026-10-18; 0 still open.</p>
+<h2 id="galaxyglobular-clustersmd"><a href="../design/galaxy/globular-clusters.html">galaxy/globular-clusters.md</a></h2>
+<p>16 items with commits, 2026-10-01 to 2026-10-23; 1 still open (GEN.297).</p>
+<h2 id="galaxyintergalactic-and-halo-contentsmd"><a href="../design/galaxy/intergalactic-and-halo-contents.html">galaxy/intergalactic-and-halo-contents.md</a></h2>
+<p>84 items with commits, 2026-10-01 to 2026-11-07; 6 still open (GEN.129, GEN.297, GEN.537, MAP.248, TEST.226, UX.137).</p>
+<h2 id="galaxymultiple-galaxiesmd"><a href="../design/galaxy/multiple-galaxies.html">galaxy/multiple-galaxies.md</a></h2>
+<p>5 items with commits, 2026-10-01 to 2026-10-22; 0 still open.</p>
+<h2 id="galaxynamed-regionsmd"><a href="../design/galaxy/named-regions.html">galaxy/named-regions.md</a></h2>
+<p>11 items with commits, 2026-10-25 to 2026-11-07; 1 still open (API.36).</p>
+<h2 id="galaxypost-main-sequence-starsmd"><a href="../design/galaxy/post-main-sequence-stars.html">galaxy/post-main-sequence-stars.md</a></h2>
+<p>9 items with commits, 2026-10-15 to 2026-10-30; 0 still open.</p>
+<h2 id="galaxyrealistic-galactic-coremd"><a href="../design/galaxy/realistic-galactic-core.html">galaxy/realistic-galactic-core.md</a></h2>
+<p>41 items with commits, 2026-10-01 to 2026-11-05; 1 still open (GEN.295).</p>
+<h2 id="galaxyspherical-block-laddermd"><a href="../design/galaxy/spherical-block-ladder.html">galaxy/spherical-block-ladder.md</a></h2>
+<p>11 items with commits, 2026-10-09 to 2026-10-28; 0 still open.</p>
+<h2 id="galaxyspherical-region-queriesmd"><a href="../design/galaxy/spherical-region-queries.html">galaxy/spherical-region-queries.md</a></h2>
+<p>16 items with commits, 2026-10-01 to 2026-10-30; 0 still open.</p>
+<h2 id="galaxyspherical-sector-coordinatesmd"><a href="../design/galaxy/spherical-sector-coordinates.html">galaxy/spherical-sector-coordinates.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-10-16; 0 still open.</p>
+<h2 id="galaxyspherical-shell-sectorsmd"><a href="../design/galaxy/spherical-shell-sectors.html">galaxy/spherical-shell-sectors.md</a></h2>
+<p>5 items with commits, 2026-10-01 to 2026-10-16; 0 still open.</p>
+<h2 id="galaxystar-types-by-galactic-radiusmd"><a href="../design/galaxy/star-types-by-galactic-radius.html">galaxy/star-types-by-galactic-radius.md</a></h2>
+<p>6 items with commits, 2026-10-09 to 2026-10-31; 0 still open.</p>
+<h2 id="galaxystellar-mass-functionmd"><a href="../design/galaxy/stellar-mass-function.html">galaxy/stellar-mass-function.md</a></h2>
+<p>7 items with commits, 2026-10-29 to 2026-11-01; 1 still open (GEN.922).</p>
+<h2 id="galaxysuperbubble-densitymd"><a href="../design/galaxy/superbubble-density.html">galaxy/superbubble-density.md</a></h2>
+<p>16 items with commits, 2026-10-09 to 2026-10-29; 4 still open (GEN.301, GEN.391, MAP.235, TEST.206).</p>
+<h2 id="generationgeneration-benchmark-reportmd"><a href="../design/generation/generation-benchmark-report.html">generation/generation-benchmark-report.md</a></h2>
+<p>17 items with commits, 2026-10-09 to 2026-10-29; 0 still open.</p>
+<h2 id="generationgeneration-determinismmd"><a href="../design/generation/generation-determinism.html">generation/generation-determinism.md</a></h2>
+<p>31 items with commits, 2026-10-01 to 2026-10-29; 0 still open.</p>
+<h2 id="generationgeneration-performance-studymd"><a href="../design/generation/generation-performance-study.html">generation/generation-performance-study.md</a></h2>
+<p>21 items with commits, 2026-10-01 to 2026-10-17; 0 still open.</p>
+<h2 id="generationgeneration-performancemd"><a href="../design/generation/generation-performance.html">generation/generation-performance.md</a></h2>
+<p>31 items with commits, 2026-10-01 to 2026-10-24; 0 still open.</p>
+<h2 id="generationmass-backfillmd"><a href="../design/generation/mass-backfill.html">generation/mass-backfill.md</a></h2>
+<p>5 items with commits, 2026-10-01 to 2026-10-10; 0 still open.</p>
+<h2 id="generationplacement-by-populationmd"><a href="../design/generation/placement-by-population.html">generation/placement-by-population.md</a></h2>
+<p>26 items with commits, 2026-10-01 to 2026-10-31; 1 still open (GEN.554).</p>
+<h2 id="generationreproducible-galaxiesmd"><a href="../design/generation/reproducible-galaxies.html">generation/reproducible-galaxies.md</a></h2>
+<p>56 items with commits, 2026-10-01 to 2026-10-28; 2 still open (API.5, DB.17).</p>
+<h2 id="generationsampling-backfill-and-resumemd"><a href="../design/generation/sampling-backfill-and-resume.html">generation/sampling-backfill-and-resume.md</a></h2>
+<p>30 items with commits, 2026-10-01 to 2026-11-05; 1 still open (GEN.40).</p>
+<h2 id="generationscatter-queue-feasibilitymd"><a href="../design/generation/scatter-queue-feasibility.html">generation/scatter-queue-feasibility.md</a></h2>
+<p>11 items with commits, 2026-10-01 to 2026-10-29; 0 still open.</p>
+<h2 id="generationsystem-interactionsmd"><a href="../design/generation/system-interactions.html">generation/system-interactions.md</a></h2>
+<p>11 items with commits, 2026-10-24 to 2026-11-08; 10 still open (GEN.1441, GEN.1443, GEN.1445, GEN.1446, GEN.1454, GEN.1455, GEN.1458, GEN.1460, GEN.1461, GEN.1462).</p>
+<h2 id="generationvoid-fill-censusmd"><a href="../design/generation/void-fill-census.html">generation/void-fill-census.md</a></h2>
+<p>7 items with commits, 2026-10-07 to 2026-10-17; 1 still open (GEN.301).</p>
+<h2 id="habitabilityactivity-magnetism-radiation-hydrospheremd"><a href="../design/habitability/activity-magnetism-radiation-hydrosphere.html">habitability/activity-magnetism-radiation-hydrosphere.md</a></h2>
+<p>35 items with commits, 2026-10-08 to 2026-11-08; 2 still open (GEN.444, UX.286).</p>
+<h2 id="habitabilityadaptation-traitsmd"><a href="../design/habitability/adaptation-traits.html">habitability/adaptation-traits.md</a></h2>
+<p>13 items with commits, 2026-10-24 to 2026-11-07; 0 still open.</p>
+<h2 id="habitabilityatmospheres-retention-and-classesmd"><a href="../design/habitability/atmospheres-retention-and-classes.html">habitability/atmospheres-retention-and-classes.md</a></h2>
+<p>15 items with commits, 2026-10-01 to 2026-10-30; 1 still open (GEN.91).</p>
+<h2 id="habitabilitycondition-based-planet-classesmd"><a href="../design/habitability/condition-based-planet-classes.html">habitability/condition-based-planet-classes.md</a></h2>
+<p>25 items with commits, 2026-10-17 to 2026-11-07; 0 still open.</p>
+<h2 id="habitabilityday-and-nightmd"><a href="../design/habitability/day-and-night.html">habitability/day-and-night.md</a></h2>
+<p>1 items with commits, 2026-10-24 to 2026-10-31; 0 still open.</p>
+<h2 id="habitabilityhabitability-indexmd"><a href="../design/habitability/habitability-index.html">habitability/habitability-index.md</a></h2>
+<p>49 items with commits, 2026-10-09 to 2026-11-07; 2 still open (GEN.91, POP.13).</p>
+<h2 id="habitabilitylife-class-rulesmd"><a href="../design/habitability/life-class-rules.html">habitability/life-class-rules.md</a></h2>
+<p>9 items with commits, 2026-10-23 to 2026-11-07; 0 still open.</p>
+<h2 id="habitabilitylife-classesmd"><a href="../design/habitability/life-classes.html">habitability/life-classes.md</a></h2>
+<p>49 items with commits, 2026-10-01 to 2026-11-07; 0 still open.</p>
+<h2 id="habitabilitylife-timeline-and-oxygenmd"><a href="../design/habitability/life-timeline-and-oxygen.html">habitability/life-timeline-and-oxygen.md</a></h2>
+<p>5 items with commits, 2026-10-24 to 2026-11-07; 0 still open.</p>
+<h2 id="habitabilitypopulation-and-politicsmd"><a href="../design/habitability/population-and-politics.html">habitability/population-and-politics.md</a></h2>
+<p>12 items with commits, 2026-10-07 to 2026-10-28; 0 still open.</p>
+<h2 id="habitabilitysurvival-equipment-fieldsmd"><a href="../design/habitability/survival-equipment-fields.html">habitability/survival-equipment-fields.md</a></h2>
+<p>41 items with commits, 2026-10-10 to 2026-11-07; 2 still open (POP.13, UX.150).</p>
+<h2 id="interfaceadmin-control-suitemd"><a href="../design/interface/admin-control-suite.html">interface/admin-control-suite.md</a></h2>
+<p>54 items with commits, 2026-10-01 to 2026-11-07; 6 still open (ADM.13, GEN.301, TEST.168, TEST.169, UX.115, UX.137).</p>
+<h2 id="interfacebody-renderingmd"><a href="../design/interface/body-rendering.html">interface/body-rendering.md</a></h2>
+<p>33 items with commits, 2026-10-09 to 2026-11-05; 1 still open (MAP.285).</p>
+<h2 id="interfacedrilldown-region-sizesmd"><a href="../design/interface/drilldown-region-sizes.html">interface/drilldown-region-sizes.md</a></h2>
+<p>13 items with commits, 2026-10-09 to 2026-10-23; 0 still open.</p>
+<h2 id="interfaceedit-everythingmd"><a href="../design/interface/edit-everything.html">interface/edit-everything.md</a></h2>
+<p>16 items with commits, 2026-10-01 to 2026-10-29; 2 still open (API.8, DB.17).</p>
+<h2 id="interfacefly-through-view-distancemd"><a href="../design/interface/fly-through-view-distance.html">interface/fly-through-view-distance.md</a></h2>
+<p>46 items with commits, 2026-10-01 to 2026-11-06; 1 still open (MAP.141).</p>
+<h2 id="interfacegalaxy-drilldown-navigationmd"><a href="../design/interface/galaxy-drilldown-navigation.html">interface/galaxy-drilldown-navigation.md</a></h2>
+<p>68 items with commits, 2026-10-01 to 2026-10-28; 0 still open.</p>
+<h2 id="interfacegalaxy-map-performancemd"><a href="../design/interface/galaxy-map-performance.html">interface/galaxy-map-performance.md</a></h2>
+<p>1 items with commits, 2026-10-17 to 2026-10-28; 0 still open.</p>
+<h2 id="interfacegalaxy-map-wire-formatmd"><a href="../design/interface/galaxy-map-wire-format.html">interface/galaxy-map-wire-format.md</a></h2>
+<p>20 items with commits, 2026-10-02 to 2026-11-05; 0 still open.</p>
+<h2 id="interfacemap-ui-and-frontend-librariesmd"><a href="../design/interface/map-ui-and-frontend-libraries.html">interface/map-ui-and-frontend-libraries.md</a></h2>
+<p>40 items with commits, 2026-10-01 to 2026-11-06; 2 still open (MAP.141, MAP.235).</p>
+<h2 id="interfacenebula-map-visibilitymd"><a href="../design/interface/nebula-map-visibility.html">interface/nebula-map-visibility.md</a></h2>
+<p>38 items with commits, 2026-10-02 to 2026-11-06; 0 still open.</p>
+<h2 id="interfaceobject-pagesmd"><a href="../design/interface/object-pages.html">interface/object-pages.md</a></h2>
+<p>5 items with commits, 2026-10-23 to 2026-10-31; 0 still open.</p>
+<h2 id="interfacereferencesmd"><a href="../design/interface/references.html">interface/references.md</a></h2>
+<p>17 items with commits, 2026-10-24 to 2026-11-06; 0 still open.</p>
+<h2 id="interfaceroles-and-requestsmd"><a href="../design/interface/roles-and-requests.html">interface/roles-and-requests.md</a></h2>
+<p>7 items with commits, 2026-10-16 to 2026-11-07; 2 still open (USR.7, USR.23).</p>
+<h2 id="interfacesettings-seo-and-accountsmd"><a href="../design/interface/settings-seo-and-accounts.html">interface/settings-seo-and-accounts.md</a></h2>
+<p>22 items with commits, 2026-10-01 to 2026-10-31; 3 still open (API.6, USR.7, USR.8).</p>
+<h2 id="interfacesystem-sky-wire-formatmd"><a href="../design/interface/system-sky-wire-format.html">interface/system-sky-wire-format.md</a></h2>
+<p>16 items with commits, 2026-10-17 to 2026-11-06; 3 still open (PERF.134, VIEW.11, VIEW.13).</p>
+<h2 id="interfacetext-stylemd"><a href="../design/interface/text-style.html">interface/text-style.md</a></h2>
+<p>16 items with commits, 2026-10-24 to 2026-11-08; 1 still open (DOC.15).</p>
+<h2 id="interfacezoom-star-visibilitymd"><a href="../design/interface/zoom-star-visibility.html">interface/zoom-star-visibility.md</a></h2>
+<p>27 items with commits, 2026-10-01 to 2026-11-05; 1 still open (PERF.134).</p>
+<h2 id="operationsapi-design-standardsmd"><a href="../design/operations/api-design-standards.html">operations/api-design-standards.md</a></h2>
+<p>28 items with commits, 2026-10-01 to 2026-10-28; 5 still open (ADM.13, API.3, API.5, API.6, API.8).</p>
+<h2 id="operationsbackups-and-repairmd"><a href="../design/operations/backups-and-repair.html">operations/backups-and-repair.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-11-05; 2 still open (DB.17, OPS.55).</p>
+<h2 id="operationscache-warm-upmd"><a href="../design/operations/cache-warm-up.html">operations/cache-warm-up.md</a></h2>
+<p>31 items with commits, 2026-10-09 to 2026-11-07; 0 still open.</p>
+<h2 id="operationsdb-check-and-parity-repairmd"><a href="../design/operations/db-check-and-parity-repair.html">operations/db-check-and-parity-repair.md</a></h2>
+<p>31 items with commits, 2026-10-01 to 2026-11-04; 0 still open.</p>
+<h2 id="operationsjob-graph-and-memory-brokermd"><a href="../design/operations/job-graph-and-memory-broker.html">operations/job-graph-and-memory-broker.md</a></h2>
+<p>24 items with commits, 2026-10-01 to 2026-11-08; 8 still open (OPS.122, OPS.124, OPS.127, OPS.128, OPS.129, OPS.131, OPS.132, PERF.254).</p>
+<h2 id="operationslogging-standardmd"><a href="../design/operations/logging-standard.html">operations/logging-standard.md</a></h2>
+<p>20 items with commits, 2026-10-14 to 2026-11-07; 0 still open.</p>
+<h2 id="operationslogin-brute-force-protectionmd"><a href="../design/operations/login-brute-force-protection.html">operations/login-brute-force-protection.md</a></h2>
+<p>10 items with commits, 2026-10-01 to 2026-10-14; 0 still open.</p>
+<h2 id="operationsone-run-per-jobmd"><a href="../design/operations/one-run-per-job.html">operations/one-run-per-job.md</a></h2>
+<p>3 items with commits, 2026-10-23 to 2026-10-30; 0 still open.</p>
+<h2 id="operationsops-scheduling-and-rotationmd"><a href="../design/operations/ops-scheduling-and-rotation.html">operations/ops-scheduling-and-rotation.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-10-24; 0 still open.</p>
+<h2 id="operationsperformance-eta-queue-and-cachingmd"><a href="../design/operations/performance-eta-queue-and-caching.html">operations/performance-eta-queue-and-caching.md</a></h2>
+<p>39 items with commits, 2026-10-01 to 2026-11-06; 0 still open.</p>
+<h2 id="operationsredis-and-the-work-queuemd"><a href="../design/operations/redis-and-the-work-queue.html">operations/redis-and-the-work-queue.md</a></h2>
+<p>63 items with commits, 2026-10-01 to 2026-11-08; 1 still open (PERF.254).</p>
+<h2 id="operationsslow-page-answersmd"><a href="../design/operations/slow-page-answers.html">operations/slow-page-answers.md</a></h2>
+<p>9 items with commits, 2026-10-14 to 2026-10-29; 0 still open.</p>
+<h2 id="operationsslow-reads-and-timeoutsmd"><a href="../design/operations/slow-reads-and-timeouts.html">operations/slow-reads-and-timeouts.md</a></h2>
+<p>31 items with commits, 2026-10-01 to 2026-11-05; 0 still open.</p>
+<h2 id="operationstest-suite-rebuildmd"><a href="../design/operations/test-suite-rebuild.html">operations/test-suite-rebuild.md</a></h2>
+<p>34 items with commits, 2026-10-09 to 2026-11-04; 2 still open (GEN.198, TEST.135).</p>
+<h2 id="operationswork-queue-auditmd"><a href="../design/operations/work-queue-audit.html">operations/work-queue-audit.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-10-29; 0 still open.</p>
+<h2 id="orbitscollisions-and-mergersmd"><a href="../design/orbits/collisions-and-mergers.html">orbits/collisions-and-mergers.md</a></h2>
+<p>8 items with commits, 2026-10-02 to 2026-10-22; 2 still open (GEN.109, GEN.115).</p>
+<h2 id="orbitscourse-avoidancemd"><a href="../design/orbits/course-avoidance.html">orbits/course-avoidance.md</a></h2>
+<p>24 items with commits, 2026-10-01 to 2026-11-05; 1 still open (NAV.4).</p>
+<h2 id="orbitscourse-routingmd"><a href="../design/orbits/course-routing.html">orbits/course-routing.md</a></h2>
+<p>33 items with commits, 2026-10-01 to 2026-11-05; 0 still open.</p>
+<h2 id="orbitsgravity-mapmd"><a href="../design/orbits/gravity-map.html">orbits/gravity-map.md</a></h2>
+<p>22 items with commits, 2026-10-02 to 2026-11-07; 5 still open (GEN.115, GEN.198, GEN.199, MAP.167, MAP.170).</p>
+<h2 id="orbitsnavigation-framesmd"><a href="../design/orbits/navigation-frames.html">orbits/navigation-frames.md</a></h2>
+<p>2 items with commits, 2026-10-01 to 2026-10-14; 0 still open.</p>
+<h2 id="orbitsocean-tidesmd"><a href="../design/orbits/ocean-tides.html">orbits/ocean-tides.md</a></h2>
+<p>5 items with commits, 2026-10-30 to 2026-11-04; 0 still open.</p>
+<h2 id="orbitsorbital-solvers-and-integratorsmd"><a href="../design/orbits/orbital-solvers-and-integrators.html">orbits/orbital-solvers-and-integrators.md</a></h2>
+<p>15 items with commits, 2026-10-01 to 2026-10-22; 2 still open (GEN.109, GEN.115).</p>
+<h2 id="orbitsorbital-update-check-2026-10-18md"><a href="../design/orbits/orbital-update-check-2026-10-18.html">orbits/orbital-update-check-2026-10-18.md</a></h2>
+<p>15 items with commits, 2026-10-09 to 2026-10-31; 5 still open (GEN.109, GEN.115, GEN.198, GEN.565, GEN.584).</p>
+<h2 id="orbitsorbital-updatesmd"><a href="../design/orbits/orbital-updates.html">orbits/orbital-updates.md</a></h2>
+<p>21 items with commits, 2026-10-08 to 2026-10-31; 2 still open (GEN.109, GEN.115).</p>
+<h2 id="orbitssky-system-viewmd"><a href="../design/orbits/sky-system-view.html">orbits/sky-system-view.md</a></h2>
+<p>12 items with commits, 2026-10-24 to 2026-11-06; 3 still open (VIEW.11, VIEW.13, VIEW.40).</p>
+<h2 id="orbitssky-viewmd"><a href="../design/orbits/sky-view.html">orbits/sky-view.md</a></h2>
+<p>14 items with commits, 2026-10-01 to 2026-11-05; 1 still open (VIEW.11).</p>
+<h2 id="orbitstidal-chainmd"><a href="../design/orbits/tidal-chain.html">orbits/tidal-chain.md</a></h2>
+<p>18 items with commits, 2026-10-24 to 2026-10-31; 0 still open.</p>
+<h2 id="researchad1-methane-sources-check-2026-10-17md"><a href="../design/research/ad1-methane-sources-check-2026-10-17.html">research/ad1-methane-sources-check-2026-10-17.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-25; 1 still open (GEN.531).</p>
+<h2 id="researchboss-papers-2026-10-17md"><a href="../design/research/boss-papers-2026-10-17.html">research/boss-papers-2026-10-17.md</a></h2>
+<p>13 items with commits, 2026-10-17 to 2026-10-29; 2 still open (GEN.471, GEN.531).</p>
+<h2 id="researchburn-down-registermd"><a href="../design/research/burn-down-register.html">research/burn-down-register.md</a></h2>
+<p>44 items with commits, 2026-10-14 to 2026-11-08; 16 still open (GEN.475, GEN.483, GEN.684, GEN.804, GEN.945, GEN.1006, GEN.1016, GEN.1021, GEN.1055, GEN.1058, GEN.1103, GEN.1159, ...).</p>
+<h2 id="researchcaptured-moon-sourcesmd"><a href="../design/research/captured-moon-sources.html">research/captured-moon-sources.md</a></h2>
+<p>3 items with commits, 2026-10-24 to 2026-10-30; 0 still open.</p>
+<h2 id="researchdata-catalogmd"><a href="../design/research/data-catalog.html">research/data-catalog.md</a></h2>
+<p>75 items with commits, 2026-10-16 to 2026-11-07; 11 still open (GEN.297, GEN.473, GEN.477, GEN.510, GEN.531, GEN.594, GEN.612, GEN.618, GEN.922, GEN.949, TEST.395).</p>
+<h2 id="researchevidence-registermd"><a href="../design/research/evidence-register.html">research/evidence-register.md</a></h2>
+<p>2 items with commits, 2026-11-08 to 2026-11-08; 0 still open.</p>
+<h2 id="researchgap-filling-planmd"><a href="../design/research/gap-filling-plan.html">research/gap-filling-plan.md</a></h2>
+<p>489 items with commits, 2026-10-01 to 2026-11-08; 47 still open (GEN.115, GEN.297, GEN.301, GEN.471, GEN.473, GEN.474, GEN.475, GEN.477, GEN.492, GEN.510, GEN.524, GEN.531, ...).</p>
+<h2 id="researchgemini-batch1-checkmd"><a href="../design/research/gemini-batch1-check.html">research/gemini-batch1-check.md</a></h2>
+<p>8 items with commits, 2026-10-15 to 2026-10-23; 2 still open (GEN.297, GEN.531).</p>
+<h2 id="researchinterstellar-field-sourcesmd"><a href="../design/research/interstellar-field-sources.html">research/interstellar-field-sources.md</a></h2>
+<p>6 items with commits, 2026-10-30 to 2026-10-30; 0 still open.</p>
+<h2 id="researchoddity-ratesmd"><a href="../design/research/oddity-rates.html">research/oddity-rates.md</a></h2>
+<p>7 items with commits, 2026-10-24 to 2026-10-30; 0 still open.</p>
+<h2 id="researchopen-gaps-closest-laws-2026-10-17md"><a href="../design/research/open-gaps-closest-laws-2026-10-17.html">research/open-gaps-closest-laws-2026-10-17.md</a></h2>
+<p>23 items with commits, 2026-10-17 to 2026-10-31; 5 still open (GEN.471, GEN.473, GEN.474, GEN.475, GEN.531).</p>
+<h2 id="researchpapers-to-fetchmd"><a href="../design/research/papers-to-fetch.html">research/papers-to-fetch.md</a></h2>
+<p>16 items with commits, 2026-10-16 to 2026-10-29; 2 still open (GEN.471, GEN.531).</p>
+<h2 id="researchrogue-ejection-kickmd"><a href="../design/research/rogue-ejection-kick.html">research/rogue-ejection-kick.md</a></h2>
+<p>1 items with commits, 2026-10-30 to 2026-10-30; 0 still open.</p>
+<h2 id="researchrogue-planet-reviewmd"><a href="../design/research/rogue-planet-review.html">research/rogue-planet-review.md</a></h2>
+<p>17 items with commits, 2026-10-29 to 2026-11-08; 0 still open.</p>
+<h2 id="researchstand-in-valuesmd"><a href="../design/research/stand-in-values.html">research/stand-in-values.md</a></h2>
+<p>230 items with commits, 2026-10-01 to 2026-11-08; 33 still open (GEN.115, GEN.297, GEN.473, GEN.474, GEN.475, GEN.492, GEN.510, GEN.524, GEN.553, GEN.595, GEN.684, GEN.804, ...).</p>
+<h2 id="researchvizier-courteau-comeronmd"><a href="../design/research/vizier-courteau-comeron.html">research/vizier-courteau-comeron.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-18; 0 still open.</p>
+<h2 id="researchwiring-registermd"><a href="../design/research/wiring-register.html">research/wiring-register.md</a></h2>
+<p>68 items with commits, 2026-10-01 to 2026-11-08; 39 still open (DB.112, GEN.129, GEN.297, GEN.332, GEN.361, GEN.444, GEN.471, GEN.492, GEN.524, GEN.550, GEN.684, GEN.805, ...).</p>
+<h2 id="systemsalpha-and-age-metallicitymd"><a href="../design/systems/alpha-and-age-metallicity.html">systems/alpha-and-age-metallicity.md</a></h2>
+<p>6 items with commits, 2026-10-23 to 2026-11-07; 1 still open (GEN.944).</p>
+<h2 id="systemsanomaliesmd"><a href="../design/systems/anomalies.html">systems/anomalies.md</a></h2>
+<p>15 items with commits, 2026-10-02 to 2026-11-05; 1 still open (GEN.129).</p>
+<h2 id="systemsbelt-evolutionmd"><a href="../design/systems/belt-evolution.html">systems/belt-evolution.md</a></h2>
+<p>26 items with commits, 2026-10-21 to 2026-11-07; 8 still open (GEN.473, GEN.1006, GEN.1014, GEN.1068, GEN.1069, GEN.1070, GEN.1072, GEN.1073).</p>
+<h2 id="systemsbelt-originsmd"><a href="../design/systems/belt-origins.html">systems/belt-origins.md</a></h2>
+<p>17 items with commits, 2026-10-24 to 2026-11-07; 3 still open (GEN.1068, GEN.1069, GEN.1092).</p>
+<h2 id="systemsbelt-sourcesmd"><a href="../design/systems/belt-sources.html">systems/belt-sources.md</a></h2>
+<p>2 items with commits, 2026-10-30 to 2026-10-30; 0 still open.</p>
+<h2 id="systemsblack-hole-densitymd"><a href="../design/systems/black-hole-density.html">systems/black-hole-density.md</a></h2>
+<p>14 items with commits, 2026-10-09 to 2026-10-31; 3 still open (GEN.301, GEN.553, GEN.554).</p>
+<h2 id="systemsblack-hole-formation-sourcesmd"><a href="../design/systems/black-hole-formation-sources.html">systems/black-hole-formation-sources.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-24; 0 still open.</p>
+<h2 id="systemsbrown-dwarf-statemd"><a href="../design/systems/brown-dwarf-state.html">systems/brown-dwarf-state.md</a></h2>
+<p>9 items with commits, 2026-10-16 to 2026-11-01; 1 still open (GEN.553).</p>
+<h2 id="systemscaptured-asteroid-moonsmd"><a href="../design/systems/captured-asteroid-moons.html">systems/captured-asteroid-moons.md</a></h2>
+<p>9 items with commits, 2026-10-24 to 2026-11-07; 3 still open (GEN.473, GEN.1006, GEN.1014).</p>
+<h2 id="systemscarbon-starsmd"><a href="../design/systems/carbon-stars.html">systems/carbon-stars.md</a></h2>
+<p>2 items with commits, 2026-10-30 to 2026-10-31; 0 still open.</p>
+<h2 id="systemschemically-peculiarmd"><a href="../design/systems/chemically-peculiar.html">systems/chemically-peculiar.md</a></h2>
+<p>1 items with commits, 2026-10-31 to 2026-10-31; 0 still open.</p>
+<h2 id="systemscomet-orbital-realismmd"><a href="../design/systems/comet-orbital-realism.html">systems/comet-orbital-realism.md</a></h2>
+<p>1 items with commits, 2026-10-09 to 2026-10-09; 0 still open.</p>
+<h2 id="systemscompact-remnant-regionsmd"><a href="../design/systems/compact-remnant-regions.html">systems/compact-remnant-regions.md</a></h2>
+<p>4 items with commits, 2026-10-08 to 2026-10-21; 0 still open.</p>
+<h2 id="systemsexotic-environments-planets-and-compact-binariesmd"><a href="../design/systems/exotic-environments-planets-and-compact-binaries.html">systems/exotic-environments-planets-and-compact-binaries.md</a></h2>
+<p>13 items with commits, 2026-10-01 to 2026-10-31; 1 still open (GEN.129).</p>
+<h2 id="systemsexplosion-islandsmd"><a href="../design/systems/explosion-islands.html">systems/explosion-islands.md</a></h2>
+<p>1 items with commits, 2026-10-21 to 2026-10-22; 1 still open (GEN.554).</p>
+<h2 id="systemsinterstellar-asteroid-fieldsmd"><a href="../design/systems/interstellar-asteroid-fields.html">systems/interstellar-asteroid-fields.md</a></h2>
+<p>23 items with commits, 2026-10-01 to 2026-11-07; 4 still open (GEN.1006, GEN.1073, GEN.1103, GEN.1105).</p>
+<h2 id="systemsinterstellar-object-ratesmd"><a href="../design/systems/interstellar-object-rates.html">systems/interstellar-object-rates.md</a></h2>
+<p>15 items with commits, 2026-10-02 to 2026-10-30; 1 still open (GEN.554).</p>
+<h2 id="systemslagrange-trojansmd"><a href="../design/systems/lagrange-trojans.html">systems/lagrange-trojans.md</a></h2>
+<p>6 items with commits, 2026-10-30 to 2026-11-05; 4 still open (GEN.1006, GEN.1150, GEN.1151, MAP.354).</p>
+<h2 id="systemslater-phenomena-scatter-rulesmd"><a href="../design/systems/later-phenomena-scatter-rules.html">systems/later-phenomena-scatter-rules.md</a></h2>
+<p>30 items with commits, 2026-10-01 to 2026-10-22; 0 still open.</p>
+<h2 id="systemsmulti-star-systemsmd"><a href="../design/systems/multi-star-systems.html">systems/multi-star-systems.md</a></h2>
+<p>48 items with commits, 2026-10-01 to 2026-11-01; 5 still open (DOC.50, GEN.109, GEN.129, GEN.264, TEST.162).</p>
+<h2 id="systemsmultistar-and-compact-systemsmd"><a href="../design/systems/multistar-and-compact-systems.html">systems/multistar-and-compact-systems.md</a></h2>
+<p>42 items with commits, 2026-10-01 to 2026-11-01; 7 still open (GEN.109, GEN.129, GEN.315, GEN.316, GEN.332, GEN.640, GEN.1006).</p>
+<h2 id="systemsnatal-kickmd"><a href="../design/systems/natal-kick.html">systems/natal-kick.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-22; 1 still open (GEN.554).</p>
+<h2 id="systemsnebula-and-asteroid-field-classesmd"><a href="../design/systems/nebula-and-asteroid-field-classes.html">systems/nebula-and-asteroid-field-classes.md</a></h2>
+<p>20 items with commits, 2026-10-01 to 2026-11-05; 1 still open (GEN.358).</p>
+<h2 id="systemsnebula-density-vs-realitymd"><a href="../design/systems/nebula-density-vs-reality.html">systems/nebula-density-vs-reality.md</a></h2>
+<p>16 items with commits, 2026-10-02 to 2026-11-04; 1 still open (GEN.202).</p>
+<h2 id="systemsneutron-star-densitymd"><a href="../design/systems/neutron-star-density.html">systems/neutron-star-density.md</a></h2>
+<p>4 items with commits, 2026-10-08 to 2026-10-30; 1 still open (GEN.554).</p>
+<h2 id="systemsneutron-star-structuremd"><a href="../design/systems/neutron-star-structure.html">systems/neutron-star-structure.md</a></h2>
+<p>5 items with commits, 2026-10-17 to 2026-11-07; 0 still open.</p>
+<h2 id="systemsoverlap-free-systemsmd"><a href="../design/systems/overlap-free-systems.html">systems/overlap-free-systems.md</a></h2>
+<p>13 items with commits, 2026-10-15 to 2026-11-07; 2 still open (GEN.1006, TEST.162).</p>
+<h2 id="systemsphenomena-catalogue-and-fillmd"><a href="../design/systems/phenomena-catalogue-and-fill.html">systems/phenomena-catalogue-and-fill.md</a></h2>
+<p>43 items with commits, 2026-10-07 to 2026-10-29; 3 still open (GEN.129, GEN.249, GEN.264).</p>
+<h2 id="systemsphenomenon-scatter-mass-cutmd"><a href="../design/systems/phenomenon-scatter-mass-cut.html">systems/phenomenon-scatter-mass-cut.md</a></h2>
+<p>24 items with commits, 2026-10-08 to 2026-10-25; 2 still open (GEN.109, GEN.115).</p>
+<h2 id="systemsquadruple-stability-2p2md"><a href="../design/systems/quadruple-stability-2p2.html">systems/quadruple-stability-2p2.md</a></h2>
+<p>5 items with commits, 2026-10-30 to 2026-10-30; 2 still open (GEN.1006, GEN.1016).</p>
+<h2 id="systemsquadruple-stability-3p1md"><a href="../design/systems/quadruple-stability-3p1.html">systems/quadruple-stability-3p1.md</a></h2>
+<p>5 items with commits, 2026-10-30 to 2026-10-30; 2 still open (GEN.1006, GEN.1016).</p>
+<h2 id="systemsregion-object-storemd"><a href="../design/systems/region-object-store.html">systems/region-object-store.md</a></h2>
+<p>24 items with commits, 2026-10-09 to 2026-11-07; 4 still open (GEN.1006, GEN.1103, GEN.1128, GEN.1129).</p>
+<h2 id="systemsremnant-agemd"><a href="../design/systems/remnant-age.html">systems/remnant-age.md</a></h2>
+<p>3 items with commits, 2026-10-17 to 2026-10-23; 2 still open (GEN.553, GEN.554).</p>
+<h2 id="systemsrogue-planet-driftmd"><a href="../design/systems/rogue-planet-drift.html">systems/rogue-planet-drift.md</a></h2>
+<p>9 items with commits, 2026-10-24 to 2026-11-07; 0 still open.</p>
+<h2 id="systemsrogue-planet-surfacemd"><a href="../design/systems/rogue-planet-surface.html">systems/rogue-planet-surface.md</a></h2>
+<p>2 items with commits, 2026-10-10 to 2026-10-25; 0 still open.</p>
+<h2 id="systemsstellar-spectra-librarymd"><a href="../design/systems/stellar-spectra-library.html">systems/stellar-spectra-library.md</a></h2>
+<p>4 items with commits, 2026-10-23 to 2026-11-07; 0 still open.</p>
+<h2 id="systemsstellar-statemd"><a href="../design/systems/stellar-state.html">systems/stellar-state.md</a></h2>
+<p>2 items with commits, 2026-10-29 to 2026-10-30; 0 still open.</p>
+<h2 id="systemssystem-bodies-ledgermd"><a href="../design/systems/system-bodies-ledger.html">systems/system-bodies-ledger.md</a></h2>
+<p>3 items with commits, 2026-11-04 to 2026-11-07; 1 still open (GEN.1069).</p>
+<h2 id="systemsvariabilitymd"><a href="../design/systems/variability.html">systems/variability.md</a></h2>
+<p>3 items with commits, 2026-10-29 to 2026-10-31; 1 still open (GEN.944).</p>
+<h2 id="systemswanderer-moon-sourcesmd"><a href="../design/systems/wanderer-moon-sources.html">systems/wanderer-moon-sources.md</a></h2>
+<p>2 items with commits, 2026-10-17 to 2026-10-25; 0 still open.</p>
+<h2 id="systemsweird-worldsmd"><a href="../design/systems/weird-worlds.html">systems/weird-worlds.md</a></h2>
+<p>21 items with commits, 2026-10-24 to 2026-11-08; 4 still open (GEN.1006, GEN.1047, GEN.1055, GEN.1343).</p>
+<h2 id="systemswhite-dwarf-statemd"><a href="../design/systems/white-dwarf-state.html">systems/white-dwarf-state.md</a></h2>
+<p>5 items with commits, 2026-10-18 to 2026-11-07; 1 still open (GEN.553).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

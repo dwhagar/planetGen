@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redis and the work queue: how planetGen uses it, how it should be used, and what to change - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-14 20:01Z) asked for three things in order: look at how planetGen uses Redis now, research how Redis is best used and what the industry standards are, and recommend how to change the task process to use Redis fully and corr...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/redis-and-the-work-queue.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/redis-and-the-work-queue.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="redis-and-the-work-queue-how-planetgen-uses-it-how-it-should-be-used-and-what-to-change">Redis and the work queue: how planetGen uses it, how it should be used, and what to change</h1><p class="meta">docs/design/operations/redis-and-the-work-queue.md</p><details class="toc"><summary>On this page (35 headings)</summary><ul><li style="margin-left:0px"><a href="#findings-in-short">Findings in short</a></li><li style="margin-left:0px"><a href="#1-how-planetgen-uses-redis-today">1. How planetGen uses Redis today</a></li><li style="margin-left:14px"><a href="#11-every-use">1.1 Every use</a></li><li style="margin-left:14px"><a href="#12-how-a-generation-run-flows">1.2 How a generation run flows</a></li><li style="margin-left:14px"><a href="#13-where-each-piece-of-state-lives">1.3 Where each piece of state lives</a></li><li style="margin-left:14px"><a href="#14-findings">1.4 Findings</a></li><li style="margin-left:0px"><a href="#2-how-redis-and-rq-are-best-used">2. How Redis and RQ are best used</a></li><li style="margin-left:14px"><a href="#21-redis-as-a-queue">2.1 Redis as a queue</a></li><li style="margin-left:14px"><a href="#22-rq-features-that-matter-here">2.2 RQ features that matter here</a></li><li style="margin-left:14px"><a href="#23-server-configuration">2.3 Server configuration</a></li><li style="margin-left:14px"><a href="#24-client-configuration">2.4 Client configuration</a></li><li style="margin-left:14px"><a href="#25-job-design">2.5 Job design</a></li><li style="margin-left:14px"><a href="#26-locks">2.6 Locks</a></li><li style="margin-left:14px"><a href="#27-libraries-and-the-server-itself">2.7 Libraries and the server itself</a></li><li style="margin-left:0px"><a href="#3-measurements">3. Measurements</a></li><li style="margin-left:0px"><a href="#4-options-for-the-task-process">4. Options for the task process</a></li><li style="margin-left:0px"><a href="#5-recommendation-option-a">5. Recommendation: option A</a></li><li style="margin-left:14px"><a href="#51-shape">5.1 Shape</a></li><li style="margin-left:14px"><a href="#52-what-redis-holds">5.2 What Redis holds</a></li><li style="margin-left:14px"><a href="#53-what-mysql-keeps">5.3 What MySQL keeps</a></li><li style="margin-left:14px"><a href="#54-workers">5.4 Workers</a></li><li style="margin-left:14px"><a href="#55-cancel-pause-failure">5.5 Cancel, pause, failure</a></li><li style="margin-left:14px"><a href="#56-stale-runs">5.6 Stale runs</a></li><li style="margin-left:14px"><a href="#57-what-goes">5.7 What goes</a></li><li style="margin-left:14px"><a href="#58-the-redis-server">5.8 The Redis server</a></li><li style="margin-left:14px"><a href="#59-clients-and-security">5.9 Clients and security</a></li><li style="margin-left:14px"><a href="#510-the-other-uses-stay">5.10 The other uses stay</a></li><li style="margin-left:14px"><a href="#511-suggested-items">5.11 Suggested items</a></li><li style="margin-left:14px"><a href="#512-every-stage-a-command-one-wrapper-boss-2026-10-17-412-pm-edt">5.12 Every stage a command, one wrapper (Boss, 2026-10-17, 4:12 PM EDT)</a></li><li style="margin-left:14px"><a href="#513-a-job-can-require-another-job-perf247-boss-645-pm-est-on-2026-11-06">5.13 A job can require another job (PERF.247, Boss 6:45 PM EST on 2026-11-06)</a></li><li style="margin-left:14px"><a href="#514-one-memory-and-load-gate-for-every-job-perf254-boss-334-pm-est-on-2026-11-08">5.14 One memory and load gate for every job (PERF.254, Boss 3:34 PM EST on 2026-11-08)</a></li><li style="margin-left:14px"><a href="#515-a-fair-share-scheduler-on-the-gate-ops130-boss-344-pm-est-on-2026-11-08">5.15 A fair-share scheduler on the gate (OPS.130, Boss 3:44 PM EST on 2026-11-08)</a></li><li style="margin-left:0px"><a href="#6-decisions-for-boss">6. Decisions for Boss</a></li><li style="margin-left:0px"><a href="#7-what-could-not-be-measured">7. What could not be measured</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Boss (2026-10-14 20:01Z) asked for three things in order: look at how planetGen uses Redis now, research how Redis is best used and what the industry standards are, and recommend how to change the task process to use Redis fully and correctly. This note is that, in one piece. It is the research PERF.86 (redo the work queue, GitHub issue <a href="https://github.com/dwhagar/planetGen/issues/1229">#1229</a>) asked for before the rebuild starts, so section 4 gives Boss options first and section 5 recommends one.</p>
+<p>Informs: PERF.86 (and the items it folds in or drops: PERF.29, PERF.30, PERF.40, PERF.78, ADM.15), PERF.20, PERF.33, ADM.22, UX.3, DOC.20, DOC.44, OPS.21, OPS.46.</p>
+<p>Status (2026-10-29): research of 2026-10-14, then built as PERF.86 (PERF.95 to PERF.100 and the command steps PERF.106 to PERF.108, PERF.118, PERF.119, PERF.121 to PERF.128; the MySQL job tree and its tables are gone, PERF.98 and PERF.100). The findings and the options are as written then; the &quot;As built&quot; paragraphs in section 5.12 say what was built. Decisions marked &quot;Boss&quot; are his; everything else is a recommendation.</p>
+<p>It builds on <a href="work-queue-audit.html">work-queue-audit.md</a>, <a href="performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a> and <a href="../generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a> and does not repeat them. Where this note and those disagree, this note is newer and was checked against <code>main</code> at 8.0.1089.</p>
+<p>Evidence tags: [C] computed or measured for this note (scripts in <code>/mnt/project-files/research/redis-review/</code>); [S] read in the repository, in a downloaded package, or in documentation or a search result (URLs under Sources); [R] recalled and unconfirmed. Measurements come from one shared sandbox (Redis 7.0.15 from the distribution on loopback, Python 3.13, <code>rq</code> 2.12.0, <code>redis</code> 8.1.0, no persistence unless stated). They show orders of magnitude and ratios, not the production server's speed.</p>
+<h2 id="findings-in-short">Findings in short</h2>
+<ol>
+<li><strong>Redis does not hold the plan.</strong> A run's tasks wait in the supervising process's memory; only <code>2 * workers</code> of them are ever in Redis at once ([S] <code>queue/work.py</code> <code>submit</code>, <code>_dispatch</code>). So Redis gives no durability, no visibility of what is left, and no way for anyone but the supervisor to cancel or resume. That, not Redis, is where the &quot;task and subtask&quot; complexity comes from.</li>
+<li><strong>There are three stores of job state, not one.</strong> RQ in Redis, the MySQL job tree (<code>work_jobs</code>, <code>work_tasks</code>, <code>work_lease</code>, <code>work_job_args</code>) and files in the jobs directory (<code>active</code>, <code>job.json</code>, <code>state.json</code>, <code>progress.json</code>, <code>cancel</code>, <code>output.log</code>). Each has its own cancel path and its own &quot;one at a time&quot; lock (a file and a MySQL row).</li>
+<li><strong>Redis is used well in four small places</strong> (rate limits, login lockouts, the count cache, tile single-flight) and as a process launcher in the big one (the queue). Those four are fine; the big one is what to redo.</li>
+<li><strong>The server's own configuration is unmanaged.</strong> The installer apt-installs <code>redis-server</code> and starts it; nothing sets persistence, memory limit or a password. With the distribution defaults a crash loses everything written in the last minutes: 0 of 100 keys survived <code>kill -9</code> shortly after writing, against 100 of 100 with <code>appendonly yes</code> [C]. The login lockouts live only in Redis, so a crash also forgets who was locked out.</li>
+<li><strong>Two real defects in the current use</strong> (section 1.4): <code>api_jobs.ensure_workers</code> counts dead workers as alive forever after a worker is killed (measured), and workers that serve more than one queue lose RQ's reliable-dequeue path (source).</li>
+<li><strong>RQ 2.12.0 already has what a plain-Redis design needs</strong>: enqueue many jobs at once, stop and cancel, callbacks, results history, a killed-work-horse handler, <code>max_idle_time</code>, <code>unique</code> job ids. Section 2.2 lists them with versions. A hand-rolled queue on lists or streams would rebuild them.</li>
+<li><strong>Two traps in &quot;run the stages as queue items&quot;, both measured</strong> [C]. Burst workers exit when the queue is momentarily empty, which a stage barrier makes happen: 24.0 s against 10.6 s with idle-timeout workers (9.6 s ideal) in a 3-stage test, so workers must outlive barriers (<code>max_idle_time</code>, not <code>--burst</code>). And RQ's <code>depends_on</code> is quadratic when one job waits on many: a gate that depends on N units took 2.3 s for 200, 10.1 s for 500 and 45.4 s for 1,000 units, against a flat 7 ms per unit when the last unit of a stage advances the run itself with an atomic Redis set.</li>
+<li><strong>Recommendation:</strong> keep RQ and Redis, make Redis the only place a run lives (a run record that lists its stages, each stage's units as RQ jobs, the last unit of a stage queuing the next, progress as counters plus an event stream), drop the MySQL job tree, the jobs-directory files and the supervisor's queue, and configure the Redis server properly. Section 5.</li>
+</ol>
+<h2 id="1-how-planetgen-uses-redis-today">1. How planetGen uses Redis today</h2>
+<h3 id="11-every-use">1.1 Every use</h3>
+<p>Update 9:25 AM EDT 2026-10-24 (OPS.66, as the lane reported): <code>WorkQueue</code>, <code>RQExecutor</code>, <code>RQFuture</code> and <code>Channel</code> are gone. A run's units are RQ jobs queued by <code>queue/units.py</code> and <code>queue/wrapper.py</code> on the shared queues; the rows and steps below that name the removed classes describe the design before that change.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Use</th>
+<th>Code</th>
+<th>Redis data</th>
+<th>Lifetime</th>
+<th>If Redis is down</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per-run task queue</td>
+<td><code>queue/redisqueue.py</code> <code>RQExecutor</code>, <code>queue/work.py</code></td>
+<td>RQ queue <code>planetgen-run-&lt;16 hex&gt;</code>, one job per task, pickled arguments</td>
+<td>deleted when the run ends</td>
+<td><code>WorkQueue</code> logs it and runs every task in the supervising process, one at a time</td>
+</tr>
+<tr>
+<td>Run progress back to the supervisor</td>
+<td><code>redisqueue.Channel</code> (scatter layers, sector fills)</td>
+<td>list <code>&lt;queue&gt;:&lt;name&gt;</code>, pickled items, <code>RPUSH</code>/<code>BLPOP</code></td>
+<td>deleted at the end, 1 day expiry as a backstop</td>
+<td>the run fails with <code>OSError</code></td>
+</tr>
+<tr>
+<td>Generate page jobs</td>
+<td><code>web/jobs.py</code>, <code>web/job_runner.py</code>, <code>cli/worker.py</code></td>
+<td>one RQ queue per job, <code>planetgen-web-&lt;job id&gt;</code>, one job, one detached burst worker</td>
+<td><code>result_ttl=0</code>, <code>failure_ttl</code> 1 day</td>
+<td><code>start_job</code> raises <code>OSError</code>: no job starts</td>
+</tr>
+<tr>
+<td>API jobs (neighborhood, regenerate, wiki, estimates, one-off system)</td>
+<td><code>queue/api_jobs.py</code></td>
+<td>shared queue <code>planetgen-web</code>, jobs <code>planetgen-api-&lt;16 hex&gt;</code>, counter <code>planetgen-api-workers-starting</code> (15 s)</td>
+<td><code>result_ttl</code> and <code>failure_ttl</code> 1 day</td>
+<td><code>NoQueue</code>; <code>command_and_wait</code> runs the command in the request instead</td>
+</tr>
+<tr>
+<td>Request rate limits (Flask-Limiter)</td>
+<td><code>api/config.py</code></td>
+<td><code>planetgen:limiter:*</code> (the <code>limits</code> library's keys)</td>
+<td>per window</td>
+<td>falls back to counting in memory</td>
+</tr>
+<tr>
+<td>Login lockouts (SEC.30)</td>
+<td><code>admin/throttle.py</code> <code>RedisStore</code>, <code>api/loginguard.py</code>, <code>cli/lockouts.py</code>, <code>cli/lift_lockout.py</code></td>
+<td>one JSON string per address or username, <code>planetgen:limiter:login:&lt;scope&gt;:&lt;subject&gt;</code>, written under <code>WATCH</code>, 7 day expiry</td>
+<td>until idle</td>
+<td>counts in memory, warns once</td>
+</tr>
+<tr>
+<td>Stored counts (PERF.64)</td>
+<td><code>db/countcache.py</code></td>
+<td><code>planetgen:counts:&lt;db&gt;:&lt;digest&gt;</code> (6 h) and <code>...:lock</code> (10 min), <code>SET NX EX</code></td>
+<td>expiry</td>
+<td>in-process cache only</td>
+</tr>
+<tr>
+<td>Tile single-flight (PERF.38)</td>
+<td><code>web/lib/singleflight.py</code></td>
+<td><code>planetgen:build:&lt;name&gt;</code>, <code>SET NX EX 60</code></td>
+<td>expiry</td>
+<td>every caller builds</td>
+</tr>
+</tbody>
+</table></div>
+<p>All of it is in database 0 of one server at <code>redis.url</code> (default <code>redis://127.0.0.1:6379/0</code>, no password) [S]. The tests need it (<code>PLANETGEN_TEST_REDIS_URL</code>) and CI runs <code>redis:7</code> [S].</p>
+<p>Not built, although earlier notes describe them: the Redis progress record (<code>planetgen:progress:&lt;run&gt;</code>), the epoch counters and the in-flight dedupe keys of <a href="performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a> sections 2.5 and 4. <code>GENERATION_QUEUE</code> in <code>redisqueue.py</code> is declared and listed as a default queue but nothing is ever queued on it [S, grep]. <code>cli/worker.py</code>'s docstring names <code>redisqueue.ensure_workers</code>, which does not exist.</p>
+<h3 id="12-how-a-generation-run-flows">1.2 How a generation run flows</h3>
+<ol>
+<li><strong>Admin presses Generate.</strong> <code>web/jobs.py</code> <code>start_job</code> makes a directory under the jobs directory, takes the job lock (the hash <code>planetgen:job:active</code> in Redis, PERF.154), writes <code>job.json</code>, queues <code>web.job_runner.run(&lt;dir&gt;)</code> on a queue of its own and starts one detached burst worker for it.</li>
+<li><strong>The job runner</strong> (inside that RQ job) runs each step as a subprocess, <code>planetgen plan</code> or <code>planetgen galaxy ...</code>, writes <code>state.json</code>, appends to <code>output.log</code>, watches for a <code>cancel</code> file, and hangs a &quot;web-job&quot; node and one &quot;step&quot; node in the MySQL job tree.</li>
+<li><strong>The step's <code>planetgen</code> process</strong> is the supervisor. Its <code>WorkQueue</code> opens a MySQL node, takes the <code>work_lease</code> row (one run's pool on the machine at a time; heartbeat every 5 s, stale after 30 s), starts a per-run RQ queue and up to <code>worker_count()</code> burst workers, and then feeds tasks to them: at most <code>2 * workers</code> are in Redis at once, the rest wait in a Python list ([S] <code>submit</code>, lines 1498 to 1535).</li>
+<li><strong>Each finished task</strong> comes back to the supervisor by polling RQ every 50 ms (<code>fetch_many</code>), is recorded in <code>work_tasks</code>, and runs its <code>on_done</code> callback in the supervisor, which updates the progress bars and ETA. The scatter and sector fills also push per-layer progress through the Redis <code>Channel</code>.</li>
+<li><strong>The Queue page</strong> reads the MySQL tree; the Generate page reads <code>state.json</code> and <code>progress.json</code>; the API's <code>/api/jobs/&lt;id&gt;</code> reads RQ.</li>
+</ol>
+<p>So Redis carries tasks one hop to a worker and results one hop back. Everything else about the run (what is left, who is paused, what to show) is the supervisor's memory, MySQL rows and files.</p>
+<h3 id="13-where-each-piece-of-state-lives">1.3 Where each piece of state lives</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Redis / RQ</th>
+<th>MySQL</th>
+<th>Files</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What is left to do</td>
+<td>at most <code>2 * workers</code> tasks</td>
+<td>task counts (<code>set_total</code>)</td>
+<td></td>
+</tr>
+<tr>
+<td>What is running, who runs it</td>
+<td>RQ started registry, worker registry</td>
+<td><code>work_tasks.state</code>, <code>work_lease.holder</code></td>
+<td><code>runner.pid</code>, <code>active</code></td>
+</tr>
+<tr>
+<td>Pause, cancel</td>
+<td>RQ <code>cancel()</code> on shutdown only</td>
+<td><code>work_jobs</code> control rows, <code>work_lease.paused</code></td>
+<td><code>cancel</code> file</td>
+</tr>
+<tr>
+<td>Progress, ETA</td>
+<td><code>Channel</code> lists (live)</td>
+<td>node totals, ETA roll-up</td>
+<td><code>progress.json</code></td>
+</tr>
+<tr>
+<td>Timings, stats</td>
+<td></td>
+<td><code>work_tasks</code>, <code>generation_stats</code>, <code>generation_stage_runs</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Log</td>
+<td></td>
+<td></td>
+<td><code>output.log</code></td>
+</tr>
+<tr>
+<td>Final result</td>
+<td>RQ result (1 day)</td>
+<td>node state</td>
+<td><code>state.json</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="14-findings">1.4 Findings</h3>
+<p><strong>F1. The queue cannot survive its supervisor.</strong> The plan is in memory. A killed <code>planetgen</code> process leaves RQ jobs for the workers to finish and nobody to collect them, a stale lease for 30 s, and a half-run with no record of what remained. PERF.29 and PERF.30 (record what a sector still needs, resume) exist to rebuild by other means what a queue that held the whole plan would have. Boss has since decided there is no automatic resume (PERF.86), which removes the need but not the problem: after a crash the admin cannot see what was left.</p>
+<p><strong>F<sub>2</sub>. Three stores, three cancels, two locks.</strong> Cancel is a file for web jobs, a MySQL control row for work queues, and <code>job.cancel()</code> at shutdown for RQ. One-at-a-time is a file (<code>active</code>) for web jobs and a MySQL row (<code>work_lease</code>) for pools. Each store needs its own staleness rule (runner pid and a 300 s grace, 30 s heartbeat, 15 s starting grace).</p>
+<p><strong>F3. Bookkeeping costs more than the work it records.</strong> The <code>work.py</code> header counts about 60 database statements per task [S, comment at <code>CHUNKS_PER_WORKER</code>]; that is why <code>submit_each</code> sizes chunks by time (PERF.79, PERF.83). The Redis side of a task is cheap: an RQ job costs about 1.8 KB queued and about 7.2 KB with its result kept an hour, so all 2,041 layers of a default-scale scatter are 3.7 MB queued and 15 MB finished if results are kept an hour [C]; the memory follows the number of jobs, so a design must keep the number of jobs bounded (section 5.1). Queuing 2,041 jobs takes 0.90 s one at a time and 0.36 s with <code>enqueue_many</code> [C].</p>
+<p><strong>F4. Dead workers are counted as alive (defect).</strong> <code>api_jobs.ensure_workers</code> starts <code>min(waiting, worker_count()) - Worker.count(queue) - starting</code> workers. <code>Worker.count</code> is the size of a Redis set that only a worker's start-up maintenance cleans [S, <code>rq/worker_registration.py</code>, <code>rq/worker/base.py</code>]. Measured: after <code>kill -9</code> of a worker the count stayed at 1 for the whole test, and still stayed at 1 after the worker's own key had expired (worker TTL 20 s, key gone at 80 s) [C]. When the server's OOM killer takes an API worker (it has taken Apache before, see <a href="../../deployment/server-checklist.html">server-checklist.md</a>), queued API jobs wait on a phantom, and with a cap of one nothing replaces it. Not reproduced end to end through planetGen's own code; the cause and the measurement are enough to file it.</p>
+<p><strong>F5. A killed job is noticed late.</strong> A job running under a worker that was <code>kill -9</code>'d stayed <code>started</code> for about 90 s (heartbeat TTL = monitoring interval 30 s + 60 s), then went back to the queue and ran again because of <code>Retry(max=1)</code>; that cleanup only happened because the test polled the registry [C]. <code>RQExecutor</code> covers this inside a run by watching its own child processes. A design that loses the supervisor needs the same covering elsewhere (a worker-killed handler, section 5.6).</p>
+<p><strong>F6. Multi-queue workers skip RQ's reliable dequeue.</strong> <code>Queue.dequeue_any</code> uses <code>BLMOVE</code> into an intermediate queue only when a worker serves exactly one queue; with several it uses <code>BLPOP</code>, and a worker that dies between the pop and &quot;started&quot; loses the job id [S, <code>rq/queue.py</code>, version 2.12.0]. Today's task and web-job workers serve one queue each (good). <code>cli/worker.py</code> with no arguments, and the <code>[interactive, bulk]</code> worker of PERF.40, would serve two.</p>
+<p><strong>F7. The server is configured by default.</strong> <code>update.sh</code> installs and starts <code>redis-server</code> and only checks that <code>PING</code> answers (<code>scripts/deploy-common.sh</code> <code>ensure_redis</code>). The distribution's <code>redis.conf</code> has <code>appendonly no</code> and, with the save lines commented out, Redis's built-in save points <code>3600 1 300 100 60 10000</code> [C, <code>CONFIG GET save</code>]. There is no memory limit (so no eviction, which is right for a queue, but also no guard), no password (it binds loopback and is in protected mode, which is adequate for a single-user host), and nothing documents any of this: DOC.44 notes that no install guide lists Redis.</p>
+<p><strong>F8. Pickle on an unauthenticated store.</strong> (Closed by SEC.39 on 2026-11-07: every queue carries JSON, <code>redisqueue.serializer_for</code> returns the JSON serializer for any name, and <code>examples/redis/planetgen-acl.conf</code> ships a Redis user with a password that update.sh asks for. A job still names the function a worker calls, so the password is what keeps another local user from queuing one.) RQ jobs and the <code>Channel</code> used <code>pickle</code>. RQ's own documentation warns that its pickle default is not secure and that RQ should only run against a Redis you trust [S]. On loopback with one user it is acceptable; on a shared host any local user can queue code that a worker runs.</p>
+<p><strong>F9. Client settings are ad hoc.</strong> <code>redisqueue.connect()</code> builds a new client (a new pool) on every call and sets no timeouts, so a hung Redis hangs the calling web thread; <code>countcache</code> and <code>singleflight</code> each build their own client with 0.5 s timeouts; <code>api_jobs.wait</code> polls <code>status</code> every 50 ms with a fresh fetch and, for a queued job, a worker check ([S]). RQ itself raises a worker connection's <code>socket_timeout</code> above its blocking time when needed [S, <code>rq/worker/base.py</code> lines 430 to 440], so timeouts belong on the web-side clients, not the workers'.</p>
+<p><strong>F10. Locks are efficiency locks, which is fine.</strong> The single-flight and count claims are <code>SET NX EX</code> on one server, and a lost claim only means a duplicate build. That is the use Kleppmann's analysis allows a single-instance Redis lock for; the run-exclusivity lease is the only one that approaches correctness, and it guards CPU share, not data (section 2.6).</p>
+<h2 id="2-how-redis-and-rq-are-best-used">2. How Redis and RQ are best used</h2>
+<h3 id="21-redis-as-a-queue">2.1 Redis as a queue</h3>
+<ul>
+<li><strong>Lists</strong> are the basic queue: <code>LPUSH</code>/<code>BRPOP</code>. The Redis documentation says lists suit &quot;queue management for background worker systems&quot; and points to <code>LMOVE</code>/<code>BLMOVE</code> for &quot;safer queues&quot;: the job moves atomically to a processing list, so a crashed consumer does not lose it [S].</li>
+<li><strong>Streams with consumer groups</strong> add explicit acknowledgement, a list of pending messages, claiming of messages from dead consumers (<code>XAUTOCLAIM</code>), and history [S]. They are the right primitive for an event log that several readers follow, and an alternative for the queue itself.</li>
+<li><strong>RQ</strong> is a job library over lists: a queue is a list of job ids, each job a hash, with registries (sorted sets) for started, finished, failed, deferred, scheduled and canceled jobs, worker heartbeats, and an intermediate queue for reliable dequeue [S]. It is at-least-once: a job can run twice after a worker death, so jobs must be safe to repeat.</li>
+<li><strong>Delivery guarantees are a property of persistence too.</strong> A queue in an unpersisted Redis loses queued work on a crash (2.3).</li>
+</ul>
+<h3 id="22-rq-features-that-matter-here">2.2 RQ features that matter here</h3>
+<p>Versions from the RQ documentation on GitHub (master) and checked against the installed 2.12.0 source where noted. PyPI's latest is 2.12.0 (2026-08-30), which is what <code>requirements.lock</code> pins [C, PyPI JSON].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Need</th>
+<th>RQ feature</th>
+<th>Since</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Queue many jobs at once</td>
+<td><code>Queue.enqueue_many</code> with <code>prepare_data</code> (one pipeline)</td>
+<td>1.9</td>
+<td>2,041 jobs in 0.36 s [C]; <code>prepare_data</code> takes <code>timeout=</code>, not <code>job_timeout=</code></td>
+</tr>
+<tr>
+<td>Run B after A</td>
+<td><code>depends_on</code> (one job, a list, or <code>Dependency(allow_failure=...)</code>)</td>
+<td>1.x</td>
+<td>dependents stay <code>deferred</code> until all succeed; a failed dependency leaves them deferred forever; <strong>cost grows with the square of the dependency count</strong> (200 deps: 2.3 s total, 500: 10.1 s, 1,000: 45.4 s [C]), fine for a chain, wrong for &quot;after all N units&quot;</td>
+</tr>
+<tr>
+<td>Stop a running job now</td>
+<td><code>send_stop_job_command(connection, job_id)</code></td>
+<td>1.7</td>
+<td>kills the work horse in under a second; status <code>stopped</code>; not retried</td>
+</tr>
+<tr>
+<td>Remove a waiting job</td>
+<td><code>job.cancel()</code></td>
+<td>1.10</td>
+<td>does not stop a running job (measured earlier, <a href="performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a> 3.3)</td>
+</tr>
+<tr>
+<td>Run code when a job ends</td>
+<td><code>on_success</code>, <code>on_failure</code>, <code>on_stopped</code>, <code>Callback(timeout=)</code></td>
+<td>1.9, 1.14</td>
+<td>60 s limit; do not run if the horse is hard-killed</td>
+</tr>
+<tr>
+<td>Handle a killed horse</td>
+<td><code>work_horse_killed_handler=</code></td>
+<td>1.13</td>
+<td>the hook for OOM kills</td>
+</tr>
+<tr>
+<td>Retry</td>
+<td><code>Retry(max=, interval=)</code></td>
+<td>1.5</td>
+<td>an <code>interval</code> needs a worker running the scheduler; interval-less retries are immediate and work on any worker</td>
+</tr>
+<tr>
+<td>Do not queue twice</td>
+<td><code>unique=True</code> with an explicit <code>job_id</code></td>
+<td>2.8</td>
+<td>raises <code>DuplicateJobError</code>; not allowed with <code>depends_on</code></td>
+</tr>
+<tr>
+<td>Results history</td>
+<td><code>job.latest_result(timeout=)</code>, <code>job.results()</code></td>
+<td>1.12, 1.16</td>
+<td>the timeout form blocks instead of polling</td>
+</tr>
+<tr>
+<td>Track a set of jobs</td>
+<td><code>Group</code></td>
+<td>2.0</td>
+<td>removed when all its jobs expire</td>
+</tr>
+<tr>
+<td>Workers that wait for work</td>
+<td><code>max_idle_time</code>, <code>--max-idle-time</code></td>
+<td>1.14</td>
+<td>exits after N seconds with nothing to do</td>
+</tr>
+<tr>
+<td>Several workers in one command</td>
+<td><code>rq worker-pool -n N</code></td>
+<td>1.14</td>
+<td>also <code>--burst</code></td>
+</tr>
+<tr>
+<td>Completion pings</td>
+<td><code>Webhook</code></td>
+<td>2.10</td>
+<td>not needed here</td>
+</tr>
+<tr>
+<td>Cap how many jobs of one kind run at once</td>
+<td><code>RateLimit(key, concurrency)</code></td>
+<td>documented as 3.0</td>
+<td><strong>not released</strong>: absent from the 2.12.0 source [C, grep]; do not plan on it</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="23-server-configuration">2.3 Server configuration</h3>
+<ul>
+<li><strong>Persistence.</strong> The Redis documentation: RDB snapshots can lose &quot;the latest minutes of data&quot;; AOF with <code>appendfsync everysec</code> loses at most about a second; &quot;use both persistence methods&quot; for safety comparable to a database; <code>always</code> is &quot;very slow&quot; [S]. Measured on this note's sandbox: defaults lost all 100 keys on <code>kill -9</code>, <code>appendonly yes</code> + <code>everysec</code> kept all 100 [C]. For planetGen the queue and run records want AOF; the lockouts want it too.</li>
+<li><strong>Memory and eviction.</strong> <code>maxmemory</code> unset means no limit; <code>noeviction</code> makes writes fail with an error at the limit instead of silently dropping keys; <code>allkeys-lru</code> and the other policies evict any key, including queue entries and lockouts. The documentation says a single instance used for both a cache and persistent keys should be split into two instances &quot;if possible&quot;, and the <code>volatile-*</code> policies are the compromise [S]. Celery's Redis guide tells users to set <code>noeviction</code> or <code>allkeys-lru</code> to avoid its own broker keys vanishing [S].</li>
+<li><strong>Security.</strong> &quot;Designed to be accessed by trusted clients inside trusted environments&quot;; bind to loopback or firewall the port; protected mode is the default safety net; ACLs (Redis 6+) are the recommended authentication, <code>requirepass</code> the legacy one; neither encrypts, so use TLS across a network [S]. Loopback only is a sound posture for planetGen's single-host install.</li>
+<li><strong>Monitoring.</strong> <code>INFO</code> gives <code>used_memory</code>, <code>evicted_keys</code>, <code>rejected_connections</code>, <code>rdb_last_bgsave_status</code>, <code>aof_last_write_status</code>, keyspace hit and miss counts [S]. RQ adds <code>rq info</code> and a worker registry.</li>
+</ul>
+<h3 id="24-client-configuration">2.4 Client configuration</h3>
+<p>The redis-py production guide: set <code>socket_timeout</code> and <code>socket_connect_timeout</code>, set <code>health_check_interval</code> for connections that sit idle, retry <code>ConnectionError</code> and <code>TimeoutError</code> with backoff, and size one pool per process (<code>BlockingConnectionPool</code> waits instead of raising when the pool is full) [S, search result]. The numbers in community write-ups (5 s timeouts, 30 s health check, 50 connections) are reasonable starting points but are third-party advice.</p>
+<h3 id="25-job-design">2.5 Job design</h3>
+<p>Sidekiq's best-practices page, the best-known write-up of this for a Redis queue: pass small arguments (ids, not objects), because they are serialised into Redis; make jobs idempotent and transactional, because retries re-run half-finished jobs [S, search result]. planetGen already has the hard part: <code>task_seed(run_seed, key)</code> makes a task's output independent of worker count and order, and a sector save or backfill chunk is one transaction, so a repeated or killed task leaves nothing half-written (<a href="../generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a> 7.1). The change is to carry those arguments as plain JSON (numbers, strings, lists), which also removes pickle (F8) to the extent that matters.</p>
+<h3 id="26-locks">2.6 Locks</h3>
+<p>Kleppmann's analysis of Redlock: a lock used for efficiency can live on a single Redis; a lock used for correctness needs fencing tokens or a store that enforces order, because a paused client can outlive its lease [S, search result]. Applied: single-flight and count claims are efficiency locks (a duplicate build is harmless); &quot;one run at a time&quot; is a resource guard, so a TTL lease on one Redis is enough; anything that must be exactly-once is guarded by a MySQL transaction or unique key, as the sector save is.</p>
+<h3 id="27-libraries-and-the-server-itself">2.7 Libraries and the server itself</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RQ</strong> (kept)</td>
+<td>Minimal Python/Redis job library; fork per job; already pinned and used; has every feature above except concurrency limits. Slower than Celery per job (one benchmark: 20,000 small jobs, 10 workers, 51 s against Celery's 12 s [S, search result]), which does not matter at thousands of jobs per hour.</td>
+</tr>
+<tr>
+<td>Celery</td>
+<td>Full workflow engine (canvas, ETA, routing); heavy; on Redis it redelivers any task not acknowledged within the visibility timeout (default 1 hour), and tasks longer than that run again and again [S]. Wrong tool for hour-long stages.</td>
+</tr>
+<tr>
+<td>Dramatiq, Huey, arq</td>
+<td>Lighter alternatives with retries, middleware and (Dramatiq) rate limiting; none gives something RQ cannot, and moving costs a rewrite of the worker, pre-warm and test harness. No reason to switch.</td>
+</tr>
+<tr>
+<td>Hand-written lists or streams</td>
+<td>Exactly the registry, heartbeat and retry code RQ already has, to be owned and tested.</td>
+</tr>
+<tr>
+<td>MySQL <code>SELECT ... FOR UPDATE SKIP LOCKED</code> queue</td>
+<td>Supported in MySQL 8 for &quot;queue-like tables&quot; [S] (MariaDB from 10.6 [R]); durable and queryable, but each claim is a transaction on the database that is already the bottleneck, and Boss's direction is Redis.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Redis 8 is tri-licensed with AGPLv3 added (2025-05) [S, search result]; Valkey is the BSD fork of Redis 7.2.4, and RQ supports Redis 5+ and Valkey 7.2+ [S]. planetGen uses only core commands, so either should work; this was not tested. The <code>redis-server</code> package version differs by distribution (7.0.15 here) [C]; <code>BLMOVE</code> needs 6.2 or later [S].</p>
+<h2 id="3-measurements">3. Measurements</h2>
+<p>All [C], scripts in <code>/mnt/project-files/research/redis-review/</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Queue 2,041 jobs (a default-scale scatter), one by one / <code>enqueue_many</code></td>
+<td>0.90 s / 0.36 s</td>
+</tr>
+<tr>
+<td>Redis memory per job, queued / finished with <code>result_ttl</code> 3600</td>
+<td>1,831 B / 7,229 B</td>
+</tr>
+<tr>
+<td>RQ fork worker, no-op job</td>
+<td>14.2 ms per job (70 per second); <code>result_ttl=0</code> 15.4 ms</td>
+</tr>
+<tr>
+<td><code>SimpleWorker</code> (no fork, no heartbeat, no isolation), no-op job</td>
+<td>3.2 ms per job (309 per second)</td>
+</tr>
+<tr>
+<td>A chain of 200 jobs, each depending on the last</td>
+<td>16.2 ms per link, all finished</td>
+</tr>
+<tr>
+<td>75 jobs (3 stages of 24 units 400 ms each, a gate job per stage that depends on its units, the next stage depending on the gate) queued up front</td>
+<td>0.06 to 0.09 s; 51 deferred</td>
+</tr>
+<tr>
+<td>Same run, 3 burst workers</td>
+<td>23.96 s: after the first barrier all later units ran on one worker (8, 8, 8 units per worker in the first stage, then 24 and 24 on one)</td>
+</tr>
+<tr>
+<td>Same run, 3 workers with <code>max_idle_time=3</code></td>
+<td>10.59 s (ideal 9.60 s, serial 28.8 s)</td>
+</tr>
+<tr>
+<td>Cancel that run during the second stage: cancel waiting and deferred jobs, <code>send_stop_job_command</code> the running ones</td>
+<td>44 canceled, 4 stopped, 27 already finished; quiet 0.48 s after the request</td>
+</tr>
+<tr>
+<td>A gate that depends on N no-op units, 3 workers, N = 200 / 500 / 1,000</td>
+<td>2.3 s / 10.1 s / 45.4 s to finish (quadratic); queuing the gate itself is cheap (0.4 s for 4,000 dependencies)</td>
+</tr>
+<tr>
+<td>Two stages of N units, no gate: each unit adds its index to a Redis set, the one that completes the set queues the next stage with <code>enqueue_many</code>; 3 workers; N = 1,000 / 4,000</td>
+<td>14.3 s / 55.0 s, 7.1 and 6.9 ms per unit (linear; includes a new connection per unit and the fork)</td>
+</tr>
+<tr>
+<td><code>kill -9</code> of worker and horse under a running job</td>
+<td>job stays <code>started</code> about 90 s, then returns to the queue and retries (when something polls the registry)</td>
+</tr>
+<tr>
+<td>Dead worker in <code>Worker.count</code> after <code>kill -9</code> (worker TTL 20 s)</td>
+<td>still counted after 60 s, and after its key expired at 80 s</td>
+</tr>
+<tr>
+<td><code>kill -9</code> of Redis shortly after 100 writes: distribution defaults / <code>appendonly yes</code>, <code>everysec</code></td>
+<td>0 of 100 keys / 100 of 100</td>
+</tr>
+<tr>
+<td>Default save points, <code>CONFIG GET save</code></td>
+<td><code>3600 1 300 100 60 10000</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-options-for-the-task-process">4. Options for the task process</h2>
+<p>What Boss decided for PERF.86 (2026-10-14 13:24Z) and what the design must therefore do:</p>
+<ol>
+<li>Each scatter, and each phase of anything, is its own queue item, run one after another.</li>
+<li>A &quot;cancel now&quot; that stops a running job.</li>
+<li>Progress bars and ETAs per stage; per-stage timing records; the job log with its download link.</li>
+<li>An admin starts or cancels a run; no automatic resume after an interruption.</li>
+<li>Several workers on one job are fine.</li>
+<li>Plain Redis queue items instead of the task and subtask logic.</li>
+</ol>
+<p>Standing wishes it must not break: a worker count the admin can change (ADM.15), an interactive lane so edits do not wait behind bulk work (PERF.40, PERF.78), a banner for every visitor while a job changes the galaxy (UX.3), and the same galaxy for the same seed at any worker count.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>A. The run is a list of stages in Redis, each stage's units RQ jobs</th>
+<th>B. One RQ job per stage, a process pool inside</th>
+<th>C. Hand-written Redis lists or streams</th>
+<th>D. MySQL queue</th>
+<th>E. Keep today's design, fix defects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Each scatter is a queue item</td>
+<td>yes, and so is each chunk of layers</td>
+<td>yes (the whole stage)</td>
+<td>yes</td>
+<td>yes</td>
+<td>no (one run, many tasks in the supervisor)</td>
+</tr>
+<tr>
+<td>Plan visible and durable in Redis</td>
+<td>yes (run record; the current stage's units)</td>
+<td>stages only</td>
+<td>yes</td>
+<td>in MySQL</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Cancel now</td>
+<td>stop command, 0.5 s measured</td>
+<td>stop command plus killing the pool's process group</td>
+<td>yours to write</td>
+<td>row flag plus a kill</td>
+<td>three paths, as today</td>
+</tr>
+<tr>
+<td>Several workers on one stage</td>
+<td>native</td>
+<td>needs a pool inside the job (what we have now)</td>
+<td>native</td>
+<td>native</td>
+<td>native</td>
+</tr>
+<tr>
+<td>Replaces MySQL job tree and jobs-directory files</td>
+<td>yes</td>
+<td>mostly</td>
+<td>yes</td>
+<td>partly</td>
+<td>no</td>
+</tr>
+<tr>
+<td>New code</td>
+<td>smallest of the full designs: library calls plus about a few hundred lines of glue [R]</td>
+<td>smallest overall</td>
+<td>largest</td>
+<td>large</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Risk</td>
+<td>workers must outlive barriers (solved, section 5.4); a failed unit stalls its stage until <code>on_failure</code> ends the run; <code>depends_on</code> must not be used for &quot;after all N&quot;</td>
+<td>the pool inside is the old complexity again</td>
+<td>reimplements registries, heartbeats and retries</td>
+<td>puts queue traffic on the busiest resource</td>
+<td>the supervisor stays the single point of failure</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>A</strong> matches Boss's decision as written: queue items in Redis, run in order, several workers on one stage. <strong>B</strong> is the smallest step if Boss would rather change as little as possible: a stage is one RQ job, a single worker per bulk queue runs stages in queue order (which also serialises runs without a lease), and the stage keeps its process pool. It fails requirement 5 only in the sense that parallelism is not a Redis feature there. <strong>C</strong> and <strong>D</strong> are not recommended: C rebuilds RQ, D moves the traffic onto MySQL. <strong>E</strong> keeps the defects of F1 and F<sub>2</sub>.</p>
+<h2 id="5-recommendation-option-a">5. Recommendation: option A</h2>
+<h3 id="51-shape">5.1 Shape</h3>
+<p>A run is declared once, from the stage list that already exists (<code>generation/stages.py</code>: <code>skeleton</code>, <code>phenomena</code>, <code>mass</code>, <code>luminosity</code>, <code>sectors</code>, <code>link</code>, <code>backfill</code>, <code>population</code>, <code>settle</code>, ...), and stored as a run record in Redis that lists every stage with its parameters. The first stage's units are queued at once:</p>
+<pre><code>run record  planetgen:run:&lt;id&gt;   (hash: title, who, database, argv, seed, state, stage list, current stage, times)
+stage k     N_k unit jobs   run:&lt;id&gt;:s&lt;k&gt;:u&lt;i&gt;   (JSON arguments: stage, index, layer or sector numbers)
+            planetgen:run:&lt;id&gt;:s&lt;k&gt;:done   a set of the indexes that have finished
+</code></pre>
+<p>A unit that finishes adds its index to the stage's <code>done</code> set. The unit that makes the set complete (<code>SCARD == N_k</code>, and <code>SET ... NX</code> on an <code>advanced</code> flag so only one unit does it, even if a retried unit runs twice) records the stage's end, checks the run is not being cancelled, and queues the next stage's units with <code>enqueue_many</code>. The last stage's last unit marks the run done. This is the classic fan-in with an atomic counter; it is linear in the unit count, and it avoids RQ's <code>depends_on</code> for &quot;after all N&quot;, which is quadratic (section 3).</p>
+<p>A unit is the smallest schedulable piece: a chunk of scatter layers, a chunk of sectors, a backfill block. A one-shot stage (<code>link</code>, <code>population</code>, <code>settle</code>) is one unit. Chunks are static, decided when the stage starts (as built, PERF.97: about 512 units by weight, at most 64 shells and 4,000 units, so it never depends on the worker count), which replaces the adaptive, time-sized chunking of <code>submit_each</code>. The number of units per stage is capped (about 4,000; a larger sector fill uses bigger chunks), because Redis memory and queuing cost follow the unit count, not the object count: 4,000 queued units are about 7 MB [C], and at 14 ms of fork cost per job the overhead is under 1% for a unit that runs a few seconds. The run's seed is in the run record, and <code>task_seed(run_seed, (stage, index))</code> seeds each unit, so the result does not depend on which worker takes it or in what order.</p>
+<p>Stages run one after another because a stage's units are only queued when the previous stage is complete. Within a stage any number of workers take units in parallel (requirement 5). The plan is durable in the run record, not in the supervisor's memory; the units of a later stage appear as jobs when their turn comes.</p>
+<h3 id="52-what-redis-holds">5.2 What Redis holds</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Purpose</th>
+<th>Lifetime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planetgen:run:&lt;id&gt;</code></td>
+<td>hash</td>
+<td>run record and state</td>
+<td>no expiry while live; 30 days after it ends</td>
+</tr>
+<tr>
+<td><code>planetgen:run:&lt;id&gt;:s&lt;k&gt;:done</code></td>
+<td>set</td>
+<td>indexes of the finished units of stage k; also the barrier</td>
+<td>with the run</td>
+</tr>
+<tr>
+<td><code>planetgen:run:&lt;id&gt;:s&lt;k&gt;</code></td>
+<td>hash</td>
+<td>per-stage counters: units total, units done, cost done, seconds summed, first start, last end</td>
+<td>with the run</td>
+</tr>
+<tr>
+<td><code>planetgen:run:&lt;id&gt;:events</code></td>
+<td>stream</td>
+<td>the log and timeline: stage start and done, unit done, log lines, errors; <code>XADD</code> with <code>MAXLEN ~ 100000</code></td>
+<td>with the run</td>
+</tr>
+<tr>
+<td><code>planetgen:run:active</code></td>
+<td>string</td>
+<td>the run that owns the machine; <code>SET NX</code>, so a second Generate gets &quot;busy&quot; as today</td>
+<td>until the run ends; cleared by the last unit, <code>on_failure</code> or the stale check (5.6)</td>
+</tr>
+<tr>
+<td><code>planetgen:workers:wanted</code></td>
+<td>string</td>
+<td>the admin's worker count (ADM.15)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>RQ keys (<code>rq:*</code>)</td>
+<td>RQ</td>
+<td>queues, jobs, registries, workers</td>
+<td>RQ's ttls</td>
+</tr>
+</tbody>
+</table></div>
+<p>Progress for a bar is one <code>HGETALL</code> of a stage hash (the units add to it as they finish), so a page does not read the stream. The event stream is for the log view, its download, and a live tail by <code>XREAD</code> with the last seen id. The ETA is the cost-weighted estimator already designed in <a href="performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a> 2.3, as a pure function of those counters.</p>
+<h3 id="53-what-mysql-keeps">5.3 What MySQL keeps</h3>
+<p>Only history and statistics, written once per stage by the unit that completes it: the existing <code>generation_stage_runs</code> and <code>generation_stats</code> rows (per-stage timing, requirement 3). The per-task rows, the node tree and the lease go: <code>work_jobs</code>, <code>work_job_args</code>, <code>work_tasks</code>, <code>work_lease</code> and their migration (one Alembic revision, Foundations lane 1 only). Per-object timing (PERF.92) stays its own item.</p>
+<h3 id="54-workers">5.4 Workers</h3>
+<ul>
+<li><strong>Workers must survive barriers.</strong> Run them with <code>max_idle_time</code> (60 s is plenty; 3 s matched the ideal in the test), not <code>--burst</code>. A burst worker exits when the queue is empty, and the queue is briefly empty at every barrier, before the last unit has queued the next stage [C].</li>
+<li><strong>Still no service to install.</strong> <code>ensure_workers(queue)</code>, as <code>api_jobs</code> has it today, starts workers when work is queued, up to the wanted count, and is called by whoever queues (the CLI, the web) and by every status poll, so a worker that dies is replaced. Gates call it too, which keeps the pool topped up across stages. Workers exit after the idle time; nothing runs when there is no work. If Boss ever wants always-on workers, <code>rq worker-pool</code> under systemd or launchd is the upgrade; the queue design does not change.</li>
+<li><strong>Count liveness correctly</strong> (F4): live means the process id on this host exists and the worker's key exists; also run RQ's <code>clean_worker_registry</code> before counting.</li>
+<li><strong>Keep</strong> the lowered priority, the pre-import warm-up (PERF.42) and the stale-release restart in <code>cli/worker.py</code>.</li>
+<li><strong>One queue per worker</strong> (F6; PERF.245 makes one exception, the maintenance lane's workers, which serve its three queues in turn: <code>performance-eta-queue-and-caching.md</code> section 3): <code>planetgen-bulk</code> workers serve only that queue, <code>planetgen-interactive</code> workers only theirs. A reserved interactive worker (PERF.40, PERF.78) is then a separate, mostly idle worker, not a priority order, and every worker keeps the reliable <code>BLMOVE</code> path.</li>
+<li><strong>Unit length</strong> (PERF.155): a unit is meant to run no longer than <code>queue.unit_ceiling_seconds</code> (300 s) unless its stage is one unit by nature (<code>CommandSpec.whole</code>), which bounds how long a worker is told to finish its unit before it leaves, and how long a cancel waits. A stage whose longest unit ran longer is written to the run's log; see <code>docs/design/generation/generation-performance.md</code>.</li>
+<li><strong>Worker count</strong> (ADM.15): the Queue page writes <code>planetgen:workers:wanted</code>; <code>ensure_workers</code> starts up to it, and lowering it sends <code>send_shutdown_command</code> to the extras, which finish their unit first. &quot;Ludicrous Speed&quot; is a number, not a mode.</li>
+</ul>
+<h3 id="55-cancel-pause-failure">5.5 Cancel, pause, failure</h3>
+<ul>
+<li><strong>Cancel now:</strong> set the run's state to <code>cancelling</code> (the unit that completes a stage will not queue the next), <code>cancel()</code> every waiting job of the current stage, <code>send_stop_job_command</code> every started one, clear <code>planetgen:run:active</code>, write the final event. The job ids follow from the run id, stage and indexes, so no list needs keeping. Measured at 0.5 s for a 75-job run [C]. Units are idempotent and transactional, so a stopped unit leaves nothing half-written (2.5).</li>
+<li><strong>Pause</strong> is not in Boss's list; if wanted later it is a state the units check at start (they requeue themselves while paused) and costs no new machinery. Left out.</li>
+<li><strong>A unit fails:</strong> its index never joins the <code>done</code> set, so the stage never completes and the run cannot move on; an <code>on_failure</code> callback marks the run failed, cancels the stage's other waiting units and records the error. <code>Retry(max=1)</code>, interval-less, stays for worker deaths (RQ retries a job whose horse was killed; a stopped job is not retried); the set makes a repeated unit harmless.</li>
+<li><strong>A hard-killed horse (OOM):</strong> <code>work_horse_killed_handler</code> marks the unit and the run, so the failure is seen at once instead of after the 90 s heartbeat expiry (F5).</li>
+<li><strong>A dead supervisor</strong> is no longer possible: there is none. The CLI is a client that queues the run and follows its events; closing it does not stop the run. <code>planetgen galaxy</code> without <code>--detach</code> follows and prints; Ctrl+C detaches, a second command (or the page) cancels.</li>
+<li><strong>Timeouts:</strong> give every job a <code>job_timeout</code> (a multiple of its stage's expected time) instead of <code>-1</code>, so a hung unit ends and shows as failed.</li>
+</ul>
+<h3 id="56-stale-runs">5.6 Stale runs</h3>
+<p><code>planetgen:run:active</code> is cleared by normal endings. For the abnormal one (Redis restarted without persistence, everything killed), the Queue page shows the run as stale when no event arrived for <code>max(120 s, 3 * the longest unit so far)</code> and no worker is busy, and offers &quot;Clear&quot; (an admin action, as Boss wants for resuming and cancelling).</p>
+<h3 id="57-what-goes">5.7 What goes</h3>
+<p><code>queue/work.py</code>'s <code>WorkQueue</code>, <code>_ControlStore</code>, the job tree and the lease; <code>RQExecutor</code>, <code>RQFuture</code> and <code>Channel</code> in <code>redisqueue.py</code>; <code>web/jobs.py</code>'s files and <code>web/job_runner.py</code>; <code>queue/progress_file.py</code> (the page reads Redis); <code>submit_each</code>'s adaptive chunking; the in-process &quot;no Redis&quot; fallback (Redis becomes required for every run, including one worker, which <code>OPS.21</code> and <code>DOC.44</code> already treat as true); <code>GENERATION_QUEUE</code>. Those files are about 3,300 lines today (<code>work.py</code> 1,711, <code>jobs.py</code> 728, <code>job_runner.py</code> 420, <code>redisqueue.py</code> 322, <code>progress_file.py</code> 143; <code>progress_rate.py</code>'s 203 is reused) [C, <code>wc -l</code>]. A replacement of a few hundred lines is plausible but is an estimate [R]. PERF.29 and PERF.30 are dropped as queue items (their sector-level &quot;what is still missing&quot; check is a database check, not a queue feature, and can stay if Boss wants it); PERF.40 and PERF.78 become the two queues of 5.4; ADM.15 becomes the wanted-count key; PERF.33's estimator is reused.</p>
+<h3 id="58-the-redis-server">5.8 The Redis server</h3>
+<p>Add <code>examples/redis/planetgen.conf</code> and have <code>update.sh</code> check and warn, never edit (the OPS.46 rule for Apache):</p>
+<pre><code>bind 127.0.0.1 -::1
+protected-mode yes
+appendonly yes
+appendfsync everysec
+save 3600 1 300 100 60 10000
+maxmemory 512mb
+maxmemory-policy noeviction
+</code></pre>
+<p><code>maxmemory</code> is a guard: with at most about 4,000 units queued per stage (section 5.1) the queue is under 10 MB, so 512 MB leaves a wide margin and a runaway shows up as write errors, not as the host swapping. <code>noeviction</code> keeps lockouts and queue entries safe. Keep one instance: queue, lockouts, counts and locks are all small; a second instance would split persistence needs that are identical here. A password (<code>requirepass</code>, or an ACL user in <code>redis.url</code>) is optional while Redis binds loopback and Boss is the only user; document how to set one. Document all of it in the install guides (DOC.44).</p>
+<h3 id="59-clients-and-security">5.9 Clients and security</h3>
+<ul>
+<li>One module builds clients: <code>redisqueue.client(role)</code> with a cached pool per process and role. Web and API roles: <code>socket_connect_timeout=2</code>, <code>socket_timeout=5</code>, <code>health_check_interval=30</code>, retry on <code>ConnectionError</code> and <code>TimeoutError</code> with backoff. Cache roles keep their 0.5 s. Workers use RQ's own connection handling.</li>
+<li>RQ jobs and <code>Queue</code> use <code>serializer='json'</code>; function names are strings. This removes pickle but not the underlying exposure, since a job still names the function a worker calls; the protection that matters is that only planetGen can reach Redis (loopback or a unix socket, optional password).</li>
+<li>Wait for a result with <code>job.latest_result(timeout=)</code> or the event stream, not a 50 ms poll.</li>
+</ul>
+<h3 id="510-the-other-uses-stay">5.10 The other uses stay</h3>
+<p>Rate limits, lockouts, the count cache and single-flight need no redesign. Keep their fail-open behavior, and with AOF on the lockouts now survive a restart. The unbuilt epoch counter of PERF.20 and PERF.25 (<code>INCR planetgen:epoch:&lt;db&gt;</code>) is still a good idea and independent of this work; the unbuilt progress record is replaced by 5.2.</p>
+<h3 id="511-suggested-items">5.11 Suggested items</h3>
+<p>For the TODO thread to file if Boss agrees. Each is one PR; the numbers in brackets are what they fold in.</p>
+<ol>
+<li><strong>Bug (no dependency on the rebuild):</strong> <code>api_jobs.ensure_workers</code> counts dead workers; count live ones and clean the registry first (F4). Bugfixes lane.</li>
+<li>Redis server configuration: <code>examples/redis/planetgen.conf</code>, an <code>update.sh</code> check that warns when <code>appendonly</code> is off or <code>maxmemory-policy</code> is not <code>noeviction</code>, and the install guides (F7, DOC.44, OPS.21).</li>
+<li>One Redis client module with timeouts, health checks and a cached pool; replace <code>connect()</code> call sites (F9).</li>
+<li>PERF.86 rebuild, in steps that each leave <code>main</code> working, Foundations lane 1:
+<ol>
+<li>Queue spine: <code>planetgen-bulk</code> and <code>planetgen-interactive</code>, <code>ensure_workers</code> with idle-timeout workers, one queue per worker, the wanted-count key, API jobs moved to the interactive queue [PERF.40, PERF.78, ADM.15].</li>
+<li>Run record, stage counters, event stream and the ETA function, as a library with a fake clock; no UI yet [PERF.33].</li>
+<li>One stage on the new spine end to end (the mass scatter): static chunks, the done-set barrier, <code>planetgen galaxy</code> follows the events, <code>--workers 1</code> uses the same path. <strong>Built (PERF.97):</strong> <code>queue/units.py</code> and <code>run_plan.scatter_shells_unit</code>. A unit's arguments are the database's name, host, port and user (the worker reads the password from its own settings, so none is queued), the shells, their expected stars, the sectors to leave out, the floors and the seed; the result and the unit's progress are hashes in the run's keys (<code>runrecord.results_key</code>, <code>progress_key</code>) read by the starter, which replaces the <code>Channel</code> for this stage. The cut is <code>units.static_chunks</code> (about 512 units by weight, 64 shells at most, 4,000 units at most), so it never depends on the worker count; <code>--workers</code> is the most workers the run starts (<code>ensure_workers(count=)</code>). The starter ends the run <code>cancelled</code> on Ctrl+C and <code>failed</code> on any error, which frees the machine; the Queue page's &quot;Clear&quot; (PERF.99) is for a starter that was killed outright.</li>
+<li>The remaining stages and the sector and backfill units.</li>
+<li>Generate page, Queue page, banner and job log read Redis; cancel through the stop command; log written to the jobs directory at run end for the download link [UX.3, ADM.22].</li>
+<li>Delete the old machinery, with the schema migration for the <code>work_*</code> tables [PERF.29, PERF.30].</li>
+<li>Rewrite the notes and docstrings that describe the old model [DOC.20, done].</li>
+</ol>
+</li>
+<li>A health check on the admin page: Redis answering, AOF on, memory policy, <code>used_memory</code>, last save status, worker count (monitoring, 2.3). Optional.</li>
+</ol>
+<h3 id="512-every-stage-a-command-one-wrapper-boss-2026-10-17-412-pm-edt">5.12 Every stage a command, one wrapper (Boss, 2026-10-17, 4:12 PM EDT)</h3>
+<p>Boss: every part of the generate process, all the scatter phases included, is an individual command, and a general process wrapper makes the list of the commands that need to run and puts them into the Redis queue individually. The wrapper builds the command list, each command is one queue item.</p>
+<p>This is the shape of 5.1 made explicit. A command is a kind in the command registry (<code>queue/commands.py</code>, <code>REGISTRY</code>) with JSON arguments and a JSON result, and can be run alone. The wrapper is a pure function from the arguments of <code>planetgen galaxy</code> or <code>planetgen plan</code> to the ordered stages, each a list of commands with predicted cost; it writes the run record and queues the first stage, and the barrier of 5.1 queues each next stage. A chunk of a chunked stage is its own command. Built by PERF.118 (the wrapper), PERF.106 to PERF.108 (the stages as commands) and PERF.119 (every start path goes through the wrapper).</p>
+<p>Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss runs <code>plan</code>, then <code>scatter</code>, and each scatter kind is its own command even where the root command is the same: a scatter command for only mass, only luminosity, only phenomena, only the nebula field, only the backfill, never one command that groups them. Each command has its own parameters, set by the UX when it runs the commands through the API and by Boss on the command line. When a new generate job is called, the wrapper only selects the commands that will run and never touches the others; they run in sequence; the progress bars are dynamic to the current context and show only what is going to run.</p>
+<p>Governing principle (Boss, 2026-10-17, 4:18 PM EDT): modular commands, each command does one and only one thing and does it exceptionally well. A scatter for mass does that and only that and never worries about anything but what it does. No command knows about another stage, about what ran before it or what runs after it, or about the order. The list of steps is built from what the user requested and handed to the wrapper, which handles the sequence, so the order lives only in the wrapper's step list, kept as data, and the sequence can be changed without touching any command.</p>
+<p>Scope (Boss, 2026-10-17, 4:19 PM EDT: &quot;redesign ALL the commands like that so we can build whatever sequences we want&quot;): the principle holds for every command and entry point, not only the generate stages. The inventory, with what each command does today and the item that reshapes it, is <a href="../architecture/command-inventory.html">command-inventory.md</a>; the umbrella is PERF.120.</p>
+<p>As built (PERF.118, first slice). <code>queue/commands.py</code> holds the registry: every stage of a <code>galaxy</code> or <code>plan</code> run has a kind (<code>scatter-mass</code>, <code>scatter-luminosity</code>, <code>scatter-phenomena</code>, <code>scatter-backfill</code>, <code>scatter-band</code>, <code>plan-skeleton</code>, <code>generate-sectors</code> and so on; <code>planetgen commands</code> lists them). A kind is either queued (<code>unit</code>, the function a worker runs from the unit's JSON arguments, and <code>expand</code>, which cuts the stage into units from its parameters and the database alone) or inline (still done by the process that started the run, until PERF.107, PERF.108 and PERF.121 to PERF.128 give it units). <code>commands.build_steps</code> is the pure function from parsed arguments to the ordered <code>Step</code>s (key, kind, label, flat JSON parameters): exactly the stages the request selects, never a skipped one, the same list for the same arguments. <code>queue/wrapper.py</code> starts the run: it stores that list in the run record (<code>steps</code>), declares a stage for each queued step, expands the first stage, records the cut and a JSON <code>plan</code> of it (<code>&lt;PREFIX&gt;:run:&lt;id&gt;:s&lt;k&gt;:plan</code>) before queueing its units, and follows the units as the starter. The unit that completes a stage calls <code>wrapper.advance</code>, which reads the next step from the run record, expands and queues it (a stage of no units is passed over), or finishes the run after the last; no command knows the order. The skeleton is on it as one unit (<code>plan-skeleton</code>: <code>run_plan.plan_skeleton_unit</code>, whose parameters are the database, the seed asked for as 32 hex digits and the plan's shape options, <code>run_plan.skeleton_params</code>; the unit returns the lines the run says about it for the process that started the run to log, since a worker's output reaches nobody, and a parameter it refuses ends the plan with its message). The three shell scatters are on it (PERF.97 and PERF.106), and so are the shells of the phenomenon scatter (<code>run_plan.expand_scatter_phenomena</code>, <code>scatter_phenomena_unit</code>: the same rows as before at any worker count; its clearing, the special phenomena, the nebula field and the indexes are still done around the stage by the starter until PERF.121 and PERF.122, so the stage's row stays the starter's): the massive-star pass, the luminosity pass and the band (<code>run_plan.expand_scatter_mass</code>, <code>expand_scatter_luminosity</code>, <code>expand_scatter_band</code>, all run by <code>_scatter_on_queue</code>, with <code>scatter_shells_unit</code> as the unit of each). Each pass is cut into the same units at any worker count and draws the same stars as before the move; the luminosity pass reads the sectors the massive pass marked when its stage starts, between the passes. The clearing and recording around the passes stay in the starter (<code>scatter_bright_stars</code>, <code>add_bright_star_band</code>) until PERF.119 and PERF.121 move them. Three things every stage reuses came with them (PERF.106). A unit's <code>job_timeout</code> is <code>redisqueue.job_timeout</code> of its stage's expected seconds (the recorded time of the stage with its settings, <code>wrapper.expected_seconds</code>, also the stage's ETA before any unit reports): <code>redisqueue.TIMEOUT_MULTIPLE</code> (10) times them, never less than 15 minutes or more than 6 hours, and 6 hours for a stage with no recorded time; no job queued to RQ has the limit -1 (PERF.144: <code>redisqueue.TimedQueue</code> refuses one, and the Generate page's jobs, the API's jobs, the work queue's tasks and the tile prefetch get a limit from their own estimates). <code>units.horse_killed</code>, the workers' <code>work_horse_killed_handler</code>, fails the run at once when a unit's worker process is killed (out of memory or <code>kill -9</code>), naming the unit, instead of when the worker's heartbeat runs out; RQ's retry then finds the run over and does nothing. The unit that completes a stage calls <code>wrapper.finish_stage</code> before the next stage is queued: the command's <code>finish</code> (<code>CommandSpec.finish</code>, the shell scatters' <code>run_plan.finish_scatter</code>) records the units' speeds in <code>generation_stats</code> and returns the stage's metrics, and the stage's <code>generation_stage_runs</code> row (the <code>row</code> the starter put in the run record with <code>stages.hand_over_open_stage</code>) is written with the seconds from the stage's start to its last unit's end. The starter no longer writes that row, but still adds the stage to the whole job's totals (the <code>job</code> and <code>scatter</code> rows). A stage's seconds count from before it is cut into units, so reading the galaxy is part of them. A stage whose units are only part of what the stage does keeps its row in the starter, so its recorded time still covers all of it: the band, which tops up backfilled sectors after its units, until PERF.108 moves that work too. <code>planetgen command-run KIND ARGS</code> runs one of a command's units alone. The map luminosity fill and the habitability re-score are on it too (<code>fill-map-luminosity</code> and <code>rescore-habitability</code>: a unit per range of ids, <code>run_plan.expand_fill_map_luminosity</code> and <code>expand_rescore_habitability</code>, whose units write only their own range and so give the same rows at any worker count), and the nebula field is two commands: <code>clean-nebula-field</code> (one unit: the dry-run check of the stored field clouds and, with <code>apply</code>, the delete and the containment refresh; it returns the lines the run says) and <code>draw-nebula-field</code> (a unit per slab of field cells, <code>run_plan.expand_draw_nebula_field</code>; the starter clears <code>nebula_field</code> first and links the stored clouds back afterwards, as it also does inside the phenomena stage, where the draw is a run of its own after the phenomena run). PERF.202 moved the one-step starters onto the shared run, family by family: the skeleton, <code>clear-scatter</code> and <code>clean-nebula-field</code> (first family), and the map luminosity fill, which is a <code>MapLuminosityFollower</code> stage followed by <code>BlockLightsFollower</code>, and the habitability re-score, a <code>HabitabilityFollower</code> stage whose block totals are made by the command's <code>conclude</code> (<code>run_plan.conclude_rescore_habitability</code>). The other stages are inline until their items move them over.</p>
+<p>As built (PERF.107, the sectors). The three stages of a <code>galaxy</code> run that generate sectors, the starting sector (<code>generate-start-sector</code>), the neighborhood (<code>generate-neighborhood</code>) and the rest (<code>generate-sectors</code>, also the shell, band, wedge, span and course modes), share one cut and one unit (<code>run_galaxy.expand_generate_sectors</code>, <code>generate_sectors_unit</code>): the starter still enumerates the sectors, works out which are empty, estimates their cost and orders them as before, then submits them as flat <code>shell, band, wedge</code> triples in the order to generate them (<code>run_galaxy._submit_batch</code>), and the cut is about <code>SECTOR_UNITS_MAX</code> (4,000) static chunks of consecutive sectors, the same at any worker count. A unit resolves each sector's density from its sector profile (<code>_BatchDensity.resolve</code>), generates and saves it in its own transaction (<code>generate_and_save_sector_at</code>) and returns, per sector, what the starter logs: the starter follows the units' results, logs each saved sector, counts it and adds its time to the speed stats, so the console reads as before. Every draw for a sector comes from its own seed (GEN.39), so the stars, planets and moons are the same rows as the old process pool wrote, at any worker count (checked on the toy skeleton against <code>main</code>). The link stage (<code>link-neighbors</code>, chunks of <code>LINK_UNIT_SECTORS</code> (500) sectors since PERF.113, which take the neighbour lock in turn) and the settle stage (<code>settle-sector-paths</code>) is a unit per <code>SETTLE_UNIT_SECTORS</code> (100) sectors since PERF.115 (the expansion finds the sectors to settle once; each unit saves its chunk's paths): they work on the sectors saved since the run started, found from the database's clock at the start (<code>since</code>), so a unit needs nothing the starter held in memory. A failing unit stops the run, which raises <code>units.RunStopped</code>, where the old pool re-raised the sector's own exception; the link stage still only warns, and the sectors already saved stay saved, so a rerun resumes. The galaxy job tree no longer has a queue node of sector tasks: the sectors are units of the run record on Redis.</p>
+<p>As built (PERF.108, the backfill). The backfill stage of a <code>galaxy</code> run is the <code>scatter-backfill</code> command: the starter passes the database, the database's clock at the start of the run (<code>since</code>) and the worker count, and the stage's cut (<code>run_galaxy.expand_backfill_bright_stars</code>) finds the sectors to draw once, around the centers of the sectors the run created (<code>backfill_targets</code>: the mass steps outward, the band mass limits, the filled sectors and the sectors already taken that deep), and cuts them in address order into static chunks of at least <code>BACKFILL_UNIT_CELLS</code> (10,000) sectors and at most <code>BACKFILL_UNITS_MAX</code> (2,000) chunks, the same at any worker count; a stage with nothing to draw is one empty unit, so its row is still stored. A unit (<code>backfill_bright_stars_unit</code>) draws its chunk with the same function as before (<code>run_plan._draw_sector_masses</code>, a few hundred sectors a transaction, each rechecked under its lock), every sector from its own seed, so the stars are the same rows whichever sector reached a sector first and at any worker count; it returns the stars placed per shell and kind for the starter's lines. The starter keeps the bar of the sectors visited and the per-shell lines. The backfill around one requested sector (<code>ensure_sector_generated</code>, the neighborhood estimate) is a single in-process call of the same draw, not a run.</p>
+<p>As built (PERF.121 and PERF.122, one root command per kind of work). <code>planetgen plan</code> is the skeleton and nothing else (<code>run_plan.run_plan</code>: <code>plan_stages</code> is the one <code>skeleton</code> stage; the new outline also empties the bright stars, the phenomena and the nebula field drawn on the old one). <code>planetgen scatter</code> takes exactly one of <code>--mass</code>, <code>--luminosity</code>, <code>--phenomena</code>, <code>--nebula-field</code> or <code>--band --down-to N</code>, and only the options of that kind (<code>generate.validate_scatter_args</code>); <code>run_plan.run_scatter</code> runs that kind's stage (<code>stages.scatter_stages</code>) and the wrapper's step list for it is that one step (<code>stages.SCATTER_STAGE</code>, the nebula field drawn by <code>draw-nebula-field</code>). The three that fill or clean (<code>fill-map-luminosity</code>, <code>rescore-habitability</code>, <code>clean-nebula-field</code>, <code>stages.SINGLE_STAGE_COMMANDS</code>) are roots of their own and take no setting of a scatter. <code>commands.STAGED_COMMANDS</code> names the six roots whose stages the wrapper turns into steps (and <code>galaxy</code>'s). A scatter draws only where none of its kind is stored (<code>run_plan._refuse_stored_scatter</code>, <code>store.scatter_stored</code>), and there is no redo flag: Boss chose (F7) a separate <code>planetgen clear-scatter</code> that empties one kind (<code>--mass</code>, <code>--luminosity</code>, <code>--phenomena</code>, <code>--nebula-field</code>; the <code>clear-scatter</code> command, one unit, <code>run_plan.clear_scatter_unit</code>), run before the scatter. The luminosity pass works at the mass limit the mass pass stored and refuses to run with none; the mass clear refuses while the bright stars, which are split from the massive stars at that limit, are stored. The Generate page builds a list of argv steps, one per scatter (<code>generate_page.scatter_steps</code>), where it once passed one <code>plan</code> run a mode flag; <code>galaxy --then-scatter</code> still lists the scatters as steps of the galaxy run. The Generate page's Redo scatters form builds the clears then the scatters as steps. The same galaxy comes out of <code>plan</code> followed by <code>scatter --mass</code>, <code>--luminosity</code> and <code>--phenomena</code> as out of the old combined <code>plan</code>.</p>
+<p>As built (PERF.119, first slice: <code>sector</code> and <code>system</code>). <code>planetgen sector</code> and <code>planetgen system</code> are runs of one command each: the entry point (<code>run_sector.run_sector</code>, <code>run_system.run_system</code>) draws the run's seed, builds the step list with <code>wrapper.steps_for</code> (<code>commands.ONE_COMMAND_RUNS</code>) from what was asked and calls <code>wrapper.run</code>; it does no generating itself. <code>generate-unplaced-sector</code> cuts the sectors into static chunks of consecutive numbers (<code>run_sector.expand_unplaced_sectors</code>, at most <code>UNPLACED_UNITS_MAX</code> units) and each sector draws from a stream of its own, seeded from the run's seed and its number, so the sectors are the same at any worker count; the unit (<code>unplaced_sectors_unit</code>) generates and saves them and returns what the starter logs. <code>generate-system</code> is one unit (<code>run_system.system_unit</code>) that renders (<code>--output</code>) or saves the system and returns the page or the id and, for a forced body the system could not hold, the warning the starter refuses or logs by <code>--strict</code>. A <code>system --output</code> run saves nothing, so it is a maintenance run and does not take the generation slot. The old process pool path for these two commands (<code>run_common._work_queue</code>) is deleted. The Generate page, the API's jobs and the one-off reset and check-math steps follow in the next slices.</p>
+<p>As built (PERF.119, second slice: the API's jobs). The API jobs that change the galaxy are the starters of runs, not stages of their own: <code>api_jobs.generate_neighborhood</code> is <code>run_galaxy.generate_sector_neighborhood</code>, which queues the neighborhood's sectors as a run of <code>generate-sectors</code> (<code>_submit_batch</code>, the helper the <code>galaxy</code> command uses), then the bright-star backfill around the requested sector as a run of <code>scatter-backfill</code> (<code>center_pc</code> in its parameters in place of the sectors made since the start) and the paths of the new sectors as a run of <code>settle-sector-paths</code> (<code>sector_ids</code> in its parameters in place of those made since the start; <code>expand</code> false settles exactly the named ones); <code>api_jobs.regenerate_sector</code> deletes the sector and runs <code>run_galaxy.regenerate_sector_cell</code> (the sector and its backfill) and the settle of the new sector and the old neighbours; the settle run alone has no job of its own (TEST.531 removed <code>api_jobs.settle_sectors</code>, which only a test helper reached). The job is on the interactive queue and follows the runs from its worker, which answers <code>GET /api/jobs/&lt;id&gt;</code> as before. A job takes its turn the way every generation run does: a run that finds the machine taken waits in line for it (<code>runwait.start_when_free</code>, PERF.153, up to <code>queue.wait_minutes</code>). The sector the map generates on a visit (<code>ensure_sector_generated</code>, inside the web request) is not a job and still generates in the request; whether it becomes a run is an open question. The API's other jobs (edits, uploads, page builds, the one-off page's commands) start no stage and stay as they are.</p>
+<p>As built (PERF.119, the one-unit commands). <code>reset-galaxy</code> (<code>cli.reset.reset_galaxy_unit</code>, a generation run), <code>check-math</code> (<code>physics.mathcheck.check_math_unit</code>, a check run) and <code>check-datasets</code> (<code>cli.datasets.check_datasets_unit</code>, a check run) are registered commands of one unit each, with the database or the options as plain JSON in the step's parameters. Their verbs, <code>python3 -m planetgen.cli.reset</code> (after the typed confirmation or <code>--yes</code>; <code>--dry-run</code> starts no run), <code>planetgen check-math</code> and <code>python3 -m planetgen.cli.datasets status</code>, build the step and run it through the wrapper, and print what the unit returns (a worker's output reaches nobody). <code>datasets fetch</code> is a setup download and stays direct. The Generate page's reset and data-check steps still run these verbs as steps of the job until PERF.203 puts the page on one wrapper run.</p>
+<p>As built (PERF.172, <code>planetgen galaxy</code> as one run). The galaxy is one run in the queue over one step list. The process that starts it plans the sectors in the mode asked for (the estimate and the questions of <code>_plan_sectors</code>: random start, single address, neighborhood, shell, band, span, course or block), and then <code>generation/followed.run_followed</code> puts the stages in one <code>wrapper.run</code>: the sector stages (<code>start</code> and <code>neighborhood</code>, or <code>sectors</code>, or <code>sectors</code> and <code>neighborhood</code> for <code>--wedge</code> with <code>--radius-pc</code>), <code>link</code>, <code>mass</code>, <code>luminosity</code>, <code>phenomena</code>, <code>phenomena-index</code>, <code>nebula-draw</code>, <code>backfill</code>, <code>population</code>, <code>territories</code>, <code>settle</code>, <code>run-blocks</code> and <code>block-lights</code> (<code>stages.galaxy_stages</code>; the block light totals and the uncharted sector rows are the last thing a galaxy run makes, PERF.251, on one bar with a share for each of the units of shells, the levels above them and the index). Each stage's <code>Follower</code> says what its process shows and counts as the plan arrives and the units come back (bars, lines of the log, the summary); it does none of the stage's work. The work that is not a unit moved into the commands: a command may name a <code>prepare</code> (once, in a worker, when its stage opens, before the cut: empty the table the units refill) and a <code>conclude</code> (once, in the unit that completes the stage, before the next stage opens: store the record the later stages read, build the indexes, link the nebula field); the starter waits for the conclusion before it closes the stage's display. A hook or the opening of a stage that fails fails the run at once, naming the stage (&quot;stage X could not start&quot;, &quot;the end of stage X failed&quot;), where it used to be lost as a unit done when Redis failed it. A stage with nothing to do (no sector saved since the run started, nothing to backfill) stores its row as skipped, so it adds nothing to the estimates. The same seed gives the same galaxy at one worker and at four: every draw still comes from the seed of the thing it draws, and the cuts do not depend on the worker count. The estimate (<code>planetgen galaxy --estimate-only</code>, the run's listing) shows the whole list. A link that fails now fails the run, where it only warned; a failed galaxy prints the <code>planetgen link --since</code> line to run it again.</p>
+<p>As built (PERF.182, finish an incomplete run). A run can be carried on after it stopped. The run record already holds the steps (a command and its complete parameters per stage) and each stage's <code>started</code>, <code>ended</code> and <code>concluded</code> clocks; it now also holds the galaxy's seed, the build (<code>galaxy.version_key</code>) and, for a run that carries another on, <code>finishes</code>. <code>generation/finish_run.py</code> reads the record of the newest generation run that stopped (a live record whose holder is dead is marked failed first), refuses when the seed, the build or the database is not the one the run recorded, when the run was already carried on, or when a stage it would run is not in <code>FINISHABLE</code>, and gives the steps of a new run: a stage the old run finished carries <code>finished_by</code> and is <em>carried over</em> by the wrapper (<code>wrapper._carry_finished_stage</code>: it opens and ends at once with no unit and stores the earlier conclusion), the stage that stopped carries <code>again</code> and runs from its start with its <code>prepare</code> (the scatters empty what they rewrite; the sector stages skip the sectors already saved, <code>run_galaxy.generate_sectors_unit</code>), and the stages after it run as planned. <code>REWIND_WITH</code> runs the scatter before a stopped <code>finish-phenomena</code>, and the mass scatter before a stopped luminosity scatter that draws both passes, again with it: their rows are written into what only the earlier stage's <code>prepare</code> empties. <code>planetgen finish-run</code> follows the new run as the other commands do (<code>RecordedStage</code> stands in for the followers, which hold the stage state only the starting process knew); the Generate page's <code>finish_run</code> job is that command, then the later steps of the job the stopped run was part of (<code>jobs.remaining_steps</code>).</p>
+<p>As built (PERF.213, a parameter worked out when its stage opens). A step's parameters are complete before the run starts, but a value that belongs to another stage cannot be: the stages that work on the sectors a run saved (<code>link</code>, <code>backfill</code>, <code>settle</code>, <code>run-blocks</code>) need the database's clock when the first sectors stage opened (<code>since</code>), not the moment the followers were built (a run that waits for the machine, or one whose job begins with other stages, would otherwise take in sectors that are not its own). Such a parameter is a <em>deferred</em> one, <code>wrapper.opened_by(key)</code>, a dict with a <code>deferred</code> name that stands in the step until its stage opens; the run record keeps the step with the marker. When a stage opens, <code>wrapper._expand</code> records the database's clock for it (<code>runrecord.set_opened_clock</code>, only for a stage some step refers to) and gives the command's <code>prepare</code> and <code>expand</code> the parameters with every marker replaced (<code>wrapper.resolve_params</code>, through <code>wrapper.RESOLVERS</code>: marker name -&gt; <code>resolver(conn, run_id, marker)</code>; a command that needs another value worked out when its stage opens adds a resolver there). The conclude and finish hooks see the resolved parameters too. <code>finish_run.plan</code> replaces the markers whose stage opened in the run being carried on with the clock that stage recorded (a stage run again keeps the clock of its first opening, so the sectors the stopped run saved are still the run's) and leaves the ones whose stage never opened for the new run to resolve. <code>planetgen galaxy</code> and <code>planetgen sectors</code> take the clock of the first sectors stage this way; the single-verb runs (<code>planetgen link --since</code>, a settle with named sectors) pass a clock or a list of sectors as before.</p>
+<p>As built (PERF.214, the sectors planned when their stage opens). <code>run_galaxy._plan_sectors(args, edge_pc)</code> counts, estimates and asks about the sectors in the process that starts the run, so a run could only be built once the galaxy it reads was there. With <code>deferred=True</code> it plans nothing: <code>_deferred_sectors</code> gives the same stages (<code>stages.sectors_stages</code>: <code>start</code> and <code>neighborhood</code>, <code>sectors</code> and <code>neighborhood</code>, or <code>sectors</code>), each told only the arguments that name its sectors, and the stage works them out when it opens in a worker (<code>planned_items</code>). The shell, band, span, course and block modes and the neighborhood of a centre sector were already cut that way; a single sector (<code>planned = &quot;single&quot;</code>) and the random starts (<code>&quot;random-start&quot;</code>, from the run seed the plan draws, the one draw the starter's plan makes too) now are. The neighborhood after a random start takes its centres from the plan of the <code>start</code> stage (<code>wrapper.plan_detail(&quot;start&quot;, &quot;centers&quot;)</code>, a deferred parameter resolved when the neighborhood opens); a single sector's neighborhood takes the address. Nothing is estimated or confirmed (<code>--estimate-only</code> is refused): the caller has its own estimate, which is why this is for the one run of a whole Generate job. <code>finish_run.plan</code> turns the starts a stopped run picked into the explicit sectors of the stage it runs again, so picking again cannot skip the start it saved and choose another. The stored sectors are the ones the starter's plan makes.</p>
+<p>As built (PERF.99, the pages). The Queue page lists the runs in Redis (<code>queue/runview.py</code> turns a run record into the words and numbers every page shows; <code>queue/runcontrol.py</code> acts on one). <code>/admin/queue/&lt;run id&gt;</code> shows the run's facts, its stages and the tail of its log; cancel sends the stop command to the started units and takes the waiting ones off the queue (pipelined, 0.1 s for 4,000 units), a run that shows no sign of life or whose follower is gone can be cleared (ended <code>failed</code>, with who cleared it), and finished runs can be deleted. The wrapper tees the <code>planetgen</code> logger into the run's event stream and writes <code>&lt;jobs dir&gt;/runs/&lt;run id&gt;.log</code> when the run ends, the last 20 kept, for the download link. A run started under a Generate page job (<code>PLANETGEN_JOB_ID</code>, set by the job runner) is listed under that job (<code>runrecord.job_runs</code>), the job page shows its runs, and cancelling the job cancels them at once. The API is version 6: <code>/api/admin/work</code> lists runs, <code>/api/admin/work/&lt;run id&gt;</code> and <code>/log</code> read one, <code>/control</code> takes <code>cancel</code> or <code>clear</code>, and the job tree routes and the lease clear are gone. Left for PERF.100 with the <code>work_*</code> tables: <code>progress.json</code> and <code>progress_file.py</code>, the <code>work.py</code> writers, the job runner's step estimates from <code>work_jobs</code>, and the update guard's reads of them.</p>
+<p>As built (DB.29, the update guard). <code>update.sh</code> and <code>planetgen.cli.migrate</code> (the only caller of <code>migrate_database</code>) take the guard (<code>admin/updateguard.py</code>) before they change anything. It lists the live runs of the run record (<code>RunRecordSource</code>: a run in state running or cancelling, cancelled through <code>runcontrol.cancel_run</code> with who <code>update</code>), the Generate page's job, the jobs on the shared queues (the units of a run are left out, <code>UNIT_JOB</code>: the run lists them), the orbital update and the warm-up, and goes on only with an agreement: <code>--yes</code> (it replaces <code>--cancel-running</code>, no shim) or a y typed at the question. Nobody to ask is a no: <code>started_unattended</code> (systemd by <code>JOURNAL_STREAM</code>, or <code>INVOCATION_ID</code> with no terminal on stdin; cron by an ancestor process named cron, crond, anacron or atd) and a run with no terminal never ask and refuse with exit status 1, and the question waits <code>PROMPT_SECONDS</code> (30) for a line (<code>answer_within</code>, <code>select</code> on stdin) and takes silence as no. The old work table source (<code>WorkRunSource</code>) stays until PERF.100 deletes the tables. <code>install.sh</code> does not take the guard.</p>
+<p>What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rework removes or adapts every old entry point, with no compatibility shims). The registry has one path: a command is either queued (it has a <code>unit</code> and an <code>expand</code>) or inline (it has neither, and the process that started the run still does it). A follow-up moves a command over by giving its registry entry a <code>unit</code> and an <code>expand</code> and deleting its inline function and its call in the same change, so no stage ever has an old and a new way side by side. What each follow-up replaces:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Old entry point</th>
+<th>Replaced by</th>
+<th>Item</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>units.HANDLERS</code>, <code>units.run_stage</code>, <code>run_plan._scatter_shells_on_run_record</code> and the <code>on_run_record</code> switch (the first draft of the new queue)</td>
+<td><code>commands.REGISTRY</code>, <code>wrapper.run</code>, <code>run_plan._scatter_mass</code>; already gone in PERF.118</td>
+<td>PERF.118</td>
+</tr>
+<tr>
+<td><code>run_plan._scatter_shells</code> with <code>work.py</code>'s task queue (the bright-star pass, the band)</td>
+<td>the <code>scatter-luminosity</code> and <code>scatter-band</code> units; already gone in PERF.106</td>
+<td>PERF.106</td>
+</tr>
+<tr>
+<td><code>plan</code>'s flags and in-process stage calls (<code>scatter_phenomena</code>, <code>redo_scatters</code>; the fills and the nebula field have their commands, PERF.106)</td>
+<td>one <code>scatter</code> command per kind, the skeleton, the fill and the re-score as their own commands; <code>plan</code> becomes <code>build_steps</code> plus <code>wrapper.run</code></td>
+<td>PERF.121, PERF.122, PERF.106</td>
+</tr>
+<tr>
+<td><code>galaxy</code>'s in-process start, neighborhood, sectors, link, backfill, population and settle</td>
+<td>the same stages as registered commands; <code>galaxy</code> becomes a step list</td>
+<td>PERF.123, PERF.107, PERF.108</td>
+</tr>
+<tr>
+<td><code>sector</code> with <code>--population</code>, <code>phenomenon</code> with its settle</td>
+<td><code>sector</code> and <code>phenomenon</code> only generate; the settle after a phenomenon is <code>settle --sector-id</code> (done)</td>
+<td>PERF.124</td>
+</tr>
+<tr>
+<td><code>population</code> with <code>--territories-only</code> and <code>--rescan</code></td>
+<td>two commands, <code>run-population</code> and <code>run-territories</code> (done)</td>
+<td>PERF.125</td>
+</tr>
+<tr>
+<td><code>check-db</code> behind flags, <code>warm_map --only</code>, <code>benchmark</code>'s own sequence</td>
+<td>a command per check, per cache family, and a step list; <code>check-db</code> is the nine <code>check-*</code> commands run as a check run (PERF.126, done); <code>warm_map</code> is <code>planetgen warm</code> and the six <code>warm-*</code> commands, run as a maintenance run (PERF.127, done); <code>benchmark</code> is <code>plan</code> and then <code>galaxy</code> handed to the wrapper in scratch databases, its stage timings read from the run records (PERF.128, done)</td>
+<td>PERF.126, PERF.127, PERF.128</td>
+</tr>
+<tr>
+<td>The Generate page, API jobs and one-off pages starting their own runs</td>
+<td>build a step list and call the wrapper</td>
+<td>PERF.119</td>
+</tr>
+<tr>
+<td>The Generate page, Queue page and job log reading the old tables; the <code>work_*</code> tables</td>
+<td>read the run record in Redis; deleted with their migration</td>
+<td>PERF.99, PERF.100</td>
+</tr>
+<tr>
+<td><code>update.sh</code> and migrations starting while jobs run</td>
+<td>refuse while the run record shows a live run (done)</td>
+<td>DB.29</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="513-a-job-can-require-another-job-perf247-boss-645-pm-est-on-2026-11-06">5.13 A job can require another job (PERF.247, Boss 6:45 PM EST on 2026-11-06)</h3>
+<p>PERF.245 lets a worker of several queues take a job from each in turn. A job that cannot run until another is done must not be taken
+early, so a job can declare what it requires. Only a declared requirement holds a job: a job with none is queued at once and runs beside
+every other, as before, so nothing that can run together is made to run one after another.</p>
+<ul>
+<li><strong>How a job declares it.</strong> <code>requires.enqueue(queue, function, *args, requires=[job or job id, ...], optional=False, **rq_options)</code>
+(<code>queue/requires.py</code>), on RQ's own dependency support (<code>depends_on</code>). A job that is not ready is not put in any queue: RQ keeps it
+in the queue's deferred registry, so no worker, and no round robin, can pick it. The worker that ends the last required job queues
+it, with no polling. A requirement that is already done, or done and deleted (a job with <code>result_ttl=0</code> is deleted when it ends),
+holds nothing. Both jobs must use one serializer (the queues of a lane do); <code>requires.check_serializers</code> refuses the rest.</li>
+<li><strong>Held, released, dropped.</strong> Each is one line: <code>held: job X waits for Y</code> when the job is not ready, <code>released: job X was waiting for job Y, which finished</code> as the last required job ends, and <code>dropped: job X will not run: required job Y failed (error)</code> when it
+will not run. The lines go to the log and, for a unit of a run, to the run's own log (<code>runrecord.log</code>, kinds <code>job.held</code>,
+<code>job.released</code>, <code>job.dropped</code>).</li>
+<li><strong>A failed or stopped requirement.</strong> RQ would leave the dependant deferred for ever. Every job the queue makes gets the on-failure
+callback <code>requires.job_failed</code> (a unit's own <code>units.unit_failed</code> calls it), which fails each job still held for the failed one, and
+those held for them, with <code>required job X failed</code>: they leave the deferred registry for the failed registry, and a unit that is a
+dependant fails its run with the line. A job declared <code>optional=True</code> runs after its requirements end whichever way they end.
+Stop All and a canceled queue drop the held jobs with the queued ones (<code>requires.drop_held</code>).</li>
+<li><strong>The Queue page lists them (PERF.248).</strong> A Held jobs panel on <code>/admin/queue</code> (shown only while a job is held) lists each held job
+with its queue, its run and stage when it is a unit, and the jobs it still waits for; it reads <code>GET /api/admin/work/held</code>
+(<code>requires.held_overview</code>, the first 100 and the whole count).</li>
+<li><strong>The stages of a run.</strong> A command declares the commands it requires in <code>commands.REQUIRES</code> (the phenomena index after the
+phenomena scatter, the territories after the population pass, the neighbor link and the sector paths after the sectors are
+generated). <code>commands.validate_order</code> refuses a list of steps in which a step comes before a step it requires, so a wrong order is found
+where the list is made; a stage that requires another logs <code>released: stage X opens ...</code> when it opens; a run that fails or is
+canceled logs <code>dropped: stage X did not run, the stage(s) it requires (...) did not finish</code> for each stage it left undone. The
+stages of a run still run one after another (the barrier of 5.12) and the units of a stage still run together; making two stages run together is a
+later step that needs each pair shown not to touch the other's data.</li>
+</ul>
+<h3 id="514-one-memory-and-load-gate-for-every-job-perf254-boss-334-pm-est-on-2026-11-08">5.14 One memory and load gate for every job (PERF.254, Boss 3:34 PM EST on 2026-11-08)</h3>
+<p>Until PERF.254 the size of a worker was a number typed into <code>workers.STAGE_WORKER_MEMORY_MB</code> and nothing read the host while a run went:
+the runs of 2026-10-31 and 2026-11-08 were killed by the kernel (36 workers at a guess of 452 MB against 1.4 GB tables; 15 workers at 15,128 MB
+of 15,992 MB with no figure for the block lights and the cut of the next stage inside the last unit). Boss chose to keep RQ 2.12 and build the
+gate in Redis, fed by psutil (the Dask assessment and the library research are in <code>reports/perf254-dask-assessment-2026-11-08.md</code> and
+<code>reports/job-library-research-2026-11-08.md</code>). The gate is <code>queue/memorygate.py</code>; what each kind of job claims is <code>queue/claims.py</code>.</p>
+<ul>
+<li><strong>Every job holds a claim.</strong> <code>WarmWorker.prepare_execution</code> (<code>cli/worker.py</code>) takes the job's claim before anything else (after the check that
+a worker holding the star tables starts over for a unit that needs none): <code>claims.claim_for(job)</code> gives <code>kind</code>, MB, cores and lane. A claim is
+a field of the Redis hash <code>planetgen:gate:claims</code> under the worker's name with an expiry that the heartbeat renews (<code>maintain_heartbeats</code>), so a
+worker killed with <code>kill -9</code> gives it up by itself; it is released in <code>execute_job</code>'s <code>finally</code>. No job is exempt: the kinds are
+<code>unit:&lt;command&gt;</code>, <code>cut:&lt;command&gt;</code>, <code>api:&lt;module:name&gt;</code> and <code>fn:&lt;function&gt;</code>, and <code>tests/test_memory_gate.py</code> fails for a function on
+<code>allowlist.FUNCTIONS</code>, an API function on <code>allowlist.API_FUNCTIONS</code> or a command with units that has none (the callbacks run inside the job they
+follow). The figures are the measured stage table where there is one (<code>workers.STAGE_WORKER_MEMORY_MB</code>) and a first claim by nature elsewhere
+(<code>claims.UNIT_BY_NATURE_MB</code>, <code>FUNCTION_CLAIMS</code>, <code>API_CLAIMS</code>), marked unmeasured until the gate has seen a job of the kind.</li>
+<li><strong>The rule</strong> (<code>memorygate.decide</code>, a pure function of the claim, the host and the claims held, so a scheduler can sit on top of it and ask
+only &quot;does this job fit?&quot;): free = MemAvailable - reserve (the larger of 1,024 MB and 8 percent of the host) - the memory the reserved places of the
+interactive and long lanes keep (700 MB a place, less what those lanes hold) - for every other claim, <code>max(0, claim - what its worker and horse hold now)</code>; the claim, less what the asking worker already holds, must fit. The cores claimed stay within the host's (a quarter over for the
+short lanes) and an ordinary job waits while the one-minute load per core is over 1.25 (2.0 for the short lanes, whose reserve is also half). A
+job that finds no other claim is admitted whatever it claims. The cut of a stage claims the bulk lane to itself (<code>Claim.exclusive</code>).</li>
+<li><strong>It cannot stall a run.</strong> A job waits at most 300 s (<code>MAX_WAIT_SECONDS</code>), then is let in when fewer jobs of its kind hold claims than the
+old table cap (<code>workers.stage_worker_cap</code>) allows, and otherwise goes on waiting for the cap. <code>PLANETGEN_MEMORY_GATE=0</code> turns the gate off. Each
+decision is logged: an admission at debug level (<code>area=queue</code>), a wait once a minute, a late admission as a warning; a unit or an opening that
+waited 5 s or more says so in the run's log (kind <code>gate.wait</code>).</li>
+<li><strong>Claims are learned.</strong> <code>memorygate.refresh</code> samples the proportional memory of the worker and every process under it at each heartbeat (every
+5 s while a job runs) and <code>release</code> keeps the largest as the kind's size (<code>planetgen:gate:learned</code>); a claim is the table's figure or the learned
+peak with 10 percent on top, whichever is larger, and for a kind with no figure the learned peak alone. A peak is a sample and can miss a spike;
+the retry is for that.</li>
+<li><strong>A job killed for memory</strong> (<code>units.horse_killed</code>, SIGKILL) that has a retry left is queued again by RQ with a claim 1.5 times the old one
+(or the peak seen, whichever is more; <code>memorygate.grow</code>), and the kind's size is learned; a second kill ends the run, naming the unit or the
+opening and what it claimed and held. A kill by any other signal ends the run at once, as before.</li>
+<li><strong>The cut of a stage is a job.</strong> The unit that completes a stage concludes it and queues <code>units.open_stage(run, next stage)</code>
+(<code>units.enqueue_open</code>, job id <code>&lt;run&gt;-open&lt;n&gt;</code>), which runs <code>wrapper.advance</code> in a horse of its own under the <code>cut:&lt;command&gt;</code> claim (1,500 MB
+to start with, then what the gate has seen), alone on its lane. A failure or a kill is filed under the stage being opened, not under the unit
+before it; cancel and the update guard know the job. The run's own process still opens the first stage.</li>
+<li><strong>What it does not do.</strong> The gate cannot make the cut smaller: a cut that wants 57 GB (the old order of the backfill on the full galaxy) is
+refused room it does not have and waits for the table cap. Reading counts per sky cell instead of rows is the stage code's change (PERF.252, PR 5727).
+Learned sizes are kept by kind, not by galaxy size: a table kind never claims less than its figure, a kind with no figure is
+corrected by the retry. The output of a run does not depend on any of this: the work seed is independent of how many jobs run at once.</li>
+<li><strong>Outside the queue</strong> a stretch of work takes a claim with <code>memorygate.hold(conn, claim)</code>; <code>scripts/test.py</code> does so for each phase.</li>
+</ul>
+<h3 id="515-a-fair-share-scheduler-on-the-gate-ops130-boss-344-pm-est-on-2026-11-08">5.15 A fair-share scheduler on the gate (OPS.130, Boss 3:44 PM EST on 2026-11-08)</h3>
+<p>Boss: &quot;we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a
+chance to run&quot;. The gate (5.14) answers whether one job fits; when several wait for the same room the gate alone gives it to whichever worker
+polls first, so a warm-up with thousands of units could take every freed megabyte from a visitor's job, and a large claim could wait for ever
+behind small ones. <code>queue/scheduler.py</code> answers which waiting job goes next, on the same view of the host and the claims (it is asked in place of
+<code>memorygate.decide</code>, under the same lock, and reads the same load and memory).</p>
+<ul>
+<li><strong>A waiting job is a ticket</strong> (<code>planetgen:gate:tickets</code>: the claim, when the wait began, the process), renewed at every poll (every 5 s), dropped when
+the job goes in, when its worker stops polling (30 s) or when its process is gone. Every worker and <code>memorygate.hold</code> use the scheduler; the gate
+with no scheduler is the old behaviour.</li>
+<li><strong>The order</strong> is <code>weight + aging x seconds waited - fair-share penalty</code>, highest first. Weights: the interactive lane 100, a visitor's node prefetch
+90, the long lane 80, a run's units (bulk) 40, the maintenance lane (warm-ups, checks) and anything else 30. The fair-share penalty is up to 10,
+for the share of the recent system time the job's kind has used (each finished job's seconds times its cores, charged to its kind and halved every
+hour), so within a class the kind that has used less goes first and a warm-up's thousands of units cannot keep a check or the cut of a run from a turn.</li>
+<li><strong>Aging and its bound.</strong> Every waiting second adds <code>(100 - 30 + 10) / 600</code> to the weight, so a job that has waited <strong>600 s</strong> outranks a job of any class that
+has just arrived, whatever the use: the order never keeps a job waiting longer than that behind later jobs. (How long a job waits for room is the time
+the claims in its way take to end; after 300 s the gate's own bound lets it in by the old table cap.)</li>
+<li><strong>A job goes when it is the highest ticket that fits.</strong> It is held back while a higher ticket fits now and the two would not fit together; if both fit, it goes
+(nobody is held up). Once a higher ticket has waited 120 s without room, the room that frees up is kept for it (until the 300 s bound), so a large
+claim is not starved by a stream of small ones; before that, a lower job that fits goes ahead of a higher one that does not, so the host is not left idle.</li>
+<li><strong>Reserved places.</strong> Memory and now cores are kept for the interactive and long lanes' places against the other lanes: half a core a place, never more than
+a quarter of the host's cores, less what those lanes hold (<code>memorygate.kept_mb</code>, <code>kept_cores</code>), so the site's next job always finds room, and a
+warm-up or a bulk command is slowed (waits at the gate) when the site needs the time.</li>
+<li><strong>What to read.</strong> <code>PLANETGEN_MEMORY_GATE=0</code> in a worker's environment turns the gate and the scheduler off (the old table caps alone); with it on, the log says
+what happened: <code>The memory gate holds &lt;kind&gt; (&lt;MB&gt;) for &lt;worker&gt;: &lt;reason&gt;</code> once a minute of waiting (the reason names the claim in the way, or &quot;goes first&quot;,
+or &quot;room is kept for ...&quot;), <code>The memory gate let &lt;kind&gt; in after &lt;s&gt; s of waiting, by the table cap</code> (a warning: the gate waited its 300 s), <code>gate admits ...</code> at
+debug level (<code>area=queue</code>), and the run log's <code>gate.wait</code> line for a unit or an opening that waited 5 s or more. <code>memorygate.snapshot</code> shows the claims
+and what was learned, and <code>scheduler.snapshot</code> the tickets in the order they would go with their priority, and the use of each kind.</li>
+<li><strong>What it does not do.</strong> It does not run anything by itself and does not change what a run generates (the work seed is independent of the order and
+of how many jobs run at once). The weights are a first setting (<code>LANE_WEIGHT</code>, <code>FAIR_PENALTY</code>, <code>AGING_BOUND_SECONDS</code>): the order of the classes is the rule.</li>
+</ul>
+<h2 id="6-decisions-for-boss">6. Decisions for Boss</h2>
+<p>Each has a default; the default is what a &quot;yes&quot; means.</p>
+<ol>
+<li><strong>Option A</strong> (default), B if the smallest step is preferred.</li>
+<li><strong>Redis required for every run</strong>, including one worker; the in-process fallback goes (default yes).</li>
+<li><strong>Workers: on demand with an idle timeout, no service</strong> (default), against an always-on systemd or launchd worker service.</li>
+<li><strong>Turn on AOF <code>everysec</code></strong> and set <code>noeviction</code> and a memory guard, through a documented example config and a warning from <code>update.sh</code> (default yes; <code>update.sh</code> never edits his Redis config).</li>
+<li><strong>One Redis instance</strong> (default) against two (queue and lockouts apart from caches).</li>
+<li><strong>No Redis password while it binds loopback</strong> (default); an ACL user documented for later.</li>
+<li><strong>Stage timing into the existing MySQL stage tables, from the completing unit</strong> (default yes); live task rows in MySQL end.</li>
+<li><strong>The log:</strong> the event stream is the live log; at run end it is written to the jobs directory for the download link (default), with the last 20 kept as today.</li>
+</ol>
+<h2 id="7-what-could-not-be-measured">7. What could not be measured</h2>
+<ul>
+<li>The production server: all numbers come from a 4-core sandbox with Redis 7.0.15 and no MySQL load.</li>
+<li>A full planetGen run on the new design. The prototypes used <code>time.sleep</code> and no-op units, not generation, so they show queueing, barriers, worker lifetime, cancel and per-job overhead, not generation speed. Retry of a unit interacting with the done-set was reasoned, not run.</li>
+<li>The roughly 60 database statements per task are the <code>work.py</code> header's own count; they were not re-measured.</li>
+<li>Redis 8 and Valkey were not tested; neither were macOS (RQ's fork worker is not safe there; <code>SpawnWorker</code>, RQ 2.2 and later, is the documented replacement) or the idle memory of a pre-warmed worker (195 MB earlier, before the numba work).</li>
+<li>The size of the replacement code is an estimate.</li>
+<li>The end-to-end effect of F4 through planetGen's own <code>api_jobs</code> was inferred from the library's behaviour and the measurement, not reproduced.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<p>Documentation read for this note (Redis and RQ pages were read from their documentation repositories on GitHub, <code>redis/docs</code> and <code>rq/rq</code>, <code>main</code> and <code>master</code> on 2026-10-14; the RQ pages describe master, which is ahead of the released 2.12.0 in places, so features were checked against the installed 2.12.0 package where noted):</p>
+<ul>
+<li>Redis persistence: https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/</li>
+<li>Redis eviction: https://redis.io/docs/latest/develop/reference/eviction/</li>
+<li>Redis security: https://redis.io/docs/latest/operate/oss_and_stack/management/security/</li>
+<li>Redis lists: https://redis.io/docs/latest/develop/data-types/lists/</li>
+<li>Redis streams: https://redis.io/docs/latest/develop/data-types/streams/</li>
+<li>RQ documentation: https://python-rq.org/docs/ (workers, jobs, results, exceptions, scheduling); <code>rq</code> 2.12.0 source (<code>queue.py</code>, <code>worker/base.py</code>, <code>worker_registration.py</code>, <code>intermediate_queue.py</code>)</li>
+<li>PyPI JSON for <code>rq</code>, <code>redis</code>, <code>celery</code>, <code>dramatiq</code>, <code>huey</code>, <code>arq</code>, <code>valkey</code> (versions and dates): https://pypi.org/pypi/rq/json and its siblings</li>
+<li>redis-py production usage (health checks, retry, timeouts): https://redis.io/docs/latest/develop/clients/redis-py/produsage/ (read through a search result)</li>
+<li>Kleppmann, &quot;How to do distributed locking&quot; and Antirez's reply: https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html and https://www.antirez.com/news/101 (read through search-result summaries, not the originals)</li>
+<li>Sidekiq best practices: https://sidekiq.org/wiki/Best-Practices (search result)</li>
+<li>Celery Redis broker notes (visibility timeout, eviction): https://docs.celeryq.dev/en/main/getting-started/backends-and-brokers/redis.html (search result)</li>
+<li>Task queue comparison: https://judoscale.com/blog/choose-python-task-queue (search result; one benchmark, treat as indicative)</li>
+<li>MySQL locking reads, <code>SKIP LOCKED</code>: https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html (search result)</li>
+<li>Redis 8 and AGPLv3: https://www.phoronix.com/news/Redis-8.0-Goes-AGPLv3 and https://www.infoq.com/news/2025/05/redis-agpl-license (search results); distribution packaging was not confirmed from an official package page</li>
+</ul>
+<p>Repository: <code>src/planetgen/queue/redisqueue.py</code>, <code>work.py</code>, <code>api_jobs.py</code>, <code>cli/worker.py</code>, <code>web/jobs.py</code>, <code>web/job_runner.py</code>, <code>admin/throttle.py</code>, <code>api/loginguard.py</code>, <code>api/config.py</code>, <code>db/countcache.py</code>, <code>web/lib/singleflight.py</code>, <code>generation/stages.py</code>, <code>db/control_schema.sql</code>, <code>scripts/deploy-common.sh</code>, <code>docs/TODO.md</code> (PERF.86 and the items named above).</p>
+<p>Scripts and raw output: <code>/mnt/project-files/research/redis-review/</code> (<code>b1.py</code>, <code>killtest.py</code>, <code>phantom.py</code>, <code>persist.sh</code>, <code>proto.py</code>, <code>proto_tasks.py</code>, <code>scale5.py</code>, <code>fan.py</code>, <code>fanrun.py</code>, <code>tasks.py</code>, and the <code>.out</code> files).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

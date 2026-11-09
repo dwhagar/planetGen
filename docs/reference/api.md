@@ -9,6 +9,8 @@ port). It now has a frontend: the interim `../src/html/` browser
 rather than a direct database consumer — see that doc's own note on the
 switch, and "Deploying" below for how both are served by one app.
 
+**Every route the code registers, in one list built from the route decorators: [../generated/api-routes.md](../generated/api-routes.md).** Use it to find a route this page does not describe.
+
 Every read endpoint is fully implemented and unauthenticated (read-only,
 no account needed), except the admin stats endpoints. Every write endpoint
 (create/modify/delete a sector, system or facility, rename a body,

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Natal kick: how many neutron stars a galaxy ejects (GEN.554, slice 3) - planetGen docs</title>
+<meta name="description" content="Status: built (GEN.554 slice 3).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/natal-kick.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/natal-kick.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="natal-kick-how-many-neutron-stars-a-galaxy-ejects-gen554-slice-3">Natal kick: how many neutron stars a galaxy ejects (GEN.554, slice 3)</h1><p class="meta">docs/design/systems/natal-kick.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#what-changed">What changed</a></li><li style="margin-left:0px"><a href="#numbers">Numbers</a></li><li style="margin-left:0px"><a href="#what-follows">What follows</a></li><li style="margin-left:0px"><a href="#the-ejected-stars-speed">The ejected stars' speed</a></li><li style="margin-left:0px"><a href="#stand-ins-and-open-items">Stand-ins and open items</a></li><li style="margin-left:0px"><a href="#tests">Tests</a></li></ul></details>
+<p>Status: built (GEN.554 slice 3). The placement of the kicked stars (the thicker layer, the black hole core excess) is still <code>remnant_distribution.py</code>'s empirical factors; deriving it is a later slice. Code: <code>galaxy/natal_kick.py</code>, <code>galaxy/structure_draw.py</code> (<code>draw_neutron_star_unbound_share</code>), <code>galaxy/structure.py</code> (the reference structure's share), <code>galaxy/ejecta_field.py</code>.</p>
+<h2 id="what-changed">What changed</h2>
+<p>Before: each galaxy drew its unbound share of the neutron stars uniformly from 20% to 40% (<code>NEUTRON_STAR_UNBOUND_FRACTION_RANGE</code>, &quot;[R1966]'s kick distribution against the escape speed&quot;, recalled), whatever its size.</p>
+<p>After: the share is what the kick law sends past the galaxy's escape speed. A neutron star is born with the speed of its progenitor, the galaxy's circular speed <code>Vc</code> along the disc, plus a kick in a random direction. The kick is a Maxwellian of one-dimensional dispersion 265 km/s (<code>tuning.NEUTRON_STAR_KICK_SIGMA_KMS</code>, [R1966] as <code>multistar-and-compact-systems.md</code> records it), so the velocity is a three-dimensional Gaussian about <code>Vc</code> and the chance that it exceeds <code>v_esc</code> is the noncentral chi tail of three degrees of freedom, in closed form (<code>survival</code>). The massive stars that leave neutron stars are born in the thin disc, <code>R exp(-R / L)</code> per unit radius, so the galaxy's share is the mean over 32 equal shares of that law.</p>
+<p>The escape speed is the galaxy's own: the halo's Navarro, Frenk and White potential from the mass chain (halo mass, virial radius, concentration) plus the stars' mass as a Plummer sphere of the disc's scale length.</p>
+<pre><code>v_esc^2 = 2 ( V200^2 c / m(c) * ln(1 + x) / x  +  G M_* / sqrt(R^2 + L^2) ),  x = R / r_s,  r_s = r200 / c
+</code></pre>
+<h2 id="numbers">Numbers</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Galaxy</th>
+<th>Escape speed at 8.2 kpc</th>
+<th>Neutron stars ejected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Milky Way masses (5e10 of stars, published halo 1.15e12)</td>
+<td>539 km/s (the measured value is about 550)</td>
+<td>27%</td>
+</tr>
+<tr>
+<td>Median halo of 5e10 of stars (2e12, the reference structure)</td>
+<td>632 km/s</td>
+<td>16%</td>
+</tr>
+<tr>
+<td>Over 200 drawn galaxies</td>
+<td></td>
+<td>0 to 74%, median about 50%: the small galaxies lose most</td>
+</tr>
+</tbody>
+</table></div>
+<p>The old 20% to 40% is a test target for the Milky Way's published masses (27%, inside it); the reference structure's 16% is 20% under the range's low end, and the gap is shown in <code>tests/test_natal_kick.py</code>. The nature of the draws changes: the share was one uniform draw per galaxy and is now a function of its stellar mass, halo, circular speed and disc length, so a seed still gives one value.</p>
+<h2 id="what-follows">What follows</h2>
+<ul>
+<li>The neutron star count of every place (<code>remnant_density</code>) and the ejected count (<code>ejecta_field</code>) read the share from the structure, as in slice 1; bound plus ejected is still what the galaxy formed.</li>
+<li>The black hole share cap (GEN.563 card 5, &quot;Keep the cap&quot;) is the Milky Way-like galaxy's, the same for every galaxy: with a derived share a galaxy that ejects more than 59% of its neutron stars would have a cap of 0 and no stellar black holes. The choice is on Boss's card (the cap at the Milky Way-like share is the recommended option, and the one built).</li>
+</ul>
+<h2 id="the-ejected-stars-speed">The ejected stars' speed</h2>
+<p>A kick speed <code>s</code> above the escape speed <code>v</code> at the birth radius leaves the neutron star with <code>sqrt(s^2 - v^2)</code> far out. The speed
+law is the density of <code>|V + k|</code> (the noncentral chi of three degrees of freedom, <code>_speed_density</code>), integrated above <code>v</code> over the
+same birth radii, and the galaxy's structure holds its 16 equal-share quantiles (<code>Structure.neutron_star_ejecta_speeds_kms</code>,
+<code>ejecta_speeds_kms</code>). The ejecta population's density takes their mean (<code>ejecta_field.mean_speed_kms</code>: 386 km/s for the
+Milky Way-like structure, against the 400 of the old 300 to 500 range) and each object draws a speed between two quantiles.
+A galaxy that ejects none has none. A black hole's speed keeps the range (<code>EJECTA_SPEED_RANGE_KMS</code>), a <strong>[stand-in]</strong> with the 2%.</p>
+<h2 id="stand-ins-and-open-items">Stand-ins and open items</h2>
+<ul>
+<li><strong>[recalled]</strong> The dispersion 265 km/s [R1966] is recalled in the repository's notes and not re-read (Boss, 1:17 PM EDT 2026-10-21: use what is included); one Maxwellian stands for what is probably two components <strong>[stand-in]</strong>.</li>
+<li>The black holes' 2% (<code>BLACK_HOLE_UNBOUND_FRACTION</code>, one population synthesis) is not derived: a momentum-conserving kick of <code>sigma x 1.4 / M</code> (37 km/s for 10 solar masses) unbinds almost none. It stays a <strong>[placeholder]</strong>.</li>
+<li><strong>[stand-in]</strong> Birth in the thin disc only: the bulge's and the halo's neutron stars are born at their own radii, not averaged here. Disc scale lengths a shape fixes by hand keep the seed's drawn length for this share.</li>
+<li>The potential is spherical and static, and the progenitor's speed is the circular speed with no asymmetric drift.</li>
+</ul>
+<h2 id="tests">Tests</h2>
+<p><code>tests/test_natal_kick.py</code>: the survival formula matches a drawn kick, falls with the threshold and rises with the progenitor's speed; the birth radii divide the disc into equal shares; the escape speed falls outward and rises with the halo, and is 490 to 600 km/s for the Milky Way's masses; the Milky Way's share is inside 20% to 40%; a faster kick ejects more and a deeper well fewer; a seed draws the share its structure carries; small galaxies lose more than large ones.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

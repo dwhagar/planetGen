@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Items: POP, Population - planetGen docs</title>
+<meta name="description" content="The life of every POP item that a commit title names, from the git history as of d02661568: first and last date, whether it is open in docs/TODO.md now, and its commit titles in order (the pull request numbers are the GitHub pull requests).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/items-POP.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/items-POP.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="items-pop-population">Items: POP, Population</h1><p class="meta">docs/history/items-POP.md</p><details class="toc"><summary>On this page (15 headings)</summary><ul><li style="margin-left:0px"><a href="#pop7">POP.7</a></li><li style="margin-left:0px"><a href="#pop8">POP.8</a></li><li style="margin-left:0px"><a href="#pop9">POP.9</a></li><li style="margin-left:0px"><a href="#pop10">POP.10</a></li><li style="margin-left:0px"><a href="#pop12">POP.12</a></li><li style="margin-left:0px"><a href="#pop13">POP.13</a></li><li style="margin-left:0px"><a href="#pop14">POP.14</a></li><li style="margin-left:0px"><a href="#pop15">POP.15</a></li><li style="margin-left:0px"><a href="#pop26">POP.26</a></li><li style="margin-left:0px"><a href="#pop29">POP.29</a></li><li style="margin-left:0px"><a href="#pop30">POP.30</a></li><li style="margin-left:0px"><a href="#pop35">POP.35</a></li><li style="margin-left:0px"><a href="#pop36">POP.36</a></li><li style="margin-left:0px"><a href="#pop37">POP.37</a></li><li style="margin-left:0px"><a href="#pop40">POP.40</a></li></ul></details>
+<p>The life of every POP item that a commit title names, from the git history as of <code>d02661568</code>: first and last date, whether it is open in <a href="../TODO.html">docs/TODO.md</a> now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; <a href="dropped-and-closed.html">dropped-and-closed.md</a> lists the closings.</p>
+<h2 id="pop7">POP.7</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: retire POP.9 and POP.7 (PR #1461), move GEN.214-216 to Generation (#1462)</li>
+</ul>
+<h2 id="pop8">POP.8</h2>
+<p>2026-10-14 to 2026-10-14; 2 commits; not open.</p>
+<ul>
+<li>2026-10-14: POP.8: draw the six tech indices and the tech level of a species (#1422)</li>
+<li>2026-10-14: Retire POP.8 (tech-level design, PR #1422) (#1424)</li>
+</ul>
+<h2 id="pop9">POP.9</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Retire DB.26 and OPS.50; add DB.27 and DB.28 migrations for POP.9 and POP.10 (#1426)</li>
+<li>2026-10-15: POP.9: species tech levels in the population pass, API, table and page (#1461)</li>
+<li>2026-10-15: TODO: retire POP.9 and POP.7 (PR #1461), move GEN.214-216 to Generation (#1462)</li>
+</ul>
+<h2 id="pop10">POP.10</h2>
+<p>2026-10-14 to 2026-10-15; 5 commits; not open.</p>
+<ul>
+<li>2026-10-14: Retire DB.26 and OPS.50; add DB.27 and DB.28 migrations for POP.9 and POP.10 (#1426)</li>
+<li>2026-10-15: POP.10: facility types, typed fields, affiliation, ratings and suggested ratings (API) (#1517)</li>
+<li>2026-10-15: Record the POP.10 API part (PR #1517) (#1518)</li>
+<li>2026-10-15: POP.10: facility types, affiliation and ratings on the system page, and the admin Facility types page (web) (#1524)</li>
+<li>2026-10-15: Retire POP.10 (PRs #1517, #1524) (#1526)</li>
+</ul>
+<h2 id="pop12">POP.12</h2>
+<p>2026-10-15 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: add DB.30, POP.12, POP.13 (species environment limits, could-live-here list, species editor) (#1463)</li>
+<li>2026-10-15: POP.12: species environment limits and what could live where (#1554)</li>
+<li>2026-10-15: TODO: retire PERF.96, PERF.33 and POP.12, file TEST.157, record the uniform wedge rule (#1555)</li>
+</ul>
+<h2 id="pop13">POP.13</h2>
+<p>2026-10-15 to 2026-10-23; 2 commits; open.</p>
+<ul>
+<li>2026-10-15: TODO: add DB.30, POP.12, POP.13 (species environment limits, could-live-here list, species editor) (#1463)</li>
+<li>2026-10-23: Docs: retire POP.14 (#2651, epoch 59), GEN.636 decision, POP.13 note (#2652)</li>
+</ul>
+<h2 id="pop14">POP.14</h2>
+<p>2026-10-15 to 2026-10-23; 4 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: add POP.14 (a race is only placed within its limits) (#1468)</li>
+<li>2026-10-15: TODO: POP.14 held branch note (#1571)</li>
+<li>2026-10-23: POP.14: a species is only placed where it can live, with a placement check and a consistency report (#2651)</li>
+<li>2026-10-23: Docs: retire POP.14 (#2651, epoch 59), GEN.636 decision, POP.13 note (#2652)</li>
+</ul>
+<h2 id="pop15">POP.15</h2>
+<p>2026-10-23 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: survival equipment lane and items GEN.655 to GEN.658, DB.93, UX.153, UX.154, POP.15 (#2736)</li>
+<li>2026-10-23: Docs: GEN.655, DB.93, POP.15 merged (#2766), retired; migration 0137 next; 806 of 1206 (#2819)</li>
+</ul>
+<h2 id="pop26">POP.26</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; open.</p>
+<ul>
+<li>2026-11-07: Retire PERF.227 (fix merged and gated since); POP.26 spacing ruling (#5588)</li>
+</ul>
+<h2 id="pop29">POP.29</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: file the world population and trade routes tree (POP.29-POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382) (#3204)</li>
+</ul>
+<h2 id="pop30">POP.30</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.318, note on POP.30 (#3485)</li>
+</ul>
+<h2 id="pop35">POP.35</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; open.</p>
+<ul>
+<li>2026-11-05: docs: spread foundations back, file the approved 9.2 and 9.3 breakdowns, move POP.35 and POP.36 to 9.2 (#5207)</li>
+</ul>
+<h2 id="pop36">POP.36</h2>
+<p>2026-10-24 to 2026-11-05; 2 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: file the world population and trade routes tree (POP.29-POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382) (#3204)</li>
+<li>2026-11-05: docs: spread foundations back, file the approved 9.2 and 9.3 breakdowns, move POP.35 and POP.36 to 9.2 (#5207)</li>
+</ul>
+<h2 id="pop37">POP.37</h2>
+<p>2026-10-24 to 2026-10-25; 5 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: file UX.214, MAP.311, POP.37, ADM.132 from the habitability and life score use audit (#3213)</li>
+<li>2026-10-24: Docs: owners for UX.214, MAP.311, ADM.132; POP.37 into 8.1 (#3214)</li>
+<li>2026-10-24: Docs: file TEST.383; record POP.37 owner (#3215)</li>
+<li>2026-10-25: POP.37: facility ratings read the host's Suitability, food rung, radiation domain and Flora and Fauna</li>
+<li>2026-10-25: Docs: retire POP.37, retire Aux 3 (#3277)</li>
+</ul>
+<h2 id="pop40">POP.40</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: unused stored values chains (POP.40-45, GEN.804-811, UX.224-228, PERF.195-197, OPS.72-74), air fixed point findings GEN.812-818, bugs ADM.134 and TEST.387; retire GEN.654, DB.92, GEN.751 (#3223)</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

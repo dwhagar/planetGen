@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>planetGen - planetGen docs</title>
+<meta name="description" content="Version: 8.0.3731 &amp;middot; Changelog &amp;middot; Repository &amp;middot; License: CC0 1.0 Universal">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/README.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="repo/README.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="planetgen">planetGen</h1><p class="meta">README.md</p><details class="toc"><summary>On this page (26 headings)</summary><ul><li style="margin-left:0px"><a href="#headline-features">Headline features</a></li><li style="margin-left:14px"><a href="#coming-next">Coming next</a></li><li style="margin-left:0px"><a href="#what-it-does-today">What it does today</a></li><li style="margin-left:0px"><a href="#requirements">Requirements</a></li><li style="margin-left:0px"><a href="#external-files">External files</a></li><li style="margin-left:14px"><a href="#isochrones-mist-v12-isochrones-main-sequence-vvcrit-04-solar-scaled">isochrones: MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)</a></li><li style="margin-left:14px"><a href="#white_dwarf_models-r0308-white-dwarf-cooling-sequences">white_dwarf_models: [R0308] white-dwarf cooling sequences</a></li><li style="margin-left:14px"><a href="#neutron_star_matter-neutron-star-equations-of-state-r2834-and-outer-crust-compositions-r4028">neutron_star_matter: Neutron-star equations of state [R2834] and outer-crust compositions [R4028]</a></li><li style="margin-left:14px"><a href="#ozone_uv-ozone-absorption-cross-sections-195-to-830-nm-at-218-243-and-295-k-and-the-chappuis-band-at-220-to-298-k-brion-daumont-malicet-burkholder-and-talukdar-mpi-mainz-atlas">ozone_uv: Ozone absorption cross sections, 195 to 830 nm at 218, 243 and 295 K, and the Chappuis band at 220 to 298 K (Brion, Daumont, Malicet; Burkholder and Talukdar; MPI-Mainz atlas)</a></li><li style="margin-left:14px"><a href="#ir_ktables-infrared-correlated-k-tables-of-h2o-co2-ch4-nh3-so2-h2s-co-and-hcn-exomolop-r1000">ir_ktables: Infrared correlated-k tables of H2O, CO2, CH4, NH3, SO2, H2S, CO and HCN (ExoMolOP, R1000)</a></li><li style="margin-left:14px"><a href="#ir_cia-collision-induced-absorption-of-n2-o2-co2-h2-he-and-ch4-pairs-hitran-cia-2011-to-2024-releases">ir_cia: Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)</a></li><li style="margin-left:14px"><a href="#harris_clusters-harris-catalog-of-parameters-for-milky-way-globular-clusters-2010-edition">harris_clusters: Harris catalog of parameters for Milky Way globular clusters (2010 edition)</a></li><li style="margin-left:14px"><a href="#noaa_proton_events-noaa-solar-proton-events-above-10-mev-1976-to-2017">noaa_proton_events: NOAA solar proton events above 10 MeV, 1976 to 2017</a></li><li style="margin-left:14px"><a href="#baraffe_isochrones-r0254-bhac15-isochrones-of-low-mass-stars-and-brown-dwarfs">baraffe_isochrones: [R0254] (BHAC15) isochrones of low-mass stars and brown dwarfs</a></li><li style="margin-left:14px"><a href="#stellar_spectra-model-atmosphere-spectra-castelli-and-kurucz-atlas9-fluxes-3500-to-50000-k-and-husser-et-al-phoenix-aces-2300-to-3500-k">stellar_spectra: Model-atmosphere spectra: Castelli and Kurucz ATLAS9 fluxes (3500 to 50000 K) and Husser et al. PHOENIX-ACES (2300 to 3500 K)</a></li><li style="margin-left:14px"><a href="#mamajek_dwarf_sequence-mamajek-mean-dwarf-stellar-color-and-effective-temperature-sequence-20220416">mamajek_dwarf_sequence: Mamajek mean dwarf stellar color and effective temperature sequence (2022.04.16)</a></li><li style="margin-left:14px"><a href="#hhe_eos-r0708-hydrogen-helium-equation-of-state-t-p-tables">hhe_eos: [R0708] hydrogen-helium equation of state, (T, P) tables</a></li><li style="margin-left:14px"><a href="#hyg_stars-hyg-star-database-v41-test-oracle-for-the-generated-sky">hyg_stars: HYG star database v4.1 (test oracle for the generated sky)</a></li><li style="margin-left:0px"><a href="#usage">Usage</a></li><li style="margin-left:14px"><a href="#the-website">The website</a></li><li style="margin-left:14px"><a href="#the-command-line">The command line</a></li><li style="margin-left:14px"><a href="#other-tools">Other tools</a></li><li style="margin-left:0px"><a href="#documentation">Documentation</a></li><li style="margin-left:0px"><a href="#a-note-on-accuracy">A note on accuracy</a></li><li style="margin-left:0px"><a href="#contributing">Contributing</a></li><li style="margin-left:0px"><a href="#license">License</a></li></ul></details>
+<p><strong>Version:</strong> 8.0.3731 · <a href="https://github.com/dwhagar/planetGen/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/dwhagar/planetGen">Repository</a> · License: <a href="https://github.com/dwhagar/planetGen/blob/main/LICENSE.md">CC0 1.0 Universal</a></p>
+<p>planetGen generates a galaxy: stars, star systems, planets, moons,
+asteroid belts and exotic phenomena, placed in a physically modeled
+spiral galaxy and saved to a MySQL database. A website on top of it lets
+you browse and search the galaxy, fly around it on 3D maps, and copy any
+system's write-up as Markdown. It was built for
+the Molten Aether FFRP game.</p>
+<p><strong>To install it, see <a href="INSTALL.html">INSTALL.md</a>.</strong></p>
+<h2 id="headline-features">Headline features</h2>
+<p>Every release in the <a href="https://github.com/dwhagar/planetGen/blob/main/CHANGELOG.md">changelog</a> opens with its one best
+feature. These are the ones that shaped the program, oldest first.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Release</th>
+<th>Date</th>
+<th>Headline feature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0.0</td>
+<td>2024-06-25</td>
+<td>First fully working end-to-end planet generator validated against Earth</td>
+</tr>
+<tr>
+<td>3.0.0</td>
+<td>2026-07-07</td>
+<td>Binary star systems</td>
+</tr>
+<tr>
+<td>5.0.0</td>
+<td>2026-09-05</td>
+<td>Space sectors placing star systems in 3D positions with realistic spacing and save/load</td>
+</tr>
+<tr>
+<td>5.2.1</td>
+<td>2026-09-06</td>
+<td>Web interface for browsing saved databases, with Apache deployment and one-shot installer</td>
+</tr>
+<tr>
+<td>5.4.8</td>
+<td>2026-09-09</td>
+<td>Galaxy-wide density skeleton with lazy, visit-triggered sector generation</td>
+</tr>
+<tr>
+<td>5.5.0</td>
+<td>2026-09-09</td>
+<td>MySQL backend replaces SQLite, plus a paginated, validated API</td>
+</tr>
+<tr>
+<td>5.8.0</td>
+<td>2026-09-10</td>
+<td>NAV feature: course, distance, warp times, and optimal routes between systems</td>
+</tr>
+<tr>
+<td>5.29.0</td>
+<td>2026-09-12</td>
+<td>Exotic phenomena: black holes, neutron stars, nebulae, supernova remnants, rogue planets, comets</td>
+</tr>
+<tr>
+<td>5.37.0</td>
+<td>2026-09-18</td>
+<td>Publish systems and sectors to Wiki.js or MediaWiki from the web interface</td>
+</tr>
+<tr>
+<td>5.46.13</td>
+<td>2026-09-23</td>
+<td>Interactive 3D Galaxy Map with live viewport queries and copyable generate commands</td>
+</tr>
+<tr>
+<td>5.47.0</td>
+<td>2026-09-24</td>
+<td>Galaxy Map loads space as cached cube tiles, preventing server crashes</td>
+</tr>
+<tr>
+<td>6.1.0</td>
+<td>2026-09-30</td>
+<td>Generate, plan and reset the galaxy from the web interface</td>
+</tr>
+<tr>
+<td>7.23.0</td>
+<td>2026-10-01</td>
+<td>Stars drawn from real physics: mass function, age and stellar evolution</td>
+</tr>
+<tr>
+<td>7.44.0</td>
+<td>2026-10-01</td>
+<td>Galaxy Map drill-down from whole galaxy to single sectors with linkable stages</td>
+</tr>
+<tr>
+<td>7.49.0</td>
+<td>2026-10-01</td>
+<td>Dominant species, civilizations and polities that claim territories in 3D</td>
+</tr>
+<tr>
+<td>7.143.452</td>
+<td>2026-10-02</td>
+<td>One 128-bit seed per galaxy gives reproducible generation at any worker count</td>
+</tr>
+<tr>
+<td>7.225.618</td>
+<td>2026-10-07</td>
+<td>Milky Way galaxy model with thin disk, thick disk and boxy bar bulge</td>
+</tr>
+<tr>
+<td>7.339.675</td>
+<td>2026-10-08</td>
+<td>3D system view with orbits, belts, free camera and time control</td>
+</tr>
+<tr>
+<td>8.0.711</td>
+<td>2026-10-09</td>
+<td>Phase 0 complete: saved sector paths, nearby-object search and re-centerable 3D maps</td>
+</tr>
+<tr>
+<td>8.0.912</td>
+<td>2026-10-10</td>
+<td>Every planet and moon gets a habitability score and equipment-needed rating</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="coming-next">Coming next</h3>
+<p>Each upcoming release has one headline feature, and the project plan
+traces exactly which items each one needs (the plan pages list them in
+build order).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Release</th>
+<th>Headline feature</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.0</td>
+<td>The orbital update system: the galaxy moves in real time under real gravity</td>
+<td>In progress</td>
+</tr>
+<tr>
+<td>8.1</td>
+<td>Infinite zoom: fly from the whole galaxy down to a single moon on one map</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>8.5</td>
+<td>Courses that bend around gravity wells, with waypoints, editable and saved courses</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>9.0</td>
+<td>The gravity map: the pull, depth and tidal strength of a sector as a heat map</td>
+<td>Planned</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-it-does-today">What it does today</h2>
+<ul>
+<li><strong>Stars drawn as physics</strong>: a mass from the Kroupa initial mass
+function, an age from the galaxy's star-formation history, then how
+the star has evolved by now (main sequence, subgiant, giant,
+supergiant or white dwarf). The result matches the real galaxy: about
+three in four stars are M dwarfs and supergiants are about one in a
+million. A star can also be pinned to a type such as <code>G2V</code>.</li>
+<li><strong>Binary systems</strong>, both close (circumbinary) pairs and wide pairs where
+each star keeps its own planets. The two stars are born together, and
+orbits respect published stability limits.</li>
+<li><strong>Planets and moons</strong> from 25 planet classes, placed in physically
+plausible orbits and named from their system (<code>Sol III</code>, <code>Sol IIIa</code>).
+They follow their star's history: a very young star has only belts,
+and a giant has swallowed its inner planets.</li>
+<li><strong>Habitable worlds and life</strong>: which life chemistries a star supports,
+and a speculative evolutionary timeline for each living world.</li>
+<li><strong>A whole galaxy</strong>: a density model of a spiral galaxy, with young,
+old and bulge star populations, cut into 4 pc (13 ly) sectors on a
+grid of spherical shells, bands and wedges around a round core. Planning the galaxy also places every bright star
+(500 times the Sun's luminosity or more, about 60 million in a Milky
+Way) so the spiral arms exist from the start. Sectors are then filled
+a neighborhood at a time, where and when you need them, with star
+ages that follow where each sector sits.</li>
+<li><strong>Exotic phenomena</strong> at research-based interstellar rates: black
+holes, neutron stars, nebulae (classed A-Q, including planetary
+nebulae) and supernova remnants (R-W) with what fills them, rogue
+planets in four mass bins plus free-floating brown dwarfs,
+interstellar comets, and runaway and hypervelocity stars. Nebulae come
+with the stars that make them: H II regions around O and B stars, a
+white dwarf at the heart of each planetary nebula. Each object records
+the cloud it sits inside (which squeezes the heliosphere of systems
+within it), its sector octant and its three nearest systems. Every
+galaxy has a supermassive black hole at its center, or one time in ten
+an active quasar.</li>
+<li><strong>Facilities</strong>: starbases, stations, colonies and outposts on planets
+and moons, in orbit, in belts or in open space, placed by an admin
+from a system's page or through the API.</li>
+<li><strong>Population (optional, off by default)</strong>: a pass that names the
+dominant species of worlds with complex life, dates civilizations and
+their eras, and gives each spacefaring species a polity whose
+territory claims the systems around it.</li>
+<li><strong>Time passes</strong>: a monthly update moves planets and moons along their
+orbits and every system and phenomenon along its galactic orbit,
+carrying anything that drifts into another sector over to it.</li>
+<li><strong>A website</strong> to browse it all: sector and system pages, faceted
+search, 3D maps of the galaxy and of each sector, a System Map that
+measures routes around planets and stars, a NAV page that plots
+courses between systems, a JSON API, and admin pages to generate the
+galaxy from the browser.</li>
+</ul>
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>Python 3.12 or later, with numba (the compiled numeric kernels; <code>install.sh</code> and <code>update.sh</code> install it, and there is no fallback without it). This replaced the old Python 3.9 minimum with numba (OPS.42).</li>
+<li>MySQL 8.0.19+ (MariaDB is not supported).</li>
+<li>Redis (any recent version): the Generate page's jobs, the work queue behind <code>--workers</code> above 1, the rate limits and the login lockouts run on it. <code>install.sh</code> and <code>update.sh</code> install and start it on Debian and Ubuntu and check its settings.</li>
+<li>For the website, a web server: Apache2 with mod_wsgi on Debian or
+Ubuntu (the reference setup), nginx or Caddy on Linux, or nginx on
+macOS.</li>
+<li>Install and update scripts: <code>install.sh</code> and <code>update.sh</code> on Linux and
+macOS.</li>
+<li>Windows: see <a href="../deployment/WINDOWS.html">docs/deployment/WINDOWS.md</a>.</li>
+</ul>
+<p><a href="INSTALL.html">INSTALL.md</a> lists the full requirements and walks through
+the install.</p>
+<h2 id="external-files">External files</h2>
+<p>The generator reads a few large published data sets that are not in this repository (raw data sets are never committed). <code>install.sh</code> and <code>update.sh</code> download them once at setup, as root, with <code>python3 -m planetgen.cli.datasets fetch</code>; nothing downloads while the site or the generator runs. Each file is requested over https, must have the exact size and sha256 the catalogue (<code>src/planetgen/datasets/catalogue.py</code>) states, and is kept by an atomic rename. They go in the cache folder <code>/var/cache/planetgen/datasets</code> (one sub-folder per set below), or in the folder <code>PLANETGEN_DATA_DIR</code> names. The licence and citation of each set are in <a href="https://github.com/dwhagar/planetGen/blob/main/DATA-LICENSE.md">DATA-LICENSE.md</a>.</p>
+<ul>
+<li><strong>Fetched at setup:</strong> every set listed below. <strong>Provided by hand:</strong> none; the program reads no other external file.</li>
+<li><strong>See where each stands:</strong> <code>python3 -m planetgen.cli.datasets status</code> fetches nothing, says which sets are present, prints the URL of every missing file, and exits 1 while one is missing. <code>fetch</code> prints one line per file with its URL and what happened to it (<code>fetched</code>, <code>kept</code> or <code>failed</code> with the reason), and <code>update.sh</code> and <code>install.sh</code> show those lines.</li>
+<li><strong>When a file is missing:</strong> a bulk run (<code>galaxy</code>, <code>plan</code>, <code>population</code>, <code>sector</code> with more than one sector, the Generate page's jobs and the Sector page's neighbourhood button) refuses to start, writes nothing, and names each missing set, why, every file with its URL and the setup command (<code>python3 -m planetgen.cli.datasets fetch KEY</code>). Unless it is told, in so many words, to disregard missing files (<code>--disregard-missing-data</code> on any subcommand, the &quot;Disregard missing data files&quot; box on the Generate page, or <code>&quot;disregard_missing_data&quot;: true</code> in the neighbourhood request): it then starts, uses the labelled fallback listed under each set below, and prints the fallbacks in the run header. One system, one sector or one phenomenon is not gated.</li>
+<li><strong>Installing a set by hand</strong> (the host is down, or the machine has no network): download each URL listed under the set on a machine that can, check the file's size and sha256 against the catalogue entry, copy it into the folder <code>&lt;cache folder&gt;/&lt;set key&gt;/</code> under the name shown, make the folder readable for the web server's user, and run <code>python3 -m planetgen.cli.datasets fetch KEY</code>: a file already there with the right size and sha256 is kept and not requested again (one that fails the check is requested again), and a set that is reduced to a smaller file (the &quot;kept after setup&quot; file) is reduced from it.</li>
+</ul>
+<p>The list below is written from the catalogue by <code>scripts/readme_external_files.py --write</code>, and a test fails until it matches, so a new set cannot skip it.</p>
+<!-- external-files:start (written by scripts/readme_external_files.py) -->
+<h3 id="isochrones-mist-v12-isochrones-main-sequence-vvcrit-04-solar-scaled"><code>isochrones</code>: MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)</h3>
+<ul>
+<li>Source: [R0773, R1150], MIST v1.2, mist.science.</li>
+<li>Download: 1 file, 221.5 MB. Kept after setup: <code>main_sequence.npz</code>, <code>post_main_sequence.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch isochrones</code>.</li>
+<li>Replaces: the [R0254] track at solar metallicity and the fitted relations of the stellar-composition note.</li>
+<li>With <code>--disregard-missing-data</code>: No MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star).</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://mist.science/data/tarballs_v1.2/MIST_v1.2_vvcrit0.4_basic_isos.txz">https://mist.science/data/tarballs_v1.2/MIST_v1.2_vvcrit0.4_basic_isos.txz</a> as <code>MIST_v1.2_vvcrit0.4_basic_isos.txz</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="white_dwarf_models-r0308-white-dwarf-cooling-sequences"><code>white_dwarf_models</code>: [R0308] white-dwarf cooling sequences</h3>
+<ul>
+<li>Source: [R0308].</li>
+<li>Download: 1 file, 2.5 MB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch white_dwarf_models</code>.</li>
+<li>Replaces: the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split.</li>
+<li>With <code>--disregard-missing-data</code>: The radius of the zero-temperature Chandrasekhar table (Sirius B check, no temperature or layers), no layer fractions, and the Mestel power law of the cooling (the stand-in that came before the sequences: luminosity of the cooling age, one radius per mass).</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/sequences.tar">https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/sequences.tar</a> as <code>sequences.tar</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="neutron_star_matter-neutron-star-equations-of-state-r2834-and-outer-crust-compositions-r4028"><code>neutron_star_matter</code>: Neutron-star equations of state [R2834] and outer-crust compositions [R4028]</h3>
+<ul>
+<li>Source: [R2834, R4028], Zenodo.</li>
+<li>Download: 22 files, 2.0 MB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch neutron_star_matter</code>.</li>
+<li>Replaces: the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note.</li>
+<li>With <code>--disregard-missing-data</code>: The one outer-crust sequence of [R0722: Table 2], in place of the 20 nuclear mass models.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://zenodo.org/records/20085135/files/compositions.zip?download=1">https://zenodo.org/records/20085135/files/compositions.zip?download=1</a> as <code>compositions.zip</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS1.txt?download=1">https://zenodo.org/records/10950421/files/EOS1.txt?download=1</a> as <code>EOS1.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS2.txt?download=1">https://zenodo.org/records/10950421/files/EOS2.txt?download=1</a> as <code>EOS2.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS3.txt?download=1">https://zenodo.org/records/10950421/files/EOS3.txt?download=1</a> as <code>EOS3.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS4.txt?download=1">https://zenodo.org/records/10950421/files/EOS4.txt?download=1</a> as <code>EOS4.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS5.txt?download=1">https://zenodo.org/records/10950421/files/EOS5.txt?download=1</a> as <code>EOS5.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS6.txt?download=1">https://zenodo.org/records/10950421/files/EOS6.txt?download=1</a> as <code>EOS6.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS7.txt?download=1">https://zenodo.org/records/10950421/files/EOS7.txt?download=1</a> as <code>EOS7.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS8.txt?download=1">https://zenodo.org/records/10950421/files/EOS8.txt?download=1</a> as <code>EOS8.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS9.txt?download=1">https://zenodo.org/records/10950421/files/EOS9.txt?download=1</a> as <code>EOS9.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS10.txt?download=1">https://zenodo.org/records/10950421/files/EOS10.txt?download=1</a> as <code>EOS10.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS11.txt?download=1">https://zenodo.org/records/10950421/files/EOS11.txt?download=1</a> as <code>EOS11.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS12.txt?download=1">https://zenodo.org/records/10950421/files/EOS12.txt?download=1</a> as <code>EOS12.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS13.txt?download=1">https://zenodo.org/records/10950421/files/EOS13.txt?download=1</a> as <code>EOS13.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS14.txt?download=1">https://zenodo.org/records/10950421/files/EOS14.txt?download=1</a> as <code>EOS14.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS15.txt?download=1">https://zenodo.org/records/10950421/files/EOS15.txt?download=1</a> as <code>EOS15.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS16.txt?download=1">https://zenodo.org/records/10950421/files/EOS16.txt?download=1</a> as <code>EOS16.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS17.txt?download=1">https://zenodo.org/records/10950421/files/EOS17.txt?download=1</a> as <code>EOS17.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS18.txt?download=1">https://zenodo.org/records/10950421/files/EOS18.txt?download=1</a> as <code>EOS18.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS19.txt?download=1">https://zenodo.org/records/10950421/files/EOS19.txt?download=1</a> as <code>EOS19.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS20.txt?download=1">https://zenodo.org/records/10950421/files/EOS20.txt?download=1</a> as <code>EOS20.txt</code></li>
+<li><a href="https://zenodo.org/records/10950421/files/EOS21.txt?download=1">https://zenodo.org/records/10950421/files/EOS21.txt?download=1</a> as <code>EOS21.txt</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="ozone_uv-ozone-absorption-cross-sections-195-to-830-nm-at-218-243-and-295-k-and-the-chappuis-band-at-220-to-298-k-brion-daumont-malicet-burkholder-and-talukdar-mpi-mainz-atlas"><code>ozone_uv</code>: Ozone absorption cross sections, 195 to 830 nm at 218, 243 and 295 K, and the Chappuis band at 220 to 298 K (Brion, Daumont, Malicet; Burkholder and Talukdar; MPI-Mainz atlas)</h3>
+<ul>
+<li>Source: [R2303] (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo [R2302], CC BY 4.0.</li>
+<li>Download: 1 file, 126.3 MB. Kept after setup: <code>ozone_uv.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch ozone_uv</code>.</li>
+<li>Replaces: the 20 nm band means of the gas table for ozone, which understate the transmission in the UV-B and misplace the UV index.</li>
+<li>With <code>--disregard-missing-data</code>: The 35 band means of the gas table (physics/data/gases.json) for ozone.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://zenodo.org/records/6951/files/uv-vis-spectral-atlas-2013-06-24.zip?download=1">https://zenodo.org/records/6951/files/uv-vis-spectral-atlas-2013-06-24.zip?download=1</a> as <code>uv-vis-spectral-atlas-2013-06-24.zip</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="ir_ktables-infrared-correlated-k-tables-of-h2o-co2-ch4-nh3-so2-h2s-co-and-hcn-exomolop-r1000"><code>ir_ktables</code>: Infrared correlated-k tables of H<sub>2</sub>O, CO<sub>2</sub>, CH<sub>4</sub>, NH<sub>3</sub>, SO<sub>2</sub>, H<sub>2</sub>S, CO and HCN (ExoMolOP, R1000)</h3>
+<ul>
+<li>Source: [R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com.</li>
+<li>Download: 8 files, 3265.3 MB. Kept after setup: <code>ir_ktables.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch ir_ktables</code>.</li>
+<li>Replaces: the band-strength and wing stand-ins of the gray infrared opacity: plateau opacities per band center of the gas table.</li>
+<li>With <code>--disregard-missing-data</code>: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_h2o.fits.gz</code></li>
+<li><a href="https://exomol.com/db/CO2/12C-16O2/UCL-4000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/CO2/12C-16O2/UCL-4000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_co2.fits.gz</code></li>
+<li><a href="https://exomol.com/db/CH4/12C-1H4/YT34to10/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/CH4/12C-1H4/YT34to10/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_ch4.fits.gz</code></li>
+<li><a href="https://exomol.com/db/NH3/14N-1H3/CoYuTe/14N-1H3__CoYuTe.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/NH3/14N-1H3/CoYuTe/14N-1H3__CoYuTe.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_nh3.fits.gz</code></li>
+<li><a href="https://exomol.com/db/SO2/32S-16O2/ExoAmes/32S-16O2__ExoAmes.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/SO2/32S-16O2/ExoAmes/32S-16O2__ExoAmes.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_so2.fits.gz</code></li>
+<li><a href="https://exomol.com/db/H2S/1H2-32S/AYT2/1H2-32S__AYT2.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/H2S/1H2-32S/AYT2/1H2-32S__AYT2.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_h2s.fits.gz</code></li>
+<li><a href="https://exomol.com/db/CO/12C-16O/Li2015/12C-16O__Li2015.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/CO/12C-16O/Li2015/12C-16O__Li2015.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_co.fits.gz</code></li>
+<li><a href="https://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.R1000_0.3-50mu.ktable.ARCiS.fits.gz">https://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.R1000_0.3-50mu.ktable.ARCiS.fits.gz</a> as <code>ir_ktable_hcn.fits.gz</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="ir_cia-collision-induced-absorption-of-n2-o2-co2-h2-he-and-ch4-pairs-hitran-cia-2011-to-2024-releases"><code>ir_cia</code>: Collision-induced absorption of N<sub>2</sub>, O<sub>2</sub>, CO<sub>2</sub>, H<sub>2</sub>, He and CH<sub>4</sub> pairs (HITRAN CIA, 2011 to 2024 releases)</h3>
+<ul>
+<li>Source: [R2267], HITRAN collision-induced absorption files from hitran.org.</li>
+<li>Download: 11 files, 195.4 MB. Kept after setup: <code>ir_cia.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch ir_cia</code>.</li>
+<li>Replaces: the coarse pair coefficients of the gray infrared opacity, read at six temperatures from a part-03 table.</li>
+<li>With <code>--disregard-missing-data</code>: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the pairs are read to fit and check it.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://hitran.org/data/CIA/main/N2-N2_2021.cia">https://hitran.org/data/CIA/main/N2-N2_2021.cia</a> as <code>N2-N2_2021.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/O2-O2_2024.cia">https://hitran.org/data/CIA/main/O2-O2_2024.cia</a> as <code>O2-O2_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/O2-N2_2024.cia">https://hitran.org/data/CIA/main/O2-N2_2024.cia</a> as <code>O2-N2_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/CO2-CO2_2024.cia">https://hitran.org/data/CIA/main/CO2-CO2_2024.cia</a> as <code>CO2-CO2_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/N2-CH4_2024.cia">https://hitran.org/data/CIA/main/N2-CH4_2024.cia</a> as <code>N2-CH4_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/N2-H2_2024.cia">https://hitran.org/data/CIA/main/N2-H2_2024.cia</a> as <code>N2-H2_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/CO2-CH4_2024.cia">https://hitran.org/data/CIA/main/CO2-CH4_2024.cia</a> as <code>CO2-CH4_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/CO2-H2_2024.cia">https://hitran.org/data/CIA/main/CO2-H2_2024.cia</a> as <code>CO2-H2_2024.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/H2-H2_2011.cia">https://hitran.org/data/CIA/main/H2-H2_2011.cia</a> as <code>H2-H2_2011.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/H2-CH4_norm_2011.cia">https://hitran.org/data/CIA/main/H2-CH4_norm_2011.cia</a> as <code>H2-CH4_norm_2011.cia</code></li>
+<li><a href="https://hitran.org/data/CIA/main/H2-He_2011.cia">https://hitran.org/data/CIA/main/H2-He_2011.cia</a> as <code>H2-He_2011.cia</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="harris_clusters-harris-catalog-of-parameters-for-milky-way-globular-clusters-2010-edition"><code>harris_clusters</code>: Harris catalog of parameters for Milky Way globular clusters (2010 edition)</h3>
+<ul>
+<li>Source: [R1827] (2010 edition), McMaster University.</li>
+<li>Download: 1 file, 49 kB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch harris_clusters</code>.</li>
+<li>Replaces: the globular cluster laws of tuning.py, recalled from [R1827].</li>
+<li>With <code>--disregard-missing-data</code>: The recalled medians of the cluster laws in tuning.py.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://physwww.mcmaster.ca/~harris/mwgc.dat">https://physwww.mcmaster.ca/~harris/mwgc.dat</a> as <code>mwgc.dat</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="noaa_proton_events-noaa-solar-proton-events-above-10-mev-1976-to-2017"><code>noaa_proton_events</code>: NOAA solar proton events above 10 MeV, 1976 to 2017</h3>
+<ul>
+<li>Source: NOAA Space Environment Services Center, Solar Proton Events Affecting the Earth Environment, via NASA SDAC.</li>
+<li>Download: 1 file, 45 kB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch noaa_proton_events</code>.</li>
+<li>Replaces: the one solar particle dose and the exponential in rigidity of the radiation model.</li>
+<li>With <code>--disregard-missing-data</code>: The stand-in dose and rigidity law of physics/radiation.py.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://umbra.nascom.nasa.gov/SEP/seps.html">https://umbra.nascom.nasa.gov/SEP/seps.html</a> as <code>seps.html</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="baraffe_isochrones-r0254-bhac15-isochrones-of-low-mass-stars-and-brown-dwarfs"><code>baraffe_isochrones</code>: [R0254] (BHAC15) isochrones of low-mass stars and brown dwarfs</h3>
+<ul>
+<li>Source: [R0254].</li>
+<li>Download: 1 file, 65 kB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch baraffe_isochrones</code>.</li>
+<li>Replaces: the nine brown dwarf radius points and the power-law extension of the main sequence under 0.1 solar masses (the three pre-main-sequence constants of tuning.py stay as fitted to it).</li>
+<li>With <code>--disregard-missing-data</code>: The fitted pre-main-sequence constants of tuning.py; a brown dwarf's radius and the main sequence under 0.1 solar masses are left out.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass">https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass</a> as <code>BHAC15_iso.2mass</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="stellar_spectra-model-atmosphere-spectra-castelli-and-kurucz-atlas9-fluxes-3500-to-50000-k-and-husser-et-al-phoenix-aces-2300-to-3500-k"><code>stellar_spectra</code>: Model-atmosphere spectra: Castelli and Kurucz ATLAS9 fluxes (3500 to 50000 K) and Husser et al. PHOENIX-ACES (2300 to 3500 K)</h3>
+<ul>
+<li>Source: [R0681] (IAU Symp. 210, A20), [R2058].</li>
+<li>Download: 23 files, 156.4 MB. Kept after setup: <code>stellar_spectra.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch stellar_spectra</code>.</li>
+<li>Replaces: the blackbody of the stellar spectrum with a seeded UV-C share (R17) and the BT-Settl chromaticity offsets.</li>
+<li>With <code>--disregard-missing-data</code>: The blackbody of the effective temperature with the seeded UV shares of physics/stellar_spectrum.py.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://wwwuser.oats.inaf.it/fiorella.castelli/grids/gridp00k2odfnew/fp00k2odfnew.pck">https://wwwuser.oats.inaf.it/fiorella.castelli/grids/gridp00k2odfnew/fp00k2odfnew.pck</a> as <code>fp00k2odfnew.pck</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/WAVE_PHOENIX-ACES-AGSS-COND-2011.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/WAVE_PHOENIX-ACES-AGSS-COND-2011.fits</a> as <code>WAVE_PHOENIX-ACES-AGSS-COND-2011.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02700-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02700-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02700-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02900-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02900-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte02900-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03100-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03100-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03100-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+<li><a href="https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits">https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</a> as <code>lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="mamajek_dwarf_sequence-mamajek-mean-dwarf-stellar-color-and-effective-temperature-sequence-20220416"><code>mamajek_dwarf_sequence</code>: Mamajek mean dwarf stellar color and effective temperature sequence (2022.04.16)</h3>
+<ul>
+<li>Source: [R3469], version 2022.04.16 of E. Mamajek's table.</li>
+<li>Download: 1 file, 56 kB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch mamajek_dwarf_sequence</code>.</li>
+<li>Replaces: the subclasses linear in temperature inside a letter, with a K/M boundary at 3,700 K.</li>
+<li>With <code>--disregard-missing-data</code>: nothing falls back, the run is still refused.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt">https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt</a> as <code>EEM_dwarf_UBVIJHK_colors_Teff.txt</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="hhe_eos-r0708-hydrogen-helium-equation-of-state-t-p-tables"><code>hhe_eos</code>: [R0708] hydrogen-helium equation of state, (T, P) tables</h3>
+<ul>
+<li>Source: [R0708, R0709], DirEOS2021, ENS Lyon.</li>
+<li>Download: 1 file, 16.4 MB. Kept after setup: <code>hhe_eos.npz</code> (the download is deleted once it is reduced).</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch hhe_eos</code>.</li>
+<li>Replaces: the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant.</li>
+<li>With <code>--disregard-missing-data</code>: The polytrope profile of the layer pressures (n = 1 gas giant, n = 3/2 brown dwarf, constant-density ice giant).</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://perso.ens-lyon.fr/gilles.chabrier/DirEOS/DirEOS2021.tar.gz">https://perso.ens-lyon.fr/gilles.chabrier/DirEOS/DirEOS2021.tar.gz</a> as <code>DirEOS2021.tar.gz</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="hyg_stars-hyg-star-database-v41-test-oracle-for-the-generated-sky"><code>hyg_stars</code>: HYG star database v4.1 (test oracle for the generated sky)</h3>
+<ul>
+<li>Source: HYG database v4.1 (Hipparcos, Yale Bright Star and Gliese catalogs), CC BY-SA 4.0, astronexus.</li>
+<li>Download: 1 file, 33.9 MB. All kept as downloaded.</li>
+<li>Fetch: <code>python3 -m planetgen.cli.datasets fetch hyg_stars</code>.</li>
+<li>Replaces: nothing: the real sky the generated sky is checked against in a test.</li>
+<li>Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused.</li>
+<li>Files (URL, then the file name it is kept under in the dataset's folder):
+<ul>
+<li><a href="https://raw.githubusercontent.com/astronexus/HYG-Database/master/hyg/CURRENT/hygdata_v41.csv">https://raw.githubusercontent.com/astronexus/HYG-Database/master/hyg/CURRENT/hygdata_v41.csv</a> as <code>hygdata_v41.csv</code></li>
+</ul>
+</li>
+</ul>
+<!-- external-files:end -->
+<h2 id="usage">Usage</h2>
+<h3 id="the-website">The website</h3>
+<p>Once installed, the site's front page leads to:</p>
+<ul>
+<li><strong>Galaxy Map</strong>: the whole galaxy in 3D, with every bright star as a
+tiny point in a big soft glow and nebulae as translucent clouds. It
+opens on a drill-down: pick a slab of the galaxy, then a block, then
+smaller blocks down to single sectors, with a breadcrumb, keyboard
+keys, and a link for every stage so Back and Forward work. Type a
+sector, a <code>shell/band/wedge</code> address, coordinates or a name to fly
+there. A NAV course can be drawn on it, and once population has run,
+a Territories overlay shows who holds what. As an admin, click an
+empty sector to generate it, a neighborhood of a radius you choose,
+its column or its whole shell, or generate a whole small block or one
+of its layers.</li>
+<li><strong>Sectors</strong> and <strong>Systems</strong>: every generated sector and every system,
+50 to a page. A sector has a 3D Sector Map (with the same Generate
+buttons for admins, and Nav from/to on any system) and a Contents
+list; a system has its stars, planets, moons and facilities, the cloud
+it sits in, its nearest systems, a System Map, and its write-up
+ready to copy as Markdown. Phenomena have pages too, with their class, what fills
+them, and a view that suits each one (a neutron star's spinning beams,
+a black hole's accretion disk).</li>
+<li><strong>Classes</strong>: a reference page for every kind of class the generator
+gives out: stars, planets, nebulae, asteroid fields and more.</li>
+<li><strong>Species</strong> and <strong>Polities</strong> (once the optional population pass has
+run): every species with its homeworld and era, and every polity with
+the systems it holds. They stay hidden until there is something to
+show.</li>
+<li><strong>NAV</strong>: a course and distance between any two systems or phenomena,
+picked from their pages, the Sector Map or the Galaxy Map, with &quot;Show
+on Galaxy Map&quot; to see it drawn there.</li>
+<li><strong>Search</strong>: filter by object type, star class, planet class, life
+chemistry, phenomenon and phenomenon class, or search by name from the
+box in every page header.</li>
+<li><strong>Admin</strong> (after logging in): <strong>Generate</strong> plans the galaxy and
+generates sectors as background jobs you can watch and cancel;
+<strong>Generate a one-off system</strong> makes a single system with every
+command-line option and never saves it; plus your account, API keys
+and server stats. Times show in your own time zone.</li>
+</ul>
+<p><a href="../reference/html-interface.html"><code>docs/reference/html-interface.md</code></a> describes every page
+and <a href="../reference/api.html"><code>docs/reference/api.md</code></a> the JSON API.</p>
+<h3 id="the-command-line">The command line</h3>
+<p><code>planetgen.cli.generate</code>, in the checkout, is the one entry point for
+every generator. On Linux and macOS the installer adds a <code>planetgen</code>
+command that runs it. Each subcommand saves what it makes to the database
+unless told otherwise:</p>
+<pre><code class="language-bash">planetgen plan         # plan the galaxy's shape (once, before galaxy)
+planetgen scatter      # draw one scatter on the plan: --mass, --luminosity, --phenomena (before galaxy)
+planetgen galaxy       # generate sectors in the galaxy
+planetgen sector       # one or more standalone sectors
+planetgen system       # one star system
+planetgen phenomenon   # one exotic phenomenon
+planetgen population   # optional: species, civilizations and polities
+planetgen territories  # optional: which polity owns which system (after population)
+</code></pre>
+<p>Common examples:</p>
+<pre><code class="language-bash"># A random neighborhood: a random start and every sector within 100 ly of it
+planetgen galaxy
+
+# One whole shell, one band of it, or one sector (shell 12, the equatorial
+# band, wedge 5)
+planetgen galaxy --shell 12 --limit 500
+planetgen galaxy --shell 12 --band 0
+planetgen galaxy --shell 12 --band 0 --wedge 5
+
+# A span of shells and bands (negative bands lie south of the plane)
+planetgen galaxy --shells 10:12 --bands=-2:2 --limit 500
+
+# A quick test galaxy: scatter fewer pre-placed bright stars
+planetgen scatter --mass --bright-star-min-luminosity 5000
+planetgen scatter --luminosity
+
+# A single system with the odds of a habitable world raised (it may come out without one), printed as Markdown on request, not saved
+planetgen system +habitable_world --format markdown --output -
+
+# A system built from a specification file
+planetgen system --system-file examples/systems/solar_system.json
+</code></pre>
+<p>Most options use a <code>+name</code>/<code>-name</code> form: <code>+moons</code> forces moons,
+<code>-moons</code> forbids them, and leaving it off leaves it to chance.
+<code>planetgen &lt;command&gt; --help</code> lists every option, and
+<a href="../reference/cli.html"><code>docs/reference/cli.md</code></a> is the full reference, including the
+system specification file format and the incompatible option pairs.</p>
+<h3 id="other-tools">Other tools</h3>
+<p>Each runs as <code>python3 -m &lt;module&gt;</code> from planetGen's own virtual environment
+(<code>/usr/local/planetgen/venv/bin/python -m &lt;module&gt;</code> on a server <code>install.sh</code>
+set up; a bare <code>python3</code> there finds none of the libraries); <code>--help</code> shows
+its options:</p>
+<ul>
+<li><strong><code>planetgen.cli.orbits</code></strong> advances the galaxy by the time elapsed since
+the last run: planets, moons and orbiting facilities around their
+hosts, and every system and phenomenon along its galactic orbit. Run
+it monthly; the maintenance timers in
+<a href="INSTALL.html#scheduled-maintenance">INSTALL.md</a> do.</li>
+<li><strong><code>planetgen.cli.migrate</code></strong> brings the database schema up to date. The install
+and update scripts run it for you.</li>
+<li><strong><code>planetgen.cli.reset</code></strong> deletes all generated galaxy data (asks for the
+database name first) so you can start a new galaxy.</li>
+<li><strong><code>planetgen.cli.query</code></strong> searches the database from the terminal.</li>
+</ul>
+<h2 id="documentation">Documentation</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Document</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="INSTALL.html">INSTALL.md</a></td>
+<td>Installing, updating and the example configs</td>
+</tr>
+<tr>
+<td><a href="../reference/cli.html">docs/reference/cli.md</a></td>
+<td>Every command-line option</td>
+</tr>
+<tr>
+<td><a href="../reference/config.html">docs/reference/config.md</a></td>
+<td>Every <code>config.json</code> setting</td>
+</tr>
+<tr>
+<td><a href="../deployment/README.html">docs/deployment/</a></td>
+<td>Hosting guides per platform</td>
+</tr>
+<tr>
+<td><a href="../deployment/server-checklist.html">docs/deployment/server-checklist.md</a></td>
+<td>Confirming the site loads after a deploy or update</td>
+</tr>
+<tr>
+<td><a href="../deployment/WINDOWS.html">docs/deployment/WINDOWS.md</a></td>
+<td>Windows is unsupported; the simplest setup, WSL2</td>
+</tr>
+<tr>
+<td><a href="../reference/html-interface.html">docs/reference/html-interface.md</a></td>
+<td>How the website works</td>
+</tr>
+<tr>
+<td><a href="../reference/api.html">docs/reference/api.md</a></td>
+<td>The JSON API</td>
+</tr>
+<tr>
+<td><a href="../reference/atmosphere-colour.html">docs/reference/atmosphere-colour.md</a></td>
+<td>How a planet's atmosphere colour is worked out</td>
+</tr>
+<tr>
+<td><a href="../reference/system-file-format.html">docs/reference/system-file-format.md</a></td>
+<td>The JSON file that describes one star system for <code>planetgen system</code></td>
+</tr>
+<tr>
+<td><a href="../reference/example-systems.html">docs/reference/example-systems.md</a></td>
+<td>The example system files and what each one tests</td>
+</tr>
+<tr>
+<td><a href="../reference/database-schema.html">docs/reference/database-schema.md</a></td>
+<td>The database tables and migrations</td>
+</tr>
+<tr>
+<td><a href="../design/architecture/architecture.html">docs/design/architecture/architecture.md</a></td>
+<td>How the program fits together: every file and the main flows</td>
+</tr>
+<tr>
+<td><a href="../../design/architecture/architecture.html">docs/design/architecture/architecture.html</a></td>
+<td>The same as an illustrated page to open in a browser: modules, flows, data and deployment (a snapshot of 2026-10-17, rebuilt from the architecture.md above)</td>
+</tr>
+<tr>
+<td><a href="../../generated/architecture-map.html">docs/generated/architecture-map.html</a></td>
+<td>The code map to open in a browser and drill down: the project's areas, their modules, each module's functions with what calls what, and the main flows traced from the code (generated by <code>scripts/build_architecture_map.py</code>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/design">docs/design/</a></td>
+<td>Design notes: the galaxy model, coordinates, navigation, phenomena, and why each choice was made</td>
+</tr>
+<tr>
+<td><a href="../TODO.html">docs/TODO.md</a></td>
+<td>Open work, and the index of the phase plans</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/plan">docs/plan/</a></td>
+<td>The phase plans: order, dependencies and research notes for each phase of the open work</td>
+</tr>
+<tr>
+<td><a href="../../generated/version-plan.html">docs/generated/version-plan.html</a></td>
+<td>Every open item by version, phase, thread and dependency, as one page to open in a browser</td>
+</tr>
+<tr>
+<td><a href="../../generated/todo-tree.html">docs/generated/todo-tree.html</a></td>
+<td>Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters</td>
+</tr>
+<tr>
+<td><a href="../../generated/todo-reference.html">docs/generated/todo-reference.html</a></td>
+<td>Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by <code>python scripts/build_todo_docs.py</code>)</td>
+</tr>
+<tr>
+<td><a href="../reference/logging.html">docs/reference/logging.md</a></td>
+<td>The form of every log line (time, severity, component, stage markers) and where each log is found</td>
+</tr>
+<tr>
+<td><a href="../reference/testing.html">docs/reference/testing.md</a></td>
+<td>Running the tests</td>
+</tr>
+<tr>
+<td><a href="../reference/ci-runners.html">docs/reference/ci-runners.md</a></td>
+<td>Running the scheduled CI on your own computers (optional)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/CHANGELOG.md">CHANGELOG.md</a></td>
+<td>What changed in each release</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="a-note-on-accuracy">A note on accuracy</h2>
+<p>planetGen aims for plausibility, not a simulation. Forcing extremes
+(a large star with the most planets it can hold, say) can give systems
+with worlds thousands of AU out; edit those by hand before using them.</p>
+<h2 id="contributing">Contributing</h2>
+<p>Every pull request adds a release note under <a href="https://github.com/dwhagar/planetGen/blob/main/changes/README.md"><code>changes/</code></a>
+instead of bumping the version; a workflow stamps the version after
+merge. A change that alters what a seed generates also bumps the generator epoch
+(<code>python -m tests.golden_update --reason &quot;...&quot; --affects fill</code>, <a href="https://github.com/dwhagar/planetGen/blob/main/changes/README.md"><code>changes/README.md</code></a>). Run the tests with <code>scripts/test.py changed</code> while you work and <code>scripts/test.py full --check</code> before
+merging a finished piece of work; both need MySQL and Redis (<a href="../reference/testing.html"><code>docs/reference/testing.md</code></a>).
+Plain <code>pytest -n auto</code> still works.</p>
+<h2 id="license">License</h2>
+<p><a href="https://github.com/dwhagar/planetGen/blob/main/LICENSE.md">CC0 1.0 Universal</a>.</p>
+<p>The bundled list of common passwords (<code>src/planetgen/admin/common_passwords.txt.gz</code>)
+is derived from <a href="https://github.com/danielmiessler/SecLists">SecLists</a> under the
+MIT licence; see <code>src/planetgen/admin/common_passwords.LICENSE</code>.</p>
+<p>Where the data files in the repository come from, and what is known of their terms, is recorded in
+<a href="https://github.com/dwhagar/planetGen/blob/main/DATA-LICENSE.md">DATA-LICENSE.md</a>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

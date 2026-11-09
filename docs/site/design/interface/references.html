@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help &gt; References: the out-of-universe section (DOC.87 to DOC.94) - planetGen docs</title>
+<meta name="description" content="Status: R1 (DOC.87), R2 (DOC.88), R4 (DOC.90), R5 (DOC.91) and R7 (DOC.93) built; R3 and R5 to R8 planned.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/references.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/references.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="help--references-the-out-of-universe-section-doc87-to-doc94">Help &gt; References: the out-of-universe section (DOC.87 to DOC.94)</h1><p class="meta">docs/design/interface/references.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#the-idea">The idea</a></li><li style="margin-left:0px"><a href="#what-is-built">What is built</a></li><li style="margin-left:0px"><a href="#the-page-tree">The page tree</a></li><li style="margin-left:0px"><a href="#rules">Rules</a></li><li style="margin-left:0px"><a href="#citations-doc97-to-doc100">Citations (DOC.97 to DOC.100)</a></li><li style="margin-left:14px"><a href="#the-in-line-citation-style-boss-727-pm-edt-2026-10-31-use-whatever-in-line-citation-style-is-standard-for-nasa-documentation">The in-line citation style (Boss, 7:27 PM EDT 2026-10-31: "use whatever in line citation style is standard for NASA documentation")</a></li></ul></details>
+<p>Status: R1 (DOC.87), R2 (DOC.88), R4 (DOC.90), R5 (DOC.91) and R7 (DOC.93) built; R3 and R5 to R8 planned. Boss asked for this on 2026-10-31 (2:49 PM EDT) and approved the design.</p>
+<h2 id="the-idea">The idea</h2>
+<p>The whole site speaks in universe: a working navigation system that simply knows things. One Help entry, <strong>References</strong>, is the only
+place that speaks out of universe: where each number came from, what we have research for and what we do not, every stand-in (the GEN.725
+registry) and how it was decided, what was fitted to a result, and how scientific each part is. Every other page keeps only a quiet
+&quot;More information&quot; link to the exact References entry.</p>
+<h2 id="what-is-built">What is built</h2>
+<ul>
+<li>
+<p><strong>Addresses and links (DOC.87).</strong> <code>web/lib/reference_urls.py</code> is the one place that knows the layout; a page calls
+<code>reference_link(kind, id)</code> (<code>web/helpers.py</code>, also a template global) and never writes a <code>/references</code> address. See &quot;Links into
+References&quot; in <a href="text-style.html">text-style.md</a>.</p>
+</li>
+<li>
+<p><strong>The word rule (DOC.87).</strong> <code>plainwords.OUT_OF_UNIVERSE</code> lists the words that tell a reader the site is a model; they appear only on the
+References pages and the admin pages (<code>exempt(path)</code>). <code>check_sentence(sentence, references=True)</code> reads a sentence of a References page,
+where those words are allowed and every other rule still holds. <code>tests/test_references_crawl.py</code> crawls the pages and fails on a word
+outside References that its <code>KNOWN</code> list does not name under the item that removes it.</p>
+</li>
+<li>
+<p><strong>The shell (DOC.88).</strong> Help &gt; References is the last entry of the Help menu, after a divider. <code>/references</code> is a static page (no
+database, no script) that opens with the Out of universe banner (<code>id=&quot;out-of-universe-banner&quot;</code>, the contract every References page
+keeps) while the site header takes another tint (<code>body.references-mode</code>, <code>--references-bg</code> and <code>--references-border</code>). Its numbers are
+read from <code>docs/references/overview.json</code>, which <code>scripts/build_reference_pages.py</code> builds from the reference list
+(<code>docs/reference/references-data.json</code>) and the stand-in registry (<code>gap-filling-plan.md</code>, read by <code>build_stand_in_values.py</code>'s parser).
+<code>--check</code> fails when the committed file differs, and <code>tests/test_references_pages.py</code> holds that; <code>update.sh</code> runs the build in step 3 and
+a failure only warns. Later items add their files to <code>BUILDERS</code> in the script and their pages to <code>web/references_pages.py</code>.</p>
+</li>
+<li>
+<p><strong>The stand-in pages (DOC.90).</strong> <code>scripts/build_reference_pages.py</code> writes <code>docs/references/stand-ins.json</code> (every row of the GEN.725 registry, section by section, with the field labels as a page prints them, the item from <code>wiring-register.md</code> that will wire it and the line of <code>burn-down-register.md</code>) and <code>fitted.json</code> (the tuning targets of <code>src/planetgen/physics/data/tuning_targets.json</code>). <code>/references/stand-ins</code> filters the rows by <code>tier</code>, <code>tweak</code>, <code>section</code> and <code>text</code> (a plain GET form). <code>/references/stand-ins/&lt;slug&gt;</code> is one page per row; the slug is the anchor of the registry key, the section number and the id (<code>6.7:AM64</code> is <code>6-7-am64</code>), because the plan reuses an id in several sections, and the build fails when two rows would share a slug. <code>reference_urls.reference_path(&quot;stand-in&quot;, &quot;6.7:AM64&quot;)</code> is the one way to write the address; an id alone is an error. <code>/references/fitted</code> lists the rows at L2 to L4 and the targets. A citation in a row is a link (<code>references_site.cite</code>, not strict, because a row also says &quot;decided by Boss on 2026-10-21&quot;); the build refuses an ID the reference list does not hold and names the row. Sections that share a number (6.127 and 6.134 each head two tables) are read under their own titles (<code>build_stand_in_values.section_key</code>).</p>
+</li>
+</ul>
+<h2 id="the-page-tree">The page tree</h2>
+<ol>
+<li><strong>Overview</strong> <code>/references</code> (built): what this section is, the headline numbers computed from the registry, the tier and tweak legends.</li>
+<li><strong>Papers and books</strong> <code>/references/papers</code> (built, DOC.89): every source of the reference list. Views <code>?view=az</code> (the default: every source once, so each citation link <code>#paper-r0123</code> lands), <code>area</code>, <code>field</code>, <code>year</code>, <code>type</code>, and <code>totals</code>; <code>?group=&lt;group&gt;</code> lists one group; <code>?q=&lt;words&gt;</code> searches the title, authors, DOI, arXiv id, and ID. Each entry links to its DOI page, else arXiv, else a link the record carries, else a search, and shows the ADS page. An entry also shows where it is used: the area, the code and data files, the stand-in rows, and the design notes that cite it. The area is read from the name of the citing file (<code>web/lib/references_usage.py</code>, <code>RULES</code>), a source cited in two areas is in both, and a source nothing cites is in the group <code>none</code>. The field is read from the journal (<code>FIELDS</code> in <code>scripts/build_reference_pages.py</code>). The where-used scan is computed when the page is first asked for and kept for the life of the process, not committed, so a text that cites a source never changes a built file. The totals view shows the counts, oldest and newest, the sources we cite most, and the counts by area, field, decade, and type. The A to Z list is compact (first link and areas); the search by ID gives the whole entry. Help links are not added to the text of any References page.</li>
+<li><strong>Datasets, catalogs and archives</strong> <code>/references/data</code> (built, DOC.89): the data sets downloaded at setup (with the terms <code>DATA-LICENSE.md</code> records for each), the archives and catalogs, the standards and web pages, a link to the data sets that have a DOI (listed with the papers), and the tables of <code>DATA-LICENSE.md</code>, read when the page is asked for and never copied.</li>
+<li><strong>Stand-in registry</strong> <code>/references/stand-ins</code> and one page for each stand-in (DOC.90), and <strong>Fitted to a result</strong> <code>/references/fitted</code>.</li>
+<li><strong>Method by area</strong> <code>/references/method/&lt;area&gt;</code>, <strong>what we have and lack</strong> <code>/references/gaps</code> and the computed <strong>scorecard</strong> <code>/references/scorecard</code> (built, DOC.91); <code>/help/properties</code> moved here with no redirect. A method page lists the property rows of its area (<code>property_help.by_area()</code>: a sheet heading goes to an area by <code>GROUP_AREA</code>, a value only stars have goes to <code>stars</code>), the stand-ins of the area (the area is read from the registry section's title by <code>references_usage.area_of</code>, as the Papers page does) and how many sources it cites. Gaps lists the stand-ins at tier T8 or T9 or level L4 by area. The scorecard counts the share of each kind of stand-in per area. All three are counted from <code>stand-ins.json</code> and the usage scan when the page is asked for; nothing is typed.</li>
+<li><strong>Speculative chemistry</strong> <code>/references/speculative</code> (DOC.92), with one section for each life class and one for a world with several living classes (GEN.1209, GEN.1213).</li>
+<li><strong>Credits and version</strong> <code>/references/about</code>.</li>
+</ol>
+<h2 id="rules">Rules</h2>
+<ul>
+<li>The in-universe pages never say speculative, stand-in, tweak, fitted, tier, model, seed, generated, version and the like (rule 16 of the
+<a href="text-style.html">plain-words guide</a>). A survey-style word (&quot;estimated distance&quot;, &quot;unsurveyed&quot;) stays.</li>
+<li>Every number on a References page is built from a registry, never typed.</li>
+<li>The API field <code>speculative</code>, the developer docs, the Debug view and the changelog keep their words.</li>
+<li>DOC.93 (built) stripped the leftovers: the body color note (<code>maps/bodylook.py</code>) says what the color comes from in the story's words, the sector, nearby, galaxy and contents pages say &quot;charted&quot;, and the sheet source line under a value became <code>value_source(kind, label)</code> (<code>web/helpers.py</code>), a quiet link to the value's row on its method page (<code>property_help.method_ref</code>). The line itself (<code>describe/sheet_sources.py</code>) is read only by the method pages and the API. DOC.94 locks the crawl.</li>
+</ul>
+<h2 id="citations-doc97-to-doc100">Citations (DOC.97 to DOC.100)</h2>
+<p>Boss (2026-10-31, 7:22 PM EDT): all citations and references live in the central registry (<code>docs/reference/references-data.json</code>) and <code>docs/REFERENCES.md</code>, nowhere else; and a reader of Help &gt; References can click a citation to reach the reference list and the document information, in that section only.</p>
+<ul>
+<li><strong>DOC.100 (built)</strong> gives every record a stable citation ID and an anchor on /references/papers (<code>#paper-&lt;id&gt;</code>). The ID is <code>R</code> and at least four digits (<code>R0123</code>). <code>scripts/build_references.py</code> (<code>assign_ids</code>) gives each paper, book, dataset, archive and setup dataset its ID once, in the order the list prints on the first build, and writes it to the registry (<code>ids</code>, <code>id_next</code>, <code>id_aliases</code> in <code>docs/reference/references-data.json</code>). An ID is never reused, even when its source is removed. A source goes by every name it has had (its DOI, its arXiv id, its key), so a preprint that gets a DOI keeps its ID, and two IDs found to be one paper leave the older as the ID and the newer as an alias that still resolves. <code>docs/REFERENCES.md</code> and <code>.html</code> print the ID in bold before each entry, with the anchor <code>paper-&lt;id&gt;</code> (<code>R0123</code> is <code>#paper-r0123</code>). <code>web/lib/reference_urls.py</code> (<code>is_paper_id</code>, <code>paper_anchor</code>, <code>reference_path(&quot;papers&quot;, &quot;R0123&quot;)</code>) is the one place the site learns the shape.</li>
+</ul>
+<h3 id="the-in-line-citation-style-boss-727-pm-edt-2026-10-31-use-whatever-in-line-citation-style-is-standard-for-nasa-documentation">The in-line citation style (Boss, 7:27 PM EDT 2026-10-31: &quot;use whatever in line citation style is standard for NASA documentation&quot;)</h3>
+<p>NASA technical documents (NASA Technical Memoranda and standards, and the NASA Systems Engineering Handbook) cite by number in square brackets, <code>[12]</code>, and list the numbered references at the end. This project does the same with one change: the number is the source's own fixed ID, not its order in the document, so a citation survives moving the sentence and one search finds every place a source is used.</p>
+<ul>
+<li>
+<p><strong>One source:</strong> <code>[R0123]</code>, after the words it supports and before the closing mark: &quot;the slope is 1.3 [R0123].&quot;</p>
+</li>
+<li>
+<p><strong>Several sources in one place:</strong> one bracket, IDs in ascending order, a comma and a space between: <code>[R0123, R0456]</code>. No ranges, no &quot;and&quot;.</p>
+</li>
+<li>
+<p><strong>A place inside the source</strong> (a table, a page, a section) follows its ID after a colon: <code>[R0123: Table 2]</code>. The page numbers the notes carried stay with it where they were printed; they are not required.</p>
+</li>
+<li>
+<p><strong>Where:</strong> the same in a design document, a report, the TODO text, a code comment, a docstring and a data-file header.</p>
+</li>
+<li>
+<p><strong>No author, no year, no journal, no DOI, no arXiv number</strong> appears outside the registry, <code>docs/REFERENCES.md</code> and the References pages. Whatever the old text said about the source (&quot;read&quot;, &quot;recalled&quot;, &quot;Table 2 of&quot;, the value taken) goes to the registry entry of the stand-in it supports, or stays as plain words about the value with no name in them.</p>
+</li>
+<li>
+<p>A page a visitor reads has no citation at all. It keeps only the quiet &quot;More information&quot; link.</p>
+</li>
+<li>
+<p><strong>DOC.97</strong> makes each citation written on a References page a link to that anchor, and fails the build on an unknown or ambiguous one. <code>scripts/build_reference_pages.py</code> writes <code>docs/references/citations.json</code> (every ID with its name as the list prints it, its title, its kind, and the merged IDs as aliases). A page passes its sentences through <code>references_site.cite(text)</code> (<code>web/lib/citations.py</code>): each <code>[R0123]</code> becomes a link with the source's name to <code>/references/papers#paper-r0123</code> (<code>/references/data</code> for a dataset or archive), a place <code>[R0123: Table 2]</code> follows after a comma, and an unknown ID, or an author and year written out, raises <code>CitationError</code>, so the page build and <code>src/tests/test_citations_links.py</code> fail. Links exist only on the References pages.</p>
+</li>
+<li>
+<p><strong>DOC.98 (built for the design documents, scripts, source code, data files and tests; the TODO text, plan and generated pages follow through the TODO thread)</strong> moves citations out of everything else. <code>scripts/rewrite_citations.py</code> turns each author and year, DOI and arXiv number into the source's ID, using the ties the settle step recorded (DOC.95): <code>report</code> counts, <code>apply</code> rewrites, <code>check</code> fails while one is left. In Python it rewrites comments and docstrings (the syntax tree minus docstrings must be unchanged), and string literals and data files with <code>--strings</code>; the files built from them (the data files of <code>scripts/build_*.py</code>, <code>stand-in-values.md</code>, the dials block of <code>docs/reference/cli.md</code>) are rebuilt after. Where two papers share a first author and a year and nothing beside the mention chooses (volume and page, the letter <code>2023a</code>, an identifier, title words in the sentence), <code>--all-candidates</code> cites both: those places are the ones for Sources 1 to narrow. The journal, volume and page that followed a citation go with it; names written without a year stay (they cite nothing).</p>
+<ul>
+<li><strong>To cite a new source:</strong> <code>python scripts/build_references.py add &lt;doi or arXiv number&gt;</code> looks it up (Crossref, DataCite, arXiv), lists it and prints its ID; then <code>python scripts/build_references.py render</code>. A source those services do not know is refused: it is not listed, so it is not cited. Do not run <code>harvest</code> or <code>match</code> any more: they read citations out of the text, which the text no longer holds, and would drop the record of how each old citation was tied.</li>
+<li><strong>Rebasing a branch across the sweep:</strong> merge main, take the sweep's side for any conflict that is only a citation, then run <code>python scripts/rewrite_citations.py apply --all-candidates --strings --scope &lt;your changed files&gt;</code> and rebuild the generated files you touch.</li>
+</ul>
+</li>
+<li>
+<p><strong>DOC.99</strong> locks it: <code>src/tests/test_citations_outside_the_registry.py</code> runs the rewrite of <code>scripts/rewrite_citations.py</code> over every tracked text file (except the registry files in <code>rewrite_citations.KEEP</code>) and fails when it would change anything, naming the file, the line and the ID to write instead. It opens every file, so the changed-files gate always selects it.</p>
+</li>
+<li>
+<p><strong>DOC.98 follow-up: bibliography lists.</strong> The imported research notes ended in APA-form lists (<code>Surname, I. (2011). Title.</code>) that the sweep cannot read as a mention. <code>python scripts/rewrite_bibliographies.py apply [--drop-unverified --log &lt;file&gt;]</code> ties each entry to the reference list by first author, year and title words, searches Crossref for the rest (and adds a record whose first author, year and title agree), and writes the entry as <code>[R0123]</code>; an entry nothing verifies is treated as not real and removed with the log. The lock test fails on a new APA-form line. Web pages, standards and documentation are DOC.101 (below).</p>
+</li>
+<li>
+<p><strong>DOC.101: standards, regulations, documentation and web pages.</strong> A source that is not a paper or data is listed as a web source of the reference list (<code>web_sources</code> in the cache: name, provider, kind, identifier, year, address and the date it was last opened) and has an <code>[R0123]</code> like any other. <code>python scripts/build_references.py add-web &lt;url&gt; --name ... --provider ... --kind standard|regulation|government report|software documentation|web page [--identifier ...] [--year ...] [--must-contain &lt;words the page says&gt;]</code> opens the page first and refuses one that cannot be opened (a site that turns programs away with 403 is accepted). Fan wikis, fiction, forum threads, videos and pages nobody can open are not listed. The References pages link a web source to the Data page.</p>
+</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

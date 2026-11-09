@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The atmosphere data model - planetGen docs</title>
+<meta name="description" content="What a planet or moon stores about its air, which code makes each value, and where the numbers behind it come from.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/atmosphere-data-model.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/atmosphere-data-model.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="the-atmosphere-data-model">The atmosphere data model</h1><p class="meta">docs/reference/atmosphere-data-model.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-order-of-the-work">1. The order of the work</a></li><li style="margin-left:0px"><a href="#2-what-is-stored">2. What is stored</a></li><li style="margin-left:0px"><a href="#3-the-gas-table">3. The gas table</a></li><li style="margin-left:0px"><a href="#4-the-mixture-and-how-the-values-agree">4. The mixture and how the values agree</a></li><li style="margin-left:0px"><a href="#5-ozone">5. Ozone</a></li><li style="margin-left:0px"><a href="#6-cloud-haze-and-dust">6. Cloud, haze and dust</a></li><li style="margin-left:0px"><a href="#7-rayleigh-scattering-and-the-colour">7. Rayleigh scattering and the colour</a></li><li style="margin-left:0px"><a href="#8-limits">8. Limits</a></li></ul></details>
+<p>What a planet or moon stores about its air, which code makes each value, and where the numbers behind it come from. The
+code is the authority; every module named here opens with a docstring that gives its sources and limits, and the designs
+are in <a href="https://github.com/dwhagar/planetGen/tree/main/docs/design/composition">docs/design/composition/</a> (the colour chain's plan is
+<a href="../design/composition/atmosphere-colour.html">atmosphere-colour.md</a>). The colour itself is described in
+<a href="atmosphere-colour.html">atmosphere-colour.md</a>; the columns' types and versions are in
+<a href="database-schema.html">database-schema.md</a>. Planets and moons store the same values in the same columns; a moon's starlight is
+its planet's.</p>
+<h2 id="1-the-order-of-the-work">1. The order of the work</h2>
+<p><code>physics/planets.calculate_atmospheric_conditions</code> makes the air of a body in this order:</p>
+<ol>
+<li><strong>Albedo.</strong> The Bond albedo is drawn from the range of the body's regime (<code>climate_draws.albedo_range</code>), and the temperature
+with no air is <code>T_e = ((1 - A) S / (4 sigma))^(1/4)</code>, never below the 2.725 K background.</li>
+<li><strong>The air and the temperature together</strong> (<code>physics/surface_air.solve</code>, designed in
+<a href="../design/composition/surface-pressure-supply-law.html">surface-pressure-supply-law.md</a>): the mixture draw, the pressure the
+interior has degassed less the sinks, the freeze-out of what the temperature condenses, the density and scale height of what is
+left, and the greenhouse that gives the temperature, repeated until the pressure and the temperature stop moving.</li>
+<li><strong>Storing the air</strong> (<code>physics/atmosphere.store_air</code>): the partial pressures, the mantle redox and the words of <code>atmosphere</code>.</li>
+<li><strong>Water and ground</strong> (<code>hydrosphere</code>, <code>surface_composition</code>), then <strong>cloud, haze and dust</strong> (<code>physics/aerosols.generate_aerosols</code>).</li>
+<li>Later in the body's generation: <strong>the ozone column and the doses</strong> (<code>physics/radiation.generate_dose</code>) and <strong>the colour</strong>
+(<code>physics/body_colour</code>).</li>
+</ol>
+<p>A body with no air, or whose air is lost, has the temperature the starlight alone gives, no gas rows, and <code>NULL</code> density,
+molar mass and scale height.</p>
+<h2 id="2-what-is-stored">2. What is stored</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Unit</th>
+<th>What it is</th>
+<th>Made by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planet_gases</code> / <code>moon_gases</code> rows (<code>gas</code>, <code>partial_pa</code>)</td>
+<td>Pa</td>
+<td>One row for each gas above zero, its formula in the gas table; the balance gas of a class (helium, sodium, ammonia) is a row like the others. No rows: no air, or a row from before v155</td>
+<td><code>surface_air.solve</code>, kept by <code>atmosphere.store_air</code>; read through <code>mixture.partial_pressures_pa</code></td>
+</tr>
+<tr>
+<td><code>atmospheric_pressure_pa</code></td>
+<td>Pa</td>
+<td>The surface pressure: the sum of the partial pressures, after the freeze-out</td>
+<td><code>surface_air</code></td>
+</tr>
+<tr>
+<td><code>atm_molar_density</code></td>
+<td>kg/mol</td>
+<td>Despite the name, the <strong>mean molar mass</strong> of the mixture, <code>M = sum x_i M_i</code></td>
+<td><code>atmosphere_state.air_state</code></td>
+</tr>
+<tr>
+<td><code>atm_density</code></td>
+<td>kg/m3</td>
+<td>Surface density <code>rho = P M / (R T)</code> (ideal gas)</td>
+<td><code>atmosphere_state.air_state</code></td>
+</tr>
+<tr>
+<td><code>scale_height_km</code></td>
+<td>km</td>
+<td><code>H = R T / (M g)</code>, so that <code>P = rho g H</code></td>
+<td><code>atmosphere_state.air_state</code></td>
+</tr>
+<tr>
+<td><code>surface_temperature_k</code></td>
+<td>K</td>
+<td><code>T_s = T_e (1 + G)^(1/4)</code> for the stored albedo and greenhouse quantity</td>
+<td><code>surface_air</code> (the greenhouse is <code>atmosphere_state.greenhouse_warming</code>, Robinson and Catling, on the infrared opacity of <code>physics/infrared_opacity.py</code>)</td>
+</tr>
+<tr>
+<td><code>bond_albedo</code></td>
+<td>fraction</td>
+<td>The Bond albedo the temperature is made of</td>
+<td><code>climate_draws</code> (GEN.412)</td>
+</tr>
+<tr>
+<td><code>greenhouse_factor</code></td>
+<td>none</td>
+<td>The quantity <code>G = (T_s / T_e)^4 - 1</code>, 0 for no air</td>
+<td><code>climate_draws.record</code></td>
+</tr>
+<tr>
+<td><code>albedo_basis</code></td>
+<td>index</td>
+<td>Where the two came from: 0 recorded at generation, 1 the exact inverse of a stored row, 2 a seeded draw from the class range</td>
+<td><code>climate_draws</code> (the migration of v142 filled old rows)</td>
+</tr>
+<tr>
+<td><code>mantle_redox</code>, <code>mantle_delta_iw</code></td>
+<td>class, dex</td>
+<td>The oxygen fugacity of the mantle that outgassed the air, log10 units above the iron-wuestite buffer ([R1951] scale); <code>NULL</code> for a giant</td>
+<td>the mixture draw (<code>MixtureDraw.redox_diw</code>, recipe rows a1 to a4, mass- and age-dependent, [R4154])</td>
+</tr>
+<tr>
+<td><code>atmosphere</code></td>
+<td>text</td>
+<td>The air in words, from the partial pressures</td>
+<td><code>atmosphere.describe</code></td>
+</tr>
+<tr>
+<td><code>ozone_column_du</code></td>
+<td>Dobson units</td>
+<td>The ozone column of a body with oxygen</td>
+<td><code>ozone.draw_column_du</code>, called by <code>radiation.generate_dose</code></td>
+</tr>
+<tr>
+<td><code>ozone_loss_flag</code></td>
+<td>flag</td>
+<td>True when there is ozone and the star's lethal event rate or the solar particle dose through the ozone layer is above its limit</td>
+<td><code>radiation.generate_dose</code></td>
+</tr>
+<tr>
+<td><code>tau_haze</code>, <code>tau_dust</code>, <code>tau_cloud</code></td>
+<td>optical depth at 550 nm</td>
+<td>Haze, dust and in-cloud depth (the cloud is grey)</td>
+<td><code>aerosols.generate_aerosols</code> (DB.68)</td>
+</tr>
+<tr>
+<td><code>cloud_cover</code></td>
+<td>fraction</td>
+<td>The share of the sky under cloud, 0 to 1</td>
+<td><code>aerosols</code></td>
+</tr>
+<tr>
+<td><code>aerosol_draw</code></td>
+<td>0 to 1</td>
+<td>One number that picks every within-bracket optical property (dust radius and asymmetry, haze exponent), so the five values repeat the optics with no other column</td>
+<td><code>aerosols</code></td>
+</tr>
+<tr>
+<td><code>atmosphere_colour</code></td>
+<td>rgb24</td>
+<td>The colour of the air as <code>red * 65536 + green * 256 + blue</code>, <code>NULL</code> with no air or no star temperature</td>
+<td><code>body_colour</code> (DB.96)</td>
+</tr>
+</tbody>
+</table></div>
+<p>A column that a row made before its version does not have is <code>NULL</code>, and the page shows nothing for it.</p>
+<h2 id="3-the-gas-table">3. The gas table</h2>
+<p><code>physics/gases.py</code> is the one constants table of the gases and volatile compounds the chain reads: 119 rows, loaded from
+<code>physics/data/gases.json</code>, which <code>scripts/build_gas_table.py</code> builds from the tables of the research parts
+(<a href="https://github.com/dwhagar/planetGen/tree/main/docs/design/composition/atmosphere-composition-parts">atmosphere-composition-parts</a>, parts 01 to 03). A row holds the
+formula (the key everything cites), name, CAS number, molar mass (kg/mol, summed from the element table; the research's own figure
+is kept for the audit), the infrared class (<code>ir</code>, <code>cia</code>, <code>weak</code>, <code>none</code>), the volatility class, the lowest photolysis threshold and
+its channel, whether it absorbs near ultraviolet, triple, boiling and critical points, ideal-gas heat capacity at 100, 300 and
+1000 K, the latent heats, and where it has them the Rayleigh cross sections at 450, 550 and 650 nm, the Henry constant, the
+Lennard-Jones constants that give the viscosity, the infrared bands and the ultraviolet bins.</p>
+<p>Every row says where it comes from (<code>source</code>) and how far it is checked (<code>state</code>: <code>verified</code>, <code>partly verified</code> with its <code>limit</code>,
+or <code>open</code>). The loader refuses a file or row without those fields, a duplicate formula, a formula it cannot read, and a molar mass
+of the research part that is more than 0.01 g/mol from the element sum. It has no weights and no class gate: the recipes that
+weight the gases (<code>physics/atmosphere_recipes.py</code>) cite its rows by formula. Units: kg/mol, K, Pa, J/(mol K), kJ/mol, cm2 per
+molecule, mol/(kg bar), uPa s. A number the research does not give is <code>None</code>.</p>
+<h2 id="4-the-mixture-and-how-the-values-agree">4. The mixture and how the values agree</h2>
+<p>The mixture is a plain dict of gas formula to partial pressure in Pa (<code>physics/mixture.py</code>); every reader goes through
+<code>partial_pressures_pa</code>, so the storage could change underneath (since DB.71 it is the child tables). Mole fractions and the mean
+molar mass follow from it. The rule that holds the stored values together:</p>
+<ul>
+<li>the partial pressures add up to <code>atmospheric_pressure_pa</code>;</li>
+<li><code>atm_molar_density</code> is the mole-fraction mean of the gases' molar masses;</li>
+<li><code>atm_density</code> is <code>P M / (R T)</code> and <code>scale_height_km</code> is <code>R T / (M g)</code> at the stored temperature and gravity;</li>
+<li><code>surface_temperature_k</code> is the formula on the stored <code>bond_albedo</code> and <code>greenhouse_factor</code>;</li>
+<li>the ozone follows the oxygen and the star, and the aerosol depths follow their rules;</li>
+<li>every gas the text names is in the table and the mixture.</li>
+</ul>
+<p><code>tests/test_sweep_atmosphere.py</code> (TEST.209) checks these over planets of every class and zone round three host stars and the
+bodies of generated systems, with the rules of <code>tests/audit/sweep_atmosphere.py</code> (<code>pressure-sum</code>, <code>mean-molar-mass</code>, <code>air-density</code>,
+<code>scale-height</code>, <code>temperature</code>, <code>ozone</code>, <code>aerosol-airless</code>, <code>aerosol-cloud</code>, <code>aerosol-haze</code>, <code>aerosol-dust</code>, <code>text-gases</code>); its last test
+breaks each rule in turn and checks that the sweep reports it.</p>
+<p><strong>How the mixture is drawn.</strong> <code>physics/atmosphere_recipes.py</code> draws the regimes (mantle redox, volatile delivery, outgassing,
+retention, envelope, giant, brown dwarf, hot Jupiter, lava world, trace gases). <code>physics/mixture_draw.draw_mixture</code> turns them into
+mole fractions by chemistry and not by a per-class template: the element budget, the temperature and pressure of the layer and
+the oxygen fugacity go into the equilibrium solver (<code>physics/gas_equilibrium.py</code>, on the NASA Glenn thermodynamics of
+<code>physics/species_thermo.py</code>). A class letter only gates which recipe rows apply. The family is chosen by what the recipe drew
+(<code>mixture_rocky</code>, <code>mixture_giant</code>, <code>mixture_lava</code>, <code>mixture_escape</code>, <code>mixture_evolved</code>, and so on). The draws follow the recipe draw
+in a fixed order; changing the order changes every body and is a generator epoch.</p>
+<h2 id="5-ozone">5. Ozone</h2>
+<p><code>physics/ozone.py</code>. The column in Dobson units (1 DU = 2.687e16 molecules/cm2) is the fifth-degree polynomial of Kozakis et al.
+2022 (A&amp;A, Table 3) against the log10 of the oxygen mixing ratio, one for each of five hosts (G0V, Sun, K2V, K5V, M5V), valid for
+0.01 to 150 percent of the present oxygen level and held at its ends outside it. The oxygen level at another pressure or gravity
+is <code>(p_O2 / g)</code> over Earth's. Between two hosts the column is the linear mix in temperature; cooler than the M5V row takes it;
+hotter than G0V scales the G0V curve to the F7V and F0V columns of [R3845, R3846] (a labelled stand-in). The draw multiplies
+the median by a structure factor log-uniform on 0.85 to 1.71, which spans the published models. Below 0.01 percent of the present
+level (abiotic oxygen) the column is 0.01 to 0.1 percent of the same host's full column, and 15 percent for an F host
+([R1137], second-hand). No oxygen gives none. A loss event that kept a share of the air scales the column by that share
+(<code>column_after_air_loss</code>).</p>
+<h2 id="6-cloud-haze-and-dust">6. Cloud, haze and dust</h2>
+<p><code>physics/aerosols.py</code>, three things that scatter besides the gas:</p>
+<ul>
+<li><strong>Cloud.</strong> The air is cooled along a dry adiabat to the skin temperature <code>T_s / 2^(1/4)</code>; a condensable gas forms a cloud where
+its partial pressure reaches saturation. The most condensate that can fall out gives the depth limit,
+<code>tau = 3 Q_ext m_c / (4 rho_p r_eff)</code> with <code>Q_ext = 2</code>; the droplet radius is log-uniform on 1 to 20 micron, the depth log-uniform
+from 0.1 to its limit, <code>cloud_cover</code> 0 without a condensate else uniform on 0.1 to 1. Clouds are grey, albedo 1, asymmetry 0.85.</li>
+<li><strong>Haze (stand-in).</strong> Above a CH<sub>4</sub>/CO2 ratio of 0.1 methane photolysis makes a haze, supply limited by diffusion with <code>K_zz</code>
+log-uniform on 1e6 to 1e10 cm2/s and a yield log-uniform on 0.01 to 1; the depth is the particles' mass flux over their Stokes
+fall speed with the radius log-uniform on 0.05 to 0.3 micron and the Titan tholin density (1000 kg/m3). The extinction goes as
+lambda^-a with a from 0.97 to 2.34 and the absorption follows the Khare tholin index. The Titan laws are a test target, never a
+preset.</li>
+<li><strong>Dust (stand-in).</strong> A dry solid surface lofts dust above the threshold friction velocity; <code>u*/u*_t</code> is log-uniform on 0.3 to 3, the
+depth log-uniform on 0.5 to 1.5, grey, radius 1.2 to 1.8 micron, asymmetry 0.673 +- 0.081, and the single-scattering albedo of
+the [R4743] spectra (digitised, a labelled stand-in).</li>
+</ul>
+<p>The draws always use the same number of random numbers (four for the cloud, four for the haze, two for the dust, one for
+<code>aerosol_draw</code>), whether or not the body has the aerosol, so one body's draws never shift another's.</p>
+<h2 id="7-rayleigh-scattering-and-the-colour">7. Rayleigh scattering and the colour</h2>
+<p><code>physics/rayleigh.py</code>: the optical depth of the scattering is <code>tau_R(lambda) = sum_i N_i sigma_i(lambda)</code>, with <code>N_i = p_i N_A / (m g)</code>
+and <code>sigma = A lambda^-4 (1 + B / lambda^2)^2</code> fitted to the gas table's three values (450, 550, 650 nm). Dry Earth air gives 0.0970
+at 550 nm against 0.09721 for [R0575: Table 4]. The cross sections are good to 2.5 to 4 percent for N<sub>2</sub> and Ar, 7 for CO<sub>2</sub> and 10
+to 18 for CO, CH<sub>4</sub> and N<sub>2</sub>O [R4138]. The colour model (<code>physics/atmosphere_colour.py</code>) is described in
+<a href="atmosphere-colour.html">atmosphere-colour.md</a>; it reads the stored ozone column, the aerosol depths and the cloud cover, and a
+stand-in ground albedo until the ground's reflectance is stored.</p>
+<h2 id="8-limits">8. Limits</h2>
+<p>The infrared band and wing opacities are stand-ins until real line data are in (<code>physics/infrared_opacity.py</code>); the stored water
+vapor is taken as it is, with no condensation above the surface; the closure's pressure exponent is 2 for every air. The haze yield
+is a labelled placeholder (stand-in AT.n7) and the dust and haze spectra come from similar materials (stand-in AD2), both in
+<a href="../design/research/stand-in-values.html">stand-in-values.md</a>; the ozone fit for a star hotter than G0V is labelled in the gap plan
+(<a href="../design/research/gap-filling-plan.html">gap-filling-plan.md</a>).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

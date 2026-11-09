@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group 3: mantle redox, ground types, radioisotopes (white-dwarf debris as the extrasolar ensemble) - planetGen docs</title>
+<meta name="description" content="Read-only source check for the tunable-gaps question.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/tunable-gaps-sources/group3-redox-wd-radio.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="group-3-mantle-redox-ground-types-radioisotopes-white-dwarf-debris-as-the-extrasolar-ensemble">Group 3: mantle redox, ground types, radioisotopes (white-dwarf debris as the extrasolar ensemble)</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdicts">1. Summary and verdicts</a></li><li style="margin-left:0px"><a href="#2-detail">2. Detail</a></li><li style="margin-left:14px"><a href="#21-redox-ensemble-polluted-white-dwarfs-rows-a3-a4-part-of-a1-t8">2.1 Redox ensemble: polluted white dwarfs (rows a3, a4, part of a1, T8)</a></li><li style="margin-left:14px"><a href="#22-mass-dependence-of-mantle-redox-rows-a1-a2-t8">2.2 Mass dependence of mantle redox (rows a1, a2, T8)</a></li><li style="margin-left:14px"><a href="#23-row-a1-specifics-under-the-usability-rule">2.3 Row a1 specifics under the usability rule</a></li><li style="margin-left:14px"><a href="#24-ground-types-and-crustmantle-end-members-t20-t22-r2">2.4 Ground types and crust/mantle end-members (T20, T22, R2)</a></li><li style="margin-left:14px"><a href="#25-stellar-th-u-k-eu-rows-o1-to-o4-t23">2.5 Stellar Th, U, K, Eu (rows o1 to o4, T23)</a></li><li style="margin-left:14px"><a href="#26-thu-derivation-row-o4-and-ku-row-o3">2.6 Th/U derivation (row o4) and K/U (row o3)</a></li><li style="margin-left:14px"><a href="#27-al-26-rows-o6-t23-r4">2.7 Al-26 (rows o6, T23, R4)</a></li><li style="margin-left:0px"><a href="#3-verification-of-candidate-sources">3. Verification of candidate sources</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled--to-verify">5. Recalled / to verify</a></li></ul></details>
+<p>Read-only source check for the tunable-gaps question. Labels: READ (own reading of the paper text or abstract on arXiv/Nature), 2ND-HAND (read in a reachable paper or project part that cites the original), DATA (fetched data, named), COMPUTED (own Python from stated inputs), SNIPPET (search summary only), RECALLED (memory), NOT REACHED. Fetch date for all DATA: 2026-10-17. Repo and project text were not edited.</p>
+<h2 id="1-summary-and-verdicts">1. Summary and verdicts</h2>
+<p>The best new finding is a real extrasolar redox ensemble: polluted white dwarfs (WD) with O, Mg, Si, Fe measured give an intrinsic oxygen fugacity (dIW at metal-silicate equilibrium) for 24 parent bodies (22 values, 2 upper limits): median -1.26, mean -1.25 (standard error 0.10), sample sd 0.45, crude intrinsic sd 0.22 for the 13 best-constrained stars (all COMPUTED from READ Tables of [R1152, R1153]). That anchors the small-body end of the redox draw without the Solar System, and it contradicts two project values: the a4 centre -1.0 (from Doyle's first six stars) and the a1 floor -2. There is no published observational constraint on the mass dependence of mantle redox beyond theory ([R1075] with three Solar System bodies, [R1717] with no calibration). Ground types (T20) and crust/mantle end-members (T22) cannot be anchored to WD debris except for bulk-mantle mineralogy and a crust-bearing frequency of about 1 percent; surface ground types are not observable in disrupted bodies. For stellar Th, U, K, Eu there is a public catalogue (Hypatia, open API, no stated licence) with Th N=284, Eu N=4570, K N=1509, U none; Th/U in a new planet is derivable from a nucleosynthesis production ratio, the r-process duration before birth and radioactive decay, but the duration is calibrated on the Solar System today. For Al-26 there are extrasolar constraints (WD differentiation, gamma-ray star-forming-region levels, cluster simulations) that support a bimodal presence-plus-level draw, not a log-uniform one.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Quantity</th>
+<th>Verdict</th>
+<th>One-line reason</th>
+<th>Status of anchor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a1</td>
+<td>Magma-ocean fO2 vs mass</td>
+<td>(c) for the mass slope; (b) for the low-mass end</td>
+<td>low-mass end: WD median -1.26, N=22 (extrasolar); high-mass end: Earth only (Solar System); slope: theory only. Derive by physics (base pressure to surface fO2), draw only the scatter</td>
+<td>READ (WD), READ (Deng, 3 Solar System bodies)</td>
+</tr>
+<tr>
+<td>a2</td>
+<td>Later upper mantle</td>
+<td>(c)</td>
+<td>only Solar System bodies plus theory (Guimond: at least 2 dex mineralogical spread at fixed Fe3+/sumFe); repo law is &quot;fitted by eye&quot; to Moon, Mars, Earth</td>
+<td>flag: Solar System only</td>
+</tr>
+<tr>
+<td>a3</td>
+<td>Building-block redox U[-1.4, 0]</td>
+<td>(a) after replacing the uniform by the WD distribution</td>
+<td>N=22 values; U[-1.4,0] mean -0.7 sits 0.55 dex above the WD mean</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>a4</td>
+<td>WD debris N(-1, 0.5)</td>
+<td>(a)</td>
+<td>same ensemble; centre should be -1.25 (SE 0.10), width 0.45 total or about 0.22 to 0.35 intrinsic</td>
+<td>READ, COMPUTED</td>
+</tr>
+<tr>
+<td>o2</td>
+<td>Th scale for non-thin-disc hosts</td>
+<td>(b)</td>
+<td>Hypatia Th: thin N=217, thick N=33; Th/Mg shows no thick-thin offset; halo, young, M hosts have no Th data</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>o3</td>
+<td>K/U</td>
+<td>(b) via Na as proxy, otherwise (c)</td>
+<td>stellar K N=1509 but planetary K is volatile-depleted; extrasolar depletion only via WD Na (N=202 DZ) or one WD with K; Solar System K/U (4 bodies) must not be the tuning target</td>
+<td>READ, flag</td>
+</tr>
+<tr>
+<td>o4</td>
+<td>Th/U</td>
+<td>derive by physics; (a) for the formula</td>
+<td>formula below; production ratio spread READ; U never measured in a disc star</td>
+<td>READ, COMPUTED, flag</td>
+</tr>
+<tr>
+<td>o6</td>
+<td>Al-26 present c[0.1,1]</td>
+<td>(b)</td>
+<td>WD-based lower bound on enriched fraction at least 4 percent, tens of percent likely; Lichtenberg 9 to 28 percent; not a pure probability if tied to birth cluster</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>Mantle oxidation state</td>
+<td>same as a1 to a4; largest hole is mass and age dependence</td>
+<td>no per-planet distribution exists</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T20</td>
+<td>Ground type weights</td>
+<td>(c) for surface types; (b) for 3 sub-statistics</td>
+<td>WD gives bulk mantle, core-rich 8/202, crust-bearing about 1 percent; no surface rocks</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T22 / R2</td>
+<td>Crust and mantle end-members</td>
+<td>(c) for a drawn table; derive by petrology</td>
+<td>Putirka and Xu data table is &quot;on request&quot; only; WD gives test targets (normative mineralogy of 23 PWDs)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T23 / R4</td>
+<td>K depletion, Al-26 range</td>
+<td>K: (b)/(c); Al-26: (b)</td>
+<td>see o3, o6</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Usability-rule overrides named (verified beats partly verified or recalled): (1) [R1152]/2023 WD dIW (READ) overrides the RECALLED a4 centre -1 and width 0.5; (2) the same data overrides the a1 floor -2 for small bodies, which came from Solar System Moon theory; (3) [R0479] thin-disc Th scatter 0.056 dex (READ, N=53) overrides Hypatia's 0.14 to 0.18 dex as an intrinsic width (Hypatia mixes catalogues); (4) Putirka and Xu 2021 and [R4425] both READ and disagree on &quot;exotic&quot; versus &quot;chondritic&quot; mantles, so no override: both are kept as a spread.</p>
+<p>Answers to the five specific questions: (1) 24 WD systems, centre -1.25, sd 0.45, bodies are asteroid to Vesta/Moon-mass for 13 systems and unknown for the rest, so dIW says nothing about mass dependence (section 2.1). (2) No published constraint on the mass dependence beyond theory (2.2). (3) Only partly (2.4). (4) Hypatia, with numbers in 2.5; Th/U is derivable, formula in 2.6. (5) Yes for presence and level, no for log-uniform shape (2.7).</p>
+<h2 id="2-detail">2. Detail</h2>
+<h3 id="21-redox-ensemble-polluted-white-dwarfs-rows-a3-a4-part-of-a1-t8">2.1 Redox ensemble: polluted white dwarfs (rows a3, a4, part of a1, T8)</h3>
+<p><strong>Ensemble.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1154]:356</td>
+<td>6 WDs (O, Fe, Mg, Si, Ca, Al measured, IR-excess disks required): dIW -1.17, -1.37, -1.14, -0.59, &lt; -1.21, -0.63</td>
+<td>[R1154] via project part G3 table; text of arXiv version read for method</td>
+<td>2ND-HAND (values), READ (method)</td>
+</tr>
+<tr>
+<td>[R1152], ApJ, &quot;Where are the extrasolar Mercuries?&quot;</td>
+<td>16 WDs, Table 1 (median dIW, 1 sigma, Teff, Oxs/Fe). Values: J1043+0855 -2.13 (no lower bound), 1536+520 -1.37, GD 40 -1.26, J0738+1835 -1.14, 1226+110 -0.63, 1145+017 -0.70, 1929+012 -0.49, Ton 345 -2.10 (no lower bound), G 29-38 &lt; +0.95 (upper limit only), HS 2253+8023 -0.94, 1350-162 -1.01, 1232+563 -1.21, 2207+121 -1.33, 0446-255 -1.47, G 241-6 -1.54, 1551+175 -1.40. Per-star errors 0.07 to 0.43 where bounded</td>
+<td>[R1152]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1153], &quot;New chondritic bodies in eight oxygen-bearing WDs&quot;</td>
+<td>8 more WDs (He-atmosphere): GaiaJ0218+3625 -1.29, WD1244+498 -0.54, J1248+1005 -1.09, WD1415+234 &lt; -0.87 (limit), J1734+6052 -1.04, GaiaJ1922+4709 -1.78 (no lower bound), EC22211-2525 -1.25, J2248+2632 -1.74 (no lower bound)</td>
+<td>[R1153: Table 4]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Combined</td>
+<td>N=24 systems; 22 values, 2 upper limits; 7 of 24 have no lower bound</td>
+<td>COMPUTED from the two tables</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Statistics (22 values)</td>
+<td>mean -1.248, median -1.256, sd 0.447, range -2.13 to -0.49</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Statistics (13 stars with both bounds)</td>
+<td>mean -1.115, sd 0.338, rms per-star error 0.259, intrinsic sd about 0.22 by quadrature subtraction (crude)</td>
+<td>COMPUTED</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Fraction reduced</td>
+<td>[R1152]: 11 of 16 have dIW &gt; -3 (oxidised relative to solar gas), 5 of 16 cannot exclude reduced bodies (about 1/4 to 1/3). Mercury-like (dIW &lt; -3) not confirmed in any</td>
+<td>[R1152] sec. 4.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>stars need O, Mg, Si, Fe (and Ca) with errors; in 2020, 63 percent have confirmed IR excess; settling in DBs at Teff 16000 to 19000 K can fake dIW &lt; -3 in a declining phase; method validated for dIW about -8 to about -0.9 on Solar System objects</td>
+<td>[R1152] sec. 2.1, 4.1; [R1154] SI</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Measurement scale</td>
+<td>Eq. 3: dIW = 2 log(x_FeO,rock / x_Fe,metal), activity coefficients set to 1, x_Fe,metal = 0.85 (varying 0.8 to 1.0 shifts dIW by about 0.2); plausible activity coefficients shift all values by at most about 1 log unit. [R1154] rounds dIW = dQFM - 4</td>
+<td>[R1152] sec. 1, 3.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Public table?</td>
+<td>Tables are in the papers (ApJ, open arXiv). No separate machine-readable file found; transcribing 24 rows is trivial. Licence: arXiv default, not stated in the PDFs</td>
+<td></td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Pollution fraction: 25 to 50 percent of WDs polluted ([R2415, R4918]: 48 of 85 DAs with metals, 23 (27 percent) must be accreting, up to about 50 percent)</td>
+<td>[R2415] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Size of the bodies</td>
+<td>[R1832]: 13 of 202 DZ systems have finished accretion; accreted masses Moon to half of Vesta. [R0573]: of 42 systems, 3 favour small parent bodies (differentiation pressure 4 to 8 GPa), 2 favour Earth-sized (GD 61, WD 0446-255), 4 degenerate with fO2, 5 unconstrained, 26 no evidence of differentiation, 1 unphysical. [R1154]: bodies are &quot;asteroids ... or fragments of rocky exoplanets&quot;</td>
+<td>[R1832] abstract; [R0573] sec. 3</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Physical bracket.</strong> dIW of a body with metal is set by FeO in rock against Fe in metal (Doyle Eq. 3). Solar gas is dIW -6 to -7 (via [R1152], 2ND-HAND); Solar System rocks span about 6 dex [R1154]. Rocks with no metal give only upper limits ([R1152] sec. 2.3).</p>
+<p><strong>Verdict.</strong> (a) for the small-body, core-formation quantity (rows a3, a4). Be blunt about two limits. First, Doyle's dIW is the fO2 at metal-silicate equilibrium on a scale with Earth at about -1.5 (Earth -1 to -2 depending on the FeO activity-coefficient ratio, G3 table, 2ND-HAND), whereas a1 uses the surface magma-ocean scale with Earth at +0.5 (Sossi) or +2 (Deng). These are different quantities and the project must say which one each row draws (G3 finding F<sub>2</sub>: the generator should fix one IW scale, [R1951], metadata verified only). Second, WD bodies have no known mass for 11 or more of the 24 systems, so the ensemble cannot supply any mass slope.</p>
+<p><strong>Knobs.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Target statistic</th>
+<th>Target value (uncertainty)</th>
+<th>Range of validity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>centre mu_small</td>
+<td>median and mean of 22 WD dIW</td>
+<td>-1.26 / -1.25 (SE 0.10; scale systematic up to 1)</td>
+<td>small bodies (Moon to Vesta mass, 13 systems; others unknown), host progenitors 1 to 3 Msun</td>
+</tr>
+<tr>
+<td>width sigma</td>
+<td>sd of 22 values; sd of 13 well-constrained</td>
+<td>0.45 (SE about 0.07) ; intrinsic about 0.22</td>
+<td>same</td>
+</tr>
+<tr>
+<td>tails</td>
+<td>lower tail to -2.1 (3 of 22 below -1.7, all with weak lower bounds); upper edge -0.49 (method cannot resolve above about -0.9)</td>
+<td>one-sided truncation at -0.5 not physical, it is a detection limit</td>
+<td></td>
+</tr>
+<tr>
+<td>reduced-body fraction (dIW &lt; -3)</td>
+<td>0 of 24 confirmed</td>
+<td>upper limit about 0.12 at 95 percent (rule of three, COMPUTED)</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Consistency test.</strong> Compare simulated median, sd and a KS test against the 22 values with tolerance the standard errors above; the simulated side needs a detection model (per-star error 0.07 to 0.43, truncation near -0.9 for oxidised bodies, no lower bound for 7 of 24, DB settling bias for Teff 16000 to 19000 K as in [R1152: Figs. 8 to 11]). Without a selection model the width is an upper bound.</p>
+<p><strong>No-fixed-content.</strong> None for the low-mass anchor (extrasolar). The a1 high-mass anchor (+0.5 at 1 Earth mass) is Earth only.</p>
+<p><strong>Repo comparison (usability rule).</strong> a4 N(-1, 0.5) used the first six stars (their mean of five values is -0.98, COMPUTED). The 22-value mean -1.25 differs by 2.6 standard errors; keep sd 0.45 or use the intrinsic 0.22 plus measurement noise. a3 U[-1.4, 0] has mean -0.7; 6 of 22 WD values lie below -1.4 but only 2 (-1.47, -1.54) are well constrained and both sit within 1 sigma of -1.4, so the uniform's lower edge is not hard-contradicted, its centre is. [R3944] (ApJ 843:120, [R3944]) meteorite values stay as Solar System test points.</p>
+<h3 id="22-mass-dependence-of-mantle-redox-rows-a1-a2-t8">2.2 Mass dependence of mantle redox (rows a1, a2, T8)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it gives</th>
+<th>Calibration</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deng, Du, [R2614], Nat. Commun. 11:2007, [R1075] (the candidate &quot;[R1075]&quot; is right; authors Deng, Du, Karki, Ghosh, Lee)</td>
+<td>First-principles plus thermodynamic model: magma-ocean surface fO2 rises with ocean depth. Base depths 55, 14, 5 GPa give base dIW -2, -1.5, -2 and surface about IW+2 (Earth), IW-0.3 (Mars), IW-2 (Moon). 1 sigma about 0.5 log. Earth surface falls about 1.5 log if base is 25 not 55 GPa. Mentions super-Earths only qualitatively</td>
+<td>three Solar System bodies; no exoplanet datum</td>
+<td>READ (Nature page)</td>
+</tr>
+<tr>
+<td>[R4154], Sci. Adv. 6:eabd1387, [R4154]</td>
+<td>Earth magma ocean about IW+0.5 on their scale at 2173 K, Fe3+/sumFe 0.037 +- 0.005</td>
+<td>Earth only</td>
+<td>2ND-HAND (part G3), metadata verified</td>
+</tr>
+<tr>
+<td>[R1717], MNRAS, [R1717]</td>
+<td>At fixed Fe3+/sumFe, mineralogy alone gives at least 2 dex fO2 spread across exoplanet mantles from Hypatia host-star refractory abundances; about 3 dex from Mg/Si; &quot;Fe3+/sumFe and thus the real fO2 is unconstrained for exoplanets&quot; (fixed at 3 percent for figures)</td>
+<td>no calibration</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Gaillard, Bernadou, Roskosz, EPSL 577:117255</td>
+<td>Outgassed composition vs fO2 regimes (above IW+2 dry C-N-S atmosphere)</td>
+<td>theory plus experiments</td>
+<td>2ND-HAND (part G3), metadata verified</td>
+</tr>
+<tr>
+<td>[R1154]/2020/2023, [R0573, R1832]</td>
+<td>Overlap check: WD 1350-162 (small parent, Buchan) dIW -1.01 +0.18/-0.21; WD 0446-255 (Earth-sized, Buchan) dIW -1.47 +0.20/-0.22. Difference 0.46 dex at about 1.5 sigma, N=2, differentiation pressure degenerate with fO2 in 4 systems</td>
+<td></td>
+<td>COMPUTED from READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Answer to question 2.</strong> No published constraint on the mass (or pressure) dependence of mantle redox beyond theory exists in what I could reach. The only observational tie is the two-star overlap above, which has no power. a1's slope (1.25 dex per dex of mass) was interpolated between a WD-like floor and Earth, so it is a design interpolation.</p>
+<p><strong>Verdict.</strong> a1 slope and a2: (c). Recommend deriving the surface dIW from a physical model (base pressure of the ocean from M, Fe3+ budget, mineralogy) and drawing only a Gaussian scatter (Deng 0.5, Guimond 0.3 to 0.4 dex 2ND-HAND via G3). Boss would have to supply Deng's Fig. 3 data (G3 item 6) and a source for Fe3+/sumFe in exoplanet mantles (none exists). The a2 repo law (3.5 + 2 log10 M, sigma 1.0) is fitted to Moon, Mars, Earth only: Solar System only, flag.</p>
+<h3 id="23-row-a1-specifics-under-the-usability-rule">2.3 Row a1 specifics under the usability rule</h3>
+<p>a1 as written: mu = clamp(-2 + 1.25 (log10 M + 2), -2, 0.5), sigma 0.5. WD data say small bodies centre at -1.25, not -2. Replace the floor by -1.25 (SE 0.10) and keep the Earth end at +0.5 (Sossi scale, Solar System only) until a second exoplanet anchor exists. Scale mismatch: Doyle's scale and Sossi's scale differ; do not mix without a conversion test (G3 G-4).</p>
+<h3 id="24-ground-types-and-crustmantle-end-members-t20-t22-r2">2.4 Ground types and crust/mantle end-members (T20, T22, R2)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Ensemble</th>
+<th>N</th>
+<th>Finding</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Putirka and Xu 2021, Nat. Commun. 12:6168</td>
+<td>23 PWDs within 200 pc with Mg, Si, Ca, Fe</td>
+<td>11 fall in or next to the peridotite/pyroxenite ternary (Earth-like mantle assemblages); the other 12 are &quot;exotic&quot; (quartz pyroxenites, periclase dunites, etc.); only 1 matches bulk silicate Earth; no crust types found; sample is Ca-selected; Mg may be underestimated for cool WDs</td>
+<td>Nature page (CC BY 4.0); data &quot;available from the lead author upon request&quot;, Supplementary Table A1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Trierweiler, Doyle, PSJ 4:136</td>
+<td>31 WDs with O plus other elements</td>
+<td>chi-square test: 15 of 31 pass as chondritic on raw abundances (21 of 31 with steady-state correction); no WD better fit by MORB or continental crust; Hypatia stars: 75 percent chondritic (F 66.5, G 75.8, K 76.6, M 56.1 percent)</td>
+<td>[R4425]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Harrison, Bonsor, Kama, Buchan, Blouin</td>
+<td>202 DZ WDs</td>
+<td>more than 60 percent consistent with primitive material; 8 systems core-rich at 3 sigma (4.0 percent); 1 crust-rich (0.5 percent); Na implies formation temperatures below 1000 K to above 1400 K</td>
+<td>[R1832] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1833]:3814</td>
+<td>17 systems</td>
+<td>1 to 9 core- or mantle-dominated; no crust-rich pollutants</td>
+<td>[R1833] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0457]:2683</td>
+<td>Ca/Fe of WD sample</td>
+<td>model fit: 66 +4/-6 percent accreted differentiated-planetesimal remnants, 31 +5/-5 percent altered by heating</td>
+<td>[R0457] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1985], Nat. Astron. 5:451</td>
+<td>524 northern WDs within 40 pc searched</td>
+<td>Li in 4 cool WDs (K in one); Li, Na, Ca ratios imply crust fragments</td>
+<td>[R1985] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4276]:202</td>
+<td>9 WDs</td>
+<td>volatile-poor, differentiated bodies; one mantle-like with small Fe-Ni core; some Ca- or Na-anomalous</td>
+<td>[R4276] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3801]</td>
+<td>8 WDs with Spitzer dust</td>
+<td>olivine/pyroxene dominance correlates tentatively with Mg/Si; GD 56 core mass fraction 0.59</td>
+<td>[R3801] abstract</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What can and cannot be anchored.</strong> WD debris is disrupted bulk material, so it constrains: (i) mantle mineral assemblage, which the project already treats as a deterministic map of Mg/Si and C/O (T6); (ii) core-rich fraction about 4 percent of DZs at 3 sigma [R1832] and 66 percent differentiated in a model [R0457]; (iii) a crust-bearing frequency of order 0.5 to 1 percent (1/202; 4/524 of the 40 pc sample have Li crust signatures, but the denominator of polluted WDs in that sample is not given); (iv) volatile content (excess oxygen for a handful, 2ND-HAND). It does not constrain surface rock types (basaltic, felsic, anorthositic, evaporite, clay, sulfur, carbon, ice) of an intact planet, nor their weights.</p>
+<p><strong>Verdict.</strong> T20: (c) for the surface types as a drawn table; (b) only for three sub-statistics (core-rich/metal about 4 percent, crust-bearing about 1 percent, water-rich a &quot;handful&quot; with no count). Be blunt: T20's weights are a design table that cannot be tuned to any observed population of surfaces. Recommend deriving ground type by decision rules from the stored mantle, volatile, heat flux and tectonic state (as T20 already states), and testing the output against WD statistics only at the level of bulk mantle assemblage and the crust-bearing frequency. T22/R2: (c) for a drawn proportion table. Putirka and Xu and Trierweiler disagree (12 of 23 exotic versus most chondritic), so the spread of the &quot;exotic mantle&quot; fraction, 0 to about 50 percent, is the honest tolerance; no verified source overrides the other. Boss must request Putirka and Xu Supplementary Table A1 and the [R1984] compositions (no arXiv id found; MNRAS 477:93, [R1984], Crossref only).</p>
+<p><strong>Test.</strong> Simulated bulk-mantle normative mineralogy of bodies built from Hypatia-like host abundances versus the 23 PWDs (Putirka) and 31 WDs (Trierweiler chi-square on Si, Fe, Mg, Al, Ca, Ni, Cr); needs a WD selection model (Ca selection, Teff, settling) and a differentiation model.</p>
+<h3 id="25-stellar-th-u-k-eu-rows-o1-to-o4-t23">2.5 Stellar Th, U, K, Eu (rows o1 to o4, T23)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Ensemble</th>
+<th>N</th>
+<th>Measured</th>
+<th>Scatter and trends</th>
+<th>Access, licence</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hypatia Catalog ([R1943]:54, [R1943]; database paper [R1942])</td>
+<td>front page: 14,085 stars, 104 elements and species, 383 catalogues, 452,599 measurements</td>
+<td>element list includes K, Eu, Eu_II, Th, Th_II; no U</td>
+<td>see below</td>
+<td>open web API (v2.2.0, no key) at hypatiacatalog.com; page shows &quot;Copyright 2026&quot;, no open licence stated; 2014 reduced table on VizieR J/AJ/148/54 (2685 rows)</td>
+<td>READ (papers), DATA (API)</td>
+</tr>
+<tr>
+<td>Hypatia counts by element via API scatter query (vs [Fe/H])</td>
+<td>Th I: 1 star; Th_II: 284 stars; Eu: 903; Eu_II: 4570; K: 1509; U: 0</td>
+<td>DATA, COMPUTED</td>
+<td></td>
+<td></td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>Hypatia [Th_II/Fe]</td>
+<td>284</td>
+<td>median +0.04, sd 0.22; for</td>
+<td>[Fe/H]</td>
+<td>&lt;0.3 (N=228) slope vs [Fe/H] -0.79, residual sd 0.14</td>
+<td>catalogue heterogeneity inflates sd; Botelho slope is -0.338</td>
+</tr>
+<tr>
+<td>Hypatia Th by disc (star-query disk flag)</td>
+<td>thin 217, thick 33, unclassified 34</td>
+<td>thin [Th/H] mean -0.015 sd 0.142; thick -0.254 sd 0.306; [Th/Mg] thin -0.044 sd 0.153 (N=215), thick -0.063 sd 0.193 (N=32); [Th/Eu] thin -0.065 sd 0.197, thick -0.077 sd 0.292</td>
+<td>no thick-thin offset in Th/Mg, the planet-relevant ratio</td>
+<td></td>
+<td>DATA, COMPUTED</td>
+</tr>
+<tr>
+<td>Hypatia [K/Mg]</td>
+<td>1419 with both</td>
+<td>mean +0.031, sd 0.224, 95 percent -0.44 to +0.46 dex ([R4468] with 179 stars: x1.13 solar, 95 percent x0.35 to x3.63, consistent)</td>
+<td>NLTE-sensitive K I lines</td>
+<td></td>
+<td>DATA, COMPUTED; READ (Unterborn)</td>
+</tr>
+<tr>
+<td>Hypatia [Eu_II/Fe]</td>
+<td>4570;</td>
+<td>[Fe/H]</td>
+<td>&lt;0.3: 3550</td>
+<td>median +0.10; slope -0.23; residual sd 0.17</td>
+<td></td>
+</tr>
+<tr>
+<td>[R0478, R0479], [R0479]</td>
+<td>53 thin-disc solar twins</td>
+<td>Th II 4019 A, precision 0.025 dex; pristine [Th/H] super-solar, uniform dispersion 0.056 dex, +0.037 to +0.138 vs age; Th follows Eu, not Nd (60 percent s-process)</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4469]</td>
+<td>14 solar twins and analogues</td>
+<td>Th 59 to 251 percent of solar (Sun low); solar log eps(Th) 0.09</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3096]:3786, [R3096]</td>
+<td>276 disc stars, Th in 170</td>
+<td>first extended disc Th set; errors 0.07 to 0.16 dex; Th declines more steeply than Eu with [Fe/H]; GCE needs metallicity-dependent Th yield or a Th-rich source whose rate falls</td>
+<td></td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R0664]</td>
+<td>Eu in 577 (HARPS, Delgado [R1062]) + 377 (Bensby/Battistini) stars</td>
+<td>intrinsic [Eu/H] scatter 0.025 dex at fixed [alpha/H] and Teff; [Eu/alpha] anticorrelates with [alpha/H]; Th/Eu assumed 0 (Botelho) but Mishenina finds larger dispersion</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0309]</td>
+<td>79 solar twins, 30 elements to about 2 percent</td>
+<td>C/O and Mg/Si homogeneous within 10 percent at solar metallicity; no Th or K reported in the summary</td>
+<td></td>
+<td></td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>[R4468]</td>
+<td>Hypatia: 2040 FGK with Eu and Mg; 179 with K and Mg</td>
+<td>no 40K/K data outside the Solar System; Earth 40K/K 0.1419 percent unknown elsewhere; doubling 40K/K lengthens degassing by about 1 Gyr</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Answer to question 4.</strong> Catalogue: Hypatia (open API) for Th II, Eu, K; U is not measured in any disc star ([R1447] and the eight halo r-process-enhanced stars are the only U detections, per G2; HE 1523-0901 log eps(U) = -2.06, log eps(U/Th) = -0.86, READ). Scatter: thin-disc Th intrinsic 0.056 dex (Botelho, READ) up to 0.14 to 0.19 dex heterogeneous (Hypatia, DATA); Eu intrinsic 0.025 dex, observed 0.07 to 0.17; K/Mg 0.22 dex. Trends: [Th/Fe] falls with [Fe/H] (slope -0.34 in solar twins over +-0.1 dex, Botelho, via G2; -0.79 over +-0.3 dex in Hypatia, DATA), so rock-normalised Th/Mg shows no population offset (thin -0.044, thick -0.063). Age: Botelho gives +0.037 to +0.138 pristine [Th/H] across ages (READ); G2 reports -0.0121 dex per Gyr of stellar age for [Th/Si] (2ND-HAND). Halo, young (below 1 Gyr) and M-dwarf hosts: no Th data in what I reached.</p>
+<p><strong>Verdicts.</strong> o2: (b). A draw log f_Th ~ N(m_pop, s_pop) with thin-disc s from Botelho 0.056 and an upper bound s of 0.15 to 0.19 (Hypatia thin/thick Th/Mg) is tunable to those statistics (N=215 and 32). The repo bracket U[-0.23, +0.40] (59 to 251 percent) is a 14-star range; Hypatia's thick-disc [Th/Mg] -0.063 +- 0.19 sits inside it. Halo, young, M: Boss must supply Th data (none found). o1 stays (a) as stated.</p>
+<h3 id="26-thu-derivation-row-o4-and-ku-row-o3">2.6 Th/U derivation (row o4) and K/U (row o3)</h3>
+<p><strong>Th/U formula (nucleosynthesis, birth epoch, decay).</strong> Let PR = (232Th/238U) production ratio (number). Published inputs: [R1447: Table 1] (READ, original sources 2ND-HAND) lists log(U/Th)_initial from -0.301 through -0.29, -0.256, -0.243 ([R1001], U/Th = 0.571) to -0.22, i.e. PR = 1.67 to 2.0; [R1001] abstract (Nature 435:1203, [R1001]) states prior estimates of the U/Th production ratio 0.4 to 0.7 and derives a precise value from meteorites plus halo stars (value 0.571 +0.037/-0.031 from a search summary, SNIPPET; consistent with Frebel's table). Chronometer: delta t = 21.8 [log(U/Th)_initial - log eps(U/Th)_now] ([R1447], READ).</p>
+<p>For continuous r-process enrichment of the gas at constant rate for T Gyr before the planet's host star forms, then radioactive decay for the planet's age tau:</p>
+<p>Th/U (number) = PR x F(T) x exp[(l238 - l232) tau], with F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238]; mass ratio = 0.9748 x number ratio. Decay constants l = ln2 / half-life: 232Th 14.05 Gyr (RECALLED; [R4468] lists 14), 238U 4.468 Gyr ([R4468] lists 4.47, READ), so l238 - l232 = 0.106 per Gyr. Real r-process input is episodic (neutron-star mergers), so T is an effective duration and the constant-rate form is a simplification (COMPUTED model, not a published fit).</p>
+<p>COMPUTED table (PR = 1.751; mass Th/U):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>T (Gyr)</th>
+<th>tau = 0</th>
+<th>2</th>
+<th>4.5</th>
+<th>8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>1.98</td>
+<td>2.45</td>
+<td>3.19</td>
+<td>4.63</td>
+</tr>
+<tr>
+<td>6.5</td>
+<td>2.32</td>
+<td>2.86</td>
+<td>3.73</td>
+<td>5.40</td>
+</tr>
+<tr>
+<td>10</td>
+<td>2.65</td>
+<td>3.28</td>
+<td>4.27</td>
+<td>6.18</td>
+</tr>
+<tr>
+<td>13</td>
+<td>2.93</td>
+<td>3.62</td>
+<td>4.72</td>
+<td>6.83</td>
+</tr>
+</tbody>
+</table></div>
+<p>PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. <strong>What is READ and what is calibrated:</strong> PR range (READ via Frebel Table 1) and decay constants are not Solar System. T is calibrated here on one datum, CI Th/U = 3.76 ([R2986] via G2): it requires T = 6.5 Gyr for PR 1.751 (7.7 for PR 1.667, 3.5 for PR 2.0), COMPUTED. So the degeneracy PR versus T is closed only by the Solar System: <strong>flag.</strong> An independent route would fit T(birth epoch) with a Galactic chemical-evolution mod[R3096] GCE with OMEGA+, READ abstract).</p>
+<p><strong>Verdict o4.</strong> Replace U[3.8, 4.5] by this formula; the repo range is an age-4.5 Gyr Solar System value and ignores that Th/U grows with age (about x1.16 over 1.5 Gyr, COMPUTED). Knobs: PR in [1.67, 2.0] (READ), T by birth epoch (calibrated), tau from the planet age. Test: halo-star chronometer ages at [Fe/H] about -3 (N=2 with U in the same pattern, 8 stars in total per G2) and the Solar System point only; no disc star has U. Conclusion: derive, do not draw; verdict (b) for tuning because the only comparison data are one Solar System datum and about 8 halo stars.</p>
+<p><strong>o3 K/U.</strong> K is moderately volatile; planetary K/U = (K/U)_star x d_K. Solar System d_K values (Moon 0.032, Earth 0.18, Mercury surface 0.18, Mars 0.28; COMPUTED in G2 from READ ratios) are the only direct constraints on d_K; flag: Solar System only. Extrasolar information: (i) [R1832]: Na in 202 DZ pollutants spans formation temperatures below 1000 K to above 1400 K (READ abstract); K and Na are both moderately volatile (50 percent condensation temperatures about 1006 K for K and 958 K for Na, [R2726], RECALLED), so a draw d_K = f(T_form) with T_form tuned to the Na/Mg spread of [R1832] is possible if Boss accepts the proxy; (ii) [R1985] detected K in 1 of 4 crust-bearing cool WDs (N=1); (iii) [R0046] finds moderate refractories (Mg, Si, Fe) depleted relative to Ca, Ti in one WD against its F-star companion (N=1). Verdict (b) via Na, otherwise (c). 40K/K is unconstrained outside the Solar System ([R4468], READ). [R0521] (Nature Geosci. 12:564, [R0521]; authors Braukmuller, Wombacher, Funk, Munker, not &quot;Siebert et al.&quot;), Palme and O'Neill, Lodders: not read (NOT REACHED beyond metadata).</p>
+<h3 id="27-al-26-rows-o6-t23-r4">2.7 Al-26 (rows o6, T23, R4)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Ensemble or constraint</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Canonical early-Solar-System 26Al/27Al</td>
+<td>(5.23 +- 0.13)e-5 ([R2768] table); 5.2e-5 ([R2128] via [R2209]); 5.85e-5 ([R4353] via [R2679]). Disk deviations up to a factor 2 ([R2569, R2717] via [R2209])</td>
+<td>[R2209, R2679, R2768]</td>
+<td>READ (tables), 2ND-HAND (originals); Solar System</td>
+</tr>
+<tr>
+<td>Present-day interstellar average</td>
+<td>3.0e-6 [R4307]</td>
+<td>via [R2209]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Galactic 26Al mass</td>
+<td>2.8 +- 0.8 solar masses (INTEGRAL/SPI, 16 sigma line)</td>
+<td>[R1108, R1109] A&amp;A, [R1109]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Star-forming regions today</td>
+<td>molecular-cloud 26Al/27Al about 2 to 3e-5 if all interstellar 26Al sits in clouds; Orion about 3e-5 (5.8e-4 Msun 26Al in 2e5 Msun H<sub>2</sub>)</td>
+<td>Jura, Xu, [R2209, R4837]</td>
+<td>READ (COMPUTED by authors)</td>
+</tr>
+<tr>
+<td>Extrasolar melting</td>
+<td>WD parent bodies with Fe/Al varying over a factor above 100 require 26Al/27Al at least 3e-5 for melting of small rocks (formation time 1.5 Myr)</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>WD differentiation to enriched fraction</td>
+<td>at least 4 percent of systems enriched (conservative), most likely tens of percent; example 66 percent differentiated with 40 percent of un-enriched bodies differentiating gives 43 percent enriched: 25 percent of systems at Solar System level; [R1648]: about 1 percent above Solar System</td>
+<td>[R1716], MNRAS, [R0967]</td>
+<td>READ (Reiter, Gounelle 2ND-HAND)</td>
+</tr>
+<tr>
+<td>Fraction differentiated pollutants</td>
+<td>66 +4/-6 percent [R0457]; 16 of 42 WDs (40 percent) core- or mantle-rich ([R0573] via Curry)</td>
+<td>[R0457, R0967]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cluster simulations</td>
+<td>fraction of disks enriched f_enr 9 to 28 percent; mean 26Al/27Al of enriched disks 3.5e-5 to 2.4e-4 (sd comparable to or above the mean); 3 to 10 percent of disks have 26Al above the Solar System; 7 to 16 percent have heating above Solar System</td>
+<td>[R3050]:3979, [R2679: Table 4]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Inheritance picture</td>
+<td>Solar System 26Al explained by Wolf-Rayet-wind input to molecular clouds with cloud residence about 1e8 yr; no unusual nearby source needed. Title is &quot;unexceptional&quot;, not &quot;unique&quot;</td>
+<td>[R4837]:16, [R4837]</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Consequence</td>
+<td>high 26Al gives small dry planets; no 26Al gives ocean worlds, radii differ by up to about 10 percent</td>
+<td>[R2678], Nat. Astron., [R2678]</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R0030] (ARAA birth environment)</td>
+<td></td>
+<td>NOT REACHED (ARAA refused)</td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Answer to question 5.</strong> The range 5.25e-6 to 5.25e-4 is 0.1 to 10 times the canonical Solar System value, so it is built on the Solar System. Without it: the low end is supported by the interstellar mean 3.0e-6 (2ND-HAND) and cloud values 2 to 3e-5 (READ); the high end by cluster-simulation means up to 2.4e-4 with large scatter (READ), with 3 to 10 percent of disks above Solar System; the WD data need at least 3e-5 in a tens-of-percent fraction of systems. The shape is not log-uniform: the evidence points to a mixture (un-enriched near the ISM level, enriched at tens of 1e-5 with a tail), and the distribution of levels for enriched disks is only a figure in [R2679] (numbers not in text). R4 replacement (derive from nucleosynthesis yields and birth cluster) is feasible: yields are in [R2679] (Mej,Al = 3.4e-6 M*, Mej,Fe = 5.6e-7 M*, READ) plus the Diehl galactic mass as a consistency check.</p>
+<p><strong>Verdict o6: (b).</strong> Draw an enriched flag with probability p_enr and a level from a mixture. Knobs and targets: p_enr 0.04 to about 0.66 (Curry; central &quot;tens of percent&quot; about 0.25 to 0.45); level-enriched centre about 3e-5 to 1e-4 (Jura, Lichtenberg); un-enriched level 3e-6 (ISM). The repo c[0.1,1] is inside that bracket; 0.1 is not contradicted by the lower bound 0.04. Test: simulated fraction of differentiated WD pollutants ([R0457], 66 +4/-6 percent) with a body-size model (Curry: differentiation by gravity needs bodies above about 1000 km if p_enr is below 50 percent); needs the WD selection and the polluter-size distribution. Only the Solar System fixes the exact 5.2e-5 point; extrasolar data fix the order of magnitude and the enriched fraction.</p>
+<h2 id="3-verification-of-candidate-sources">3. Verification of candidate sources</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Candidate (from prompt)</th>
+<th>Result</th>
+<th>Id / DOI</th>
+<th>N</th>
+<th>Access and licence</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1154] Science</td>
+<td>exists</td>
+<td>[R1154]</td>
+<td>6 WDs</td>
+<td>arXiv; licence not stated</td>
+<td>READ (method), values 2ND-HAND</td>
+</tr>
+<tr>
+<td>[R1152]</td>
+<td>right title &quot;Where are the extrasolar Mercuries?&quot;, ApJ</td>
+<td>[R1152]</td>
+<td>16</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>(extra) [R1153]</td>
+<td>new</td>
+<td>[R1153]</td>
+<td>8</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1833]</td>
+<td>exists, MNRAS 479:3814</td>
+<td>[R1833]</td>
+<td>17</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1832]</td>
+<td>MNRAS 504:2853 is Harrison, Bonsor, Kama, Buchan, Blouin, Koester</td>
+<td>[R1832]</td>
+<td>202 DZ</td>
+<td>arXiv</td>
+<td>READ. A second [R0458]:116694 exists per a search summary, not read</td>
+</tr>
+<tr>
+<td>[R0457]</td>
+<td>exists (MNRAS 492:2683)</td>
+<td>[R0457]</td>
+<td>WD Ca/Fe sample</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0458]</td>
+<td>pilot study of a WD in a wide binary: not found; follow-up found</td>
+<td>[R0046]</td>
+<td>1</td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R4276]</td>
+<td>exists</td>
+<td>[R4276]</td>
+<td>9</td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Putirka and Xu 2021</td>
+<td>exists, Nat. Commun. 12:6168</td>
+<td>[R3627]</td>
+<td>23</td>
+<td>Nature, CC BY 4.0; data on request</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4425]</td>
+<td>no paper found</td>
+<td></td>
+<td></td>
+<td></td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R4425]</td>
+<td>&quot;A Chondritic Solar Neighborhood&quot;, PSJ 4:136</td>
+<td>[R4425]</td>
+<td>31 WDs, Hypatia stars</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Xu et al.</td>
+<td>Xu 2019 AJ 158:242</td>
+<td>[R4799]</td>
+<td>about 10</td>
+<td>Crossref metadata only</td>
+<td>NOT READ</td>
+</tr>
+<tr>
+<td>[R1984]</td>
+<td>MNRAS 477:93; no arXiv id found</td>
+<td>[R1984]</td>
+<td></td>
+<td>Crossref only</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R1579]</td>
+<td>exists</td>
+<td>[R1579]</td>
+<td>4</td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R2210]</td>
+<td>ARE&amp;PS 42:45</td>
+<td>[R2210]</td>
+<td></td>
+<td>not reachable</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R2415]</td>
+<td>exists</td>
+<td>[R2415]</td>
+<td>85 DAs</td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R1951]</td>
+<td>GCA 313, &quot;Iron-wustite revisited&quot;</td>
+<td>[R1951]</td>
+<td></td>
+<td>metadata only</td>
+<td>NOT READ</td>
+</tr>
+<tr>
+<td>[R4154]</td>
+<td>Sci. Adv. 6:eabd1387</td>
+<td>[R4154]</td>
+<td>Earth</td>
+<td>metadata only (ANU repository CC BY-NC 4.0 per search)</td>
+<td>2ND-HAND (G3)</td>
+</tr>
+<tr>
+<td>[R1075]</td>
+<td>right id; authors Deng, Du, Karki, Ghosh, Lee</td>
+<td>[R1075]</td>
+<td>3 bodies</td>
+<td>Nature</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1717]</td>
+<td>exists</td>
+<td>[R1717]</td>
+<td>Hypatia planet hosts</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1488]</td>
+<td>EPSL 577:117255, authors Gaillard, Bernadou, Roskosz, Bouhifd</td>
+<td>[R1488]</td>
+<td></td>
+<td>metadata only</td>
+<td>2ND-HAND (G3)</td>
+</tr>
+<tr>
+<td>[R0501]</td>
+<td>PSJ 3, &quot;Retention of water in terrestrial magma oceans and carbon-rich early atmospheres&quot;</td>
+<td>[R0501]</td>
+<td></td>
+<td>metadata only</td>
+<td>NOT READ</td>
+</tr>
+<tr>
+<td>[R3944]</td>
+<td>ApJ 843:120</td>
+<td>[R3944]</td>
+<td></td>
+<td>values via part 05</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R0479]</td>
+<td>exists</td>
+<td>[R0479]</td>
+<td>53</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4469]</td>
+<td>exists</td>
+<td>[R4469]</td>
+<td>14</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0309]</td>
+<td>exists</td>
+<td>[R0309]</td>
+<td>79</td>
+<td>arXiv</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>[R1943]</td>
+<td>exists</td>
+<td>[R1943]; API docs hypatiacatalog.com/api</td>
+<td>14,085 stars (site)</td>
+<td>open API; copyright 2026 notice, no licence</td>
+<td>READ, DATA</td>
+</tr>
+<tr>
+<td>Delgado Mena (Eu, Th)</td>
+<td>Eu in 2017 paper (A&amp;A 606:A94); no Th paper by this author found</td>
+<td>[R1062]</td>
+<td>577 Eu stars (via Carrasco)</td>
+<td>arXiv</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Frebel and Hill cosmochronometry</td>
+<td>right paper is Frebel, Christlieb, Norris, Thom, Beers</td>
+<td>[R1447]</td>
+<td>1 star (+CS 31082-001 remeasured)</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1001]</td>
+<td>Nature 435:1203</td>
+<td>[R1001]</td>
+<td></td>
+<td>abstract READ; value SNIPPET and via Frebel Table 1</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R2679]</td>
+<td>exists</td>
+<td>[R2679]</td>
+<td>N-body 1e3 to 1e4 stars, 30 runs each</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2678]</td>
+<td>exists (Nat. Astron.)</td>
+<td>[R2678]</td>
+<td>model</td>
+<td>arXiv</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R2768]</td>
+<td>Prog. Part. Nucl. Phys. 102:1</td>
+<td>[R2768]</td>
+<td>review</td>
+<td>arXiv</td>
+<td>READ (table)</td>
+</tr>
+<tr>
+<td>Diehl et al.</td>
+<td>A&amp;A paper</td>
+<td>[R1109]</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0030]</td>
+<td></td>
+<td></td>
+<td></td>
+<td>ARAA refused</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R4837]</td>
+<td>title is &quot;unexceptional&quot;</td>
+<td>[R4837]</td>
+<td></td>
+<td>arXiv</td>
+<td>READ (abstract, table)</td>
+</tr>
+<tr>
+<td>(extra) Jura, Xu, [R4837]</td>
+<td>key extrasolar 26Al paper</td>
+<td>[R2209]</td>
+<td></td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>(extra) [R0967]</td>
+<td>WD-based SLR prevalence</td>
+<td>[R0967]</td>
+<td>202-WD framework</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>(extra) [R0573]</td>
+<td>masses of WD pollutants</td>
+<td>[R0573]</td>
+<td>42 systems</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>(extra) [R0664, R3096, R4468]</td>
+<td>stellar Th/Eu</td>
+<td>[R3096]; 2411.10711; 2204.04243</td>
+<td>276; 577+377; Hypatia</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-boss-must-supply">4. Boss must supply</h2>
+<ol>
+<li>Putirka and Xu 2021 Supplementary Table A1 (23 PWD abundances, &quot;on request&quot; from the lead author). Without it the exotic-mantle fraction cannot be re-fit.</li>
+<li>White-dwarf compositions, and Xu et al. 2019 (AJ 158:242) tables, for a WD sample with Ca, Fe, Mg, Si, Na, K.</li>
+<li>Machine-readable tables for [R1154], 2020, 2023 (24 systems), plus [R3795] oxygen budgets, so the redox test can be run with per-star errors.</li>
+<li>Hypatia licence and permission to redistribute derived tables (copyright notice only; K, Eu, Th are mixtures of literature catalogues).</li>
+<li>A decision on which IW scale each row draws (core-formation dIW from WDs versus surface magma-ocean dIW) and a conversion test (G3 G-4, [R1951] full text).</li>
+<li>[R1075: Fig. 3] data (surface dIW vs ocean-base pressure) and any observational source on Fe3+/sumFe in exoplanet mantles (none found).</li>
+<li>A Th (or Th/Eu) survey of halo, young and M-dwarf hosts, and any U in disc stars (none found).</li>
+<li>A Galactic chemical-evolution r-process history ([R1438] or equivalent) to replace the Solar-System-calibrated duration T in the Th/U formula.</li>
+<li>Distribution of enriched 26Al/27Al in [R2679: Fig. 7] as numbers, [R0030, R1648].</li>
+<li>Na, K condensation temperatures from a primary source ([R2726] or Wasson) to map WD Na depletion to K.</li>
+</ol>
+<h2 id="5-recalled--to-verify">5. Recalled / to verify</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Where used</th>
+<th>Why unverified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>half-life 232Th 14.05 Gyr</td>
+<td>Th/U table ([R4468] lists 14, 238U 4.47, READ)</td>
+<td>14.05 from memory</td>
+</tr>
+<tr>
+<td>atomic masses 232.038, 238.051 (mass/number factor 0.9748)</td>
+<td>Th/U table</td>
+<td>standard values, not looked up</td>
+</tr>
+<tr>
+<td>50 percent condensation temperatures K 1006 K, Na 958 K</td>
+<td>o3 proxy</td>
+<td>memory [R2726]</td>
+</tr>
+<tr>
+<td>[R1001] value 0.571 +0.037/-0.031</td>
+<td>PR range</td>
+<td>search summary; matches Frebel Table 1 (-0.243)</td>
+</tr>
+<tr>
+<td>[R1648] (1 percent)</td>
+<td>o6</td>
+<td>read only insi[R0967]</td>
+</tr>
+<tr>
+<td>[R4307] ISM 3.0e-6</td>
+<td>o6</td>
+<td>read only insi[R2209]</td>
+</tr>
+<tr>
+<td>[R0458]:116694</td>
+<td>candidate</td>
+<td>exists per search summary, not read</td>
+</tr>
+<tr>
+<td>[R1488, R4154] specifics</td>
+<td>a1</td>
+<td>via part G3, not read by me</td>
+</tr>
+<tr>
+<td>Venera 9, 10 K/U</td>
+<td>not my group</td>
+<td>RECALLED in G2</td>
+</tr>
+<tr>
+<td>[R1984] crust claim cited by Putirka and Xu as &quot;27 of 29 PWDs&quot; (their ref 11)</td>
+<td>T22</td>
+<td>I could not open the study; the attribution is from reading their numbered reference list</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

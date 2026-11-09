@@ -8,6 +8,7 @@ Where everything under `docs/` lives. Pages written by hand and pages built by s
 |---|---|
 | [../README.md](../README.md) | The project overview and quick start |
 | [../INSTALL.md](../INSTALL.md) | Installing and updating planetGen |
+| [site/index.html](site/index.html) | The documentation website: every Markdown file as a web page with a menu, search and rendered formulas (the GitHub Pages site; built by `scripts/build_docs_site.py`) |
 | [index.html](index.html) | The generated index of every HTML page (the GitHub Pages entry point; built by `scripts/build_docs_index.py`) |
 | [TODO.md](TODO.md) | Every open work item, in full. Edited only by the TODO thread |
 
@@ -19,8 +20,9 @@ Where everything under `docs/` lives. Pages written by hand and pages built by s
 | [REFERENCES.md](REFERENCES.md) and [REFERENCES.html](REFERENCES.html) | Every paper, dataset and catalog the project builds on, in AAS/ADS style with links; written by `scripts/build_references.py` | generated |
 | [deployment/](deployment/) | Putting it on a server: [README.md](deployment/README.md) is the start, then Apache, nginx, Caddy, macOS, PaaS and fail2ban guides, [server-checklist.md](deployment/server-checklist.md) and [WINDOWS.md](deployment/WINDOWS.md) | hand |
 | [design/](design/) | Design notes, one folder per topic; [design/README.md](design/README.md) lists every note with its status. Folders: `architecture/`, `galaxy/`, `systems/`, `generation/`, `composition/`, `habitability/`, `orbits/`, `interface/`, `operations/`, `research/` (with `research/imported/`, Boss's own research documents) | hand |
-| [plan/](plan/) | The plan: [release-roadmap.md](plan/release-roadmap.md), [lanes.md](plan/lanes.md) (what each build lane is doing), [notes.md](plan/notes.md) (decisions for Boss), [execution-notes.md](plan/execution-notes.md), [progress-ledger.md](plan/progress-ledger.md), [issue-groups.md](plan/issue-groups.md), [todo-number-map.md](plan/todo-number-map.md) (old numbers and the next free ID of each category), [intergalactic-space-plan.md](plan/intergalactic-space-plan.md); `releases/` has one file per version | hand (TODO thread) |
-| [generated/](generated/) | Pages built by scripts, never edited by hand: the plan pages and the code map. See [generated/README.md](generated/README.md) | script |
+| [plan/](plan/README.md) | The plan ([README.md](plan/README.md) names the one source for each kind of fact): [release-roadmap.md](plan/release-roadmap.md), [lanes.md](plan/lanes.md) (what each build lane is doing), [notes.md](plan/notes.md) (decisions for Boss), [execution-notes.md](plan/execution-notes.md), [progress-ledger.md](plan/progress-ledger.md), [issue-groups.md](plan/issue-groups.md), [todo-number-map.md](plan/todo-number-map.md) (old numbers and the next free ID of each category), [intergalactic-space-plan.md](plan/intergalactic-space-plan.md); `releases/` has one file per version | hand (TODO thread) |
+| [generated/](generated/) | Pages built by scripts, never edited by hand: the plan pages, the code map, and the code inventories (every database column and API route). See [generated/README.md](generated/README.md) | script |
+| [history/](history/README.md) | The record of what was chosen, dropped and how the work moved: timeline, release headlines by month, Boss's decisions by month, every item's life, what was retired or closed, and each design note's items. A snapshot built from git by `scripts/build_history.py` (DOC.117) | script (snapshot) |
 | [archive/](archive/) | Designs and reviews that were replaced; kept as history | hand |
 
 ## Where does a new file go

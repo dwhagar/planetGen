@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Numeric precision audit at galactic scale (GEN.372) - planetGen docs</title>
+<meta name="description" content="Boss (6:54 PM and 6:55 PM EDT, 2026-10-16): are 64-bit numbers enough for positions at galactic scale, or do we need 128 or 256 bits?">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/numeric-precision-audit.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/numeric-precision-audit.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="numeric-precision-audit-at-galactic-scale-gen372">Numeric precision audit at galactic scale (GEN.372)</h1><p class="meta">docs/design/architecture/numeric-precision-audit.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#short-answer">Short answer</a></li><li style="margin-left:0px"><a href="#1-the-numbers">1. The numbers</a></li><li style="margin-left:0px"><a href="#2-where-the-code-and-the-documents-disagree">2. Where the code and the documents disagree</a></li><li style="margin-left:0px"><a href="#3-every-stored-or-computed-float-quantity">3. Every stored or computed float quantity</a></li><li style="margin-left:14px"><a href="#31-positions">3.1 Positions</a></li><li style="margin-left:14px"><a href="#32-velocities-epochs-phases-and-elements">3.2 Velocities, epochs, phases and elements</a></li><li style="margin-left:14px"><a href="#33-fields-in-the-database">3.3 Fields in the database</a></li><li style="margin-left:14px"><a href="#34-sums-and-the-field-kernel">3.4 Sums and the field kernel</a></li><li style="margin-left:14px"><a href="#35-camera-render-path-and-wire-formats">3.5 Camera, render path and wire formats</a></li><li style="margin-left:14px"><a href="#36-identifiers-and-keys">3.6 Identifiers and keys</a></li><li style="margin-left:0px"><a href="#4-where-something-wider-than-float64-would-be-used">4. Where something wider than float64 would be used</a></li><li style="margin-left:0px"><a href="#5-cases-that-need-work-proposed-items-todo-files-them">5. Cases that need work (proposed items; TODO files them)</a></li><li style="margin-left:0px"><a href="#6-stale-statements-fixed-or-to-fix">6. Stale statements fixed or to fix</a></li><li style="margin-left:0px"><a href="#7-what-was-not-verified">7. What was not verified</a></li></ul></details>
+<p>Boss (6:54 PM and 6:55 PM EDT, 2026-10-16): are 64-bit numbers enough for positions at galactic scale, or do we need 128 or 256 bits? This page is the one place the answer, the numbers behind it and every precision concern are collected. It audits; it builds nothing. Owner: Core 1 (point columns, IDs). The camera and render rows were read by Core 2. A lane that meets a precision bug or concern sends it to the TODO thread, which attaches it to GEN.372.</p>
+<h2 id="short-answer">Short answer</h2>
+<p><strong>64-bit floats are enough, provided no code takes the difference of two large absolute coordinates where the small difference matters.</strong> A 64-bit float has a relative precision of 2.2e-16. Out to the 262 kpc reach that is 28 km at the Sun's distance and 898 km at the edge, against the smallest move the galaxy stores (0.01 milliparsec, 3.1e8 km) a factor of 3.4e5 (at the edge) to 1.1e7 (at the Sun) larger. The design that holds this together already exists: a coarse integer address (the sector, 96-bit object IDs, the Morton cell key) plus a local offset, with systems and moons in their own frames. 128-bit or 256-bit floats are not needed for storage. Where a wider sum is justified is narrow (section 4).</p>
+<p>The audit found nine places where the code or its documents do not match that design (section 2) and eight cases that need work (section 5, one of them, the documents, fixed with this page), and no case where a float wider than 64 bits is the right fix.</p>
+<h2 id="1-the-numbers">1. The numbers</h2>
+<p>The spacing of float64 is <code>2^(e-52)</code> for a value in <code>[2^e, 2^(e+1))</code>. A value of 262,144 pc (the reach, exactly 2^18) is the first of its band, so the spacing just below it is 2.9e-11 pc and just above it 5.8e-11 pc (1,796 km). The same distance in other units differs by up to a factor of two, which is why older figures disagree.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Distance from origin</th>
+<th>float64 in parsecs</th>
+<th>in km</th>
+<th>float64 in metres</th>
+<th>float32 in parsecs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 pc</td>
+<td>2.2e-16</td>
+<td>0.007</td>
+<td>4 m</td>
+<td>1.2e-7 pc</td>
+</tr>
+<tr>
+<td>100 pc</td>
+<td>1.4e-14</td>
+<td>0.44</td>
+<td>512 m</td>
+<td>7.6e-6 pc</td>
+</tr>
+<tr>
+<td>1 kpc</td>
+<td>1.1e-13</td>
+<td>3.5</td>
+<td>4.1 km</td>
+<td>6.1e-5 pc</td>
+</tr>
+<tr>
+<td>8.128 kpc (the Sun)</td>
+<td>9.1e-13</td>
+<td>28.1</td>
+<td>32.8 km</td>
+<td>4.9e-4 pc (about 100 AU)</td>
+</tr>
+<tr>
+<td>15 kpc</td>
+<td>1.8e-12</td>
+<td>56.1</td>
+<td>65.5 km</td>
+<td>9.8e-4 pc</td>
+</tr>
+<tr>
+<td>30 kpc</td>
+<td>3.6e-12</td>
+<td>112</td>
+<td>131 km</td>
+<td>2.0e-3 pc</td>
+</tr>
+<tr>
+<td>65.5 kpc</td>
+<td>1.5e-11</td>
+<td>449</td>
+<td>262 km</td>
+<td>7.8e-3 pc</td>
+</tr>
+<tr>
+<td>131 kpc to just under 262,144 pc</td>
+<td>2.9e-11</td>
+<td>898</td>
+<td>1,049 km at the edge</td>
+<td>3.1e-2 pc (about 6,400 AU)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Stored coordinates are parsecs or milliparsecs, not metres, so the figure for the Sun's position is 28.1 km (parsecs) or 28.7 km (milliparsecs); the 32.8 km quoted in <code>orbital-updates.md</code> is the spacing of a coordinate in metres. The 14 km quoted for GEN.142 is half that spacing (the largest error of a rounded value), and <code>collisions-and-mergers.md</code> quotes 3.3e4 m for metres and 28 km for parsec doubles; both are right for their unit.</p>
+<p>What has to survive:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Smallest change that must survive</th>
+<th>Size</th>
+<th>Spacings at 8.128 kpc</th>
+<th>Spacings at 262 kpc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The galactic move threshold of a star (<code>THRESHOLDS_M[&quot;galactic&quot;]</code>, 0.01 mpc)</td>
+<td>3.1e8 km</td>
+<td>1.1e7</td>
+<td>3.4e5</td>
+</tr>
+<tr>
+<td>A planet's orbit stored in the system frame</td>
+<td>1.5e8 km, against 0.002 km spacing at 1.5e13 km</td>
+<td>7.5e10</td>
+<td>7.5e10</td>
+</tr>
+<tr>
+<td>A planet added to a star's galactic position</td>
+<td>1.5e8 km</td>
+<td>5.3e6</td>
+<td>1.7e5</td>
+</tr>
+<tr>
+<td>A moon's move threshold (<code>THRESHOLDS_M[&quot;planetary&quot;]</code>, 100,000 km) added to a galactic position</td>
+<td>1e5 km</td>
+<td>3.6e3</td>
+<td>111</td>
+</tr>
+<tr>
+<td>A scatter member's offset of 1 AU added to a galactic position</td>
+<td>1.5e8 km</td>
+<td>5.3e6</td>
+<td>1.7e5</td>
+</tr>
+</tbody>
+</table></div>
+<p>A moon's threshold and a planet's offset are why systems and moons keep their own frames, and why the points below matter.</p>
+<h2 id="2-where-the-code-and-the-documents-disagree">2. Where the code and the documents disagree</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Statement</th>
+<th>What is true</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>&quot;Positions are stored in integer milliparsecs relative to the sector&quot; (<code>orbital-updates.md</code> sections 7 and 9)</td>
+<td>Star positions in a sector are DOUBLE milliparsecs, not integers. Scatter points (<code>bright_stars</code>, <code>phenomenon_scatter</code>) are DOUBLE milliparsecs in the <strong>galaxy</strong> frame; they are whole milliparsecs only at birth and arbitrary doubles after the first orbit update.</td>
+<td><code>db/schema.sql</code> <code>star_systems.position_x_mpc</code>, <code>bright_stars.position_x_mpc</code>; <code>generation/bright_stars.py</code> <code>round(value * 1000)</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>&quot;32.8 km at 8.128 kpc&quot;</td>
+<td>That is metres. Stored parsec coordinates are 28.1 km and milliparsec coordinates 28.7 km (section 1).</td>
+<td>numpy spacing</td>
+</tr>
+<tr>
+<td>3</td>
+<td>The sector grid is an integer cube grid</td>
+<td>It is spherical shells (4 pc deep), bands and wedges: three integers (<code>galaxy/spherical.py</code>), with a local offset along the sector's own axes (<code>galaxy/frame.py</code>).</td>
+<td><code>docs/design/galaxy/spherical-shell-sectors.md</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>The map tile root covers the galaxy</td>
+<td>The tile root is plus or minus 32,768 pc (65,536 pc edge); <code>tile_keys_containing</code> returns nothing outside it, so the 262 kpc reach is not tiled.</td>
+<td><code>galaxy/viewport.py</code> 205-209, <code>galaxymap3d.js</code> <code>TILE_ROOT</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>point_columns.FRAMES</code>: a system-frame position is &quot;from the object's star&quot;</td>
+<td>A moon is measured from its parent planet. Belt velocity is in galactic axes while planet, moon and comet velocity is relative to the anchor.</td>
+<td><code>db/point_columns.py</code>, <code>db/schema.sql</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Fingerprints quantise to 9 significant digits (<code>generation-determinism.md</code>)</td>
+<td>The code does not quantise: it hashes the shortest round-trip text and folds -0.0 to 0.0.</td>
+<td><code>db/fingerprint.py</code> <code>canonical_value</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>One phase formula</td>
+<td>The SQL phase updates and <code>_galactic_turn</code> reduce first (<code>MOD(elapsed, period) / period * 360</code>); <code>physics/body_positions.py</code>, <code>system_tree.node_relative_au</code> and the browser's <code>orbitpositions.js</code> add <code>360 * years / period</code> to the phase and reduce after. For a stored phase and an elapsed time of many periods they differ in the last digits that the reduce-first form keeps.</td>
+<td><code>db/store.py</code>, <code>physics/body_positions.py</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td>&quot;A printed object ID is 22&quot;</td>
+<td>A 96-bit ID prints as 24 hex digits, 26 characters with hyphens. The JavaScript comment `shell &lt;&lt; 28</td>
+<td>(band+2048) &lt;&lt; 16` is stale: the code packs 19, 18 and 19 bits with a bias of 131072.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Object-ID resolution of 0.0008 pc at 500 pc and 0.022 pc at 15 kpc (<code>object-ids.md</code>)</td>
+<td>That describes the rejected positional ID. The 96-bit ID is a birth identity (sector address, serial, body), with no positional resolution.</td>
+<td><code>docs/design/architecture/object-id-options.md</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-every-stored-or-computed-float-quantity">3. Every stored or computed float quantity</h2>
+<p>Verdict key: <strong>OK</strong> float64 is enough as the code stands. <strong>WATCH</strong> enough, but one rule must hold (stated). <strong>WORK</strong> needs a change (item in section 5). <strong>PIN</strong> a test fixes the number.</p>
+<h3 id="31-positions">3.1 Positions</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Stored as</th>
+<th>Origin</th>
+<th>Largest distance</th>
+<th>float64 spacing there</th>
+<th>Must survive</th>
+<th>First place error shows</th>
+<th>Verdict</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sector centre <code>sectors.center_*_pc</code></td>
+<td>DOUBLE pc</td>
+<td>galaxy</td>
+<td>262,144 pc</td>
+<td>898 km</td>
+<td>derived from the integer address, never stored as truth</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_sector_centre_round_trips_the_address</code> at the reach</td>
+</tr>
+<tr>
+<td>Sector address <code>shell, band, wedge</code>; sector <code>uid</code> (56 bits)</td>
+<td>integers</td>
+<td>none</td>
+<td>shell 65,535 at 262 kpc (limit 83,037)</td>
+<td>exact</td>
+<td>all</td>
+<td>none</td>
+<td>OK</td>
+<td><code>check_reach</code> boundary test</td>
+</tr>
+<tr>
+<td>Star system in its sector <code>position_*_mpc</code></td>
+<td>DOUBLE mpc</td>
+<td>sector centre, local axes</td>
+<td>about 3.7 pc half-diagonal</td>
+<td>1e-13 mpc</td>
+<td>whole stored move of 0.01 mpc</td>
+<td>none</td>
+<td>OK</td>
+<td>covered by existing sector tests</td>
+</tr>
+<tr>
+<td>Star system in the galaxy <code>galaxy_*_pc</code></td>
+<td>DOUBLE pc</td>
+<td>galactic centre</td>
+<td>262,144 pc</td>
+<td>898 km</td>
+<td>0.01 mpc move (3.1e8 km)</td>
+<td>the nightly update rotates this absolute point and recomputes the local offset as <code>absolute - centre</code> (both about 8 kpc, difference about a parsec), so the local offset carries the absolute coordinate's error (28 km at the Sun), and the two columns can disagree by an ulp of the absolute coordinate</td>
+<td>WATCH: the move is 1e7 spacings, so the loss is invisible, but the local offset must not be treated as exact to its own precision</td>
+<td><code>test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point</code> at 8 kpc and at 262 kpc</td>
+</tr>
+<tr>
+<td>Free objects (black holes, neutron stars, nebulae and remnants, quasar, rogue planets, interstellar comets, asteroid fields, facilities) <code>center_*_pc</code></td>
+<td>DOUBLE pc</td>
+<td>galactic centre</td>
+<td>262,144 pc</td>
+<td>898 km</td>
+<td>the 0.01 mpc move</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_free_object_move_survives_at_the_reach</code></td>
+</tr>
+<tr>
+<td><code>bright_stars</code>, <code>phenomenon_scatter</code> <code>position_*_mpc</code></td>
+<td>DOUBLE mpc</td>
+<td>galactic centre</td>
+<td>262,144,000 mpc</td>
+<td>3e-8 mpc (920 km)</td>
+<td>the 0.01 mpc move; conversion <code>mpc / 1000</code> before the key</td>
+<td>none for the move; see the cell key (3.6)</td>
+<td>OK</td>
+<td><code>test_scatter_point_survives_a_small_move_at_the_reach</code></td>
+</tr>
+<tr>
+<td>Scatter members <code>offset_*_au</code></td>
+<td>DOUBLE AU</td>
+<td>the scatter centre</td>
+<td>the system extent</td>
+<td>far below 1 AU</td>
+<td>an offset of AU size added to the centre in pc</td>
+<td><code>member_positions_pc</code> adds <code>offset / AU_PER_PARSEC</code> to the absolute centre: the offset is rounded to the centre's spacing (28 km at the Sun) before it is used as a galactic position. A member 0.1 AU (1.5e7 km) from its partner is 5e5 spacings, so fine; a contact binary at 0.01 AU is 5e4 spacings, fine for display, not for dynamics</td>
+<td>WATCH: members are only ever placed relative to each other (<code>member_offsets_au</code>); never difference two absolute member positions</td>
+<td><code>test_member_offsets_difference_in_the_local_frame</code></td>
+</tr>
+<tr>
+<td>Stars inside a system <code>stars.offset_*_au</code> (DB.53)</td>
+<td>DOUBLE AU</td>
+<td>system centre</td>
+<td>system extent (about 1e5 AU for a Sun at 8 kpc, computed)</td>
+<td>1.5e-11 AU at 1e5 AU</td>
+<td>an orbit of 0.01 AU</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_star_offset_survives_at_the_system_edge</code></td>
+</tr>
+<tr>
+<td>Planet, moon, comet, belt <code>position_*_km</code></td>
+<td>DOUBLE km</td>
+<td>parent star or planet</td>
+<td>long-period comet aphelion about 7.5e12 km (computed from <code>tuning.COMET_PERIOD_CLASSES</code>)</td>
+<td>0.002 km at 1.5e13 km</td>
+<td>a moon's 100,000 km move, a planet's orbit</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_comet_aphelion_position_resolves_a_kilometre</code></td>
+</tr>
+<tr>
+<td>Position object <code>SpatialPosition3D</code></td>
+<td>metres (or ly/AU by unit)</td>
+<td>any frame; the truth frame is kept as set</td>
+<td>8.09e21 m at 262 kpc</td>
+<td>1,049 km</td>
+<td>frame conversions</td>
+<td>converting a moon's metres to galactic metres loses its digits below 1,049 km at the reach; the class keeps the truth frame so that is not done to stored data</td>
+<td>OK</td>
+<td><code>test_position_keeps_the_moon_in_its_own_frame</code></td>
+</tr>
+<tr>
+<td>Sector paths <code>sector_path_knots</code></td>
+<td>DOUBLE pc, km/s</td>
+<td>galaxy</td>
+<td>262,144 pc</td>
+<td>898 km</td>
+<td>neighbour pulls</td>
+<td>built as <code>(centre_pc + offset / 1000) * PARSEC_M</code> in metres; the kernel then differences absolute metres (3.4)</td>
+<td>WATCH</td>
+<td>see 3.4</td>
+</tr>
+<tr>
+<td>Hypervelocity straight-line motion <code>p + v * elapsed / KM_PER_PC</code></td>
+<td>Python float</td>
+<td>galaxy</td>
+<td>262,144 pc</td>
+<td>898 km</td>
+<td>elapsed times far below a Gyr</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_straight_line_motion_over_a_gigayear</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-velocities-epochs-phases-and-elements">3.2 Velocities, epochs, phases and elements</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Stored as</th>
+<th>Spacing</th>
+<th>Must survive</th>
+<th>First place error shows</th>
+<th>Verdict</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Velocities <code>velocity_*_kms</code></td>
+<td>DOUBLE</td>
+<td>1e-15 km/s relative</td>
+<td>1 km/s over a Gyr is about 1,000 pc, so a relative 1e-16 gives 1e-13 pc, far below the position spacing</td>
+<td>none</td>
+<td>OK</td>
+<td>covered by the motion tests</td>
+</tr>
+<tr>
+<td><code>epoch_unix</code> (about 1.8e9 s)</td>
+<td>DOUBLE</td>
+<td>2.4e-7 s</td>
+<td>a nightly step</td>
+<td>none</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>next_update_due</code> near the cap 3.2e16 s</td>
+<td>DOUBLE</td>
+<td>4 s</td>
+<td>scheduling only</td>
+<td>none</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td>The orbit clock <code>orbit_simulation_state.last_updated_at</code></td>
+<td>TIMESTAMP, whole seconds</td>
+<td>1 s</td>
+<td><code>finish_orbit_update</code> floors it so the next run never reads a clock that went backwards</td>
+<td>none</td>
+<td>OK</td>
+<td><code>test_orbit_clock_never_runs_backwards</code> (TEST.129 area)</td>
+</tr>
+<tr>
+<td>Orbital phase <code>mean_anomaly_deg</code>, <code>orbit_phase_deg</code></td>
+<td>DOUBLE degrees</td>
+<td>5.7e-14 deg at 360</td>
+<td>a planet's daily step of about 1 deg</td>
+<td>accumulated in place: <code>MOD(phase + turn, 360)</code> per step; 1e6 steps cost about 3.5e-11 rad (<code>orbital-solvers-and-integrators.md</code> 504)</td>
+<td>OK for years; WATCH for runs of 1e9 steps</td>
+<td><code>test_phase_accumulation_over_a_million_steps</code></td>
+</tr>
+<tr>
+<td>Phase formula (item 7 above)</td>
+<td>Python, SQL, JavaScript</td>
+<td></td>
+<td></td>
+<td>the add-then-reduce form in Python and JavaScript</td>
+<td>WORK</td>
+<td><code>test_phase_forms_agree_for_a_long_elapsed_time</code></td>
+</tr>
+<tr>
+<td>Orbital elements, modified equinoctial</td>
+<td>float</td>
+<td>round trip 1e-16</td>
+<td>any conic</td>
+<td>none</td>
+<td>OK</td>
+<td>existing kepler tests</td>
+</tr>
+<tr>
+<td>Kepler solver tolerance</td>
+<td>Python <code>KEPLER_XTOL</code> 1e-14, <code>UNIVERSAL_TOLERANCE</code> 1e-13; browser Newton 1e-10</td>
+<td></td>
+<td>an orbit position to a kilometre in a 40 AU orbit needs 1e-10 relative</td>
+<td>browser tolerance is looser than the server's by 1e4</td>
+<td>WATCH</td>
+<td><code>test_js_kepler_matches_python_to_a_kilometre</code></td>
+</tr>
+<tr>
+<td>Galactic rotation per nightly step</td>
+<td><code>_rotate_about_axis</code>, <code>_galactic_turn</code> (fmod first)</td>
+<td></td>
+<td>a step that moves 0.01 mpc</td>
+<td>when the angle is under 1.05e-8 rad, <code>cos</code> rounds to exactly 1, so each step scales the radius by 1 + angle squared over two (7.8e-19 at 8 kpc for the 0.01 mpc step, about 2e-11 per Gyr, always the same sign)</td>
+<td>OK, negligible, pinned</td>
+<td><code>test_rotation_does_not_drift_the_radius</code> over 1e6 steps</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-fields-in-the-database">3.3 Fields in the database</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Type</th>
+<th>Verdict</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>phenomenon_scatter.map_luminosity_sol</code></td>
+<td>FLOAT (7 digits), the only FLOAT column</td>
+<td>WATCH</td>
+<td>a display luminosity; never used as an input</td>
+</tr>
+<tr>
+<td><code>species.tech_level</code></td>
+<td>DECIMAL(3,2)</td>
+<td>OK</td>
+<td>exact by design; the column is on <code>species</code>, not <code>polities</code> (Decided, Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21: no schema change)</td>
+</tr>
+<tr>
+<td>Everything else numeric</td>
+<td>DOUBLE or integer</td>
+<td>OK</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="34-sums-and-the-field-kernel">3.4 Sums and the field kernel</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>How computed</th>
+<th>Spacing / error</th>
+<th>Verdict</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kernel accelerations and potentials (<code>physics/field_kernel.py</code>, numba, no fastmath)</td>
+<td><code>dx = positions[j] - px</code> in absolute galactic metres; plain sequential <code>+=</code> over at most 32 relevant masses</td>
+<td>each position has 1,049 km spacing in metres at the reach (32.8 km at the Sun), so <code>dx</code> between two stars a parsec apart (3.1e16 m) has a relative error of 1e-12 at the Sun and 3e-11 at the reach; between two bodies of one system (1e11 m) it would be 3e-7 at the Sun and 1e-5 at the reach</td>
+<td>OK since GEN.375: the kernel subtracts a local origin (the path's start, or the first point of a pull) before its loops, so a step is no longer added to an absolute position and the path does not depend on where the sector is; the input positions are still rounded to the spacing, so <strong>bodies of one system still need their own frame</strong></td>
+<td><code>test_kernel_differenced_in_a_local_frame_matches_absolute_within_the_spacing</code> at 8 kpc and 262 kpc; <code>tests/test_gen375_field_origin.py</code> (the pull against exact decimal arithmetic, a path at 262 kpc against the same path beside the origin)</td>
+</tr>
+<tr>
+<td>Kernel integration <code>t = t + h</code></td>
+<td>accumulated</td>
+<td>a step of 1e9 s over 2,000 steps: relative 1e-16 per add</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>integrated_masses</code></td>
+<td>Python <code>sum</code> over 216,000 terms (bulge 40 cubed, halo steps 60 cubed)</td>
+<td>left-to-right, relative error up to about 2e-11</td>
+<td>OK for normalising a density (a ratio); WATCH if the sum is ever compared for equality</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Cumulative sums in the scatter draw (<code>np.cumsum</code>)</td>
+<td>numpy</td>
+<td>pairwise-ish, relative 1e-15</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>block_stats</code>, <code>galaxy_block_stats</code> sums (<code>age_sum</code>, <code>luminosity_sol</code>)</td>
+<td>SQL aggregate</td>
+<td>order not fixed by the query</td>
+<td>WATCH: totals can differ in the last digits between runs of the same data</td>
+<td><code>test_block_totals_do_not_depend_on_row_order</code></td>
+</tr>
+<tr>
+<td>Component density (<code>component_field.py</code>)</td>
+<td>numpy pairwise sum over 6 cubed or 12 cubed samples</td>
+<td>1e-16</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Neighbour search (<code>galaxy/sector.py</code> float64 <code>einsum</code>, <code>_CLEAR_MARGIN</code> 1e-9, exact <code>math.dist</code> fallback; <code>nav_graph.py</code> KD-tree on absolute pc)</td>
+<td>float64</td>
+<td>an absolute pc difference of two stars 1 pc apart at the reach has 2.9e-11 relative to 1 pc spacing (898 km out of 3e13 km)</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Region test (<code>galaxy/region.py</code>, law of cosines <code>cos_delta</code>, <code>_EPS</code> 1e-9)</td>
+<td>float64</td>
+<td><code>acos</code> near 1 loses half its digits: an angle under 4e-5 rad is lost to the 1e-9 epsilon (about 10 pc at 262 kpc)</td>
+<td>WATCH: a region smaller than about 10 pc at the reach should use the haversine form</td>
+<td><code>test_region_radius_of_one_parsec_at_the_reach</code></td>
+</tr>
+<tr>
+<td>Sector containment (<code>SectorCell.contains</code>, tolerance 1e-12 times the outer radius, 1e-12 rad)</td>
+<td>float64</td>
+<td>2.6e-7 pc at the reach</td>
+<td>OK</td>
+<td>existing sector tests</td>
+</tr>
+<tr>
+<td>Mass and number sums over a sector in <code>sectors</code> rows</td>
+<td>integer or DOUBLE</td>
+<td></td>
+<td>OK</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="35-camera-render-path-and-wire-formats">3.5 Camera, render path and wire formats</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Representation</th>
+<th>Spacing</th>
+<th>First place error shows</th>
+<th>Verdict</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Browser stars (<code>galaxymap3d.js</code> MAP.102)</td>
+<td><code>star - Math.round(target)</code> into a Float32Array; the points object sits at that frame</td>
+<td>float32 on the offset only</td>
+<td>none</td>
+<td>OK</td>
+<td>existing</td>
+</tr>
+<tr>
+<td>Browser territory dots, superbubble lines, &quot;made&quot; ring points, block prisms (<code>galaxyprisms.js</code>, <code>galaxyblocks.js</code>, <code>makeBlockMesh</code>), <code>galaxystageview.js</code>, system view dots and belt particles</td>
+<td>Float32Array of <strong>absolute</strong> coordinates</td>
+<td>4.9e-4 pc (100 AU) at 8 kpc, 3.1e-2 pc (6,400 AU) at 262 kpc</td>
+<td>the vertices jitter when the camera is near them; whether a mesh translation cancels the absolute vertices was not verified for the prisms</td>
+<td>WORK: item 5.3</td>
+<td><code>test_browser_float32_attributes_hold_camera_relative_values</code> (a browser test that reads the attribute range)</td>
+</tr>
+<tr>
+<td>Depth buffer</td>
+<td><code>logarithmicDepthBuffer: true</code>; far plane about 6 times the view radius</td>
+<td></td>
+<td>z-fighting at the far plane</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td>GLSL precision</td>
+<td>no <code>precision</code> or <code>highp</code> declarations in <code>nearfield.js</code></td>
+<td>float32 on most GPUs, mediump on some phones</td>
+<td>star shader at near range</td>
+<td>WATCH</td>
+<td>none (not testable without a device)</td>
+</tr>
+<tr>
+<td>Tile wire format (<code>web/lib/tilepack.py</code>)</td>
+<td>per axis a float64 min and step plus 16-bit codes: step = (max - min) / 65,535; luminosity 16 bits over log10 -8 to 8; temperature and radius 8 bits</td>
+<td>at the finest 16 pc tile 2.4e-4 pc (computed)</td>
+<td>star position shown 0.0002 pc off</td>
+<td>OK for display</td>
+<td><code>test_tile_quantisation_error_below_half_a_step</code></td>
+</tr>
+<tr>
+<td>Tile root</td>
+<td>plus or minus 262,144 pc (524,288 pc edge, MAP.239)</td>
+<td></td>
+<td>every address in the reach is in a tile</td>
+<td>OK</td>
+<td><code>test_tiles_cover_the_reach</code></td>
+</tr>
+<tr>
+<td>Tile cache <code>_trim_star</code></td>
+<td>x, y, z to 3 decimals (1 mpc), luminosity 4 digits, radius 3 digits, temperature 10 K</td>
+<td>1 mpc is 3.1e10 km, larger than any threshold</td>
+<td>stars closer than 1 mpc merge in the cache</td>
+<td>OK (display)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>API rounding (<code>api/routes.py</code>, <code>db/query.py</code>, <code>web/maps</code>)</td>
+<td>1 to 5 decimals, <code>%.3g</code>, <code>%.4g</code></td>
+<td></td>
+<td>a displayed number, never stored</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td>JSON numbers</td>
+<td>Flask <code>jsonify</code> writes the shortest round-trip text; a JavaScript Number is the same double</td>
+<td>lossless</td>
+<td>none</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>repr + &quot;e0&quot;</code> bulk literals (<code>db/store.py</code> <code>_row_literal</code>)</td>
+<td>shortest round-trip</td>
+<td>lossless</td>
+<td>none</td>
+<td>OK</td>
+<td></td>
+</tr>
+<tr>
+<td>MySQL DOUBLE read-back text</td>
+<td>not verified (17 digits or shortest)</td>
+<td></td>
+<td></td>
+<td>NOT VERIFIED</td>
+<td><code>test_double_round_trips_through_the_driver</code></td>
+</tr>
+<tr>
+<td>Browser twins of Python</td>
+<td><code>galaxyprisms.js</code>, <code>galaxystages.js</code>, <code>galaxytilecut.js</code>, <code>orbitpositions.js</code>, <code>orbitclock.js</code>, <code>starmagnitude.js</code>, <code>starlight.js</code>, <code>nearfield.js</code>, <code>tilepack.js</code>, <code>numberformat.js</code>, <code>unitladder.js</code></td>
+<td>libm trig may differ from Python's in the last 1 to 11 ulp</td>
+<td>an angle off by 1e-15 rad is 1e-8 pc at the reach; not visible</td>
+<td>OK</td>
+<td><code>tests/test_js_unit.py</code> already compares some; add the phase and Kepler pair (item 5.4)</td>
+</tr>
+<tr>
+<td>Browser clock <code>Date.now()</code> in milliseconds</td>
+<td></td>
+<td>1 ms</td>
+<td>a phase moves by 1e-9 deg</td>
+<td>OK</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="36-identifiers-and-keys">3.6 Identifiers and keys</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Representation</th>
+<th>Verdict</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Object ID</td>
+<td>96-bit integer (shell 19, biased band 18, wedge 19, serial 28 with the top 2 bits the kind, body 12), stored BINARY(12) big-endian, Python int</td>
+<td>OK</td>
+<td>exact; the shell field holds 524,287, the reach needs 65,535</td>
+</tr>
+<tr>
+<td>Sector uid</td>
+<td>56-bit BIGINT UNSIGNED; unplaced is <code>1 &lt;&lt; 56</code> plus the row id</td>
+<td>OK</td>
+<td></td>
+</tr>
+<tr>
+<td>Cell key (Morton, 0.25 pc cube, 21 bits per axis, 63 bits)</td>
+<td><code>floor((c + 262144) / 0.25)</code>; SQL generated column and <code>galaxy/cellkey.py</code></td>
+<td>WORK at one edge: the double just under 262,144 (<code>2^18 - 2^-35</code>) passes <code>ABS(x) &lt; 262144</code>, but <code>x + 262144</code> rounds (ties to even) to 524,288.0, so the index is <code>2^21</code>, which overflows the 21-bit field and wraps to the opposite edge's cell. Python <code>cell_index</code> has the same arithmetic. No object is generated that close to the boundary today (the wrap needs a coordinate within 2.9e-11 pc of the reach), so the cost is zero; the fix is a one-line clamp</td>
+<td><code>test_cell_key_at_the_reach_edge</code> (item 5.7, done in DB.65: the index is clamped at <code>2^21 - 1</code>, migration 0106)</td>
+</tr>
+<tr>
+<td>Scatter cell key</td>
+<td>computed from <code>position_mpc / 1000.0</code></td>
+<td>WATCH: an inexact divide can move a point within one ulp of a cell boundary into the neighbouring cell compared with a key computed from parsecs directly; the effect is a point listed in the next 0.25 pc cell, which the region query already widens by a margin (4 mpc)</td>
+<td><code>test_scatter_key_agrees_with_the_parsec_key_off_boundary</code></td>
+</tr>
+<tr>
+<td>Cell versus spacing</td>
+<td>0.25 pc cell against 2.9e-11 pc spacing</td>
+<td>OK</td>
+<td>8.6e9 spacings per cell; the division by 0.25 is exact</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-where-something-wider-than-float64-would-be-used">4. Where something wider than float64 would be used</h2>
+<p>Nothing is stored wider than 64 bits and nothing needs to be. The cases a wider sum would help are all computation, not storage:</p>
+<ol>
+<li><strong>Long integrations from the galactic centre</strong> (<strong>decided: wait for GEN.109</strong>; the accumulator is built with its first user) (an orbit integrated over many Gyr in one go, GEN.109 and the galactic-potential work): <code>galactic-potential.md</code> already compares float64 roundoff over 1e6 daily steps (9e-12 pc) with 80-bit arithmetic. The recommended tool is a compensated (Kahan or <code>math.fsum</code>) accumulation of the position increment, with the position kept as a coarse part (integer parsecs) plus a fractional part, so the accumulated sum keeps a 28 km spacing from being the limit. <code>mpmath</code> is a diagnostic check (run once offline on a few orbits), not a production path.</li>
+<li><strong>Ill-conditioned encounter solves</strong> (a swept-sphere discriminant <code>B^2 - 4AC</code> with terms 1e42 and 1e23): <code>collisions-and-mergers.md</code> already specifies exact arithmetic; keep it and do not move the rest.</li>
+<li><strong>Reproducibility across machines</strong> (<code>generation-determinism.md</code>): a <code>detmath</code> module with <code>fsum</code> is proposed there and does not exist; it belongs to the determinism work, not this audit.</li>
+</ol>
+<p>None of these changes what is stored. There is no case for 128-bit or 256-bit columns.</p>
+<h2 id="5-cases-that-need-work-proposed-items-todo-files-them">5. Cases that need work (proposed items; TODO files them)</h2>
+<p>Boss decided four of them on cards at 7:36 PM to 7:38 PM EDT on 2026-10-16: 5.1 document and test only, 5.6 raise the tile root to the reach, 5.3 fix the browser buffers now, and section 4's compensated sums wait for GEN.109. The rest are defaults.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Case</th>
+<th>What to change</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.1</td>
+<td>The nightly rotation recomputes a local offset as <code>absolute - centre</code> (section 3.1)</td>
+<td><strong>Decided: document and test.</strong> The offset is good only to the absolute spacing (28 km at the Sun, 898 km at the reach), 1e7 and 3e5 times below the smallest stored move; revisit if generating anywhere needs finer offsets</td>
+<td><code>test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point</code></td>
+</tr>
+<tr>
+<td>5.2</td>
+<td>The kernel differences absolute metres</td>
+<td>Subtract a local origin (the sector centre or the heaviest mass) before the loop, in <code>physics/sector_path.py</code>, before any code uses the kernel for bodies of one system</td>
+<td><code>test_kernel_differenced_in_a_local_frame_matches_absolute_within_the_spacing</code></td>
+</tr>
+<tr>
+<td>5.3</td>
+<td>Browser float32 attributes hold absolute coordinates for territory dots, superbubbles, the &quot;made&quot; rings, block prisms, stage views and the system view</td>
+<td><strong>Decided: fix now (map lane). Done (MAP.240):</strong> each layer is built as float32 offsets from an origin of its own, taken in double (<code>static/camerarelative.js</code>), and the object carries the origin as its position, so three.js's double-precision matrices put the camera-relative offset on the GPU; the star layer uses its high and low pair (MAP.267). The system view was already local to its group.</td>
+<td>browser test reading the attribute range (<code>galaxyBufferExtents</code>)</td>
+</tr>
+<tr>
+<td>5.4</td>
+<td>Phase and Kepler differ between Python, SQL and JavaScript (section 2, item 7; tolerances 1e-10 against 1e-14)</td>
+<td>One reduce-first form everywhere, and a JavaScript tolerance of 1e-12</td>
+<td><code>test_phase_forms_agree_for_a_long_elapsed_time</code>, <code>test_js_kepler_matches_python_to_a_kilometre</code></td>
+</tr>
+<tr>
+<td>5.5</td>
+<td><code>orbital-updates.md</code> and <code>orbital-solvers-and-integrators.md</code> state 32.8 km at 8.128 kpc and integer milliparsecs</td>
+<td>Done in this change: both now state the figures of section 1 and point here</td>
+<td></td>
+</tr>
+<tr>
+<td>5.6</td>
+<td>The map tile root covers only 32.8 kpc</td>
+<td><strong>Done (MAP.239): the root is the reach, <code>TILE_ROOT_EDGE_PC</code> = 2 × <code>cellkey.REACH_PC</code> in <code>viewport.py</code>; the browser takes it from the page data</strong> (map lane)</td>
+<td><code>test_tiles_cover_the_reach</code></td>
+</tr>
+<tr>
+<td>5.7</td>
+<td>The cell key wraps just under the reach</td>
+<td><strong>Done (DB.65, migration 0106):</strong> the index is clamped to <code>2^21 - 1</code> in <code>cell_index</code>, <code>cell_keys</code> and the SQL generated expression</td>
+<td><code>test_cell_key_at_the_reach_edge</code></td>
+</tr>
+<tr>
+<td>5.8</td>
+<td>The region test uses the law of cosines</td>
+<td>Haversine form for angles under 1e-3 rad</td>
+<td><code>test_region_radius_of_one_parsec_at_the_reach</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Each item is small and independent. None blocks GEN.294: its point columns are DOUBLE in the frames the audit confirms (section 3.1), and GEN.336 and GEN.337 add no column of another type.</p>
+<h2 id="6-stale-statements-fixed-or-to-fix">6. Stale statements fixed or to fix</h2>
+<p>The two documents in 5.5 were corrected with this page. The stale comments in <code>web/lib/tilepack.py</code> line 30 and <code>galaxyprisms.js</code> line 475, the <code>point_columns.FRAMES</code> wording and the <code>generation-determinism.md</code> quantisation paragraph are listed as part of items 5.4 and 5.6 for whoever touches those files; the audit changes no code.</p>
+<h2 id="7-what-was-not-verified">7. What was not verified</h2>
+<p>The text form MySQL returns for a DOUBLE and whether it round-trips exactly (3.5); the order of SQL aggregates (3.4); whether a mesh translation cancels the absolute prism vertices (3.5); GLSL precision on a real device; <code>physics/mathcheck.py</code> tolerances; the figure of 1.8e-12 pc in <code>galactic-potential.md</code> lines 373-378 (the spacing at 8.128 kpc is 9.1e-13 pc, so that figure is an error bound, not a spacing); the largest planet distance from its star. Spacings in section 1, the comet aphelion, the system extent, the tile step, the radial growth of the rotation and the cell-key wrap were worked out with numpy for this audit and not read from repository output.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

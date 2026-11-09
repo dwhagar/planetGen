@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Database check, parity repair and long migrations - planetGen docs</title>
+<meta name="description" content="How a galaxy database is checked for damage (DB.8), how a damaged sector is rebuilt from a parity file (DB.9, DB.10), and how long Alembic migrations report progress and avoid long locks (DB.15, plus the Alembic parts of DB.7 and NAV.10).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/db-check-and-parity-repair.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/db-check-and-parity-repair.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="database-check-parity-repair-and-long-migrations">Database check, parity repair and long migrations</h1><p class="meta">docs/design/operations/db-check-and-parity-repair.md</p><details class="toc"><summary>On this page (30 headings)</summary><ul><li style="margin-left:0px"><a href="#1-decisions-already-taken">1. Decisions already taken</a></li><li style="margin-left:0px"><a href="#2-findings-that-change-the-todo-text">2. Findings that change the TODO text</a></li><li style="margin-left:0px"><a href="#3-what-the-code-does-today">3. What the code does today</a></li><li style="margin-left:0px"><a href="#4-how-mariadb-behaves-when-a-page-is-damaged">4. How MariaDB behaves when a page is damaged</a></li><li style="margin-left:0px"><a href="#5-parity-repair-db9-db10">5. Parity repair (DB.9, DB.10)</a></li><li style="margin-left:14px"><a href="#51-checksums-detect-parity-corrects">5.1 Checksums detect, parity corrects</a></li><li style="margin-left:14px"><a href="#52-the-export-must-leave-out-what-the-orbit-update-rewrites">5.2 The export must leave out what the orbit update rewrites</a></li><li style="margin-left:14px"><a href="#53-a-separate-storage-checksum-not-gen58s-fingerprint">5.3 A separate storage checksum, not GEN.58's fingerprint</a></li><li style="margin-left:14px"><a href="#54-libraries-pypi-json-api-read-2026-10-09-s">5.4 Libraries (PyPI JSON API read 2026-10-09 [S])</a></li><li style="margin-left:14px"><a href="#55-benchmark">5.5 Benchmark</a></li><li style="margin-left:14px"><a href="#56-layout-groups-records-updates-stale-detection">5.6 Layout: groups, records, updates, stale detection</a></li><li style="margin-left:14px"><a href="#57-recommended-numbers">5.7 Recommended numbers</a></li><li style="margin-left:14px"><a href="#58-splitting-db9-and-db10">5.8 Splitting DB.9 and DB.10</a></li><li style="margin-left:14px"><a href="#59-the-codec">5.9 The codec</a></li><li style="margin-left:14px"><a href="#510-built-db46">5.10 Built (DB.46)</a></li><li style="margin-left:14px"><a href="#511-built-db47">5.11 Built (DB.47)</a></li><li style="margin-left:14px"><a href="#512-built-db48">5.12 Built (DB.48)</a></li><li style="margin-left:0px"><a href="#6-the-check-db8">6. The check (DB.8)</a></li><li style="margin-left:14px"><a href="#61-checks-and-queries">6.1 Checks and queries</a></li><li style="margin-left:14px"><a href="#62-cost-and-what-check-table-does">6.2 Cost and what CHECK TABLE does</a></li><li style="margin-left:14px"><a href="#63-avoiding-long-locks-read-only-guarantees">6.3 Avoiding long locks; read-only guarantees</a></li><li style="margin-left:14px"><a href="#64-built-db8">6.4 Built (DB.8)</a></li><li style="margin-left:0px"><a href="#7-long-migrations-and-progress-db15-db7-nav10">7. Long migrations and progress (DB.15, DB.7, NAV.10)</a></li><li style="margin-left:14px"><a href="#71-helpers-for-revisions">7.1 Helpers for revisions</a></li><li style="margin-left:14px"><a href="#72-progress-reporting">7.2 Progress reporting</a></li><li style="margin-left:14px"><a href="#73-slow-ddl">7.3 Slow DDL</a></li><li style="margin-left:0px"><a href="#8-backup-tooling-facts">8. Backup tooling facts</a></li><li style="margin-left:0px"><a href="#9-what-library-migration-workflowmd-still-holds">9. What "Library Migration Workflow.md" still holds</a></li><li style="margin-left:0px"><a href="#10-evidence-notes">10. Evidence notes</a></li><li style="margin-left:0px"><a href="#11-sources">11. Sources</a></li></ul></details>
+<p>How a galaxy database is checked for damage (DB.8), how a damaged sector is rebuilt from a parity file (DB.9, DB.10), and how long Alembic migrations report progress and avoid long locks (DB.15, plus the Alembic parts of DB.7 and NAV.10). The design of the seed, the settings file and the fallback that regenerates a sector is in <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a>; this note holds the measurements and the recommended design for the check, the parity codec and file, and the migration helpers.</p>
+<p>Informs: DB.8, DB.9, DB.10, DB.11 (Alembic parts of DB.7 and NAV.10), DB.13, DB.15</p>
+<p>Status: partly built (2026-10-15). Built: the database check, <code>planetgen check-db</code> (DB.8, #893, <code>db/check.py</code>), Alembic (DB.11, #751) and the migration progress bar (DB.15, #924). Parity repair is built in two parts (DB.46 the parity file, DB.47 <code>repair-db</code>); the table rebuild is DB.48 (5.12). Dropped: DB.10 (Boss, 2026-10-09 20:42Z). Daily checks &quot;planned by OPS.16&quot; are still planned (OPS.16 is open). Decisions marked &quot;Boss&quot; are his; everything else is a recommendation</p>
+<p><strong>Python floor (2026-10-15).</strong> The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the <code>test</code> extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The <code>pyeclib</code> exclusion (&quot;fails the macOS and Python 3.9 requirement&quot;) rests on a floor that no longer exists; the in-tree codec stays chosen, but the reason should be re-checked against 3.12.</p>
+<p>Evidence tags: [S] seen (source file, PyPI JSON or search text, listed under Sources), [C] computed or measured during the research, [R] recalled from memory and unconfirmed. The research environment could only read search-result text and raw source files, not the papers or manuals themselves. Every statement about MySQL 8.4 or MariaDB 11.4 behaviour is read from their GitHub source, measured on the one server available (MariaDB 10.11.14), or tagged [R]. No MySQL 8.4 or MariaDB 11.4 server was available. Repo statements were re-checked against the checkout on 2026-10-09.</p>
+<h2 id="1-decisions-already-taken">1. Decisions already taken</h2>
+<ul>
+<li>Boss (2026-10-02 02:13Z): &quot;add to TODO and inject into Phase 0 build DB consistency checking so that we can check a DB and tell if it's been damaged, then Phase 1 inject a DB repair using parity data stored in a file.&quot; That is DB.8 in phase 0 and DB.9 in phase 1; the parity data is a file outside the database.</li>
+<li>Boss (2026-10-02 02:28Z, the daily merge rule): repair applies the newest settings JSON and the pending deltas (DB.10).</li>
+<li>Boss (2026-10-03 05:38Z) directed the move to third-party libraries (<a href="../architecture/library-migration.html">library-migration.md</a> section 1); from 2026-10-07 every schema change is an Alembic migration (DB.11, built), starting from a baseline at schema v61.</li>
+<li>Boss (GitHub issue #727, 2026-10-09 01:18Z): &quot;I'd like the progress bar to estimate time remaining and progress through a single DB migration.&quot; (DB.15)</li>
+</ul>
+<p>Everything below is a recommendation.</p>
+<h2 id="2-findings-that-change-the-todo-text">2. Findings that change the TODO text</h2>
+<ul>
+<li>The orbit update rewrites phases, positions and sector membership daily, so DB.9's checksum and parity must not cover them (5.2); GEN.58's fingerprint cannot be the damage checksum (5.3).</li>
+<li>Repair of a bad clustered-index page rebuilds the table; rebuilding single sectors in place does not work (section 4).</li>
+<li>DB.8's &quot;no NaN&quot; check cannot be done in SQL (6.1); rich prints no progress to a non-terminal, so DB.15 needs its own plain line (7.2).</li>
+<li>Parity needs no new dependency: a stdlib Reed-Solomon codec (5.9) is fast enough and group design (5.6) matters more than the library.</li>
+</ul>
+<h2 id="3-what-the-code-does-today">3. What the code does today</h2>
+<p>Checked against the checkout on 2026-10-09 (revisions 0061 to 0065 exist):</p>
+<ul>
+<li><code>planetgen/db/alembic_runner.py</code>: a revision's id is its schema version as four digits (<code>0062</code>), baseline <code>0061</code>. <code>upgrade()</code> stamps <code>alembic_version</code> to the stored version, then per pending revision runs <code>command.upgrade</code>, <code>connection.commit()</code>, then <code>record(version)</code> into <code>schema_migrations</code>. <code>env.py</code> runs online only, on the runner's connection, with <code>target_metadata=None</code>: revisions are hand-written, not autogenerated.</li>
+<li><code>store.migrate_database</code> holds a MySQL named lock (<code>_schema_lock</code>, <code>SCHEMA_LOCK_WAIT_S = 600</code>) for the whole migration and first runs all of <code>schema.sql</code> (<code>CREATE TABLE IF NOT EXISTS</code>), so a new table exists before its revision runs; a new column or index on an old table is the revision's job. <code>update.sh</code> runs <code>planetgen.cli.migrate --status</code>, then <code>planetgen.cli.migrate</code>, on the console without capturing output and without stopping services.</li>
+<li><code>planetgen/cli/migrate.py</code> draws one rich <code>Progress</code> over steps with <code>TimeRemainingColumn</code>; steps differ hugely in cost, so the estimate is poor, and nothing shows progress inside a step. It does not use <code>StageProgress</code> (<code>cli/reset.py</code> and <code>cli/orbits.py</code> do).</li>
+<li>Interrupt window: between <code>connection.commit()</code> and <code>record(target)</code> the database has <code>alembic_version = N+1</code> while <code>schema_migrations</code> says N. The next run restamps to N and re-runs N+1, so every revision must be idempotent. Revision 0063 checks <code>information_schema</code> first, but copies <code>generation_runs.arguments</code> with one INSERT per argument in a Python loop and builds five indexes with plain <code>CREATE INDEX</code>: fine on a small table, the wrong pattern for a large one.</li>
+<li>MySQL DDL is not transactional (<code>MySQLImpl.transactional_ddl = False</code> [S: Alembic source]); a revision that stops half way stays half applied. The DB.8 schema check treats that as a normal failure mode.</li>
+<li><code>db/models.py</code> is generated from <code>schema.sql</code> (<code>scripts/generate_db_models.py</code>) for <code>compare_metadata</code>; <code>tests/test_db_models.py</code> keeps it honest. Migration fixtures are <code>src/tests/fixtures/old_schemas/schema_v61</code> to <code>v64</code>.</li>
+<li><code>schema.sql</code> has 71 foreign keys, enforced; only <code>cli/reset.py</code> (line 173) sets <code>foreign_key_checks=0</code>, so orphans appear only after such loads. The control database has its own version (<code>CONTROL_SCHEMA_VERSION = 10</code>), not Alembic.</li>
+<li>Absent: a <code>check-db</code> or <code>repair-db</code> command, a checksum column, a parity file, and any database dump step.</li>
+</ul>
+<h2 id="4-how-mariadb-behaves-when-a-page-is-damaged">4. How MariaDB behaves when a page is damaged</h2>
+<p>Measured on MariaDB 10.11.14 by flipping 8 bytes in one page of a 400,000-row table [C]; MySQL 8.4's read path returns an error and flags the index rather than crashing while <code>innodb_force_recovery</code> is below <code>SRV_FORCE_IGNORE_CORRUPT</code> [S: <code>buf0buf.cc</code>].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Damaged page</th>
+<th><code>CHECK TABLE</code></th>
+<th>Later queries</th>
+<th><code>CHECKSUM TABLE</code></th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Secondary index</td>
+<td>&quot;The B-tree of index parent_id is corrupted&quot;; &quot;Index contains 158560 entries, should be 400000&quot;</td>
+<td><code>SELECT COUNT(*)</code> fails with error 1712 on every connection until the index is dropped and re-added</td>
+<td>still works, same value as before (reads the clustered index)</td>
+<td>Rebuild the index; no parity needed</td>
+</tr>
+<tr>
+<td>Clustered index (PRIMARY)</td>
+<td>PRIMARY B-tree corrupt</td>
+<td><code>COUNT(*)</code> fails (error 1030, engine error 1877). After a restart, a range that avoids the bad page still reads; a range crossing it fails with error 1034</td>
+<td>NULL</td>
+<td>Rebuild the table (below)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><code>innochecksum</code> (shipped with both servers) found the bad page offline (&quot;Fail: page::1184 invalid&quot;) [C]; it needs the server stopped or a file copy.</li>
+<li>InnoDB verifies a page's checksum when it is read from disk into the buffer pool, not while it sits in memory, so a cached page hides on-disk damage until it is evicted or the server restarts [S source]. MySQL 8.4 <code>innodb_checksum_algorithm</code> values are <code>crc32</code> (default), <code>strict_crc32</code>, <code>innodb</code>, <code>strict_innodb</code>, <code>none</code>, <code>strict_none</code>; MariaDB 11.4's are <code>crc32</code>, <code>strict_crc32</code>, <code>full_crc32</code> (default), <code>strict_full_crc32</code>. The doublewrite buffer covers torn page writes, not bit rot. The checker reports <code>@@innodb_checksum_algorithm</code>, <code>@@innodb_doublewrite</code> and <code>@@innodb_page_size</code> as advisories.</li>
+<li><strong>Repair of a bad clustered page</strong> is a bigger job than &quot;rebuild each damaged sector&quot;. SQL can neither read nor delete the rows on that page. Repair has to: stop writers; make the server skip the bad page (<code>innodb_force_recovery=1</code>, which needs a restart [R for the documented behaviour; the check is in <code>buf0buf.cc</code> [S]]); dump the surviving rows of each affected table; drop and recreate the table; reload with <code>foreign_key_checks=0</code>; delete any partial sector left over; insert the parity-rebuilt exports with their original ids (other tables reference them). A bad page belongs to one table, so the work is grouped per table.</li>
+<li>The DB.9 test should flip bytes in an <code>.ibd</code> page of a copy while the server is stopped, not <code>UPDATE</code> rows, or it will not exercise the real failure.</li>
+</ul>
+<h2 id="5-parity-repair-db9-db10">5. Parity repair (DB.9, DB.10)</h2>
+<h3 id="51-checksums-detect-parity-corrects">5.1 Checksums detect, parity corrects</h3>
+<p>A checksum says &quot;these bytes are not the bytes we hashed&quot; but not where, and cannot fix anything. Reed-Solomon parity over k data blocks with m parity blocks rebuilds any m blocks it is told are missing (erasures); finding m wrong blocks unaided would take 2m parity blocks. Here every sector has a stored checksum, so a failing checksum names the erased member, and the rebuilt bytes are checked against the stored checksum before being written (a stale parity record would otherwise miscorrect silently). XOR parity (RAID 5) is the case m = 1: the codec's first parity row is all ones.</p>
+<h3 id="52-the-export-must-leave-out-what-the-orbit-update-rewrites">5.2 The export must leave out what the orbit update rewrites</h3>
+<p><code>store.advance_orbital_phases</code>, <code>advance_galactic_positions</code> and <code>advance_comet_orbits</code> (run by <code>planetgen.cli.orbits</code>, planned daily by OPS.16) rewrite these columns of essentially every body. Verified in <code>store.py</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Rewritten columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planets</code>, <code>moons</code></td>
+<td><code>orbital_phase_deg</code>, <code>position_x/y/z_km</code>, <code>velocity_x/y/z_kms</code></td>
+</tr>
+<tr>
+<td><code>stars</code></td>
+<td><code>galactic_orbital_phase_deg</code>, <code>reflex_offset_x/y/z_km</code></td>
+</tr>
+<tr>
+<td><code>planets</code></td>
+<td><code>reflex_offset_x/y/z_km</code> (from their moons)</td>
+</tr>
+<tr>
+<td><code>star_systems</code></td>
+<td><code>binary_mutual_orbital_phase_deg</code>, <code>binary_mutual_position_*</code>, <code>binary_primary_position_*</code>, <code>binary_secondary_position_*</code>, <code>binary_planetary_wobble_*</code>, <code>binary_galactic_orbital_phase_deg</code>; from the galactic move also <code>position_x/y/z_mpc</code>, <code>quadrant</code>, <code>velocity_*</code> and <code>sector_id</code></td>
+</tr>
+<tr>
+<td><code>black_holes</code>, <code>neutron_stars</code>, <code>nebulae</code>, <code>supernova_remnants</code>, <code>rogue_planets</code>, <code>interstellar_comets</code>, <code>asteroid_fields</code></td>
+<td><code>galactic_orbital_phase_deg</code>; from the galactic move also <code>center_*_pc</code>, <code>galactic_radius_pc</code> and <code>sector_id</code></td>
+</tr>
+<tr>
+<td><code>facilities</code> (stand-alone)</td>
+<td><code>center_x/y/z_pc</code>, <code>sector_id</code>, <code>orbit_phase_deg</code></td>
+</tr>
+<tr>
+<td><code>comets</code></td>
+<td><code>mean_anomaly_deg</code>, <code>parabolic_mean_anomaly</code>, <code>distance_km</code>, <code>position_*</code>, <code>orbital_speed_kms</code>, <code>velocity_*</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The orbit update also refiles an object that drifts into another generated sector (its <code>sector_id</code>, sector-relative position and octant change), so which sector a system belongs to changes over time. The existing code already treats an orbit tick as &quot;not a change&quot; (<code>modified_at = modified_at</code>).</p>
+<p>Recommended: the parity export covers what generation and admin edits wrote and omits every column above, <code>sector_id</code> of a placed system included, keying each system by its uid under the sector it was generated in. DB.8 checks the omitted columns by range (phase in [0, 360), finite, position consistent with distance, inclination and phase). Positions, velocities and reflex offsets are pure functions of the phases, so the state that cannot be recomputed is the phases themselves (and each comet's anomaly), because the guarded updates (<code>min_update_interval_years</code>) make them depend on the path.</p>
+<p>This leaves a gap that is open for Boss: after a repair the rebuilt rows carry their as-generated phases and sectors. Options are (a) accept it and let the next orbit update carry on from there, (b) replay the orbit update from the stored epoch, or (c) keep a small volatile snapshot (id, phases, sector) rewritten by the daily run next to the parity file. Option (a) is simplest and is the default; (c) is the exact one and costs a few tens of bytes per body per day.</p>
+<h3 id="53-a-separate-storage-checksum-not-gen58s-fingerprint">5.3 A separate storage checksum, not GEN.58's fingerprint</h3>
+<p>The TODO text for DB.9 says &quot;the canonical hash of GEN.58's fingerprint&quot;, and <a href="../generation/generation-determinism.html">generation-determinism.md</a> section 4.3 says the leaf digest &quot;is DB.9's content checksum&quot;. For damage detection that is wrong in three ways:</p>
+<ol>
+<li>The fingerprint rounds floats to 9 significant digits. A flipped low mantissa bit of a DOUBLE changes nothing after rounding, yet is real corruption.</li>
+<li>It skips ids and foreign keys, so damage to them is invisible.</li>
+<li>It describes the as-generated sector. A sector with an admin edit no longer matches its as-generated hash.</li>
+</ol>
+<p>The storage checksum is SHA-256 over a lossless dump of the stored rows (ids and uids included, the columns of section 5.2 excluded), computed from the rows as read back after the write. Reading back also catches values the column silently altered (VARCHAR truncation, DOUBLE round trip) at the first save, not at the first check. It costs one extra read of the sector per save. Keep both hashes: GEN.58 for reproducibility, this one for integrity. The export format must be re-importable, so repair can insert a rebuilt sector's rows with their original ids.</p>
+<h3 id="54-libraries-pypi-json-api-read-2026-10-09-s">5.4 Libraries (PyPI JSON API read 2026-10-09 [S])</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version, last release</th>
+<th>Licence</th>
+<th>Platforms</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reedsolo</code></td>
+<td>1.7.0, 2023-01-17</td>
+<td>public domain / MIT-0</td>
+<td>pure Python wheel</td>
+<td>1.1 MB/s [C]; a 16 x 50 KB group takes 0.72 s to encode and 2.8 s to rebuild. Too slow for a save path</td>
+</tr>
+<tr>
+<td><code>unireedsolomon</code></td>
+<td>1.0.6, 2023-04-15</td>
+<td>MIT</td>
+<td>sdist</td>
+<td>0.05 MB/s [C]. No</td>
+</tr>
+<tr>
+<td><code>zfec</code></td>
+<td>1.6.0.0, 2024-11-15</td>
+<td>GPL-2+ or TGPPL [S]</td>
+<td>57 wheels</td>
+<td>Fast C, but a GPL dependency conflicts with the project's CC0</td>
+</tr>
+<tr>
+<td><code>pyeclib</code></td>
+<td>1.8.0, 2026-04-22</td>
+<td>BSD-2</td>
+<td>Python 3.10+, Linux abi3 wheels only</td>
+<td>Fails the macOS and Python 3.9 requirement</td>
+</tr>
+<tr>
+<td><code>galois</code></td>
+<td>0.4.11, 2026-05-02</td>
+<td>MIT</td>
+<td>needs numpy, numba, llvmlite</td>
+<td>Building one code took 13.5 s plus 5 s JIT on first use [C]. No</td>
+</tr>
+<tr>
+<td><code>par2cmdline-turbo</code></td>
+<td>1.4.0, 2026-03-10</td>
+<td>GPL-2+ (subprocess)</td>
+<td>platform wheels</td>
+<td>File-oriented: 146 to 393 ms per group create, 21.6 to 50.7 percent overhead [C]. No</td>
+</tr>
+<tr>
+<td><code>erasure-coding</code>, <code>pyldpc</code>, <code>ldpc</code></td>
+<td>various</td>
+<td>various</td>
+<td>various</td>
+<td>Fixed chunk counts or channel-coding simulators; LDPC is wrong for groups of 8 to 32 [R]</td>
+</tr>
+<tr>
+<td>in-tree stdlib codec</td>
+<td>n/a</td>
+<td>CC0</td>
+<td>any Python 3.9+</td>
+<td>Chosen</td>
+</tr>
+</tbody>
+</table></div>
+<p>PyPI has no search API, so this lists the names that came to mind, not a survey; no maintained, non-GPL erasure package with wheels for all three platforms turned up.</p>
+<h3 id="55-benchmark">5.5 Benchmark</h3>
+<p>Python 3.13, one core of a shared 4-core VM, random bytes, median of 7 [C]. Fixed-size members, one member rebuilt. Times in ms; &quot;delta&quot; is the in-place update of one parity block.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Member</th>
+<th>stdlib m=1 encode / rebuild</th>
+<th>stdlib m=2 encode</th>
+<th>zfec m=2 encode</th>
+<th>stdlib delta (m=1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>50 KB</td>
+<td>0.44 / 0.47</td>
+<td>1.2</td>
+<td>1.0</td>
+<td>0.28</td>
+</tr>
+<tr>
+<td>16</td>
+<td>50 KB</td>
+<td>0.81 / 0.83</td>
+<td>3.5</td>
+<td>1.0</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>16</td>
+<td>200 KB</td>
+<td>5.4 / 4.2</td>
+<td>16.8</td>
+<td>9.5</td>
+<td>0.96</td>
+</tr>
+<tr>
+<td>32</td>
+<td>200 KB</td>
+<td>14.7 / 14.1</td>
+<td>50.5</td>
+<td>20.7</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Everything is under 60 ms per group. A sector save already costs generation (about 1.3 s per 40-system sector) plus several database round trips, so encode cost is irrelevant. The scaling cost is IO: a rebuild reads G-1 other sectors.</p>
+<p>Overhead with variable-length members (160,000 sectors, lognormal sizes with median 30 KB clipped to 2 to 200 KB, mean 43 KB; one parity block padded to the longest member) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>G</th>
+<th>Ideal m/G</th>
+<th>Grouped by address</th>
+<th>Grouped by size class</th>
+<th>m=2 by address</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>12.5%</td>
+<td>33.0%</td>
+<td>13.5%</td>
+<td>66.0%</td>
+</tr>
+<tr>
+<td>16</td>
+<td>6.25%</td>
+<td>20.6%</td>
+<td>6.84%</td>
+<td>41.2%</td>
+</tr>
+<tr>
+<td>32</td>
+<td>3.12%</td>
+<td>12.1%</td>
+<td>3.44%</td>
+<td>24.3%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Uniform sizes give 22.0 / 11.7 / 6.0 percent by address and 13.5 / 6.8 / 3.4 by size class, so size-class grouping is robust to the distribution. The real export size distribution is unknown (the lognormal is an assumption from the 2 to 200 KB range); measure it once DB.9 can export.</p>
+<h3 id="56-layout-groups-records-updates-stale-detection">5.6 Layout: groups, records, updates, stale detection</h3>
+<p><strong>Group.</strong> G members plus m parity blocks, formed at save time from sectors of the same size class: class = ceil(log(size / 2000) / log 1.25), about 20 classes for 2 to 200 KB. A new sector joins an open group of its class that has no member within W = 256 sector ids, because a damaged extent of a table file hits neighbouring rows, which are neighbouring sectors. Simulated at N = 10^6 this costs nothing (6.84 percent, same as W = 1); at N = 20,000 it leaves 11.6 percent of sectors in unfilled groups, so W should shrink for small galaxies (about N / 100) [C]. An unfilled group is still protected (a one-member group is a mirror). W = 256 is a guess at corruption extent, not a measurement [R].</p>
+<p><strong>Variable lengths.</strong> Every member is virtually zero-padded to the group's longest; the parity length P is that maximum, and each record stores every member's true length so a rebuilt block is cut back.</p>
+<p><strong>Record.</strong> One per group, self-describing: magic, format version, group id, <code>seq</code> (incremented on every update), k, m, member count, per member (sector address or uid, length, 16-byte SHA-256 checksum), P, the m x P parity bytes, and a CRC32C of the record (it only has to detect torn writes).</p>
+<p><strong>File.</strong> An append-only log of records, an in-memory index of group id to (offset, seq) rebuilt by a header scan (optional checkpoint file), last valid record per group wins. A torn tail fails its CRC and the previous record is intact. Compaction (rewrite live records, rename) runs in the daily maintenance run. A SQLite file was rejected (one damaged b-tree page can hide many groups); fixed slots waste space for small groups. The path is in <code>config.json</code>, as the TODO says.</p>
+<p><strong>Update on every save, without rewriting the file.</strong> For a changed member i, read its old export (the before-image, from the database inside the saving transaction, verified against its old checksum first), then for each parity row j: <code>P_j' = P_j XOR c_ji x (old_i XOR new_i)</code>, zero-padding as needed and extending P if the new member is longer. A new member in an open group has old = zeros, so no other member is read. Cost: 0.01 to 1.8 ms plus appending one record of m x P bytes (about 50 to 200 KB). If the before-image fails its checksum, do not delta-update (that would bake the damage into parity); mark the group for a full recompute after repair.</p>
+<p><strong>Stale parity after a partial write.</strong> A save writes the rows and the new checksum and commits, then updates the parity record. A crash between the two leaves the record behind the database. Each record stores the checksum each member had when it was built, and the database stores the sector's current checksum, so the decision needs no extra state:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Database rows vs DB checksum</th>
+<th>Record's member checksum vs DB checksum</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>all match</td>
+<td>all match</td>
+<td>healthy</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>all match</td>
+<td>member i differs</td>
+<td>record is stale, not damage</td>
+<td>recompute the record from the database</td>
+</tr>
+<tr>
+<td>member i fails</td>
+<td>record equals DB checksum</td>
+<td>real damage, parity current</td>
+<td>rebuild i from parity</td>
+</tr>
+<tr>
+<td>member i fails</td>
+<td>record differs from DB checksum</td>
+<td>damage and a stale record at once</td>
+<td>parity cannot be trusted for i; use seed regeneration (DB.9's fallback) or a backup</td>
+</tr>
+<tr>
+<td>record CRC fails</td>
+<td>n/a</td>
+<td>parity damaged</td>
+<td>recompute from the database if every member verifies</td>
+</tr>
+</tbody>
+</table></div>
+<p>A <code>dirty</code> flag on the sector row, set in the same transaction by every writer of exported columns and cleared after the parity update, makes row 2 explicit and lets DB.8 report &quot;N sectors unprotected&quot; instead of calling them damaged. It also covers writers that bypass the save path (<code>store.py</code> has direct UPDATEs for names, positions and velocity; <code>api/edits.py</code>, <code>db/edits.py</code>): each must set the flag or the checker reports false damage. Listing every writer of exported columns is a DB.9 task not yet done.</p>
+<h3 id="57-recommended-numbers">5.7 Recommended numbers</h3>
+<ul>
+<li>Codec: GF(256), Cauchy generator scaled so row 0 is all ones; k + m &lt;= 256.</li>
+<li>Default G = 32, m = 2: 6.9 percent overhead, two bad sectors per group tolerated. With independent per-sector damage chance p, a group fails with about C(32,3) p^3 = 4,960 p^3, against C(16,2) p^2 = 120 p^2 for G = 16, m = 1 (at p = 10^-4: 5 x 10^-9 against 1.2 x 10^-6) [C arithmetic; the spacing rule handles clustering]. A rebuild reads 31 other sectors instead of 15. G = 16, m = 1 (6.85 percent) is the simple alternative. k and m are settings in <code>config.json</code>.</li>
+<li>The parity file is about 7 percent of export bytes: about 3 GB at 10^6 sectors of 43 KB mean.</li>
+</ul>
+<h3 id="58-splitting-db9-and-db10">5.8 Splitting DB.9 and DB.10</h3>
+<p>Splitting DB.9 into (a) checksum, parity file and rebuild and (b) the regenerate-from-seed fallback lets (a) ship without GEN.57, GEN.58 and OPS.14, which only (b) needs. DB.10 then depends on (b) alone (and on GEN.61 and OPS.18 as before).</p>
+<h3 id="59-the-codec">5.9 The codec</h3>
+<p>The codec below was tested again while this note was written: for (k, m) = (16,1), (16,2), (32,2), (8,3), random erasure patterns of m blocks decode exactly, and <code>update</code> gives the same parity as a fresh <code>encode</code> [C]. It is CC0 with the project and is meant to go in as <code>planetgen/util/rscodec.py</code> with its own tests.</p>
+<pre><code class="language-python">EXP = [0] * 512; LOG = [0] * 256
+x = 1
+for i in range(255):
+    EXP[i] = x; LOG[x] = i
+    x &lt;&lt;= 1
+    if x &amp; 0x100: x ^= 0x11D                     # GF(256), x^8+x^4+x^3+x^2+1
+for i in range(255, 512): EXP[i] = EXP[i - 255]
+def gmul(a, b): return 0 if a == 0 or b == 0 else EXP[LOG[a] + LOG[b]]
+def ginv(a): return EXP[255 - LOG[a]]
+_T = {}
+def table(c):
+    if c not in _T: _T[c] = bytes(gmul(c, v) for v in range(256))
+    return _T[c]
+def cauchy(m, k):                                 # m x k, row 0 scaled to all ones (= XOR parity)
+    C = [[ginv((k + j) ^ i) for i in range(k)] for j in range(m)]
+    for i in range(k):
+        s = ginv(C[0][i])
+        for j in range(m): C[j][i] = gmul(C[j][i], s)
+    return C
+def matinv(M):                                    # Gauss-Jordan over GF(256)
+    n = len(M); A = [r[:] + [int(i == j) for j in range(n)] for i, r in enumerate(M)]
+    for c in range(n):
+        p = next(r for r in range(c, n) if A[r][c]); A[c], A[p] = A[p], A[c]
+        iv = ginv(A[c][c]); A[c] = [gmul(iv, v) for v in A[c]]
+        for r in range(n):
+            if r != c and A[r][c]:
+                f = A[r][c]; A[r] = [A[r][i] ^ gmul(f, A[c][i]) for i in range(2 * n)]
+    return [r[n:] for r in A]
+def _combine(coefs, blocks, L):                   # sum of coef * block, whole blocks at a time
+    acc = 0
+    for c, b in zip(coefs, blocks):
+        if c: acc ^= int.from_bytes(b if c == 1 else b.translate(table(c)), 'little')
+    return acc.to_bytes(L, 'little')
+class RS:
+    def __init__(self, k, m): self.k, self.m, self.C = k, m, cauchy(m, k)
+    def encode(self, blocks):                     # k equal-length blocks -&gt; m parity blocks
+        return [_combine(self.C[j], blocks, len(blocks[0])) for j in range(self.m)]
+    def row(self, i): return [int(c == i) for c in range(self.k)] if i &lt; self.k else self.C[i - self.k]
+    def decode(self, have):                       # {index: bytes} with &gt;= k entries -&gt; k data blocks
+        idx = sorted(have)[:self.k]; inv = matinv([self.row(i) for i in idx]); L = len(have[idx[0]])
+        return [_combine(inv[r], [have[i] for i in idx], L) for r in range(self.k)]
+    def update(self, parity, i, old, new):        # member i changed old -&gt; new (equal length): new parity
+        L = len(old); d = (int.from_bytes(old, 'little') ^ int.from_bytes(new, 'little')).to_bytes(L, 'little')
+        return [(int.from_bytes(parity[j], 'little') ^
+                 int.from_bytes(d if self.C[j][i] == 1 else d.translate(table(self.C[j][i])), 'little')
+                 ).to_bytes(L, 'little') for j in range(self.m)]
+</code></pre>
+<p>The codec needs equal-length blocks; callers zero-pad to P first. Parity row j of a group maps to index k + j in <code>decode</code>.</p>
+<h3 id="510-built-db46">5.10 Built (DB.46)</h3>
+<p>The parity file is <code>planetgen/db/parity_file.py</code> (the log of records), <code>planetgen/db/parity.py</code> (the groups, the updates, the decision table) and <code>planetgen/db/sector_export.py</code> (a sector as bytes, and back); the settings are <code>parity.*</code> (<code>enabled</code>, <code>dir</code>, <code>group_size</code>, <code>parity_blocks</code>), and <code>planetgen refresh-parity</code> makes a database current. As built, and where it differs from the sketch above:</p>
+<ul>
+<li><strong>Records</strong> are as in 5.6, with the full 32-byte storage checksum per member (the checksum DB.45 stores, so the table compares like with like) and a CRC32 (<code>zlib</code>) in place of CRC32C, since the CRC only tells a torn write from a whole one and the standard library has no CRC32C. The header scan reads each record's header and member slots and skips its parity bytes; the CRC of the last record only is checked on a scan, and every record read to be used is checked.</li>
+<li><strong>Many writers.</strong> Every operation holds an <code>flock</code> on the file and first scans what other processes appended, so generation workers saving at once append one record at a time and agree on the groups.</li>
+<li><strong>Update order.</strong> The writers mark a sector (DB.45) and commit; after the commit the connection (<code>Connection.after_commit</code>, <code>parity_touch</code>) calls <code>protect_sector</code> for the sectors the transaction marked, which locks the sector's row, exports it, appends the record and seals the sector (stores the checksum, clears the flag). This is the crash order of 5.6 (database first, record second) with the record written after the commit rather than inside the transaction: a transaction that rolls back never leaves a record for rows that do not exist. A crash before the record leaves the flag set; a crash after it leaves the flag set over a current record (<code>protect_sector</code> then only clears the flag).</li>
+<li><strong>Delta or recompute.</strong> A sector joining a group has no before-image and reads no other sector. A member that changes is updated by delta only when the caller brings a before-image whose checksum is the one in the record; the hooks do not (the database has already overwritten it), so an edit or a deletion makes the group's parity again from the current rows of its members (<code>G - 1</code> reads), refusing to do it over a member whose rows fail their stored checksum (that is damage: <code>MemberUnreadable</code>, the sector stays marked). A member whose sector is gone is dropped from the group by the same recompute.</li>
+<li><strong>Groups</strong> follow 5.6: size class <code>ceil(log(size / 2000) / log 1.25)</code>, no member of the group within <code>W</code> ids (<code>W = 256</code>, <code>members / 100</code> for a small galaxy, found through a per-class index of ids in buckets of 256), the fullest qualifying open group first, a new group otherwise; a freed slot is taken by the next sector that qualifies. A group's parity block is cut to its longest member.</li>
+<li><strong>The decision table</strong> of 5.6 is <code>parity.classify</code> and <code>parity.member_state</code>; a sector that is merely marked is <code>NOT_PROTECTED</code> or <code>RECORD_STALE</code>, never damage.</li>
+<li><strong>Not built here:</strong> the table rebuild (DB.48, 5.12), and a before-image on the edit paths, which would turn the recompute of an edit into a delta. The rebuild is DB.47, 5.11.</li>
+<li><strong>A sealed sector that fails its checksum is never taken into the parity</strong> (<code>protect_sector</code> returns <code>unprotectable</code>): the sweep that fills the file would otherwise have recorded the damage as the truth.</li>
+</ul>
+<h3 id="511-built-db47">5.11 Built (DB.47)</h3>
+<p><code>planetgen repair-db</code> is <code>planetgen/db/repair.py</code> (<code>repair</code>, <code>find_damaged</code>, <code>apply_export</code>). It follows the decision table of 5.6 over the sectors that <code>check_sector</code> calls damaged (flag clear, rows no longer hashing to the sealed checksum):</p>
+<ul>
+<li><strong>Rows agree with the record, the stored checksum does not:</strong> the column is the damaged part and is sealed again (two independent copies agree on the rows).</li>
+<li><strong>Record holds the stored checksum, rows differ:</strong> the group's other members are read and each must hash to what the record holds for it; every block that does not (damaged, changed since the record was made, gone, or another target) is an erasure, and up to <code>m</code> erasures of one group are decoded together (<code>RS.decode</code>, the parity blocks added to the surviving data blocks). The rebuilt block is parsed (<code>sector_export.parse</code>) and hashed (<code>checksum_of</code>) against the stored checksum before anything is written.</li>
+<li><strong>Record holds another checksum, the sector is in no group, more than <code>m</code> blocks are lost, or the group's record fails its CRC:</strong> reported with the reason and left alone (the way out is the seed regeneration or a backup, DB.9's fallback).</li>
+<li><strong>A table the server refuses to read:</strong> reported as unreadable, with the tables found by a count through the primary key; DB.48's case (5.12).</li>
+</ul>
+<p>Writing is by primary key in one transaction, under the sector's row lock and with <code>foreign_key_checks</code> off for the writes only: a row that differs gets its covered columns updated, a row the export has that the database lacks (or has filed elsewhere) is deleted by key and inserted, and a row the sector has that the export does not is deleted. The checksum is taken again before the commit and the transaction is rolled back if it is not the stored one. The columns the orbit update rewrites (5.2) are never written to an existing row, so a repair does not undo the daily run; an inserted row takes them at the column default, zero where there is none, and its <code>sector_id</code> is the sector's. That is option (a) of 5.2: a repaired row carries no history of its orbit.</p>
+<p>A record that fails its CRC (not the file's last, which a scan treats as a torn write) or a file damaged behind its last record is made again from the database: <code>compact</code> drops the unreadable records and <code>refresh</code> protects the sectors the file no longer holds, each only if it still hashes to its checksum. <code>--dry-run</code> goes as far as the verified rebuilt block and writes nothing.</p>
+<h3 id="512-built-db48">5.12 Built (DB.48)</h3>
+<p><code>planetgen/db/table_rebuild.py</code> (<code>salvage</code>, <code>reload</code>, <code>restore_sectors</code>, <code>probe_unreadable</code>), reached as <code>repair-db --salvage TABLE</code>, <code>--reload TABLE</code>, <code>--restore-sectors</code> and <code>--dump-dir</code>. It follows the plan of section 4 in two steps, because the server cannot be asked to skip a page and accept writes in the same run: while <code>innodb_force_recovery</code> is above 0 InnoDB refuses <code>INSERT</code>, <code>UPDATE</code> and <code>DELETE</code>, and only reading and DDL work [R: the MySQL manual's description of the setting; it could not be exercised here, since a test server cannot be restarted in force-recovery mode, so the page loss is stood in for by rows missing from the dump].</p>
+<ul>
+<li><strong>Salvage</strong> (force recovery on): the table is read in primary key order with a keyed range scan (<code>WHERE (key) &gt; (last) ORDER BY key LIMIT 5000</code>, which steps over the hole a skipped page leaves), each row written as a JSON list of <code>storage_checksum.encode_value</code> tagged strings (lossless: floats as their 64 bits, bytes in hex), fsynced to <code>&lt;table&gt;.salvage.jsonl.partial</code> and renamed into place; only then is the table dropped (foreign key checks off) and made again empty by <code>store._ensure_schema</code> (<code>schema.sql</code> is the whole current schema, <code>CREATE TABLE IF NOT EXISTS</code>). It refuses without changing anything when the scan fails on a server not in force recovery (it says to restart with <code>innodb_force_recovery = 1</code>), fails again in force recovery (a level of 2 or 3 may skip more), a dump is already waiting, or a normally running server counts a different number of rows than were dumped. Only <code>storage_checksum.CONTENT_TABLES</code> can be rebuilt.</li>
+<li><strong>Reload</strong> (normal mode): refused while <code>innodb_force_recovery</code> is above 0; checks the dump's columns against the table's; inserts with foreign key checks off in batches of 500, committing each (a table that already holds rows is finished with <code>INSERT IGNORE</code>, so an interrupted reload resumes); checks the count; renames the dump <code>.loaded</code>. The command then runs the DB.47 repair, which is how the rows a page took come back: the sectors that lost rows fail their checksums and are rebuilt from the parity, <code>apply_export</code> inserting the missing rows.</li>
+<li><strong><code>sectors</code> itself.</strong> A lost sector row is invisible to the check (a sector with no row is on no list). <code>--reload sectors --restore-sectors</code> also rebuilds, group by group, every sector the parity file holds that the table lacks (<code>apply_export</code> puts the <code>sectors</code> row back first). It is opt-in because a sector deleted while parity was off is still a member of the file.</li>
+<li><strong>Finding the tables.</strong> After a repair that listed sectors as unreadable the command counts each content table through its primary key (<code>FORCE INDEX (PRIMARY)</code>) and names the ones that fail, with the recipe.</li>
+<li><strong>Limits.</strong> One lost page costs a group a block or two at most (neighbouring rows are neighbouring sectors, which the groups keep apart, 5.6); more than <code>m</code> damaged sectors in one group are reported as unrepairable. Rows of a table outside the content tables (the address-keyed <code>bright_stars</code>, <code>phenomenon_scatter</code>, the rebuilt stats and paths) are not covered by the parity and have to be regenerated or restored from a backup.</li>
+</ul>
+<h2 id="6-the-check-db8">6. The check (DB.8)</h2>
+<p><code>planetgen check-db</code> and the Admin dashboard button (run as a job) report one pass or fail line per check and exit non-zero on damage. The exit code should tell &quot;damaged&quot; from &quot;could not check&quot;. <code>--sector</code> and <code>--region</code> limit the scope; a quick and a <code>--deep</code> mode exist because full-table work is slow.</p>
+<h3 id="61-checks-and-queries">6.1 Checks and queries</h3>
+<ol>
+<li><strong>Revision</strong> (read-only, tested inside <code>START TRANSACTION READ ONLY</code> [C]). <code>MigrationContext.configure(conn).get_current_heads()</code> against <code>ScriptDirectory.from_config(cfg).get_heads()</code>. Then three-way agreement of <code>alembic_version</code>, <code>max(schema_migrations.version)</code> and <code>store.SCHEMA_VERSION</code> (equal to <code>alembic_runner.head_version()</code>). A mismatch means an interrupted migration (section 3). Add <code>compare_metadata(mc, models.metadata)</code> with <code>compare_type=True</code>: it reflects through <code>information_schema</code> and reported missing columns, missing indexes, extra tables and a type difference in a test, in 0.04 s for a three-table schema [C]. The repo's <code>models.py</code> uses <code>mysql.DOUBLE</code>, which avoids the <code>Float(53)</code> against <code>DOUBLE</code> false positive seen with generic types.</li>
+<li><strong>Table health.</strong> <code>CHECK TABLE t QUICK</code> per table (or <code>FOR UPGRADE</code> after a server upgrade). Report the message rows and warn that a failing run flags indexes corrupt.</li>
+<li><strong>Foreign-key orphans.</strong> Generated from <code>information_schema.KEY_COLUMN_USAGE</code> where <code>REFERENCED_TABLE_NAME IS NOT NULL</code>, one <code>SELECT COUNT(*) FROM child c LEFT JOIN parent p ON c.fk = p.pk WHERE c.fk IS NOT NULL AND p.pk IS NULL</code> per constraint (composite keys join on every column). Tested on a child table with one orphan inserted under <code>foreign_key_checks=0</code>: returned 1 [C]. Each is an index-only anti-join. Then hand-written checks for what foreign keys do not cover: <code>nearest_systems</code>, <code>sector_paths</code> (polymorphic <code>object_table</code>/<code>object_id</code>), <code>first_object_table</code>/<code>first_object_id</code> on the phenomenon holders, and <code>sector_stats</code> rows against <code>sectors</code>.</li>
+<li><strong>Ids against <code>id_blocks</code>.</strong> <code>SELECT MAX(id)</code> per table (an index dive) against <code>id_blocks.next_id</code>; blocks must not overlap.</li>
+<li><strong>Names.</strong> Dropped by GEN.71 per the TODO plan.</li>
+<li><strong>Values.</strong> DOUBLE columns cannot hold NaN or infinity through SQL (inserts of <code>'nan'</code>, <code>'inf'</code> and <code>1e999</code> fail [C]), so &quot;no value is NaN or infinite&quot; can only be a Python-side check before save. The stored-value check is a plausibility range per column (<code>WHERE radius_km &lt;= 0 OR radius_km &gt; bound</code>), plus <code>validation.check_star_system</code> per sector when scoped, and the range checks on orbit-updated columns of section 5.2.</li>
+<li><strong>Counts.</strong> <code>sector_stats.actual_systems</code> against <code>COUNT(*) FROM star_systems GROUP BY sector_id</code> for the scope.</li>
+<li><strong>Per-sector checksum</strong> (once DB.9 exists). Recompute the export and compare, skipping <code>dirty</code> sectors.</li>
+</ol>
+<h3 id="62-cost-and-what-check-table-does">6.2 Cost and what <code>CHECK TABLE</code> does</h3>
+<p>Measured on MariaDB 10.11, a 5.0 million row copy of <code>phenomenon_scatter</code> (487 MB data, 172 MB index), 1 GB buffer pool so everything was cached [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>COUNT(*)</code></td>
+<td>2.6 s</td>
+</tr>
+<tr>
+<td><code>CHECK TABLE</code> default, QUICK, MEDIUM</td>
+<td>6 to 7 s each (no difference on InnoDB here)</td>
+</tr>
+<tr>
+<td><code>CHECK TABLE EXTENDED</code></td>
+<td>29 s</td>
+</tr>
+<tr>
+<td><code>CHECKSUM TABLE</code></td>
+<td>9.2 s (QUICK: 0.1 s but NULL; EXTENDED: 12 s)</td>
+</tr>
+<tr>
+<td><code>BIT_XOR(CRC32(CONCAT_WS(...)))</code> over 9 columns</td>
+<td>16 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Scaled linearly to the 1.17 x 10^9 rows (about 161 GB) GEN.100 would write before the mass cut of DB.19 (the earlier 1.6 x 10^8 was an unverified estimate; the built default cut is 14 solar masses, not 20, and leaves about 75.5 million rows, measured 2026-10-16, 9:37 to 10:07 PM EDT in generation-performance-study.md, so the phenomenon table is large and these times apply to it, not only to the bright-star scatter) these become roughly 83 s, 3.2 min, 16 min, 4.9 min and 8.5 min in memory, and many times longer on a cold cache [R]. Hence the quick and deep modes, scoping and a progress bar.</p>
+<ul>
+<li><code>CHECK TABLE</code> [S: MySQL 8.4 <code>sql_admin.cc</code>, <code>ha_innobase::check</code>] takes <code>MDL_SHARED_READ</code> (it does not block DML but blocks DDL), scans each index with non-locking reads in REPEATABLE READ, validates each B-tree unless QUICK, compares each secondary index's entry count with the clustered index, and calls <code>dict_set_corrupted</code> on a failing index. It is therefore not strictly read-only on an already damaged table: later queries on the flagged index fail until it is rebuilt. MySQL 8.4 needs only <code>SELECT_ACL</code> [S]; on MariaDB 10.11 a SELECT-only account ran <code>CHECK TABLE</code> and <code>CHECKSUM TABLE</code>, also under <code>SET SESSION TRANSACTION READ ONLY</code> [C] (MariaDB's documented privilege may be SELECT plus INSERT [R]).</li>
+<li><code>CHECKSUM TABLE</code> depends on column types and row format, is not comparable across servers or after an ALTER, is NULL for QUICK on InnoDB and for a corrupted table, does not see secondary-index damage, and is not a snapshot under concurrent writes [R]. Use per-sector application checksums and keep it for <code>--deep</code>.</li>
+<li><code>mysqlcheck</code>/<code>mariadb-check</code> just send <code>CHECK TABLE</code> per table [R] and cannot do the application checks; the Python checker sends the SQL itself to control scope, progress and the account.</li>
+</ul>
+<h3 id="63-avoiding-long-locks-read-only-guarantees">6.3 Avoiding long locks; read-only guarantees</h3>
+<ul>
+<li><code>CHECK TABLE</code> holds <code>MDL_SHARED_READ</code> for its whole run, so a DDL queued behind it waits, and everything queued behind that DDL waits too. Run the checker with a short <code>lock_wait_timeout</code> and never over a migration.</li>
+<li>Bound the work per statement: scope by sector range (the indexed <code>shell_index, shell_slot_index</code> on <code>sectors</code>; <code>ring_index, layer_index, ring_slot_index</code> until 2026-10-15) and chunk anti-joins by id range, so each statement takes seconds, not minutes.</li>
+<li>A passive run uses a dedicated account with SELECT only, <code>SET SESSION TRANSACTION READ ONLY</code>, and the default snapshot for the SELECTs. The one remaining side effect is <code>CHECK TABLE</code> flagging an index that was already bad; <code>--no-check-table</code> skips it.</li>
+</ul>
+<h3 id="64-built-db8">6.4 Built (DB.8)</h3>
+<p><code>planetgen check-db</code> (<code>planetgen/db/check.py</code>, <code>cli/checkdb.py</code>) and the Generate page's &quot;Check the database&quot; section, which runs it as a job. Each check is a command of its own (<code>check-revision</code> ... <code>check-systems</code>, PERF.126) and <code>check-db</code> is the list of them the wrapper queues as a check run (<code>runrecord.CHECK</code>, its own slot, no banner). It writes nothing, ends with one pass, FAIL or warn line per check, and exits 0 (clean, warnings allowed), 1 (damage) or 2 (a check could not run and none found damage). As built:</p>
+<ul>
+<li><code>--shell</code> and <code>--sector</code> scope the value, count, version-key and systems checks; revision, table health, orphans and ids always look at the whole database.</li>
+<li>An empty <code>alembic_version</code> is not damage: a database built whole from <code>schema.sql</code> is never stamped, only an upgrade stamps it. A different or doubled revision is.</li>
+<li>The value rules (<code>VALUE_RULES</code>) are deliberately loose, only numbers no generator can write; a generated 8-sector galaxy passes with none flagged.</li>
+<li><code>validation.check_star_system</code> is not run: it takes a loaded <code>StarSystem</code>, and loading every system is far costlier than the SQL rules. It joined as the <code>systems</code> check (DB.21; PERF.126 replaced the <code>--deep</code> flag with naming it, together with <code>tables-extended</code>, as the Generate page's Deep check does): it loads every star system in scope and runs it, with one failure line per bad system. It first prints a time estimate (the speed recorded under stats kind <code>db-check</code>, else a stated rough guess of 0.04 s a system), asks for a yes on a terminal and needs <code>--yes</code> off one; <code>--estimate-only</code> prints just the estimate. The Generate page's Check the database section has a Deep check box that shows the same estimate and asks to confirm. <code>--no-check-table</code> is gone: name the checks wanted.</li>
+<li>A stale <code>sector_stats.actual_systems</code> is a warning, as an orbit refile moves a system without updating the stats.</li>
+</ul>
+<h2 id="7-long-migrations-and-progress-db15-db7-nav10">7. Long migrations and progress (DB.15, DB.7, NAV.10)</h2>
+<h3 id="71-helpers-for-revisions">7.1 Helpers for revisions</h3>
+<p>Revision 0063 hand-rolls its <code>_exists</code> checks and per-row loop. A small module, <code>planetgen/db/migrations/helpers.py</code>, should carry the pattern: <code>add_index_online(table, name, columns)</code>, <code>add_column_instant(...)</code>, <code>batched_update(sql, table, key, batch, label)</code> with the progress callback, <code>exists_*</code> checks, and a <code>lock_wait_timeout</code> context. Alembic's <code>op.add_column</code> and <code>op.create_index</code> cannot pass an <code>ALGORITHM</code>, so the helpers use <code>op.execute(&quot;ALTER TABLE ... ALGORITHM=INPLACE, LOCK=NONE&quot;)</code>. This is the Alembic part of DB.7 (four columns on <code>sectors</code>, a small table: <code>ADD COLUMN ... ALGORITHM=INSTANT</code>) and of NAV.10 (position indexes on <code>star_systems</code> and others: <code>INPLACE, LOCK=NONE</code>). Every revision stays idempotent (section 3).</p>
+<p><strong>Built (DB.18).</strong> <code>planetgen/db/migrations/helpers.py</code> has <code>add_column_instant</code>, <code>drop_column_instant</code>, <code>add_index_online</code>, <code>drop_index_online</code>, <code>batched_update</code>, the <code>exists_*</code> checks, <code>lock_wait_timeout</code>, <code>long_transactions</code> and <code>require_no_long_transactions</code>, with the <code>ALGORITHM</code> named in every statement and a retry (three tries) after a lock wait timeout or deadlock. <code>batched_update</code> takes the SET list and the WHERE condition as SQL, pages by the primary key and reports through <code>alembic_runner.report_progress</code>, as sketched below. Revision 0063 and the others already merged keep their own code; later revisions (DB.44 and on) use the helpers. Tests: <code>tests/test_migration_helpers.py</code>.</p>
+<p>Batched backfill, tested with Alembic 1.16.5, SQLAlchemy 2.0.54 and PyMySQL on MariaDB 10.11 [C]: keyset paging on the primary key, <code>WHERE ... IS NULL</code> so a re-run resumes, a commit per batch (no giant undo log or purge lag), and a progress callback read from <code>context.config.attributes</code>.</p>
+<pre><code class="language-python">from alembic import op, context
+import sqlalchemy as sa
+BATCH = 20000
+def upgrade():
+    conn = op.get_bind()
+    progress = context.config.attributes.get(&quot;on_progress&quot;)   # (label, done, total)
+    total = conn.execute(sa.text(&quot;SELECT COUNT(*) FROM big WHERE b IS NULL&quot;)).scalar()
+    done = last = 0
+    while True:
+        ids = conn.execute(sa.text(&quot;SELECT id FROM big WHERE id &gt; :l AND b IS NULL ORDER BY id LIMIT :n&quot;),
+                           {&quot;l&quot;: last, &quot;n&quot;: BATCH}).scalars().all()
+        if not ids: break
+        conn.execute(sa.text(&quot;UPDATE big SET b = a * 2 WHERE id BETWEEN :lo AND :hi AND b IS NULL&quot;),
+                     {&quot;lo&quot;: ids[0], &quot;hi&quot;: ids[-1]})
+        conn.commit()
+        last = ids[-1]; done += len(ids)
+        if progress: progress(&quot;big.b&quot;, done, total)
+</code></pre>
+<p>It ran 200,000 rows in 10 batches with ten progress calls and no NULLs left. Wiring: <code>alembic_runner._config()</code> gets <code>cfg.attributes[&quot;on_progress&quot;] = on_progress</code>, and <code>upgrade()</code> and <code>migrate_database</code> take the callback. <code>StageProgress.detail(label, done, total)</code> already has the signature; <code>cli/migrate.py</code> must move from its own <code>Progress</code> to <code>StageProgress</code> for the callback to draw a bar, which also gives it the progress file and <code>_DecayingRemainingColumn</code>. A real batch trace (one new column over 5.0 million rows, 50,000-row batches, primary-key ranges): 105 batches, 156.7 s (about 32,000 rows/s), mean 1.49 s per batch, no trend [C]; scaled to 1.6 x 10^8 rows that is about 83 minutes if cached.</p>
+<h3 id="72-progress-reporting">7.2 Progress reporting</h3>
+<ul>
+<li><strong>Two bars.</strong> Bar 1 is the revision count (as now), bar 2 the rows of the current step. Single statements (index builds) have no row progress: MariaDB 10.11 shows <code>PROGRESS 0.000 / STAGE 0/0</code> in <code>information_schema.PROCESSLIST</code> for an inplace index build [C]; MySQL 8.4 reports per-stage work through Performance Schema stage events [S: <code>ut0stage.h</code>], but only with those instruments enabled and only on MySQL [R]. The portable choice is a spinner with elapsed time and an &quot;about N min&quot; estimate from the row count and a rate measured on an earlier build or recorded under PERF.32, labelled as an estimate.</li>
+<li><strong>Non-terminal output is silent today.</strong> <code>run_common._generation_progress</code>'s docstring says rich falls back to periodic line-by-line output when stdout is not a terminal. Rich 13.9.4 and 15.0.0 print exactly one final line [C], so a migration run by the maintenance timer, <code>update.sh | tee log</code> or ssh without <code>-t</code> shows nothing until it ends. DB.15 needs a plain reporter for <code>not console.is_terminal</code>: at most one line every 30 s and at each 10 percent, for example <code>migrate 0066 big.b 1,200,000/5,000,000 24% elapsed 0:08:10 left about 0:26:00</code>, with the same numbers to <code>PLANETGEN_PROGRESS_FILE</code> when set (which also gives the web UI a bar if a migration ever runs as a job). The docstring needs correcting.</li>
+<li><strong>ETA smoothing.</strong> Keep the existing <code>DecayingRate</code> (time constant 60 s, PERF.7). Six traces (five synthetic, the real one above) were scored by the median and worst error of &quot;time left&quot; at 10 to 90 percent progress for the overall average, EWMAs of 0.1 and 0.3, the last 10 batches and time-EWMAs of 60 s and 300 s [C]. On steady work every estimator is within a few points. When the speed changes phase all are wrong alike (53 to 60 percent off on a &quot;4x slower after 60 percent&quot; trace), and 300 s is the worst choice (median 20.4 percent against 2.9 for 60 s when the cache warms). The 60 s estimator is within a few points of the best on every trace, so no second estimator is built. On the real trace the worst case (about 50 percent) is at 10 percent progress, where the first ten batches ran slower (2 s against 1.4 s); from 25 percent on the error was 1 to 21 percent.</li>
+<li><strong>Presentation rules.</strong> No estimate before 3 batches or 10 s; round to the minute above 2 minutes; never show a time that jumps up by more than the interval since the last update. PERF.32's &quot;recorded rate averaged with the live rate&quot; fits as the prior for the first minutes of an index build.</li>
+<li><strong>What the update script shows.</strong> <code>run_cli migrate</code> runs on the console without capture, so rich draws live bars in any real terminal. <code>migrate --status</code> could also print a row estimate for the tables each pending revision touches, so the &quot;delete data instead?&quot; prompt in <code>migrate_or_reset_db</code> can say &quot;this update will run about 40 minutes&quot;.</li>
+</ul>
+<h3 id="73-slow-ddl">7.3 Slow DDL</h3>
+<p>Measured on MariaDB 10.11.14 (the <code>ring_index</code> column below is the cylindrical grid's, replaced by <code>shell_index</code> on 2026-10-15), 5.0 million rows, 1 GB buffer pool (everything cached), with a concurrent writer doing single-row updates every 5 ms [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement</th>
+<th>Time</th>
+<th>Writer during it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADD COLUMN a INT NULL</code> (default algorithm)</td>
+<td>0.41 s</td>
+<td>no errors</td>
+</tr>
+<tr>
+<td><code>ADD COLUMN ... INT NOT NULL DEFAULT 0, ALGORITHM=INSTANT</code></td>
+<td>0.13 s</td>
+<td>no errors</td>
+</tr>
+<tr>
+<td><code>ADD COLUMN ... AFTER kind, ALGORITHM=INSTANT</code></td>
+<td>0.08 s</td>
+<td>no errors</td>
+</tr>
+<tr>
+<td><code>DROP COLUMN ..., ALGORITHM=INSTANT</code></td>
+<td>0.09 s</td>
+<td>no errors</td>
+</tr>
+<tr>
+<td><code>MODIFY kind VARCHAR(24)</code> to <code>VARCHAR(40), ALGORITHM=INSTANT</code></td>
+<td>0.07 s</td>
+<td>no errors</td>
+</tr>
+<tr>
+<td><code>MODIFY ring_index INT</code> to <code>BIGINT, ALGORITHM=INPLACE, LOCK=NONE</code></td>
+<td>refused at once: &quot;Cannot change column type&quot;</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>ADD INDEX (kind, ring_index), ALGORITHM=INPLACE, LOCK=NONE</code></td>
+<td>59.2 s</td>
+<td>3,662 ops, p50 9.4 ms, max 136 ms, no errors</td>
+</tr>
+<tr>
+<td><code>ADD INDEX (seed)</code> (random BIGINT), default</td>
+<td>43.3 s</td>
+<td>2,832 ops, p50 8.3 ms, max 604 ms</td>
+</tr>
+<tr>
+<td>two indexes as two statements / in one <code>ALTER</code></td>
+<td>20.0 + 28.0 s / 46.5 s</td>
+<td>no saving from combining</td>
+</tr>
+<tr>
+<td><code>ADD INDEX (built_at), ALGORITHM=COPY</code></td>
+<td>177.9 s</td>
+<td>blocked: 6 ops in 178 s</td>
+</tr>
+<tr>
+<td><code>ADD CONSTRAINT CHECK (ring_index &gt;= 0)</code></td>
+<td>141.8 s</td>
+<td>blocked: 11 ops in 142 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Scaled by 32 to 1.6 x 10^8 rows (cached; much worse when the table does not fit in memory), an index build is 11 to 31 minutes and a COPY-style alter 1.5 hours or more with writes blocked.</p>
+<ul>
+<li>Adding a column with a default, dropping a column and widening a VARCHAR within its length byte are instant. Adding an index is online but long. Changing a column type, adding a CHECK constraint and <code>ALGORITHM=COPY</code> block writes for the whole run. Always write <code>ALGORITHM=...</code> (and <code>LOCK=NONE</code>) explicitly so the server refuses instead of silently copying.</li>
+<li>The repo's own history agrees: the old v26-to-v27 step used <code>ALGORITHM=INSTANT</code> and online indexes, while v45-to-v46 used <code>LOCK=SHARED</code> and blocked writes for minutes (<a href="../../reference/database-schema.html">database-schema.md</a>).</li>
+<li>MySQL 8.4 [R]: <code>ADD COLUMN</code> is <code>INSTANT</code> by default (any position since 8.0.29; at most 64 row versions, then a rebuild: <code>MAX_ROW_VERSION = 64</code> [S, <code>dict0mem.h</code>]); <code>DROP COLUMN</code> instant; <code>ADD INDEX</code> in place with concurrent DML; changing a column type, adding a CHECK or a foreign key (unless <code>foreign_key_checks=0</code>) or changing the primary key rebuilds or copies. <code>innodb_ddl_threads</code> (8.0.27+) parallelises index builds.</li>
+<li>MariaDB 11.4 [S source / R]: <code>innodb_instant_alter_column_allowed</code> is <code>never</code>, <code>add_last</code> or <code>add_drop_reorder</code>, default <code>add_drop_reorder</code> (<code>ha_innodb.cc</code>), so add, drop and reorder columns are instant by default, matching the 10.11 run. No progress reporting for InnoDB ALTER in 10.11 [C].</li>
+<li>On the 10^8-row tables (<code>star_systems</code>, <code>stars</code>, <code>planets</code>, <code>moons</code>, <code>phenomenon_scatter</code>, <code>nearest_systems</code>): <code>op.create_index</code> is online but long with no progress; <code>op.alter_column</code> emits <code>MODIFY</code> and often copies; <code>op.create_check_constraint</code> and <code>op.create_foreign_key</code> copy or rebuild; <code>op.batch_alter_table</code> is a table copy built for SQLite (never use it here); <code>op.add_column</code> with a literal <code>server_default</code> and <code>op.drop_column</code> are instant.</li>
+<li><strong>Metadata-lock pile-up</strong> [C]. With one open transaction that had read the table, <code>ALTER TABLE ... ADD INDEX</code> with <code>lock_wait_timeout=4</code> failed after 4.0 s with error 1205, and a plain <code>SELECT</code> issued 1 s later was blocked behind the waiting ALTER for 3.1 s. The online ALTER takes an exclusive MDL briefly at start and end, so any long transaction stalls the whole table. Migrations should <code>SET SESSION lock_wait_timeout = 30</code> (or so), retry the statement a few times, and refuse to start while <code>information_schema.INNODB_TRX</code> shows transactions older than a minute on that table [R for the query].</li>
+<li><strong>A risk in the update flow.</strong> <code>SCHEMA_LOCK_WAIT_S</code> is 600 s, and every new connection that ensures the schema waits on the migration's named lock for that long. An index build on <code>phenomenon_scatter</code> (about 161 GB at 1.17 x 10^9 rows before DB.19's mass cut, 138 bytes a row; the earlier 21 GB at 1.6 x 10^8 rows was an unverified estimate, and at the built default cut of 14 solar masses the table is about 75.5 million rows, see <code>generation-performance-study.md</code>) will exceed it, so web and worker processes that start during the update get lock timeouts. Either raise the wait, or stop services for update runs that have a heavy revision.</li>
+<li><strong>gh-ost and pt-online-schema-change are not needed.</strong> gh-ost needs row-based binary logs and does not support foreign keys or triggers (this schema has 71 foreign keys; MariaDB is not mentioned in its requirements) [S]. pt-osc can handle foreign keys with caveats [S: its <code>--alter-foreign-keys-method</code> text] but copies the whole table and doubles disk use for a table of that size. Native <code>INPLACE</code>/<code>INSTANT</code> covers every planned change.</li>
+<li>NAV.10 caution: three single-column indexes on x, y and z let the optimizer use one of them (or an index merge), not a 3-D box. A box query wants a cell key (a Morton or sector-cell column) or the existing <code>(ring_index, layer_index, ring_slot_index)</code> address. Decided (2026-10-17): the built <code>cell_key</code>, a stored Morton number of the 0.25 pc cube (DB.34, DB.35; see <code>galaxy-coordinate-system.md</code>), is that cell key; the address index here is the cylindrical one that spherical <code>shell_index</code> columns replaced on 2026-10-15.</li>
+</ul>
+<h2 id="8-backup-tooling-facts">8. Backup tooling facts</h2>
+<ul>
+<li>The repo has no database dump step, and there is no settings file to rotate any more (ADM.50). Parity and seed regeneration are the only repair paths for sector data; nothing covers the non-sector tables (control database, admin logins, population tables).</li>
+<li><code>mysqldump</code> (MySQL 8.4) has <code>--source-data</code> (and <code>--master-data</code> as a deprecated alias); <code>mariadb-dump</code> (MariaDB 11.4) has <code>--master-data</code>, <code>--gtid</code>, <code>--as-of</code> and <code>--system</code> but no <code>--source-data</code> [S: <code>client/mysqldump.cc</code>]. One script cannot pass the same replication options to both: use <code>--single-transaction</code> and leave them out. MySQL's <code>mysqldump</code> against MariaDB needs <code>--column-statistics=0</code> [R].</li>
+<li>Point in time needs the binary log (on by default in MySQL 8.4, off in MariaDB 11.4 [R]); parity and seed regeneration do not.</li>
+</ul>
+<h2 id="9-what-library-migration-workflowmd-still-holds">9. What &quot;Library Migration Workflow.md&quot; still holds</h2>
+<p>Section 3 (&quot;Database Persistence and Schema Migrations&quot;) recommends SQLAlchemy and Alembic, with &quot;auto-generation of migration scripts via model diffs&quot; and &quot;complete replacement of compressed raw SQL files&quot;. Checked against the repo:</p>
+<ul>
+<li>Holds: Alembic replaced the <code>.sql.gz</code> migration chain (<code>cli/migrate.py</code> is now a 171-line wrapper around <code>migrate_database</code>), and migrations are Python.</li>
+<li>Superseded: revisions are written by hand against <code>schema.sql</code>, which stays the source for fresh databases (<code>env.py</code> has <code>target_metadata=None</code>). <code>models.py</code> is generated from <code>schema.sql</code> and serves the DB.8 <code>compare_metadata</code> check, not autogenerate. The <code>schema_v14</code> to <code>schema_v52</code> fixtures it names are gone; <code>schema_v61</code> onward are kept for the migration tests.</li>
+<li>Not done: SQLAlchemy is used only for migrations and <code>models.py</code>. <code>store.py</code> is still raw PyMySQL (7,958 lines), so the pooling and statement-preparation claims do not apply yet.</li>
+<li>Absent from the source doc, covered here: large-table behaviour, online DDL, idempotency after an interrupted revision, and progress.</li>
+</ul>
+<h2 id="10-evidence-notes">10. Evidence notes</h2>
+<p>Measured on MariaDB 10.11.14, not on 11.4 or MySQL 8.4 (same InnoDB lineage; numbers and error codes can differ). To verify when paper and server access is allowed:</p>
+<ul>
+<li>[R] MySQL 8.4 INSTANT/INPLACE/COPY classification of each ALTER; <code>innodb_ddl_threads</code>; Performance Schema stage instruments being off by default; MariaDB <code>CHECK TABLE</code> privilege (SELECT sufficed on 10.11; remembered docs say SELECT and INSERT); <code>CHECKSUM TABLE</code> not being a snapshot; <code>log_bin</code> defaults; <code>mysqldump --column-statistics</code> against MariaDB; <code>innodb_force_recovery=1</code> skipping bad pages in <code>SELECT *</code>; the corruption extent behind W = 256; the <code>INNODB_TRX</code> query; LDPC claims.</li>
+<li>The 1.6 x 10^8 row and 21 GB figures are linear extrapolations from a 5.0 million row table that fit in a 1 GB buffer pool; larger-than-memory runs will be slower by an unmeasured factor. GEN.100's row count was not verified. The export size distribution is an assumption.</li>
+<li>The measurement scripts lived in a temporary scratchpad; the codec is reproduced in section 5.9 and the Alembic pattern in 7.1.</li>
+</ul>
+<h2 id="11-sources">11. Sources</h2>
+<ul>
+<li>PyPI JSON API read 2026-10-09: <code>https://pypi.org/pypi/{reedsolo,zfec,pyeclib,galois,unireedsolomon,pyldpc,ldpc,par2cmdline-turbo,erasure-coding}/json</code> (<code>creedsolo</code> and some guessed names returned 404); <code>https://raw.githubusercontent.com/tahoe-lafs/zfec/master/README.rst</code> (licence).</li>
+<li>MySQL 8.4 source under <code>https://raw.githubusercontent.com/mysql/mysql-server/8.4/</code>: <code>storage/innobase/handler/ha_innodb.cc</code>, <code>sql/sql_admin.cc</code>, <code>storage/innobase/buf/buf0buf.cc</code>, <code>storage/innobase/include/ut0stage.h</code>, <code>storage/innobase/include/dict0mem.h</code>, <code>client/mysqldump.cc</code>.</li>
+<li>MariaDB 11.4 source under <code>https://raw.githubusercontent.com/MariaDB/server/11.4/</code>: <code>storage/innobase/handler/ha_innodb.cc</code>, <code>storage/innobase/handler/handler0alter.cc</code>, <code>client/mysqldump.cc</code>.</li>
+<li>gh-ost <code>doc/requirements-and-limitations.md</code> (<code>https://raw.githubusercontent.com/github/gh-ost/master/</code>); Percona Toolkit <code>bin/pt-online-schema-change</code> (<code>.../percona-toolkit/3.x/</code>).</li>
+<li>Local tools: MariaDB 10.11.14 and <code>innochecksum</code>, <code>par2cmdline-turbo</code> 1.4.0, Alembic 1.16.5, SQLAlchemy 2.0.54, rich 13.9.4 and 15.0.0, Python 3.13 with numpy.</li>
+<li>Repo files: <code>src/planetgen/db/</code> (<code>alembic_runner.py</code>, <code>store.py</code>, <code>models.py</code>, <code>schema.sql</code>, <code>migrations/</code>), <code>cli/</code> (<code>migrate.py</code>, <code>orbits.py</code>, <code>reset.py</code>, <code>stage_progress.py</code>), <code>generation/run_common.py</code>, <code>queue/progress_rate.py</code>, <code>queue/progress_file.py</code>, <code>scripts/deploy-common.sh</code>, <code>update.sh</code>, <a href="../../reference/database-schema.html">database-schema.md</a>, <a href="../architecture/library-migration.html">library-migration.md</a>, &quot;Library Migration Workflow.md&quot;.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

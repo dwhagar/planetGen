@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computational Astrodynamics and Numerical Architecture for Galactic-Scale Orbital Simulations - planetGen docs</title>
+<meta name="description" content="In discrete 17-body simulations and localized spatial stencil implementations, calculating gravitational acceleration solely from immediate neighbor point masses and an isolated central supermassive black hole induces rapid, unphysical...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/computational-astrodynamics.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/computational-astrodynamics.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../orbits/collisions-and-mergers.html">collisions-and-mergers</a>, <a href="../../orbits/course-avoidance.html">course-avoidance</a>, <a href="../../orbits/course-routing.html">course-routing</a>, <a href="../../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core</a>, <a href="../../galaxy/galactic-potential.html">galactic-potential</a>, <a href="../../orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators</a>, <a href="../../orbits/orbital-updates.html">orbital-updates</a>.</p>
+</blockquote>
+<h1 id="computational-astrodynamics-and-numerical-architecture-for-galactic-scale-orbital-simulations">Computational Astrodynamics and Numerical Architecture for Galactic-Scale Orbital Simulations</h1><p class="meta">docs/design/research/imported/computational-astrodynamics.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#galactic-potential-modeling-and-rotation-curve-equilibrium">Galactic Potential Modeling and Rotation Curve Equilibrium</a></li><li style="margin-left:0px"><a href="#astrodynamical-reference-frame-conventions-and-coordinate-transformations">Astrodynamical Reference Frame Conventions and Coordinate Transformations</a></li><li style="margin-left:0px"><a href="#mathematical-formalization-of-core-orbital-solvers">Mathematical Formalization of Core Orbital Solvers</a></li><li style="margin-left:14px"><a href="#universal-variable-keplerian-orbit-propagation">Universal Variable Keplerian Orbit Propagation</a></li><li style="margin-left:14px"><a href="#two-body-hyperbolic-deflection-kinematics">Two-Body Hyperbolic Deflection Kinematics</a></li><li style="margin-left:14px"><a href="#encounter-resolution-and-adaptive-micro-pass-architecture">Encounter Resolution and Adaptive Micro-Pass Architecture</a></li><li style="margin-left:0px"><a href="#edge-cases-singularity-elimination-and-nonsingular-orbital-elements">Edge Cases, Singularity Elimination, and Nonsingular Orbital Elements</a></li><li style="margin-left:0px"><a href="#large-macro-step-integration-temporal-baselines-and-continuous-collision-sweeping">Large Macro-Step Integration, Temporal Baselines, and Continuous Collision Sweeping</a></li><li style="margin-left:0px"><a href="#synthesis-and-structural-recommendations-for-implementation">Synthesis and Structural Recommendations for Implementation</a></li></ul></details>
+<h2 id="galactic-potential-modeling-and-rotation-curve-equilibrium">Galactic Potential Modeling and Rotation Curve Equilibrium</h2>
+<p>In discrete <span class="math">\(N\)</span>-body simulations and localized spatial stencil implementations, calculating gravitational acceleration solely from immediate neighbor point masses and an isolated central supermassive black hole induces rapid, unphysical disintegration of stellar orbits. Within disk galaxies, the aggregate baryonic matter distributed throughout the thin and thick disks, the central stellar bulge, and the extended dark matter halo dominates the large-scale gravitational field. A star placed at the solar galactocentric radius (<span class="math">\(R_0 \approx 8.128\text{--}8.200\text{ kpc}\)</span>) with an observed circular velocity of <span class="math">\(v_\phi \approx 229\text{--}232\text{ km/s}\)</span> experiences insufficient inward radial acceleration if only the central black hole (<span class="math">\(M_{\bullet} \approx 4.1 \times 10^6\text{ M}_\odot\)</span>) and immediate stellar neighbors are evaluated. Because the central compact object accounts for less than 0.005% of the total enclosed dynamical mass within the solar circle, the star experiences a severe centrifugal imbalance, causing an artificial hyperbolic escape from the galaxy.</p>
+<p>To sustain stable equilibrium rotation curves over multi-gigayear dynamical epochs, the simulation architecture must model the smooth background galactic potential analytically, superimposing localized point-mass interactions as higher-order gravitational perturbations. The galactic potential field is formulated as a three-component axisymmetric composite potential:</p>
+<p><span class="math display">\[\Phi_{\text{gal}}(R, z) = \Phi_{\text{bulge}}(r) + \Phi_{\text{disk}}(R, z) + \Phi_{\text{halo}}(r)\]</span></p>
+<p>where <span class="math">\(R = \sqrt{x^2 + y^2}\)</span> is the Galactocentric cylindrical radius, <span class="math">\(z\)</span> is the vertical height above the galactic midplane, and <span class="math">\(r = \sqrt{R^2 + z^2} = \sqrt{x^2 + y^2 + z^2}\)</span> is the spherical Galactocentric radius.</p>
+<p>The central stellar concentration is modeled using the Hernquist potential, which reproduces the de Vaucouleurs <span class="math">\(R^{1/4}\)</span> surface brightness profile of galactic spheroids while providing smooth, singularity-free analytical derivatives:</p>
+<p><span class="math display">\[\Phi_{\text{bulge}}(r) = -\frac{G M_{\text{b}}}{r + c_{\text{b}}}\]</span></p>
+<p>where <span class="math">\(M_{\text{b}}\)</span> represents the total bulge mass and <span class="math">\(c_{\text{b}}\)</span> is the Hernquist core scale radius. The gravitational acceleration vector generated by the bulge acting on a position vector <span class="math">\(\vec{r} = [x, y, z]^T\)</span> evaluates to:</p>
+<p><span class="math display">\[\vec{a}_{\text{bulge}}(\vec{r}) = -\nabla \Phi_{\text{bulge}}(r) = -\frac{G M_{\text{b}}}{(r + c_{\text{b}})^2} \frac{\vec{r}}{r}\]</span></p>
+<p>The flattened stellar disk is represented via the Miyamoto-Nagai potential, which bridges infinitesimally thin Kuzmin disks and spherical Plummer models through independent radial and vertical scale parameters:</p>
+<p><span class="math display">\[\Phi_{\text{disk}}(R, z) = -\frac{G M_{\text{d}}}{\sqrt{R^2 + \left(a_{\text{d}} + \sqrt{z^2 + b_{\text{d}}^2}\right)^2}}\]</span></p>
+<p>where <span class="math">\(M_{\text{d}}\)</span> is the total disk mass, <span class="math">\(a_{\text{d}}\)</span> is the radial scale length, and <span class="math">\(b_{\text{d}}\)</span> is the vertical scale height. The components of the acceleration field in cylindrical coordinates evaluate to:</p>
+<p><span class="math display">\[a_{\text{disk}, R} = -\frac{\partial \Phi_{\text{disk}}}{\partial R} = -\frac{G M_{\text{d}} R}{\left[R^2 + \left(a_{\text{d}} + \sqrt{z^2 + b_{\text{d}}^2}\right)^2\right]^{3/2}}\]</span></p>
+<p><span class="math display">\[a_{\text{disk}, z} = -\frac{\partial \Phi_{\text{disk}}}{\partial z} = -\frac{G M_{\text{d}} z \left(a_{\text{d}} + \sqrt{z^2 + b_{\text{d}}^2}\right)}{\sqrt{z^2 + b_{\text{d}}^2} \left[R^2 + \left(a_{\text{d}} + \sqrt{z^2 + b_{\text{d}}^2}\right)^2\right]^{3/2}}\]</span></p>
+<p>Transforming the radial component into global Cartesian coordinates yields the midplane acceleration terms <span class="math">\(a_{\text{disk}, x} = a_{\text{disk}, R} (x / R)\)</span> and <span class="math">\(a_{\text{disk}, y} = a_{\text{disk}, R} (y / R)\)</span>.</p>
+<p>The dark matter halo is modeled via the Navarro-Frenk-White (NFW) profile derived from cosmological cold dark matter assembly simulations:</p>
+<p><span class="math display">\[\Phi_{\text{halo}}(r) = -\frac{G M_{\text{h}}}{r} \ln\left(1 + \frac{r}{r_{\text{h}}}\right)\]</span></p>
+<p>where <span class="math">\(M_{\text{h}}\)</span> is the characteristic halo mass parameter and <span class="math">\(r_{\text{h}}\)</span> is the halo scale radius. Setting the dimensionless radius variable <span class="math">\(u = r / r_{\text{h}}\)</span>, the inward gravitational acceleration is:</p>
+<p><span class="math display">\[\vec{a}_{\text{halo}}(\vec{r}) = -\frac{G M_{\text{h}}}{r^3} \left[\ln(1 + u) - \frac{u}{1 + u}\right] \vec{r}\]</span></p>
+<p>For computational architectures prioritizing execution throughput over cosmological density matching at large radii, an alternative flattened logarithmic halo provides an asymptotic circular velocity <span class="math">\(v_0\)</span> without evaluating transcendental logarithmic series:</p>
+<p><span class="math display">\[\Phi_{\text{log}}(R, z) = \frac{1}{2} v_0^2 \ln\left(R_{\text{c}}^2 + R^2 + \frac{z^2}{q^2}\right)\]</span></p>
+<p>where <span class="math">\(R_{\text{c}}\)</span> is the core radius and <span class="math">\(q\)</span> parameterizes halo flattening along the symmetry axis.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Galactic Component</th>
+<th>Potential Model</th>
+<th>Analytical Potential Formulation Phi(R, z)</th>
+<th>Primary Mass Parameter</th>
+<th>Characteristic Spatial Scale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Central Bulge</td>
+<td>Hernquist Spheroid</td>
+<td>-G * M_b / (r + c_b)</td>
+<td>M_b = 1.00 x 10^10 M_sun</td>
+<td>c_b = 0.50 kpc</td>
+</tr>
+<tr>
+<td>Galactic Disk</td>
+<td>Miyamoto-Nagai</td>
+<td>-G * M_d / sqrt(R^2 + (a_d + sqrt(z^2 + b_d^2))^2)</td>
+<td>M_d = 6.80 x 10^10 M_sun</td>
+<td>a_d = 3.50 kpc, b_d = 0.30 kpc</td>
+</tr>
+<tr>
+<td>Dark Matter Halo</td>
+<td>Navarro-Frenk-White</td>
+<td>-(G * M_h / r) * ln(1 + r / r_h)</td>
+<td>M_h = 5.40 x 10^11 M_sun</td>
+<td>r_h = 16.00 kpc</td>
+</tr>
+<tr>
+<td>Logarithmic Halo (Alt.)</td>
+<td>Flattened Core Log</td>
+<td>(1/2) * v_0^2 * ln(R_c^2 + R^2 + z^2 / q^2)</td>
+<td>v_0 = 175.0 km/s</td>
+<td>R_c = 2.50 kpc, q = 0.90</td>
+</tr>
+</tbody>
+</table></div>
+<p>The circular velocity curve <span class="math">\(v_{\text{circ}}(R)\)</span> governing a test mass in the galactic midplane ($z = 0$) balances the sum of the inward radial accelerations against centrifugal acceleration, satisfying <span class="math">\(v_{\text{circ}}(R) = \sqrt{R |\partial \Phi_{\text{gal}} / \partial R|_{z=0}} = \sqrt{v_{\text{b}}^2(R) + v_{\text{d}}^2(R) + v_{\text{h}}^2(R)}\)</span>. Evaluating the components in galactic units, where the gravitational constant is <span class="math">\(G = 4.300917 \times 10^{-6}\text{ kpc}\cdot(\text{km/s})^2 \cdot \text{M}_\odot^{-1}\)</span>, the component contributions are:</p>
+<p><span class="math display">\[v_{\text{b}}^2(R) = \frac{G M_{\text{b}} R}{(R + c_{\text{b}})^2}, \quad v_{\text{d}}^2(R) = \frac{G M_{\text{d}} R^2}{\left[R^2 + (a_{\text{d}} + b_{\text{d}})^2\right]^{3/2}}, \quad v_{\text{h}}^2(R) = \frac{G M_{\text{h}}}{R} \left[\ln\left(1 + \frac{R}{r_{\text{h}}}\right) - \frac{R/r_{\text{h}}}{1 + R/r_{\text{h}}}\right]\]</span></p>
+<p>Applying the baseline parameters yields <span class="math">\(v_{\text{circ}}(8.128\text{ kpc}) = 229.27\text{ km/s}\)</span> (<span class="math">\(v_{\text{b}} = 68.5\text{ km/s}\)</span>, <span class="math">\(v_{\text{d}} = 163.6\text{ km/s}\)</span>, <span class="math">\(v_{\text{h}} = 145.3\text{ km/s}\)</span>), matching empirical kinematic constraints established by Gaia DR3, LAMOST, and DESI surveys (<span class="math">\(V_{\text{LSR}} \approx 229\text{--}232\text{ km/s}\)</span>). Across the radial profile from 4 kpc to 20 kpc, the rotation curve remains flat within a narrow velocity band (213–231 km/s). Incorporating this global potential guarantees that stellar orbits retain their Galactocentric radii during long-term integration without unphysical numerical dispersion, while nearby stars resolved within the local spatial stencil are superimposed as perturbation vectors.</p>
+<h2 id="astrodynamical-reference-frame-conventions-and-coordinate-transformations">Astrodynamical Reference Frame Conventions and Coordinate Transformations</h2>
+<p>Hierarchical astrodynamics engines must maintain distinct coordinate frames to prevent translational and rotational cross-contamination between galactic orbits and internal planetary systems. Spatial states must transform unambiguously between the global Galactocentric frame, the sector spatial indexing partitioning, and the local stellar system frames.</p>
+<p>The master inertial reference frame is the Galactic Centric Inertial Frame (GCIF). Its origin is fixed at the dynamical center of mass of the galaxy, anchored at the coordinates of the Tier-0 central supermassive black hole. The fundamental reference plane is the galactic midplane ($z = 0$). The unit vector <span class="math">\(\hat{\mathbf{Z}}_{\text{gal}}\)</span> points along the north galactic pole, parallel to the total angular momentum vector of the galactic disk. The unit vector <span class="math">\(\hat{\mathbf{X}}_{\text{gal}}\)</span> points from the galactic center toward an established primary reference direction in the disk, and <span class="math">\(\hat{\mathbf{Y}}_{\text{gal}} = \hat{\mathbf{Z}}_{\text{gal}} \times \hat{\mathbf{X}}_{\text{gal}}\)</span> completes the right-handed Cartesian triad.</p>
+<p>The sector frame serves as a spatial indexing grid used by broadphase collision routines and localized gravitational queries. Whether parameterized as cylindrical shells or cubic cells (<span class="math">\(L_{\text{sec}} = 4\text{ pc}\)</span>), the axes of each sector frame remain strictly aligned with the GCIF, satisfying <span class="math">\(\hat{\mathbf{X}}_{\text{sec}} \parallel \hat{\mathbf{X}}_{\text{gal}}\)</span>, <span class="math">\(\hat{\mathbf{Y}}_{\text{sec}} \parallel \hat{\mathbf{Y}}_{\text{gal}}\)</span>, and <span class="math">\(\hat{\mathbf{Z}}_{\text{sec}} \parallel \hat{\mathbf{Z}}_{\text{gal}}\)</span>. The origin of sector <span class="math">\(S\)</span> is defined by its spatial bounding minimum <span class="math">\(\vec{p}_{\text{sec\_min}}\)</span>. Transforming a position vector <span class="math">\(\vec{r}_{\text{gal}}\)</span> into the local sector frame involves an unrotated spatial translation:</p>
+<p><span class="math display">\[\vec{r}_{\text{sec}} = \vec{r}_{\text{gal}} - \vec{p}_{\text{sec\_min}}\]</span></p>
+<p>Because rotation tensors are omitted at the sector boundary level, gravitational vectors computed within stencil neighbor buffers can be summed via linear superposition without incurring coordinate rotation overhead.</p>
+<p>For star systems containing bound planetary and minor-body hierarchies, positions must be evaluated in a primary-centered frame to maintain Keplerian orbital precision. The origin of the stellar system frame is fixed at the host star's barycenter <span class="math">\(\vec{p}_*(t)\)</span>. The physical reference plane is defined as the star's equatorial plane, establishing the system's <span class="math">\(z\)</span>-axis along the stellar spin axis. In accordance with International Astronomical Union (IAU) Working Group on Cartographic Coordinates conventions, the rotational orientation of a star is defined by the Right Ascension (<span class="math">\(\alpha_*\)</span>) and Declination (<span class="math">\(\delta_*\)</span>) of its north pole of rotation relative to the reference frame:</p>
+<p><span class="math display">\[\hat{\mathbf{z}}_{\text{sys}} = \hat{\boldsymbol{\omega}}_* = \begin{bmatrix} \cos\delta_* \cos\alpha_* \\ \cos\delta_* \sin\alpha_* \\ \sin\delta_* \end{bmatrix}\]</span></p>
+<p>To prevent coordinate indeterminacy when constructing the orthogonal equatorial plane, the node line where the stellar equator intersects the galactic midplane defines the system's <span class="math">\(x\)</span>-axis:</p>
+<p><span class="math display">\[\hat{\mathbf{x}}_{\text{sys}} = \frac{\hat{\mathbf{Z}}_{\text{gal}} \times \hat{\mathbf{z}}_{\text{sys}}}{\|\hat{\mathbf{Z}}_{\text{gal}} \times \hat{\mathbf{z}}_{\text{sys}}\|} = \begin{bmatrix} -\sin\alpha_* \\ \cos\alpha_* \\ 0 \end{bmatrix}\]</span></p>
+<p>If the stellar rotation axis aligns exactly with the galactic pole (<span class="math">\(\hat{\mathbf{z}}_{\text{sys}} = \pm \hat{\mathbf{Z}}_{\text{gal}}\)</span>), the cross product vanishes. The engine resolves this degenerate limit by setting <span class="math">\(\hat{\mathbf{x}}_{\text{sys}} = \hat{\mathbf{X}}_{\text{gal}}\)</span>. The system's <span class="math">\(y\)</span>-axis is completed by:</p>
+<p><span class="math display">\[\hat{\mathbf{y}}_{\text{sys}} = \hat{\mathbf{z}}_{\text{sys}} \times \hat{\mathbf{x}}_{\text{sys}} = \begin{bmatrix} -\sin\delta_* \cos\alpha_* \\ -\sin\delta_* \sin\alpha_* \\ \cos\delta_* \end{bmatrix}\]</span></p>
+<p>The orthogonal direction cosine matrix <span class="math">\(\mathbf{R}_{\text{gal}\to\text{sys}}\)</span> mapping coordinates from the global galactic frame into the stellar equatorial frame is:</p>
+<p><span class="math display">\[\mathbf{R}_{\text{gal}\to\text{sys}} = \begin{bmatrix} \hat{\mathbf{x}}_{\text{sys}}^T \\ \hat{\mathbf{y}}_{\text{sys}}^T \\ \hat{\mathbf{z}}_{\text{sys}}^T \end{bmatrix} = \begin{bmatrix} -\sin\alpha_* &amp; \cos\alpha_* &amp; 0 \\ -\sin\delta_* \cos\alpha_* &amp; -\sin\delta_* \sin\alpha_* &amp; \cos\delta_* \\ \cos\delta_* \cos\alpha_* &amp; \cos\delta_* \sin\alpha_* &amp; \sin\delta_* \end{bmatrix}\]</span></p>
+<p>Given an entity's global state <span class="math">\((\vec{p}_{\text{gal}}, \vec{v}_{\text{gal}})\)</span> and the host star's state <span class="math">\((\vec{p}_*, \vec{v}_*)\)</span>, transformations to and from the system frame follow:</p>
+<p><span class="math display">\[\vec{r}_{\text{sys}} = \mathbf{R}_{\text{gal}\to\text{sys}} (\vec{p}_{\text{gal}} - \vec{p}_*), \quad \vec{v}_{\text{sys}} = \mathbf{R}_{\text{gal}\to\text{sys}} (\vec{v}_{\text{gal}} - \vec{v}_*)\]</span></p>
+<p><span class="math display">\[\vec{p}_{\text{gal}} = \vec{p}_* + \mathbf{R}_{\text{gal}\to\text{sys}}^T \vec{r}_{\text{sys}}, \quad \vec{v}_{\text{gal}} = \vec{v}_* + \mathbf{R}_{\text{gal}\to\text{sys}}^T \vec{v}_{\text{sys}}\]</span></p>
+<p>Under this transformation, planetary inclinations (<span class="math">\(i\)</span>) and axial obliquities (<span class="math">\(\varepsilon\)</span>) represent physical angles measured relative to the host star's equatorial plane, eliminating coordinate distortions caused by arbitrary system orientations in the galaxy.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Reference Frame</th>
+<th>Origin Anchor</th>
+<th>Fundamental Reference Plane</th>
+<th>Primary Axis Alignment</th>
+<th>Transformation to Parent Frame</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Galactic Inertial (GCIF)</td>
+<td>SMBH Center of Mass</td>
+<td>Galactic Midplane (z = 0)</td>
+<td>Z_gal parallel to L_gal</td>
+<td>Global Inertial Master Datum</td>
+</tr>
+<tr>
+<td>Sector Frame</td>
+<td>Cell Corner p_sec_min</td>
+<td>Parallel to Galactic Midplane</td>
+<td>Unrotated (I_sec parallel to I_gal)</td>
+<td>Pure Translation: r_gal = r_sec + p_sec_min</td>
+</tr>
+<tr>
+<td>Stellar System Frame</td>
+<td>Host Star Center of Mass</td>
+<td>Stellar Equatorial Plane</td>
+<td>z_sys parallel to omega_*</td>
+<td>Rigid Translation + Rotation: p_* + R^T * r_sys</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="mathematical-formalization-of-core-orbital-solvers">Mathematical Formalization of Core Orbital Solvers</h2>
+<p>The master simulation pipeline calls three primary orbital mechanics routines: <code>PropagateKeplerianOrbit</code>, <code>ComputeTwoBodyHyperbolicDeflection</code>, and <code>ResolveCloseEncounterMicroPass</code>. These routines require rigorous mathematical definitions to preserve symplectic properties, prevent energy dissipation, and conserve momentum across multi-body encounters.</p>
+<h3 id="universal-variable-keplerian-orbit-propagation">Universal Variable Keplerian Orbit Propagation</h3>
+<p>Classical anomaly solvers break down near parabolic trajectories because the semi-major axis <span class="math">\(a\)</span> diverges to infinity (<span class="math">\(a \to \infty\)</span>), causing mean motion <span class="math">\(n = \sqrt{\mu / a^3}\)</span> to vanish. The routine <code>PropagateKeplerianOrbit</code> solves this via the Universal Variable formulation based on Stumpff functions, handling circular, elliptical, parabolic, and hyperbolic orbits through a single unified algorithm.</p>
+<p>Given the central gravitational parameter <span class="math">\(\mu = G(M_* + m)\)</span>, initial position <span class="math">\(\vec{r}_0\)</span>, initial velocity <span class="math">\(\vec{v}_0\)</span>, and time interval <span class="math">\(\Delta t\)</span>, the specific orbital energy dictates the reciprocal semi-major axis <span class="math">\(\alpha\)</span>:</p>
+<p><span class="math display">\[r_0 = \Vert{}\vec{r}_0\Vert{}, \quad v_0 = \Vert{}\vec{v}_0\Vert{}, \quad \alpha = \frac{2}{r_0} - \frac{v_0^2}{\mu} = \frac{1}{a}\]</span></p>
+<p>The Stumpff functions <span class="math">\(c_k(z)\)</span> are defined through the general series expansion:</p>
+<p><span class="math display">\[c_k(z) = \sum_{m=0}^\infty \frac{(-1)^m z^m}{(2m + k)!}\]</span></p>
+<p>In floating-point implementations, the zero-order through third-order functions are evaluated using closed-form trigonometric or hyperbolic expressions depending on the sign of <span class="math">\(z = \alpha \chi^2\)</span>:</p>
+<p><span class="math display">\[c_0(z) = \begin{cases} \cos\sqrt{z} &amp; z &gt; 0 \\ 1 &amp; z = 0 \\ \cosh\sqrt{-z} &amp; z &lt; 0 \end{cases}, \quad c_1(z) = \begin{cases} \frac{\sin\sqrt{z}}{\sqrt{z}} &amp; z &gt; 0 \\ 1 &amp; z = 0 \\ \frac{\sinh\sqrt{-z}}{\sqrt{-z}} &amp; z &lt; 0 \end{cases}\]</span></p>
+<p><span class="math display">\[c_2(z) = \begin{cases} \frac{1 - \cos\sqrt{z}}{z} &amp; z &gt; 0 \\ \frac{1}{2} &amp; z = 0 \\ \frac{\cosh\sqrt{-z} - 1}{-z} &amp; z &lt; 0 \end{cases}, \quad c_3(z) = \begin{cases} \frac{\sqrt{z} - \sin\sqrt{z}}{z^{3/2}} &amp; z &gt; 0 \\ \frac{1}{6} &amp; z = 0 \\ \frac{\sinh\sqrt{-z} - \sqrt{-z}}{(-z)^{3/2}} &amp; z &lt; 0 \end{cases}\]</span></p>
+<p>The universal anomaly <span class="math">\(\chi\)</span> satisfies the Universal Kepler Equation:</p>
+<p><span class="math display">\[F(\chi) = \frac{\vec{r}_0 \cdot \vec{v}_0}{\sqrt{\mu}} \chi^2 c_2(\alpha \chi^2) + (1 - \alpha r_0) \chi^3 c_3(\alpha \chi^2) + r_0 \chi c_1(\alpha \chi^2) - \sqrt{\mu} \Delta t = 0\]</span></p>
+<p>The first two analytical derivatives with respect to <span class="math">\(\chi\)</span> are:</p>
+<p><span class="math display">\[F'(\chi) = \frac{\vec{r}_0 \cdot \vec{v}_0}{\sqrt{\mu}} \chi \left[1 - \alpha \chi^2 c_3(\alpha \chi^2)\right] + (1 - \alpha r_0) \chi^2 c_2(\alpha \chi^2) + r_0 c_0(\alpha \chi^2) = r(\chi)\]</span></p>
+<p><span class="math display">\[F''(\chi) = \frac{\vec{r}_0 \cdot \vec{v}_0}{\sqrt{\mu}} \left[1 - \alpha \chi^2 c_2(\alpha \chi^2)\right] + (1 - \alpha r_0) \chi c_1(\alpha \chi^2)\]</span></p>
+<p>An initial iterate <span class="math">\(\chi_0\)</span> is generated based on orbital eccentricity:</p>
+<p><span class="math display">\[\chi_0 = \begin{cases} \alpha \sqrt{\mu} \Delta t &amp; \alpha &gt; 0.15 \text{ (Elliptic)} \\ \frac{\sqrt{\mu} \Delta t}{r_0} &amp; \vert{}\alpha\vert{} \le 0.15 \text{ (Near-Parabolic)} \\ \text{sign}(\Delta t) \sqrt{-\frac{1}{\alpha}} \ln\left( \frac{-2 \mu \alpha \Delta t}{\vec{r}_0 \cdot \vec{v}_0 + \sqrt{-\mu/\alpha} (1 - \alpha r_0)} \right) &amp; \alpha &lt; -0.15 \text{ (Hyperbolic)} \end{cases}\]</span></p>
+<p>The root <span class="math">\(\chi^*\)</span> is solved to machine precision (<span class="math">\(\varepsilon \approx 10^{-12}\)</span>) using Halley's third-order iterative method:</p>
+<p><span class="math display">\[\chi_{n+1} = \chi_n - \frac{F(\chi_n)}{F'(\chi_n) - \frac{F''(\chi_n) F(\chi_n)}{2 F'(\chi_n)}}\]</span></p>
+<p>Once converged, the updated state vector <span class="math">\((\vec{r}, \vec{v})\)</span> is evaluated via the Lagrange <span class="math">\(f\)</span> and <span class="math">\(g\)</span> coefficients:</p>
+<p><span class="math display">\[f = 1 - \frac{\chi^2}{r_0} c_2(\alpha \chi^2), \quad g = \Delta t - \frac{\chi^3}{\sqrt{\mu}} c_3(\alpha \chi^2)\]</span></p>
+<p><span class="math display">\[\vec{r} = f \vec{r}_0 + g \vec{v}_0, \quad r = \Vert{}\vec{r}\Vert{}\]</span></p>
+<p><span class="math display">\[\dot{f} = \frac{\sqrt{\mu}}{r r_0} \chi \left[\alpha \chi^2 c_3(\alpha \chi^2) - 1\right], \quad \dot{g} = 1 - \frac{\chi^2}{r} c_2(\alpha \chi^2)\]</span></p>
+<p><span class="math display">\[\vec{v} = \dot{f} \vec{r}_0 + \dot{g} \vec{v}_0\]</span></p>
+<p>Because the coefficients satisfy the identity <span class="math">\(f \dot{g} - \dot{f} g = 1\)</span> in exact arithmetic, phase-space volume and orbital energy are conserved across arbitrary propagation baselines.</p>
+<h3 id="two-body-hyperbolic-deflection-kinematics">Two-Body Hyperbolic Deflection Kinematics</h3>
+<p>When an unbound body encounters a secondary mass at high relative velocity without becoming gravitationally bound, <code>ComputeTwoBodyHyperbolicDeflection</code> evaluates the asymptotic flyby turning angle analytically. Given interacting masses <span class="math">\(M_1\)</span> and <span class="math">\(M_2\)</span>, the combined gravitational parameter is <span class="math">\(\mu_{\text{enc}} = G(M_1 + M_2)\)</span>, with initial positions <span class="math">\(\vec{p}_1, \vec{p}_2\)</span> and velocities <span class="math">\(\vec{v}_1, \vec{v}_2\)</span>. Transforming into the center-of-mass frame:</p>
+<p><span class="math display">\[\vec{r}_{\text{rel}} = \vec{p}_2 - \vec{p}_1, \quad \vec{v}_{\text{rel}} = \vec{v}_2 - \vec{v}_1, \quad v_\infty = \Vert{}\vec{v}_{\text{rel}}\Vert{}\]</span></p>
+<p>The specific relative angular momentum vector is:</p>
+<p><span class="math display">\[\vec{h}_{\text{enc}} = \vec{r}_{\text{rel}} \times \vec{v}_{\text{rel}}, \quad h_{\text{enc}} = \Vert{}\vec{h}_{\text{enc}}\Vert{}\]</span></p>
+<p>The impact parameter <span class="math">\(b\)</span> and hyperbolic semi-major axis <span class="math">\(a_{\text{hyp}}\)</span> are <span class="math">\(b = h_{\text{enc}} / v_\infty\)</span> and <span class="math">\(a_{\text{hyp}} = \mu_{\text{enc}} / v_\infty^2\)</span>. The orbital eccentricity of the unbound encounter evaluates to:</p>
+<p><span class="math display">\[e_{\text{hyp}} = \sqrt{1 + \left(\frac{b}{a_{\text{hyp}}}\right)^2} = \sqrt{1 + \frac{h_{\text{enc}}^2 v_\infty^2}{\mu_{\text{enc}}^2}}\]</span></p>
+<p>The asymptotic turning angle <span class="math">\(\delta_{\text{infl}}\)</span> between incoming and outgoing velocity vectors is:</p>
+<p><span class="math display">\[\sin\left(\frac{\delta_{\text{infl}}}{2}\right) = \frac{1}{e_{\text{hyp}}} \implies \delta_{\text{infl}} = 2 \arcsin\left(\frac{1}{\sqrt{1 + \left(b v_\infty^2 / \mu_{\text{enc}}\right)^2}}\right)\]</span></p>
+<p>The rotation axis perpendicular to the encounter plane is defined by the unit vector <span class="math">\(\hat{\mathbf{n}}_{\text{enc}} = \vec{h}_{\text{enc}} / h_{\text{enc}}\)</span>. Using Rodrigues' rotation formula, the outgoing relative asymptotic velocity vector <span class="math">\(\vec{v}_{\text{rel}}^+\)</span> is:</p>
+<p><span class="math display">\[\vec{v}_{\text{rel}}^+ = \vec{v}_{\text{rel}} \cos\delta_{\text{infl}} + \left(\hat{\mathbf{n}}_{\text{enc}} \times \vec{v}_{\text{rel}}\right) \sin\delta_{\text{infl}} + \hat{\mathbf{n}}_{\text{enc}} \left(\hat{\mathbf{n}}_{\text{enc}} \cdot \vec{v}_{\text{rel}}\right)(1 - \cos\delta_{\text{infl}})\]</span></p>
+<p>Because <span class="math">\(\hat{\mathbf{n}}_{\text{enc}} \cdot \vec{v}_{\text{rel}} = 0\)</span>, the scalar projection term vanishes identically. The velocity variation vector imparted to the relative trajectory is <span class="math">\(\Delta \vec{v}_{\text{rel}} = \vec{v}_{\text{rel}}^+ - \vec{v}_{\text{rel}}\)</span>. Conservation of linear momentum dictates the final inertial velocity updates staged for both bodies:</p>
+<p><span class="math display">\[\vec{v}_1^{\text{new}} = \vec{v}_1 - \left(\frac{M_2}{M_1 + M_2}\right) \Delta \vec{v}_{\text{rel}}, \quad \vec{v}_2^{\text{new}} = \vec{v}_2 + \left(\frac{M_1}{M_1 + M_2}\right) \Delta \vec{v}_{\text{rel}}\]</span></p>
+<h3 id="encounter-resolution-and-adaptive-micro-pass-architecture">Encounter Resolution and Adaptive Micro-Pass Architecture</h3>
+<p>When an interloper crosses into another body's mutual Hill sphere (<span class="math">\(r_{\text{sep}} \le r_{\text{hill, mutual}}\)</span>), the macro-step Velocity Verlet integrator suffers severe truncation error due to rapid changes in gravitational jerk. Under these conditions, the macro integration step <span class="math">\(\Delta t\)</span> is suspended for that pair, and <code>ResolveCloseEncounterMicroPass</code> executes an adaptive sub-cycling integration loop. The encounter sub-step <span class="math">\(\delta t_{\text{micro}}\)</span> is calculated from the local orbital frequency:</p>
+<p><span class="math display">\[\delta t_{\text{micro}} = \eta \sqrt{\frac{r_{\text{sep}}^3}{G(M_1 + M_2)}}\]</span></p>
+<p>where <span class="math">\(\eta \in [0.01, 0.05]\)</span> is an accuracy parameter controlling maximum angular advance per sub-step. The positions and velocities of both bodies are advanced from <span class="math">\(t_0\)</span> to <span class="math">\(t_0 + \Delta t\)</span> over <span class="math">\(N = \lceil \Delta t / \delta t_{\text{micro}} \rceil\)</span> sub-steps using an energy-conserving 4th-order Hermite or Yoshida symplectic integrator. At each micro-step, mutual separation is evaluated against the physical contact cross-section and the fluid Roche limit:</p>
+<p><span class="math display">\[d_{\text{roche}} = 2.44 R_1 \left(\frac{\rho_1}{\rho_2}\right)^{1/3}\]</span></p>
+<p>If <span class="math">\(r_{\text{sep}} \le d_{\text{roche}}\)</span> and <span class="math">\(M_1 &gt; M_2\)</span>, tidal forces disrupt the secondary mass, flagging it for deletion and staging ring debris formation. If <span class="math">\(r_{\text{sep}} \le R_1 + R_2\)</span>, an inelastic merger coalescence executes immediately.</p>
+<h2 id="edge-cases-singularity-elimination-and-nonsingular-orbital-elements">Edge Cases, Singularity Elimination, and Nonsingular Orbital Elements</h2>
+<p>Representing orbits via classical Keplerian orbital elements <span class="math">\((a, e, i, \Omega, \omega, \nu)\)</span> introduces mathematical singularities in common astrophysical regimes. For circular orbits (<span class="math">\(e \to 0\)</span>), the periapsis vector degenerates, leaving the argument of periapsis <span class="math">\(\omega\)</span> and true anomaly <span class="math">\(\nu\)</span> undefined. For equatorial orbits (<span class="math">\(i \to 0\)</span>), the line of nodes vanishes, leaving the Right Ascension of the Ascending Node <span class="math">\(\Omega\)</span> and <span class="math">\(\omega\)</span> undefined. Furthermore, retrograde orbits (<span class="math">\(i \to \pi\)</span>) exhibit coordinate singularities in standard spherical projections.</p>
+<p>To support circular orbits ($e = 0$) and co-planar equatorial systems ($i = 0$) without branching logic or numerical divide-by-zero errors, the engine stores and integrates internal orbits using Modified Equinoctial Elements (MEE). The six-dimensional element state vector is defined as:</p>
+<p><span class="math display">\[\mathbf{w} = \begin{bmatrix} p \\ f \\ g \\ h \\ k \\ L \end{bmatrix} = \begin{bmatrix} a(1 - e^2) \\ e \cos(\omega + \Omega) \\ e \sin(\omega + \Omega) \\ \tan(i / 2) \cos\Omega \\ \tan(i / 2) \sin\Omega \\ \Omega + \omega + \nu \end{bmatrix}\]</span></p>
+<p>where <span class="math">\(p\)</span> is the semi-latus rectum, $(f, g)$ model eccentricity projected onto the equinoctial frame, $(h, k)$ represent orbital plane tilt, and <span class="math">\(L\)</span> is the true longitude. This representation is nonsingular for all eccentricities <span class="math">\(e \ge 0\)</span> and all inclinations <span class="math">\(i \in [0, \pi)\)</span>, encountering a coordinate singularity only for exactly retrograde equatorial trajectories (<span class="math">\(i = \pi\)</span>).</p>
+<p>Converting an instantaneous Cartesian state <span class="math">\((\vec{r}, \vec{v})\)</span> into MEE begins by determining specific angular momentum <span class="math">\(\vec{h} = \vec{r} \times \vec{v}\)</span>, its magnitude <span class="math">\(h = \Vert{}\vec{h}\Vert{}\)</span>, and unit vector <span class="math">\(\hat{\mathbf{h}} = \vec{h} / h = [h_x, h_y, h_z]^T\)</span>. The semi-latus rectum is <span class="math">\(p = h^2 / \mu\)</span>. The inclination components evaluate to:</p>
+<p><span class="math display">\[k_{\text{elem}} = \frac{h_x}{1 + h_z}, \quad h_{\text{elem}} = -\frac{h_y}{1 + h_z}\]</span></p>
+<p>The orthonormal equinoctial basis vectors <span class="math">\((\hat{\mathbf{f}}, \hat{\mathbf{g}})\)</span> spanning the orbital plane are constructed without evaluating trigonometric functions:</p>
+<p><span class="math display">\[s^2 = 1 + h_{\text{elem}}^2 + k_{\text{elem}}^2\]</span></p>
+<p><span class="math display">\[\hat{\mathbf{f}} = \frac{1}{s^2} \begin{bmatrix} 1 - k_{\text{elem}}^2 + h_{\text{elem}}^2 \\ 2 k_{\text{elem}} h_{\text{elem}} \\ -2 k_{\text{elem}} \end{bmatrix}, \quad \hat{\mathbf{g}} = \frac{1}{s^2} \begin{bmatrix} 2 k_{\text{elem}} h_{\text{elem}} \\ 1 + k_{\text{elem}}^2 - h_{\text{elem}}^2 \\ 2 h_{\text{elem}} \end{bmatrix}\]</span></p>
+<p>The eccentricity vector <span class="math">\(\vec{e}\)</span> is calculated via the Laplace-Runge-Lenz formulation:</p>
+<p><span class="math display">\[\vec{e} = \frac{\vec{v} \times \vec{h}}{\mu} - \frac{\vec{r}}{\Vert{}\vec{r}\Vert{}}\]</span></p>
+<p>Projecting <span class="math">\(\vec{e}\)</span> onto the equinoctial basis yields the nonsingular components <span class="math">\(f = \vec{e} \cdot \hat{\mathbf{f}}\)</span> and <span class="math">\(g = \vec{e} \cdot \hat{\mathbf{g}}\)</span>. The true longitude <span class="math">\(L\)</span> is determined from the coordinates in the equinoctial frame using <span class="math">\(X = \vec{r} \cdot \hat{\mathbf{f}}\)</span>, <span class="math">\(Y = \vec{r} \cdot \hat{\mathbf{g}}\)</span>, and <span class="math">\(L = \text{atan2}(Y, X)\)</span>.</p>
+<p>Reconstructing Cartesian coordinates from the MEE vector $(p, f, g, h, k, L)$ proceeds by evaluating the basis vectors <span class="math">\(\hat{\mathbf{f}}\)</span> and <span class="math">\(\hat{\mathbf{g}}\)</span> using $(h, k)$. The orbital radius <span class="math">\(r\)</span> is derived from the conic polar equation:</p>
+<p><span class="math display">\[w = 1 + f \cos L + g \sin L, \quad r = \frac{p}{w}\]</span></p>
+<p>Cartesian position is reconstructed as <span class="math">\(\vec{r} = (r \cos L) \hat{\mathbf{f}} + (r \sin L) \hat{\mathbf{g}}\)</span>. Cartesian velocity evaluates directly to:</p>
+<p><span class="math display">\[\vec{v} = -\sqrt{\frac{\mu}{p}} (g + \sin L) \hat{\mathbf{f}} + \sqrt{\frac{\mu}{p}} (f + \cos L) \hat{\mathbf{g}}\]</span></p>
+<p>Round-trip conversions between Cartesian vectors and Modified Equinoctial Elements retain double-precision fidelity across all inclination angles, achieving forward position errors below <span class="math">\(10^{-11}\text{ m}\)</span>.</p>
+<p>Near the galactic center where <span class="math">\(r \to 0\)</span>, point-mass acceleration evaluates to unphysically large values under standard Newtonian formulations. To prevent infinite force spikes without corrupting outer orbits, point-mass evaluations incorporate Plummer softening length <span class="math">\(\epsilon = 1.0\text{ pc}\)</span>, replacing raw <span class="math">\(1/r^2\)</span> forces with <span class="math">\(a(r) = G M r / (r^2 + \epsilon^2)^{3/2}\)</span>. This guarantees that net acceleration vanishes smoothly at the galactic origin (<span class="math">\(\lim_{r\to 0} a(r) = 0\)</span>), preserving numerical stability in core stellar clusters.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Astrodynamical Edge Case</th>
+<th>Classical Formulation Degeneracy</th>
+<th>Mathematical Regularization</th>
+<th>Limiting Numerical Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Circular Orbit (e -&gt; 0)</td>
+<td>omega, nu undefined; indeterminate 0/0 divisions</td>
+<td>f = g = 0; true longitude L remains continuous</td>
+<td>w = 1 implies r = p = a; velocity magnitude</td>
+</tr>
+<tr>
+<td>Equatorial Orbit (i -&gt; 0)</td>
+<td>Omega undefined; nodal vector vanishes</td>
+<td>h = k = 0; f_hat = [1, 0, 0]^T, g_hat = [0, 1, 0]^T</td>
+<td>In-plane coordinates collapse to x = r cos L, y = r sin L</td>
+</tr>
+<tr>
+<td>Parabolic Orbit (e -&gt; 1)</td>
+<td>Semi-major axis a -&gt; infinity; mean motion n -&gt; 0</td>
+<td>Semi-latus rectum p = 2 * r_p; universal anomaly chi</td>
+<td>Barker's equation handled analytically via Stumpff c_k(alpha * chi^2) series</td>
+</tr>
+<tr>
+<td>Galactic Core (r -&gt; 0)</td>
+<td>Gravitational point-mass forces spike (1/r^2 -&gt; infinity)</td>
+<td>Softened Plummer core: a = -G * M * r / (r^2 + epsilon^2)^(3/2)</td>
+<td>Softening ensures continuous differentiability; lim_{r-&gt;0} a(r) = 0</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="large-macro-step-integration-temporal-baselines-and-continuous-collision-sweeping">Large Macro-Step Integration, Temporal Baselines, and Continuous Collision Sweeping</h2>
+<p>Integrating trajectories over large macro-steps (<span class="math">\(\Delta t = 1.0\text{ in-game year} \approx 3.15576 \times 10^7\text{ s}\)</span>) produces numerical challenges when objects have short orbital periods. For inner planets and moons, the integration step can exceed the orbital period by orders of magnitude (<span class="math">\(\Delta t &gt; P_{\text{orb}}\)</span>). For close-in bodies, applying numerical integrators like Velocity Verlet directly across these intervals produces catastrophic orbital energy growth, driving bound worlds into unphysical parabolic ejections within a few updates.</p>
+<p>The simulation handles this through a two-phase hierarchical architecture. In Phase A, the parent star's position is integrated within the global galactic potential via Velocity Verlet. The displacement vector <span class="math">\(\Delta \vec{p}_* = \vec{p}_*(t + \Delta t) - \vec{p}_*(t)\)</span> is added directly to all child planet and satellite positions, translating the internal system rigidly to maintain its spatial configuration. In Phase B, bound child orbits are propagated analytically using mean anomaly phase wrapping. The mean motion <span class="math">\(n\)</span> is calculated from the semi-major axis as <span class="math">\(n = \sqrt{\mu / a^3}\)</span>, and the updated mean anomaly <span class="math">\(M\)</span> after interval <span class="math">\(\Delta t\)</span> is computed via modular arithmetic:</p>
+<p><span class="math display">\[M(t + \Delta t) = \left(M(t) + n \Delta t\right) \pmod{2\pi}\]</span></p>
+<p>Because the orbit advances along an exact Keplerian ellipse, energy is conserved without numerical drift, remaining stable for arbitrarily large steps <span class="math">\(\Delta t / P_{\text{orb}} \gg 1\)</span>. To eliminate secular phase errors across successive nightly runs, all orbital anomalies, stellar orientations, and ephemeris baselines are synchronized to the standard J2000.0 epoch (<span class="math">\(T_0 = 2451545.0\text{ Barycentric Dynamical Time}\)</span>), matching IAU conventions.</p>
+<p>Discrete distance checks run only at interval endpoints can miss close encounters, allowing fast-moving bodies to pass through one another undetected. The simulation resolves this using Continuous Collision Detection (CCD), evaluating capsule intersections along swept trajectories over <span class="math">\(\tau \in [0, \Delta t]\)</span>. Let two bodies move with initial positions <span class="math">\(\vec{p}_1, \vec{p}_2\)</span> and velocities <span class="math">\(\vec{v}_1, \vec{v}_2\)</span>. Defining relative displacement <span class="math">\(\Delta \vec{p}_0 = \vec{p}_1 - \vec{p}_2\)</span> and relative velocity <span class="math">\(\Delta \vec{v} = \vec{v}_1 - \vec{v}_2\)</span>, the squared separation as a function of time <span class="math">\(\tau\)</span> is quadratic:</p>
+<p><span class="math display">\[S(\tau) = \Vert{}\Delta \vec{p}_0 + \Delta \vec{v} \tau\Vert{}^2 = A \tau^2 + B \tau + C\]</span></p>
+<p><span class="math display">\[A = \Delta \vec{v} \cdot \Delta \vec{v}, \quad B = 2 (\Delta \vec{p}_0 \cdot \Delta \vec{v}), \quad C = \Delta \vec{p}_0 \cdot \Delta \vec{p}_0\]</span></p>
+<p>The unconstrained time of closest approach is <span class="math">\(\tau_{\text{min}} = -B / (2 A)\)</span>. Physical collision occurs if the minimum separation falls within the gravitationally focused interaction cross-section. Gravitational focusing expands the geometric collision radius <span class="math">\(R_{\text{geom}} = R_1 + R_2\)</span> based on mutual escape velocity:</p>
+<p><span class="math display">\[v_{\text{esc}} = \sqrt{\frac{2 G(M_1 + M_2)}{R_1 + R_2}}, \quad R_{\text{eff}} = (R_1 + R_2) \sqrt{1 + \frac{v_{\text{esc}}^2}{\max(\Vert{}\Delta \vec{v}\Vert{}^2, 1.0)}}\]</span></p>
+<p>Contact occurs within interval <span class="math">\([0, \Delta t]\)</span> if the quadratic discriminant satisfies <span class="math">\(D = B^2 - 4 A (C - R_{\text{eff}}^2) \ge 0\)</span> and the earliest real entry root falls within the time step:</p>
+<p><span class="math display">\[\tau_{\text{impact}} = \frac{-B - \sqrt{D}}{2 A}, \quad 0 \le \tau_{\text{impact}} \le \Delta t\]</span></p>
+<p>When contact is detected, an inelastic merger executes at <span class="math">\(\tau_{\text{impact}}\)</span>. Conserving mass and linear momentum, the state of the coalesced body evaluates to:</p>
+<p><span class="math display">\[M_{\text{new}} = M_1 + M_2, \quad \vec{p}_{\text{new}} = \vec{p}_1 + \vec{v}_1 \tau_{\text{impact}}\]</span></p>
+<p><span class="math display">\[\vec{v}_{\text{new}} = \frac{M_1 \vec{v}_1 + M_2 \vec{v}_2}{M_1 + M_2}, \quad R_{\text{new}} = \left(R_1^3 + R_2^3\right)^{1/3}\]</span></p>
+<p>The consumed secondary body is flagged for deletion, and affected sectors are marked dirty for point-mass table re-indexing.</p>
+<p>The spatial partitioning divides the galaxy into uniform cubic cells of size <span class="math">\(L_{\text{sec}} = 4.0\text{ pc}\)</span> (<span class="math">\(1.234 \times 10^{17}\text{ m}\)</span>), replacing cylindrical geometries to avoid wedge-shaped volume degeneracies near the core. Sectors are indexed in Cartesian space using global integer coordinates <span class="math">\(i_x = \lfloor x_{\text{gal}} / L_{\text{sec}} \rfloor\)</span>, <span class="math">\(i_y = \lfloor y_{\text{gal}} / L_{\text{sec}} \rfloor\)</span>, and <span class="math">\(i_z = \lfloor z_{\text{gal}} / L_{\text{sec}} \rfloor\)</span>. Each cell key is encoded via a 64-bit Morton space-filling curve (Z-order hash), mapping 3D spatial locality into sequential database memory keys. Gravitational stencil queries resolve the 27 adjacent cubic cells (<span class="math">\(3 \times 3 \times 3\)</span>), bounding the search window to a local sphere of radius <span class="math">\(R_{\text{search}} = \sqrt{G M_{\text{max}} / a_{\text{min}}}\)</span>. This ensures short-range point-mass interactions are fully captured across sector boundaries while keeping query complexity bounded at <span class="math">\(\mathcal{O}(N_{\text{local}} \log N_{\text{local}})\)</span>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Simulation Parameter</th>
+<th>Value / Dimension</th>
+<th>Physical Purpose</th>
+<th>Operational Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Macro Timestep (Delta t)</td>
+<td>1.0 in-game year (3.15576 x 10^7 s)</td>
+<td>Master discrete batch advancement interval</td>
+<td>Velocity Verlet for host stars; analytical modular propagation for children</td>
+</tr>
+<tr>
+<td>Spatial Sector Size (L_sec)</td>
+<td>4.0 pc (1.234 x 10^17 m)</td>
+<td>Spatial partitioning and localized stencil caching</td>
+<td>3D Cartesian grid indexed via Morton Z-order space-filling curves</td>
+</tr>
+<tr>
+<td>Temporal Epoch Baseline (T_0)</td>
+<td>J2000.0 (2451545.0 TT)</td>
+<td>Universal temporal origin for anomaly tracking</td>
+<td>Prevents cumulative secular phase drift across successive nightly updates</td>
+</tr>
+<tr>
+<td>Collision Sweep (CCD)</td>
+<td>Continuous swept-sphere</td>
+<td>Prevents tunneling for fast-moving bodies</td>
+<td>Solves S(tau) &lt;= R_eff^2 over tau in [0, Delta t] with gravitational focusing</td>
+</tr>
+<tr>
+<td>Core Softening Length (epsilon)</td>
+<td>1.0 pc (3.086 x 10^16 m)</td>
+<td>Prevents infinite force spikes at galactocentric core</td>
+<td>Plummer kernel: a(r) = G * M * r / (r^2 + epsilon^2)^(3/2)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="synthesis-and-structural-recommendations-for-implementation">Synthesis and Structural Recommendations for Implementation</h2>
+<p>The numerical methods and structural parameters investigated confirm that the proposed configuration provides a mathematically complete foundation for the simulation architecture. Incorporating the composite galactic potential <span class="math">\(\Phi_{\text{gal}} = \Phi_{\text{bulge}} + \Phi_{\text{disk}} + \Phi_{\text{halo}}\)</span> resolves the primary dynamical instability of the engine. By establishing a Hernquist bulge (<span class="math">\(M_{\text{b}} = 1.0 \times 10^{10}\text{ M}_\odot, c_{\text{b}} = 0.5\text{ kpc}\)</span>), a Miyamoto-Nagai disk (<span class="math">\(M_{\text{d}} = 6.8 \times 10^{10}\text{ M}_\odot, a_{\text{d}} = 3.5\text{ kpc}, b_{\text{d}} = 0.3\text{ kpc}\)</span>), and an NFW halo (<span class="math">\(M_{\text{h}} = 5.4 \times 10^{11}\text{ M}_\odot, r_{\text{h}} = 16.0\text{ kpc}\)</span>), the background acceleration sustains the flat 229.3 km/s rotation curve observed at the solar circle, permanently preventing unphysical outward stellar drift.</p>
+<p>The missing algorithmic definitions in the codebase are closed by formal mathematical operators. Propagating bound stellar orbits via the universal variable formulation with Stumpff series, solved via Halley's third-order iteration, ensures uniform convergence across elliptical, parabolic, and hyperbolic regimes without analytical singularities. Adopting Modified Equinoctial Elements $(p, f, g, h, k, L)$ eliminates classical geometrical singularities for circular ($e = 0$) and equatorial ($i = 0$) planetary trajectories, eliminating branching overhead in large-scale system processing. Close encounters are resolved by calculating hyperbolic deflection turning angles analytically through Rodrigues' formulation, while deep mutual Hill sphere crossings transition to an adaptive micro-pass sub-cycling integrator governed by local dynamical timescales.</p>
+<p>Reference frame ambiguities are eliminated by formalizing the Galactic Centric Inertial Frame as the global datum, aligning sector spatial partitions directly with the galactic axes, and referencing all internal system dynamics to the host star's equatorial plane. Setting the stellar equatorial frame's <span class="math">\(z\)</span>-axis along the stellar spin axis <span class="math">\(\hat{\boldsymbol{\omega}}_*\)</span> aligns planetary inclinations, obliquities, and stellar oblateness forces with physical rotational axes. Finally, advancing the galaxy by one in-game year per run via host-translation coupled with modular mean anomaly propagation prevents numerical energy dissipation for inner worlds, while swept-sphere continuous collision detection with gravitational focusing preserves momentum during orbital crossings.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System sky wire format: what the System View downloads for its background (VIEW.31) - planetGen docs</title>
+<meta name="description" content="Status: built (VIEW.31 and the glow image of VIEW.13, 2026-11-05).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/system-sky-wire-format.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/system-sky-wire-format.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="system-sky-wire-format-what-the-system-view-downloads-for-its-background-view31">System sky wire format: what the System View downloads for its background (VIEW.31)</h1><p class="meta">docs/design/interface/system-sky-wire-format.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-routes">1. The routes</a></li><li style="margin-left:0px"><a href="#2-the-packed-list">2. The packed list</a></li><li style="margin-left:0px"><a href="#3-meta">3. meta</a></li><li style="margin-left:14px"><a href="#31-the-sprite-records-metanebulae">3.1 The sprite records (meta.nebulae)</a></li><li style="margin-left:14px"><a href="#33-the-charted-stars-metacharted-view37">3.3 The charted stars (meta.charted, VIEW.37)</a></li><li style="margin-left:14px"><a href="#32-the-glow-image-metaband-view13">3.2 The glow image (meta.band, VIEW.13)</a></li><li style="margin-left:0px"><a href="#4-the-report">4. The report</a></li><li style="margin-left:0px"><a href="#5-the-cache">5. The cache</a></li><li style="margin-left:0px"><a href="#6-stand-ins-and-what-is-not-here">6. Stand-ins and what is not here</a></li></ul></details>
+<p>Status: built (VIEW.31 and the glow image of VIEW.13, 2026-11-05). Plan: <code>reports/system-sky-from-the-system-2026-11-04.md</code> (section 7, label S13). Code: <code>src/planetgen/api/system_sky.py</code> (the build), <code>src/planetgen/web/lib/skypack.py</code> (the packed list), <code>src/planetgen/web/lib/skycache.py</code> (the disk cache), <code>src/planetgen/galaxy/sky_sprites.py</code> and <code>src/planetgen/db/sky_sprites.py</code> (the sprites). Readers: <code>src/html/static/skypack.js</code> (the stars, VIEW.33) and <code>src/html/static/skysprites.js</code> (the sprites, VIEW.36). Tests: <code>src/tests/test_system_sky_route.py</code>, <code>src/tests/test_skypack.py</code>, <code>src/tests/js/skypack.test.mjs</code>.</p>
+<p>The System View's background is the sky its system sees: each star at its true direction and distance, placed where it was when its light left it. One request gives a page everything it draws behind the system, as one packed file.</p>
+<h2 id="1-the-routes">1. The routes</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Answers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /system/&lt;id&gt;/sky?limit=</code> (the web layer; the page's script calls this one)</td>
+<td>the packed list, <code>Content-Type: application/vnd.planetgen.sky</code>, <code>Cache-Control: no-store</code>, with <code>X-Sky-Source</code> (<code>cache</code> or <code>built</code>) and <code>X-Sky-Version</code> (the version key, section 5)</td>
+</tr>
+<tr>
+<td><code>GET /api/systems/&lt;id&gt;/sky?limit=</code></td>
+<td>JSON: <code>system</code>, <code>limit</code>, <code>epoch_unix</code>, <code>version_key</code>, <code>count</code> (stars), <code>sprites</code> (records), <code>report</code> (section 4), <code>seconds</code> (what the build took), <code>format</code> (<code>&quot;PGK1&quot;</code>) and <code>data</code> (the base64 of the packed list)</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>&lt;id&gt;</code> is the system's printed ID. <code>limit</code> is the limiting magnitude, 2 to 9, default 7.5 (the page lowers it on a phone; it is a user setting there, <code>skypack.DEFAULT_LIMIT</code> is only the route's default). A limit that is not a number or is out of range is a 400, an unknown system or one with no place in the galaxy a 404, an API failure a 502 (web route), all as <code>{&quot;error&quot;: &quot;...&quot;}</code> JSON.</p>
+<p>The sky is a snapshot at the system's own epoch (<code>star_systems.epoch_unix</code>; the orbit simulation's when that is empty): the page's orbit clock moves it on, so a sky stays right across orbital updates.</p>
+<h2 id="2-the-packed-list">2. The packed list</h2>
+<p>One file, little-endian. The layout is the docstring of <code>skypack.py</code> and is held by <code>test_skypack.py</code> and <code>skypack.test.mjs</code> to the same bytes. In short: the magic <code>PGK1</code>, the star count, the sky's epoch, the limit, the velocity scale, the observer's velocity, the length of <code>meta</code>, <code>meta</code> (UTF-8 JSON), then the columns of the stars: offset x, y, z (float32 parsecs from the observer at the epoch), velocity x, y, z (int16, km/s relative to the observer), the absolute magnitude plus the dust of the line of sight (int16, steps of 1/512), the temperature (uint8, log over 100 K to 1,000,000 K, 0 for none), the kind (uint8: 0 charted, 1 bright star, 2 phenomenon, 3 cluster) and the index (uint32). A star is 26 bytes; 25,000 stars are 0.65 MB, about half that gzipped. A black hole, a neutron star or a quasar with a map luminosity is a star of kind 2, so it is drawn like one.</p>
+<h2 id="3-meta">3. <code>meta</code></h2>
+<p><code>meta</code> is a JSON object, always present:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>system</code></td>
+<td>the printed ID of the observer's system</td>
+</tr>
+<tr>
+<td><code>version_key</code></td>
+<td>the key the file is good for (section 5)</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>the limiting magnitude it was built to (also in the header, as a float32)</td>
+</tr>
+<tr>
+<td><code>galaxy</code></td>
+<td>names the galaxy the stand-in velocities were drawn for</td>
+</tr>
+<tr>
+<td><code>nebulae</code></td>
+<td>the sprite records, below</td>
+</tr>
+<tr>
+<td><code>band</code></td>
+<td>the glow image, section 3.2: <code>{key, width, height, format, href}</code></td>
+</tr>
+<tr>
+<td><code>charted</code></td>
+<td>the charted stars of the list by their index (the <code>index</code> column), section 3.3: <code>{&quot;&lt;index&gt;&quot;: [printed star ID, name or null]}</code> (VIEW.37). Absent in a list built before it; the page then links nothing</td>
+</tr>
+<tr>
+<td><code>report</code></td>
+<td>the tier state and counts, section 4</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="31-the-sprite-records-metanebulae">3.1 The sprite records (<code>meta.nebulae</code>)</h3>
+<p>The nebulae, the supernova remnants and the dark and diffuse clouds that the system sees, widest first (at most 600, <code>system_sky.MAX_SPRITES</code>). Each record is the output of <code>physics/nebula_sprites.sprite_data</code> for one object, with its direction worked out from where the object was when its light left it (<code>light_travel.retarded_offsets</code>, the same law as the stars). This is the shape <code>skysprites.js</code> reads.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>text</td>
+<td>the object's printed ID (a nebula's or a remnant's)</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>text</td>
+<td><code>&quot;nebula&quot;</code> or <code>&quot;supernova_remnant&quot;</code></td>
+</tr>
+<tr>
+<td><code>family</code></td>
+<td>text</td>
+<td>a key of <code>tuning.NEBULA_FAMILIES</code> (<code>emission</code>, <code>reflection</code>, <code>planetary</code>, <code>dark</code>, <code>diffuse</code>, ...), <code>&quot;supernova-remnant&quot;</code> or <code>&quot;plerion&quot;</code>; sets the colour</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td><code>[x, y, z]</code></td>
+<td>the unit vector to its centre in the galaxy frame (z up), light-time retarded; the page turns it into its own axes as it does for the stars</td>
+</tr>
+<tr>
+<td><code>distanceLy</code></td>
+<td>number</td>
+<td>the length of the retarded offset</td>
+</tr>
+<tr>
+<td><code>angularRadiusRad</code></td>
+<td>number</td>
+<td>the radius of its disc, <code>asin(R / d)</code>; <code>pi</code> when the observer is inside</td>
+</tr>
+<tr>
+<td><code>inside</code></td>
+<td>boolean</td>
+<td>the observer is within the ball (the page draws nothing; the haze is the dust of the stars)</td>
+</tr>
+<tr>
+<td><code>extinctionMag</code></td>
+<td>number</td>
+<td>how much it dims what lies behind it along its middle, magnitudes; the page scales it by the chord</td>
+</tr>
+<tr>
+<td><code>surfaceBrightness</code></td>
+<td>number or <code>null</code></td>
+<td>its mean V surface brightness, magnitudes per square arcsecond, dimmed by the dust between; <code>null</code> when it has no light of its own (a dark cloud, a diffuse one, a plerion)</td>
+</tr>
+<tr>
+<td><code>visible</code></td>
+<td>boolean</td>
+<td>the surface brightness is under 23, the naked-eye limit</td>
+</tr>
+<tr>
+<td><code>seen</code></td>
+<td>boolean</td>
+<td>for a remnant, its explosion has been seen (it exploded longer ago than its light takes to arrive); always true in the list, because an unseen remnant is not sent</td>
+</tr>
+</tbody>
+</table></div>
+<p>A record is sent when it is wider than 0.002 rad (SPR1), its explosion has been seen, and it either shines under the limit (<code>visible</code>) or dims by at least 0.02 magnitude (SPR2). The counts of what was left out are in <code>report.sprites</code>.</p>
+<h3 id="33-the-charted-stars-metacharted-view37">3.3 The charted stars (<code>meta.charted</code>, VIEW.37)</h3>
+<p>A star of kind 0 (charted) has a page, and the page links it when the star is picked. <code>meta.charted</code> maps the star's <code>index</code> (as text) to <code>[printed star ID, name]</code>; the browser builds the link from the page's <code>data-sky-star-url</code> (<code>/object/star:{id}</code>). Up to 5,000 stars are named (the brightest first). A scatter, cluster or compact-object star is not here: until GEN.1254 and GEN.1255 give it an Object ID and a name it is told (&quot;Star not yet charted&quot;, &quot;Star of a globular cluster&quot;) but not linked. The sky's version (<code>SKY_VERSION</code> 3) changed with this, so a list stored before it is built again.</p>
+<h3 id="32-the-glow-image-metaband-view13">3.2 The glow image (<code>meta.band</code>, VIEW.13)</h3>
+<p>The light of the stars too faint to be listed, as one small image the band layer (<code>skyband.js</code>, VIEW.34) lays behind the stars. It is not in the packed list: <code>meta.band.href</code> (<code>/system/&lt;id&gt;/sky/band?limit=&lt;limit&gt;</code>) is its route, and the page asks for it with <code>&amp;key=&lt;meta.band.key&gt;</code> so a stored copy is served by name.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Answers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /system/&lt;id&gt;/sky/band?limit=&amp;key=</code> (the web layer)</td>
+<td>the bytes, <code>Content-Type: application/octet-stream</code>, <code>Cache-Control: no-store</code>, with <code>X-Sky-Source</code> (<code>cache</code> or <code>built</code>), <code>X-Sky-Band-Key</code>, <code>X-Sky-Band-Width</code>, <code>X-Sky-Band-Height</code> and <code>X-Sky-Band-Format</code></td>
+</tr>
+<tr>
+<td><code>GET /api/systems/&lt;id&gt;/sky/band?limit=</code></td>
+<td>JSON: <code>key</code>, <code>limit</code>, <code>cell</code> (the 50 parsec cell of the observer), <code>width</code>, <code>height</code>, <code>format</code> (<code>&quot;rgb16f&quot;</code>), <code>seconds</code> and <code>data</code> (the base64 of the bytes)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The image is 256 by 128 texels (<code>sky_band.EQUIRECT_WIDTH</code>, <code>EQUIRECT_HEIGHT</code>), equirectangular in the sky's galactic axes, as <code>skyband.js</code> <code>equirectUV</code> reads it: row 0 at the north pole, column 0 at longitude -180 (longitude is <code>atan2(y, x)</code>, latitude <code>asin(z)</code>), a texel's value taken at its centre. Each texel is red, green and blue as little-endian half floats (<code>rgb16f</code>, 196,608 bytes), linear light in the page's unit: <code>10^(-0.4 (SB - 22))</code> for a surface brightness <code>SB</code> in V magnitudes per square arcsecond (a texel of 1.0 is 22 mag/arcsec^2, 0 is no light), times the tint of a 4500 K blackbody scaled to a luminance of 1 (red 1.30, green 0.95, blue 0.65; stand-in GLW1). The surface brightness is <code>sky_band.band_for</code>'s: the integrated light of the stars fainter than the limit, marched through the galaxy's density and dust from the centre of the observer's 50 parsec cell, so every system in a cell, at one limit, shares one image. It is worked out in the API process the first time (tens of seconds on a galaxy with many clusters) and then kept in memory; the web layer keeps <code>b&lt;key&gt;.bin</code> beside the skies and <code>skycache.clear()</code> removes it.</p>
+<p><code>key</code> is 32 hex characters: a hash of the cell, the galaxy (its seed and the numbers of its shape), the limit, the dust (the digest of the galaxy's two dust tables, <code>DustProfile.key()</code>, VIEW.44), the band's own constants and the image's (size, reference, tint, <code>SKY_VERSION</code>). It does not follow the cluster field, which the band reads but the key leaves out; after clusters are regenerated, clear the cache.</p>
+<h2 id="4-the-report">4. The report</h2>
+<p><code>meta.report</code> (and <code>report</code> in the API answer) says how much of the sky is built, for the page's &quot;filling in&quot; note:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>limit</code></td>
+<td>the limit it was built to</td>
+</tr>
+<tr>
+<td><code>visible</code></td>
+<td>stars in the list</td>
+</tr>
+<tr>
+<td><code>stars_in</code></td>
+<td>stars read from the stored rows before the limit cut</td>
+</tr>
+<tr>
+<td><code>tiers</code></td>
+<td>per tier (<code>charted</code>, <code>bright_star</code>, <code>phenomenon</code>, <code>cluster</code>): <code>in</code>, <code>visible</code>, <code>faintest_magnitude</code>, <code>farthest_pc</code></td>
+</tr>
+<tr>
+<td><code>excluded_own_system</code></td>
+<td>stars of the observer's own system, left out</td>
+</tr>
+<tr>
+<td><code>no_photometry</code>, <code>unknown_epoch</code>, <code>not_formed_yet</code>, <code>other_phase</code>, <code>unbuilt_velocity</code></td>
+<td>the counts <code>galaxy/sky.py</code> keeps: stars with no luminosity or temperature, no stored epoch (taken to hold at the sky's time), light that left before the star formed, stars seen in an earlier phase, and stars whose velocity is the stand-in</td>
+</tr>
+<tr>
+<td><code>built_to_pc</code></td>
+<td>how far out the stored stars are complete to the limit, parsecs (<code>sky.built_to_pc</code>)</td>
+</tr>
+<tr>
+<td><code>complete_above_sol</code></td>
+<td>the luminosity above which every cell of the sphere is complete, solar, or <code>null</code> when none was drawn</td>
+</tr>
+<tr>
+<td><code>wanted_pc</code></td>
+<td>how far the stored stars must be complete for this observer and limit: the reach of a star of the galaxy scatter's own floor (<code>generation/sky_tiers.py</code> <code>reach_pc</code>), past which the pre-placed scatter supplies every star that shows; <code>null</code> for a galaxy with no scatter level</td>
+</tr>
+<tr>
+<td><code>filling</code></td>
+<td><code>built_to_pc &lt; wanted_pc</code>: the tiers are not all stored yet, so the page shows its note and asks again later</td>
+</tr>
+<tr>
+<td><code>sprites</code></td>
+<td><code>in</code>, <code>sent</code>, <code>too_small</code>, <code>too_faint</code>, <code>not_seen</code>, <code>inside</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The cell levels of a sphere of more than 200,000 sectors are not listed (<code>CellLevels.truncated</code>, SKV3): such a sphere is complete down to the deepest sphere of the sky tiers' ledger (<code>sky_tier_draws</code>, VIEW.25) that holds all of it, else only where its luminosity floor is above the galaxy scatter's level. The cell levels of a smaller sphere are each cell's own <code>sector_stats</code> level taken lower by the spheres drawn over it (<code>db/sky_tier_ledger.py</code>), so <code>built_to_pc</code> follows what charting (<code>--sky-limit</code>) has drawn and <code>filling</code> goes false when the table's bands are all in.</p>
+<h2 id="5-the-cache">5. The cache</h2>
+<p>The web layer keeps each packed list on disk beside the Galaxy Map's nodes (<code>web/lib/tilecache.py</code>, PERF.129): <code>&lt;cache dir&gt;/&lt;db&gt;/&lt;generation&gt;/k&lt;system&gt;_&lt;limit in hundredths&gt;_&lt;version key&gt;.bin</code>. The version key is 16 hex characters from the galaxy's tile stamp (the sectors, systems and bright stars stored, and the generator epoch) and <code>skypack.SKY_VERSION</code>, so a sky is rebuilt when stars are stored or the generator changes, and not on an orbital update. A new generation of the tile cache drops every sky with the nodes; the size budget (<code>cache.max_mb</code>) counts them and drops the least recently asked for; a sky built for a newer key removes the older copies of the same system and limit. <code>skycache.clear()</code> removes every stored sky: it is the clear the admin page of PERF.134 calls beside the nodes'. One request at a time builds a given sky (<code>singleflight</code>); the rest wait for its file. A cache that is off or unwritable only means each request builds it. The API response is never put in the shared page cache (<code>pagecache.UNCACHED_SUFFIXES</code>).</p>
+<h2 id="6-stand-ins-and-what-is-not-here">6. Stand-ins and what is not here</h2>
+<p>The sizes and cuts above are registered in GEN.725 (<code>docs/design/research/gap-filling-plan.md</code> section 6.179: SPR1, SPR2, SPR3, SKV1, SKV2, SKV3). The physics of a sprite is VIEW.28's (section 6.173), the stars' is VIEW.23's (6.175). Not here, by decision (Boss, 5:29 PM EST on 2026-11-04): reddening by dust (VIEW.11), the full dust of nebulae (VIEW.8), the HYG calibration (VIEW.12) and the full glow ray-march (VIEW.13's full version), which stay in 9.1. The glow image the band layer samples (VIEW.34) is built here (section 3.2): the light version of VIEW.13, <code>galaxy/sky_band.py</code>. The 9.1 twins (VIEW.7, VIEW.8, VIEW.11 to VIEW.13) read the same list and the same records.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

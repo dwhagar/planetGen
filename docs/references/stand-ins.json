@@ -12169,11 +12169,11 @@
           "fields": [
             [
               "What it is",
-              "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen"
+              "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
             ],
             [
               "The range it moves in",
-              "3e21 to 1e22"
+              "2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year)"
             ],
             [
               "Where it holds",
@@ -12185,22 +12185,22 @@
             ],
             [
               "What replaces it",
-              "a measured Great Oxidation delay"
+              "a measured Great Oxidation delay, or a sink inventory that sums to a different store"
             ],
             [
               "Evidence",
-              "needed output (the first oxygen followed the first oxygenic photosynthesis by 0.3 to 1 Gyr)"
+              "READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405)"
             ]
           ],
           "id": "BO3",
           "key": "6.21:BO3",
           "kind": "P",
           "slug": "6-21-bo3",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
           "unread": null,
-          "what": "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen"
+          "what": "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
         },
         {
           "burn_down": [
