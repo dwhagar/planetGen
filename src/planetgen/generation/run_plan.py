@@ -623,7 +623,7 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
 
     Each pass is a stage with a unit per run of shells. Sectors already filled are always left out (GEN.30): the
     scatter never adds stars to a generated sector. `passes` names the passes to draw. Both (the default, what `galaxy`
-    draws) replace the whole scatter: the first stage empties `bright_stars` when it opens (`prepare_scatter_pass`).
+    draws) replace the whole scatter: the first stage empties `bright_stars` when it opens (`clear_bright_stars_unit`, a stage of its own).
     One alone is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none
     of it stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the
     luminosity pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
@@ -658,7 +658,9 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
     if "luminosity" in passes:
         book.followers.append(ScatterFollower(args, "luminosity", "Bright stars", {
             "min_luminosity_sol": min_luminosity_sol, "settings": settings("luminosity")}, None, book, last=True))
-    return list(book.followers), book
+    if not passes:
+        return [], book
+    return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers], book
 
 
 def _bright_star_settings(marker):
@@ -717,16 +719,24 @@ def resolve_scatter_settings(conn, run_id, marker):
     return wrapper.cached(conn, run_id, wrapper.scatter_settings_name(marker), lambda: work(marker))[marker["stage"]]
 
 
-def prepare_scatter_pass(params):
+def expand_clear_bright_stars(params):
+    """The `clear-bright-stars` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def clear_bright_stars_unit(params, report):
     """
-    The `prepare` of the shell scatter commands (PERF.172), when the first pass opens: empties what the scatter is
-    about to draw again: `params["clear"]` "all" empties `bright_stars` and the scatter's record
-    (`store.clear_bright_stars`); "luminosity" empties the luminosity pass alone, split from the mass pass at the limits
-    `clear_floor_sol` and `clear_limit_sol` name (`store.clear_bright_star_pass`). No `clear`, nothing is emptied.
+    The `clear-bright-stars` command's unit (OPS.123; the `prepare` of the shell scatter commands before it, PERF.172):
+    empties what the scatter is about to draw again. `params["clear"]` "all" empties `bright_stars` and the scatter's
+    record (`store.clear_bright_stars`); "luminosity" empties the luminosity pass alone, split from the mass pass at the
+    limits `clear_floor_sol` and `clear_limit_sol` name (`store.clear_bright_star_pass`). No `clear`, nothing is emptied.
+
+    Returns:
+        dict: `cleared`, what was emptied (`"all"`, `"luminosity"` or `None`).
     """
     clear = params.get("clear")
     if clear is None:
-        return
+        return {"cleared": None}
     conn = store.get_connection(_mysql_config_of(params))
     try:
         if clear == "all":
@@ -736,6 +746,23 @@ def prepare_scatter_pass(params):
                 store.get_galaxy_shape(conn), params["clear_floor_sol"], params["clear_limit_sol"]))
     finally:
         conn.close()
+    return {"cleared": clear}
+
+
+class ClearBrightStarsFollower(followed.Follower):
+    """
+    The emptying of the earlier bright stars as a stage of a run (OPS.123): the `clear-bright-stars` command, one unit, before the
+    first pass of the scatter. It reads the same deferred settings as that pass (`bright_star_followers`), so what it empties is
+    worked out from the database when the stage opens. The stage is the first pass's: `mass-clear` or `luminosity-clear`.
+    """
+
+    def __init__(self, args, first_pass, settings):
+        super().__init__(args)
+        self.key, self.label = stages.BRIGHT_CLEAR_STAGE[first_pass].key, stages.BRIGHT_CLEAR_STAGE[first_pass].label
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
 
 
 def conclude_scatter_pass(params, plan, results, seconds):
@@ -1491,7 +1518,7 @@ class ScatterFollower(followed.Follower):
     Args:
         key (str): The stage (`mass`, `luminosity` or `band`).
         params (dict): What the command's expansion and hooks read besides the database (`expand_scatter_mass` and the
-            others, `prepare_scatter_pass`, `conclude_scatter_pass`).
+            others, `conclude_scatter_pass`).
         seed (int or None): The pass's seed; `None` when it comes with the params' deferred settings (PERF.212).
         book (_BrightStarBook, optional): The scatter the pass is one of, which says its limits and adds it up.
         last (bool): Whether the pass is the scatter's last, which sums it up.
