@@ -500,6 +500,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.145 | Heartbeat part 11: the other tasks pause while a restarted unit runs alone | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
 | OPS.146 | Heartbeat part 12: a restarted job runs in debug mode with its own debug log (config, on by default) | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123 | Generation rescan audit, 2026-11-09. |
+| PERF.259 | The air is made again for the same body: skip or share whole-body re-runs that start from equal state | none | Lane 14 profile after PERF.198, 2026-11-09. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |

@@ -13489,6 +13489,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 22 (queue), with OPS.140. Prerequisites: OPS.140. Related: OPS.140, OPS.145, SEC.28.
   Filed by the TODO thread. Top priority (Boss).
 
+- [ ] **PERF.259 The air is made again for the same body: find the whole-body re-runs in remake_end_stages and refinish_rocky that start from equal state, and skip or share them (bit-identical)**
+  From Lane 14's profile after PERF.198 (2026-11-09). surface_air.solve is 33 to 36 percent of a system but is the sum of real work, not repeats (draw_mixture under the profiler: the oddities step with kept_shares 3.7 s, the rocky outgassing 3.4 s). thermosphere.kept_shares has 79 unique calls in 79, and exobase repeats cost 0.6 percent, so no cache pays there. The remaining chance: remake_end_stages and refinish_rocky re-run the air for 34 bodies in 25 calls (9.3 s of a 12-system sample). Do: measure whether those re-runs start from equal state (same inputs hash as the previous run of that body); if so skip or share them, with results bit-identical (golden unchanged, no epoch); if the inputs differ, report which input changed and stop. Show before and after time in the PR. A faster exobase with adaptive steps changes rounding and is a separate epoch item, not this one. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 14. Prerequisites: none. Related: PERF.198, PERF.240, GEN.1505.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

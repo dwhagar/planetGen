@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.412 |
 | NAV | NAV.78 |
 | GEN | GEN.1507 |
-| PERF | PERF.259 |
+| PERF | PERF.260 |
 | DB | DB.122 |
 | API | API.48 |
 | ADM | ADM.154 |
@@ -3738,6 +3738,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
 | PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | done, PR #5824 |
 | PERF.258 | check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output | none | done, PR #5828 |
+| PERF.259 | The air is made again for the same body: skip or share whole-body re-runs that start from equal state (bit-identical) | none | open |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | open |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
