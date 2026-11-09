@@ -2272,7 +2272,7 @@ Parents marked "new parent" had no old number of their own.
 | TEST.691 | The ozone-loss radiation test fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | done, green on main (Lane 04 check, 2026-11-08) |
 | GEN.1386 | np.bool_ in the irregular population breaks the JSON dump of Yerkes II and III systems (bug) | none | done, PR #5688 |
-| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | open |
+| PERF.249 | A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug) | none | done, PR #5822 |
 | MAP.406 | The sector page and /sector/<id>/gravity answer 404 or 502 when the galaxy has no shape yet (bug) | none | done, PR #5688 |
 | TEST.693 | One failing browser test leaves an asyncio loop and about 1,500 browser tests skip silently while the phase prints a pass; Playwright is pinned to 1.56.0 but the image has chromium 1243 (bug) | none | done, PR #5688 |
 | OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) | none | done, PR #5688 |
