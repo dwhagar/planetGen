@@ -108,11 +108,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1092 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1092 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1092 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
-| module | planetgen.physics.trojans | GEN.1150 | what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it |
-| row | 6.121:TJ1 | GEN.1150 | `trojans.MU_CRIT`, read when the swarm draw lands |
-| row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
-| row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
-| row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
+| function | planetgen.physics.trojans.allows | GEN.1150 | the mass rule for a body at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.max_trojan_mass | GEN.1150 | the largest body a pair can hold at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.libration_period | GEN.1150 | the slow libration period of a tadpole; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.leading_share | GEN.1150 | the share of a swarm in L4; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.swarm_split | GEN.1150 | a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
