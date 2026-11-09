@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5097 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5098 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -3602,6 +3602,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3423"></a>**R3423** Paper, H. H. 2003a, Vera Basch Moreen. In Queen Esther's Garden: An Anthology of Judeo-Persian Literature. Yale Judaica Series. New Haven: Yale University Press, 2000. xxiv, 392 pp., AJS Rev., 27, 144, doi:10.1017/s0364009403390051. [paper](https://doi.org/10.1017/s0364009403390051) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s0364009403390051/abstract)
 - <a id="paper-r3424"></a>**R3424** Paper, H. H. 2003b, Vera Basch Moreen. In Queen Esther's Garden: An Anthology of Judeo-Persian Literature. Yale Judaica Series. New Haven: Yale University Press, 2000. xxiv, 392 pp., AJS Rev., 27, 144, doi:10.1017/s0364009403391007. [paper](https://doi.org/10.1017/s0364009403391007) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s0364009403391007/abstract)
 - <a id="paper-r3425"></a>**R3425** Paragas, K., et al. 2025, A New Spectral Library for Modeling the Surfaces of Hot, Rocky Exoplanets, arXiv:2502.04433. [paper](https://arxiv.org/abs/2502.04433) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2502.04433/abstract)
+- <a id="paper-r5219"></a>**R5219** Parai, R. & Mukhopadhyay, S. 2015, The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts, GGG, 16, 719, doi:10.1002/2014gc005566. [paper](https://doi.org/10.1002/2014gc005566) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1002/2014gc005566/abstract)
 - <a id="paper-r3426"></a>**R3426** Paranicas, C., Carlson, R. W., & Johnson, R. E. 2001, Electron bombardment of Europa, GeoRL, 28, 673, doi:10.1029/2000gl012320. [paper](https://doi.org/10.1029/2000gl012320) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2000gl012320/abstract)
 - <a id="paper-r3427"></a>**R3427** Paranicas, C., Mauk, B. H., McEntire, R. W., & Armstrong, T. P. 2003, The radiation environment near Io, GeoRL, 30, 2003GL017682, doi:10.1029/2003gl017682. [paper](https://doi.org/10.1029/2003gl017682) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2003gl017682/abstract)
 - <a id="paper-r3428"></a>**R3428** Paranicas, C., et al. 2008, Sources and losses of energetic protons in Saturn's magnetosphere, Icarus, 197, 519, doi:10.1016/j.icarus.2008.05.011. [paper](https://doi.org/10.1016/j.icarus.2008.05.011) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2008.05.011/abstract)

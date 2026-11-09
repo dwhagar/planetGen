@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1526 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1500 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 182 | 20 | 11 | 1 | 0 | 214 |
-| T2 | 144 | 59 | 1 | 1 | 0 | 205 |
-| T3 | 110 | 47 | 9 | 10 | 0 | 176 |
+| T1 | 183 | 20 | 11 | 1 | 0 | 215 |
+| T2 | 145 | 59 | 1 | 1 | 0 | 206 |
+| T3 | 111 | 47 | 9 | 10 | 0 | 177 |
 | T4 | 78 | 11 | 3 | 21 | 12 | 125 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 188 | 104 | 30 | 75 | 2 | 399 |
+| T6 | 189 | 104 | 30 | 75 | 2 | 400 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 867 | 300 | 74 | 235 | 50 | 1526 |
+| All | 871 | 300 | 74 | 235 | 50 | 1530 |
 
 ## How the labels were given
 
@@ -1960,13 +1960,17 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO25 | T | T3 | L0 | isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's | 0 to +6 per mil | rocky bodies with carbon | a measured mantle-air carbon offset outside -3 to +10 per mil | a carbon cycle with its own fractionation | [R5214]: the mantle at -5 per mil, the air at -8 per mil (the Earth's air is moved by the biosphere, so the offset is its own) | predicted only | - | - |
 | ISO26 | T | T3 | L0 | isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas | 7.5 to 8.2 | the Earth | a mantle gas outside 7 to 9 | the mantle's own iodine over xenon and closure time | [R5214]: 7.9 from MORB and well gases (read from a model summary of the chapter, not verbatim) | predicted only | - | - |
 | ISO27 | T | T4 | L0 | isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from | 6.2 to 6.4 | any star's gas | a solar ratio outside 6.2 to 6.4 | the star's own gas by metallicity | recalled from the lunar-sample work, not opened | predicted only | - | - |
-| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand | predicted only | - | - |
+| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is ISO35 to ISO38 (GEN.1507) | predicted only | - | - |
 | ISO29 | T | T1 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 10Be 0.029 atoms/cm2/s (global mean, modern dipole, 650 MV) | 0.02 to 0.04 | the Earth's air, as ISO12 and ISO13 | a global 10Be production outside 0.02 to 0.04 at 650 MV | the same yield functions of the body's own air | [R5203: Table 1] (2.9e-2); the range 0.02 to 0.04 is quoted in the literature for earlier models | predicted only | - | - |
 | ISO30 | T | T2 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 26Al 1280 atoms/cm2/a (4.06e-5 per second), from argon; EARTH_TARGETS_PER_G Ar 1.94e20 | 1600 to 4400 atoms/cm2/a in older estimates | the Earth's air | a global 26Al production under 1000 or over 4500 atoms/cm2/a | a yield function for argon | [R5215: Sec. 3, Table 3] gives 1280 (against 1600 and 4400 earlier); the argon share of the air is 1.288 percent by mass | predicted only | - | - |
 | ISO31 | T | T2 | L0 | isotope_record.ROCK_ATTENUATION_G_CM2 160: the attenuation length of the nucleon cascade in rock, and the depth of the surface layer the isotopes mix into | 150 to 170 g/cm2 | rock surfaces | a measured attenuation length outside 140 to 180 g/cm2 | a depth profile of the body's own surface | the figure of the exposure-dating texts (read on a course text, no registry entry) | predicted only | - | - |
 | ISO32 | T | T2 | L0 | isotope_record.LUNAR_BE10_ATOMS_PER_G 1.05e10: the saturated 10Be of a surface rock with no air and no field | 9.6 to 11.2 dpm/kg, 8 to 14 in a core | bodies with no air and no field | a lunar surface sample whose 10Be lies outside 8 to 14 dpm/kg | a production model by composition and solar activity | [R5216]: 10Be of 9.6 to 11.2 dpm/kg in basalt 74275 and 8 to 14 in the core; the half-life 1.386 Myr is [R5215: Sec. 2] | predicted only | - | - |
 | ISO33 | T | T3 | L0 | isotope_record.ROCK_AL26_OVER_BE10_PRODUCTION 6.75: 26Al atoms made per 10Be in a rock surface | 6 to 7.5 | rock surfaces | a production ratio outside 6 to 7.5 in a lunar or terrestrial sample | the composition-dependent yields of Si and O | the standard value of the exposure-dating literature, recalled and not opened; the Fink et al. paper [R5216] gives no 26Al activity in the pages read | predicted only | - | - |
 | ISO34 | T | T4 | L0 | isotope_record.REGOLITH_BERYLLIUM_G_G 1.5e-6 and DEFAULT_ROCK_AL2O3 0.15: the beryllium and (where the body stores none) the aluminium oxide of the surface rock | Be 1 to 3 ppm; Al2O3 10 to 20 percent | rocky bodies | a measured surface rock outside these ranges | the body's own rock composition, once Be is stored | the continental crust's values, taken for every rocky body; no source opened | predicted only | - | - |
+| ISO35 | T | T1 | L0 | isotope_record.SOLAR_XE_136_OVER_130 1.797: the solar gas ratio the fission excess of 136Xe is counted from | 1.7 to 1.9 | any star's gas | a solar ratio outside 1.7 to 1.9 | the star's own gas by metallicity | [R5219: Table 3]: solar wind 136Xe/132Xe 0.2985 over 130Xe/132Xe 0.1661 (the quotient is derived here) | predicted only | - | - |
+| ISO36 | T | T2 | L0 | isotope_record.MANTLE_XE_136_OVER_130 2.478: the 136Xe/130Xe of the Earth's upper-mantle gas | 2.40 to 2.55 | the Earth | a mantle gas outside 2.3 to 2.7 | the mantle's own uranium and plutonium over xenon and its closure time | [R5219: Table 2]: the two segments of the Southwest Indian Ridge, 2.554 and 2.402, from 136Xe/132Xe over 130Xe/132Xe of the sources corrected for air (the quotients are derived here) | predicted only | - | - |
+| ISO37 | T | T3 | L0 | isotope_record.PU_SHARE_OF_FISSION_XE136 0.28: the share of the mantle's fission 136Xe that 244Pu made | 0.17 to 0.39 | the Earth's ridge sources | a share outside 0.1 to 0.5 | the body's uranium, plutonium and closure history | [R5219: Sec. 4.2]: 0.28 (+0.11, -0.10) for ridge basalts, 0.31 and 0.36 by the end member chosen, plume sources 0.96 (read from a model summary of the paper, not verbatim) | predicted only | - | - |
+| ISO38 | P | T6 | L0 | isotope_record.mantle_sheet_rows: the 238U part of the fission 136Xe is the Earth's for every body, and the 244Pu part scales with the body's birth 244Pu/238U over the early Solar System's | none | rocky bodies | a body whose uranium over xenon or age moves its 238U fission xenon by more than a factor of 2 | the body's own uranium content and age | my simplest form: the 244Pu part carries the star's difference, the 238U part would follow the body's uranium and age and is left out | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 
