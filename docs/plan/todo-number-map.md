@@ -3665,7 +3665,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system | GEN.1451, GEN.1450 | open |
 | GEN.1493 | The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed | GEN.1440, GEN.1453 | open |
 | GEN.1494 | Giant planet density read: is the generated giants' median density (1.4 to 1.8 g/cm3) too dense against observed giants | none | done, closed as a finding (Lane 21 read, 2026-11-09) |
-| GEN.1495 | (bug) Giant air: the ice caps do not settle for some giants (MixtureError in mixture_giant.cap_ices, seed 533), one in 700 systems | none | open |
+| GEN.1495 | (bug) Giant air: the ice caps do not settle for some giants (MixtureError in mixture_giant.cap_ices, seed 533), one in 700 systems | none | done, PR #5867 |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | open |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |

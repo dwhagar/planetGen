@@ -13447,11 +13447,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, design first; lock item for a later train. Prerequisites: GEN.1453. Related: GEN.1440, GEN.1453, GEN.739.
   Filed by the TODO thread.
 
-- [ ] **GEN.1495 (bug) Giant air: the ice caps do not settle for some giants (MixtureError in mixture_giant.cap_ices, seed 533, 26.49 K and 0.3 bar), one in 700 systems**
-  Found by Lane 21 in the giant density read for GEN.1494 (reports/gen1494-giant-density-read-2026-11-09.md, last section, 2026-11-09) and seen earlier by Lane 15 in test_db_column_round_trip. Seed 533 (PLANETS and MAX_PLANETS on, default star mix, deterministic_entropy(533)) raises MixtureError 'the ice caps did not settle at 26.49 K and 0.3 bar' from mixture_giant.cap_ices (line 346) on main d8c12df71; one system in 700 crashes the generator. Lane 04 could not reproduce it on their machine without this seed and has a diagnostic patch (reports/lane04/capdump-diagnostic.patch). Do: reproduce on seed 533, find why the cap loop cycles between two states (it converges at 1e-4 over 1000 rounds), and fix it at the cause with a test on that seed; no catch-and-skip. A crash in generation is a bug, not a stand-in.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (diagnosis and fix), with Lane 14 for the giant-air physics if it is a physics gap. Prerequisites: none. Related: GEN.920, GEN.1363.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
