@@ -16,7 +16,7 @@ statement `REFRESH_SQL` from the rows themselves:
 
 Whatever writes a system's bodies writes the row after: the save of a new system (`store.insert_star_system`) and the editor
 (`edits.save_system_edits`); no other code changes a body's mass, luminosity or whether it exists. A system's row goes with it. A galaxy saved
-before the columns existed is filled by migration 0237, in the same statement.
+before the columns existed is filled by migration 0241, in the same statement.
 """
 
 COLUMNS = ("stars_mass_kg", "system_mass_kg", "brightest_star_luminosity_w", "total_luminosity_w",

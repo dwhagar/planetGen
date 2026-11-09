@@ -98,7 +98,7 @@ def test_the_readers_see_the_stored_figures(mysql_config):
 
 def test_the_migrations_statement_gives_the_figures_the_save_does(mysql_config):
     system_id = _save(mysql_config, 4)
-    migration = importlib.import_module("planetgen.db.migrations.versions.0237_system_summary_figures")
+    migration = importlib.import_module("planetgen.db.migrations.versions.0241_system_summary_figures")
     conn = store.get_connection(mysql_config)
     try:
         row = conn.execute(migration.SELECT.replace(":low", "?").replace(":high", "?"), (system_id, system_id)).fetchone()
@@ -110,7 +110,7 @@ def test_the_migrations_statement_gives_the_figures_the_save_does(mysql_config):
 def test_the_migrations_whole_statement_fills_every_system(mysql_config):
     import sqlalchemy as sa
     ids = [_save(mysql_config, seed) for seed in (1, 2)]
-    migration = importlib.import_module("planetgen.db.migrations.versions.0237_system_summary_figures")
+    migration = importlib.import_module("planetgen.db.migrations.versions.0241_system_summary_figures")
     conn = store.get_connection(mysql_config)
     try:
         expected = {system_id: _stored(conn, system_id) for system_id in ids}

@@ -1,6 +1,6 @@
 """What each star system adds up to: its star, planet and moon masses, luminosities and body counts (GEN.1478).
 
-Schema v237. `system_summary` (v236) gains `stars_mass_kg`, `system_mass_kg`, `brightest_star_luminosity_w`, `total_luminosity_w`, `star_count`, `planet_count`,
+Schema v241. `system_summary` (v236) gains `stars_mass_kg`, `system_mass_kg`, `brightest_star_luminosity_w`, `total_luminosity_w`, `star_count`, `planet_count`,
 `moon_count`, `belt_count` and `comet_count` (`db/system_summary.py`), and every system already stored gets its figures, in runs of `BATCH` systems. A column or
 row already there is kept and written again with the same values, so a stopped run can be started again. The table is narrow and has no FULLTEXT key, so the
 columns are added in place.
@@ -12,8 +12,8 @@ from alembic import op
 from planetgen.db import alembic_runner
 from planetgen.db.migrations import helpers
 
-revision = "0237"
-down_revision = "0236"
+revision = "0241"
+down_revision = "0240"
 branch_labels = None
 depends_on = None
 
