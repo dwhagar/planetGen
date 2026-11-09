@@ -1294,7 +1294,7 @@ class _ShellBars:
 
 class _ScatterTally:
     """What a shell scatter adds up as its tasks finish: the stars written per population, the shells that drew
-    some and the stars with companions. The speed of each task is the stage's to record (`finish_scatter`)."""
+    some and the stars with companions. The speed of each task is the executor's to record (`stages.record_unit_samples`, from the `samples` its unit reports)."""
 
     def __init__(self, label, shape, tracker):
         self.label, self.shape, self.tracker = label, shape, tracker
@@ -1350,42 +1350,6 @@ def _task_density(shape, key):
     return wanted / (shape.e_value * shape.band_share * cells) if shape.band_share and cells else 0.0
 
 
-def finish_scatter(params, plan, results, seconds):
-    """
-    The `finish` of the shell scatter commands (PERF.106), called by the unit that completes the stage: records each
-    unit's speed in the generation stats (PERF.10, PERF.53) and gives the metrics the stage's row is stored with.
-
-    Args:
-        params (dict): The step's parameters (`database`, and `workers` for the stats' bucket).
-        plan (dict): The stage's plan (`_ScatterShape` as JSON, and `stats_kind`).
-        results (list[dict]): Every unit's result (`scatter_shells_unit`), in unit order.
-        seconds (float): How long the stage took.
-
-    Returns:
-        dict: `shells` (visited), `shells_modified` (that drew a star) and `objects` (stars written).
-    """
-    shape = _ScatterShape.from_json(plan)
-    stats = _speed_stats(_mysql_config_of(params))
-    drew, objects = set(), 0
-    for key, result in enumerate(results):
-        stars = sum(result["counts"].values())
-        objects += stars
-        drew.update(shell for shell, shell_stars in result["shells"] if shell_stars)
-        if key not in shape.special_keys and stars:   # PERF.53: no star, no time per star
-            stats.record(plan["stats_kind"], _task_density(shape, key), result["seconds"], systems=stars, stars=stars,
-                         workers=params.get("workers", 1))
-    stats.flush()
-    return {"shells": sum(shape.sizes.values()), "shells_modified": len(drew), "objects": objects}
-
-
-def _speed_stats(mysql_config):
-    """The stored speeds, read fresh (a worker lives across runs, so a copy kept from an earlier one would write
-    older buckets back), or nothing to record to when statistics are off."""
-    if not stages.recording_enabled():
-        return generationStats.GenerationStats()
-    return generationStats.GenerationStats(store.control_mysql_config(mysql_config))
-
-
 def _mysql_config_of(params):
     """The `MySQLConfig` a command's params name (`wrapper.database_args`; the password is this process's settings')."""
     named = params["database"]
@@ -1406,8 +1370,15 @@ def _expansion(mysql_config, skeleton, extents, skip, min_luminosity_sol, max_lu
     components = _galaxy_components(mysql_config)
     shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered)
     drawing = _ScatterPass(skeleton, skip, min_luminosity_sol, max_luminosity_sol, seed, mass_range, tiered, components)
-    return commands.Expansion([(drawing.unit_args(shape, key, mysql_config), shape.weights[key]) for key in shape.tasks],
-                              {**shape.to_json(), "stats_kind": STATS_KIND_OF_STAGE[stage], **(extra or {})})
+    kind = STATS_KIND_OF_STAGE[stage]
+    units = []
+    for key in shape.tasks:
+        unit = drawing.unit_args(shape, key, mysql_config)
+        # PERF.53: a special task (the far shells, a component) is no run of shells, so its speed is not recorded under the stage's kind
+        unit["speed"] = None if key in shape.special_keys else {"kind": kind, "density": _task_density(shape, key)}
+        units.append((unit, shape.weights[key]))
+    return commands.Expansion(units, {**shape.to_json(), "stats_kind": kind, "row_totals": {"shells": sum(shape.sizes.values())},
+                                      **(extra or {})})
 
 
 def _stored_galaxy(conn):
@@ -1751,6 +1722,11 @@ def scatter_shells_unit(unit_args, report):
         "tiered": scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton), "channel": _ReportChannel(report),
     })
     result["seconds"] = time.monotonic() - started
+    stars = sum(result["counts"].values())
+    speed = unit_args.get("speed")
+    result["samples"] = ([{"kind": speed["kind"], "density": speed["density"], "seconds": result["seconds"], "systems": stars, "stars": stars}]
+                         if speed is not None and stars else [])        # PERF.53: no star, no time per star
+    result["row"] = {"objects": stars, "touched": sorted({shell for shell, shell_stars in result["shells"] if shell_stars})}
     return result
 
 
@@ -2042,9 +2018,9 @@ def expand_scatter_phenomena(params):
         units_.append(({"database": wrapper.database_args(mysql_config), "key": key, "shells": [list(pair) for pair in shells],
                         "far": None if key != shape.far_key else list(shape.far[1:]), "reach": shape.reach,
                         "component_parts": shape.component_parts.get(key), "seed": params["seed"],
-                        "min_mass_solar": params["min_mass_solar"], "skip": skip}, shape.weights[key]))
+                        "min_mass_solar": params["min_mass_solar"], "skip": skip, "weight": shape.weights[key]}, shape.weights[key]))
     return commands.Expansion(units_, {**shape.to_json(), "filled": len(filled), "outline_shells": len(extents),
-                                       "min_mass_solar": params["min_mass_solar"]})
+                                       "min_mass_solar": params["min_mass_solar"], "row_totals": {"shells": shape.shell_total}})
 
 
 def scatter_phenomena_unit(unit_args, report):
@@ -2071,32 +2047,13 @@ def scatter_phenomena_unit(unit_args, report):
         "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1, "seed": unit_args["seed"],
         "min_mass_solar": unit_args["min_mass_solar"], "skip": {tuple(address) for address in unit_args["skip"]}})
     result["seconds"] = time.monotonic() - started
+    placed = sum(result["counts"].values())
+    weight = unit_args["weight"]
+    result["samples"] = ([{"kind": "phenomena", "density": 0.0, "seconds": result["seconds"], "systems": weight, "stars": weight},
+                          {"kind": "phenomena-write", "density": 0.0, "seconds": result["write_seconds"], "systems": weight, "stars": weight}]
+                         if placed else [])
+    result["row"] = {"objects": placed, "touched": [unit_args["key"]] if placed else []}
     return result
-
-
-def finish_scatter_phenomena(params, plan, results, seconds):
-    """
-    The `finish` of the `scatter-phenomena` command (PERF.106), called by the unit that completes the stage: records
-    each unit's speed in the generation stats, as the bar's next run starts from it (PERF.53: not for a unit that
-    placed nothing), the drawing and the writing of its rows each under a kind of their own (PERF.54).
-
-    Returns:
-        dict: `shells` (visited), `shells_modified` (units that placed something) and `objects` (rows written).
-    """
-    stats = _speed_stats(_mysql_config_of(params))
-    objects = landed = 0
-    for key, result in enumerate(results):
-        placed = sum(result["counts"].values())
-        objects += placed
-        if placed:
-            landed += 1
-            weight = plan["weights"][key]
-            stats.record("phenomena", 0.0, result["seconds"], systems=weight, stars=weight,
-                         workers=params.get("workers", 1))
-            stats.record("phenomena-write", 0.0, result["write_seconds"], systems=weight, stars=weight,
-                         workers=params.get("workers", 1))
-    stats.flush()
-    return {"shells": plan["shell_total"], "shells_modified": landed, "objects": objects}
 
 
 def _nebula_field_task(payload):
