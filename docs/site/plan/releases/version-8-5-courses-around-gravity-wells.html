@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 8.5: Courses that bend around gravity wells - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-8-5-courses-around-gravity-wells.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-8-5-courses-around-gravity-wells.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-85-courses-that-bend-around-gravity-wells">Version 8.5: Courses that bend around gravity wells</h1><p class="meta">docs/plan/releases/version-8-5-courses-around-gravity-wells.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-saved-courses">Phase 1: Saved courses</a></li><li style="margin-left:14px"><a href="#saved-courses">Saved courses</a></li><li style="margin-left:14px"><a href="#halo-and-intergalactic-switch">Halo and intergalactic switch</a></li><li style="margin-left:0px"><a href="#phase-2-courses-on-the-maps-and-around-wells">Phase 2: Courses on the maps and around wells</a></li><li style="margin-left:14px"><a href="#courses-on-the-maps">Courses on the maps</a></li><li style="margin-left:14px"><a href="#steering-clear-of-gravity-wells">Steering clear of gravity wells</a></li><li style="margin-left:14px"><a href="#gravity-layers-on-the-sector-and-system-maps-boss-514-pm-est-on-2026-11-05">Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)</a></li><li style="margin-left:14px"><a href="#console-look-icons-and-the-maps-chrome">Console look: icons and the maps' chrome</a></li><li style="margin-left:14px"><a href="#edit-everything-foundations-aspects-and-the-recipe-schema-spread-back-from-86">Edit everything foundations: aspects and the recipe schema (spread back from 8.6)</a></li><li style="margin-left:0px"><a href="#phase-3-waypoints-and-the-headline">Phase 3: Waypoints and the headline</a></li><li style="margin-left:14px"><a href="#waypoints-and-editing">Waypoints and editing</a></li><li style="margin-left:0px"><a href="#phase-4-trade-routes">Phase 4: Trade routes</a></li><li style="margin-left:14px"><a href="#trade-routes">Trade routes</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 8.5</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>Courses that bend around gravity wells, with waypoints, editable and saved courses (NAV.59): saved courses first, then the maps and the keep-out steering, then waypoints and editing.</p>
+<h2 id="phase-1-saved-courses">Phase 1: Saved courses</h2>
+<p>The saved course record and its list, open and rename.</p>
+<h3 id="saved-courses">Saved courses</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAV.4</td>
+<td>Save a course</td>
+<td></td>
+<td>Per browser now; NAV.19 moves it into accounts in phase 3+.</td>
+</tr>
+<tr>
+<td>NAV.19</td>
+<td>Saved courses in the account (after USR.7)</td>
+<td>USR.7</td>
+<td></td>
+</tr>
+<tr>
+<td>DB.111</td>
+<td>Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them</td>
+<td>NAV.4</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="halo-and-intergalactic-switch">Halo and intergalactic switch</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.537</td>
+<td>Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)</td>
+<td></td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>GEN.538</td>
+<td>The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them</td>
+<td>GEN.537, GEN.301</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>GEN.539</td>
+<td>The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches</td>
+<td>GEN.538</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>GEN.540</td>
+<td>The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo</td>
+<td>GEN.538</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>GEN.620</td>
+<td>The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off)</td>
+<td>GEN.538, GEN.539, GEN.540</td>
+<td></td>
+</tr>
+<tr>
+<td>MAP.248</td>
+<td>The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries</td>
+<td>GEN.538, GEN.539, GEN.540</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>UX.137</td>
+<td>The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are</td>
+<td>GEN.539, GEN.540</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+<tr>
+<td>TEST.226</td>
+<td>Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case</td>
+<td>GEN.538, GEN.539, GEN.540</td>
+<td>Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-courses-on-the-maps-and-around-wells">Phase 2: Courses on the maps and around wells</h2>
+<p>Showing courses on the maps and bending them around keep-out spheres.</p>
+<h3 id="courses-on-the-maps">Courses on the maps</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAV.70</td>
+<td>Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>NAV.77</td>
+<td>vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second</td>
+<td>DB.111, NAV.4, GEN.105</td>
+<td></td>
+</tr>
+<tr>
+<td>MAP.389</td>
+<td>Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch</td>
+<td>POP.28</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="steering-clear-of-gravity-wells">Steering clear of gravity wells</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAV.56</td>
+<td>Census of overlapping keep-out spheres in a generated galaxy</td>
+<td></td>
+<td>Research: decides the overlap policy.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="gravity-layers-on-the-sector-and-system-maps-boss-514-pm-est-on-2026-11-05">Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="console-look-icons-and-the-maps-chrome">Console look: icons and the maps' chrome</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.269</td>
+<td>Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only</td>
+<td>UX.268</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.280</td>
+<td>Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list</td>
+<td>UX.269</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.281</td>
+<td>View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible</td>
+<td>UX.280</td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.630</td>
+<td>Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps</td>
+<td>UX.280, UX.281</td>
+<td></td>
+</tr>
+<tr>
+<td>DOC.108</td>
+<td>Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes</td>
+<td>UX.280, UX.281</td>
+<td></td>
+</tr>
+<tr>
+<td>UX.274</td>
+<td>Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps</td>
+<td>UX.280, UX.281, TEST.630, DOC.108</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="edit-everything-foundations-aspects-and-the-recipe-schema-spread-back-from-86">Edit everything foundations: aspects and the recipe schema (spread back from 8.6)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.62</td>
+<td>Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.64</td>
+<td>Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn</td>
+<td>ADM.62</td>
+<td></td>
+</tr>
+<tr>
+<td>API.28</td>
+<td>Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects</td>
+<td>ADM.62, ADM.64</td>
+<td>Shared with 8.9 (API.18, API.19)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-waypoints-and-the-headline">Phase 3: Waypoints and the headline</h2>
+<p>Waypoints, editing a course and the umbrella.</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="waypoints-and-editing">Waypoints and editing</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAV.59</td>
+<td>Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses</td>
+<td>NAV.4</td>
+<td>8.5 headline (Boss 2026-10-10 21:05Z). Parent.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-4-trade-routes">Phase 4: Trade routes</h2>
+<p>Spaceport trade routes on the navigation graph, the global list and the map tools (Boss, 9:38 PM EDT 2026-10-24).</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="trade-routes">Trade routes</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POP.33</td>
+<td>Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list</td>
+<td></td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>POP.34</td>
+<td>The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport</td>
+<td>POP.33</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>MAP.309</td>
+<td>Star map filter for trade routes: draw the routes as paths on the Galaxy Map, filtered by polity, length or hop count</td>
+<td>POP.34</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>MAP.310</td>
+<td>Routes away from a selected object: select a system, spaceport or world on the star map and show only the routes leaving it</td>
+<td>MAP.309</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>NAV.63</td>
+<td>Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route</td>
+<td>POP.33, MAP.309</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>TEST.382</td>
+<td>First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp</td>
+<td>POP.33, MAP.310, NAV.63</td>
+<td>Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1.</td>
+</tr>
+<tr>
+<td>NAV.64</td>
+<td>Find the nearest resource location from a position or along a course, by resource kind and minimum score</td>
+<td>MAP.312, NAV.63</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

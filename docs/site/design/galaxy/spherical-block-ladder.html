@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spherical sectors: the Galaxy Map's block ladder - planetGen docs</title>
+<meta name="description" content="Status: built, 2026-10-15 (MAP.205, MAP.206), after the coordinate switch (DB.32, GEN.227, UX.111).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/spherical-block-ladder.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/spherical-block-ladder.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="spherical-sectors-the-galaxy-maps-block-ladder">Spherical sectors: the Galaxy Map's block ladder</h1><p class="meta">docs/design/galaxy/spherical-block-ladder.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-a-block-is">1. What a block is</a></li><li style="margin-left:0px"><a href="#2-the-counts">2. The counts</a></li><li style="margin-left:0px"><a href="#3-sectors-join-a-block-by-centre">3. Sectors join a block by centre</a></li><li style="margin-left:0px"><a href="#4-keys-stages-and-windows">4. Keys, stages and windows</a></li><li style="margin-left:0px"><a href="#5-what-is-stored">5. What is stored</a></li><li style="margin-left:0px"><a href="#6-port-to-the-page">6. Port to the page</a></li><li style="margin-left:0px"><a href="#7-decisions-taken-change-them-if-boss-disagrees">7. Decisions taken (change them if Boss disagrees)</a></li><li style="margin-left:0px"><a href="#8-work-in-order">8. Work, in order</a></li><li style="margin-left:0px"><a href="#9-the-ladder-above-243-the-root-of-three-blocks-map258-2026-10-23">9. The ladder above 243: the root of three blocks (MAP.258, 2026-10-23)</a></li><li style="margin-left:0px"><a href="#10-filling-a-block-gen310-2026-10-24">10. Filling a block (GEN.310, 2026-10-24)</a></li><li style="margin-left:0px"><a href="#11-regions-are-the-9-blocks-that-hold-a-sector-gen825-db107-2026-10-28">11. Regions are the 9-blocks that hold a sector (GEN.825, DB.107, 2026-10-28)</a></li></ul></details>
+<p>Status: built, 2026-10-15 (MAP.205, MAP.206), after the coordinate switch (DB.32, GEN.227, UX.111). Replaces the cylinder ladder of <a href="../interface/drilldown-region-sizes.html">drilldown-region-sizes.md</a> (MAP.151, 243/81/27/9/3 with ring, wedge and slab). The grid it sits on is <a href="spherical-sector-coordinates.html">spherical-sector-coordinates.md</a> (<code>galaxy/spherical.py</code>); the meridian study that fed it is <a href="spherical-ladder-meridians.html">spherical-ladder-meridians.md</a>.</p>
+<p>Evidence tags: [C] computed by the code in <code>galaxy/drill.py</code> over the real grid, [B] Boss's words, [S] read in the repository.</p>
+<h2 id="1-what-a-block-is">1. What a block is</h2>
+<p>[B, 06:58Z] A block holds the cells whose <strong>centre</strong> it holds; blocks are not cut on cell edges. So the ladder picks counts, and the grid's own wedge counts (multiples of 6 with primes up to 7) are left alone.</p>
+<p>A block is <code>(m, shell, band, wedge)</code>, <code>m</code> in <strong>243, 81, 27, 9, 3</strong>; a block of 1 is a sector <code>(1, shell, band, wedge)</code> as <code>spherical.py</code> names it. The ladder keeps the 3-ary step of MAP.151b. The words keep the grid's meaning: &quot;shell&quot; is radius, &quot;band&quot; is latitude, &quot;wedge&quot; is longitude; &quot;ring&quot;, &quot;layer&quot;, &quot;slab&quot; and &quot;slot&quot; mean nothing here.</p>
+<ul>
+<li><strong>Block shell</strong> <code>s = shell // m</code>: block shell <code>s</code> holds sector shells <code>s*m</code> to <code>s*m + m - 1</code>; block shell 0 also holds the core. Its centreline radius is <code>R = s*m + (m-1)/2</code> edges. Radius nests exactly: a block shell sits inside block shell <code>s // 3</code> of the next size up.</li>
+<li><strong>Rows (bands of blocks):</strong> block shell <code>s</code> is cut by colatitude into <code>drill_band_count(m, s)</code> equal steps, always an <strong>odd</strong> number, so the galactic plane runs through the middle of the equatorial row. Rows are numbered like sector bands: signed, 0 on the plane, positive north.</li>
+<li><strong>Wedges of a row:</strong> the row is cut by meridians into <code>drill_wedge_count(m, s, band)</code> equal steps from +X counterclockwise.</li>
+</ul>
+<h2 id="2-the-counts">2. The counts</h2>
+<p>Only the top level is free; every lower level is a whole multiple of its parent, so a parent's edge is always a child's edge.</p>
+<ul>
+<li><strong>243 rows:</strong> the odd integer nearest <code>pi * R / m</code> (a row's arc is then about <code>m</code> edges). <strong>243 wedges:</strong> <code>max(1, round(2 pi R sin(theta) / m))</code>, <code>theta</code> the row's centre colatitude.</li>
+<li><strong>81, 27, 9, 3 rows:</strong> the parent block shell's (<code>s // 3</code>) count times the odd integer nearest <code>T / parent</code> with <code>T = pi R / m</code>. A child row therefore lies wholly inside one parent row (<code>child row // (child / parent rows)</code>), and every parent latitude edge is a child edge.</li>
+<li><strong>81, 27, 9, 3 wedges:</strong> the wedge count of the parent row that holds the child's row times <code>max(1, round(T / parent))</code>, <code>T = 2 pi R sin(theta) / m</code>. A child wedge lies wholly inside one parent wedge (<code>wedge // (child / parent wedges)</code>), so every parent meridian is a child meridian.</li>
+</ul>
+<p>The six meridians of the grid's cap rims are not special to blocks (a block's wedge count is not a multiple of 6); blocks nest on each other, and sectors join a block by centre, so the grid's wedge counts stay what they are.</p>
+<p>Measured over every block shell of the galaxy (shells up to 3,764, block shells to 15 at 243 and to 1,254 at 3), arc of a block relative to its target of <code>m</code> edges [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>m</th>
+<th>Blocks, whole sphere</th>
+<th>Row arc, 1st / 50th / 99th pct</th>
+<th>Wedge arc, 1st / 50th / 99th pct</th>
+<th>Worst row, wedge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>243</td>
+<td>17,165</td>
+<td>0.94 / 1.00 / 1.12</td>
+<td>0.96 / 1.00 / 1.07</td>
+<td>0.94 to 1.12, 0.95 to 1.16</td>
+</tr>
+<tr>
+<td>81</td>
+<td>0.44 million</td>
+<td>0.87 / 0.99 / 1.15</td>
+<td>0.86 / 1.00 / 1.20</td>
+<td>0.73 to 1.27, 0.76 to 1.33</td>
+</tr>
+<tr>
+<td>27</td>
+<td>11.5 million</td>
+<td>0.87 / 1.00 / 1.17</td>
+<td>0.85 / 1.00 / 1.20</td>
+<td>0.73 to 1.99, 0.76 to 1.38</td>
+</tr>
+<tr>
+<td>9</td>
+<td>310 million</td>
+<td>0.86 / 1.00 / 1.17</td>
+<td>0.86 / 1.00 / 1.15</td>
+<td>0.71 to 1.98, 0.46 to 1.38</td>
+</tr>
+<tr>
+<td>3</td>
+<td>8.3 billion</td>
+<td>0.86 / 1.00 / 1.17</td>
+<td>0.86 / 1.00 / 1.15</td>
+<td>0.70 to 1.95, 0.46 to 1.40</td>
+</tr>
+</tbody>
+</table></div>
+<p>(The counts are of the whole sphere; the outline keeps the thin disk's part. The few worst cases are blocks next to the core and the poles.) Sectors per level-3 block, over shells 900 to 902 (1.06 million blocks): 18 to 48, median 29, against a nominal 27 [C].</p>
+<h2 id="3-sectors-join-a-block-by-centre">3. Sectors join a block by centre</h2>
+<p>A sector <code>(shell, band, wedge)</code> joins the level-3 block:</p>
+<ul>
+<li>shell: <code>shell // 3</code>;</li>
+<li>row: the row holding its band's centre colatitude (the middle of the band; the plane for band 0; the pole for a cap);</li>
+<li>wedge: the wedge holding its centre longitude, in integers: <code>((2 w + 1) * block wedges) // (2 * band wedges)</code>, so a centre exactly on a meridian goes to the higher wedge (the cylinder ladder's rule).</li>
+</ul>
+<p>The <strong>core</strong> joins block shell 0, row 0 (the plane), wedge 0 at every level; a <strong>cap</strong> joins wedge 0 of the polar row (its centre has no longitude). A block's sectors are found in closed form (<code>drill_block_sectors</code>): per sector shell, the bands whose centre colatitude is in the row (the band centres are monotone, so a bisection), and per band the wedges whose centre longitude is in the block wedge (integer first and last). Tests walk every sector of sample shells and check the chain, the child lists and the counts agree.</p>
+<h2 id="4-keys-stages-and-windows">4. Keys, stages and windows</h2>
+<ul>
+<li><strong>Key:</strong> <code>m.shell.band.wedge</code>, e.g. <code>81.12.-3.40</code> (a sector is <code>1.shell.band.wedge</code>). <code>parse_drill_key</code> checks the size, the shell, that the row exists and the wedge is in the row's count.</li>
+<li><strong>A stage</strong> of block <code>B</code> (m &gt; 1) lists its children one size down grouped by child shell, innermost first; a level-3 block's children are its sectors. The galaxy home lists the level-243 blocks the outline reaches.</li>
+<li><strong>A window</strong> of <code>g</code> cells across (3, 5, 7, 9, 11) is <strong>a ball</strong>: every block of the centre's size whose centre lies within <code>g * m / 2</code> edges of the centre block's centre. It is found in closed form per block shell (the sphere meets the ball in a cap of angular radius <code>psi</code>, so the rows are those within <code>psi</code> of the centre row, and per row the wedges within a longitude half-width), never by walking the ball. Today's cylinder window is a round region too (Region in <code>region.py</code>); the shell window is the same shape with different coordinates.</li>
+<li><strong>Block bounds</strong> for drawing are analytic: radius <code>(s*m - 1/2) e</code> to <code>((s+1)*m - 1/2) e</code> (block shell 0 starts at 0), colatitude <code>row * pi / rows</code> to <code>(row+1) * pi / rows</code>, longitude <code>wedge * 2 pi / wedges</code> to <code>(wedge+1) * 2 pi / wedges</code>. A block is a shell sector, not a box; the page draws its outline from these numbers.</li>
+</ul>
+<h2 id="5-what-is-stored">5. What is stored</h2>
+<p><code>galaxy_block_stats</code> keeps one row per block that holds a generated sector, at every level above a sector, keyed <code>(m, shell_index, band_index, wedge_index)</code> (renamed from <code>ring_index, wedge, slab</code> by the DB.32 migration, which also rebuilds the rows because the blocks are different blocks). Sums are unchanged: <code>sector_count</code>, <code>systems</code>, <code>expected_systems</code>, <code>stars</code>, <code>age_sum</code>, <code>luminosity_sol</code>; <code>ladder_step</code> stays (3). <code>db/block_stats.py</code> keeps them current as sectors are saved and deleted, through <code>drill_chain_of</code>.</p>
+<h2 id="6-port-to-the-page">6. Port to the page</h2>
+<p><code>static/galaxyprisms.js</code> copies the count rules step for step (<code>Math.floor(x + 0.5)</code> for round-half-up, the same operand order); <code>tests/test_galaxydrill.py</code> and the <code>drillChain</code> fixture in <code>tests/test_js_unit.py</code> hold the two equal over a sweep of shells and rows. Float agreement matters only at exact <code>.5</code> ties of the count formulas, which the sweep covers.</p>
+<h2 id="7-decisions-taken-change-them-if-boss-disagrees">7. Decisions taken (change them if Boss disagrees)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Taken</th>
+<th>Alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ladder sizes</td>
+<td>243/81/27/9/3 as MAP.151b</td>
+<td>Fewer or more levels (counts do not depend on the choice)</td>
+</tr>
+<tr>
+<td>Block rows odd</td>
+<td>Yes, the plane runs through the equatorial row's middle</td>
+<td>Plane on a row boundary</td>
+</tr>
+<tr>
+<td>Window shape</td>
+<td>Ball of radius <code>g*m/2</code> edges around the centre block</td>
+<td>Cube in x, y, z</td>
+</tr>
+<tr>
+<td>Core and caps</td>
+<td>Core: row 0, wedge 0 at every level; caps: wedge 0 of the polar row</td>
+<td>Own blocks</td>
+</tr>
+<tr>
+<td>Polar rows</td>
+<td>Their wedge count follows the same rule, so it falls to 1 at the pole</td>
+<td>A fixed minimum of 6</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-work-in-order">8. Work, in order</h2>
+<ol>
+<li><code>drill.py</code> and its tests (done on the branch).</li>
+<li><code>window.py</code> on the ball, with the Generate region interface where it helps.</li>
+<li><code>db/block_stats.py</code> and <code>query.py</code> stage and window reads keyed on shell, band, wedge (the columns arrive with DB.32).</li>
+<li><code>galaxyprisms.js</code>, <code>galaxystages.js</code>, then the drawing (MAP.206): <code>galaxystageview.js</code>, <code>galaxymap3d.js</code>, picking, tile cuts, the slab control becoming a band control.</li>
+<li>The hand-offs of MAP.152 (galaxy, sector and system hand-offs with hysteresis) build on the new stages and are not started before 4.</li>
+</ol>
+<h2 id="9-the-ladder-above-243-the-root-of-three-blocks-map258-2026-10-23">9. The ladder above 243: the root of three blocks (MAP.258, 2026-10-23)</h2>
+<p>The single-space map (<code>docs/design/single-space-map-zoom-2026-10-23.md</code>) draws the galaxy from nodes: blocks of this ladder, walked from a root down. The 243 level was the top and now has parents, so the ladder runs <strong>177,147, 59,049, 19,683, 6,561, 2,187, 729, 243, 81, 27, 9, 3, sector</strong> (<code>drill.DRILL_LEVELS</code>; <code>DRILL_STEP</code> 3 all the way, so a sector's chain is 12 blocks).</p>
+<ul>
+<li><strong>The root is 177,147.</strong> Its one block shell holds sector shells 0 to 177,146 (708 kpc), past the grid's last shell (65,535, 262 kpc), so the whole grid sits in it. Its one row (<code>pi R / m</code> is 1.57, the nearest odd integer is 1) is cut into three wedges (<code>2 pi R / m</code> is 3.14), so the root is <strong>three blocks</strong>. The next level holds 36 blocks over the grid's shells, then 309, 3,396, 104,415 (2,187) [C, <code>drill.py</code> over shells 0 to 65,535].</li>
+<li><strong>The count rules are the same ones,</strong> applied from the root: only the root's counts are free, every other level's is its parent's times a rounded ratio. That is the catch: <strong>putting levels above 243 moved the rows and wedges of every level below</strong>, because 243 is no longer the free level. A block <code>(243, shell, band, wedge)</code> is another block than before the change, and so on down to 3. What stored data names blocks was made again with the migration (0135): <code>galaxy_block_stats</code> (every level) and the nebula block tables; the stage cache stamp moved with <code>TILE_FORMAT</code> 2; a bookmarked stage URL names another block (testing mode).</li>
+<li><strong>Arcs.</strong> Measured over the grid's shells (every one for the small levels, 150 sampled for the large) [C]: a row's arc as a share of <code>m</code>, 1st / 50th / 99th percentile, and the worst of the sample: 59,049 0.95 / 1.26 / 1.56; 19,683 0.74 / 1.03 / 1.56; 6,561 0.75 / 1.12 / 1.95 (worst 0.73 to 1.99); 2,187 0.73 / 1.10 / 1.87; 729 0.73 / 1.08 / 1.61; 243 0.72 / 1.07 / 1.32; 81 0.71 / 1.05 / 1.46; 27 0.71 / 1.08 / 1.31; 9 0.72 / 1.01 / 1.33; 3 0.71 / 1.03 / 1.30. Wedge arcs: 0.77 to 1.33 from 19,683 down at the 1st to 99th percentile (worst 0.46 to 1.39). The 243 level was 0.94 / 1.00 / 1.12 when it was the free top; it is now as rough as the levels below it were.</li>
+<li><strong>Stages and windows stop at 243</strong> (<code>drill.STAGE_LEVELS</code>, <code>STAGE_TOP</code>, <code>stage_parent</code>, <code>parse_stage_key</code>; the page's <code>STAGE_LEVELS</code>, <code>stageParent</code>, <code>stageChainOf</code>): the galaxy stage lists the level-243 blocks and a window of a bigger block is refused, as before. The levels above are only for nodes, until the stages are retired.</li>
+<li><strong>The page's <code>drillChildren</code></strong> (and <code>drillBlockSectors</code> under it) is the twin of <code>drill_children</code>; <code>tests/test_galaxyprisms.py</code> holds the two equal over blocks of every level. <code>drillBlockTotal</code> (a block's capacity from the outline) is still for the stage levels: a block above 243 would walk millions of level-3 rows.</li>
+</ul>
+<h2 id="10-filling-a-block-gen310-2026-10-24">10. Filling a block (GEN.310, 2026-10-24)</h2>
+<p><code>planetgen sectors --block m.shell.band.wedge</code> (and <code>galaxy</code>) generates the sectors of one block of a stage level (243 to 3) that the stored outline holds: <code>drill.block_addresses</code> lists the block's sectors shell by shell outward, the plan keeps those <code>bounds.qualifies</code> accepts, and the rest is the shell and span path (<code>_address_plan</code> gives an <code>AddressPlan</code>, the cut <code>expand_generate_sectors</code> chunks it, <code>--limit</code> and <code>--yes</code> and the size estimate apply). The order is inner shells first; within a shell it is the ladder's own child order. A block the outline does not reach is a note, not an error. The same plan backs <code>run_galaxy.generate_block</code> and <code>POST /api/galaxy/blocks/&lt;key&gt;/generate</code> (a queued job with the bright-star backfill and settle after it, an estimate with <code>estimate_only</code>); a block of more than 2 million sectors is refused on the web (413) and filled from the command line with <code>--limit</code>. Taken as &quot;nearest first&quot;: nearest the galactic centre, which is the shell order; nearest the block's own centre would be another order and is not built.</p>
+<h2 id="11-regions-are-the-9-blocks-that-hold-a-sector-gen825-db107-2026-10-28">11. Regions are the 9-blocks that hold a sector (GEN.825, DB.107, 2026-10-28)</h2>
+<p>A 9-block with at least one generated sector is a named region with an anchor, a framing sphere, an extent and a stored share charted; see <code>named-regions.md</code>. The 81-block above it is the region's family (an 81-block holds about 729 9-blocks, not 27).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

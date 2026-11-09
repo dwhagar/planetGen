@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What one master "mass object" class would save, with a 10 m floor - planetGen docs</title>
+<meta name="description" content="Status: plan (decided).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/mass-object-class.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/mass-object-class.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="what-one-master-mass-object-class-would-save-with-a-10-m-floor">What one master &quot;mass object&quot; class would save, with a 10 m floor</h1><p class="meta">docs/design/architecture/mass-object-class.md</p><details class="toc"><summary>On this page (25 headings)</summary><ul><li style="margin-left:0px"><a href="#1-short-answer">1. Short answer</a></li><li style="margin-left:0px"><a href="#2-what-exists-measured">2. What exists, measured</a></li><li style="margin-left:14px"><a href="#the-classes-in-memory">The classes (in memory)</a></li><li style="margin-left:14px"><a href="#the-tables">The tables</a></li><li style="margin-left:14px"><a href="#the-code-that-knows-the-kinds">The code that knows the kinds</a></li><li style="margin-left:0px"><a href="#3-what-a-core-class-would-remove">3. What a core class would remove</a></li><li style="margin-left:0px"><a href="#4-the-10-m-floor">4. The 10 m floor</a></li><li style="margin-left:14px"><a href="#what-the-code-has-at-the-bottom">What the code has at the bottom</a></li><li style="margin-left:14px"><a href="#what-a-10-m-5-m-radius-floor-means">What a 10 m (5 m radius) floor means</a></li><li style="margin-left:0px"><a href="#5-risks">5. Risks</a></li><li style="margin-left:0px"><a href="#6-choices-for-boss-one-card-each">6. Choices for Boss (one card each)</a></li><li style="margin-left:0px"><a href="#7-proposed-additions-to-the-earlier-item-list">7. Proposed additions to the earlier item list</a></li><li style="margin-left:0px"><a href="#8-evidence-and-limits">8. Evidence and limits</a></li><li style="margin-left:0px"><a href="#10-classes-and-subclasses-or-a-core-plus-profiles-what-each-looks-like-the-answer-to-e1">10. Classes and subclasses, or a core plus profiles: what each looks like (the answer to E1)</a></li><li style="margin-left:14px"><a href="#the-two-shapes">The two shapes</a></li><li style="margin-left:14px"><a href="#what-i-recommend-the-two-together-split-by-one-rule">What I recommend: the two together, split by one rule</a></li><li style="margin-left:14px"><a href="#cost-and-savings">Cost and savings</a></li><li style="margin-left:14px"><a href="#choice-for-the-card">Choice for the card</a></li><li style="margin-left:0px"><a href="#11-motion-lives-in-the-core-gen565b">11. Motion lives in the core (GEN.565b)</a></li><li style="margin-left:0px"><a href="#12-the-kinematic-record-gen565c">12. The kinematic record (GEN.565c)</a></li><li style="margin-left:0px"><a href="#13-built-db74-first-slice-the-registry-of-kind-tables">13. Built (DB.74, first slice): the registry of kind tables</a></li><li style="margin-left:0px"><a href="#14-built-db74-second-slice-one-insert-for-every-kind">14. Built (DB.74, second slice): one insert for every kind</a></li><li style="margin-left:0px"><a href="#15-built-db74-third-slice-one-load-for-every-kind">15. Built (DB.74, third slice): one load for every kind</a></li><li style="margin-left:0px"><a href="#16-the-stellarobject-family-class-gen565d">16. The StellarObject family class (GEN.565d)</a></li><li style="margin-left:0px"><a href="#17-built-db75-first-part-a-bodys-id-follows-its-slot">17. Built (DB.75, first part): a body's ID follows its slot</a></li></ul></details>
+<p><strong>Status:</strong> plan (decided). Code analysis written after 11:39 PM EDT on 2026-10-17 from <code>main</code> at bc97f75; it adds to <a href="unified-star-like-objects.html">unified-star-like-objects.md</a>, which designs the behaviour (the recursive host chain), and this note measures the data and class side. Decided by Boss on cards E1 to E4 (11:46 to 11:49 PM EDT, 2026-10-17, as the coordinator relayed): <strong>E1</strong> the hybrid of section 10 (three family classes StellarObject, PlanetaryObject and SmallBody under MassObject, state and parent as data, one core table plus three profile tables; Boss typed his approval at 11:48 PM EDT); <strong>E2</strong> the 10 m floor is a representability floor (any body of 10 m or more can be a row, generated rows start at each population's own cut, belt members are drawn on demand from the belt's seed); <strong>E3</strong> built inside the host chain (with items U4, U7, U8 and U11 of the unified note), not as a separate refactor; <strong>E4</strong> the core is planned to take ships and stations in 9.3 and nothing is built for them now. Object IDs stay stable (card, 11:49 PM EDT): see DB.75. The items are GEN.565 (U4a), DB.74 (U11a), TEST.240 (U13a), GEN.566 (U15a) and DB.75 (stable IDs); section 7 below names the first four.</p>
+<p><strong>Boss, 11:39 PM EDT:</strong> &quot;Code analysis, how much potential code savings could we get by making a master 'objects with mass' class, then make everything down to the lowest planet limit (class D I think is 500meters, might be as low as 50m) but the smallest object becomes the cutoff becomes say 10 meter diameter (5 meter radius), and that's the smallest object we'll track in this way.&quot;</p>
+<p>Tags: [M] measured here by counting the repository; [E] my estimate (judgment, shown with its arithmetic); [R] recalled, not verified.</p>
+<p><strong>Standing design rule (Boss, 5:20 PM EDT on 2026-10-18, typed in the project chat, relayed by the coordinator):</strong> &quot;For all objects are objects with mass in the system. I want to make sure that galactic motion is not the only thing that they handle because the trajectory of all motion, including planetary and lunar, should both be built into the object mass functions (since they're all the same rules)&quot;. So the mass object core and its family classes carry the trajectory of every kind of motion with one set of rules: galactic motion, a planet's and a moon's orbit about its parent, a comet's Kepler state and a star's orbit about a barycentre are all the same state vector relative to the parent (see the kinematic record of GEN.584), advanced by the same functions. GEN.565a (#2274) moved only the galactic-motion fields and the save and load into the core; GEN.565b and GEN.584 must bring the planetary and lunar trajectory into the same functions, not leave it in the family classes or the orbital update.</p>
+<h2 id="1-short-answer">1. Short answer</h2>
+<ul>
+<li><strong>Net lines saved: about 800 to 1,800, which is 10 to 20% of the roughly 9,000 lines the change touches</strong> [E]. Most of the textual duplication is not in the classes themselves (under 10% of their code lines repeat across files [M]); it is in the serializers, the insert functions, the nine near-identical table definitions and the per-kind lists and branches scattered through 24 files.</li>
+<li><strong>The bigger payoff is not lines.</strong> Eight of the 49 migrations (1,454 lines, 16%) changed 8 to 13 kind tables each [M]. With one shared core, a cross-cutting change (a spin column, the object ID, the point columns) is one change and not nine. And the master class is what removes the divergent copies of the same rule (17 copies of five rules, section 3) that make a rogue planet age differently from a star.</li>
+<li><strong>Alone, it is not worth the rewrite.</strong> The rewrite touches every file that names a kind table (24 files for <code>rogue_planets</code> alone, 36 test files mention the rogue classes [M]). Done as part of the host chain of the earlier note (items U4, U7, U8, U11), most of the cost is already paid by work that is wanted anyway. <strong>Recommendation: build it as a core plus profiles inside those items, not as a separate refactor.</strong></li>
+<li><strong>The 10 m floor is right as a floor of what the class can represent, and wrong as a floor of what is generated as rows</strong> (section 4): the generator has no individual body below 50 m diameter in the code, and a belt holds an estimated 1e10 to 1e12 bodies above 10 m.</li>
+</ul>
+<h2 id="2-what-exists-measured">2. What exists, measured</h2>
+<h3 id="the-classes-in-memory">The classes (in memory)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Classes</th>
+<th>Lines (file)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Star-like</td>
+<td><code>Star</code> 1,524; <code>BinaryStarProxy</code> 478; <code>WideBinaryPair</code> 371; <code>CompactRemnant</code>, <code>BlackHole</code>, <code>NeutronStar</code> 677</td>
+<td>3,050</td>
+<td><code>CompactRemnant</code> already subclasses <code>Star</code> and calls it with <code>_skip_property_init=True</code>, then fills the Star attribute surface by hand. A partial master class exists already.</td>
+</tr>
+<tr>
+<td>Free planet-like</td>
+<td><code>RoguePlanet</code> (also the brown dwarf), <code>InterstellarComet</code></td>
+<td>585</td>
+<td>Own surface model <code>rogue_surface</code> (284).</td>
+</tr>
+<tr>
+<td>Planet</td>
+<td><code>Planet</code> (planets and moons)</td>
+<td>665</td>
+<td>Plus <code>physics/planets.py</code> 1,263; 109 serialized fields.</td>
+</tr>
+<tr>
+<td>Small</td>
+<td><code>Comet</code> 419; <code>AsteroidBelt</code> 225; <code>AsteroidField</code> 251</td>
+<td>895</td>
+<td>Belts and fields are statistics, not bodies.</td>
+</tr>
+<tr>
+<td>Total</td>
+<td></td>
+<td>5,195, of which 2,079 are docstrings</td>
+<td>About 3,100 lines of code.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Serialized fields: 313 field slots across the nine classes, 179 distinct names; 53 names occur in two or more classes and 38 in three or more, among them name, mass, radius, spin axis (3), axial tilt, rotation period, the four galactic-orbit fields and the three reflex offsets [M].</p>
+<p>Serializer boilerplate: <code>to_dict</code>, <code>from_dict</code> and <code>__str__</code> take 440 lines in the nine families [M].</p>
+<h3 id="the-tables">The tables</h3>
+<p>Ten kind tables (<code>stars</code>, <code>planets</code>, <code>moons</code>, <code>asteroid_belts</code>, <code>comets</code>, <code>black_holes</code>, <code>neutron_stars</code>, <code>rogue_planets</code>, <code>interstellar_comets</code>, <code>asteroid_fields</code>) take 910 lines of <code>schema.sql</code> and have 518 column declarations. Of those, 454 are in columns that two or more tables share and 274 are in 49 columns that three or more share (<code>id</code>, <code>uid</code>, <code>velocity_x/y/z_kms</code>, <code>epoch_unix</code>, <code>name</code>, <code>next_update_due</code>, <code>mass_kg</code>, spin axis, tilt, galactic orbit period and phase, rotation period, <code>radius_km</code>, <code>sector_id</code>, <code>center_x/y/z_pc</code>, <code>quadrant</code>, <code>inside_nebula_id</code>, <code>inside_remnant_id</code>, timestamps) [M]. <code>models.py</code> mirrors them.</p>
+<h3 id="the-code-that-knows-the-kinds">The code that knows the kinds</h3>
+<ul>
+<li><code>store.py</code>: ten insert functions of 558 lines for the mass-object kinds (star 60, planet 37, moon 34, belt 58, comet 64, black hole 85, neutron star 65, rogue planet 41, interstellar comet 49, asteroid field 65), 725 with nebula, remnant and quasar [M].</li>
+<li>The same list of kind tables is written out 22 times in 9 files for <code>rogue_planets</code> alone (<code>store.py</code> seven times, <code>query.py</code>, <code>edits.py</code>, <code>fingerprint.py</code>, <code>point_columns.py</code>, <code>sector_paths.py</code>, <code>api/ids.py</code>, <code>cli/orbits.py</code>, <code>web/lib/slowpages.py</code>) [M].</li>
+<li>Tests: 512 test files; 36 mention the rogue classes, and 60, 46, 45 lines of tests mention black holes, neutron stars and rogue planets by table name [M].</li>
+</ul>
+<h2 id="3-what-a-core-class-would-remove">3. What a core class would remove</h2>
+<p>Design assumed: <strong><code>MassObject</code> core plus profiles</strong>, not one fat class. The core holds what every body has (identity and ID, name, mass, radius, state vector relative to its parent with <code>parent_type</code> and <code>parent_id</code>, age, spin, galactic motion, sector and place, timestamps, serialization from a field table). Profiles hold what only some kinds have: a stellar profile (state, luminosity, temperature, habitable zone, activity), a planetary profile (class, composition, atmosphere, 109 fields), a small-body profile (nucleus, activity, composition). A profile is a component of the object, not a subclass, so a rogue planet is a <code>Planet</code> profile with no parent and a remnant is a stellar profile in the &quot;remnant&quot; state.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>In the code [M]</th>
+<th>Removed [E]</th>
+<th>Basis of the estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serializers (<code>to_dict</code>, <code>from_dict</code>, <code>__str__</code>)</td>
+<td>440</td>
+<td>300 to 360</td>
+<td>One table-driven pair, about 80 lines, replaces nine pairs.</td>
+</tr>
+<tr>
+<td>Constructor boilerplate: galactic orbit, spin, activity, Hill sphere, name set-up, description scaffold</td>
+<td>about 30 to 50 lines in each of 9 classes</td>
+<td>170 to 350</td>
+<td>The <code>_finish_init</code> of <code>CompactRemnant</code> reproduces the tail of <code>Star.__init__</code> by hand.</td>
+</tr>
+<tr>
+<td>Copies of the same rule</td>
+<td>17 copies of 5 rules (below)</td>
+<td>100 to 200</td>
+<td>Lines; the behaviour gain is larger.</td>
+</tr>
+<tr>
+<td><code>store.py</code> inserts</td>
+<td>558</td>
+<td>about 350</td>
+<td>One insert driven by a column list, about 200 lines.</td>
+</tr>
+<tr>
+<td>Per-kind lists and branches (<code>query</code>, <code>edits</code>, <code>fingerprint</code>, <code>point_columns</code>, <code>sector_paths</code>, <code>api/ids</code>, <code>cli/orbits</code>, <code>slowpages</code>, loaders)</td>
+<td>about 22 sites per kind</td>
+<td>300 to 600</td>
+<td>Replaced by one registry lookup. Low confidence: not each site was read.</td>
+</tr>
+<tr>
+<td><code>schema.sql</code> plus <code>models.py</code></td>
+<td>274 declarations of shared columns in each</td>
+<td>about 450 in both</td>
+<td>274 declarations become about 49 in a shared table, in each file.</td>
+</tr>
+<tr>
+<td><strong>Gross</strong></td>
+<td></td>
+<td><strong>about 1,700 to 2,300</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>New code: core, profile registry, generic insert and load, migration</td>
+<td></td>
+<td>+500 to +900</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Net</strong></td>
+<td></td>
+<td><strong>about 800 to 1,800</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The 17 copies of 5 rules (from the earlier read) [M]: the white dwarf initial-final relation in four places (plus two side models for hot and cool white dwarfs); the neutron star and black hole mass draw in five places; three age rules (stars by population, remnants uniform 1e-5 to 10 Gy, rogue planets uniform 0.1 to 10 Gy); the Schwarzschild radius in two; the Burrows brown-dwarf luminosity in two (one with a hard-coded 0.05). Add the comet composition sample in two files and the rogue's galactic orbit called without a distance.</p>
+<p>What it does not remove: the physics modules (<code>planets.py</code> 1,263, <code>rogue_surface</code> 284, <code>stellar_evolution</code> 621, <code>activity</code> 355), the descriptions, the web pages' per-kind wording, and the tests' per-kind expectations. The earlier note's host chain does not shrink them either; it changes what calls them.</p>
+<h2 id="4-the-10-m-floor">4. The 10 m floor</h2>
+<h3 id="what-the-code-has-at-the-bottom">What the code has at the bottom</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>Size</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Class D (smallest planet class)</td>
+<td>a conditions rule (GEN.1091): surface pressure under 10 Pa and at least 1 percent water or ice by mass (<code>physics/data/planet_classes.json</code>); size is not in the rule. Its intended scale is a dwarf planet or a moon, radius 50 to 500 km, so 100 to 1,000 km across (not metres); it covers belt members and dwarf planets as well as moons</td>
+<td><code>planet_classes.json</code>, <code>tuning.PLANET_CLASSES[&quot;D&quot;]</code> [M]</td>
+</tr>
+<tr>
+<td>Star-bound comet nucleus</td>
+<td>diameter 0.5 to 20 km</td>
+<td><code>BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM</code> [M]</td>
+</tr>
+<tr>
+<td>Interstellar comet nucleus</td>
+<td>diameter 0.05 to 5 km, so <strong>50 m is the smallest individual body generated</strong></td>
+<td><code>INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM</code> [M]</td>
+</tr>
+<tr>
+<td>Asteroid belt, asteroid field</td>
+<td>one statistical row each: a density and up to four named components</td>
+<td><code>belt.py</code>, <code>asteroid_field.py</code> [M]</td>
+</tr>
+<tr>
+<td>Moons</td>
+<td>smallest are class D, as above</td>
+<td><code>moon_class_options</code> [M]</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the figure of 50 m in the ask matches the interstellar comet nucleus, and 500 m is close to the star-bound comet's lower end; class D is a small airless icy body whose intended scale is 50 to 500 km.</p>
+<h3 id="what-a-10-m-5-m-radius-floor-means">What a 10 m (5 m radius) floor means</h3>
+<ul>
+<li>A 10 m diameter rock at 2,000 kg/m^3 is 1.05e6 kg [C]. The heaviest object in the generator is a central or quasar black hole of up to 1e10 solar masses, 2.0e40 kg [S: <code>QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR</code>]. The class would span about <strong>34 orders of magnitude in mass</strong>, which doubles hold. The class D size is 1e12 times heavier than the floor.</li>
+<li><strong>Positions must be relative to the parent, never galaxy-absolute.</strong> 10 m at a galactocentric distance of 262 kpc (8e21 m) is a relative precision of 1e-21, far below the 1e-16 of a double. The scatter tables store positions as integer millipc (about 3e13 m a step) [S]. Planets and moons already store state relative to a parent (<code>parent_type</code>, <code>parent_id</code>) [S]; every small body must do the same, and a wanderer's position is the position of its cell plus an offset.</li>
+<li><strong>The floor cannot be a floor of generated rows.</strong> An illustration with assumed inputs: if a belt has 1e6 bodies above 1 km and the cumulative size distribution falls as D^-2 to D^-2.7 [R], it has 1e10 to 1e12 bodies above 10 m [C]. Interstellar space is worse: the real density of interstellar debris in the code is 1e12 per pc^3 [S]. So 10 m is a <strong>representability floor</strong>: any body of 10 m or more can be a row (a named asteroid, a captured interstellar object, a mining claim, a ship or a station), and nothing smaller exists as a row.</li>
+<li><strong>What generates rows is a cut per population</strong>, as with the neutron star and black hole mass cut that Boss approved on 2026-10-09: a planet or moon always, a comet above its size cut, belt members on demand. On-demand belt members fit the seed scheme: the k-th largest member of a belt is a pure function of the belt's seed and k, so it can be drawn when somebody asks and give the same body every time, without storing 1e10 rows.</li>
+<li><strong>The floor also meets version 9.3</strong> (ships and stations): the <code>facilities</code> table holds stations, starbases and outposts on a host but has no mass or size column [M: schema], and a ship or station of 10 to 1,000 m would be a mass object with a parent. If the core is built with the floor, 9.3 joins it without a new object model. That is a reason for the floor, not a requirement.</li>
+</ul>
+<h2 id="5-risks">5. Risks</h2>
+<ul>
+<li><strong>A fat class.</strong> The planet profile has 109 serialized fields and the star profile 37. One class that holds all of them is a bag of optional fields; the core plus profiles shape avoids it and keeps each profile's validation local.</li>
+<li><strong>The orbital update.</strong> Planets and moons are stepped as state vectors (<code>kepler.universal_step</code>, GEN.289); stars, remnants and wanderers keep a galactic-orbit phase; comets keep their own Kepler state [S]. A real saving exists if all of them move as one state vector, but it was not measured here and the ordering of a nightly batch is the easiest place to break reproducibility.</li>
+<li><strong>Cost in effort, not lines.</strong> The rewrite touches every kind table, so it needs a full database wipe and rescatter (allowed on the test server: no compatibility code). It is the same wipe as the host chain's.</li>
+<li><strong>Net savings are small beside the risk if done alone.</strong> Hence section 6.</li>
+</ul>
+<h2 id="6-choices-for-boss-one-card-each">6. Choices for Boss (one card each)</h2>
+<p><strong>E1. Shape of the master class.</strong></p>
+<ol>
+<li>One class with every field optional. Largest immediate line saving, worst for validation and the planet profile's 109 fields.</li>
+<li>Core plus profiles (components). <strong>Recommended:</strong> 800 to 1,800 net lines, no bag of optional fields, and the same shape as the shared parent link of D1 in the earlier note.</li>
+<li>Keep separate classes and share only through mixins. Smallest saving (the serializers and constructor boilerplate), lowest risk.</li>
+</ol>
+<p><strong>E2. What the 10 m floor means.</strong></p>
+<ol>
+<li>A representability floor: any body of 10 m or more can be a row; generated rows start at each population's own cut; belt members drawn on demand from the belt's seed. <strong>Recommended.</strong></li>
+<li>Generate every body down to 10 m. Not possible at 1e10 to 1e12 per belt.</li>
+<li>A floor of 1 km, with smaller bodies as statistics only. Safer, but then ships, stations and small captured objects have no home.</li>
+</ol>
+<p><strong>E3. Do it alone or inside the host chain.</strong></p>
+<ol>
+<li>Inside the host chain, as the core and profiles of items U4, U7, U8 and U11 of the earlier note. <strong>Recommended:</strong> most of the rewrite is already paid for by work that is wanted anyway.</li>
+<li>As a separate refactor first (behaviour-preserving, then the host chain). Cleaner history, but two wipes and a second pass over every kind.</li>
+<li>Not at all. Keep the nine classes and fix only the 17 divergent copies. Cheapest; the cross-cutting cost stays.</li>
+</ol>
+<p><strong>E4. Ships, stations and facilities.</strong></p>
+<ol>
+<li>Plan the core to take them in 9.3, do not build them in this change. <strong>Recommended.</strong></li>
+<li>Move facilities into the core in the same change.</li>
+<li>Leave them outside.</li>
+</ol>
+<h2 id="7-proposed-additions-to-the-earlier-item-list">7. Proposed additions to the earlier item list</h2>
+<p>For the TODO thread to number, if E1 to E3 go the recommended way:</p>
+<ul>
+<li><strong>U4a:</strong> the <code>MassObject</code> core (identity, mass, radius, parent-relative state vector, age, spin, galactic motion, field-table serialization) with the stellar, planetary and small-body profiles. Replaces the serializers and constructor boilerplate of the nine classes. Part of U4 and U8; Core 4.</li>
+<li><strong>U11a:</strong> one generic insert and load driven by the column list, one registry of kind tables replacing the 22-site lists; the shared core table (D1 option 2). Part of U11; Core 1.</li>
+<li><strong>U13a:</strong> a test that every kind's stored row round-trips through the core, and a test that fails if a kind table is named in a list that the registry should own.</li>
+<li><strong>U15a (research):</strong> the size-frequency law of small bodies, for the on-demand belt members and the comet size cut (shared with the research of U10).</li>
+</ul>
+<p>Order is as in the earlier note; none of this touches 8.1 beyond GEN.315.</p>
+<h2 id="8-evidence-and-limits">8. Evidence and limits</h2>
+<p>All [M] figures were counted from the repository at bc97f75 with line counts, an AST walk (serializer lengths, docstring share), a column scan of <code>schema.sql</code> and a grep of table names; none was run against a database. All [E] figures are my arithmetic from those counts and are the weakest part: the per-site branch removal (300 to 600 lines) was not read site by site. The belt population estimate in section 4 is an illustration from an assumed count and an assumed slope, not a sourced result; a research lane must source the size-frequency law before any number from it is used.</p>
+<h2 id="10-classes-and-subclasses-or-a-core-plus-profiles-what-each-looks-like-the-answer-to-e1">10. Classes and subclasses, or a core plus profiles: what each looks like (the answer to E1)</h2>
+<p>Written 11:45 PM EDT on 2026-10-17; Boss chose the hybrid below (E1).</p>
+<h3 id="the-two-shapes">The two shapes</h3>
+<p><strong>A. Classes and subclasses (inheritance).</strong> A kind is a class; a more specific kind is a subclass.</p>
+<pre><code class="language-python">class MassObject:            # mass, radius, position and velocity relative to a parent, age, spin, name, ID
+class StellarObject(MassObject):    # luminosity, temperature, habitable zone, activity
+class Star(StellarObject): ...
+class BrownDwarf(StellarObject): ...
+class Remnant(StellarObject): ...
+class WhiteDwarf(Remnant): ...
+class NeutronStar(Remnant): ...
+class BlackHole(Remnant): ...
+class PlanetaryObject(MassObject):  # class letter, composition, atmosphere
+class Planet(PlanetaryObject): ...
+class Moon(PlanetaryObject): ...
+class RoguePlanet(PlanetaryObject): ...
+class SmallBody(MassObject): ...
+class Comet(SmallBody): ...
+</code></pre>
+<p>Good: reads naturally, <code>isinstance</code> works, each subclass overrides only what differs, and it is close to the code (<code>CompactRemnant</code> already subclasses <code>Star</code>). Bad: an object that changes kind has to change class. A star becomes a white dwarf, a neutron star or a black hole as it ages; a planet becomes a rogue planet when it is unbound (GEN.291); a brown dwarf and a planet overlap in mass. Python can change an object's class, but a database row cannot, so every change of kind needs a table move or a hack. The tree also multiplies: kind times state.</p>
+<p><strong>B. Core plus profiles (composition).</strong> One object class holds what every body has; the kind-specific data hangs off it as profiles.</p>
+<pre><code class="language-python">class MassObject:
+    id, name, mass, radius, parent, state_vector, age, spin, galactic_motion
+    stellar:   StellarProfile | None    # state (protostar, main sequence, giant, white dwarf, neutron star, black hole, brown dwarf), luminosity, temperature
+    planetary: PlanetaryProfile | None  # class letter, composition, atmosphere
+    small:     SmallBodyProfile | None  # nucleus, activity, composition
+</code></pre>
+<p>Good: a change of kind is a change of data (a star's <code>state</code> goes from <code>giant</code> to <code>white dwarf</code>; a planet's <code>parent</code> goes to none), the database maps one to one (a core table and three profile tables), and one table-driven serializer covers all. Bad: <code>obj.stellar.luminosity</code> is one hop longer, and nothing stops an object from holding two profiles unless a check does.</p>
+<h3 id="what-i-recommend-the-two-together-split-by-one-rule">What I recommend: the two together, split by one rule</h3>
+<p>Use a small class hierarchy for the <strong>families</strong>, and use <strong>data (state, parent) for anything that can change or is a matter of degree</strong>.</p>
+<ul>
+<li>Classes and subclasses for the three families that never swap into each other: <code>StellarObject</code>, <code>PlanetaryObject</code>, <code>SmallBody</code>, all subclasses of <code>MassObject</code>. Behaviour lives here (evolve a star to an age, build a planet's atmosphere, step a comet's activity).</li>
+<li>A <strong>state field</strong> for what an object can become: a <code>StellarObject</code> has a state of protostar, pre-main-sequence, main sequence, giant, white dwarf, neutron star, black hole or brown dwarf. These are not subclasses. The same for a pulsar type or a black hole mass class.</li>
+<li>A <strong>parent field</strong> for where an object sits: a <code>PlanetaryObject</code> whose parent is a planet is a moon, one whose parent is a star is a planet, one with no parent is a rogue planet. Moon and rogue planet are not subclasses.</li>
+<li>Groups (the nodes of a multi-star tree) are not bodies, so they stay an <code>OrbitNode</code>.</li>
+</ul>
+<p>The rule: subclass only when behaviour differs and the object never changes kind; use state or parent for the rest.</p>
+<p>Against the code: <code>Star</code> becomes <code>StellarObject</code> (the 37 fields it already serializes), <code>CompactRemnant</code>, <code>BlackHole</code>, <code>NeutronStar</code> fold into it as states (the <code>_skip_property_init</code> workaround goes), <code>Planet</code> becomes <code>PlanetaryObject</code> (it already uses <code>is_moon</code>, which is the parent rule in disguise), <code>RoguePlanet</code> and the brown dwarf row fold into the two, and <code>Comet</code>, <code>InterstellarComet</code> and the member of a belt become <code>SmallBody</code>. In the database it is one core table plus three profile tables, not one table per kind (choice D1, option 2, of the earlier note).</p>
+<h3 id="cost-and-savings">Cost and savings</h3>
+<p>The saving is the same as in the savings note, about 800 to 1,800 net lines, because the serializer, insert and column duplication is removed either way. The hybrid costs a little more than pure profiles (three family classes with real behaviour, so about 100 to 200 lines that pure profiles would not have) and a little less than pure inheritance in migration work (no table moves when an object changes kind). The risk is the same as before: it touches every file that names a kind table, so it belongs inside the host chain items and not as a separate refactor.</p>
+<h3 id="choice-for-the-card">Choice for the card</h3>
+<p><strong>E1 (replaces the earlier wording).</strong></p>
+<ol>
+<li>Pure inheritance: a subclass per kind. Closest to the code, but a change of kind is a change of class.</li>
+<li>Pure core plus profiles: one object class, no subclasses. Simplest storage, behaviour spread over profiles.</li>
+<li>Hybrid: three family classes, state and parent as data. <strong>Recommended.</strong></li>
+</ol>
+<h2 id="11-motion-lives-in-the-core-gen565b">11. Motion lives in the core (GEN.565b)</h2>
+<p>Boss, 5:20 PM EDT on 2026-10-18: every object with mass follows the same rules, so the trajectory of all motion, planetary and lunar as well as galactic, is built into the one set of mass object functions. <code>MassObject</code> (<code>generation/mass_object.py</code>) now holds it:</p>
+<ul>
+<li><strong>State relative to the parent.</strong> <code>spatial</code> (a <code>SpatialPosition3D</code>, &quot;system&quot; frame = the offset from the primary), <code>set_position_au</code>, <code>set_velocity_kms</code>, <code>orbit_mu_au3_per_year2</code> (each family says what it orbits), <code>orbit_from_vector</code> and <code>projected_orbit_au</code>. These were the <code>HoldsOrbitPosition</code> mixin in <code>physics/position.py</code>, which is gone.</li>
+<li><strong>One mover.</strong> <code>advance(seconds)</code> steps a body that has a state vector with <code>kepler.universal_step</code> and the pull of its primary (a planet about its star, a moon about its planet, a comet about its host), and advances the phase of a body on a circular galactic orbit (a star, a remnant, a wanderer) by its period. The batch updates in <code>store.py</code> do the same arithmetic over rows; <code>tests/test_state_kernel.py</code> holds the batch step to the object's.</li>
+<li><strong>Boss's 6:09 PM EDT card (the full S16 record for every mass object)</strong> is the stored form of the same thing: mass with mu, position and velocity relative to the parent, spin axis and rate, epoch and next-due. Its columns replace the per-class ones in the DB.73 revision (Core 1); the per-class fields that become derived (speed, axial tilt, rotation period, galactic period and phase) are dropped there. Until then they remain the stored fields; nothing here aliases them.</li>
+</ul>
+<h2 id="12-the-kinematic-record-gen565c">12. The kinematic record (GEN.565c)</h2>
+<p>The record Boss's S16 card gives every mass object is declared in code as <code>KinematicRecord</code> (<code>generation/mass_object.py</code>) and read by <code>MassObject.kinematic_record(scale)</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Read from</th>
+<th>Unit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>position_au</code>, <code>velocity_kms</code></td>
+<td>the point's &quot;system&quot; frame (relative to the primary)</td>
+<td>AU, km/s</td>
+</tr>
+<tr>
+<td><code>spin_axis</code>, <code>spin_rate_rad_s</code></td>
+<td><code>spin_axis_x/y/z</code>; <code>2 pi / rotation_period_hours</code> (a non-rotating black hole is 0)</td>
+<td>unit vector, rad/s</td>
+</tr>
+<tr>
+<td><code>mass_kg</code>, <code>mu_m3_s2</code></td>
+<td>the point</td>
+<td>kg, m^3/s^2</td>
+</tr>
+<tr>
+<td><code>epoch_unix</code>, <code>next_due_unix</code></td>
+<td>the point's epoch; epoch + <code>position.update_interval_s</code> at the speed</td>
+<td>Unix s</td>
+</tr>
+</tbody>
+</table></div>
+<p>What S18 makes derived is readable from it today, and each equals the stored value to the precision of the computation (<code>tests/test_mass_object.py</code>): <code>speed_kms()</code> (the velocity's length, or the circular galactic speed), <code>axial_tilt_from_state()</code> (the angle between the spin axis and <code>r x v</code>, or the galaxy's pole when the body has no state vector; <code>spin.orbit_normal_from_state</code>) and <code>spin_rate_rad_s</code>. Core 1's DB.73 and DB.74 store this record and drop the per-class columns; this note is their target. Not here: the spin moving onto the point itself (GEN.584 after the point class GEN.578), the tidally locked rate, and a black hole's a* from angular momentum.</p>
+<h2 id="13-built-db74-first-slice-the-registry-of-kind-tables">13. Built (DB.74, first slice): the registry of kind tables</h2>
+<p><code>db/kind_tables.py</code> lists the tables that hold one kind of object once, with their groups (<code>uid</code>, <code>id_block</code>, <code>timestamped</code>, <code>sector_filed</code>, <code>system_filed</code>, <code>star_filed</code>, <code>phenomenon</code>, <code>containable</code>, <code>path</code>). The fifteen lists in <code>store.py</code>, <code>fingerprint.py</code>, <code>sector_paths.py</code>, <code>edits.py</code>, <code>api/ids.py</code>, <code>galaxy/objectref.py</code> and the slow-page list read it, with the same members and order as before. Left as data because each carries more than a list: <code>query._PHENOMENON_TABLES</code> (label, descriptor and radius expression per table) and <code>objectref.PHENOMENON_KINDS</code> (an order that sorts search results); <code>tests/test_kind_tables.py</code> checks both against the registry. The generic insert and load (next slices) and the core and profile tables (the 8.4 revision) read the same registry, so the move to three profile tables changes the rows of this one file, not its twelve readers.</p>
+<h2 id="14-built-db74-second-slice-one-insert-for-every-kind">14. Built (DB.74, second slice): one insert for every kind</h2>
+<p><code>db/object_rows.py</code> writes a row from a list of <code>Field</code>s (<code>attr</code>, <code>optional</code>, <code>context</code>, <code>computed</code>); <code>store.py</code> holds one list per kind table (<code>STAR_FIELDS</code>, <code>PLANET_FIELDS</code>, <code>MOON_FIELDS</code>, <code>BELT_FIELDS</code>, <code>COMET_FIELDS</code>, <code>BLACK_HOLE_FIELDS</code>, <code>NEUTRON_STAR_FIELDS</code>, <code>ROGUE_PLANET_FIELDS</code>, <code>INTERSTELLAR_COMET_FIELDS</code>, <code>ASTEROID_FIELD_FIELDS</code>). The spin, the galactic orbit, the placement and the movement vector are shared fields, so the 49 columns three or more tables share are each spelled once in the code as well. The 8.4 revision changes the lists, not the machinery: a column that moves to the core table is marked core, one that moves to a profile is marked with its profile, and the insert writes the core row, then the profile row. Nebulae, supernova remnants and quasars (not mass objects) keep their own inserts.</p>
+<h2 id="15-built-db74-third-slice-one-load-for-every-kind">15. Built (DB.74, third slice): one load for every kind</h2>
+<p>A <code>Field</code> also carries <code>load(row)</code>, the <code>from_dict</code> keys its stored columns fill, so <code>object_rows.load_dict(fields, row)</code> reads a row back through the list that wrote it (<code>scaled</code> divides kilometres back to AU and names what a NULL means, <code>each</code> and <code>attr</code> read the column as it is, <code>_flag</code> makes a <code>bool</code>). <code>_star_row_to_dict</code>, the black hole and neutron star loaders (which read only the satellite row's own columns, the rest being on the <code>stars</code> row), <code>_planet_or_moon_row_to_dict</code> (from <code>BODY_FIELDS</code> and, for a planet, <code>PLANET_ONLY_FIELDS</code>), <code>_belt_row_to_dict</code> and <code>_comet_row_to_dict</code> are built this way; the child rows (reflection spectrum, composition) stay beside them. The star loader now returns the stored <code>metallicity_fe_h</code>, which the old loader left out. Free objects (rogue planets, interstellar comets, asteroid fields) and the per-sector queries keep their own readers until the 8.4 revision moves the tables.</p>
+<h2 id="16-the-stellarobject-family-class-gen565d">16. The StellarObject family class (GEN.565d)</h2>
+<p><code>generation/stellar_object.py</code> holds <code>StellarObject(LazySaladName, MassObject)</code>, the family class the hybrid of section 10 names. What a main-sequence star, a giant, a white dwarf, a binary's proxy, a neutron star and a black hole share lives there: the persisted field list (<code>SERIALIZABLE_FIELDS</code>) and the class-level defaults a reloaded object needs, the save and load of <code>habitable_zone</code> and <code>lifespan</code>, <code>planet_age_requirement_gy</code>, <code>age_ceiling_gy</code>, <code>adjust_age_for_planets</code>, <code>calculate_system_perimeter</code> and <code>calculate_galactic_orbit</code>, and the two helpers <code>get_star_spectral_class</code> and <code>get_star_evolutionary_profile</code>. <code>Star</code> is the drawn star on top of it (its draw, its population model and <code>from_params</code>); <code>CompactRemnant</code> (and <code>BlackHole</code>, <code>NeutronStar</code>) and <code>BinaryStarProxy</code> subclass <code>StellarObject</code> directly, so the <code>_skip_property_init</code> workaround, which told <code>Star.__init__</code> not to draw, is gone. A remnant is no longer an instance of <code>Star</code>. No field, stored value or draw changes. Still to come: folding the remnant classes into states of the one class, once the stored shape of DB.74 is in.</p>
+<p><code>SmallBody</code> (<code>generation/small_body.py</code>, GEN.565e) is the second family class: <code>Comet</code>, <code>InterstellarComet</code> and <code>AsteroidField</code> subclass it and share the constructor preamble (the configuration, a name drawn on first read, whether the name was given) and the save and load of a composition kept as a list of strings (the field keeps its pairs). Nothing about a comet's orbit, a field's radius or the draws changes. <code>PlanetaryObject</code> (<code>generation/planetary_object.py</code>, GEN.565f) is the third: <code>Planet</code> (a planet or, with <code>is_moon</code>, a moon) and <code>RoguePlanet</code> subclass it and share <code>is_giant</code> and <code>parent_kind</code> (star, planet or none). They share almost no constructor code, so nothing else moved; stored names (<code>body_type</code> and <code>planet_type</code>, <code>mass</code> and <code>mass_kg</code>) stay until the DB.74 table revision.</p>
+<h2 id="17-built-db75-first-part-a-bodys-id-follows-its-slot">17. Built (DB.75, first part): a body's ID follows its slot</h2>
+<p>The object ID (<code>galaxy/object_uid.py</code>) is the system's ID with a body number, and the number was given in insertion order, so any redraw of a system's content renumbered every body. A body now has a slot (<code>store._body_slots</code>): a star's is its role; a planet's or belt's is the role of the star it orbits (<code>system</code> for a circumbinary one) and its place in that star's list of orbits; a moon's is its planet's slot and its place among the planet's moons; a comet's is its star and its rank among the system's comets. <code>replace_star_system_content</code> records the IDs by slot before it deletes the old bodies, gives the new body of a slot the ID of the old one, and numbers the other new bodies from the system's counter, which is first brought past every old body so a number a body once held is never given to another. A slot is a kind and a place, so a planet redrawn into a belt's slot is a new body; and the identity does not claim that the redrawn body is the same world, only that the public address of &quot;the third orbit of this star&quot; keeps working.</p>
+<p>What is not here: a body that changes parent. Today nothing moves a body between tables; the ejection of a planet (GEN.291) and the shared parent link of the 8.4 revision (DB.73) do, and in the revision the ID is a column of the one core row and the parent another, so a move keeps the ID by construction. The slot-path form of GEN.556 (<code>populate(host)</code> seeds each orbiter by <code>host_seed:orbit:slot</code>) is the same slot with the host's path in front; when it lands, <code>_body_slots</code> reads the path instead of the orbital index.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

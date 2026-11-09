@@ -15,6 +15,8 @@ A note's own status line, at its top, is the authority; this page only points at
 
 **Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](research/gap-filling-plan.md) section 6.5.
 
+**History of the design:** what was chosen, dropped and replaced, and how the work moved over time, is in [../history/README.md](../history/README.md) (release headlines, decisions by month, item histories, dropped paths, and [by-note.md](../history/by-note.md), which links each note below to the dates and state of its items).
+
 ## The whole program
 
 `architecture/`: how the program fits together, and the shared data model. The generated code map and the number map are linked from here; they live in [generated/](../generated/) and [plan/](../plan/).
@@ -278,6 +280,7 @@ A note's own status line, at its top, is the authority; this page only points at
 |---|---|---|
 | [cache-warm-up.md](operations/cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
 | [one-run-per-job.md](operations/one-run-per-job.md) | A Generate page or API job is one `run-job` process and one wrapper run over all the selected commands: the job spec, a follower list per verb, start checks in `prepare` hooks, job_runner following one run (PERF.203) | design note (Aux 2, 2026-10-30), not built |
+| [job-graph-and-memory-broker.md](operations/job-graph-and-memory-broker.md) | Every run planned first as a sequence of commands that each do one thing, then executed: planner, job model with dependencies and spawned items, memory broker, migration stage by stage (DOC.113, OPS.122 to OPS.132) | design note (approved by Boss 6:43 PM EST on 2026-11-08, build order in the note; OPS.130 built, PERF.254 built) |
 | [logging-standard.md](operations/logging-standard.md) | One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today | partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183) |
 | [slow-page-answers.md](operations/slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [backups-and-repair.md](operations/backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9) | plan |

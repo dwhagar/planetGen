@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design notes - planetGen docs</title>
+<meta name="description" content="Every note under docs/design/, with what it is about and where it stands.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/README.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="design/README.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="design-notes">Design notes</h1><p class="meta">docs/design/README.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#the-whole-program">The whole program</a></li><li style="margin-left:0px"><a href="#galaxy-sectors-and-coordinates">Galaxy, sectors and coordinates</a></li><li style="margin-left:0px"><a href="#stars-remnants-phenomena-and-small-bodies">Stars, remnants, phenomena and small bodies</a></li><li style="margin-left:0px"><a href="#generation-and-reproducibility">Generation and reproducibility</a></li><li style="margin-left:0px"><a href="#composition">Composition</a></li><li style="margin-left:0px"><a href="#habitability-species-and-population">Habitability, species and population</a></li><li style="margin-left:0px"><a href="#orbits-navigation-and-courses">Orbits, navigation and courses</a></li><li style="margin-left:0px"><a href="#maps-and-the-web-interface">Maps and the web interface</a></li><li style="margin-left:0px"><a href="#server-queue-and-operations">Server, queue and operations</a></li><li style="margin-left:0px"><a href="#research-sources-and-gap-filling">Research, sources and gap filling</a></li><li style="margin-left:14px"><a href="#imported-research">Imported research</a></li><li style="margin-left:0px"><a href="#archive">Archive</a></li></ul></details>
+<p>Every note under <code>docs/design/</code>, with what it is about and where it stands. Notes are grouped in one folder per topic, and this page has one section per folder. The status words:</p>
+<ul>
+<li><strong>built</strong>: the design is in the code.</li>
+<li><strong>partly built</strong>: some of it is; the note's own status line says which.</li>
+<li><strong>plan</strong>: decided, not built yet.</li>
+<li><strong>research</strong>: findings and recommendations; read the note's status line for what was taken up.</li>
+<li><strong>reference</strong>: facts and measurements, not a design.</li>
+<li><strong>history</strong>: describes a design that was replaced; kept for the reasons.</li>
+</ul>
+<p><strong>Core design principle (Boss, 2026-11-08): everything in a system affects everything else in the system.</strong> Every body acts on every other body of its system by 3D position, averaged over the orbits; see <a href="generation/system-interactions.html">system-interactions.md</a>. A host-only or pair-only effect needs a reason registered in GEN.725.</p>
+<p>A note's own status line, at its top, is the authority; this page only points at it. A test (<code>src/tests/test_docs_links.py</code>) fails when a note in a topic folder is missing from this page. A new note goes in the folder of its topic, with a row here. The architecture of the whole program is <a href="architecture/architecture.html">architecture.md</a>; the decisions behind it are in <a href="architecture/design-decisions.html">design-decisions.md</a>.</p>
+<p><strong>Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):</strong> Downloads of static files take place at setup (the step <code>update.sh</code> runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in <a href="research/gap-filling-plan.html">gap-filling-plan.md</a> section 6.5.</p>
+<p><strong>History of the design:</strong> what was chosen, dropped and replaced, and how the work moved over time, is in <a href="../history/README.html">../history/README.md</a> (release headlines, decisions by month, item histories, dropped paths, and <a href="../history/by-note.html">by-note.md</a>, which links each note below to the dates and state of its items).</p>
+<h2 id="the-whole-program">The whole program</h2>
+<p><code>architecture/</code>: how the program fits together, and the shared data model. The generated code map and the number map are linked from here; they live in <a href="https://github.com/dwhagar/planetGen/tree/main/docs/generated">generated/</a> and <a href="https://github.com/dwhagar/planetGen/tree/main/docs/plan">plan/</a>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="architecture/architecture.html">architecture.md</a></td>
+<td>Every file and the main flows</td>
+<td>reference (the code map is being rewritten, DOC.28)</td>
+</tr>
+<tr>
+<td><a href="../../generated/architecture-map.html">architecture-map.html</a></td>
+<td>The generated code map: areas, modules, functions and calls, with the main flows traced from the code (DOC.67)</td>
+<td>generated page (open it in a browser; <code>scripts/build_architecture_map.py</code>)</td>
+</tr>
+<tr>
+<td><a href="architecture/design-decisions.html">design-decisions.md</a></td>
+<td>The choices that shape the project, each with its status</td>
+<td>reference</td>
+</tr>
+<tr>
+<td><a href="../plan/todo-number-map.html">todo-number-map.md</a></td>
+<td>Old TODO numbers to category IDs, and the next free ID of each category</td>
+<td>reference</td>
+</tr>
+<tr>
+<td><a href="architecture/library-migration.html">library-migration.md</a></td>
+<td>Moving to third-party libraries and into packages</td>
+<td>built (queue being redone, PERF.86)</td>
+</tr>
+<tr>
+<td><a href="architecture/math-and-library-efficiency.html">math-and-library-efficiency.md</a></td>
+<td>Where the heavy math runs; Python 3.12 and numba</td>
+<td>partly built (PERF.88 open)</td>
+</tr>
+<tr>
+<td><a href="architecture/numeric-precision-audit.html">numeric-precision-audit.md</a></td>
+<td>GEN.372: whether 64-bit numbers are enough for positions at galactic scale (yes, if no code subtracts two large absolute coordinates), the numbers behind it and every precision concern found</td>
+<td>research (Core 1, 2026-10-17; nothing built)</td>
+</tr>
+<tr>
+<td><a href="architecture/unified-star-like-objects.html">unified-star-like-objects.md</a></td>
+<td>One recursive chain for anything that can be orbited: stars and star-like objects, planets, moons, rogue planets, free brown dwarfs and unbound comets, built through sector fill</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="architecture/unified-unit-quantity.html">unified-unit-quantity.md</a></td>
+<td>One registry of units, one Quantity value class and one declaration of every field's and column's quantity, copying the point-in-space class</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="architecture/unified-system-barycentre.html">unified-system-barycentre.md</a></td>
+<td>One System rule: a central object, members that can be systems themselves, the barycentre as the origin, derived offsets, and the hosting gate</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="architecture/mass-object-class.html">mass-object-class.md</a></td>
+<td>One master mass-object class: three family classes under it, state and parent as data, one core table plus three profile tables, a 10 m representability floor, the measured code savings</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="architecture/object-ids.html">object-ids.md</a></td>
+<td>Interstellar object IDs</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="architecture/object-id-options.html">object-id-options.md</a></td>
+<td>The options weighed for unique IDs and the decision</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="architecture/designation-history.html">designation-history.md</a></td>
+<td>Names and IDs may change; a retired ID is reserved forever and the history is kept (GEN.1121)</td>
+<td>designed</td>
+</tr>
+<tr>
+<td><a href="architecture/system-description.html">system-description.md</a></td>
+<td>One model of a system's text, many renderers</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="architecture/units-and-number-formatting.html">units-and-number-formatting.md</a></td>
+<td>The unit ladder and number format</td>
+<td>plan (UX.23 open)</td>
+</tr>
+<tr>
+<td><a href="architecture/command-inventory.html">command-inventory.md</a></td>
+<td>Every command does one and only one thing and the order lives only in the wrapper's step list: Boss's principle (2026-10-17), and the inventory of every command and entry point with the item that reshapes each one (PERF.118, PERF.120 to PERF.128, OPS.60, OPS.61)</td>
+<td>plan</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="galaxy-sectors-and-coordinates">Galaxy, sectors and coordinates</h2>
+<p><code>galaxy/</code>: the shape and contents of the galaxy, the spherical sector grid and the laws behind them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a></td>
+<td>The spherical shell, band and wedge sector grid</td>
+<td>built (schema v91); the cylinder it replaced is in <a href="../archive/galaxy-coordinate-system-cylinder.html">archive/</a></td>
+</tr>
+<tr>
+<td><a href="galaxy/galaxy-types.html">galaxy-types.md</a></td>
+<td>The 9.4 headline: one family per known galaxy type (spiral, lenticular, elliptical, irregular, dwarf), drawn from the seed through scaling relations, and the chain that leads to it</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="galaxy/superbubble-density.html">superbubble-density.md</a></td>
+<td>Superbubbles shape the stars: the seeded bubble field becomes a density modulation on the young and intermediate populations, with bounds, sector counts and positions, and the chain that builds it</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="galaxy/spherical-sector-coordinates.html">spherical-sector-coordinates.md</a></td>
+<td>The plan for spherical shells, bands and wedges</td>
+<td>plan, built (the switch merged to main on 2026-10-15, #1607; the Galaxy Map ladder is MAP.205 and MAP.206)</td>
+</tr>
+<tr>
+<td><a href="galaxy/spherical-shell-sectors.html">spherical-shell-sectors.md</a></td>
+<td>What spherical-shell sectors would mean (the question behind the plan)</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/spherical-ladder-meridians.html">spherical-ladder-meridians.md</a></td>
+<td>Meridians for the spherical block ladder</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/spherical-block-ladder.html">spherical-block-ladder.md</a></td>
+<td>The Galaxy Map's block ladder (243/81/27/9/3) and windows on shells</td>
+<td>built (MAP.205, MAP.206)</td>
+</tr>
+<tr>
+<td><a href="galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a></td>
+<td>The galaxy density model</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a></td>
+<td>Fill order, region selection and the galactic core</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/realistic-galactic-core.html">realistic-galactic-core.md</a></td>
+<td>A realistic galactic core (GEN.279, reopens GEN.155): the nuclear star cluster and disc as density terms, the resolution cap, tiered mass and luminosity limits, planets and orbits at the centre</td>
+<td>recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet)</td>
+</tr>
+<tr>
+<td><a href="galaxy/named-regions.html">named-regions.md</a></td>
+<td>Named regions: the 9-block cells of the block ladder with a name, anchor, framing sphere and extent, their stored table, and the uniqueness audit</td>
+<td>built (GEN.825, GEN.827, DB.107, API.35); map, pages and search not built</td>
+</tr>
+<tr>
+<td><a href="galaxy/multiple-galaxies.html">multiple-galaxies.md</a></td>
+<td>Neighbour galaxies and a second galaxy</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/globular-clusters.html">globular-clusters.md</a></td>
+<td>Globular clusters in generation</td>
+<td>partly built (GEN.159: cluster table, King tables, generator; GEN.160: cluster density in the sector gate)</td>
+</tr>
+<tr>
+<td><a href="galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a></td>
+<td>What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents</td>
+<td>research (reach approved; build plan for TODO)</td>
+</tr>
+<tr>
+<td><a href="galaxy/galaxy-laws-research.html">galaxy-laws-research.md</a></td>
+<td>The sourced ranges and laws for the stellar halo, the population ages and dispersions, the thick disk, the dwarf and satellite sizes and the cluster system (GEN.406), with the fifteen open requests</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/gen533-bar-sources.html">gen533-bar-sources.md</a></td>
+<td>The sources read for the bar and the unbarred bulge (GEN.533): bar fraction against mass and stage, bar and bulge axis ratios, bar angle, with the conflicts and the rule that picked each draw</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="galaxy/spherical-region-queries.html">spherical-region-queries.md</a></td>
+<td>Selecting a sphere of the galaxy with a database query: the cell key, key runs, a covering index, measured against the box, the spatial index and the sector walk</td>
+<td>research (2026-10-15; nothing built)</td>
+</tr>
+<tr>
+<td><a href="galaxy/post-main-sequence-stars.html">post-main-sequence-stars.md</a></td>
+<td>Stars after the main sequence (GEN.935): the MIST tracks rebuilt per mass at setup, the windows the generator's phase times place on them, Cepheids, the bright-star tables, what was removed</td>
+<td>built (Star 1, 2026-10-29), part of the star mass function epoch (GEN.932)</td>
+</tr>
+<tr>
+<td><a href="galaxy/stellar-mass-function.html">stellar-mass-function.md</a></td>
+<td>The stellar mass function (GEN.927 to GEN.931): the single-star curve, the derived primary curve, the white dwarf, neutron star and black hole remnant relations and what each consumer reads</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="galaxy/disk-star-formation-history.html">disk-star-formation-history.md</a></td>
+<td>The thin disk's young, middle-aged and old star shares from its own gas history</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="galaxy/star-types-by-galactic-radius.html">star-types-by-galactic-radius.md</a></td>
+<td>How star types change with distance from the core</td>
+<td>research (proposals for Boss)</td>
+</tr>
+<tr>
+<td><a href="galaxy/galactic-potential.html">galactic-potential.md</a></td>
+<td>The galaxy's own gravity and galactic orbits</td>
+<td>research</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="stars-remnants-phenomena-and-small-bodies">Stars, remnants, phenomena and small bodies</h2>
+<p><code>systems/</code>: what lives in the galaxy besides the disk and halo themselves.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="systems/later-phenomena-scatter-rules.html">later-phenomena-scatter-rules.md</a></td>
+<td>Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items</td>
+<td>recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet)</td>
+</tr>
+<tr>
+<td><a href="systems/phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a></td>
+<td>The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit</td>
+<td>design (rules of 2026-10-15; items for TODO)</td>
+</tr>
+<tr>
+<td><a href="systems/multi-star-systems.html">multi-star-systems.md</a></td>
+<td>Multi-star and star-like systems at scatter time: the census, limits and probabilities, the stored member tree, motion, and the catalogue of about sixty observed and theoretical system types</td>
+<td>design (plan of 2026-10-15; nothing built yet)</td>
+</tr>
+<tr>
+<td><a href="systems/overlap-free-systems.html">overlap-free-systems.md</a></td>
+<td>Systems that cannot overlap by construction (GEN.1006): one frozen record per star that the tree, the build and the planets read, orbits drawn from allowed ranges, a clearance ledger for planets, moons and belts, an independent verifier, the redraw-rate test, and the build in ten parts</td>
+<td>plan (checked against the papers; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/lagrange-trojans.html">lagrange-trojans.md</a></td>
+<td>What may sit at the L4 and L5 points of a pair (GEN.1149 to GEN.1151, MAP.354): the mass rule, libration, the swarm split, the map label, and the build in four parts</td>
+<td>design (pure module built; wiring is GEN.1150)</td>
+</tr>
+<tr>
+<td><a href="systems/belt-evolution.html">belt-evolution.md</a></td>
+<td>Asteroid belts that evolve: what formed, collisional grinding, giant clearing and resonance gaps, drift, star events, and a ledger of the individual bodies chosen by a mass-cut rule (every body above 1e19 kg, up to 90 percent of the belt mass, at most 300 per belt), with status words (planet, dwarf planet, minor body) and a sub-numbered designation for each member</td>
+<td>plan (Boss said yes 4:27 PM EDT 2026-10-30; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/system-bodies-ledger.html">system-bodies-ledger.md</a></td>
+<td>The system body ledger: one generated list (a view, no new storage) of every body with a mass, the tree checks, mass conservation for belts, and a barycentre that includes the belts with the belt wobble test (GEN.1066)</td>
+<td>pure module built (<code>physics/system_bodies.py</code>); the view over the typed tables is the wiring step</td>
+</tr>
+<tr>
+<td><a href="systems/belt-origins.html">belt-origins.md</a></td>
+<td>Where belts come from (gap, unfinished tail, snow-line bump, stirring, instability depletion, collisional debris), the origin recorded on each belt, a scatter phase, and how many Class D and dwarf bodies a system needs</td>
+<td>plan (Boss asked 4:19 PM EDT 2026-10-30; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/belt-sources.html">belt-sources.md</a></td>
+<td>What was read for the belt items (GEN.1060): Yarkovsky drift, the chaotic zone, resonance loss, early depletion, Soter and Margot planet numbers, round masses, the Kuiper belt size law, white dwarf pollution, debris disc incidence; with the registry rows BR1 to BR18</td>
+<td>read; numbers registered (section 6.95)</td>
+</tr>
+<tr>
+<td><a href="systems/rogue-planet-drift.html">rogue-planet-drift.md</a></td>
+<td>Where ejected rogue planets drift (about 1 kpc per 0.5 Gyr along the galactic orbit) and where each is stored: the closed-form drift of the donor model; the virtual-donor storage is superseded by region-object-store.md (real donors, stored where they land)</td>
+<td>plan (research 5:20 PM EDT 2026-10-30; the drift function is built, the storage is replaced)</td>
+</tr>
+<tr>
+<td><a href="systems/region-object-store.html">region-object-store.md</a></td>
+<td>One galaxy-wide object store generated in region work units (whole sectors, bands of the galaxy), sectors as a navigation table with a chart ledger, rogues from real donors stored where they land, the three-stage rogue spread with the None/Few/Normal/Many level, and designation history (GEN.1118)</td>
+<td>plan (study final 5:44 PM EDT 2026-10-30; defaults for tiles and bands until Boss answers; items GEN.1123 to GEN.1129, TEST.501)</td>
+</tr>
+<tr>
+<td><a href="systems/interstellar-asteroid-fields.html">interstellar-asteroid-fields.md</a></td>
+<td>Asteroid fields in interstellar space from rogue-planet collisions and the better sources (supernova-unbound belts): the rate (about one collision per Galaxy life), outcomes, dispersal as a pure function of age, composition from two parents, members and designations</td>
+<td>plan (items filed 4:51 PM EDT 2026-10-30; rate with Boss; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/captured-asteroid-moons.html">captured-asteroid-moons.md</a></td>
+<td>Irregular moons of the giants as captured belt and disc bodies: Hill-sphere stable zones, capture windows (gas era, instability, exchange), counts by grinding, orbits and families, storage by the belt rule with a 1e16 kg floor</td>
+<td>plan (Boss said yes 4:27 PM EDT 2026-10-30, decided 4:34 PM EDT; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/weird-worlds.html">weird-worlds.md</a></td>
+<td>Physically plausible oddities (Venus-type spin, tilt-driven seasons, iron-rich cores, resonant chains, disintegrating planets, super-puffs, nightside collapse, bistable climates, abiotic oxygen): each a cause at an input of the chain from a gated tail rate, a weirdness dial, an Odd line on the page, and a plausibility harness</td>
+<td>plan (Boss said yes 4:15 PM EDT 2026-10-30; nothing built)</td>
+</tr>
+<tr>
+<td><a href="systems/quadruple-stability-3p1.html">quadruple-stability-3p1.md</a></td>
+<td>The 3+1 quadruple stability network of [R4575] ported to a plain numpy forward pass (GEN.1029), its accuracy check against N-body runs, and how GEN.1016 uses it</td>
+<td>built (module merged; nothing calls it until GEN.1016)</td>
+</tr>
+<tr>
+<td><a href="systems/quadruple-stability-2p2.html">quadruple-stability-2p2.md</a></td>
+<td>The 2+2 quadruple stability network of [R4575] ported to a plain numpy forward pass (GEN.1031), its accuracy against N-body runs (91 percent against 82 for two nested triples), and how GEN.1016 uses it</td>
+<td>built (module merged; nothing calls it until GEN.1016)</td>
+</tr>
+<tr>
+<td><a href="systems/brown-dwarf-state.html">brown-dwarf-state.md</a></td>
+<td>A brown dwarf as a star: its L, T or Y type, temperature and radius from the cooling laws and the 20 pc census</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/white-dwarf-state.html">white-dwarf-state.md</a></td>
+<td>A white dwarf as a star: temperature, luminosity and radius from the Bedard et al. cooling sequences at its cooling age and hydrogen layer (GEN.742)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/remnant-age.html">remnant-age.md</a></td>
+<td>A neutron star's or stellar black hole's age: the population's birth age less the progenitor's time to collapse</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/black-hole-formation-sources.html">black-hole-formation-sources.md</a></td>
+<td>The verified failed-supernova and direct-collapse shares and black hole remnant masses behind the black hole density (GEN.560, GEN.563)</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="systems/wanderer-moon-sources.html">wanderer-moon-sources.md</a></td>
+<td>The sources behind the moons of wanderers: the survival of moons when their planet is ejected and the disks of isolated planetary-mass objects, with the stated gaps (GEN.560, GEN.558)</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="systems/black-hole-density.html">black-hole-density.md</a></td>
+<td>The metallicity-dependent black hole density: the failed-supernova share f(Z) as two drawn anchors, the place factor, the rate sites, the tests and the seven open cards</td>
+<td>built (GEN.563)</td>
+</tr>
+<tr>
+<td><a href="systems/neutron-star-density.html">neutron-star-density.md</a></td>
+<td>The neutron star density derived from the same massive-star budget as the black holes: the place factor with the survivors of the failed share, the unbound share, the numbers against 4.0e-3</td>
+<td>built (GEN.554 slice 1)</td>
+</tr>
+<tr>
+<td><a href="systems/neutron-star-structure.html">neutron-star-structure.md</a></td>
+<td>A neutron star's radius, mass and crust from a TOV integration over the 21 equation-of-state tables, against NICER (GEN.968)</td>
+<td>built (lock-free step; wiring GEN.969)</td>
+</tr>
+<tr>
+<td><a href="systems/stellar-spectra-library.html">stellar-spectra-library.md</a></td>
+<td>A star's light by band from ATLAS9 and PHOENIX-ACES model atmospheres plus the corona's far ultraviolet from MUSCLES, against the Sun and eleven M and K stars (GEN.970)</td>
+<td>built and wired (GEN.970, GEN.971)</td>
+</tr>
+<tr>
+<td><a href="systems/alpha-and-age-metallicity.html">alpha-and-age-metallicity.md</a></td>
+<td>A high-alpha star read off a solar-scaled track at a higher [Fe/H], and a disc star's [Fe/H] tied to its age by branch (GEN.744)</td>
+<td>built (lock-free step; wiring GEN.744)</td>
+</tr>
+<tr>
+<td><a href="systems/variability.html">variability.md</a></td>
+<td>The kind of variable a star is (classical Cepheid, Mira or semiregular, T Tauri, Herbig Ae/Be), a derived row of the star sheet (GEN.944)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/carbon-stars.html">carbon-stars.md</a></td>
+<td>Carbon stars and S stars of the asymptotic giant branch from a thermal-pulse count and the third dredge-up, a derived row of the star sheet (GEN.1026)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/chemically-peculiar.html">chemically-peculiar.md</a></td>
+<td>Ap and Am stars: the shares, the slow rotation and the field of the chemically peculiar branch of the A-star draw (GEN.1027 part 1)</td>
+<td>module built, not wired</td>
+</tr>
+<tr>
+<td><a href="systems/stellar-state.html">stellar-state.md</a></td>
+<td>The state word of a star and the age since it stopped burning, from its Yerkes class and phase (GEN.785, GEN.786)</td>
+<td>built and wired (GEN.785, GEN.786)</td>
+</tr>
+<tr>
+<td><a href="systems/explosion-islands.html">explosion-islands.md</a></td>
+<td>Which massive stars leave a black hole: the failure windows of initial mass that hold the failed share, the progenitor draw over them, the direct collapse</td>
+<td>built (GEN.554 slice 2)</td>
+</tr>
+<tr>
+<td><a href="systems/natal-kick.html">natal-kick.md</a></td>
+<td>The share of a galaxy's neutron stars its natal kicks eject: the kick law against the galaxy's escape speed, replacing the 20% to 40% draw</td>
+<td>built (GEN.554 slice 3)</td>
+</tr>
+<tr>
+<td><a href="systems/compact-remnant-regions.html">compact-remnant-regions.md</a></td>
+<td>Where neutron stars and black holes are observed</td>
+<td>reference (feeds GEN.100)</td>
+</tr>
+<tr>
+<td><a href="systems/interstellar-object-rates.html">interstellar-object-rates.md</a></td>
+<td>Rates of rogue planets, comets and other interstellar objects</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/phenomenon-scatter-mass-cut.html">phenomenon-scatter-mass-cut.md</a></td>
+<td>The phenomenon scatter's lowest-mass cut</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/rogue-planet-surface.html">rogue-planet-surface.md</a></td>
+<td>Rogue planet surface conditions</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/comet-orbital-realism.html">comet-orbital-realism.md</a></td>
+<td>Elliptical, parabolic and interstellar comets</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a></td>
+<td>Nebula, remnant and asteroid field classes</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="systems/nebula-density-vs-reality.html">nebula-density-vs-reality.md</a></td>
+<td>Nebula density against the real Milky Way</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="systems/multistar-and-compact-systems.html">multistar-and-compact-systems.md</a></td>
+<td>Multi-star systems and compact-object primaries</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="systems/exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a></td>
+<td>Planets in nebulae, near pulsars, black holes and compact binaries</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="systems/anomalies.html">anomalies.md</a></td>
+<td>Anomalies for the starmap</td>
+<td>research</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="generation-and-reproducibility">Generation and reproducibility</h2>
+<p><code>generation/</code>: seeds, determinism, fill order, backfill and generation speed.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a></td>
+<td>Sampling, backfill, void filling, resumable runs and directives</td>
+<td>research (resume on hold, PERF.86)</td>
+</tr>
+<tr>
+<td><a href="generation/void-fill-census.html">void-fill-census.md</a></td>
+<td>GEN.102 again on the spherical grid: the sparse cells, the halo beyond the outline, the recommendation</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="generation/placement-by-population.html">placement-by-population.md</a></td>
+<td>GEN.103: where each kind is placed by population, and the three type-draw rules still to build</td>
+<td>design</td>
+</tr>
+<tr>
+<td><a href="generation/mass-backfill.html">mass-backfill.md</a></td>
+<td>Four rings of heavier stars around generated sectors</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="generation/reproducible-galaxies.html">reproducible-galaxies.md</a></td>
+<td>Seeds, version keys and repair</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="generation/generation-determinism.html">generation-determinism.md</a></td>
+<td>What makes a seed rebuild the same galaxy; fingerprints and epochs</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="generation/system-interactions.html">system-interactions.md</a></td>
+<td>The principle that everything in a system affects everything else in it (Boss, 2026-11-08), the rules for new items, and the register of host-only and pair-only code paths with the item that fixes each</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="generation/generation-performance-study.html">generation-performance-study.md</a></td>
+<td>Where generation time goes</td>
+<td>research (recommendations built)</td>
+</tr>
+<tr>
+<td><a href="generation/generation-performance.html">generation-performance.md</a></td>
+<td>Every generation step timed at four galaxy sizes with <code>planetgen benchmark --suite</code>, the fixes of the first round and a ranked list of what is left (PERF.146)</td>
+<td>reference</td>
+</tr>
+<tr>
+<td><a href="generation/generation-benchmark-report.html">generation-benchmark-report.md</a></td>
+<td>A measured benchmark of one build box</td>
+<td>reference</td>
+</tr>
+<tr>
+<td><a href="generation/scatter-queue-feasibility.html">scatter-queue-feasibility.md</a></td>
+<td>A shuffled sector queue for scatters</td>
+<td>research (recommendations built)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="composition">Composition</h2>
+<p><code>composition/</code>: what stars, planets, small bodies and atmospheres are made of, the colour of the sky, and the research parts behind them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="composition/composition-model.html">composition-model.md</a></td>
+<td>The master note of the 9.0 composition headline: what every body, star and atmosphere is made of, the chain from element to derived value, the research lanes and where each item sits</td>
+<td>checked design, for Boss's approval (GEN.437); the loader, element table, stellar relations and star composition are built (GEN.472, GEN.438 to GEN.440)</td>
+</tr>
+<tr>
+<td><a href="composition/surface-liquid-composition.html">surface-liquid-composition.md</a></td>
+<td>What a body stores about its surface liquid: the acid, ammonia, salt and hydrocarbon makeup, a second liquid, the liquids and ices still missing, and how the life classes read them (GEN.1217)</td>
+<td>draft, for Boss's answers to six questions (Tides 1, 2026-10-31); nothing built</td>
+</tr>
+<tr>
+<td><a href="composition/atmosphere-colour.html">atmosphere-colour.md</a></td>
+<td>Atmosphere colour, the 9.0 feature: one gas and compound table, the mixture that sets the molar density, stored albedo and greenhouse values, ozone, haze, dust and cloud, then the absolute colour of the air, with the chain that builds it</td>
+<td>approved 2026-10-17 (9:40 to 9:55 PM EDT) (GEN.409)</td>
+</tr>
+<tr>
+<td><a href="composition/bulk-composition.html">bulk-composition.md</a></td>
+<td>The bulk composition of every body (GEN.426): the bulk fractions, the equation of state and the reference solver, the draws, density, mass and gravity, moons and small bodies, the inverse and the migration</td>
+<td>approved 2026-10-17 (9:40 to 9:55 PM EDT) (GEN.426)</td>
+</tr>
+<tr>
+<td><a href="composition/planet-mass-law.html">planet-mass-law.md</a></td>
+<td>How heavy a planet is once no class supplies the mass: isolation mass at the formation distance, giant-impact assembly, and the core-accretion runaway to a gas giant (GEN.650)</td>
+<td>built as a pure law, not wired in (class lane, 2026-10-24); stand-ins to tune with GEN.509 and GEN.510</td>
+</tr>
+<tr>
+<td><a href="composition/interior-heat.html">interior-heat.md</a></td>
+<td>The heat of a rocky body's interior (GEN.699): radiogenic plus primordial heat from one thermal history of the mantle, the Urey ratio as an output, the two rheology draws, the stand-ins</td>
+<td>built (lane H, 2026-10-24)</td>
+</tr>
+<tr>
+<td><a href="composition/magma-ocean-redox-model.html">magma-ocean-redox-model.md</a></td>
+<td>The surface redox of a magma ocean from its base pressure through the ferric share (GEN.1005 part 1): the pure module, the stand-in rows MR1 to MR7, and what part 2 flips in the atmosphere table</td>
+<td>module and registry rows built, nothing wired (Aux 3, 2026-10-30)</td>
+</tr>
+<tr>
+<td><a href="composition/dry-carbon-model.html">dry-carbon-model.md</a></td>
+<td>The carbon a dry rocky body keeps in its mantle from the carbon of its building blocks, the share already differentiated and the core's share (GEN.1005 part 1 of b1): the pure module, the stand-in rows DC1 to DC3, and what the flip changes in b1.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/comet-species-model.html">comet-species-model.md</a></td>
+<td>The N<sub>2</sub>, Ar, OCS, SO<sub>2</sub>, O<sub>2</sub>, Kr and Xe of a comet's ice (row k7) from the host's own ratios to carbon times a trapping share, with 67P as the calibration (GEN.1005): the pure module, the stand-in rows CK1 to CK6, and what remains a stand-in (GEN.1021).</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/disk-condensation.html">disk-condensation.md</a></td>
+<td>The species a protoplanetary disc condenses (CO, CO<sub>2</sub>, CH<sub>4</sub>, N<sub>2</sub>, H<sub>2</sub>S, noble-gas clathrates, ammonium salts, refractory carbon), the carbon split, the oxygen the CO and CO<sub>2</sub> take from the water, and the C/O of the gas and the solids across each snow line (GEN.1363): the pure module, stand-in rows DC1 to DC6, and what parts B and C wire to it.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/composition-spine-contracts.html">composition-spine-contracts.md</a></td>
+<td>The interfaces of the composition spine: the bulk composition and mixture accessors, the structure kernels, the bulk draw, the boundaries with the other lanes</td>
+<td>contracts of lane I, kept in step with the code (GEN.428, GEN.429, GEN.411)</td>
+</tr>
+<tr>
+<td><a href="composition/giant-interiors.html">giant-interiors.md</a></td>
+<td>The interior of a giant planet, an ice giant and a brown dwarf (GEN.641, GEN.642): the layers, metallic hydrogen and helium rain, dilute and compact cores, with the state of every source</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/mantle-oxides.html">mantle-oxides.md</a></td>
+<td>The seven oxides a rock mantle stores beyond SiO<sub>2</sub>, MgO, CaO, Al<sub>2</sub>O<sub>3</sub> and FeO (Na<sub>2</sub>O, K<sub>2</sub>O, TiO<sub>2</sub>, Cr<sub>2</sub>O<sub>3</sub>, MnO, NiO, P<sub>2</sub>O<sub>5</sub>) and the norm minerals they give (GEN.1362).</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/isotope-record.html">isotope-record.md</a></td>
+<td>The isotope shares of every element a body holds: the natural mix, the laws of D/H, 13C, 15N and 40Ar, and the decaying parents at the body's age (GEN.1377, GEN.1420)</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/giant-heavy-element-law.html">giant-heavy-element-law.md</a></td>
+<td>The heavy-element mass of a giant: [R0710] read from the paper, against [R4352] (GEN.460's input)</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/small-body-size-laws.html">small-body-size-laws.md</a></td>
+<td>The size-frequency law of small bodies and the binary and satellite fraction by size (GEN.566, GEN.580), and the hosting gate's inputs</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/small-bodies-composition.html">small-bodies-composition.md</a></td>
+<td>The composition of belts, fields, comets, icy bodies and moons (GEN.457): which kinds draw composition first, the mixing rule and the compaction law with its hand-over finding, the taxon, comet, icy-body and moon-origin tables, what is stored, the parametrisations, a worked example and the test targets</td>
+<td>plan, awaiting Boss's approval</td>
+</tr>
+<tr>
+<td><a href="composition/ore-processes.html">ore-processes.md</a></td>
+<td>Ore-forming processes for rocky planet and moon crusts (GEN.1379): the 19 deposit types with the generator state each needs, the three derived crust fields, the endowment and grade model, and the fields 8.1 stores for the 8.2 resource scan.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/planetary-rings.html">planetary-rings.md</a></td>
+<td>Planetary rings (GEN.732): kind, origin, edges against the Roche limit, mass, optical depth and ice share, every stand-in labelled in the gap plan registry (BC20 to BC23).</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/stellar-composition.html">stellar-composition.md</a></td>
+<td>The composition of every star and remnant (GEN.435): X, Y, Z and the elements from the stored [Fe/H], age and population, and what the star's iron, magnesium and silicon give the planets</td>
+<td>checked design, for Boss's approval (GEN.435)</td>
+</tr>
+<tr>
+<td><a href="composition/nebula-composition.html">nebula-composition.md</a></td>
+<td>The composition of every nebula, remnant and cloud (GEN.1269): gas and dust, the dust law and grains, the phases, the abundances, where the gas metallicity comes from, and how it differs from the report</td>
+<td>built model, writes are GEN.1276 and GEN.1277</td>
+</tr>
+<tr>
+<td><a href="composition/radiation-model.html">radiation-model.md</a></td>
+<td>The radiation model (GEN.436): the bands, transmission and greenhouse from the infrared opacity, shielding by column, the ground's dose and radon, the surface ultraviolet</td>
+<td>checked design, for Boss's approval (GEN.436)</td>
+</tr>
+<tr>
+<td><a href="composition/atmosphere-state.html">atmosphere-state.md</a></td>
+<td>The air's mean molar mass, density, scale height and greenhouse warming worked out from its mixture (GEN.423): the formulas, the greenhouse table of the radiative-convective model (GEN.850, <code>greenhouse-table.md</code>) and what changes when the mix changes</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/greenhouse-table.html">greenhouse-table.md</a></td>
+<td>The greenhouse the generator reads (GEN.850, GEN.851): a network fitted to the radiative-convective model on the airs the generator makes, the features, the fit and its stated error, the cloud and haze that go into it, the digest that ties it to the downloaded line data, and how to fit it again.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/climate-branches.html">climate-branches.md</a></td>
+<td>The ice-albedo feedback as a loop with a snowball, a warm and an unstable fixed point (GEN.1046, with GEN.972): the pure module <code>climate_branches</code> and how the wiring takes a branch.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/cloud-albedo.html">cloud-albedo.md</a></td>
+<td>The cloud term on the albedo of the surface-air fixed point: thinning with warming sized to the AR6 cloud feedback, and the deck of a locked ocean world (GEN.974): design and stand-in rows.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/line-opacity.html">line-opacity.md</a></td>
+<td>The infrared opacity of an air from downloaded line data (GEN.715): ExoMol correlated-k tables of water, carbon dioxide and methane and HITRAN collision-induced pairs reduced at setup, the random-overlap band flux, the radiative-convective column built on it (GEN.717 carbon dioxide doubling, GEN.718 Titan's haze), the checks against Earth, Mars, Venus and Titan and the labelled stand-ins.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/surface-composition.html">surface-composition.md</a></td>
+<td>The ground of a planet or moon (GEN.441): the surface and crust draw, where ice is stable, the ground colour by band, and the potassium, thorium and uranium reservoirs of ultramafic, basaltic and felsic crust.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="composition/sky-colour-analysis.html">sky-colour-analysis.md</a></td>
+<td>The read-only study behind the atmosphere colour: what exists, the method, the effort and how well each source was checked</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/atmosphere-sources-check.html">atmosphere-sources-check.md</a></td>
+<td>The check of the real-world sources behind the atmosphere colour chain: what was read, what is second-hand, what Boss must research</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/bulk-composition-sources-check.html">bulk-composition-sources-check.md</a></td>
+<td>The check of the mass-radius and equation-of-state sources behind the bulk composition chain: constants, method order, the core fraction from the star and what Boss must research</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/tunable-gaps.html">tunable-gaps.md</a></td>
+<td>Whether the unsourced composition weights can be seeded random draws tuned to published populations: the class of each of the 48 open atmosphere rows, the shared selection models, the 17 builder groups, the bracket corrections and what Boss must supply</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/weight-research-dispositions.html">weight-research-dispositions.md</a></td>
+<td>The disposition of every source of the weight research (GEN.480 to GEN.494): what each paper or data set gives, its label and what it can tune</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="composition/kepler-recovery.html">kepler-recovery.md</a></td>
+<td>The Kepler transit-detection selection model (GEN.504): the chance a transiting planet is recovered, fitted to the DR25 injections</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/mass-radius-sample.html">mass-radius-sample.md</a></td>
+<td>The mass-radius sample selection model (GEN.505): the chance a transiting planet passes the mass and radius precision cut</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/jwst-selection.html">jwst-selection.md</a></td>
+<td>The JWST target-selection model (GEN.506): the chance a transiting planet has a published atmosphere spectrum</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/comet-admission.html">comet-admission.md</a></td>
+<td>The comet-admission selection model (GEN.507): the chance a known comet has a published coma composition, by group and perihelion</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/wd-pollution-detection.html">wd-pollution-detection.md</a></td>
+<td>The white-dwarf pollution-detection selection model (GEN.508): how an oxygen fugacity is reported and what the spread of the 22 values means</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/retention-tuning.html">retention-tuning.md</a></td>
+<td>The check of the retention and lava-world rows d1, i6 and j1 (GEN.511)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/wd-redox-tuning.html">wd-redox-tuning.md</a></td>
+<td>The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/radioisotope-tuning.html">radioisotope-tuning.md</a></td>
+<td>The retune of the radioisotope rows o2, o4 and o6 (GEN.514)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/radius-valley-tuning.html">radius-valley-tuning.md</a></td>
+<td>The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/planet-architecture.html">planet-architecture.md</a></td>
+<td>The planet count, spacing and giant architecture model (GEN.728 to GEN.730, GEN.828, GEN.829, GEN.920, TEST.395): sourced occurrence bands, the Kepler multiplicity harness, the census and what wiring into the system will change</td>
+<td>composition</td>
+</tr>
+<tr>
+<td><a href="composition/envelope-escape-wiring.html">envelope-escape-wiring.md</a></td>
+<td>The hydro-based envelope loss wired to rows e1 and e2 and the radius valley, with the 1 Gyr onset as a tuned stand-in (GEN.822)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/water-delivery-tuning.html">water-delivery-tuning.md</a></td>
+<td>The delivered-water rows b1 to b4 from the Bern population synthesis: the mass law of GEN.510 and the joint formation-distance law that replaced it (GEN.802)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/volatile-delivery-formation-distance.html">volatile-delivery-formation-distance.md</a></td>
+<td>Water-rich share and delivery classes against formation distance from the Bern population synthesis, and how it relates to the GEN.510 mass law (GEN.481); wired into the rows by GEN.802</td>
+<td>research note</td>
+</tr>
+<tr>
+<td><a href="composition/magma-ocean-redox-against-mass.html">magma-ocean-redox-against-mass.md</a></td>
+<td>Magma-ocean surface redox against mass, the later-mantle law and small-body building-block redox checked against first-hand sources; Na and K condensation temperatures (GEN.482)</td>
+<td>research note</td>
+</tr>
+<tr>
+<td><a href="composition/impact-erosion-and-late-delivery.html">impact-erosion-and-late-delivery.md</a></td>
+<td>Late accretion, the volatiles the impactors bring and the air they blow away, checked against the Earth, Venus and Mars (GEN.739)</td>
+<td>research note</td>
+</tr>
+<tr>
+<td><a href="composition/volatile-inventory-against-planet-totals.html">volatile-inventory-against-planet-totals.md</a></td>
+<td>The carbon and nitrogen of the rocky outgassing inventory against the totals of the Earth, Venus, Mars and Titan, and the two brackets that changed (GEN.813)</td>
+<td>research note</td>
+</tr>
+<tr>
+<td><a href="composition/atmospheric-escape-model.html">atmospheric-escape-model.md</a></td>
+<td>The thermosphere model, Jeans and diffusion-limited escape, the XUV history and the hydrodynamic mass loss of a hydrogen envelope, checked against the Earth, Venus, Mars, Titan and nine sub-Neptunes (GEN.738)</td>
+<td>research note</td>
+</tr>
+<tr>
+<td><a href="composition/clathrate-brine-wiring.html">clathrate-brine-wiring.md</a></td>
+<td>Hydrate cages in the ice skin and brine lids read by the generator (GEN.762)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/iron-branch-tuning.html">iron-branch-tuning.md</a></td>
+<td>The iron branch of a rocky planet: star-matched or iron-enriched, tuned to the homogeneous samples (GEN.512)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/giant-planet-tuning.html">giant-planet-tuning.md</a></td>
+<td>The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/brown-dwarf-types.html">brown-dwarf-types.md</a></td>
+<td>The brown-dwarf type map from the [R2374] temperature polynomials, rows g1 to g5 (GEN.517)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/aerosol-tuning.html">aerosol-tuning.md</a></td>
+<td>The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/design-flags.html">design-flags.md</a></td>
+<td>The design-flag registry for the life-linked trace gases m3, m4 and m11 (GEN.525)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/comet-composition-tuning.html">comet-composition-tuning.md</a></td>
+<td>The retune of the comet rows k1 to k5 and k7: coma class counts, CO<sub>2</sub>/H2O and CO/H2O, four single-comet species (GEN.520)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/host-activity-tuning.html">host-activity-tuning.md</a></td>
+<td>The host-star rotation track, row p6: a uniform percentile through the three published tracks, and what waits for the Mors tracks (GEN.523)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/equilibrium-chemistry.html">equilibrium-chemistry.md</a></td>
+<td>The gas-phase equilibrium module: Gibbs minimisation with the NASA polynomials, its check against an independent computation, and the pressure-dependent edges of the hot-Jupiter regimes (GEN.518)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="composition/atmosphere-composition.html">atmosphere-composition.md</a></td>
+<td>The atmosphere composition research (GEN.431): the findings that change the design and the code, the one gas and compound registry and its consumers, the sources reached and refused, and what Boss must research</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html">atmosphere-composition-parts/</a></td>
+<td>The fifteen parts behind it: <a href="composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html">gas table and thermodynamics</a>, <a href="composition/atmosphere-composition-parts/02-gas-optics-uv-visible.html">optics</a>, <a href="composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.html">infrared and greenhouse</a>, <a href="composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.html">photochemistry, lifetimes and escape</a>, <a href="composition/atmosphere-composition-parts/05-mixing-ratios-by-class.html">mixing ratios by class</a>, <a href="composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.html">condensates, clouds, hazes and dust</a>, <a href="composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.html">radiation shielding and ground sources</a>, <a href="composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.html">verification of Boss's research note, A</a> and <a href="composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.html">B</a>, <a href="composition/atmosphere-composition-parts/09-weighted-composition-tables.html">weighted composition tables</a> and the check of Boss's second note (<a href="composition/atmosphere-composition-parts/10-verification-second-note-A.html">A</a>, <a href="composition/atmosphere-composition-parts/10-verification-second-note-B.html">B</a>, <a href="composition/atmosphere-composition-parts/10-verification-second-note-C.html">C</a>, <a href="composition/atmosphere-composition-parts/10-verification-second-note-D.html">D</a> and <a href="composition/atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.html">E, the NH<sub>3</sub> lifetime</a>)</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/mixture-draw.html">mixture-draw.md</a></td>
+<td>How a body's atmosphere mixture is drawn from the regimes the possibility tables draw: the equilibrium solver over the NASA Glenn thermodynamics, the families (rocky, giant, evolved, ice, coma, lava), the stand-ins and the limits (GEN.479)</td>
+<td>design</td>
+</tr>
+<tr>
+<td><a href="composition/surface-pressure-supply-law.html">surface-pressure-supply-law.md</a></td>
+<td>How much gas a rocky body has delivered to its surface: the mantle inventory, the share degassed by the body's age from its heat release, the ocean and carbonate-silicate sinks, and the anchors (Earth, Venus) the tests keep (GEN.726)</td>
+<td>design</td>
+</tr>
+<tr>
+<td><a href="composition/body-composition-research.html">body-composition-research.md</a></td>
+<td>The body composition research (GEN.432, GEN.433): what stars, rocky and icy planets, giants, small bodies, moons and the ground are made of, the chain from the star to the derived values, the findings against the code, the five decisions, the work clusters and the invariants a test can assert</td>
+<td>study</td>
+</tr>
+<tr>
+<td><a href="composition/body-composition-parts/A-stars.html">body-composition-parts/</a></td>
+<td>The sixteen parts behind it: <a href="composition/body-composition-parts/A-stars.html">A stars and remnants</a>, <a href="composition/body-composition-parts/B-rocky.html">B rocky planets</a>, <a href="composition/body-composition-parts/C-volatile-and-giants.html">C volatile-rich worlds and giants</a>, <a href="composition/body-composition-parts/D-small-bodies-moons.html">D small bodies and moons</a>, <a href="composition/body-composition-parts/E-ground-radiogenic-shielding.html">E ground, radiogenic heat and shielding</a>, <a href="composition/body-composition-parts/F-boss-note-check.html">F check of Boss's research note</a>, <a href="composition/body-composition-parts/G1-comets.html">G1 comets and photolysis lifetimes</a>, <a href="composition/body-composition-parts/G2-radiogenic-thorngren.html">G2 radiogenic ratios and Thorngren</a>, <a href="composition/body-composition-parts/G3-magma-ocean-lava.html">G3 magma ocean and lava worlds</a>, <a href="composition/body-composition-parts/G4-ices-brines-licences.html">G4 ices, brines and licences</a>, <a href="composition/body-composition-parts/H-gen465-second-pass-tables.html">H the GEN.465 second extraction pass and the water-share result</a></td>
+<td>study</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="habitability-species-and-population">Habitability, species and population</h2>
+<p><code>habitability/</code></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+<td>The planetary habitability index (PHI-4) and the protection gear</td>
+<td>partly built (scores built, GEN.84)</td>
+</tr>
+<tr>
+<td><a href="habitability/survival-equipment-fields.html">survival-equipment-fields.md</a></td>
+<td>The survival equipment line: what a human needs on a world, as required and recommended items</td>
+<td>built (GEN.655, DB.93; chips, regional temperatures, toxic rows and dust to come)</td>
+</tr>
+<tr>
+<td><a href="habitability/day-and-night.html">day-and-night.md</a></td>
+<td>The share of the time a star is up on every planet and moon, the solar day and the hours of daylight, and the extra night a moon has in its planet's shadow</td>
+<td>built (GEN.767)</td>
+</tr>
+<tr>
+<td><a href="habitability/condition-based-planet-classes.html">condition-based-planet-classes.md</a></td>
+<td>A planet or moon's class worked out from its finished conditions (air, temperature, water, size, gravity) instead of drawn first: the rule file, the core classes, the shadow sweep and the cut-over (GEN.645 to GEN.648)</td>
+<td>partly built (class lane, 2026-10-23; the classifier, sweep and class pages are built, the cut-over waits on the composition lanes)</td>
+</tr>
+<tr>
+<td><a href="habitability/life-classes.html">life-classes.md</a></td>
+<td>The life class system: nine classes of carbon life (what each drinks, eats, breathes and gives off), the stage ladder, the gas ledger and the Life and air chart, scoring, the dominant class, storage and display (GEN.862, GEN.886 to GEN.894)</td>
+<td>design, order final (Boss, 9:20 PM EDT 2026-10-28); nothing built yet</td>
+</tr>
+<tr>
+<td><a href="habitability/life-timeline-and-oxygen.html">life-timeline-and-oxygen.md</a></td>
+<td>The life timeline (when each life stage is reached from conditions) and the free oxygen that photosynthesis puts into the air</td>
+<td>built (GEN.750, GEN.855)</td>
+</tr>
+<tr>
+<td><a href="habitability/life-class-rules.html">life-class-rules.md</a></td>
+<td>The rules the life class classifier reads (gates, windows, energy, supply per class, each number with its tier and tweak), generated from the rule file (GEN.886)</td>
+<td>generated (reference)</td>
+</tr>
+<tr>
+<td><a href="habitability/adaptation-traits.html">adaptation-traits.md</a></td>
+<td>Adaptation traits: how a body's life gets tougher against its own stress (radiation, UV, sulfide, acid, brine, heat or cold, CO<sub>2</sub>, low O<sub>2</sub>, toxins), the checked table, grades and animal caps, the draw, storage and tests (GEN.875, GEN.876)</td>
+<td>design (lane Aux 2, 2026-10-28); nothing built yet</td>
+</tr>
+<tr>
+<td><a href="habitability/atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a></td>
+<td>Atmosphere retention and class timing</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="habitability/activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a></td>
+<td>Stellar activity, magnetism, radiation dose and hydrosphere</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="habitability/population-and-politics.html">population-and-politics.md</a></td>
+<td>Species, civilizations, territories, tech levels and facilities</td>
+<td>built</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="orbits-navigation-and-courses">Orbits, navigation and courses</h2>
+<p><code>orbits/</code></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="orbits/orbital-updates.html">orbital-updates.md</a></td>
+<td>Moving things: positions, thresholds, gravity, collisions and spin</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="orbits/tidal-chain.html">tidal-chain.md</a></td>
+<td>The tide chain (GEN.842, GEN.954 to GEN.960): rheology from temperature and melt, spin torques of moons and air, moon orbit evolution and ice, in lock-free and wiring steps</td>
+<td>partly built (stage 1a, GEN.954)</td>
+</tr>
+<tr>
+<td><a href="orbits/ocean-tides.html">ocean-tides.md</a></td>
+<td>Ocean tide height and range at a world's surface from each moon and the star (GEN.1034): the equilibrium formula, the loading factor and its refusal for heavy liquids, the stand-ins</td>
+<td>module built (physics/ocean_tides.py, lock-free); columns on train 7</td>
+</tr>
+<tr>
+<td><a href="composition/nightside-collapse-model.html">nightside-collapse-model.md</a></td>
+<td>Whether the air of a tidally locked rocky planet freezes onto its night side and how much stays (GEN.1044, oddity W19): the CO<sub>2</sub> critical pressure from [R4767]'s fit, the thin-air night-side temperature, other gases by the same balance; pure module, wiring in GEN.1051.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a></td>
+<td>Kepler solvers, integrators, thresholds and the influence search</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="orbits/orbital-update-check-2026-10-18.html">orbital-update-check-2026-10-18.md</a></td>
+<td>Boss's four orbital motion update steps checked against the design, with the F1 to F5 answers</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="orbits/collisions-and-mergers.html">collisions-and-mergers.md</a></td>
+<td>How often bodies collide and how to detect it</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="orbits/navigation-frames.html">navigation-frames.md</a></td>
+<td>Nested navigation frames, bearing, mark and warp speed</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="orbits/course-routing.html">course-routing.md</a></td>
+<td>Course routing and nearby search</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="orbits/course-avoidance.html">course-avoidance.md</a></td>
+<td>Keep-out radii and path bending</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="orbits/sky-view.html">sky-view.md</a></td>
+<td>The view from a planet</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="orbits/sky-system-view.html">sky-system-view.md</a></td>
+<td>The sky behind a system in the System View: light-time, stars, glow, picking, stand-ins</td>
+<td>built (stored stars; tiers open)</td>
+</tr>
+<tr>
+<td><a href="orbits/gravity-map.html">gravity-map.md</a></td>
+<td>The field of a sector as a heat map</td>
+<td>plan (phase 3 of 9.0)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="maps-and-the-web-interface">Maps and the web interface</h2>
+<p><code>interface/</code></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="interface/admin-control-suite.html">admin-control-suite.md</a></td>
+<td>The admin control suite: research on packing many options into a quiet interface, the Settings and Generate redesign, the shell, job strip and palette, Boss's 13 answers and the items ADM.101 to ADM.123</td>
+<td>designed (in 8.1 phase 1, goal #2350)</td>
+</tr>
+<tr>
+<td><a href="interface/galaxy-drilldown-navigation.html">galaxy-drilldown-navigation.md</a></td>
+<td>The Galaxy Map's drill-down</td>
+<td>built (partly replaced by the fly-through)</td>
+</tr>
+<tr>
+<td><a href="interface/drilldown-region-sizes.html">drilldown-region-sizes.md</a></td>
+<td>Step sizes and region shapes for the drill-down</td>
+<td>built (MAP.151)</td>
+</tr>
+<tr>
+<td><a href="interface/galaxy-map-performance.html">galaxy-map-performance.md</a></td>
+<td>The Galaxy Map node path held to a budget: the MAP.249 benchmark over a synthetic 46,000-star galaxy, its numbers and where the time goes</td>
+<td>built (MAP.249)</td>
+</tr>
+<tr>
+<td><a href="interface/text-style.html">text-style.md</a></td>
+<td>The plain-words style guide for every sentence about a planet, moon, belt, star or system: short sentences, plain words, one name for a class, sentence-case labels, and the test that holds new text to it</td>
+<td>built (DOC.83)</td>
+</tr>
+<tr>
+<td><a href="interface/references.html">references.md</a></td>
+<td>Help &gt; References, the one out-of-universe section: the address scheme and link helper, the word rule and page crawl, the shell, the generator and the page tree</td>
+<td>R1 and R2 built (DOC.87, DOC.88), R3 to R8 planned</td>
+</tr>
+<tr>
+<td><a href="interface/body-rendering.html">body-rendering.md</a></td>
+<td>Rendering bodies from composition: the look record, the shared painter, solid worlds, giants, stars and phenomena, items by version</td>
+<td>approved (R1, R3, R4a built in 8.1)</td>
+</tr>
+<tr>
+<td><a href="interface/edit-everything.html">edit-everything.md</a></td>
+<td>The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="interface/roles-and-requests.html">roles-and-requests.md</a></td>
+<td>The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="interface/fly-through-view-distance.html">fly-through-view-distance.md</a></td>
+<td>The fly-through map: view distance, near field, free camera</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="interface/object-pages.html">object-pages.md</a></td>
+<td>Object pages (UX.168 to UX.178): the page of every star, planet, moon, belt and comet, the property sheet, the children API and the summary trees on the system and sector pages</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="interface/zoom-star-visibility.html">zoom-star-visibility.md</a></td>
+<td>Smoother star visibility while zooming</td>
+<td>research (superseded in part by MAP.152)</td>
+</tr>
+<tr>
+<td><a href="interface/galaxy-map-wire-format.html">galaxy-map-wire-format.md</a></td>
+<td>What the browser downloads for the map</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="interface/system-sky-wire-format.html">system-sky-wire-format.md</a></td>
+<td>What the System View downloads for its sky: the packed stars, the nebula and remnant sprites, the report, the cache (VIEW.31)</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="interface/nebula-map-visibility.html">nebula-map-visibility.md</a></td>
+<td>Making nebulae visible on the Galaxy Map</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries.md</a></td>
+<td>The map interface and front-end libraries</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="interface/3d-rendering-camera-research.html">3d-rendering-camera-research.md</a></td>
+<td>Camera proximity fading in dense 3D scenes</td>
+<td>research (background)</td>
+</tr>
+<tr>
+<td><a href="interface/settings-seo-and-accounts.html">settings-seo-and-accounts.md</a></td>
+<td>Settings, the configuration page, SEO and accounts</td>
+<td>research</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="server-queue-and-operations">Server, queue and operations</h2>
+<p><code>operations/</code></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="operations/cache-warm-up.html">cache-warm-up.md</a></td>
+<td>The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104)</td>
+<td>built (Core 2, 2026-10-16)</td>
+</tr>
+<tr>
+<td><a href="operations/one-run-per-job.html">one-run-per-job.md</a></td>
+<td>A Generate page or API job is one <code>run-job</code> process and one wrapper run over all the selected commands: the job spec, a follower list per verb, start checks in <code>prepare</code> hooks, job_runner following one run (PERF.203)</td>
+<td>design note (Aux 2, 2026-10-30), not built</td>
+</tr>
+<tr>
+<td><a href="operations/job-graph-and-memory-broker.html">job-graph-and-memory-broker.md</a></td>
+<td>Every run planned first as a sequence of commands that each do one thing, then executed: planner, job model with dependencies and spawned items, memory broker, migration stage by stage (DOC.113, OPS.122 to OPS.132)</td>
+<td>design note (approved by Boss 6:43 PM EST on 2026-11-08, build order in the note; OPS.130 built, PERF.254 built)</td>
+</tr>
+<tr>
+<td><a href="operations/logging-standard.html">logging-standard.md</a></td>
+<td>One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today</td>
+<td>partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183)</td>
+</tr>
+<tr>
+<td><a href="operations/slow-page-answers.html">slow-page-answers.md</a></td>
+<td>A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105)</td>
+<td>built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089)</td>
+</tr>
+<tr>
+<td><a href="operations/backups-and-repair.html">backups-and-repair.md</a></td>
+<td>One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9)</td>
+<td>plan</td>
+</tr>
+<tr>
+<td><a href="operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a></td>
+<td>How Redis is used and what to change (PERF.86)</td>
+<td>research (decided; being built)</td>
+</tr>
+<tr>
+<td><a href="operations/work-queue-audit.html">work-queue-audit.md</a></td>
+<td>What starts work and what moves to the queue</td>
+<td>built (replaced in part by PERF.86)</td>
+</tr>
+<tr>
+<td><a href="operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a></td>
+<td>Progress estimates, the job queue and caching</td>
+<td>research (queue under redo)</td>
+</tr>
+<tr>
+<td><a href="operations/slow-reads-and-timeouts.html">slow-reads-and-timeouts.md</a></td>
+<td>Keeping slow database reads inside the time limit</td>
+<td>mostly built</td>
+</tr>
+<tr>
+<td><a href="operations/db-check-and-parity-repair.html">db-check-and-parity-repair.md</a></td>
+<td>Database check, parity repair and long migrations</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="operations/ops-scheduling-and-rotation.html">ops-scheduling-and-rotation.md</a></td>
+<td>Apache reload, daily maintenance and locks</td>
+<td>partly built</td>
+</tr>
+<tr>
+<td><a href="operations/api-design-standards.html">api-design-standards.md</a></td>
+<td>API versions, key scopes, uploads and logging</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="operations/login-brute-force-protection.html">login-brute-force-protection.md</a></td>
+<td>Login lockouts and two-factor sign-in</td>
+<td>built</td>
+</tr>
+<tr>
+<td><a href="operations/test-suite-rebuild.html">test-suite-rebuild.md</a></td>
+<td>The faster, modular test suite</td>
+<td>partly built (stages 1 to 4)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="research-sources-and-gap-filling">Research, sources and gap filling</h2>
+<p><code>research/</code>: source checks, the gap-filling plan and the papers to fetch.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>What it covers</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="research/gap-filling-plan.html">gap-filling-plan.md</a></td>
+<td>How the open gaps are filled where the public record is silent: the 57 gaps with a derived, bracketed, theory or placeholder fill, the stand-in registry convention, the first Gemini batch (unverified) and the work order</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/captured-moon-sources.html">captured-moon-sources.md</a></td>
+<td>The sourced head counts, size laws, capture probabilities and Kozai gap of the irregular moons of the four giants (GEN.1075), with the corrections to the captured asteroid moons design</td>
+<td>built (report; registry rows CM1 to CM16)</td>
+</tr>
+<tr>
+<td><a href="research/oddity-rates.html">oddity-rates.md</a></td>
+<td>The sourced rates and thresholds of the weird worlds oddities W3, W4, W5, W10, W14, W15 and W20 (GEN.1037), with the three that changed and the gates</td>
+<td>built (table; rates read from papers)</td>
+</tr>
+<tr>
+<td><a href="research/interstellar-field-sources.html">interstellar-field-sources.md</a></td>
+<td>What the sources say for the interstellar asteroid field modules (GEN.1098): collision speed window, unbound mass share, supernova belt share (registry rows IF1 to IF12)</td>
+<td>built (read report)</td>
+</tr>
+<tr>
+<td><a href="research/rogue-ejection-kick.html">rogue-ejection-kick.md</a></td>
+<td>Ejection speed of a rogue against scatterer mass and distance (about 3 km/s x sqrt(Jupiter masses / AU)), moon survival, direction statistics (GEN.1113)</td>
+<td>built (read report; rows RK1, RK3 to RK8)</td>
+</tr>
+<tr>
+<td><a href="research/rogue-planet-review.html">rogue-planet-review.md</a></td>
+<td>GEN.1109: what each rogue-planet quantity is (physics, sourced stand-in or flat rate), what the architecture ejects per star against microlensing, and the replacement items</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/data-catalog.html">data-catalog.md</a></td>
+<td>Every dataset and table the project already holds, ranked by usefulness: the six setup downloads, the data held only in the project files, the repo tables and the stand-in registry, with the TODO items each could serve; required reading before hand-tuning a number</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/wiring-register.html">wiring-register.md</a></td>
+<td>The wiring register of the guard GEN.754: every lock-free module, dataset reader, data file and registry row nothing reads yet, with the open TODO item that will wire it; <code>python scripts/wiring_guard.py --check</code> fails when one is missing</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/burn-down-register.html">burn-down-register.md</a></td>
+<td>GEN.946 step 1: a disposition (replace with a derivation, source, keep as registered stand-in) for each L3 and L4 row of the stand-in registry, with the item that does it</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/stand-in-values.html">stand-in-values.md</a></td>
+<td>Every stand-in value with its source tier (T1 to T9) and tweak level (L0 to L4), generated from the registry of the gap-filling plan (GEN.725)</td>
+<td>generated (reference)</td>
+</tr>
+<tr>
+<td><a href="research/evidence-register.html">evidence-register.md</a></td>
+<td>GEN.1428: the evidence status of each stand-in row (observed in a planet, observed in a lab, predicted only, or disputed), with a note of what the source saw</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/papers-to-fetch.html">papers-to-fetch.md</a></td>
+<td>The papers behind refused publishers that Boss downloads himself, and the arXiv papers a research thread reads instead, with Crossref citations (gap-filling plan section 8, GEN.531)</td>
+<td>reference</td>
+</tr>
+<tr>
+<td><a href="research/vizier-courteau-comeron.html">vizier-courteau-comeron.md</a></td>
+<td>The VizieR search for the [R0908] scatter (GR5) and the Comeron thick-disc tables (GR3): the [R0865] fit, the raw Vc/sigma0 scatter and the corrected references</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/gemini-batch1-check.html">gemini-batch1-check.md</a></td>
+<td>The claim-by-claim check of Gemini batch 1 (51 claims) against read sources, the figures that can be used and the requests it answers</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/boss-papers-2026-10-17.html">boss-papers-2026-10-17.md</a></td>
+<td>What Boss's 28 uploaded papers fill in the gap plan, what stays open, where they contradict our files and the printing faults found</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/open-gaps-closest-laws-2026-10-17.html">open-gaps-closest-laws-2026-10-17.md</a></td>
+<td>Every open gap (64 lines) with the nearest law or model, where to look, the free tool, the stand-in quality and the deciding rule; the citation errors found</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/ad1-methane-sources-check-2026-10-17.html">ad1-methane-sources-check-2026-10-17.md</a></td>
+<td>AD1: where the free methane absorption data is (Oxford k-tables from [R2265], PDS volume gbat_0001), what is still open (ammonia, water) and the corrections to the pasted source note</td>
+<td>research</td>
+</tr>
+<tr>
+<td><a href="research/imported/atmospheric-toxicity.html">Atmospheric Toxicity</a>, <a href="research/imported/chemical-habitability.html">Chemical Habitability</a>, <a href="research/imported/exoplanetary-habitability.html">Exoplanetary Habitability</a>, <a href="research/imported/naturally-occuring-ionizing-radiation.html">Naturally Occuring Ionizing Radiation</a></td>
+<td>habitability and atmosphere notes</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/planetary-habitability-index.html">Planetary Habitability Index</a>, <a href="research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.html">Mathematical and Algorithmic Implementation of the Planetary Habitability Index</a>, <a href="research/imported/planetary-habitability-and-speculative-xenobiology.html">Planetary Habitability and Speculative Xenobiology</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/speculative-xenobiology-examples.html">Speculative Xenobiology Examples</a>, <a href="research/imported/speculative-xenobiology-extremes.html">Speculative Xenobiology Extremes</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/environmental-extremes-and-protection-research.html">Environmental.Extremes.and.Protection.Research</a>, <a href="research/imported/thermal-respiratory-protection-research.html">Thermal.Respiratory.Protection.Research</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/computational-astrodynamics.html">Computational Astrodynamics</a>, <a href="research/imported/observational-kinetics-for-rotational-vectors.html">Observational Kinetics for Rotational Vectors</a></td>
+<td><a href="orbits/orbital-updates.html">orbital-updates.md</a> and related</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/orbital-position-and-vector-mathematical-foundations.html">Orbital Position and Vector Mathematical Foundations</a>, <a href="research/imported/orbital-position-and-vector-update-algorithms.html">Orbital Position and Vector Update Algorithms</a>, <a href="research/imported/orbital-update-collision-detection.html">Orbital Update Collision Detection</a>, <a href="research/imported/orbital-update-full-algorithm.html">Orbital Update Full Algorithm</a></td>
+<td><a href="orbits/orbital-updates.html">orbital-updates.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/star-trek-anomalies-and-science.html">Star Trek Anomalies and Science</a>, <a href="research/imported/star-trek-anomaly-probabilities.html">Star Trek Anomaly Probabilities</a></td>
+<td><a href="systems/anomalies.html">anomalies.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/technological-assessment.html">Technological Assessment</a></td>
+<td><a href="habitability/population-and-politics.html">population-and-politics.md</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="research/imported/library-migration-workflow.html">Library Migration Workflow</a>, <a href="research/imported/web-ux-development-notes.html">Web UX Development Notes</a>, <a href="research/imported/web-ux-and-job-management-guide.html">Web UX and Job Management Guide</a></td>
+<td><a href="architecture/library-migration.html">library-migration.md</a> and related</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="imported-research">Imported research</h3>
+<p><code>research/imported/</code> holds Boss's own research documents, kept as received (content untouched; the file names are lower-case with hyphens). Each starts with a banner linking the notes above that use it. They say what Boss researched, not what planetGen does.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="research/imported/atmospheric-toxicity.html">Atmospheric Toxicity</a>, <a href="research/imported/chemical-habitability.html">Chemical Habitability</a>, <a href="research/imported/exoplanetary-habitability.html">Exoplanetary Habitability</a>, <a href="research/imported/naturally-occuring-ionizing-radiation.html">Naturally Occuring Ionizing Radiation</a></td>
+<td>habitability and atmosphere notes</td>
+</tr>
+<tr>
+<td><a href="research/imported/planetary-habitability-index.html">Planetary Habitability Index</a>, <a href="research/imported/mathematical-and-algorithmic-implementation-of-the-planetary-habitability-index.html">Mathematical and Algorithmic Implementation of the Planetary Habitability Index</a>, <a href="research/imported/planetary-habitability-and-speculative-xenobiology.html">Planetary Habitability and Speculative Xenobiology</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/speculative-xenobiology-examples.html">Speculative Xenobiology Examples</a>, <a href="research/imported/speculative-xenobiology-extremes.html">Speculative Xenobiology Extremes</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/environmental-extremes-and-protection-research.html">Environmental.Extremes.and.Protection.Research</a>, <a href="research/imported/thermal-respiratory-protection-research.html">Thermal.Respiratory.Protection.Research</a></td>
+<td><a href="habitability/habitability-index.html">habitability-index.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/computational-astrodynamics.html">Computational Astrodynamics</a>, <a href="research/imported/observational-kinetics-for-rotational-vectors.html">Observational Kinetics for Rotational Vectors</a></td>
+<td><a href="orbits/orbital-updates.html">orbital-updates.md</a> and related</td>
+</tr>
+<tr>
+<td><a href="research/imported/orbital-position-and-vector-mathematical-foundations.html">Orbital Position and Vector Mathematical Foundations</a>, <a href="research/imported/orbital-position-and-vector-update-algorithms.html">Orbital Position and Vector Update Algorithms</a>, <a href="research/imported/orbital-update-collision-detection.html">Orbital Update Collision Detection</a>, <a href="research/imported/orbital-update-full-algorithm.html">Orbital Update Full Algorithm</a></td>
+<td><a href="orbits/orbital-updates.html">orbital-updates.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/star-trek-anomalies-and-science.html">Star Trek Anomalies and Science</a>, <a href="research/imported/star-trek-anomaly-probabilities.html">Star Trek Anomaly Probabilities</a></td>
+<td><a href="systems/anomalies.html">anomalies.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/technological-assessment.html">Technological Assessment</a></td>
+<td><a href="habitability/population-and-politics.html">population-and-politics.md</a></td>
+</tr>
+<tr>
+<td><a href="research/imported/library-migration-workflow.html">Library Migration Workflow</a>, <a href="research/imported/web-ux-development-notes.html">Web UX Development Notes</a>, <a href="research/imported/web-ux-and-job-management-guide.html">Web UX and Job Management Guide</a></td>
+<td><a href="architecture/library-migration.html">library-migration.md</a> and related</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="archive">Archive</h2>
+<p>Replaced designs and finished reviews are in <a href="https://github.com/dwhagar/planetGen/tree/main/docs/archive">../archive/</a>: <a href="../archive/galaxy-coordinate-system-shells.html">galaxy-coordinate-system-shells.md</a>, <a href="../archive/galaxy-disk-density-rev2.html">galaxy-disk-density-rev2.md</a>, <a href="../archive/galaxy-coordinate-system-cylinder.html">galaxy-coordinate-system-cylinder.md</a> and <a href="../archive/habitability-atmosphere-sanity-review.html">habitability-atmosphere-sanity-review.md</a>. They are history.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

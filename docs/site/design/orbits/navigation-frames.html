@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigation reference frames - planetGen docs</title>
+<meta name="description" content="Status (2026-10-15): built: the warp curve (NAV.2, 7.8.0, #121), bearing and mark on nested frames (NAV.1, 7.14.0, #130) and the squeezed heliopause (7.39.0).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/navigation-frames.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/navigation-frames.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="navigation-reference-frames">Navigation reference frames</h1><p class="meta">docs/design/orbits/navigation-frames.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#frame-hierarchy-and-reference-planes">Frame hierarchy and reference planes</a></li><li style="margin-left:0px"><a href="#mathematical-model">Mathematical model</a></li><li style="margin-left:0px"><a href="#implementation-pseudocode">Implementation pseudocode</a></li><li style="margin-left:0px"><a href="#frame-transition-rules">Frame transition rules</a></li><li style="margin-left:0px"><a href="#travel-speeds">Travel speeds</a></li><li style="margin-left:0px"><a href="#why-it-works-this-way">Why it works this way</a></li><li style="margin-left:14px"><a href="#alternatives-not-taken">Alternatives not taken</a></li></ul></details>
+<p><strong>Status (2026-10-15):</strong> built: the warp curve (NAV.2, 7.8.0, #121), bearing and mark on nested frames (NAV.1, 7.14.0, #130) and the squeezed heliopause (7.39.0).</p>
+<p>Boss's design for nested navigation frames, recorded 2026-09-30 (NAV.1
+and NAV.2). Built in versions 7.8.0 (warp curve) and 7.14.0 (bearing
+and mark on nested frames), plus the squeezed heliopause in 7.39.0.
+Implemented in <code>planetgen/galaxy/navigation.py</code>:
+<code>course_between</code> is Boss's <code>compute_course</code> below, <code>format_course</code> writes
+&quot;000 mark 000&quot;, and <code>warp_speed_c</code>/<code>fold_speed_c</code> are the travel speeds.
+Later releases changed how a course is picked and shown, not the frames:
+the Sector Map's Nav from/to links and pick mode (7.58.0) and the course
+drawn on the Galaxy Map (7.52.0); see <code>galaxy-drilldown-navigation.md</code>,
+section 9. UX.13's unit ladder for speeds (<code>format_speed_kms</code>,
+<code>static/speed.js</code>, built) changed how warp and fold speeds are written,
+not their values. How a route between two
+systems is found, the planned change to no hop limit with unknown-space jumps
+flagged, the measured routing and spatial-index research, and the &quot;what is
+within N pc&quot; search are in <a href="course-routing.html">course-routing.md</a>; how a hop is
+bent around gravity wells and asteroid fields is in
+<a href="course-avoidance.html">course-avoidance.md</a>. A stop in an unfilled sector (a
+scattered star, black hole, neutron star or quasar used as a stop on an
+unknown-space jump, NAV.47) has no sector row, so a course to or from it is
+worked out in the Galactic Standard Frame.</p>
+<p>Decisions Boss approved on 2026-09-30:</p>
+<ul>
+<li>Mark is the elevation mod 360: 000-090 is up, 270-359 is down (270 is
+straight down), and nothing between 091 and 269 appears.</li>
+<li>0 mark 0 points toward the current frame's center (the galactic core
+between sectors, the sector's center inside one).</li>
+<li>The quasar sits at the galactic center, so it can't set the zero
+meridian; +X stays the galaxy's existing axis (ring slot 0). It is only
+used as North's fallback when the ship sits on the frame's up axis.</li>
+</ul>
+<p>How NAV picks the frame (<code>queryDb.nav_between</code>): two systems in the same
+sector use the Sector Local Frame, centered on the sector's center (the
+origin of sector-local positions); anything else uses the Galactic
+Standard Frame. East is North x Up, as below, so with North toward the
+core and Up galactic north, East runs clockwise seen from above. NAV
+endpoints are whole systems and phenomena, so a course always leaves the
+heliopause and the System Local Frame is never chosen yet; <code>course_between</code>
+takes a center and up vector for when in-system navigation exists.</p>
+<p>The heliopause that bounds the System Local Frame is each system's own,
+not a fixed 120 AU: <code>queryDb.system_detail</code> returns it as <code>heliopause_au</code>,
+pressed in by the nebula or supernova remnant the system sits inside
+(<code>starData.compressed_heliosphere_radius</code>; well under 1 AU in a dense
+cloud), with <code>heliopause_open_space_au</code> alongside.</p>
+<p>The design below is Boss's text as given.</p>
+<p>Course projections are written as <code>0-359 mark 0-359</code>, with 0 mark 0
+pointing toward the galactic core.</p>
+<hr />
+<p>To revamp the coordinate hierarchy where &quot;North&quot; dynamically points
+toward the local dominant center of mass (the central star in a system,
+the sector core in a sector, and the galactic nucleus between sectors),
+the navigation architecture requires a <strong>nested hierarchical reference
+frame</strong>.</p>
+<p>Instead of rotating absolute space, every local frame is defined as a
+rigid transformation (translation + rotation) derived from an absolute
+Cartesian standard.</p>
+<h2 id="frame-hierarchy-and-reference-planes">Frame hierarchy and reference planes</h2>
+<ol>
+<li><strong>Galactic Standard Frame (GSF):</strong>
+<ul>
+<li><strong>Origin (<span class="math">\(O_{\text{gal}}\)</span>):</strong> Galactic Core (Sagittarius A*), $(0, 0, 0)$.</li>
+<li><strong>Plane:</strong> Invariable plane of the galactic disk.</li>
+<li><strong>Orientation:</strong> <span class="math">\(+Z_{\text{gal}}\)</span> points toward Galactic North
+(perpendicular to disk), <span class="math">\(+X_{\text{gal}}\)</span> points along an arbitrary
+zero-meridian (e.g., standard baseline toward a reference quasar),
+and <span class="math">\(+Y_{\text{gal}} = Z_{\text{gal}} \times X_{\text{gal}}\)</span>.</li>
+<li><strong>Inter-Sector Course &quot;North&quot;:</strong> Bearing <span class="math">\(000\)</span> points directly at
+<span class="math">\(O_{\text{gal}}\)</span>.</li>
+</ul>
+</li>
+<li><strong>Sector Local Frame (SLF):</strong>
+<ul>
+<li><strong>Origin (<span class="math">\(O_{\text{sec}}\)</span>):</strong> Barycenter of a cubic/spherical
+sector cell (<span class="math">\(\sim 4\text{ pc}\)</span> on a side or arc length).</li>
+<li><strong>Orientation (&quot;Sector North&quot;):</strong> <span class="math">\(+X_{\text{sec}}\)</span> points directly
+from the ship toward <span class="math">\(O_{\text{sec}}\)</span>.</li>
+<li><strong>Plane:</strong> Aligned parallel to the galactic plane
+(<span class="math">\(+Z_{\text{sec}} = +Z_{\text{gal}}\)</span>).</li>
+</ul>
+</li>
+<li><strong>System Local Frame (SysLF):</strong>
+<ul>
+<li><strong>Origin (<span class="math">\(O_{\text{sys}}\)</span>):</strong> Central Star / Stellar Barycenter.</li>
+<li><strong>Orientation (&quot;System North&quot;):</strong> At any point <span class="math">\(\vec{P}\)</span>, the local
+horizontal &quot;North&quot; vector points directly from <span class="math">\(\vec{P}\)</span> inward
+toward <span class="math">\(O_{\text{sys}}\)</span>.</li>
+<li><strong>Plane:</strong> System invariable (ecliptic) plane, with
+<span class="math">\(+Z_{\text{sys}}\)</span> aligned with the star's net angular momentum
+vector.</li>
+</ul>
+</li>
+</ol>
+<h2 id="mathematical-model">Mathematical model</h2>
+<p>Every navigation bearing consists of a vector <span class="math">\(\vec{D}\)</span> pointing toward
+the destination:</p>
+<p><span class="math display">\[\vec{D} = \vec{P}_{\text{target}} - \vec{P}_{\text{ship}}\]</span></p>
+<p>To compute <code>Bearing (Yaw)</code> and <code>Mark (Pitch)</code> in any frame:</p>
+<ol>
+<li>
+<p>Define the local orthonormal basis <span class="math">\(\{\hat{N}, \hat{E}, \hat{U}\}\)</span>:</p>
+<ul>
+<li>
+<p><strong>Up (<span class="math">\(\hat{U}\)</span>):</strong> Unit normal to the operational reference plane
+(e.g., stellar spin axis <span class="math">\(\hat{\omega}_{\text{star}}\)</span> or Galactic
+$+Z$).</p>
+</li>
+<li>
+<p><strong>Inward Radial (<span class="math">\(\hat{R}_{\text{in}}\)</span>):</strong> Directed toward the
+center <span class="math">\(O_{\text{center}}\)</span>:</p>
+<p><span class="math display">\[\vec{r} = O_{\text{center}} - \vec{P}_{\text{ship}}, \quad \vec{r}_{xy} = \vec{r} - (\vec{r} \cdot \hat{U})\hat{U}, \quad \hat{N} = \frac{\vec{r}_{xy}}{\Vert\vec{r}_{xy}\Vert}\]</span></p>
+<p><span class="math">\(\hat{N}\)</span> is the instantaneous local horizontal North.</p>
+</li>
+<li>
+<p><strong>East (<span class="math">\(\hat{E}\)</span>):</strong> Orthogonal horizontal vector matching the
+right-hand rule: <span class="math">\(\hat{E} = \hat{N} \times \hat{U}\)</span></p>
+</li>
+</ul>
+</li>
+<li>
+<p>Project target displacement <span class="math">\(\vec{D}\)</span> into this local basis:</p>
+<p><span class="math display">\[D_N = \vec{D} \cdot \hat{N}, \quad D_E = \vec{D} \cdot \hat{E}, \quad D_U = \vec{D} \cdot \hat{U}\]</span></p>
+</li>
+<li>
+<p>Calculate spherical angles:</p>
+<ul>
+<li><strong>Horizontal Bearing (<span class="math">\(\theta\)</span>):</strong> <span class="math">\(\theta = \text{atan2}(D_E, D_N)\)</span>,
+normalized to <span class="math">\([0^\circ, 360^\circ)\)</span> where <span class="math">\(000^\circ\)</span> is North
+toward the center and <span class="math">\(090^\circ\)</span> is East.</li>
+<li><strong>Vertical Angle / Mark (<span class="math">\(\phi\)</span>):</strong>
+<span class="math">\(\phi = \text{atan2}\left(D_U, \sqrt{D_N^2 + D_E^2}\right)\)</span>, ranging
+from <span class="math">\(-90^\circ\)</span> straight down to <span class="math">\(+90^\circ\)</span> straight up, or
+expressed as <span class="math">\([0^\circ, 360^\circ)\)</span> where <span class="math">\(270^\circ = -90^\circ\)</span>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="implementation-pseudocode">Implementation pseudocode</h2>
+<pre><code class="language-python">import math
+
+class Vector3:
+    def __init__(self, x, y, z):
+        self.x, self.y, self.z = float(x), float(y), float(z)
+
+    def __sub__(self, other):
+        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def dot(self, other):
+        return self.x * other.x + self.y * other.y + self.z * other.z
+
+    def cross(self, other):
+        return Vector3(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x
+        )
+
+    def magnitude(self):
+        return math.sqrt(self.dot(self))
+
+    def normalize(self):
+        mag = self.magnitude()
+        if mag == 0:
+            return Vector3(0, 0, 0)
+        return Vector3(self.x / mag, self.y / mag, self.z / mag)
+
+
+class CelestialFrame:
+    SYSTEM = &quot;SYSTEM&quot;
+    SECTOR = &quot;SECTOR&quot;
+    GALACTIC = &quot;GALACTIC&quot;
+
+
+def compute_course(ship_pos_gal, target_pos_gal, frame_type, frame_center_gal, plane_up_gal=Vector3(0, 0, 1)):
+    &quot;&quot;&quot;
+    Computes (bearing, mark, distance) where:
+    - Bearing 000 is horizontal 'North' (toward frame_center_gal)
+    - Bearing 090 is 'East'
+    - Mark is vertical elevation (+90 = straight up, -90 = straight down)
+    All input coordinates are absolute Galactic Standard Frame (GSF) vectors.
+    &quot;&quot;&quot;
+    # 1. Target vector relative to ship
+    displacement = target_pos_gal - ship_pos_gal
+    distance = displacement.magnitude()
+    if distance == 0:
+        return {&quot;bearing&quot;: 0.0, &quot;mark&quot;: 0.0, &quot;distance&quot;: 0.0}
+
+    # 2. Establish Up Vector (normal to reference plane)
+    u_hat = plane_up_gal.normalize()
+
+    # 3. Vector from ship toward the frame center (Star, Sector Core, or Galactic Core)
+    to_center = frame_center_gal - ship_pos_gal
+
+    # Flatten 'to_center' against the reference plane to establish Horizontal North
+    radial_proj = to_center - Vector3(u_hat.x * to_center.dot(u_hat),
+                                     u_hat.y * to_center.dot(u_hat),
+                                     u_hat.z * to_center.dot(u_hat))
+
+    # Singularity handling: directly over center pole
+    if radial_proj.magnitude() &lt; 1e-9:
+        # Fallback arbitrary reference vector if ship is directly on the z-axis
+        fallback = Vector3(1, 0, 0)
+        radial_proj = fallback - Vector3(u_hat.x * fallback.dot(u_hat),
+                                         u_hat.y * fallback.dot(u_hat),
+                                         u_hat.z * fallback.dot(u_hat))
+
+    n_hat = radial_proj.normalize()      # North (Inward toward center)
+    e_hat = n_hat.cross(u_hat).normalize() # East (Right-handed horizontal)
+
+    # 4. Project displacement vector into (North, East, Up) local basis
+    d_north = displacement.dot(n_hat)
+    d_east  = displacement.dot(e_hat)
+    d_up    = displacement.dot(u_hat)
+
+    # 5. Calculate Bearing (Yaw) and Mark (Pitch)
+    horizontal_dist = math.sqrt(d_north**2 + d_east**2)
+
+    # Heading around plane: 0 deg = North, 90 deg = East
+    bearing_rad = math.atan2(d_east, d_north)
+    bearing_deg = math.degrees(bearing_rad) % 360.0
+
+    # Mark: Elevation above/below plane (-90 to +90)
+    mark_rad = math.atan2(d_up, horizontal_dist)
+    mark_deg = math.degrees(mark_rad)
+
+    return {
+        &quot;frame&quot;: frame_type,
+        &quot;bearing&quot;: round(bearing_deg, 6),
+        &quot;mark&quot;: round(mark_deg, 6),
+        &quot;distance&quot;: distance
+    }
+</code></pre>
+<h2 id="frame-transition-rules">Frame transition rules</h2>
+<ul>
+<li><strong>System Departure to Sector Space:</strong> When a vessel exits the
+heliopause (<span class="math">\(\approx 120\text{ AU}\)</span>), the navigational computer
+automatically hands off the reference center from the primary star to
+the sector barycenter (<span class="math">\(O_{\text{sec}}\)</span>).</li>
+<li><strong>Cross-Sector Transit:</strong> When navigating across sector boundaries
+(<span class="math">\(&gt;4\text{ pc}\)</span>), the navigation console toggles to Galactic Standard
+Frame, setting North toward Sagittarius A* ($0, 0, 0$).</li>
+</ul>
+<h2 id="travel-speeds">Travel speeds</h2>
+<ul>
+<li>Warp factor <span class="math">\(w\)</span>: speed in c
+<span class="math">\(= w^{10/3} + \frac{1}{1 + e^{-9.3575(w - 9.5)}} \left( \frac{198.9}{(10 - w)^{0.75}} + 1721.7 - w^{10/3} \right)\)</span></li>
+<li>Dimensional fold factor <span class="math">\(F\)</span>: speed in c <span class="math">\(= \frac{6F^4}{10 - F}\)</span></li>
+</ul>
+<p>Every coefficient is a named constant in <code>program_constants</code> (<code>WARP_*</code>
+and <code>FOLD_*</code>), and <code>src/tests/test_navigation.py</code> pins these values
+(1 ly per 365.25 days at 1c; 1 kpc = 3,261.56 ly):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th style="text-align:right">Warp</th>
+<th style="text-align:right">Speed (c)</th>
+<th style="text-align:right">ly/day</th>
+<th style="text-align:right">Days per ly</th>
+<th style="text-align:right">Days per kpc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1.0</td>
+<td style="text-align:right">0.003</td>
+<td style="text-align:right">365.25</td>
+<td style="text-align:right">1,191,286</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td style="text-align:right">10.1</td>
+<td style="text-align:right">0.028</td>
+<td style="text-align:right">36.24</td>
+<td style="text-align:right">118,191</td>
+</tr>
+<tr>
+<td style="text-align:right">4</td>
+<td style="text-align:right">101.6</td>
+<td style="text-align:right">0.278</td>
+<td style="text-align:right">3.60</td>
+<td style="text-align:right">11,726</td>
+</tr>
+<tr>
+<td style="text-align:right">8</td>
+<td style="text-align:right">1,024.0</td>
+<td style="text-align:right">2.804</td>
+<td style="text-align:right">0.357</td>
+<td style="text-align:right">1,163</td>
+</tr>
+<tr>
+<td style="text-align:right">9</td>
+<td style="text-align:right">1,520.1</td>
+<td style="text-align:right">4.162</td>
+<td style="text-align:right">0.240</td>
+<td style="text-align:right">784</td>
+</tr>
+<tr>
+<td style="text-align:right">9.5</td>
+<td style="text-align:right">1,936.0</td>
+<td style="text-align:right">5.301</td>
+<td style="text-align:right">0.189</td>
+<td style="text-align:right">615</td>
+</tr>
+<tr>
+<td style="text-align:right">9.9</td>
+<td style="text-align:right">2,822.7</td>
+<td style="text-align:right">7.728</td>
+<td style="text-align:right">0.129</td>
+<td style="text-align:right">422</td>
+</tr>
+<tr>
+<td style="text-align:right">9.995</td>
+<td style="text-align:right">12,201.9</td>
+<td style="text-align:right">33.41</td>
+<td style="text-align:right">0.030</td>
+<td style="text-align:right">98</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table"><table>
+<thead>
+<tr>
+<th style="text-align:right">Fold</th>
+<th style="text-align:right">Speed (c)</th>
+<th style="text-align:right">ly/day</th>
+<th style="text-align:right">Days per ly</th>
+<th style="text-align:right">Days per kpc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">4</td>
+<td style="text-align:right">256.0</td>
+<td style="text-align:right">0.701</td>
+<td style="text-align:right">1.43</td>
+<td style="text-align:right">4,653</td>
+</tr>
+<tr>
+<td style="text-align:right">5</td>
+<td style="text-align:right">750.0</td>
+<td style="text-align:right">2.053</td>
+<td style="text-align:right">0.487</td>
+<td style="text-align:right">1,588</td>
+</tr>
+<tr>
+<td style="text-align:right">6</td>
+<td style="text-align:right">1,944.0</td>
+<td style="text-align:right">5.322</td>
+<td style="text-align:right">0.188</td>
+<td style="text-align:right">613</td>
+</tr>
+<tr>
+<td style="text-align:right">6.5</td>
+<td style="text-align:right">3,060.1</td>
+<td style="text-align:right">8.378</td>
+<td style="text-align:right">0.119</td>
+<td style="text-align:right">389</td>
+</tr>
+<tr>
+<td style="text-align:right">7</td>
+<td style="text-align:right">4,802.0</td>
+<td style="text-align:right">13.15</td>
+<td style="text-align:right">0.076</td>
+<td style="text-align:right">248</td>
+</tr>
+<tr>
+<td style="text-align:right">7.5</td>
+<td style="text-align:right">7,593.8</td>
+<td style="text-align:right">20.79</td>
+<td style="text-align:right">0.048</td>
+<td style="text-align:right">157</td>
+</tr>
+<tr>
+<td style="text-align:right">8</td>
+<td style="text-align:right">12,288.0</td>
+<td style="text-align:right">33.64</td>
+<td style="text-align:right">0.030</td>
+<td style="text-align:right">97</td>
+</tr>
+<tr>
+<td style="text-align:right">8.5</td>
+<td style="text-align:right">20,880.2</td>
+<td style="text-align:right">57.17</td>
+<td style="text-align:right">0.017</td>
+<td style="text-align:right">57</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="why-it-works-this-way">Why it works this way</h2>
+<ul>
+<li><strong>North points at the frame's center.</strong> Boss's design: &quot;North&quot; points
+toward the local dominant center of mass, so a course reads the same way
+wherever the ship is, and &quot;0 mark 0&quot; always means &quot;toward the center&quot;.
+The code follows the design text above; the choice itself is Boss's and no
+further reason is recorded.</li>
+<li><strong>Mark as elevation mod 360.</strong> Approved by Boss on 2026-09-30 (the list at
+the top). It keeps both numbers in the familiar 000-359 form.</li>
+<li><strong>+X stays the zero meridian.</strong> The quasar sits at the galactic center, so
+it cannot define a direction from the center; ring slot 0's axis was
+already the grid's zero, so nothing had to move.</li>
+<li><strong>Only two frames are chosen today.</strong> NAV endpoints are whole systems and
+phenomena, so every course leaves a heliopause. <code>course_between</code> already
+takes a center and up vector so in-system navigation can use the System
+Local Frame later.</li>
+<li><strong>A per-system heliopause instead of 120 AU.</strong> Boss's text names about
+120 AU; the code uses each system's own heliopause, pressed in by any cloud
+it sits in (7.39.0), because inside a dense cloud the real edge can be
+under 1 AU.</li>
+<li><strong>Every speed coefficient a named constant, pinned by tests.</strong> So the
+tables Boss supplied stay exact (commit 2823354; CHANGELOG 7.8.0). The
+earlier plain <code>w^(10/3)</code> warp curve was replaced by Boss's formula, which
+matches it up to about warp 9 and then climbs toward warp 10. No other
+reason is recorded.</li>
+</ul>
+<h3 id="alternatives-not-taken">Alternatives not taken</h3>
+<ul>
+<li>Azimuth and altitude (the NAV output before 7.14.0): replaced by bearing
+and mark.</li>
+<li>A reference quasar as the zero meridian: impossible with the quasar at
+the center.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

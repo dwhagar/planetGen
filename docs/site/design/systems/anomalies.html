@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anomalies for the starmap - planetGen docs</title>
+<meta name="description" content="Which anomalies from the two Star Trek documents Boss uploaded are worth adding to the starmap, each with its real-science basis, rate, placement and how it is drawn, plus the conversion from those documents&#x27; 20 light-year sectors to thi...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/anomalies.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/anomalies.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="anomalies-for-the-starmap">Anomalies for the starmap</h1><p class="meta">docs/design/systems/anomalies.md</p><details class="toc"><summary>On this page (20 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#what-to-carry-over-from-the-two-documents-and-what-is-superseded">What to carry over from the two documents, and what is superseded</a></li><li style="margin-left:0px"><a href="#errors-found-in-the-two-documents">Errors found in the two documents</a></li><li style="margin-left:0px"><a href="#from-20-ly-sectors-to-4-pc-sectors">From 20 ly sectors to 4 pc sectors</a></li><li style="margin-left:0px"><a href="#phenomenon-by-phenomenon">Phenomenon by phenomenon</a></li><li style="margin-left:0px"><a href="#per-kind-parameters-drawing-and-effects-tier-1-and-2">Per-kind parameters, drawing and effects (Tier 1 and 2)</a></li><li style="margin-left:14px"><a href="#magnetar-tier-1">Magnetar (Tier 1)</a></li><li style="margin-left:14px"><a href="#einstein-radius-numbers-tier-1">Einstein radius numbers (Tier 1)</a></li><li style="margin-left:14px"><a href="#wolf-rayet-bubble-tier-2">Wolf-Rayet bubble (Tier 2)</a></li><li style="margin-left:14px"><a href="#superbubble--local-bubble-cavity-tier-2">Superbubble / Local Bubble cavity (Tier 2)</a></li><li style="margin-left:14px"><a href="#jets-tier-2">Jets (Tier 2)</a></li><li style="margin-left:14px"><a href="#symbiotic-binary-tier-2">Symbiotic binary (Tier 2)</a></li><li style="margin-left:14px"><a href="#radiation-hazard-tier-2">Radiation hazard (Tier 2)</a></li><li style="margin-left:0px"><a href="#tier-3-and-the-lore-question">Tier 3 and the lore question</a></li><li style="margin-left:0px"><a href="#placement-by-population-the-gen103-rule-set">Placement by population (the GEN.103 rule set)</a></li><li style="margin-left:0px"><a href="#how-it-fits-the-code">How it fits the code</a></li><li style="margin-left:0px"><a href="#ranked-list-and-pr-order-one-pr-per-kind">Ranked list and PR order (one PR per kind)</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Which anomalies from the two Star Trek documents Boss uploaded are worth adding to the starmap, each with its real-science basis, rate, placement and how it is drawn, plus the conversion from those documents' 20 light-year sectors to this program's 4 pc sectors and the errors found in them. The two sources are <code>Star Trek Anomalies and Science.md</code> and <code>Star Trek Anomaly Probabilities.md</code> in this folder (not edited); the asteroid field and belt render plan is in <a href="nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>.</p>
+<p>Informs: GEN.113, GEN.114, GEN.103, GEN.47, MAP.132, GEN.104, GEN.128, GEN.129, GEN.130</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [S] seen in a search result (URLs under Sources), [C] computed, [R] recalled and unconfirmed. The research environment could read search-result text only, not the papers; the [R] items are listed under Evidence notes.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Boss (2026-10-07 11:47Z): &quot;Two additional files have been added, but these are part of adding more anomalies to the starmap so it'll be probably Phase 2 and 3 just to analyze those.&quot; GEN.113 asks for a list of anomalies worth adding, each with real-science basis, rate, placement and how it is drawn, reviewed by Boss, noting the documents' 20 ly sectors against our 4 pc (about 13 ly) sectors. GEN.114 adds the chosen ones, one kind per PR.</li>
+<li>Nothing has been chosen yet. The tiers below are a proposal.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>The documents' rates are per 20 ly cube (8,000 ly^3). Our sector is a 4 pc cell: 13.05 ly edge, 64 pc^3 = 2,220 ly^3, which is 0.2776 of the documents' volume [C]. Point-like objects (black holes, magnetars, anything much smaller than a sector) take the documents' probability times 0.2776; extended objects (nebulae, bubbles, radius above about 10 ly) have a per-sector probability equal to the volume filling factor, which does not change with sector size. The documents mix the two. Details in &quot;From 20 ly sectors to 4 pc sectors&quot;.</li>
+<li>Real science covers only a few of the classes, and fewer fit the data model cheaply. Everything in the &quot;subspace&quot; family (rifts, tears, interphase, sandbars, Omega, anti-time, implosion rings) has no physical basis and is a lore decision for Boss.</li>
+<li>Tier 1 (add now, real, cheap): magnetars as a subtype of the existing neutron star, about 30 to 300 active in the galaxy, placed with the young population; Einstein radius shown on black hole, neutron star and rogue planet pages; correcting the pulsar fraction of neutron stars, now 70% (<code>NEUTRON_STAR_PULSAR_CHANCE</code>) against about 1e-4 to 1e-3 real.</li>
+<li>Tier 2: Wolf-Rayet stars with their ring bubbles, a superbubble (&quot;Local Bubble&quot;) cavity field beside <code>nebula_field</code>, drawn jets after GEN.104 gives spin axes, symbiotic binaries inside GEN.128 to GEN.130, a derived radiation-hazard score, and a Fermi-bubble overlay on the Galaxy Map.</li>
+<li>Tier 3 (skip, or a lore decision): all subspace anomalies, cosmic strings (&quot;quantum filaments&quot;), wormholes, the Dark Matter Anomaly as an object, dark matter nebulae, Thorne-Zytkow objects, quark stars, red novae, gamma-ray bursts, fast radio bursts, the Great Attractor and the Bootes void.</li>
+<li>Rate flag outside the documents: GEN.47's molecular cloud field fills 3% to 46% of volume against 0.5% to 1% observed (see <a href="nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>, &quot;The molecular cloud field&quot;).</li>
+</ul>
+<h2 id="what-to-carry-over-from-the-two-documents-and-what-is-superseded">What to carry over from the two documents, and what is superseded</h2>
+<p>Still valid, and used below:</p>
+<ul>
+<li>The Poisson form <code>P = 1 - exp(-lambda)</code> with <code>lambda = V * rho * K</code> (Probabilities, &quot;Sector Baseline&quot;). The project already uses it per star (<code>phenomenon_rate_per_star</code>, <a href="interstellar-object-rates.html">interstellar-object-rates.md</a>).</li>
+<li>The split between &quot;pure scientific&quot; and &quot;lore-adjusted&quot; probability, and the idea of a per-kind multiplier (kept as a per-kind <code>K_lore</code>, default 0, for fiction kinds only).</li>
+<li>Latitude scaling of gas-related anomalies with distance from the plane (Probabilities, &quot;Sector Modifier Modulations&quot;): kept in spirit, but the project's disk density model (<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>) and <code>nebula_field.gas_factor</code> already do it.</li>
+<li>Physics sections: the Alcubierre energy density is negative, so the weak energy condition is violated [R]; the straight cosmic string metric <code>ds^2 = -c^2 dt^2 + dz^2 + dr^2 + (1 - 4G mu/c^2)^2 r^2 dphi^2</code> with deficit angle <code>8 pi G mu / c^2</code>, no Newtonian pull and double images without magnification; the Kerr ergosphere radius <code>r = GM/c^2 + sqrt((GM/c^2)^2 - a^2 cos^2 theta)</code> and tidal force across a body <code>F ~ 2 G M m L / r^3</code>; Beer-Lambert sensor extinction <code>I = I0 exp(-integral sigma rho ds)</code>. These are correct standard results. The extinction law is what <code>NEBULA_CLASSES</code> A_V ranges already express; the string and Kerr formulas are background for the Tier 3 notes.</li>
+<li>Real-world nebula types in the catalog table: emission nebulae are lit by hot young stars and ionized, dust clouds absorb, which maps onto classes C to G and M to Q. &quot;Mutara&quot; and &quot;Paulson&quot; style dust clouds map to dark classes M to N with a high A_V; &quot;Class 11 / sirillium&quot; and &quot;ionite&quot; are lore composition tags, not placement logic (see Tier 3). Crab Nebula, Veil Nebula and Coalsack are listed in the document among emission and stellar-nursery nebulae, but the Crab is a supernova remnant with a pulsar wind nebula (class T or U), the Veil an old remnant (class V) and the Coalsack a dark cloud (class N) [R].</li>
+</ul>
+<p>Superseded or not adopted:</p>
+<ul>
+<li>The 20 ly sector and its &quot;6 to 10 star systems&quot;: replaced by the 4 pc sector (see errors).</li>
+<li>A global narrative multiplier <code>K_lore</code> on real kinds: not adopted (below).</li>
+<li>The path model <code>lambda_path = A_sensor L rho_sector</code>: not adopted; course avoidance is NAV.51 and keep-out, and the sensor-sweep area depends on a sensor model that does not exist. A 1 to 3 ly sensor radius sweeps only 1.8% to 17% of a 13 ly sector's volume on one traverse [C], so it could not use a per-sector rate in any case.</li>
+<li>The game-engine blueprint (voxel grid, vector field engine, ship physics layer, shear damage, FTL speed cap, sirillium ignition cascade, the translation matrix): the program is a generator and map with course planning, with no ship damage or sensor-lock simulation. Nothing in the repository reads those formulas, so none is adopted.</li>
+<li>The probability table's numbers: replaced by the table in &quot;Phenomenon by phenomenon&quot;.</li>
+</ul>
+<h2 id="errors-found-in-the-two-documents">Errors found in the two documents</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Check</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A sector is 8,000 ly^3 and holds 6 to 10 star systems</td>
+<td>8,000 ly^3 = 230.6 pc^3; at 0.10 to 0.14 stars/pc^3 that is 23 to 32 stars [C]</td>
+<td>Wrong by 3 to 4 times. 6 to 10 matches our 64 pc^3 sector (6.4 to 9 stars).</td>
+</tr>
+<tr>
+<td>Black holes: 1e8 in 1e12 ly^3, &quot;0.08%&quot; per sector</td>
+<td>1e8 * 8,000 / 1e12 = 0.8, not 0.0008 [C]. The real disk is about 7e11 pc^3 = 2.4e13 ly^3, so 3.3% per 20 ly sector at the galaxy average, 0.9% per 4 pc sector [C]</td>
+<td>Arithmetic and volume both wrong. The &quot;lore&quot; 1 to 2% is not an inflation of the science; the generator's 0.9% per 4 pc sector (<code>black-hole</code> 1.4e-4 pc^-3 * 64) is already above the lore value once converted (1 to 2% * 0.2776 = 0.28 to 0.55%).</td>
+</tr>
+<tr>
+<td>Gas nebulae fill 1 to 2% of the disk</td>
+<td>Molecular clouds: about 0.5% (inner Galaxy), about 1% (disk, from 8,107 clouds of 30 pc radius) [S/C]. Hot ionized gas fills more but is not a nebula</td>
+<td>Upper end optimistic for clouds; fine for all nebulae only if H II and planetary are added, which are far smaller.</td>
+</tr>
+<tr>
+<td>Ion and plasma storms, f_V 0.2 to 0.3</td>
+<td>The warm ionized medium fills roughly 0.2 to 0.5 of the disk [R]</td>
+<td>The volume is plausible but it is neither a storm nor a hazard; no ship feels the warm ionized medium.</td>
+</tr>
+<tr>
+<td>Cosmic string mu about 1e18 kg/m</td>
+<td>G mu / c^2 = 7.4e-10 [C]. PPTA limit 5.1e-10, NANOGrav-based 5.3e-11 [S]. GUT-scale strings (G mu 1e-6, mu 1.3e21 kg/m [C]) are excluded 1e4 times over</td>
+<td>Already excluded by pulsar timing.</td>
+</tr>
+<tr>
+<td>Quantum filament &quot;shears hulls by tidal shear from the deficit angle&quot;</td>
+<td>A straight cosmic string is locally flat: the deficit angle gives lensing and a conical geometry, no tidal force [R, follows from the metric the document writes down]</td>
+<td>Physically wrong; at most a lore hazard.</td>
+</tr>
+<tr>
+<td>String &quot;hundreds of metres long&quot;</td>
+<td>With that mu a 100 m loop radiates its energy in about 9 s (Gamma = 50 [R]) and would have a mass of 1e20 kg [C]</td>
+<td>Cannot be a persistent object.</td>
+</tr>
+<tr>
+<td>DMA ergosphere &quot;up to 12 AU&quot; shears planets and ships</td>
+<td>An ergosphere of 12 AU needs M = 6.1e8 solar masses, 140 times Sgr A* (4.3e6 [R]); tidal acceleration across a 100 m ship at 12 AU is 2.8e-6 m/s^2 [C]. Tidal damage at the horizon grows as 1/M^2</td>
+<td>Backwards: a supermassive hole is gentle. Stellar-mass holes are the dangerous ones: 10 solar masses gives 2.7e5 m/s^2 across 100 m at 1,000 km [C].</td>
+</tr>
+<tr>
+<td>Alcubierre energy density written with <code>rho</code> for both density and radius</td>
+<td>In the standard form the factor is <code>(y^2 + z^2)</code>, not <code>rho^2</code> [R]</td>
+<td>Notation clash only.</td>
+</tr>
+<tr>
+<td>Lore table applied per sector</td>
+<td>Over 2.1e10 sectors in the default galaxy [S: CHANGELOG] the lore rates imply 3 to 5 billion nebulae, 2 to 3 billion plasma storms, 1e8 to 6e8 rifts and 2e7 to 1e8 topological defects in one galaxy [C]</td>
+<td>The lore column is a per-encounter number, not a population. Lazy generation hides the totals.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="from-20-ly-sectors-to-4-pc-sectors">From 20 ly sectors to 4 pc sectors</h2>
+<ul>
+<li>Volume ratio: (4 pc = 13.046 ly)^3 / 20^3 = 2,220.5 / 8,000 = <strong>0.2776</strong> [C]. Inverse 3.60.</li>
+<li>Point-like or small objects (radius under about 1 ly: black holes, magnetars, neutron stars, Wolf-Rayet stars, symbiotic systems, jet sources): the Poisson mean scales with volume, <code>lambda_4pc = 0.2776 * lambda_20ly</code>, <code>P = 1 - exp(-lambda)</code>.</li>
+<li>Extended objects (radius at least a sector, 10 ly and up: nebulae, superbubbles, any &quot;region&quot; anomaly): the chance a random point is inside is the filling factor f_V whatever the sector size. A sector touches an object if its centre is within <code>r + half the cell diagonal</code> (<code>_db.sectors_reached_by</code>, the test <code>nebula_field</code> uses): <code>P_touch = n * (4/3) pi (r + 0.87 e)^3</code> with e = 4 pc. For r above 20 pc this is about <code>f_V (1 + 0.13 e/r)^3</code>, so take it as f_V.</li>
+<li>Per-star scaling is the project's own method: a rate quoted per 20 ly sector is first turned into a density per pc^3 (divide by 230.6 pc^3) and then into a per-star rate (divide by 0.14). Never multiply by 0.2776 and add the result to a per-star rate.</li>
+<li>Lore multiplier: if Boss wants one, make it a per-kind multiplier on Tier 3 kinds only, default 0, shown in the admin report like <code>PHENOMENON_RATE_SCALE</code>. Do not apply a global <code>K_lore</code> to real kinds: after conversion the real rates are at or above the documents' lore values (black holes 0.9% against 0.28 to 0.55%; neutron stars 4.5% per sector; terrestrial rogues about 50 per sector).</li>
+</ul>
+<p>Converted rows of the documents' probability table:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Documents' class</th>
+<th>Documents' pure-science probability</th>
+<th>Per 4 pc sector</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gas nebulae (emission, dark, planetary)</td>
+<td>1 to 2% (f_V)</td>
+<td>1 to 2% (f_V, unchanged)</td>
+<td>the project's dark-cloud field is at 13% on arms; observed about 1%</td>
+</tr>
+<tr>
+<td>Volatile chemical nebulae</td>
+<td>about 0.1% (f_V)</td>
+<td>unchanged</td>
+<td>a composition tag, no placement</td>
+</tr>
+<tr>
+<td>Ion and plasma storms</td>
+<td>20 to 30%</td>
+<td>not an object</td>
+<td>the warm ionized medium; see radiation hazard</td>
+</tr>
+<tr>
+<td>Singularities (black holes)</td>
+<td>&quot;0.08%&quot; (computed wrongly)</td>
+<td>0.9% at the galaxy average, 0.9% at local density</td>
+<td>generator already at this value</td>
+</tr>
+<tr>
+<td>Subspace rifts and tears</td>
+<td>0%</td>
+<td>0</td>
+<td>lore; depends on warp traffic the project does not model</td>
+</tr>
+<tr>
+<td>Topological defects</td>
+<td>under 0.0001%</td>
+<td>about 1e-17 pc of string per sector [C]</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Catastrophic (Omega, anti-time)</td>
+<td>0%</td>
+<td>0</td>
+<td>lore</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phenomenon-by-phenomenon">Phenomenon by phenomenon</h2>
+<p>Counts are whole-galaxy; &quot;per sector&quot; is the mean over the 2.1e10 qualifying sectors [S: CHANGELOG] using the 7e11 pc^3 disk of <a href="interstellar-object-rates.html">interstellar-object-rates.md</a> [C]. Placement rules decide where a real kind actually goes.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phenomenon (docs' class)</th>
+<th>Real basis</th>
+<th>Count in the Milky Way</th>
+<th>Per sector (mean)</th>
+<th>Fits a 4 pc sector?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Magnetar</strong> (not in the documents; nearest to &quot;particle fountain&quot; and FRB lore)</td>
+<td>Neutron stars with B about 1e14 to 1e15 G, spin 2 to 12 s, active about 1e4 yr [R]. Birth rate 0.1 to 6 per century [S]</td>
+<td>17 expected (Gill and Heyl) up to a few hundred; about 30 known [R]</td>
+<td>1e-9 to 1e-8 [C]</td>
+<td>Yes, a point object</td>
+</tr>
+<tr>
+<td><strong>Radio pulsar</strong></td>
+<td>Spinning beamed neutron stars; density model n ~ R^2.35 exp(-R/1530 pc) exp(-abs(z)/300 pc) [S]; beaming about 21% for young ones [S]</td>
+<td>tens of thousands beamed; young about 3,400 [S]; total active about 1e5 to 1.6e5 [R]</td>
+<td>2e-6 to 8e-6 [C]</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Wormhole</strong> (&quot;spatial displacement&quot;)</td>
+<td>Morris-Thorne: needs exotic matter violating the null energy condition [S]; no detection</td>
+<td>0 observed</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><strong>Cosmic string</strong> (&quot;quantum filament&quot;)</td>
+<td>Not observed; G mu below 1.3e-7 (CMB), 5.1e-10 (PPTA), 5.3e-11 (NANOGrav-based) [S]</td>
+<td>expected string length in the Galaxy about 4e-7 pc [C]</td>
+<td>about 1e-17 pc of string [C]</td>
+<td>no map object</td>
+</tr>
+<tr>
+<td><strong>Void</strong> (&quot;cosmic void boundaries&quot;)</td>
+<td>Bootes void about 330 Mly across [S]; voids hold about 40% of volume [S]</td>
+<td>n/a inside one galaxy</td>
+<td>n/a</td>
+<td>no; the galaxy-scale analogue is the Local Bubble, 100 to 200 pc, n_e about 0.005 cm^-3, hot [S]; simulated superbubble filling about 12% [S]</td>
+</tr>
+<tr>
+<td><strong>Dark matter halo / &quot;nebula&quot;</strong></td>
+<td>Local density 0.4 to 0.6 GeV/cm^3 = 0.011 to 0.016 Msun/pc^3 [S]</td>
+<td>about 1e12 Msun [R]</td>
+<td>0.5 to 1.0 Msun per 4 pc sector [C]</td>
+<td>smooth background only; collisionless, no drag</td>
+</tr>
+<tr>
+<td><strong>Gravitational lens / Einstein ring</strong></td>
+<td><code>R_E = sqrt(4GM/c^2 * D_L D_LS / D_S)</code>: 10 Msun at 100 pc, source at 8 kpc: 2.8 AU [C]; 1 Msun at 2 pc: 0.13 AU [C]; bulge optical depth about 1.75e-6 [S]</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>an effect of existing objects, not an object</td>
+</tr>
+<tr>
+<td><strong>Stellar merger / red nova</strong></td>
+<td>Merger rate 0.5/yr (M_V &lt; -3), 0.1/yr (brighter than V1309 Sco), 0.03/yr (V838 Mon) [S, [R2406]]; ZTF finds the bright end 5 to 100 times lower [S]</td>
+<td>transient</td>
+<td>about 5e-12 per sector per year [C]</td>
+<td>a transient</td>
+</tr>
+<tr>
+<td><strong>Symbiotic star</strong></td>
+<td>White dwarf with red giant; about 300 known [S]; estimates 1.2e3 to 1.5e4, 5.3e4, 3e5 [S]</td>
+<td>1e3 to 3e5</td>
+<td>5e-8 to 1.4e-5</td>
+<td>Yes, a binary subtype</td>
+</tr>
+<tr>
+<td><strong>Quasar / AGN jet</strong></td>
+<td>The existing quasar kind; Fermi bubbles about 50 degrees, about 8 kpc [R]</td>
+<td>1</td>
+<td>n/a</td>
+<td>exists at ring 0</td>
+</tr>
+<tr>
+<td><strong>Microquasar / particle fountain</strong></td>
+<td>SS 433: precessing jets at 0.26 c, 162.3 d period [S]; several dozen known, perhaps 100 to 1,000 [S/R]</td>
+<td>1e2 to 1e3</td>
+<td>5e-9 to 5e-8 [C]</td>
+<td>jet 0.1 to 10s of pc spans sectors</td>
+</tr>
+<tr>
+<td><strong>Protostellar jet / Herbig-Haro</strong></td>
+<td>Up to 150,000 in the Galaxy (estimate) [S]</td>
+<td>about 1e5</td>
+<td>5e-6 [C]</td>
+<td>Yes, inside class Q cores (already named in class Q)</td>
+</tr>
+<tr>
+<td><strong>Wolf-Rayet star and bubble</strong></td>
+<td>642 known, 1,200 +/- 100 expected [S]; ring nebulae 1 to 70 pc across, NGC 6888 7.6 x 5.0 pc [S]</td>
+<td>1,200</td>
+<td>5.7e-8 [C]</td>
+<td>star yes; bubble 2 to 35 pc radius spans sectors. <strong>Built (GEN.243):</strong> a state of massive stars and nebula class X, not a rate; see <a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.11 and &quot;Wolf-Rayet stars and the ring nebula&quot; in <a href="interstellar-object-rates.html">interstellar-object-rates.md</a></td>
+</tr>
+<tr>
+<td><strong>Thorne-Zytkow object</strong></td>
+<td>Neutron star inside a supergiant; predicted 20 to 200 [S]; HV 2112 disputed, none confirmed</td>
+<td>20 to 200</td>
+<td>1e-9 to 1e-8</td>
+<td>as a star</td>
+</tr>
+<tr>
+<td><strong>Quark / strange star</strong></td>
+<td>Hypothetical, no candidate [R]</td>
+<td>unknown</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><strong>Fast radio burst</strong></td>
+<td>Galactic magnetar SGR 1935+2154 burst in 2020; 0.0036 to 0.8 per magnetar per year [S]</td>
+<td>transient</td>
+<td>n/a</td>
+<td>a flag on a magnetar</td>
+</tr>
+<tr>
+<td><strong>GRB</strong></td>
+<td>Long GRB local rate 0.7 to 1.3 Gpc^-3 yr^-1; Milky Way 1e-6 to 3e-4 per year [S]</td>
+<td>transient</td>
+<td>about 1e-14 per sector per year [C]</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong>Supernova precursor / LBV</strong></td>
+<td>Eta Carinae-like events about 0.094 (0.04 to 0.21) of the core-collapse rate [S]; Galactic core-collapse rate 1.9 +/- 1.1 per century [S]</td>
+<td>transient</td>
+<td>n/a</td>
+<td>a star-type flag</td>
+</tr>
+<tr>
+<td><strong>Great Attractor</strong></td>
+<td>About 150 to 250 Mly away [R]</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>no; at most a line of flavour text</td>
+</tr>
+<tr>
+<td><strong>Intergalactic stars</strong></td>
+<td>Unbound stars exist only in clusters; the nearest analogues are the halo and hypervelocity stars (partly modelled)</td>
+<td>halo about 1e9 Msun [R]</td>
+<td>n/a</td>
+<td>yes, halo above the plane</td>
+</tr>
+<tr>
+<td><strong>Rogue objects</strong></td>
+<td>Built: rogue planets, brown dwarfs, comets</td>
+<td>see <a href="interstellar-object-rates.html">interstellar-object-rates.md</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Ion / plasma / proton storms</strong></td>
+<td>Stellar flares and CMEs, the warm ionized medium, supernova shock fronts, cosmic-ray overdensities; no &quot;storm&quot; at interstellar scale</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>a derived hazard of existing objects</td>
+</tr>
+</tbody>
+</table></div>
+<p>Notes on the less obvious rows.</p>
+<ul>
+<li><strong>Magnetar numbers.</strong> Active count equals birth rate times active lifetime: 0.1 to 6 per century [S] and about 1e4 yr [R] give 10 to 600, matching the 17-object figure at the low end. A magnetar older than about 1e5 yr has decayed to an ordinary high-field neutron star. A generator rule that needs no new table: a neutron star younger than 1e4 yr with a 10% birth probability (1 to 10% [S]; a 2026 preprint's &quot;about half&quot; is provisional [S]) is an active magnetar.</li>
+<li><strong>Pulsar fraction.</strong> The project has about 5e8 isolated neutron stars (7e-4 pc^-3 * 7e11 pc^3) and <code>NEUTRON_STAR_PULSAR_CHANCE = 0.7</code>. With about 1e5 beamed radio pulsars [R/S] the active fraction is about 1e-4 to 1e-3 [C]. Radio activity ends after about 1e7 yr [R]; isolated neutron stars average a few Gyr. The 30% millisecond share (<code>PULSAR_MILLISECOND_CHANCE</code>) needs accretion from a companion, which an isolated star lacks (recycled pulsars that later lose the companion exist [R]). Suggested rule: pulsing probability <code>exp(-age / 1e7 yr)</code> with a floor for recycled pulsars in binaries (GEN.128 on).</li>
+<li><strong>Gravitational lensing</strong> is not an object; the physical Einstein radius of every compact object is a number the pages can show (1 to 10 AU for a stellar-mass hole at 100 pc to 1 kpc [C]). A ring cannot be drawn at sector scale because the angular radius is below 0.5 arcsec for most sources.</li>
+<li><strong>Voids.</strong> The existing zero-density sectors (GEN.102) are the galaxy's edge, not voids.</li>
+<li><strong>Dark matter nebulae.</strong> Dark matter does not clump on 10 ly scales and exerts no drag [R]. A 100 ly &quot;nebula&quot; at local density holds about 1,200 Msun over 1.2e5 pc^3 [C], which is the background.</li>
+</ul>
+<h2 id="per-kind-parameters-drawing-and-effects-tier-1-and-2">Per-kind parameters, drawing and effects (Tier 1 and 2)</h2>
+<h3 id="magnetar-tier-1">Magnetar (Tier 1)</h3>
+<ul>
+<li>Data: a subtype of <code>neutron-star</code> (<code>phenomenon_scatter</code> rows already carry <code>subtype</code>; <code>SCATTERED_KINDS</code> appends new kinds last so earlier draws stay unchanged). B log-uniform 1e14 to 1e15 G (existing young pulsars use 1e11 to 1e13, <code>PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG</code>), P 2 to 12 s, age 1e3 to 1e4 yr, a supernova remnant companion row when younger than about 3e4 yr, a cosmetic <code>fast_radio_burst_active</code> flag on a few percent.</li>
+<li>Rate: about 100 over the galaxy (range 30 to 300), weighted by the young-star density with arm contrast (<code>nebula_field.gas_factor</code> is the nearest existing weight), not by total density. Per star that is about 3e-10 [C], so <code>phenomenon_rate_per_star</code> needs a young-population weight; the generic per-star form would put them in the old bulge.</li>
+<li>Drawing: the Sector Map reuses the <code>neutronStar</code> recipe in <code>sectorscene.js</code> with a thin outer ring (<code>#9fb8ff</code>; <code>#b59cff</code> is taken by rogue planets) and glow <code>{power 1.0, strength 2.6, scale 1.5}</code>; the page view in <code>phenomenonrender.js</code> is the neutron star with a dipole field-line pair; the Galaxy Map gets a MAP.132 marker glyph.</li>
+<li>Effect: a giant flare of about 1e46 erg delivers 8.4e7 erg/cm^2 at 1 pc, 8.4e5 at 10 pc, 8.4e3 at 100 pc, 84 at 1 kpc and about 1 at 8.7 kpc [C], matching the 2004 SGR 1806-20 flare reaching Earth at about 1 erg/cm^2 [R]. The damage threshold for an atmosphere is unconfirmed, so keep it a flag (&quot;within 10 pc of an active magnetar&quot;) feeding the habitability radiation term, not a ship hazard.</li>
+</ul>
+<h3 id="einstein-radius-numbers-tier-1">Einstein radius numbers (Tier 1)</h3>
+<p>Derived from mass and distance, nothing stored. Show &quot;Einstein radius against the galactic centre (AU)&quot; on black hole, neutron star, rogue planet and quasar pages: <code>R_E = sqrt(4GM/c^2 * d * (1 - d/D_S))</code>.</p>
+<h3 id="wolf-rayet-bubble-tier-2">Wolf-Rayet bubble (Tier 2)</h3>
+<p><strong>Built (GEN.243).</strong> The design is in <a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.11; what the build does:</p>
+<ul>
+<li><strong>The star is a state, not a scattered kind.</strong> <code>physics/wolf_rayet.py</code>: a star of at least 25 solar masses at the Sun's metallicity (the threshold rises as Z^-0.5: 35 at half, 56 at a fifth) is a Wolf-Rayet star for the last 0.3 Myr of its life (never more than half its supergiant window), in the place of the end of the supergiant window in <code>stellar_evolution.evolve_star</code>. It has yerkes class <code>W</code>, a present mass that is its track's and a luminosity that follows that mass by the helium-star relation of MIST's Wolf-Rayet rows, cut at 1e5 to 3e6 solar (GEN.939), a temperature uniform over its subtype's range (WN 30,000 to 100,000 K, WC 40,000 to 120,000 K, WO 150,000 to 200,000 K), a subtype by the share of the phase gone (WN 60%, WC 30%, WO 10%, WO only from 40 solar masses) and a spectral text such as <code>WN6 Blue Wolf-Rayet Star</code>. The bright and mass passes draw the state with the other massive stars, so there is no rate of its own: the count follows from the star formation history (about 1,180 in a Milky Way-like disk against the 1,200 expected), and a population too old for massive stars (halo, clusters, bulge, old satellites) has none.</li>
+<li><strong>Companions.</strong> <code>tuning.WR_COMPANION_CHANCE</code>: 0.52 of WN stars and 0.90 of WC and WO stars have one (a Wolf-Rayet star's own chance of a companion, <code>wolf_rayet.companion_chance</code> read by the system builder; the <code>wolf-rayet-binary</code> row of the phenomena catalogue).</li>
+<li><strong>The bubble is nebula class X</strong>, &quot;Wolf-Rayet ring nebula&quot;: family <code>emission</code>, a thin swept-up shell of ionized hydrogen and helium around a hollow interior, radius 6.5 to 114 ly (2 to 35 pc), density 10 to 1,000 per cm3, 8,000 to 12,000 K, drawn with the existing <code>nebula_shape</code> mesh. It is <code>host_only</code>: only a Wolf-Rayet star lights one, so a nebula drawn with no host is never X (<code>FREE_CLASS_LETTERS</code>). The host rule <code>(&quot;W&quot;, 0, 9, (&quot;X&quot;,), 0.4)</code> in <code>NEBULA_HOST_RULES</code> rolls it from the star (the same roll for a pre-placed star and one made in a fill, <code>nebula_contents.hosted_seed</code>) and the host may be at most 10 Myr old (<code>NEBULA_CLASS_MAX_AGE_MYR[&quot;X&quot;]</code>). The star at its centre is a real system made with the nebula.</li>
+</ul>
+<h3 id="superbubble--local-bubble-cavity-tier-2">Superbubble / Local Bubble cavity (Tier 2)</h3>
+<p>A seeded field like <code>nebula_field</code>, cell 50 pc, radius 50 to 500 pc; inside, the dark-cloud probability is zero and an &quot;ionised, 1e6 K&quot; tag applies. Fill is about 10% of the disk [S, simulation]; the Sun's real position inside such a bubble [S] is a calibration point. Drawn as a faint thin shell on the Galaxy Map only. It also gives the lever for the over-full cloud field (zero clouds inside).</p>
+<h3 id="jets-tier-2">Jets (Tier 2)</h3>
+<p>Protostellar (class Q cores): length 0.05 to 1 pc. Microquasar: 1 to 100 pc, SS 433's 0.26 c and 162 d precession [S]. Pulsar jets. Parameters need a spin axis (GEN.104). Drawn as two opposed elongated glow sprites along the axis; no gameplay effect beyond a keep-out cone.</p>
+<h3 id="symbiotic-binary-tier-2">Symbiotic binary (Tier 2)</h3>
+<p>A subtype of the wide-binary or compact-primary designs (GEN.128 to GEN.130): white dwarf with red giant at 1 to 10 AU, period 200 to 1,000 days, an outburst flag, a small circumbinary nebula. Rate per sector 5e-8 to 1.4e-5; use 1e-6 per system and flag the range as unsettled.</p>
+<h3 id="radiation-hazard-tier-2">Radiation hazard (Tier 2)</h3>
+<p>Not an object: a number per sector and system from flare-star class, distance to OB and Wolf-Rayet stars, supernova remnants and active magnetars. It replaces the documents' &quot;ion storms&quot; and ties to <code>Naturally Occuring Ionizing Radiation.md</code>. It is also the clean place for MAP.132's marker overlay (same budget and toggle).</p>
+<h2 id="tier-3-and-the-lore-question">Tier 3 and the lore question</h2>
+<p>What remains is lore fiction: spatial implosions, distortion rings, subspace rifts, tears, fissures, interphase pockets, sandbars, Omega destabilization, anti-time eruptions, graviton ellipses, &quot;particle fountains&quot; in the documents' sense, the DMA, Class 11 sirillium nebulae, ionite and dichromic nebulae, dark matter nebulae. If Boss wants any:</p>
+<ul>
+<li>Do not call them physics. One new <code>lore-anomaly</code> kind with a <code>subtype</code>, per-kind <code>K_lore</code> default 0, off in the Generate page unless enabled, flagged &quot;fiction&quot; on the page.</li>
+<li>Rifts and tears depend on warp traffic and former war zones; the project has no traffic or war model, so any placement rule is arbitrary.</li>
+<li>The DMA as an object duplicates the quasar and black hole kinds; a <code>subtype</code> <code>artificial</code> on <code>black-hole</code> would do.</li>
+<li>Sirillium and similar chemistry could be a composition tag on existing molecular cloud classes with no placement logic.</li>
+</ul>
+<h2 id="placement-by-population-the-gen103-rule-set">Placement by population (the GEN.103 rule set)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Follows</th>
+<th>Kinds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Young thin disk and arms</td>
+<td>young-star density with arm contrast (<code>nebula_field.gas_factor</code>)</td>
+<td>O, B and Wolf-Rayet stars, magnetars, giant molecular clouds, supernova remnants, class Q cores, protostellar jets</td>
+</tr>
+<tr>
+<td>Thin disk, kick-inflated scale height</td>
+<td>thin-disk density, older objects thicker</td>
+<td>pulsars, isolated neutron stars, open clusters (about a thousand known [R])</td>
+</tr>
+<tr>
+<td>Bulge and thick disk</td>
+<td>bulge and thick-disk density</td>
+<td>symbiotic stars, white dwarfs, low-mass X-ray binaries, old binaries</td>
+</tr>
+<tr>
+<td>Halo</td>
+<td>halo profile</td>
+<td>globular clusters (about 150 [R]), the stellar halo (about 1e9 Msun [R])</td>
+</tr>
+<tr>
+<td>Between arms, where supernovae are dense</td>
+<td></td>
+<td>Local Bubble style cavities</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>phenomenon_scatter</code> draw is weighted by total stellar density per ring and angle bin (<code>kind_mean</code>). Young-population kinds need the young-star density; old-population kinds need the bulge and thick-disk density.</p>
+<h2 id="how-it-fits-the-code">How it fits the code</h2>
+<ul>
+<li>New objects go through <code>tuning.PHENOMENON_DENSITY_PC3</code>, <code>phenomenon_scatter.SCATTERED_KINDS</code> (append only), <code>objectId.KIND_CODES</code> (codes 12 to 63 are free), the <code>queryDb</code> readers, the class pages (<code>classref</code>) and the galaxy-map marker set. A subtype avoids a new kind and a new ID code: magnetars, symbiotic stars and the artificial black hole can all be subtypes.</li>
+<li>MAP.132 already plans markers for black holes, nebulae and habitable worlds with a per-kind toggle (MAP.123) inside MAP.116's budget; the new kinds join that list instead of a second overlay system.</li>
+</ul>
+<h2 id="ranked-list-and-pr-order-one-pr-per-kind">Ranked list and PR order (one PR per kind)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tier</th>
+<th>Item</th>
+<th>Why</th>
+<th>Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>Magnetar subtype of neutron star and the age-dependent pulsar fraction</td>
+<td>real, about 100 objects, existing table and scatter</td>
+<td>a young-population weight for the scatter</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>Einstein radius on compact-object pages</td>
+<td>display only, no storage</td>
+<td>none</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>Wolf-Rayet class and ring bubble</td>
+<td>real, spans sectors through the nebula machinery. <strong>Built (GEN.243)</strong></td>
+<td>W class in the star model (built)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>Superbubble cavity field</td>
+<td>calibrates GEN.47; zero clouds inside</td>
+<td>the <code>nebula_field</code> pattern</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2</td>
+<td>Jets as drawn features</td>
+<td>cheap draw</td>
+<td>GEN.104 spin axis</td>
+</tr>
+<tr>
+<td>6</td>
+<td>2</td>
+<td>Symbiotic binaries</td>
+<td>real binary subtype</td>
+<td>GEN.128 to GEN.130</td>
+</tr>
+<tr>
+<td>7</td>
+<td>2</td>
+<td>Radiation-hazard score and MAP.132 markers for the new kinds</td>
+<td>one derived field, one marker set</td>
+<td>items 1, 3</td>
+</tr>
+<tr>
+<td>8</td>
+<td>2</td>
+<td>Fermi-bubble overlay on the Galaxy Map</td>
+<td>draw only</td>
+<td>none</td>
+</tr>
+<tr>
+<td>9</td>
+<td>3</td>
+<td><code>lore-anomaly</code> kind, <code>K_lore</code> 0 by default</td>
+<td>only if Boss wants lore</td>
+<td>Boss decision</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[R] claims to check once arXiv and Wikipedia are reachable:</p>
+<ul>
+<li>About 30 known magnetars, the 1e4 yr active lifetime, B 1e14 to 1e15 G, P 2 to 12 s, three Galactic giant flares since 1979, 1e46 erg flare energy, one magnetar near Sgr A*.</li>
+<li>Pulsar death after about 1e7 yr, 1e5 to 1.6e5 total radio pulsars (ATNF count not confirmed by search), isolated millisecond pulsars.</li>
+<li>Sgr A* mass 4.3e6 Msun; Gamma = 50 for loop decay; the cosmic-string scaling network (xi = 10, arithmetic of the research draft).</li>
+<li>Warm ionized medium filling 0.2 to 0.5; stellar halo about 1e9 Msun; about 150 globular clusters; about 1,300 open clusters; Fermi bubbles about 50 degrees and 8 kpc; Great Attractor distance; dark matter halo total; the giant flare fluence at Earth.</li>
+<li>The Alcubierre <code>(y^2 + z^2)</code> form, and the Crab, Veil and Coalsack classifications.</li>
+<li>Pinned by computation only: the 0.2776 ratio, the black hole arithmetic, GMC filling in the project, Einstein radii, flare fluences.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<p>Search results used (WebFetch was blocked; [S] claims rest on search-result text):</p>
+<ul>
+<li>Magnetar birth rate and fraction: [R0337, R1364, R1566, R4981]</li>
+<li>Cloud filling and catalogues: [R0465, R1335, R3759], https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57</li>
+<li>Red novae: https://web3.arxiv.org/abs/1405.1042, [R2245, R3446]</li>
+<li>Symbiotic stars: [R0055, R2816, R4993]</li>
+<li>Wolf-Rayet: [R1741, R3142, R3821]</li>
+<li>Thorne-Zytkow: https://en.wikipedia.org/wiki/Thorne%E2%80%93%C5%BBytkow_object, [R2789, R3243]</li>
+<li>Cosmic strings: [R0764, R2771, R4086]</li>
+<li>Wormholes: [R0014, R0444, R3643]</li>
+<li>GRB rates: [R1650, R2590, R3239, R4694]</li>
+<li>Supernova rate: [R0774, R1108]</li>
+<li>FRBs and magnetars: [R2869], https://openaccess.inaf.it/handle/20.500.12386/35137</li>
+<li>Microlensing: [R3192], https://iac.es/es/ciencia-y-tecnologia/publicaciones/microlensing-event-rate-and-optical-depth-moa-ii-9-yr-survey-toward-galactic-bulge</li>
+<li>Local Bubble and superbubbles: [R0526, R1029, R2662]</li>
+<li>Dark matter density: [R1081, R3686]</li>
+<li>Microquasars and jets: [R0749, R4994]; Herbig-Haro estimate via the HH-30 Wikipedia page</li>
+<li>Pulsars: [R0406, R2850, R4454]</li>
+<li>Eta Carinae and LBV rates: [R4131, R4556]</li>
+<li>Voids: https://en.wikipedia.org/wiki/Bo%C3%B6tes_Void, [R4998]</li>
+</ul>
+<p>Project files read: <code>Star Trek Anomalies and Science.md</code>, <code>Star Trek Anomaly Probabilities.md</code>, <a href="nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>, <a href="interstellar-object-rates.html">interstellar-object-rates.md</a>, <a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>, <a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>, <a href="../architecture/object-ids.html">object-ids.md</a>, <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a>; <code>tuning.py</code>, <code>generation/phenomenon_scatter.py</code>, <code>galaxy/nebula_field.py</code>, <code>generation/phenomena/compact_remnant.py</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radioisotopes: the retune of rows o2, o4 and o6 (GEN.514) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-23 by lane M (builder B6).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/radioisotope-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/radioisotope-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="radioisotopes-the-retune-of-rows-o2-o4-and-o6-gen514">Radioisotopes: the retune of rows o2, o4 and o6 (GEN.514)</h1><p class="meta">docs/design/composition/radioisotope-tuning.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-o2-thorium-of-non-thin-disc-hosts">1. o2: thorium of non-thin-disc hosts</a></li><li style="margin-left:0px"><a href="#2-o4-thorium-to-uranium-by-formula">2. o4: thorium to uranium by formula</a></li><li style="margin-left:0px"><a href="#3-o3-and-o6">3. o3 and o6</a></li><li style="margin-left:0px"><a href="#4-what-it-does-not-do">4. What it does not do</a></li><li style="margin-left:0px"><a href="#5-wired-into-the-bodys-rock-gen759">5. Wired into the body's rock (GEN.759)</a></li><li style="margin-left:0px"><a href="#5-aluminium-26-and-iron-60-at-birth-gen476-lock-free-step">5. Aluminium-26 and iron-60 at birth (GEN.476, lock-free step)</a></li></ul></details>
+<p>Status: built 2026-10-23 by lane M (builder B6). Rows o2 (thorium scale), o4 (Th/U) and o6 (aluminium-26 present) of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>); two targets in <code>physics/data/tuning_targets.json</code>; tests in <code>src/tests/test_tuned_draws.py</code>.</p>
+<h2 id="1-o2-thorium-of-non-thin-disc-hosts">1. o2: thorium of non-thin-disc hosts</h2>
+<p>The row drew the thorium-to-magnesium ratio, over its solar value, log-uniform from 59 to 251 percent: the range of 14 solar twins. The Hypatia catalogue has 32 thick-disc stars with both elements: mean -0.063 dex, standard deviation 0.193. Thin disc (215 stars) gives -0.044 and 0.153, so there is no thick-thin offset in the ratio planets care about. The row now draws <code>log10 f ~ N(-0.063, 0.19)</code> (range -0.64 to 0.52). The width is the widest of the intrinsic spread of 53 solar twins (0.056, [R0479]) and the catalogue's 0.15 to 0.19, as the widest-range rule asks; it is an upper bound on the intrinsic width, because the catalogue mixes papers. Both targets pass (the mean -0.065, z -0.05; the spread 0.187, z -0.25).</p>
+<p>Halo, young (under 1 Gyr) and M-dwarf hosts have no thorium measurement; they take the same draw as an extrapolation the validity range flags.</p>
+<p><strong>One scale (GEN.664).</strong> Row o1 centres the thin disc at +0.08 dex (solar twins, [R0479]: the Sun is thorium-poor against its twins); the Hypatia catalogue puts the thin disc at -0.044, 0.12 dex lower, because the catalogue joins many papers with different solar references and line lists. The rows now use the solar-twin scale. Reason: it is one homogeneous differential analysis against the Sun (verified, the highest-precision source), while the catalogue is a heterogeneous compilation; where two sources are in doubt the precise, homogeneous one sets the zero point, and the catalogue is used only for what is internal to it. The one catalogue quantity that carries over is the thick-minus-thin offset, -0.019 dex with an error of 0.036 (sqrt(0.193^2/32 + 0.153^2/215)), which is zero within error. Row o2 therefore centres at 0.08 - 0.019 = 0.061 on the twin scale, with the same width 0.19 (the widest of the intrinsic and catalogue spreads), and its target <code>o2-mean</code> is 0.061 with sigma 0.037. Row o1 has no target of its own (its +0.08 and 0.058 are the twin sample's mean and spread, not a counted sample in the target table). A drawn value of -0.063 for a thick-disc star would now fail <code>o2-mean</code>; a test pins that.</p>
+<h2 id="2-o4-thorium-to-uranium-by-formula">2. o4: thorium to uranium by formula</h2>
+<p>The row drew Th/U uniformly from 3.8 to 4.5, the Solar System value at 4.5 Gyr, whatever the planet's age. Th/U grows with age because uranium-238 decays faster (x1.17 over 1.5 Gyr). The row now uses the published formula ([R1447: Table 1] for the production ratio 1.667 to 2.0, the half-lives 14.05 and 4.468 Gyr): <code>Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age]</code>, with <code>F(T)</code> the integral of constant r-process input over <code>T</code> before the host forms. The effective duration <code>T</code> is calibrated on one Solar System datum (CI chondrites need 6.5 Gyr), so the row draws between <code>T = 3 Gyr</code> and <code>T = 13 Gyr</code> (the widest bracket) and between the two production ratios: 3.04 to 5.39 at 4.5 Gyr. The row stays partly verified with that limit; the birth-epoch <code>T</code> needs a chemical-evolution model.</p>
+<p><strong>The birth epoch from the disc (GEN.663).</strong> The uniform draw of <code>T</code> between 3 and 13 Gyr is gone. Row o4 reads the quantity <code>th_u_f</code> (<code>F</code> itself), which <code>physics/rprocess_enrichment.py</code> works out from the disc of the star's galaxy: the r-process input at time <code>t</code> is the disc's star formation (<code>galaxy.disk_history</code>, GEN.469) convolved with a merger delay law <code>1/tau</code> from 30 Myr, each ejecta decayed with the half-lives 14.05 and 4.468 Gyr up to the time the star formed. The row's only remaining draw is the production ratio 1.667 to 2.0. The delay law (slope 1, floor 30 Myr) is RECALLED and a labelled stand-in; moving the floor from 5 Myr to 300 Myr changes <code>F</code> by under 5 percent (tested). For a 6e10 solar-mass galaxy a star of 4.5 Gyr has <code>F</code> = 1.23, the same as a constant input of 4.3 Gyr; a light galaxy 1e10 gives 1.15 (2.8 Gyr). The Solar System datum (CI chondrites at 4.5 Gyr need a constant input of 6.5 Gyr) is a test point, not an input: the thin disc alone stays under it because the gas before the disc began (halo and thick disc ejecta) is left out, so <code>F</code> is a lower bound for old stars. The caller that wires the recipes into the generator must supply <code>th_u_f</code> (<code>th_u_factor_of_history(history_of(shape), age)</code>).</p>
+<h2 id="3-o3-and-o6">3. o3 and o6</h2>
+<ul>
+<li><strong>o3 (K/U)</strong> stays a labelled stand-in: planetary potassium is volatile-depleted and only Solar System bodies give the depletion. <strong>Decided (Boss, 2026-10-24, 12:39 AM EDT, card answer relayed in words by the coordinator): keep the stand-in; the [R1832] sodium proxy is not used.</strong> The row stays a labelled stand-in in the gap plan registry (replacement GEN.514) until a measurement of planetary potassium exists.</li>
+<li><strong>o6 (aluminium-26 present)</strong> drew a share log-uniform from 0.1 to 1. The evidence is a mixture and not one distribution: at least 4 percent of systems enriched [R0967], 9 to 28 percent of discs in cluster models [R2679], tens of percent for white-dwarf debris, 66 percent differentiated [R0457]. The bracket is now 0.04 to 0.66 and no target exists (nothing states a count of a defined sample); the bracket is pinned by a test.</li>
+</ul>
+<h2 id="4-what-it-does-not-do">4. What it does not do</h2>
+<ul>
+<li>The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.</li>
+<li>The 5.2e-5 level of aluminium-26 itself is a Solar System value and is not tuned to.</li>
+</ul>
+<h2 id="5-wired-into-the-bodys-rock-gen759">5. Wired into the body's rock (GEN.759)</h2>
+<p><code>physics/radiogenic.py</code> reads <code>physics/rprocess_enrichment.py</code>. A body's thorium still follows its host's Th/Mg (the Eu relation of GEN.439); its uranium is no longer the bulk silicate Earth's with a 0.05 dex scatter (a placeholder) but what the r-process leaves: the thorium over <code>th_u_ratio_now(PR, F)</code>, where <code>PR</code> is the one production ratio the body draws (1.667 to 2.0, [R1447]; it takes the place of the old uranium draw, so the stream does not move) and <code>F</code> is the enrichment of the host's birth gas in the disc of its galaxy (the host's age and the disc's star formation history; <code>SystemConfig.GALAXY_SHAPE</code>, set by the sector, or the default shape for stand-alone work). A body with no host star takes the typical star of the galaxy (the median of the disc's star formation). A younger host has the larger <code>F</code> (more of the earlier thorium-rich ejecta has survived), so its rock is thorium-richer. The ratio today is 3.2 to 3.9 for the typical star, bracketing the bulk silicate Earth's 3.83 (a test point). The delay law stays the RECALLED stand-in of section 2. Potassium is still a multiple of the uranium, so it moves with it.</p>
+<h2 id="5-aluminium-26-and-iron-60-at-birth-gen476-lock-free-step">5. Aluminium-26 and iron-60 at birth (GEN.476, lock-free step)</h2>
+<p><code>physics/birth_radioisotopes.py</code> replaces the log-uniform 0.1 to 10 times the Solar System's own 5.23e-5 with a derivation (registry BR1 to BR5, section 6.38):</p>
+<ul>
+<li><strong>Yield.</strong> The Galaxy holds 1.7 to 3 solar masses of 26Al, best 2.0 ([R1110], section 2.4; [R2689]), and 60Fe at 0.15 of the 26Al line flux (a mass of 2.5); stars form at 1.65 +- 0.19 solar masses a year [R2680, R2681]. In steady state the yield per solar mass of stars formed is mass over rate over mean life: 1.2e-6 (26Al) and 4e-7 (60Fe). That belongs to massive-star nucleosynthesis, not to the Milky Way as a place.</li>
+<li><strong>Mean in a region.</strong> Yield times mean life over the region's depletion time (gas over star formation rate) over the stable partner's mass fraction. With 0.7e10 solar masses of cold gas [R0422] the Galaxy's 26Al/27Al comes to 4.9e-6, with the Solar System's 5.23e-5 ten times above it.</li>
+<li><strong>Granularity ([R2768: Eq. 12]).</strong> Additions are discrete, 5 to 10 Myr apart for core-collapse events (Meyer and Clayton, second-hand), and 26Al lives 1.035 Myr, so a star is born into a decayed pulse and not the mean. The draw sums Poisson additions with a log-normal cluster factor (sigma 1.0, tuned so the Solar System lies in the upper tail): the median star has 4 percent of the mean (1.8e-7), 19 percent have more than a tenth of the Solar System's ratio (row o6's bracket is 4 to 66 percent), and 1.3 percent reach the Solar System's. 60Fe (3.78 Myr) averages over more events: its median is 0.46 of the mean, and 13 percent of stars fall at or under the Solar System's 1.0e-8.</li>
+</ul>
+<p>Left out: the metallicity dependence of the yield, the initial mass function, the recurrence following the region's own cluster formation. The wiring step has <code>radiogenic.draw_content</code> take the ratio from here (it needs the host's region depletion time and its Al mass fraction), and row o6 the share above a heating threshold; it changes the stored <code>al26_ratio</code> of rocky bodies (generation fill stage, no migration).</p>
+<p><strong>Wired (GEN.476, step 2, train 7).</strong> <code>radiogenic.draw_content</code> takes a body's <code>al26_ratio</code> from <code>birth_radioisotopes.sample_ratio</code> on a stream of its own seeded by the one draw the old factor used (so the stream after it is unchanged). The mean is <code>radiogenic.al26_mean</code>: the yield over the galaxy's thin-disc gas depletion time (its gas over its star formation now, the rings weighted by area) and the host's aluminium (the proto-solar fraction at the host's [Fe/H]). <code>tuning.RADIOGENIC_AL26_FACTOR_RANGE</code> is gone. For the default galaxy the generator's own disc has a depletion time of 0.85 Gy (the Galaxy's measured cold gas gives 4.2 Gy), so the mean is 2.5e-5, five times the figure of the section above; the median body is born with 7e-7, 36 percent have over a tenth of the Solar System's 5.23e-5 and 12 percent over it. The cause is the disc history's gas content (GEN.469), not this module. Iron-60 has no consumer in the generator and is not drawn. Row o6 of the recipes is not read by the generator and keeps its bracket (registry RA10 names the share above the melting ratio as its replacement). Effect: most small bodies now lack the early heat, so their mantles stay cold and the Urey ratio of a small body (under 5e22 kg) can exceed 2 at any age; the generated-system test keeps its band for larger bodies.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

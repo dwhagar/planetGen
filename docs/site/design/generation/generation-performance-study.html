@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generation performance study: where the time goes in the scatter and the sector fill - planetGen docs</title>
+<meta name="description" content="Profiles of the three generation phases on a scaled-down galaxy: the bright-star scatter, the phenomenon scatter (GEN.100) and the sector fill, with the database path split out, the word-salad share measured, ranked bottlenecks, and what...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/generation-performance-study.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/generation-performance-study.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="generation-performance-study-where-the-time-goes-in-the-scatter-and-the-sector-fill">Generation performance study: where the time goes in the scatter and the sector fill</h1><p class="meta">docs/design/generation/generation-performance-study.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#method-and-limits">Method and limits</a></li><li style="margin-left:0px"><a href="#the-answer-in-short">The answer in short</a></li><li style="margin-left:0px"><a href="#findings-by-phase">Findings by phase</a></li><li style="margin-left:14px"><a href="#bright-star-scatter-scatter_bright_stars-one-rq-job-per-layer">Bright-star scatter (scatter_bright_stars, one RQ job per layer)</a></li><li style="margin-left:14px"><a href="#phenomenon-scatter-scatter_phenomena-gen100">Phenomenon scatter (scatter_phenomena, GEN.100)</a></li><li style="margin-left:14px"><a href="#sector-fill-generate_and_save_sector_at-one-process-normal-density">Sector fill (generate_and_save_sector_at, one process, normal density)</a></li><li style="margin-left:0px"><a href="#ranked-bottlenecks">Ranked bottlenecks</a></li><li style="margin-left:0px"><a href="#recommendations">Recommendations</a></li><li style="margin-left:14px"><a href="#cheap-wins-small-code-no-change-in-what-is-generated">Cheap wins (small code, no change in what is generated)</a></li><li style="margin-left:14px"><a href="#design-changes">Design changes</a></li><li style="margin-left:14px"><a href="#what-not-to-spend-time-on">What not to spend time on</a></li><li style="margin-left:0px"><a href="#bosss-question-how-to-cut-the-database-cost-without-losing-anything">Boss's question: how to cut the database cost without losing anything</a></li><li style="margin-left:0px"><a href="#what-this-does-not-predict">What this does not predict</a></li><li style="margin-left:0px"><a href="#where-ten-hours-could-come-from">Where ten hours could come from</a></li><li style="margin-left:0px"><a href="#proposed-items-the-todo-thread-assigns-ids">Proposed items (the TODO thread assigns IDs)</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li></ul></details>
+<p>Profiles of the three generation phases on a scaled-down galaxy: the bright-star
+scatter, the phenomenon scatter (GEN.100) and the sector fill, with the database path
+split out, the word-salad share measured, ranked bottlenecks, and what each fix is
+expected to save. It answers PERF.31 for the phases it covers and corrects one claim in
+PERF.18. It extends <a href="../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a>
+and the bright-star report (<code>/mnt/project-files/bright-star-timing/report.md</code>, PR #657) and
+does not repeat them.</p>
+<p>Informs: PERF.31, PERF.18, PERF.39, PERF.34, GEN.100, GEN.72, GEN.64, GEN.69, GEN.126</p>
+<p>Status: research, 2026-10-09; the study itself changed no generator code. Its ranked recommendations are built as PERF.42 (#841), PERF.44 (#863), PERF.45 (#863), PERF.43 (#861), PERF.46 (#1186), PERF.49 (#870), PERF.73 (#1209), PERF.81 (#1236) and PERF.87 (#1300). The Python minimum is now 3.12 (OPS.42), not the 3.9 named in the text.</p>
+<p>Evidence tags: [C] measured or computed in this research (scripts under
+<code>/mnt/project-files/research/scripts/genperf/</code>, outputs under
+<code>/mnt/project-files/research/genperf-results/</code>); [S] read in the repository; [R] recalled
+and unconfirmed; [B] Boss's words.</p>
+<h2 id="method-and-limits">Method and limits</h2>
+<ul>
+<li>One 4-core Linux container, MariaDB 10.11 and Redis on the same box, Python 3.13,
+planetGen 8.0.711 (the project's minimum is Python 3.9, which is slower) [C].</li>
+<li>A quarter-scale galaxy (<code>--disk-scale-length-pc 650 --disk-scale-height-pc 75 --bulge-scale-radius-pc 395</code>): 509 layers, outer ring 940, 4.6e9 expected systems,
+420,840 bright stars, 18,241,331 phenomenon rows [C]. The default galaxy is about 64
+times the volume [C].</li>
+<li>Wall times come from timers and from the sampling profiler (pyinstrument, 1 ms), not from
+cProfile, whose per-call cost inflates code made of many small calls (the word-salad
+share reads 7% under cProfile and 4% in real time).</li>
+<li><code>--debug</code> logging was measured on the scatter and costs nothing there (36 s against 39 s)
+[C].</li>
+<li>What a quarter-scale run cannot tell is in &quot;What this does not predict&quot;.</li>
+</ul>
+<h2 id="the-answer-in-short">The answer in short</h2>
+<ol>
+<li><strong>The bright-star scatter is dominated by per-job start-up, not by drawing stars.</strong> A forked RQ
+work horse re-imports <code>planetgen.generation.run_plan</code> (2.4 s wall, 2.9 s CPU, of which
+<code>nltk</code> 0.87 s) and rebuilds the band tables (<code>star_population._bright_table</code>, 0.19 s per
+population) for every layer job. With the modules imported and the tables warmed before
+the fork, the same 420,840 stars take <strong>39.5 s instead of 322 s</strong> (8.2 times), identical rows [C].
+At this scale 95% of the CPU was start-up.</li>
+<li><strong>The phenomenon scatter writes 43 times as many rows as the bright-star scatter</strong> (18.2M
+against 0.42M here; about 1.17e9 against 26.9M at the default scale [C]) and each row is
+138 bytes, so about 161 GB at the default scale. Its per-row cost is small (32 to 37 CPU-us);
+its volume is the problem.</li>
+<li><strong>The sector fill costs 20 to 27 ms per system</strong> (3.4 to 7 s per sector) in one process.
+Python generation is about half of that, the database save about 41%, and SQL
+execution (with pymysql's client-side escaping) 31% of the wall [C]. The statement count is
+already low (1.3 to 2.2 per system, PERF.13 batching); the cost is the volume of rows
+(about 19 non-system rows per system) and the second pass that updates every one.</li>
+<li><strong>Word salad is 4% of the sector fill and about four fifths of that is wasted.</strong> A call
+costs 93 to 96 us warm and about 10 happen per system, 77% of them in
+<code>RoguePlanet.__init__</code>; but a placed phenomenon is named by its object ID (GEN.64) and the
+generated name is thrown away [C][S]. Stars and systems still need theirs. The scatters
+do not call it.</li>
+<li><strong>I cannot map &quot;10 hours for the bright stars&quot; to one phase without his log.</strong> The numbers
+that could produce it are below (&quot;Where ten hours could come from&quot;).</li>
+</ol>
+<p><strong>Update (DOC.62, measured 2026-10-16, 9:37 to 10:07 PM EDT): the figures below are the older estimates.</strong> The built default is a 14 solar mass phenomena cut, not 20 and not no cut, so the default scatter is about 75.5 million rows, not 1.17e9 rows and 161 GB or 2.7e5 rows. Measured 9:37 to 10:07 PM EDT on 2026-10-16 on a 4-core box (1 GB InnoDB buffer pool, MySQL 8, Python 3.13, main at 8.0.1617, default galaxy shape, seed 0123456789abcdef0123456789abcdef; the read-only investigation is in /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md; another server will differ):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Result</th>
+<th>Time</th>
+<th>Disk</th>
+<th>How known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skeleton, 157 clusters, 11 satellites</td>
+<td>3,764 shells, about 2.2e11 candidate sectors</td>
+<td>3 s</td>
+<td>negligible</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Phenomena (black holes, neutron stars, nebulae, remnants, from 14 solar masses)</td>
+<td>about 75.5 million rows, 231 bytes a row with two indexes</td>
+<td>about 46 minutes of writes at 4 workers (12.1 million rows in 8.6 minutes, about 23,500 rows a second, peaks 35,000)</td>
+<td>about 17.5 GB while writing, about 21 GB with the two indexes rebuilt</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Phenomena tail: two index builds, nebula field (about 700,000 clouds), epoch stamp</td>
+<td>not reached</td>
+<td>20 to 40 minutes</td>
+<td>included above</td>
+<td>estimate, not measured</td>
+</tr>
+<tr>
+<td>Massive stars</td>
+<td>265,909 rows</td>
+<td>about 8.5 minutes</td>
+<td>under 1 GB for all star rows with members</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Bright stars</td>
+<td>778,980 rows (388,624 of them halo, at the 500 solar luminosity halo floor)</td>
+<td>about 12 minutes</td>
+<td></td>
+<td>measured; both star passes together took 1,222.8 s for 1,044,932 rows</td>
+</tr>
+</tbody>
+</table></div>
+<p>A full rescatter (a plain <code>planetgen plan</code>) on that box takes about 1.5 to 2 hours and about 22 GB; the two star passes alone are 20.4 minutes and under 1 GB.</p>
+<p><strong>Correction (same day).</strong> The default-scale phenomenon count above (1.06e9 rows, 146 GB) came from
+<code>phenomenon_scatter.layer_expected</code>, which runs 10% low; 64 times the 18.24M rows actually drawn is
+1.17e9 rows and 161 GB. <a href="../systems/phenomenon-scatter-mass-cut.html">phenomenon-scatter-mass-cut.md</a> has the corrected
+counts, traces the notes' 1.6e8 and recommends a mass cut that takes the table to about 2.7e5 rows.</p>
+<p><strong>Update from PERF.49 (PR #870).</strong> Bugfixes lane 1's &quot;30 s of 84 s in <code>reserve_system_names</code>&quot; came from a profile taken while another run was saving into the same database. Foundations lane 1 re-measured with nothing else writing: the reservation code alone is 0.12 s a sector, but at 4 workers the name registry's row locks, held until the sector commit, made a save wait 6 to 25 s. Names are now claimed in a short transaction of their own: 8 core sectors on 4 workers take 54 s against about 90 s. The profiles in this note were taken with nothing else writing to the database, so they do not show this wait.</p>
+<p><strong>PERF.49 re-measured, and built.</strong> Name reservation in a dense core sector (ring 40, about 890 names a sector,
+8 sectors, nothing else writing) takes 0.12 s alone, so the scan and the call itself are not the cost. At 4
+workers the registry upsert waited 6 to 25 s per sector (112 s over 8 sectors, about 37% of worker time): the
+upsert's row locks were held until the sector's whole save committed (8.4 s from reservation to commit), and
+any two sectors of the core share a name, so the saves queued behind one another. Now <code>_save_with_retries</code> opens
+a second connection and <code>reserve_system_names</code> claims the names on it in their own short transaction (sector
+check, sorted upsert, read-back, commit). Consequences, all handled in <code>store.py</code>:</p>
+<ul>
+<li>A claim is given back (<code>_release_name_claims</code>) when the save rolls back, but only while nobody has claimed after
+it; otherwise the count stays one high, which only skips a decoration. Names stay unique either way (an index is
+claimed once).</li>
+<li>The holder of a base name is the first claimer, not the first to confirm: a claimer after another holder does not
+write the holder (<code>conn.later_name_keys</code>).</li>
+<li>A later claimer cannot rename a holder that has not committed (&quot;Vega&quot; to &quot;Alpha Vega&quot;), so the holder renames
+itself when it confirms (<code>_rename_unconfirmed_holders</code>), applying the renames the claims since its own would
+have made. If the holder is already committed the later claimer renames it as before.</li>
+<li>The pool allows 10 connections plus 10 overflow (5 plus 5 before) since a save uses two.</li>
+</ul>
+<p>Also: the quadratic <code>uses</code> scan now looks the indexes up by key, and the offensive-word filter is one compiled
+pattern (7 microseconds against 13 for the plain words, 3 against 4 for the spaced ones). On a seeded one-worker
+run (8 sectors) system, star, planet and moon names and every registry row are identical to main. 8 sectors of
+ring 40 on 4 workers went from about 90 s to 54 s wall, and the name lookups no longer wait.</p>
+<h2 id="findings-by-phase">Findings by phase</h2>
+<h3 id="bright-star-scatter-scatter_bright_stars-one-rq-job-per-layer">Bright-star scatter (<code>scatter_bright_stars</code>, one RQ job per layer)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Run (420,840 stars, 509 layers, 4 workers)</th>
+<th>Wall</th>
+<th>CPU</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default <code>planetgen worker</code></td>
+<td>322 s</td>
+<td>1123 s user + 106 s sys</td>
+<td>2.2 CPU-s per layer job</td>
+</tr>
+<tr>
+<td>Modules imported and tables warmed before the fork</td>
+<td>39.5 s</td>
+<td>110 s</td>
+<td>same stars</td>
+</tr>
+</tbody>
+</table></div>
+<p>Per star, warm: draw 40 to 49 us, insert 38 us (executemany, batches of 10,000, commit per
+batch). In <code>scatter_layer</code> the largest cost is <code>population_densities</code> (941 rings times 32
+angle bins, about 30% of a layer), then <code>_sample_one_bright</code> and the cell check
+<code>_point_in_cell</code> with <code>sector_address_at</code> [C].</p>
+<p><code>cli/worker.py</code> imports only <code>planetgen.queue.redisqueue</code> and <code>work</code>; RQ forks a horse per
+job, and the horse imports the task module and fills the <code>lru_cache</code> from scratch every
+time [S]. The same fixed tax applies to every queue job (fill tasks, API jobs; PERF.39 measured
+2.4 s and 195 MB per API job). <strong>PERF.18's remark that the CPU gain is small</strong> holds for the
+backfill, whose per-cell draw is 0.06 ms, but not for the scatter, where start-up is the cost.</p>
+<h3 id="phenomenon-scatter-scatter_phenomena-gen100">Phenomenon scatter (<code>scatter_phenomena</code>, GEN.100)</h3>
+<p>18,241,331 rows in 169.9 s with the preload (3.43M black holes, 14.8M neutron stars, 1,765
+hypervelocity stars, 445 planetary nebulae, 306 supernova remnants) [C]. Per row, warm: draw
+13.7 us, insert 18.6 us, total 32.3 us in layer 0 (95,258 rows). Expected rows per
+system 3.6e-3 against 9e-5 bright stars, so 40 times the rows [C].</p>
+<p>Insert split on 60,000 rows [C]: pymysql <code>executemany</code> 13.8 us per row; one hand-formatted
+multi-row INSERT 10.1 us per row (client formatting 3.4 against 1.9 us); the same
+<code>executemany</code> into a table without the address index 13.2 us per row. So the client's
+escaping is about a quarter of the insert and the index does not matter at this size.</p>
+<p>Row layout: <code>kind</code> VARCHAR(24), three BIGINT positions, three nullable DOUBLE velocities,
+an 8-byte seed per row, ring/layer/slot columns (cylindrical until 2026-10-15; shell, band and wedge since); 1559 MB data plus 807 MB index for 17.9M
+rows (138 bytes a row) [C]. Most rows are neutron stars and black holes whose velocity columns
+are NULL or derivable.</p>
+<h3 id="sector-fill-generate_and_save_sector_at-one-process-normal-density">Sector fill (<code>generate_and_save_sector_at</code>, one process, normal density)</h3>
+<p>Five runs of 5 to 6 sectors picked as <code>fill_bench.py</code> picks them (weighted toward sectors
+that hold bright stars, so denser than average): <strong>20.3, 21.0, 21.8, 22.9, 26.6 ms per
+system</strong> [C]. The bright-star report measured 16.6 ms per system on an earlier version.</p>
+<p>The largest run (1,569 systems, 35.9 s) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Share of wall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQL execution, including pymysql's client-side escaping</td>
+<td>31% (11.1 s)</td>
+</tr>
+<tr>
+<td>Word salad</td>
+<td>4.2% (15,593 calls, 1.50 s, 96 us each)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The sampled profile of another run (391 systems, 16.4 s) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Seconds</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generate the sector's systems</td>
+<td>8.2</td>
+<td>50%</td>
+</tr>
+<tr>
+<td>of which planets and moons (<code>Planet.__init__</code>, moons 2.5 s, orbital motion 1.5 s, spin axis 0.5 s)</td>
+<td>3.7</td>
+<td>22%</td>
+</tr>
+<tr>
+<td>of which rogue planets (salad name 0.94 s under the sampler)</td>
+<td>1.4</td>
+<td>8%</td>
+</tr>
+<tr>
+<td>of which placing bodies in the galaxy (<code>place_in_galaxy</code>, <code>add_system</code>)</td>
+<td>2.3</td>
+<td>14%</td>
+</tr>
+<tr>
+<td>of which <code>FillContext.bright_share</code> building the band tables (once per process)</td>
+<td>0.7</td>
+<td>4%</td>
+</tr>
+<tr>
+<td>Save the sector (<code>insert_sector</code>)</td>
+<td>6.8</td>
+<td>41%</td>
+</tr>
+<tr>
+<td>of which writing the held INSERTs (flush, triggered by the registry upsert)</td>
+<td>2.7</td>
+<td>16%</td>
+</tr>
+<tr>
+<td>of which unique IDs (<code>assign_uids</code>: SELECT back, UPDATE every row)</td>
+<td>1.05</td>
+<td>6%</td>
+</tr>
+<tr>
+<td>of which nearest-system links (<code>_add_sector_to_nearest</code>) and neighbour search for the location</td>
+<td>1.6</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>of which building the rows in Python (<code>insert_star_system</code>)</td>
+<td>0.7</td>
+<td>4%</td>
+</tr>
+<tr>
+<td>Containment / sector stats / nebulae</td>
+<td>rest</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Statements per system (server counters): 1.3 to 4.4 in total across the runs (the
+smallest sectors cost the most per system), 0.2 to 0.5 inserts, 0.5 to 1.5 selects, 0.5 to
+2.2 updates [C]. Rows written per system in one 449-system run: 25 moons,
+9 planets, 8 rogue planets, 1.3 stars, 0.7 comets; the uid pass then updated 11,933 moon rows,
+4,353 planet rows and 6,958 rogue-planet rows (594 moon statements alone) [C].
+Per row, the INSERT costs 70 to 90 us (moons 87, planets 85, rogue planets 70) and the
+later UPDATE about 38 us.</p>
+<h2 id="ranked-bottlenecks">Ranked bottlenecks</h2>
+<p>Ranked by the share of the phase they take, at the scale measured.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Where</th>
+<th>Share</th>
+<th>Fix</th>
+<th>Saving</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Scatter jobs: import and table build per forked job</td>
+<td>88% of scatter wall</td>
+<td>Pre-import and warm in the worker</td>
+<td>up to 8 times faster [C]</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Phenomenon rows: 1.17e9 at the default scale, 161 GB</td>
+<td>whole of GEN.100</td>
+<td>Compact the rows or derive them on demand</td>
+<td>3 times smaller; or no rows [C][R]</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sector save: row INSERTs, 70 to 90 us each, about 19 per system</td>
+<td>16 to 25% of fill</td>
+<td>Fewer columns written per row; the escape cost; see below</td>
+<td>5 to 10%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Sector save: unique-ID pass updates every row just written</td>
+<td>6 to 9% of fill</td>
+<td>Compute the uid in Python while the row is built</td>
+<td>6 to 9%</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Sector generation: planets and moons, orbital position updates</td>
+<td>22% of fill</td>
+<td>Fewer coordinate resyncs; make the <code>finite_domain</code> checks optional in bulk fills</td>
+<td>5 to 8%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Neighbour search and nearest links per sector</td>
+<td>10% of fill</td>
+<td>Move to a batch pass; cache coordinates</td>
+<td>4 to 10%</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Word salad for names that are discarded</td>
+<td>4% of fill</td>
+<td>Name lazily</td>
+<td>4%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Band tables built in a cold process</td>
+<td>4% of a cold fill</td>
+<td>Preload with #1</td>
+<td>4% (per process)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>pymysql client escaping of values</td>
+<td>3 to 4% of fill, 25% of a scatter insert</td>
+<td>C driver or a formatter for numeric-only tables</td>
+<td>3 to 4%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Savings are shares of the phase, not additive with the dependent rows; the sampler and the
+timer runs differ by a few points.</p>
+<h2 id="recommendations">Recommendations</h2>
+<h3 id="cheap-wins-small-code-no-change-in-what-is-generated">Cheap wins (small code, no change in what is generated)</h3>
+<ul>
+<li><strong>A. Pre-import and warm the worker before it forks.</strong> In <code>cli/worker.py</code> import the
+generation modules and fill <code>_bright_table</code> for the four populations at the default
+threshold. Expected: scatter 322 s to 40 s here; at the scale of the bright-star report
+(74.6 CPU-min) about 20 to 38 CPU-min saved. The same fixed 2 to 3 s goes from every fill
+and API job (PERF.39). Risk: after <code>update.sh</code> a long-lived worker would run old code, because
+today the horse re-imports on each job; the update script has to restart the workers, or
+the horse must compare <code>planetgen.__version__</code> with the one the parent loaded and exit when
+they differ. Tables for a non-default luminosity threshold stay cold (cache them on disk
+keyed by version and threshold if that matters).
+<strong>Built (PERF.42).</strong> <code>cli/worker.py</code> <code>warm()</code> imports the task modules
+(<code>WARM_MODULES</code>) and, when the worker serves the generation queue, builds
+<code>_bright_table</code> for the four populations at every floor a scatter or
+backfill uses (the galaxy-wide floor and the four backfill tier floors).
+The per-job API workers (one queue each) only import. A worker that has
+pre-imported would keep serving an old release after an update, so before
+it waits for the next job it compares the release in <code>_version.py</code> on disk
+with the one it loaded and, when they differ, deregisters and re-executes
+itself.
+Measured on this build box, a forked horse's start-up (importing
+<code>run_plan</code> and building those tables) went from 2.6 s to under 1 ms; the
+one-off warm-up costs 2.7 s per worker. The tables are the same as a cold
+build's (a test compares them), so a seeded run gives the same rows. A
+floor outside that list stays cold.</li>
+<li><strong>B. Do not generate names that will be discarded.</strong> <code>RoguePlanet</code>, <code>Comet</code>, <code>Nebula</code>,
+<code>AsteroidField</code>, <code>SupernovaRemnant</code>, <code>Quasar</code> and the compact remnants call
+<code>generate_phoneme_salad_name</code> in their constructors, but a phenomenon placed in a
+galaxy sector gets its object ID as name unless <code>name_given</code> (<code>store._reserve_phenomenon_name</code>,
+<code>_sector_object_ids</code>) [S]. Make the salad name lazy: draw it on first read when the object
+is not placed. Saves about 3.5% of a fill. Risk: anything that reads <code>.name</code> before saving must still
+get a name; keep <code>name_given</code> as is. I could not reproduce the hang Boss saw on rogue
+planets: warm, a name is 96 us; the likely causes are the cold NLTK load (0.87 s) in every
+forked job and the retry loop, both before the current checks.
+Built in PERF.43: <code>names.wordsalad.LazySaladName</code> keeps one draw at construction
+(the name's own seed) and draws the salad on first read, so an object's other draws
+don't depend on whether its name is read. 3,000 rogue planets build in 0.15 s
+instead of 0.60 s. The one draw in place of many changes a seed's galaxy once.</li>
+<li><strong>C. Write each row's unique ID with the row.</strong> <code>assign_uids</code> selects every new row back
+and updates it. The uid is <code>derived_uid(seed, kind, parent uid, rank)</code> where rank is the
+row's order among its siblings by id, and ids come from <code>id_blocks</code> before the INSERT
+[S]. The builder knows all of them in memory. Removes the SELECTs and every UPDATE (about
+1.8 s of 11 s SQL in the 1,045-system run). Risk: the id order and the generation order must
+match, which <code>insert_sector</code> already relies on; GEN.69's idempotence (&quot;a row that has one keeps
+it&quot;) must still hold for a re-save.
+<strong>Built (PERF.44).</strong> <code>Connection.execute</code> asks a <code>_UidIssuer</code> (set by <code>insert_sector</code>) for
+the <code>uid</code> of each INSERT into a table that has one, and adds it to the statement; the issuer
+counts ranks per parent as rows go in, which is their id order. A bright-sweep system keeps its
+position ID (GEN.72) as before. If a row's parent was not one the issuer saw, <code>insert_sector</code>
+runs <code>assign_uids</code> for the rest as it did. The IDs are identical (14,000 rows across 30 sectors
+compared with the SELECT-and-UPDATE pass; a test clears every ID and checks <code>assign_uids</code> finds
+the same). The pass it replaces cost 0.026 s per sector at about 9 systems a sector, more in
+a denser one.</li>
+<li><strong>D. Build INSERT text without pymysql's per-value escape for numeric-only tables</strong>
+(<code>bright_stars</code>, <code>phenomenon_scatter</code>): 13.8 to 10.1 us per row, 27%. Risk: floats and
+ints only plus a <code>kind</code> drawn from a fixed list; any string value must still go through
+the escaper. Low priority after A.</li>
+</ul>
+<h3 id="design-changes">Design changes</h3>
+<ul>
+<li><strong>E. Stop storing every phenomenon row.</strong> Two options. (1) Compact the row: <code>kind</code> as
+TINYINT, positions as cell-relative 32-bit integers (the ring/layer/slot columns already
+give the cell), velocities computed when the object is built, no per-row seed (derive it from
+the cell and the row's index). About 3 times smaller (to about 45 bytes) [R]. (2) Do not
+store the numerous kinds (neutron stars and black holes are 99.9% of the rows) at all:
+derive them per cell from the existing per-unit seeds (GEN.39, <code>util/draw.py</code>) when the
+sector is filled or queried, and keep rows only for the rare kinds. This removes the
+scatter's writes, the 161 GB and the index, at the price of a cell-level count the map and
+the settle step must get from the generator instead of the table. Needs Boss's decision;
+I recommend (2) with (1) as the fallback.</li>
+<li><strong>F. Move the nearest-system and containment work out of the per-sector save.</strong> A single
+later pass (the GEN.126 settle step already runs after a plan) would take the neighbour
+locks off the critical path, which is what limits the fill to 1.87 times at 2 to 4
+workers [S, report]. Risk: queries made mid-fill see incomplete links, which they already
+can.
+<strong>Built (PERF.45).</strong> A <code>galaxy</code> run saves its sectors with <code>link_neighbors=False</code> and
+<code>run_galaxy.link_after_run</code> links them once at the end (<code>store.link_sector_neighbors</code>):
+containment, each object's nearest systems and quadrant, then the new systems merged into the
+lists of the already-linked sectors around, 200 sectors per transaction under the neighbour
+lock, retried on a deadlock. It runs after a cancelled or failed run too (for the sectors that
+were saved). The first sector of a molecular cloud still takes the lock while it saves, since
+it stores the cloud. Sectors made on demand (API, <code>ensure_sector_generated</code>) link as they are
+saved. Measured by decision rule &quot;whichever is more efficient&quot;: 4 workers, 400 sectors in ring
+2000, 52.0 s linking as saved against 46.9 s linking at the end (about 10% faster; the
+link pass is serial, 150 sectors took 3 s). The two runs' nearest-system lists and
+containment, compared system by system, are identical; so are single-worker runs compared
+row by row. If a run dies without linking, the orbit update script (<code>planetgen.cli.orbits</code>)
+links everything again.</li>
+<li><strong>G. Cut the repeated coordinate work in planet and moon generation.</strong>
+<code>SpatialPosition3D._sync</code> ran 83,725 times in four sectors and <code>update_orbital_position</code>
+15,481 times; set the position once after the orbit is final.
+<strong>Built (PERF.46, position half).</strong> <code>SpatialPosition3D</code> now marks its derived coordinates
+and sector address out of date when a body moves and works them out when first read, and
+<code>carry_anchors</code>/<code>carry_sector_center</code>/<code>carry_star_center</code> read the coordinates they keep
+straight from the stored truth. <code>place_system</code> asks only a planet for its place (its moons
+need it). Coordinates are identical (a hash of 60 seeded systems, 1,666 bodies, before and
+after) and <code>place_system</code> took 0.035 s instead of 0.049 s. The <code>finite_domain</code> wrapper
+ran 202,622 times (about 3 to 4% of the fill); an environment switch to skip it during bulk
+fills loses a safety net, so only if Boss accepts that.</li>
+</ul>
+<h3 id="what-not-to-spend-time-on">What not to spend time on</h3>
+<ul>
+<li><code>is_name_valid</code> itself: 24 us, a compiled regex over the 279 forbidden words saves 1.3 us [C].</li>
+<li>Statement count or round trips: already 1.3 to 2.2 per system in a normal sector, not the limit.</li>
+<li><code>--debug</code>: free on the scatter.</li>
+<li>Dropping the address index during bulk insert: no measurable gain at this size (13.8 against 13.2 us) [C]; at 1e9 rows it may matter, see below.</li>
+</ul>
+<h2 id="bosss-question-how-to-cut-the-database-cost-without-losing-anything">Boss's question: how to cut the database cost without losing anything</h2>
+<p>The calls are not chatty; what costs is <strong>how many rows are written and how many times</strong>.
+In order of safety:</p>
+<ol>
+<li><strong>A</strong> removes the per-job start-up (scatter and every queued job).</li>
+<li><strong>C</strong> writes each row once instead of insert-then-update, removing 6 to 9% of a fill
+with the same data.</li>
+<li><strong>B</strong> and <strong>G</strong> are Python-side and remove another 8 to 12%.</li>
+<li><strong>F</strong> takes the neighbour work off the lock so more workers help.</li>
+<li><strong>E</strong> is the large one: the phenomenon table.
+Nothing here drops a column or a row that the maps, search or API read today; E(2) changes
+where the numerous rows come from, not what they are.</li>
+</ol>
+<h2 id="what-this-does-not-predict">What this does not predict</h2>
+<ul>
+<li><strong>Index and buffer-pool behaviour at 1e9 rows.</strong> Quarter-scale tables fit in memory; the
+per-row insert cost rises once the index no longer fits the InnoDB buffer pool, and 161 GB
+is far outside a 4-core box's pool. Expect the phenomenon scatter to run several times
+slower per row than 32 us. Measure on the real server with <code>innodb_buffer_pool_size</code>
+recorded.</li>
+<li><strong>Contention among workers.</strong> Measured here with 4 workers on 4 cores that also host
+MariaDB; the fill's neighbour locks gave 1.87 times at 2 to 4 workers in the earlier report.</li>
+<li><strong>Python version and hardware.</strong> Python 3.13 here, 3.9 minimum for the project; the server
+may be slower or faster.</li>
+<li><strong>The galaxy mix.</strong> The sectors were picked toward bright-star sectors; an average sector
+has fewer moons per system.</li>
+<li><strong>Disk and commit latency.</strong> Commits are about 0.05 to 0.1 per system here; a spinning disk
+or a durable <code>innodb_flush_log_at_trx_commit=1</code> on a slow volume moves that share.</li>
+</ul>
+<h2 id="where-ten-hours-could-come-from">Where ten hours could come from</h2>
+<p>Counts at the default scale, from the quarter-scale run times 64 [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Rows or stars</th>
+<th>Warm CPU</th>
+<th>At 4 workers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bright-star scatter</td>
+<td>26.9M</td>
+<td>39 CPU-min</td>
+<td>about 10 min</td>
+</tr>
+<tr>
+<td>Phenomenon scatter</td>
+<td>1.17e9</td>
+<td>about 10.4 CPU-h</td>
+<td>about 2.6 h</td>
+</tr>
+<tr>
+<td>Bright-star fill (46.6 ms per star)</td>
+<td>26.9M</td>
+<td>14.5 days single worker</td>
+<td>about 7.7 days at 1.87 times</td>
+</tr>
+</tbody>
+</table></div>
+<p>The report's figure of 24 minutes for the scatter does not reach ten hours. The phenomenon
+scatter could: 9.4 CPU-hours before the per-job tax, the cost of a growing 161 GB index and
+the database sharing the cores. If 10 hours was <code>planetgen plan</code> with the phenomenon scatter, A and E are the
+fix. The notes record 1.6e8 neutron-star and black-hole rows; my count at the default
+scale is 1.17e9 rows in total, so the two disagree by 7.3 times and one of them comes
+from a different configuration. If 10 hours was the bright-star <strong>fill</strong>, only a smaller
+galaxy fits and the per-star fill cost (46.6 ms, of which 2.6 ms is generation) is the target
+(C, F). The run's log (or <code>planetgen plan</code> output with the phase times) would settle it.</p>
+<h2 id="proposed-items-the-todo-thread-assigns-ids">Proposed items (the TODO thread assigns IDs)</h2>
+<ol>
+<li>Pre-import generation modules and warm <code>_bright_table</code> in <code>cli/worker.py</code> before the fork;
+restart workers on update or compare versions in the horse (A). Gives PERF.18 and PERF.39 their measured number.</li>
+<li>Lazy word-salad names for phenomena named by object ID (B).</li>
+<li>Compute and write uids with the row, drop the post-insert pass (C).</li>
+<li>Decide the phenomenon rows: derive on demand or compact (E); needs Boss's choice.</li>
+<li>Nearest-system and containment as one later pass (F).</li>
+<li>Orbital position updates once per body; optional <code>finite_domain</code> skip in bulk fills (G).
+Decided (Boss, 2026-10-09 20:02Z and 2026-10-10 18:44Z): the position half was approved and is built (PR #863,
+bodies work out their coordinates when first read, PERF.46); the <code>finite_domain</code> check <strong>stays on</strong> in bulk
+fills (the 2 to 4% it costs buys a safety net; Research Lane 1 agreed), so nothing further is built for it.</li>
+<li>Numeric-only INSERT formatter or C driver for bulk tables (D), low priority.</li>
+<li>PERF.31 benchmark to include the three phases above and the worker start-up cost, and to
+record <code>innodb_buffer_pool_size</code> and the table sizes with each run so the quarter-scale
+numbers can be compared with a server run.</li>
+</ol>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>Scripts in <code>/mnt/project-files/research/scripts/genperf/</code>: <code>common.py</code> (load the skeleton),
+<code>scatter_profile.py</code>, <code>scatter_split.py</code> (draw against insert per star), <code>galaxy_totals.py</code>
+(expected systems, bright stars and phenomenon rows), <code>phenom_profile.py</code>, <code>insert_split.py</code>
+(executemany against hand-formatted and index-free), <code>fill_profile.py</code> (cProfile, server
+statement counts, per-statement time, salad time), <code>fill_sample.py</code> (pyinstrument). Output of the
+statement table: <code>/mnt/project-files/research/genperf-results/fill_statements.txt</code>. The preload
+was an experiment in a <code>sitecustomize.py</code> outside the repository; no repository file was changed.
+The bright-star report's earlier numbers (24 min, 74.6 CPU-min, 46.6 ms per star) are [S] from
+<code>/mnt/project-files/bright-star-timing/report.md</code> and were not re-measured.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

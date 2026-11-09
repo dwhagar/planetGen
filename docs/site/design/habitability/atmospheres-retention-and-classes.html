@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmosphere retention, hot- and cold-zone classes and life-stage timing - planetGen docs</title>
+<meta name="description" content="When a planet can hold an atmosphere, what the hot-zone and cold-zone counterparts of Class S and V look like, how the planet classes should be re-cut around that, and how the highest life stage should follow the time a planet has been h...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/atmospheres-retention-and-classes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/atmospheres-retention-and-classes.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="atmosphere-retention-hot--and-cold-zone-classes-and-life-stage-timing">Atmosphere retention, hot- and cold-zone classes and life-stage timing</h1><p class="meta">docs/design/habitability/atmospheres-retention-and-classes.md</p><details class="toc"><summary>On this page (24 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-summary">1. Summary</a></li><li style="margin-left:0px"><a href="#2-what-the-code-does-today-checked-2026-10-09">2. What the code does today (checked 2026-10-09)</a></li><li style="margin-left:0px"><a href="#3-atmosphere-retention">3. Atmosphere retention</a></li><li style="margin-left:14px"><a href="#31-gate-1-the-cosmic-shoreline">3.1 Gate 1: the cosmic shoreline</a></li><li style="margin-left:14px"><a href="#32-gate-2-which-gases-are-held">3.2 Gate 2: which gases are held</a></li><li style="margin-left:14px"><a href="#33-gate-3-the-cold-side">3.3 Gate 3: the cold side</a></li><li style="margin-left:14px"><a href="#34-energy-limited-xuv-loss-envelopes-and-oceans">3.4 Energy-limited XUV loss: envelopes and oceans</a></li><li style="margin-left:14px"><a href="#35-sub-neptunes-and-the-radius-valley">3.5 Sub-Neptunes and the radius valley</a></li><li style="margin-left:14px"><a href="#36-a-generator-evaluable-function">3.6 A generator-evaluable function</a></li><li style="margin-left:0px"><a href="#4-habitable-zone-limits-hot-zone-outcomes-and-hycean-worlds">4. Habitable-zone limits, hot-zone outcomes and Hycean worlds</a></li><li style="margin-left:14px"><a href="#41-runaway-greenhouse-and-zone-edges">4.1 Runaway greenhouse and zone edges</a></li><li style="margin-left:14px"><a href="#42-hot-zone-outcomes">4.2 Hot-zone outcomes</a></li><li style="margin-left:14px"><a href="#43-hycean-worlds">4.3 Hycean worlds</a></li><li style="margin-left:0px"><a href="#5-classes">5. Classes</a></li><li style="margin-left:14px"><a href="#51-proposed-definitions">5.1 Proposed definitions</a></li><li style="margin-left:14px"><a href="#52-letters-options-and-pr-order">5.2 Letters, options and PR order</a></li><li style="margin-left:0px"><a href="#6-life-stage-inputs-missing-from-the-code">6. Life-stage inputs missing from the code</a></li><li style="margin-left:0px"><a href="#7-life-stage-against-time-habitable-gen92">7. Life stage against time habitable (GEN.92)</a></li><li style="margin-left:14px"><a href="#71-earth-against-the-projects-timelines">7.1 Earth against the project's timelines</a></li><li style="margin-left:14px"><a href="#72-rule-table">7.2 Rule table</a></li><li style="margin-left:0px"><a href="#8-corrections-to-the-source-documents">8. Corrections to the source documents</a></li><li style="margin-left:0px"><a href="#9-evidence-notes">9. Evidence notes</a></li><li style="margin-left:0px"><a href="#10-sources">10. Sources</a></li></ul></details>
+<p>When a planet can hold an atmosphere, what the hot-zone and cold-zone
+counterparts of Class S and V look like, how the planet classes should be
+re-cut around that, and how the highest life stage should follow the time a
+planet has been habitable. This is the research behind <code>docs/TODO.md</code> items
+GEN.91 and GEN.92 and the class work they gate (GEN.28, GEN.27, GEN.29,
+GEN.33, GEN.38). It carries the still-valid formulas of Boss's uploaded
+documents &quot;Mathematical and Algorithmic Implementation of the Planetary
+Habitability Index.md&quot; (Math), &quot;Atmospheric Toxicity.md&quot; (Atm) and &quot;Planetary
+Habitability and Speculative Xenobiology.md&quot; (Master), and names every place
+they are corrected (section 8). The score structure and the equipment tiers
+are in <a href="habitability-index.html">habitability-index.md</a>; stellar activity,
+magnetism, radiation dose and oceans are in
+<a href="activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a>.</p>
+<p>Informs: GEN.91, GEN.92, GEN.85, GEN.90, GEN.28, GEN.27, GEN.29, GEN.33, GEN.38
+Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [S] seen in a search result (URL under Sources), [C]
+computed (formula and inputs shown, reproducible), [R] recalled from memory
+and unconfirmed, [D] a design default with no outside source. The research
+environment could only read search-result text, not the papers, so every [R]
+is listed under Evidence notes for checking when paper access is allowed.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Boss (2026-10-03 05:38Z), GEN.91: &quot;We need a planet class for like Class S
+and V but in the other zones, so that will require research on when an
+atmosphere is possible and when it isn't.&quot;</li>
+<li>Boss (2026-10-03 05:38Z), GEN.90: &quot;Refactor all planetary classes to better
+align with our habitability index system and the research for the
+different kinds of life, etc.&quot;</li>
+<li>Boss (2026-10-07 17:11Z, confirmed 2026-10-09 07:48Z): the score structure
+is PHI-4's domains and tiers for display with the Xenobiology doc's three
+scores behind them (<a href="habitability-index.html">habitability-index.md</a>); GEN.29
+stays in phase 2 with the class refactor.</li>
+<li>GEN.33's rule: one planet class per PR, each with its tests.</li>
+</ul>
+<h2 id="1-summary">1. Summary</h2>
+<ol>
+<li><strong>An atmosphere is possible when three gates pass</strong>, each a pure function of
+mass, radius, insolation, star age and surface temperature (code in 3.6).
+<ul>
+<li>Cosmic shoreline: cumulative-XUV-weighted insolation below
+<code>S_cs = 3.85e-4 * v_esc^4</code> (S in Earth units, v_esc in km/s). Ratio
+<code>r = I_xuv / S_cs</code>: under 0.7 dense, 0.7 to 1 moderate, 1 to 2.5 tenuous
+(Mars), 2.5 to 30 trace or outgassed only, above 30 none.</li>
+<li>Species: a gas is held thermally if <code>lambda = m v_esc^2 / (2 k T_exo)</code> is
+at least 30.</li>
+<li>Cold side: a gas below its vapour-pressure temperature is ice, not air.</li>
+<li>H/He envelopes and oceans also need the energy-limited XUV check.</li>
+</ul>
+</li>
+<li><strong>Answer to Boss's GEN.91 question.</strong> The &quot;S and V in the other zones&quot;
+classes are mostly Class S itself with air, plus a hot desiccated class
+(Venus type, a re-scoped N) and a cold ice-shell class (an extended X, or a
+Hycean flag on R). Class S has <code>atmosphere = None</code> in every zone, but a 2 to
+10 Earth-mass rock in the ecosphere or cold zone sits far inside the
+shoreline (r about 0.02) and is airless only above T_eq of about 650 to
+1,200 K [C].</li>
+<li><strong>No new class letters are needed</strong> (5.2): A to Z are full after R, U, W, X,
+Y and Z, and Q may exist in saved galaxies.</li>
+<li><strong>Life stage follows time habitable and the score gates</strong> instead of a
+per-class cap (section 7).</li>
+</ol>
+<h2 id="2-what-the-code-does-today-checked-2026-10-09">2. What the code does today (checked 2026-10-09)</h2>
+<ul>
+<li><strong>Classes.</strong> <code>tuning.PLANET_CLASSES</code> has zone flags <code>h/e/c/r</code>,
+<code>radius_range</code>, optional <code>density_range</code>, an <code>atmosphere</code> text label and
+per-class albedo and greenhouse ranges. No retention test exists.</li>
+<li><strong>Pressure</strong> is <code>atm_density * g * H</code> times <code>_atmosphere_retention_factor(g) = g^1</code> (<code>physics/planets.py</code>, line 580), &quot;a starting point, not derived&quot;.
+Temperature, XUV and age play no part.</li>
+<li><strong>Habitable zone</strong> (before GEN.146; see 4.1, As built). <code>orbits.calculate_habitable_zone</code> used fixed
+<code>S_inner = 1.1</code> and <code>S_outer = 0.53</code> for every star: for the Sun 0.95 and
+1.37 AU against Kopparapu's 0.95 (runaway) and 1.68 AU (maximum greenhouse)
+[C].</li>
+<li><strong>Stellar evolution.</strong> <code>evolve_star</code> holds a main-sequence star at constant
+luminosity: no pre-main-sequence phase and no brightening.</li>
+<li><strong>Life.</strong> (Historical: <code>HABITABLE_PLANET_CLASSES = E F G H K L M O P V</code>, gone with GEN.1387; life comes from the conditions.)
+<code>PLANET_CLASS_MAX_LIFE_STAGE</code> caps E (abiogenesis), F and G (photosynthesis)
+and L (multicellularity). <code>evolution.get_evolutionary_timeline</code> picks the
+latest milestone whose absolute age is below the star's age. Nothing reads
+the planet's score, atmosphere, radiation or time since habitable.</li>
+<li><strong>A finding.</strong> Class N (and Q) carries a <code>life_chemical</code> but is not in the
+habitable list and has no stage cap. <code>life.py</code> (line 198) stores an uncapped
+timeline for any ecosphere planet with a chemical;
+<code>Planet.to_paragraph_list</code> displays it only for the habitable list. A Venus
+analog (737 K, 9.2 MPa) therefore stores a life chemical and a hidden
+timeline, and its page still says &quot;conditions are suitable for the
+development of life&quot;.</li>
+<li><strong>Tidal locking</strong> exists only for moons; a planet's spin is a uniform 10 to
+1,400 h draw (GEN.104 adds spin). <code>planet_class</code> is <code>String(16)</code> on planets
+and moons, <code>String(4)</code> on <code>rogue_planets</code>.</li>
+</ul>
+<p>Generator medians around a G2V star (40 planets per class and zone) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class, zone</th>
+<th>Median R (km)</th>
+<th>M (Earth)</th>
+<th>v_esc (km/s)</th>
+<th>S (Earth)</th>
+<th>T (K)</th>
+<th>P</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N ecosphere</td>
+<td>6,072</td>
+<td>0.77</td>
+<td>10.0</td>
+<td>1.05</td>
+<td>743</td>
+<td>9.4 MPa</td>
+</tr>
+<tr>
+<td>S hot / e / c</td>
+<td>8,810 to 8,880</td>
+<td>3.7 to 3.9</td>
+<td>18.4</td>
+<td>4.4 / 0.74 / 0.13</td>
+<td>376 / 240 / 157</td>
+<td>0</td>
+</tr>
+<tr>
+<td>V ecosphere</td>
+<td>11,245</td>
+<td>4.9</td>
+<td>18.8</td>
+<td>0.88</td>
+<td>382</td>
+<td>268 kPa</td>
+</tr>
+<tr>
+<td>I ecosphere / T cold</td>
+<td>26,200 to 27,700</td>
+<td>20 to 22</td>
+<td>23 to 25</td>
+<td>0.74 / 0.13</td>
+<td>242 / 159</td>
+<td>about 0.2 MPa</td>
+</tr>
+</tbody>
+</table></div>
+<p>I (10 to 60 Earth masses) and T (6 to 40) overlap almost completely.</p>
+<h2 id="3-atmosphere-retention">3. Atmosphere retention</h2>
+<h3 id="31-gate-1-the-cosmic-shoreline">3.1 Gate 1: the cosmic shoreline</h3>
+<p>[R4862]: solar-system bodies with and
+without atmospheres separate along cumulative insolation proportional to
+<code>v_esc^4</code>, and exoplanets crowd along the extrapolation [S]. A pure
+energy-limited argument gives an exponent of about 3, so the slope is empirical
+[S]. [R3037] do not keep slope 4: their
+fit has slope 5.77 and intercept -4.35 (checked 2026-10-17, Tunable gaps
+investigation; the earlier snippet reading was wrong), and [R0364] fits a logistic in the cumulative insolation. Zahnle and
+Catling draw the line by eye and give no constant K. The constant here is fitted
+to 13 Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b (K 12 to
+190 times higher); it is replaced by the tuned draw of GEN.511.</p>
+<p>Fit [C], bodies as (v_esc km/s, S in Earth units, state): Mercury (4.25, 6.67,
+none), Venus (10.36, 1.91, dense), Earth (11.19, 1.0, dense), Moon (2.38, 1.0,
+none), Mars (5.03, 0.431, 6 mbar), Ganymede (2.74, 0.037, none), Callisto
+(2.44, 0.037, trace), Io (2.56, 0.037, trace), Europa (2.03, 0.037, none),
+Titan (2.64, 0.011, 1.5 bar), Triton (1.45, 0.0011, 14 micro-bar), Pluto (1.21,
+0.00064, 10 micro-bar), Ceres (0.51, 0.13, none). For
+<code>S_cs = K v^4</code>, Titan forces <code>K &gt; 2.26e-4</code>, Pluto and Triton raise the lower
+bound to 3.0e-4, and Ganymede forces <code>K &lt; 6.56e-4</code>. The window is 3.0e-4 to
+6.6e-4; the geometric centre of the wider window, 3.85e-4, is used. Ratios <code>r</code>
+at K = 3.85e-4: Earth 0.17, Venus 0.43, Titan 0.59, Triton
+0.65, Pluto 0.78, Ganymede 1.7, Mars 1.8, Io 2.2, Callisto 2.7, Europa 5.7,
+Mercury 53, Moon 82, Ceres 4,990.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>v_esc (km/s)</th>
+<th>S_cs (Earth = 1)</th>
+<th>T_eq at S_cs (K, A = 0.3)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>0.006</td>
+<td>71</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0.099</td>
+<td>143</td>
+</tr>
+<tr>
+<td>6</td>
+<td>0.50</td>
+<td>214</td>
+</tr>
+<tr>
+<td>10</td>
+<td>3.9</td>
+<td>357</td>
+</tr>
+<tr>
+<td>15</td>
+<td>19.5</td>
+<td>536</td>
+</tr>
+<tr>
+<td>20</td>
+<td>62</td>
+<td>714</td>
+</tr>
+<tr>
+<td>30</td>
+<td>312</td>
+<td>1,071</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>M dwarfs need cumulative XUV, not bolometric insolation</strong>: they stay
+saturated for billions of years. Replace S by <code>I_xuv = S * (cumulative XUV of the star to its age / cumulative XUV of the Sun to 4.5 Gyr)</code>, the &quot;XUV exposure
+index&quot;
+(<a href="activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a>
+2.3). With a stand-in XUV history (<code>t_sat</code> 2 Gyr, decay index 1.23) TRAPPIST-1 b and
+c come out at r = 5.2 and 3.0 (JWST: an atmosphere of 1 bar or more is disfavoured; &quot;under 0.1 bar&quot; is in no paper read, Tunable gaps investigation 2026-10-17), e at 2.2,
+f at 0.71 and g at 0.35 (could hold air); LHS 3844 b at 36 (none; bare rock
+[R]); 55 Cnc e at 22 (JWST finds a likely CO<sub>2</sub>/CO atmosphere over a magma ocean
+[S, Hu et al. 2024], so the 2.5 to 30 band is real).</p>
+<p>The shoreline caps pressure, it does not set it: Titan, Triton and Pluto are
+retention-allowed but their pressures come from supply and vapour pressure.
+The generator takes <code>P = min(P_supply, P_retention, P_vapour)</code>.</p>
+<h3 id="32-gate-2-which-gases-are-held">3.2 Gate 2: which gases are held</h3>
+<p>Jeans parameter <code>lambda = G M m / (k T_exo r_exo) = m v_esc^2 / (2 k T_exo)</code>
+(<code>r_exo</code> set to R). Kept if <code>lambda &gt;= 30</code>, lost within about 1 Gyr if under 15
+[R: [R0692]]. A lifetime integral for a 1-bar pure-gas
+inventory gives Gyr or longer for <code>lambda_exo</code> of about 10 or more [C], so 30 is
+conservative.</p>
+<p>Exobase temperature is the hard input. A one-line model that fits Earth
+(1,004 K), Venus (389 K model; about 275 K observed day side), Mars (268 K),
+Titan (162 K) and Pluto (60 K model, about 70 K observed) is [C, a calibration,
+not physics]:</p>
+<pre><code>T_exo = 1.3 * T_eq                                        for CO2-dominated air
+T_exo = T_eq + min(1500, 750 * sqrt(F_xuv_rel))   K       otherwise
+</code></pre>
+<p><code>F_xuv_rel</code> is the star's present XUV flux at the planet in units of Earth's
+today (4.6 erg/cm2/s; the activity document's table 2.2).</p>
+<p>Minimum retained molecular weight <code>mu_min = 2 k T_exo * 30 / (amu v_esc^2)</code>
+[C]; a lighter gas is lost over Gyr. Weights: H<sub>2</sub> 2.0, He 4.0, CH<sub>4</sub> 16, H<sub>2</sub>O 18,
+N<sub>2</sub> and CO 28, O<sub>2</sub> 32, Ar 40, CO<sub>2</sub> 44, SO<sub>2</sub> 64.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>v_esc (km/s) \ T_exo (K)</th>
+<th>200</th>
+<th>500</th>
+<th>1,000</th>
+<th>2,000</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>11.1</td>
+<td>27.7</td>
+<td>55</td>
+<td>111</td>
+</tr>
+<tr>
+<td>5</td>
+<td>4.0</td>
+<td>10.0</td>
+<td>20.0</td>
+<td>39.9</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1.0</td>
+<td>2.5</td>
+<td>5.0</td>
+<td>10.0</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.44</td>
+<td>1.1</td>
+<td>2.2</td>
+<td>4.4</td>
+</tr>
+<tr>
+<td>20</td>
+<td>0.25</td>
+<td>0.62</td>
+<td>1.25</td>
+<td>2.5</td>
+</tr>
+<tr>
+<td>30</td>
+<td>0.11</td>
+<td>0.28</td>
+<td>0.55</td>
+<td>1.1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Earth (11.2 km/s, 1,000 K) holds everything above about 4: H<sub>2</sub> and He are lost,
+as observed. Planets of 6 to 10 Earth masses keep H<sub>2</sub> against Jeans escape below
+T_exo of about 500 K; XUV loss then decides (3.4). Jeans alone would keep H<sub>2</sub> on
+a Venus-like planet (10.4 km/s, 390 K), which is wrong because hydrogen leaves
+by hydrodynamic and non-thermal routes: the species gate is necessary, not
+sufficient.</p>
+<p><strong>Water needs the H atom.</strong> Water is lost by photolysis plus escape of atomic
+H. Mars lost its water because H escapes; Earth keeps its ocean because the
+cold trap leaves the stratosphere dry. The water check is the cold-trap
+condition (4.1) followed by the energy-limited H clock (3.4).</p>
+<p><strong>Non-thermal escape</strong> (photochemical, pick-up, sputtering) explains Mars and
+the Moon [R]. A global field is second-order for a thick atmosphere, so the
+shoreline has no field term.</p>
+<h3 id="33-gate-3-the-cold-side">3.3 Gate 3: the cold side</h3>
+<p>Minimum temperature (K) for a gas to be vapour at partial pressure P, from
+Clausius-Clapeyron anchored at the 1-bar boiling or sublimation point [C].
+Checks: CO<sub>2</sub> at 0.6 kPa gives 148 K (Mars polar frost point); N<sub>2</sub> at 1 Pa gives
+33 K against about 37 K at Pluto.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>gas \ P (kPa)</th>
+<th>100</th>
+<th>10</th>
+<th>1</th>
+<th>0.1</th>
+<th>0.01</th>
+<th>0.001</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub></td>
+<td>20</td>
+<td>14</td>
+<td>11</td>
+<td>9</td>
+<td>7</td>
+<td>6</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>77</td>
+<td>61</td>
+<td>50</td>
+<td>43</td>
+<td>37</td>
+<td>33</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>81</td>
+<td>65</td>
+<td>54</td>
+<td>46</td>
+<td>40</td>
+<td>36</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>87</td>
+<td>69</td>
+<td>57</td>
+<td>49</td>
+<td>43</td>
+<td>38</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>90</td>
+<td>72</td>
+<td>60</td>
+<td>51</td>
+<td>45</td>
+<td>40</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>112</td>
+<td>88</td>
+<td>73</td>
+<td>63</td>
+<td>55</td>
+<td>48</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>195</td>
+<td>169</td>
+<td>150</td>
+<td>135</td>
+<td>122</td>
+<td>112</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>240</td>
+<td>200</td>
+<td>172</td>
+<td>151</td>
+<td>134</td>
+<td>121</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>263</td>
+<td>219</td>
+<td>187</td>
+<td>164</td>
+<td>145</td>
+<td>131</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>373</td>
+<td>317</td>
+<td>276</td>
+<td>253</td>
+<td>231</td>
+<td>212</td>
+</tr>
+</tbody>
+</table></div>
+<p>A planet with T_surface below the entry at its target partial pressure holds
+that gas as ice (Titan at 94 K holds 1.5 bar of N<sub>2</sub> and condensing CH<sub>4</sub>; Pluto at
+40 K only about 1 Pa of N<sub>2</sub>). A CO<sub>2</sub> or N<sub>2</sub> atmosphere on a locked planet
+collapses onto the night side unless it is about 0.1 bar or more [R: Joshi et
+al. 1997]. The rogue-planet model already uses the N<sub>2</sub> version
+(<code>rogue_surface.frozen_nitrogen_pressure_pa</code>, which reads <code>physics/saturation.py</code>).</p>
+<h3 id="34-energy-limited-xuv-loss-envelopes-and-oceans">3.4 Energy-limited XUV loss: envelopes and oceans</h3>
+<p><code>Mdot = eps * pi * R^3 * F_xuv / (G M)</code> with eps = 0.1, <code>K_tide</code> = 1 and
+<code>R_XUV = R</code>, a lower bound on loss (Math's section 2.1 formula carries <code>R_p R_XUV^2</code> and <code>K_tide</code>). Integrated over the star's life it is a fraction of
+planet mass <code>f_lost = eps pi R^3 E_cum / (G M^2)</code>, with <code>E_cum</code> the cumulative
+XUV energy per area. It is an upper bound (every absorbed photon lifts gas),
+and for water it also needs a wet stratosphere.</p>
+<p>Insolation at which the cumulative loss equals a fraction of a rocky core's
+mass, Sun-like star (<code>E_cum = 3.1e16 J/m2</code> at S = 1 over 4.5 Gyr, from the
+activity document's XUV model [C]; core radius <code>M^0.27</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M_core (Earth)</th>
+<th>S for 1 percent</th>
+<th>S for 3 percent</th>
+<th>S for 10 percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>9</td>
+<td>28</td>
+<td>93</td>
+</tr>
+<tr>
+<td>2</td>
+<td>21</td>
+<td>64</td>
+<td>213</td>
+</tr>
+<tr>
+<td>5</td>
+<td>63</td>
+<td>190</td>
+<td>633</td>
+</tr>
+<tr>
+<td>10</td>
+<td>144</td>
+<td>433</td>
+<td>1,443</td>
+</tr>
+<tr>
+<td>20</td>
+<td>329</td>
+<td>988</td>
+<td>3,293</td>
+</tr>
+</tbody>
+</table></div>
+<p>A saturated fraction of 1e-3 (the X-ray band alone) would give S values about
+twice as large. Radius-valley planets orbit Sun-like stars at S of 100 to 300 [R], where
+envelopes of 1 to 3 percent of mass are stripped either way. Around an M dwarf
+(<code>t_sat</code> 2 Gyr) the same loss happens at about a tenth of the insolation.</p>
+<p>Ocean loss clock [C]: the H in one Earth ocean (1.55e20 kg) is removed in 14 to
+25 Myr at S = 1.1 and 5 to 9 Myr at S = 3 during the saturated phase, if loss
+is energy-limited and the stratosphere wet; 100 Myr of runaway greenhouse costs
+4 to 17 oceans' worth of H. Luger and Barnes found several oceans lost and
+hundreds to thousands of bar of abiotic O<sub>2</sub> for habitable-zone planets of M
+dwarfs older than about 1 Gyr [S]. Desiccation rule: <code>water_lost</code> = sum over
+time-in-runaway of <code>Mdot_H</code>; desiccated if it exceeds the ocean inventory
+(default one ocean; a log-normal around 1 to a few oceans is better).</p>
+<h3 id="35-sub-neptunes-and-the-radius-valley">3.5 Sub-Neptunes and the radius valley</h3>
+<ul>
+<li>The radius valley [R1478] is a factor-2 deficit near 1.5 to 2.0
+Earth radii [S]. Owen and Wu (2017) explain it by photoevaporation: bare
+cores near 1.3 Re, envelope planets near 2.6 Re, sculpted in the first
+100 Myr [S]; its period slope is negative, <code>R_valley(P) = 1.8 Re (P/10 d)^-0.09</code>
+[R]. Core-powered mass loss gives the same observable [S].</li>
+<li>[R0758]: Terran-to-Neptunian break at 2.0 (+0.7, -0.6) Earth
+masses [S]; median radii 1 Me 1.01 Re, 3 Me 1.54, 5 Me 2.07, 10 Me 3.11,
+20 Me 4.67 (slope 0.279 below 2.06 Me, 0.586 above) [C].</li>
+<li>Earth-like composition <code>R = M^0.27</code> [R: Zeng et al.] gives 6 Me = 1.62 Re.
+Classify on bulk density, not radius: rocky if <code>R &lt;= 1.12 M^0.27</code> [D],
+volatile-rich (class R) otherwise. The repo's <code>GIANT_NEPTUNIAN_MASS_RADIUS</code>
+(<code>physics/constants.py</code>, line 179) gives 6 Me 2.26 Re and 20 Me 4.4 Re.</li>
+</ul>
+<h3 id="36-a-generator-evaluable-function">3.6 A generator-evaluable function</h3>
+<p>Tested on the bodies of 3.1 (Earth r 0.17 dense, Venus 0.43, Mars 1.77
+tenuous, Mercury 53.7 none, Moon 81.6 none, Titan 0.59) [C]. <code>xuv_index</code> and
+<code>xuv_rel_now</code> come from the activity module (pass S for both for
+solar-system bodies).</p>
+<pre><code class="language-python">import math
+AMU, KB, G, ME, RE = 1.66054e-27, 1.380649e-23, 6.674e-11, 5.972e24, 6.371e6
+K_SHORE, LAMBDA_KEEP = 3.85e-4, 30.0            # K window 3.0e-4 .. 6.6e-4
+MU = {'H': 1.008, 'H2': 2.016, 'He': 4.003, 'CH4': 16.04, 'H2O': 18.015, 'N2': 28.01,
+      'O2': 32.0, 'Ar': 39.95, 'CO2': 44.01, 'SO2': 64.07}
+
+def v_esc_kms(m_e, r_e): return 11.186 * math.sqrt(m_e / r_e)
+
+def retention(m_e, r_e, s, xuv_index, xuv_rel_now, albedo=0.3, co2_dominated=False, k=K_SHORE):
+    v = v_esc_kms(m_e, r_e)
+    r = xuv_index / (k * v ** 4)                          # shoreline ratio
+    teq = 278.6 * (s * (1 - albedo)) ** 0.25
+    texo = 1.3 * teq if co2_dominated else teq + min(1500.0, 750.0 * math.sqrt(xuv_rel_now))
+    kept = [g for g, mu in MU.items() if mu * AMU * (v * 1e3) ** 2 / (2 * KB * texo) &gt;= LAMBDA_KEEP]
+    verdict = ('dense' if r &lt; 0.7 else 'moderate' if r &lt; 1 else 'tenuous' if r &lt; 2.5
+               else 'trace' if r &lt; 30 else 'none')
+    return v, r, teq, texo, verdict, kept
+
+def envelope_loss_fraction(m_e, r_e, cum_xuv_j_m2, eps=0.1):
+    # cum_xuv_j_m2: cumulative XUV energy per area at the planet to the planet's age
+    return eps * math.pi * (r_e * RE) ** 3 * cum_xuv_j_m2 / (G * (m_e * ME) ** 2)
+</code></pre>
+<p><strong>Built (GEN.355, <code>physics/atmosphere_retention.py</code>, registry 6.74).</strong> The snippet above is now a library: <code>shoreline_ratio</code>, <code>verdict_of</code>, <code>pressure_cap_pa</code>, <code>held_species</code>, <code>minimum_molar_mass_kg_mol</code>, <code>cold_side_k</code> (the vapour curves of <code>physics/saturation.py</code>, so CO<sub>2</sub> at 0.6 kPa gives the Mars frost point and N<sub>2</sub> at 1 Pa the Pluto figure) and <code>energy_limited_loss_fraction</code>. The exobase temperature is the thermosphere model's, not the one-line fit of 3.2 (that fit was a calibration, and the model the generator already runs replaced it). The answer to &quot;when is an atmosphere possible&quot; is: a shoreline ratio under 30 (under 0.7 for a dense one), a gas of Jeans parameter 30 or more at the exobase, a surface warmer than the gas's condensation temperature at its partial pressure, and an envelope or ocean whose energy-limited loss over the star's life is under the share the body can spare. <code>tests/test_atmosphere_retention.py</code> carries the 13 bodies. The generator's pressure stage still takes its shoreline from the logistic of rows d (GEN.511); GEN.963 is the item that reads this module.</p>
+<p>Draw <code>k</code> log-uniformly from 3.0e-4 to 6.6e-4 per planet (or per system) to
+reproduce the scatter between Titan and Ganymede. <code>P_retention</code> is the only
+new piece of the final pressure <code>min(P_supply, P_vapour(T_surf, gas), P_retention(r))</code>, and can be a smooth cap: <code>r &lt; 0.7</code> none, 0.7 to 1: 0.1 bar,
+1 to 2.5: 10 mbar, 2.5 to 30: 10 micro-bar, above: 0.</p>
+<h2 id="4-habitable-zone-limits-hot-zone-outcomes-and-hycean-worlds">4. Habitable-zone limits, hot-zone outcomes and Hycean worlds</h2>
+<h3 id="41-runaway-greenhouse-and-zone-edges">4.1 Runaway greenhouse and zone edges</h3>
+<p>[R2446] (ApJ 765:131; 2014, ApJL 787:L29):
+<code>S_eff(Teff) = S0 + a T* + b T*^2 + c T*^3 + d T*^4</code>, <code>T* = Teff - 5780</code>,
+valid 2,600 to 7,200 K. Confirmed [S]: for the Sun recent Venus 1.78, runaway 1.04 (2013) or 1.107 (2014,
+1 Earth mass), moist 1.01, maximum greenhouse 0.35, early Mars 0.32; 2014
+runaway a = 1.332e-4, b = 1.58e-8; maximum greenhouse S0 0.356, a = 6.171e-5,
+b = 1.698e-9; mass dependence only for the inner edge. The c, d coefficients
+are [R], but reproduce the quoted solar distances (0.75, 0.95, 0.993, 1.676,
+1.774 AU) [C]. The 5 Earth-mass runaway set (S0 1.188) and 0.1 Earth-mass set
+(S0 0.99) are [R] and not tabulated; take them from [R2447].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>S0</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recent Venus</td>
+<td>1.776</td>
+<td>2.136e-4</td>
+<td>2.533e-8</td>
+<td>-1.332e-11</td>
+<td>-3.097e-15 [R]</td>
+</tr>
+<tr>
+<td>Runaway, 1 Earth mass</td>
+<td>1.107</td>
+<td>1.332e-4 [S]</td>
+<td>1.58e-8 [S]</td>
+<td>-8.308e-12 [R]</td>
+<td>-1.931e-15 [R]</td>
+</tr>
+<tr>
+<td>no source</td>
+<td>1.014</td>
+<td>8.1774e-5</td>
+<td>1.7063e-9</td>
+<td>-4.3241e-12</td>
+<td>-6.6462e-16 [R]</td>
+</tr>
+<tr>
+<td>Maximum greenhouse</td>
+<td>0.356</td>
+<td>6.171e-5 [S]</td>
+<td>1.698e-9 [S]</td>
+<td>-3.198e-12 [R]</td>
+<td>-5.575e-16 [R]</td>
+</tr>
+<tr>
+<td>Early Mars</td>
+<td>0.3179</td>
+<td>5.4513e-5</td>
+<td>1.5313e-9</td>
+<td>-2.7786e-12</td>
+<td>-4.8997e-16 [R]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Runaway <code>S_eff</code> for 1 Earth mass: 2,800 K 0.918; 4,000 K 0.947; 5,780 K 1.107;
+7,200 K 1.296 [C]. The repo's fixed 1.1 and 0.53 put the inner edge of a
+3,200 K M dwarf 8 percent too far out in AU and its outer edge (0.53 against
+0.238) 33 percent too near [C]; for a Sun-like star the inner edge matches and
+the outer is 1.37 AU against 1.68. Recommended: a <code>hz_limits(teff, lum, planet_mass)</code> function with this table, as its own item (it changes zone
+assignment for every star).</p>
+<p><strong>As built (GEN.146).</strong> <code>orbits.calculate_habitable_zone(luminosity, temperature)</code> uses the 1 Earth-mass runaway greenhouse set for the inner edge and the maximum greenhouse set for the outer edge, with the coefficients read from Table 1 of [R2447] ([R2447]; they equal the <code>[R]</code> entries above for these two rows, now <code>[S]</code>) in <code>KOPPARAPU_RUNAWAY_GREENHOUSE</code> and <code>KOPPARAPU_MAXIMUM_GREENHOUSE</code>, <code>d = sqrt(L / S_eff)</code>. The Sun gets 0.950 and 1.676 AU. A temperature outside 2,600 to 7,200 K takes the nearest end (remnants and brown dwarfs). <code>Star</code> and <code>CompactRemnant</code> pass their own <code>temperature</code>; a <code>BinaryStarProxy</code> passes the pair's temperature weighted by luminosity with its summed luminosity. The mass-dependent runaway sets (0.1 M_earth: 0.99, 1.209e-4, 1.404e-8, -7.418e-12, -1.713e-15; 5 M_earth: 1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15) are not used: no caller has the planet when the zone is made. The planet-mass <code>hz_limits</code> function of the recommendation stays open.</p>
+<p><strong>As built (GEN.639).</strong> <code>orbits.runaway_greenhouse_flux(teff, planet_mass_earth)</code> takes the three sets (0.1, 1 and 5 Earth masses, <code>KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS</code>), worked out at the star's temperature and linear in the logarithm of the mass between them, clamped outside; <code>orbits.hz_limits(luminosity, temperature, planet_mass_earth)</code> gives the edges for one planet (the Sun: 0.9504 and 1.676 AU at 1 Earth mass; 1.005 AU inner at 0.1; 0.9175 at 5). The star's own zone (<code>calculate_habitable_zone</code>) and so the zone label of a planet stay at 1 Earth mass, because the zone is needed to draw the planet's class and mass is known only after it. The planet's mass enters instead in the water history below. A heavier planet keeps its water to a higher flux, so its inner edge sits nearer its star.</p>
+<p>The post-runaway history is followed, not assumed (<code>physics/runaway_history.py</code>, called from <code>hydrosphere.generate_hydrosphere</code>): from <code>tuning.RUNAWAY_HISTORY_START_YR</code> (30 Myr, when the last giant impacts are done; DESIGN) to the star's age, the star's light is the pre-main-sequence track (<code>pre_main_sequence</code>) until it reaches the main sequence and a log-linear rise to its present luminosity after. Wherever the flux at the planet's orbit is above the planet-mass runaway limit the hydrogen of the steam escapes at the energy-limited rate <code>Mdot = eps pi R^3 F_xuv / (G M)</code> with eps = 0.15 (<code>tuning.ENERGY_LIMITED_EFFICIENCY</code>; the value of the atmosphere escape model, <code>thermosphere.ENERGY_LIMITED_EFFICIENCY</code>, within the 0.1 to 0.15 of the sources; Boss's choice of 11-07, replacing his 10-23 value of 0.01; DESIGN) and F_xuv the star's XUV at that age (saturated until the star's own saturation age, then decaying: <code>runaway_history._saturation_age_gy</code> finds it from the star's stored <code>xuv_saturated</code> and <code>log_lx_lbol</code> (GEN.800), plus the photosphere above 13.6 eV); the water lost is 8.94 times the hydrogen. Nothing is drawn. The loss comes off the surface reservoir first (the air and the oceans are what escape reaches), and <code>tuning.MANTLE_OUTGAS_SHARE</code> (0.3, DESIGN) of the mantle's water is then brought to the surface by volcanism (never more than was lost); the bulk water of the composition is unchanged and the loss shows in the surface water, the oceans and their depth. Measured with the module at eps = 0.1 (multiply by 1.5 for the built 0.15): the Sun at 1 AU loses nothing, at 0.85 AU about 50 Earth oceans (it is past the limit now), a 0.3 solar-mass star's planet in the middle of its zone about 31 oceans against the 0.4 to 2.1 oceans of a class M draw. A giant, a white dwarf or any evolved star is not followed, and nothing is added to the air (the oxygen a lost ocean leaves behind, section 4.2, is the next step).</p>
+<p>Post-runaway history matters: a planet above <code>S_runaway</code> early (pre-main-
+sequence M dwarf) and desiccated stays dry after the star settles, and the
+repo has no pre-MS luminosity. Minimum model: for stars under about 0.5 Msun
+give planets in the present zone an extra runaway time of 0.1 to 1 Gyr [R;
+Luger and Barnes: &quot;several hundred Myr&quot; [S]]; for Sun-like stars use Gough's
+<code>L(t)/L_now = 1/(1 + 0.4 (1 - t/t_now))</code> rescaled by <code>t/t_MS</code> [R].</p>
+<h3 id="42-hot-zone-outcomes">4.2 Hot-zone outcomes</h3>
+<ul>
+<li><strong>Venus type (desiccated).</strong> <code>S_runaway(Teff, M_p) &lt; S &lt; S_cs(v_esc)</code> plus
+enough XUV loss (3.4): CO<sub>2</sub> of tens of bar (Venus 92), N<sub>2</sub> 3 to 4 bar,
+SO<sub>2</sub>/H2SO4 clouds, T_surface 450 to 900 K, no standing water, no
+carbonate-silicate thermostat. Beyond <code>S_cs</code> the planet is bare lava rock
+(Class S hot). This is the default hot subtype. Atm and Master describe a
+1-bar &quot;dune world&quot; with masks and evaporative cooling (the [R0014]
+dry-land planet, stable in a narrow band); keep it as a rare variant (about
+10 percent).</li>
+<li><strong>Lava / magma-ocean world.</strong> T_eq above about 1,500 K (55 Cnc e about
+2,000 K [S]): SiO, Na, K, O vapour if r is above 30, magma-ocean CO<sub>2</sub>/CO if
+2.5 to 30.</li>
+<li><strong>Steam worlds</strong> (water over 10 percent, very close in) are not stable for
+Gyr; leave them out. <strong>Stripped cores:</strong> hot sub-Neptunes after
+photoevaporation are Class S; R and S are the same planets before and after
+stripping, chosen by <code>envelope_loss_fraction</code>.</li>
+</ul>
+<h3 id="43-hycean-worlds">4.3 Hycean worlds</h3>
+<p>[R2804] [S]: an ocean under an H<sub>2</sub>-rich
+atmosphere; radii up to 2.6 Earth radii at 10 Earth masses and 2.3 at 5;
+ocean-surface limit about 400 K; inner edge at T_eq up to about 500 K for late
+M dwarfs, no outer limit. K2-18 b (8.6 Me, 2.6 Re, T_eq about 255 K): the 2023
+CH<sub>4</sub> and CO<sub>2</sub> detection is established, the 2025 DMS claim is not confirmed, and
+Hycean against gas-rich sub-Neptune is open [S].</p>
+<p>Generator window for a Hycean subtype of class R [D from S]: M 1 to 10 Me, R 1.4
+to 2.6 Re (cap 2.3 below 5 Me), density 1.5 to 3 g/cm3, T_eq 150 to 500 K, H<sub>2</sub>
+pressure at the ocean surface 1 to 1e4 bar (Atm says 10 to 100), ocean-surface
+T 280 to 400 K. An ocean of 100 km or more has ice VI or VII at the bottom, so
+Master's ice-sealed scoring (<code>L_chem</code> about 0.05) applies to deep Hyceans; only
+shallow ones (under about 100 km,
+<a href="activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a>
+5.2) score high, which resolves the Master table's tension (0.74 against 0.12).
+A Hycean keeps primordial H<sub>2</sub> at v_esc 15 to 20 km/s below T_exo of about 300 to
+500 K and loses little (<code>f_lost</code> about 0.01 percent at S = 1 around a Sun-like
+star, 0.15 percent around an M dwarf, for 8.6 Me at 2.6 Re [C]).</p>
+<h2 id="5-classes">5. Classes</h2>
+<h3 id="51-proposed-definitions">5.1 Proposed definitions</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Name</th>
+<th>Zones</th>
+<th>Radius (Earth)</th>
+<th>Mass (Earth)</th>
+<th>Atmosphere rule</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R (new)</td>
+<td>Sub-Neptune (+ Hycean flag)</td>
+<td>e, c, h</td>
+<td>1.6 to 3.2 (cap 4)</td>
+<td>3 to 10</td>
+<td>H<sub>2</sub>/He envelope of 0.5 to 10 percent of mass if <code>envelope_loss_fraction</code> is under 0.5 of the birth envelope, else S</td>
+<td>Rogue yes. Moon no. Density 1.2 to 4 g/cm3</td>
+</tr>
+<tr>
+<td>S (landed)</td>
+<td>Rocky super-Earth</td>
+<td>h, e, c, r</td>
+<td>1.2 to 1.8</td>
+<td>2 to 10</td>
+<td>None only when <code>r &gt; 30</code>; trace for 2.5 to 30; otherwise a secondary atmosphere by the retention function</td>
+<td>Airless only above T_eq 650 to 1,200 K [C]</td>
+</tr>
+<tr>
+<td>N (re-scope)</td>
+<td>Desiccated hot world (Venus type)</td>
+<td>h (not e)</td>
+<td>0.78 to 1.8 (5,000 to 11,500 km)</td>
+<td>0.3 to 10</td>
+<td><code>S_runaway &lt; S &lt; S_cs</code>; CO<sub>2</sub> 10 to 100+ bar, N<sub>2</sub> 1 to 4 bar, SO<sub>2</sub>/H2SO4; T 450 to 900 K</td>
+<td>Lifeless, no life chemical. Needs GEN.85 species</td>
+</tr>
+<tr>
+<td>Z (new)</td>
+<td>Lifeless temperate world</td>
+<td>e</td>
+<td>0.8 to 1.6</td>
+<td>0.3 to 6</td>
+<td>Never-metabolised air: dense CO<sub>2</sub>/N2, stalled CO (M dwarf), or abiotic O<sub>2</sub> 10 to 100+ bar (young M dwarf, water lost)</td>
+<td>Needs the pre-MS rule and GEN.85</td>
+</tr>
+<tr>
+<td>U (new)</td>
+<td>Icy world (ice dwarf, large icy moon)</td>
+<td>c, r</td>
+<td>500 to 3,000 km</td>
+<td>--</td>
+<td><code>r &lt; 1</code> and T below the N<sub>2</sub> limit gives 1 to 100 micro-bar N<sub>2</sub>/CH4; else none</td>
+<td>Moon yes. Rogue yes</td>
+</tr>
+<tr>
+<td>W (new)</td>
+<td>Small subsurface-ocean body (Enceladus)</td>
+<td>c (moon)</td>
+<td>50 to 500 km</td>
+<td>--</td>
+<td>Plume exosphere only</td>
+<td>Needs tidal heating; rogue no</td>
+</tr>
+<tr>
+<td>X (new, extend)</td>
+<td>Subsurface-ocean world (Europa to super-Earth)</td>
+<td>c, e, r</td>
+<td>500 to 11,500 km</td>
+<td>up to 10</td>
+<td>Trace O<sub>2</sub>/H2O if <code>r &gt; 2.5</code>; thicker CO<sub>2</sub>/N2/CH4 if <code>r &lt; 1</code></td>
+<td>Radius ceiling raised from 10,000 km. Rogue yes above about 0.1 Me</td>
+</tr>
+<tr>
+<td>Y (new)</td>
+<td>Titan-like</td>
+<td>c</td>
+<td>1,500 to 4,000 km</td>
+<td>0.01 to 0.1</td>
+<td><code>r &lt; 0.7</code>, T_surf 80 to 120 K, N<sub>2</sub> 0.5 to 2 bar + CH<sub>4</sub></td>
+<td>Needs S under about 0.02. Moon yes. Rogue no</td>
+</tr>
+<tr>
+<td>T (retire)</td>
+<td>Gas dwarf</td>
+<td>c</td>
+<td>15,000 to 55,000 km</td>
+<td>6 to 40</td>
+<td>--</td>
+<td>Merge into R (below 10 Me) and I (above); frees the letter</td>
+</tr>
+<tr>
+<td>I (adjust)</td>
+<td>Ice giant</td>
+<td>e, c, r</td>
+<td>3.2 to 8</td>
+<td>10 to 60</td>
+<td>H/He + ices</td>
+<td>Reduces the overlap with R</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sweep findings for GEN.29 [C, from the section 2 medians]: A and B hold 13 to
+17 kPa on 3.4 to 3.7 km/s bodies at S about 4, about 50 times beyond the
+shoreline (such bodies should be airless or hold micro-bar volcanic air); N
+sits in the ecosphere at S about 1.05, below the runaway threshold (1.107 for
+1 Earth mass [S]); K, L and P are at or below the Armstrong limit (full list in
+<a href="habitability-index.html">habitability-index.md</a> 5); P (r about 0.1) is
+consistent with the shoreline, so GEN.27 is independent of retention. A rocky
+rogue of 10 to 16 Me should be R, not a 17,600 km Class S: an Earth-like 16 Me
+planet is 2.1 Re = 13,400 km, and 4.2 g/cm3 at 2.76 Re is a Neptunian density.</p>
+<h3 id="52-letters-options-and-pr-order">5.2 Letters, options and PR order</h3>
+<p><code>planet_class</code> is <code>String(16)</code> on planets and moons and <code>String(4)</code> on rogues,
+so a longer code is storable, but the simplest plan creates no new letter for
+GEN.91.</p>
+<ul>
+<li><strong>Option A (recommended):</strong> re-scope N (hot, lifeless, up to 1.8 Re), extend
+X, Hycean as an R flag, S gets air by rule, T retired. The &quot;S and V in the
+other zones&quot; classes then exist as N (hot) and X or R (cold).</li>
+<li>Option B: two-character codes (for example <code>NS</code>, <code>XS</code>); every
+<code>tuning.PLANET_CLASSES</code> lookup and the <code>String(4)</code> rogue column must handle
+them.</li>
+<li>Option C: retire T and migrate Q; Q cannot be reused safely, so this frees
+one letter.</li>
+</ul>
+<p>PR order under GEN.33 (one class per PR):</p>
+<ol start="0">
+<li><code>planetgen/physics/atmosphere_retention.py</code>: the 3.6 functions with unit
+tests on the 13-body table; no class changes (GEN.91 part 1).</li>
+<li>R (sub-Neptune), with the envelope-survival rule and the retirement of T.</li>
+<li>S fix: the atmospheric rule for non-hot S. It changes existing output, so it
+needs GEN.92's &quot;existing galaxies unchanged until regenerated&quot; guard.</li>
+<li>U (icy world): data only.</li>
+<li>X (and W): needs the subsurface-ocean data (<code>rogue_surface.py</code> has the shell
+and ocean depth for rogues).</li>
+<li>Y: needs the vapour-pressure gate (3.3).</li>
+<li>N re-scope: needs the runaway thresholds and removal of N's life chemical.</li>
+<li>Z: last, because it needs GEN.85 partial pressures and the pre-main-
+sequence rule.</li>
+<li>Hycean flag on R; 9. GEN.29 sweep.</li>
+</ol>
+<h2 id="6-life-stage-inputs-missing-from-the-code">6. Life-stage inputs missing from the code</h2>
+<ul>
+<li><strong>Time since habitable, not star age.</strong> A planet is not habitable before the
+star leaves its pre-main-sequence runaway (M dwarfs: 0.1 to 1 Gyr [R]) and
+before the surface cools (0.05 to 0.1 Gyr): <code>t_hab = star_age - t_start</code>.
+X-ray saturation (<code>t_sat</code>, 1 to 4 Gyr for M dwarfs) is a different clock;
+Rad merges them (section 8).</li>
+<li><strong>Tidal locking of planets</strong> [C]: Q = 100, k2 = 0.3 for rock. An Earth-mass
+habitable-zone planet is locked below about 0.45 Msun (middle of the zone,
+10 h initial spin, 5 Gyr) to 0.65 Msun (S = 1, 24 h, 10 Gyr); use the formula,
+not a cut
+(<a href="activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a>
+3.3). A locked planet with air under about 0.1 bar risks night-side collapse
+(3.3).</li>
+<li><strong>Flares and XUV</strong> decide whether air and oceans survive (3.4) and enter the
+score through ozone and <code>L_rad</code>.</li>
+<li><strong>Abiotic O<sub>2</sub></strong>: an M-dwarf habitable-zone planet may have lost its water and
+carry O<sub>2</sub> that never saw life (Luger and Barnes [S]): Class Z's M-dwarf
+subtype.</li>
+</ul>
+<h2 id="7-life-stage-against-time-habitable-gen92">7. Life stage against time habitable (GEN.92)</h2>
+<h3 id="71-earth-against-the-projects-timelines">7.1 Earth against the project's timelines</h3>
+<p>Earth formed 4.54 Ga. Dates from search results [S: Wikipedia &quot;Timeline of
+life&quot;]: earliest evidence of life about 3.8 Ga, oxygenic photosynthesis 3.0 to
+3.5 Ga (disputed), Great Oxidation 2.4 to 2.5 Ga, earliest confirmed eukaryote
+about 1.85 Ga, first animals about 0.6 Ga. Elapsed time since formation: life
+by 0.7 to 1.0 Gyr; oxygenic photosynthesis 1.0 to 1.5; eukaryotes about 2.7;
+animals 3.9 to 4.0; technology about 4.5.
+<code>EVOLUTIONARY_TIMELINES[&quot;normal&quot;]</code> (abiogenesis 0.5, photosynthesis 1.5,
+complex cells 2.5, multicellularity 4.0, technology 4.5 Gyr) fits closely, for
+one sample. The <code>slow</code> row (3 to 35 Gyr) and <code>fast</code> row (0.005 to 0.08 Gyr) are
+invention: Earth bounds only the first stage from above.</p>
+<p><code>tuning.STAR_EVOLUTION</code> lifespans follow <code>t_MS = 10 Gyr M^-2.5</code> (F 4.3 to 9.1,
+G 9.1 to 17.5, K 17.5 to 73.5, M 73.5 to 5,500 Gyr) [C]. O and B stars (0.001
+to 1.5 Gyr) give life nothing, yet the repo gives them &quot;Retinal&quot; with fast
+evolution.</p>
+<h3 id="72-rule-table">7.2 Rule table</h3>
+<p><code>t_hab</code> is star age minus the habitable-onset delay (0.05 Gyr; for stars under
+0.5 Msun add 0.1 to 1 Gyr of pre-MS runaway if the planet would have been above
+<code>S_runaway</code> then). Pace multiplier from the existing scales (normal 1, slow 2.5
+to 5, fast 0.01 to 0.1 if Boss keeps it). Gates use the scores of
+<a href="habitability-index.html">habitability-index.md</a>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Earth-based minimum <code>t_hab</code> (normal)</th>
+<th>Required gates</th>
+<th>Capped by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 Sterile</td>
+<td>--</td>
+<td><code>PHI_bio &lt; 0.15</code> (no liquid solvent, ice-sealed, dose beyond 10 Gy/yr, T above 122 C) or <code>t_hab</code> below the abiogenesis time</td>
+<td>Classes N, U with no ocean, Z</td>
+</tr>
+<tr>
+<td>1 Abiogenesis (microbial)</td>
+<td>0.5 Gyr</td>
+<td><code>PHI_bio &gt;= 0.3</code>; <code>L_solv &gt;= 0.3</code>; 258 to 395 K somewhere</td>
+<td>Star lifespan &gt;= 0.5 Gyr (excludes O, B)</td>
+</tr>
+<tr>
+<td>2 Photosynthesis</td>
+<td>1.5 Gyr</td>
+<td><code>PHI_bio &gt;= 0.3</code>; light (<code>L_ener</code>)</td>
+<td>Star lifespan &gt;= 1.5 Gyr</td>
+</tr>
+<tr>
+<td>3 Complex cells</td>
+<td>2.5 Gyr</td>
+<td>Stage 2; free O<sub>2</sub> about 1 percent of present (0.2 kPa) from oxygenic photosynthesis [R]; anoxygenic-only M-dwarf biospheres stall at 2 unless an oxygenic variant is drawn</td>
+<td>Star lifespan &gt;= 2.5 Gyr (M &lt;= about 1.6 Msun)</td>
+</tr>
+<tr>
+<td>4 Multicellular</td>
+<td>4.0 Gyr</td>
+<td><code>PHI_cpx &gt;= 0.3</code>; pO2 &gt;= 8 kPa; pCO2 &lt; 2 kPa; pCO &lt; 0.01 kPa; 273 to 330 K; dose under 10 Gy/yr</td>
+<td>Star lifespan &gt;= 4.0 Gyr (M &lt;= about 1.35 Msun)</td>
+</tr>
+<tr>
+<td>5 Technological</td>
+<td>4.5 Gyr</td>
+<td>Stage 4; land fraction &gt;= about 5 percent; pO2 &gt;= about 15 kPa for combustion [R]; stable obliquity and climate</td>
+<td>Star lifespan &gt;= 4.6 Gyr; optionally an M-dwarf cap at stage 4 while age &lt; <code>t_sat</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Highest stage = the latest stage whose <code>t_hab</code> is reached on the planet's pace
+and whose gate is passed. Today only the time part exists, and the gate is a
+per-class cap. Replacing the cap by the gates settles GEN.90's known conflicts.</p>
+<h2 id="8-corrections-to-the-source-documents">8. Corrections to the source documents</h2>
+<p>&quot;Atm&quot; = Atmospheric Toxicity.md, &quot;Math&quot; = Mathematical and Algorithmic
+Implementation of the Planetary Habitability Index.md, &quot;Master&quot; = Planetary
+Habitability and Speculative Xenobiology.md, &quot;Rad&quot; = Naturally Occuring
+Ionizing Radiation.md. Threshold conflicts C1 to C16 (mask band, CO<sub>2</sub>, CO, O<sub>2</sub>,
+wet-bulb, pressure) are resolved in <a href="habitability-index.html">habitability-index.md</a>
+3; the ones below concern atmospheres, classes and timing.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source and section</th>
+<th>Statement</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A1</td>
+<td>Atm &quot;Climatic and Density Extremes&quot;, Sub-Baric Ice Worlds; Master archetypes</td>
+<td>Low-mass bodies (0.3 to 0.5 Me) near the middle or outer zone lose air by kinetic escape to 10 to 20 kPa</td>
+<td>A 0.3 to 0.5 Me rocky planet has v_esc 7.2 to 8.7 km/s and <code>S_cs</code> 1.0 to 2.2 against zone insolation 0.3 to 0.7, so r is 0.2 to 0.6 and it retains air. Low pressure needs impact erosion, low supply or cold-trapping [C]</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>Atm Sub-Baric Ice Worlds; Master</td>
+<td>Pure-O2 mask at 10 to 20 kPa &quot;matches alveolar oxygenation&quot;</td>
+<td>Alveolar pO2 of pure O<sub>2</sub> at 10 to 20 kPa total is -3 to +7 kPa; a mask needs 19 to 21 kPa or more, below that a pressure suit (<a href="habitability-index.html">habitability-index.md</a> 4)</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>Atm &quot;Post-Runaway Desiccated Super-Earths&quot;; Master (tech 0.81)</td>
+<td>A 1-bar dry &quot;dune world&quot; with masks is the desiccated outcome</td>
+<td>Venus type (9 MPa, 737 K) is the default; the dune world is a rare variant (4.2)</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>Atm Archetype C; Master Hycean row</td>
+<td>Hycean 10 to 100 bar H<sub>2</sub>, <code>PHI_bio</code> 0.74</td>
+<td>1 to 1e4 bar; deep oceans (100 km or more) are ice-sealed with <code>L_chem</code> about 0.05 (4.3)</td>
+</tr>
+<tr>
+<td>A5</td>
+<td>Atm &quot;Hydrodynamic and Kinetic Escape&quot;, Archetype B; Master</td>
+<td>Abiotic hyperbaric O<sub>2</sub> worlds of 10 to 100+ bar at 240 to 300 K</td>
+<td>Supported only for habitable-zone planets of M dwarfs older than about 1 Gyr that lost several oceans [S]; make it Class Z's M-dwarf subtype</td>
+</tr>
+<tr>
+<td>A6</td>
+<td>Atm Archetype A and &quot;HZCL mismatch&quot;; Master</td>
+<td>Dense CO<sub>2</sub> of 2 to 10 bar; complex-life limit &quot;0.005 to 0.05 bar&quot;</td>
+<td>Fine for microbes; the metazoan gate is 0.5 to 5 kPa, so dense CO<sub>2</sub> is lethal to metazoans (<a href="habitability-index.html">habitability-index.md</a> 3, C3, C11)</td>
+</tr>
+<tr>
+<td>A7</td>
+<td>Math 2.1 escape and Jeans</td>
+<td><code>Mdot = eps pi R_p R_XUV^2 F / (G M K_tide)</code>; <code>lambda_esc,i</code> with no threshold</td>
+<td>Valid; no values given: use <code>eps</code> 0.1, <code>R_XUV</code> = R_p, <code>K_tide</code> 1 (the 3.4 form, a lower bound). Jeans: kept if 30 or more, lost if under 15 (3.2)</td>
+</tr>
+<tr>
+<td>A8</td>
+<td>Math 4 pseudocode</td>
+<td><code>P_0 = max((initial_volatiles - atm_loss) * gravity, 0)</code></td>
+<td>Dimensionally a force: surface pressure is <code>M_atm g / (4 pi R^2)</code>. No species are lost, so use the 3.6 function per gas</td>
+</tr>
+<tr>
+<td>A9</td>
+<td>Math 4 pseudocode, 2.1</td>
+<td><code>seafloor_pressure &gt; 1.2e9</code> returns 0 (ice VI/VII seal)</td>
+<td>The seal depends on temperature: 0.2 to 0.35 GPa near 251 to 256 K, 0.63 GPa at 273 K, 2.2 GPa at 355 K [S]. Use the liquidus at the bottom temperature (<a href="activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a> 5.2)</td>
+</tr>
+<tr>
+<td>A10</td>
+<td>Rad &quot;Host Star Spectral Regimes&quot;</td>
+<td>M dwarfs undergo &quot;prolonged pre-main-sequence contractions of 1.0 to 2.5 Gyr&quot; with saturated XUV</td>
+<td>Conflates PMS contraction (0.1 to 1 Gyr [R]) with X-ray saturation (<code>t_sat</code> 1 to 4 Gyr for 0.1 to 0.45 Msun)</td>
+</tr>
+<tr>
+<td>A11</td>
+<td>PHI-4 / TODO GEN.90</td>
+<td>N &quot;carries life with no stage cap&quot;</td>
+<td>N has a life chemical and a hidden uncapped timeline, but is not in <code>HABITABLE_PLANET_CLASSES</code> (section 2)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="9-evidence-notes">9. Evidence notes</h2>
+<p>[R] claims to verify when paper access is allowed:</p>
+<ol>
+<li>Kopparapu <code>c</code>, <code>d</code> coefficients, the 0.1 and 5 Earth-mass runaway sets and
+the recent-Venus and early-Mars rows (they reproduce the quoted solar
+distances 0.75, 0.95, 0.993, 1.676, 1.774 AU).</li>
+<li>Zahnle and Catling's shoreline constant (K derived here from 13 bodies);
+Jeans thresholds (30 kept, 15 lost); the exobase model (five bodies).</li>
+<li>The XUV history in 3.4 (see the activity document's evidence notes).</li>
+<li>Radius-valley slope, Zeng et al. <code>R = M^0.27</code>, the 1.12 factor.</li>
+<li>Hycean pressure range and the deep-ocean ice-VII argument.</li>
+<li>Tidal-locking constants (Q 100, k2 0.3), M-dwarf pre-MS runaway durations,
+[R2201]'s 0.1 bar threshold.</li>
+<li>LHS 3844 b &quot;bare rock&quot; and the planet parameters used for TRAPPIST-1 and
+55 Cnc e.</li>
+</ol>
+<p>A Cockell &quot;nine habitability factors&quot; list and a Barnes habitability index
+were searched for and not found; neither is used.</p>
+<h2 id="10-sources">10. Sources</h2>
+<p>Found by search (the full papers could not be opened):</p>
+<ul>
+<li>Shoreline: [R3037, R4862]
+(also [R0364, R2162])</li>
+<li>Habitable-zone limits: https://alphaxiv.org/abs/1301.6674,
+https://astrobiology.com/2013/06/26/how-close-is-earth-to-a-runaway-greenhouse/,
+[R1501, R2428, R3792]</li>
+<li>Hycean and K2-18 b: [R2775, R2804, R4223],
+https://www.aanda.org/10.1051/0004-6361/202555580</li>
+<li>Sub-Neptunes: [R0758] (code and parameters read from
+https://raw.githubusercontent.com/chenjj2/forecaster/master/),
+[R4504], https://sseh.uchicago.edu/doc/Owen_and_Wu_2017.pdf,
+[R3800]</li>
+<li>Water loss and observed atmospheres: [R1176, R2023, R2769],
+https://mpg.de/23861226/ducrot_trappist-1b_natureastronomy_2024.pdf,
+https://astrobiology.com/2025/09/jwst-tst-dreams-nirspec-prism-transmission-spectroscopy-of-the-habitable-zone-planet-trappist-1-e.html</li>
+<li>Earth timeline: https://en.wikipedia.org/wiki/Timeline_of_life</li>
+<li>Pressure breathing sources are listed in <a href="habitability-index.html">habitability-index.md</a> 7.2 and 7.3.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One unit and quantity class for everything the project measures - planetGen docs</title>
+<meta name="description" content="Status: plan (decided).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/unified-unit-quantity.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/unified-unit-quantity.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="one-unit-and-quantity-class-for-everything-the-project-measures">One unit and quantity class for everything the project measures</h1><p class="meta">docs/design/architecture/unified-unit-quantity.md</p><details class="toc"><summary>On this page (28 headings)</summary><ul><li style="margin-left:0px"><a href="#decided-boss-1156-to-1157-pm-edt-on-2026-10-17-card-taps-all-on-the-recommended-option">Decided (Boss, 11:56 to 11:57 PM EDT on 2026-10-17, card taps, all on the recommended option)</a></li><li style="margin-left:0px"><a href="#decided-boss-1241-to-1243-am-edt-on-2026-10-18-card-taps-r1-to-r4-all-on-the-recommended-option">Decided (Boss, 12:41 to 12:43 AM EDT on 2026-10-18, card taps R1 to R4, all on the recommended option)</a></li><li style="margin-left:0px"><a href="#1-short-answer">1. Short answer</a></li><li style="margin-left:0px"><a href="#2-what-the-point-in-space-class-does-that-this-should-copy">2. What the point-in-space class does that this should copy</a></li><li style="margin-left:0px"><a href="#3-what-exists-in-the-code">3. What exists in the code</a></li><li style="margin-left:0px"><a href="#4-the-design">4. The design</a></li><li style="margin-left:14px"><a href="#41-vocabulary">4.1 Vocabulary</a></li><li style="margin-left:14px"><a href="#42-the-registry">4.2 The registry</a></li><li style="margin-left:14px"><a href="#43-the-quantity-class">4.3 The Quantity class</a></li><li style="margin-left:14px"><a href="#44-hot-paths">4.4 Hot paths</a></li><li style="margin-left:0px"><a href="#5-how-it-fits-the-hybrid-massobject">5. How it fits the hybrid MassObject</a></li><li style="margin-left:0px"><a href="#6-storage">6. Storage</a></li><li style="margin-left:14px"><a href="#61-built-db77-un10-the-precision-table">6.1 Built (DB.77, UN10): the precision table</a></li><li style="margin-left:0px"><a href="#7-risks">7. Risks</a></li><li style="margin-left:0px"><a href="#8-items-for-the-todo-thread-to-number">8. Items, for the TODO thread to number</a></li><li style="margin-left:0px"><a href="#9-cards">9. Cards</a></li><li style="margin-left:0px"><a href="#10-what-this-does-not-do">10. What this does not do</a></li><li style="margin-left:0px"><a href="#11-converting-between-kinds-derived-units-and-named-relations-added-1215-am-edt-on-2026-10-18-decided-1243-am-edt">11. Converting between kinds: derived units and named relations (added 12:15 AM EDT on 2026-10-18; decided 12:43 AM EDT)</a></li><li style="margin-left:14px"><a href="#111-short-answer">11.1 Short answer</a></li><li style="margin-left:14px"><a href="#112-what-the-code-writes-by-hand-m">11.2 What the code writes by hand [M]</a></li><li style="margin-left:14px"><a href="#113-what-i-propose">11.3 What I propose</a></li><li style="margin-left:14px"><a href="#114-cost-and-saving-e">11.4 Cost and saving [E]</a></li><li style="margin-left:14px"><a href="#115-items-to-add-to-section-8-decided-r1-to-r4-tapped-on-the-recommended-options-1241-to-1243-am-edt-on-2026-10-18-todo-files-un13-to-un16">11.5 Items to add to section 8 (decided: R1 to R4 tapped on the recommended options, 12:41 to 12:43 AM EDT on 2026-10-18; TODO files UN13 to UN16)</a></li><li style="margin-left:14px"><a href="#116-cards-all-four-tapped-on-the-recommended-option-1241-to-1243-am-edt-on-2026-10-18-as-the-coordinator-relayed-answered-recommended-option-on-all-four-see-the-decided-block-at-the-top">11.6 Cards (all four tapped on the recommended option, 12:41 to 12:43 AM EDT on 2026-10-18, as the coordinator relayed) (answered, recommended option on all four; see the Decided block at the top)</a></li><li style="margin-left:0px"><a href="#built-the-python-text-output-takes-a-quantity-gen348">Built: the Python text output takes a Quantity (GEN.348)</a></li><li style="margin-left:0px"><a href="#built-the-registry-in-the-browser-ux140">Built: the registry in the browser (UX.140)</a></li><li style="margin-left:0px"><a href="#built-field-declarations-stellar-family-gen570-first-slice">Built: field declarations, stellar family (GEN.570, first slice)</a></li><li style="margin-left:0px"><a href="#built-the-quantity-in-the-browser-ux128">Built: the Quantity in the browser (UX.128)</a></li></ul></details>
+<p><strong>Status:</strong> plan (decided). Written after 11:51 PM EDT on 2026-10-17 from <code>main</code> at bc97f75; approved by Boss on the six cards Q1 to Q6 of section 9, taps 11:56 to 11:57 PM EDT on 2026-10-17 (as the coordinator relayed), each the recommended option. Nothing is built. It adds a section to the unified mass-object plan (<a href="unified-star-like-objects.html">unified-star-like-objects.md</a>, <a href="mass-object-class.html">mass-object-class.md</a>). The provisional labels UN1 to UN12 of section 8 are filed as: UN1 = GEN.568, UN2 = GEN.569, UN3 = GEN.570, UN4 = DB.76, UN5 = GEN.571, UN6 = UX.139, UN7 = UX.140, UN8 = GEN.573, UN9 = GEN.574, UN10 = DB.77, UN11 = DOC.70, UN12 = GEN.575; the exact-factor step of UN5 (Q6) is its own item, GEN.572; the relation items of section 11 are filed as UN13 = GEN.585, UN14 = GEN.586, UN15 = GEN.587, UN16 = GEN.588 (cards R1 to R4, 12:41 to 12:43 AM EDT on 2026-10-18). Two changes from section 8's text: the removal of the duplicate constant names is the last step of GEN.571 (after its sweeps merge), not of GEN.568, so UN1 has no wait on UN5; and Q6 is its own item because the exact factors change a scatter output (see GEN.572). Boss tapped 'Pull into 8.1' on the card for GEN.572 at 12:04 AM EDT on 2026-10-18 (as the coordinator relayed): it is built in 8.1, before the one wiped rescatter, and is a prerequisite of GEN.301.</p>
+<p><strong>Boss, 11:51 PM EDT:</strong> &quot;I want part of this plan to be the creation of the unified 'unit' code, it will store any kind of unit we use, it stores and updates itself if you have a Watt unit then when you put in Watt it convers it to every other format we use immediately so that when the time comes it can just be referenced. This is what we did with point in space, which every mass object must have a point in space.&quot;</p>
+<p>Evidence tags: <strong>[M]</strong> measured in the repository (count, grep, AST walk), <strong>[E]</strong> my estimate from those counts, <strong>[C]</strong> computed here by arithmetic. Nothing here is a citation of a paper, so there are no [R] items.</p>
+<h2 id="decided-boss-1156-to-1157-pm-edt-on-2026-10-17-card-taps-all-on-the-recommended-option">Decided (Boss, 11:56 to 11:57 PM EDT on 2026-10-17, card taps, all on the recommended option)</h2>
+<ul>
+<li><strong>Q1</strong> Other units are worked out lazily on first read and always in step (the point-in-space way).</li>
+<li><strong>Q2</strong> A field holds a plain float in its declared native unit; a <code>Quantity</code> is built at the edges.</li>
+<li><strong>Q3</strong> A column's stored unit is declared per column in the registry, chosen for precision.</li>
+<li><strong>Q4</strong> The unit suffix in names stays, and a test checks it equals the declared unit.</li>
+<li><strong>Q5</strong> Rolled out inside the host chain items, file group by file group, each sweep bit-identical on the golden set; the registry and the class first.</li>
+<li><strong>Q6</strong> The two rounded factors (63241.077 AU per ly, 3.26156 ly per pc) become the exact ones in the first sweep, as one epoch-changing change that rides the pending epoch.</li>
+</ul>
+<h2 id="decided-boss-1241-to-1243-am-edt-on-2026-10-18-card-taps-r1-to-r4-all-on-the-recommended-option">Decided (Boss, 12:41 to 12:43 AM EDT on 2026-10-18, card taps R1 to R4, all on the recommended option)</h2>
+<ul>
+<li><strong>R1</strong> Dimensions in the registry plus named relations with a dimension test; plain floats in the kernels; no operator arithmetic on <code>Quantity</code> in the kernels (UN16, optional, stays unscheduled).</li>
+<li><strong>R2</strong> Relations declared as data (name, input kinds, output kind, formula), with the float kernel and the <code>Quantity</code> wrapper generated from the one declaration.</li>
+<li><strong>R3</strong> SI inside the kernels, other unit systems (AU, year, solar mass) generated from the registry where a kernel wants them, so 4 pi squared comes from G's dimension.</li>
+<li><strong>R4</strong> The relations replace the hand-written laws with the UN5 sweep, file group by file group, only where the golden set is unchanged.</li>
+</ul>
+<p>Order and lane check (written 11:58 PM EDT): see &quot;Lane check&quot; at the end of section 8. The cards in section 9 below are kept as asked.</p>
+<h2 id="1-short-answer">1. Short answer</h2>
+<p>Yes, and the project is closer to it than it looks: it already has four partial unit tables that do not know about each other (section 3). The proposal is <strong>one registry of units, one <code>Quantity</code> value class that holds a number as given and answers in every unit the project uses, and one declaration of each field's quantity</strong> (class field, database column, browser). It copies the point-in-space class (<code>SpatialPosition3D</code>) in six ways (section 2) and differs from it in one: the point class derives other frames lazily, and I recommend the same here (card Q1), because converting eagerly to ten forms for a hundred million objects costs memory and time for forms nobody reads.</p>
+<p>Size: about 12 items (section 8). Direct line saving is modest, <strong>[E] 300 to 700 lines net</strong>, because the ad-hoc conversions are small each; the value is that a unit can no longer be wrong silently (35 of the 127 attributes of the mass-object classes carry a unit only in their name, and 422 of 926 numeric columns do <strong>[M]</strong>), and that the hybrid <code>MassObject</code> serializer (E1, approved 11:48 PM EDT) gets its field table for free. It is not additive to the 800 to 1,800 lines of the class note: the same field table serves both.</p>
+<h2 id="2-what-the-point-in-space-class-does-that-this-should-copy">2. What the point-in-space class does that this should copy</h2>
+<p><code>physics/position.py</code> (714 lines) and <code>db/point_columns.py</code> (265 lines) <strong>[M]</strong>:</p>
+<ol>
+<li><strong>One class, every body has one.</strong> &quot;Every object in the galaxy is one <code>SpatialPosition3D</code>&quot; (point_columns docstring). A test (<code>test_point_columns.py</code>) lists every table that holds an object and fails when one has no point, mass, vector and epoch, so a new kind cannot ship without them. The unit class should have the same gate: a test that fails when a numeric column or field has no declared quantity.</li>
+<li><strong>The value is kept as given, in the form given.</strong> &quot;The position that was last set is kept as given, in the frame it was given in, and the other frames are derived from it&quot; (position.py docstring). A moon placed by its system offset keeps its metres exactly. For units that means the number entered in solar masses stays in solar masses, and kg is derived; never a round trip through a converted value.</li>
+<li><strong>Every form is always in step.</strong> Set any coordinate in any of three frames and three forms and the rest follow (<code>set_galactic_spherical</code>, <code>set_system_cartesian</code>, nine setters). For units: <code>Quantity(3.828e26, &quot;W&quot;)</code> answers <code>.W</code>, <code>.kW</code>, <code>.Lsun</code>, <code>.erg_s</code> and the display ladder's rungs, all consistent.</li>
+<li><strong>Derived forms are worked out on first read, not on every write.</strong> <code>_sync</code> only marks the forms stale; <code>_fresh</code> computes them when read (PERF.46: &quot;a body is moved several times as it is placed, and only the last position is ever read&quot;). This is what keeps the cost down, and it is why I recommend lazy forms (Q1).</li>
+<li><strong>A paired quantity follows its partner.</strong> <code>set_mass(kg)</code> sets <code>mu = G x mass</code>; <code>set_mu</code> sets the mass back. The unit class generalises this to declared relations (mass and mu, radius and diameter, period and frequency).</li>
+<li><strong>Refuses nonsense at the edge.</strong> Not finite, negative radius, speed at or above c raise <code>ValueError</code>. The unit class checks finiteness, sign (a mass cannot be negative) and an optional range, per quantity.</li>
+<li><strong>The storage layer knows the spellings in one place.</strong> <code>point_columns.py</code> is &quot;the one place that knows the spellings&quot; (<code>position_x_mpc</code>, <code>center_x_pc</code>, <code>position_x_km</code>; mass in kg or solar); <code>PointLayout</code> names each table's columns with frame and unit, and the SQL takes its column lists from it. The unit class extends this from the four point parts to every numeric column.</li>
+</ol>
+<p>What it does <strong>not</strong> do, and the unit class must: it covers one family (length, plus velocity, mass and epoch beside it). Nothing guards, for instance, that a luminosity column is watts, and the display ladders and the storage maps are separate tables.</p>
+<h2 id="3-what-exists-in-the-code">3. What exists in the code</h2>
+<p>Four partial unit tables plus ad-hoc factors <strong>[M]</strong>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>File</th>
+<th>Lines</th>
+<th>What it knows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Constants</td>
+<td><code>physics/constants.py</code></td>
+<td>472</td>
+<td>Exact factors, with duplicates under two names: <code>AU_M</code> and <code>AU_TO_M</code>, <code>LIGHTYEAR_M</code> and <code>LY_TO_M</code>, <code>KM_M</code> and <code>KM_TO_M_FACTOR</code>, <code>SPEED_OF_LIGHT_M_S</code> and <code>SPEED_OF_LIGHT_KMS</code>; used on 517 lines in 70 files (385 more in tests). <code>AU_TO_KM</code> alone 157 lines, <code>SOLAR_MASS_TO_KG</code> 65.</td>
+</tr>
+<tr>
+<td>Distance helpers</td>
+<td><code>physics/units.py</code></td>
+<td>143</td>
+<td>8 functions (ly, pc, mpc, au conversions); 27 files import it, 16 call sites. Docstring says the generator &quot;keeps its native light-year units ... and never calls this&quot;.</td>
+</tr>
+<tr>
+<td>Display ladders</td>
+<td><code>util/ladders.py</code> (415) + <code>util/format.py</code> (606) + <code>html/static/unitladder.js</code> (188) + <code>unitladders.js</code> (165, generated)</td>
+<td>1,374</td>
+<td>11 quantities (length, speed, time, temperature, pressure, gravity, mass, power, flux, number density, magnetic field), each rung with symbol, factor, name, offset, preference system. 21 <code>format_*</code> wrapper functions in <code>format.py</code> (lines 219 to 447, about 230 lines). This is the best unit table in the project and is display-only.</td>
+</tr>
+<tr>
+<td>Storage maps</td>
+<td><code>db/point_columns.py</code></td>
+<td>265</td>
+<td><code>LENGTH_M</code> (m, km, pc, mpc, au) and <code>MASS_KG</code> (kg, solar): two more copies of factors.</td>
+</tr>
+<tr>
+<td>Position class</td>
+<td><code>physics/position.py</code></td>
+<td>714</td>
+<td>Its own <code>SPEED_OF_LIGHT_MS</code>, a bare <code>1000.0</code> in <code>set_velocity_kms</code>, <code>length_unit_m</code> for the whole position.</td>
+</tr>
+<tr>
+<td>Describe</td>
+<td><code>describe/model.py</code>, <code>quantity.py</code></td>
+<td></td>
+<td><code>qty(kind, si, **extra)</code>: a quantity is already a dict <code>{&quot;kind&quot;, &quot;si&quot;}</code>, 4 uses; <code>quantity.py</code> redeclares <code>_KM_M = 1000.0</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ad-hoc conversions outside those <strong>[M]</strong>:</p>
+<ul>
+<li>Factors re-declared outside <code>constants.py</code>: <code>_AU_PER_LY = 63241.077</code> (<code>generation/phenomena_plausibility.py:79</code>), <code>AU_PER_LY = 63241.077</code> (<code>phenomena/asteroid_field.py:35</code>), <code>LY_PER_PC = 3.26156</code> (<code>physics/hii.py:40</code>), <code>KM_PER_PC</code> (<code>galaxy/straight_line.py:24</code>), <code>_LY_TO_AU_FALLBACK</code> (<code>web/maps/phenomenonmap.py:43</code>, with a try-import for a deployment that cannot import the package), <code>MPC_PER_PC = 1000</code> (<code>bright_stars.py:99</code>), <code>BAR_TO_PA</code> (<code>rogue_surface.py:67</code>), <code>ERG_PER_J</code> (<code>activity.py:45</code>), <code>MINUTES_PER_YEAR</code> (<code>navigation.py:269</code>), <code>_KM_PER_S_TO_AU_PER_S</code> (<code>system_tree.py:33</code>). The AU per ly (63241.077) and the ly per pc (3.26156) are rounded, not the exact ones: they differ from <code>LIGHTYEAR_M</code> and <code>PARSEC_M</code> by 1.3e-9 and 1.2e-6 in relative size <strong>[C]</strong>.</li>
+<li>A bare <code>* 1000</code> or <code>/ 1000.0</code> beside a unit name: 96 lines in 37 files (167 lines with a bare 1000 in 58 files, of which the 96 sit next to km, m, mpc, kms, kg, pc or au) <strong>[M]</strong>.</li>
+<li>Browser: <code>AU_KM = 149597870.7</code> declared in <code>orbitpositions.js</code>, <code>systemview3d.js</code> and <code>galaxysystem.js</code>; <code>KM_PER_PC</code> in <code>galaxysystem.js</code> <strong>[M]</strong>.</li>
+<li>Schema: 926 numeric column declarations, 422 with a unit in the name: length 169 (mpc 10, pc 60, km 82, au 10, ly 7), mass 31 (kg 14, solar 15, earth 2), time 88 (Gy 21, years 25, unix 22, hours 6, yr 11, ...), speed 68, angle 41 (deg 37, rad 4), temperature 13, power 7 <strong>[M]</strong>.</li>
+<li>The same quantity under several units in the mass-object classes: mass as <code>mass_kg</code>, <code>mass_solar</code>, <code>initial_mass_sol</code>, <code>primary_mass_kg</code>, <code>primary_mass_solar</code>; angles as <code>_deg</code> (8 of 35); time as <code>_years</code>, <code>_gy</code>, <code>_hours</code>, <code>_ms</code>; length as <code>_km</code>, <code>_au</code>, <code>_ly</code>. 35 of 127 attributes in 8 class files carry a unit suffix <strong>[M]</strong>.</li>
+</ul>
+<p>So the unit of a value is a <strong>naming convention</strong>, checked by nothing. A wrong suffix, or a value in AU passed where km is read, is found only if a test happens to cover it.</p>
+<h2 id="4-the-design">4. The design</h2>
+<h3 id="41-vocabulary">4.1 Vocabulary</h3>
+<ul>
+<li><strong>Quantity kind</strong> (what is measured): length, mass, time (duration), instant (a point in time, the Unix epoch), speed, temperature, angle, power, pressure, density, flux, ... The ladders already say <code>quantity=&quot;length&quot;</code>.</li>
+<li><strong>Unit</strong>: a named factor for one kind, with an optional offset (°C, °F), a display symbol, an ASCII key and a name.</li>
+<li><strong>Quantity</strong> (the value class): a number in one unit, as given.</li>
+</ul>
+<p>The word &quot;quantity&quot; is already the project's (<code>Ladder.quantity</code>, <code>qty()</code>), so I use it for the value and keep &quot;unit&quot; for the table row.</p>
+<h3 id="42-the-registry">4.2 The registry</h3>
+<p>One table in one module, built from <code>constants.py</code> (which stays the home of the exact numbers):</p>
+<pre><code class="language-python">UNITS = {
+  &quot;length&quot;: Unit(&quot;m&quot;, base=True), Unit(&quot;km&quot;, 1e3), Unit(&quot;au&quot;, AU_M), Unit(&quot;ly&quot;, LIGHTYEAR_M), Unit(&quot;pc&quot;, PARSEC_M),
+             Unit(&quot;mpc&quot;, ...), Unit(&quot;kpc&quot;, ...), Unit(&quot;Rsun&quot;, SOLAR_RADIUS_M), ...,
+  &quot;mass&quot;:   Unit(&quot;kg&quot;, base=True), Unit(&quot;Msun&quot;, SOLAR_MASS_TO_KG), Unit(&quot;Mearth&quot;, ...), Unit(&quot;Mjup&quot;, ...),
+  &quot;power&quot;:  Unit(&quot;W&quot;, base=True), Unit(&quot;kW&quot;, 1e3), ..., Unit(&quot;Lsun&quot;, SOLAR_LUMINOSITY), Unit(&quot;erg_s&quot;, 1e-7),
+  &quot;temperature&quot;: Unit(&quot;K&quot;, base=True), Unit(&quot;C&quot;, offset=273.15), Unit(&quot;F&quot;, factor=5/9, offset=255.372...),
+  ...
+}
+</code></pre>
+<p>Each quantity kind also records a dimension (length, mass, time, temperature exponents) so the tests can check that a compound unit's factor agrees with its parts (km/s = km / s), and the allowed range (finite; mass at least 0; speed below c). The display ladders keep their rung order, thresholds, asides and preference systems as display data, but their <code>symbol</code> and <code>factor</code> come from the registry, so a factor is stated once. The generated JS table (<code>build_unit_ladders.py</code> precedent) carries the registry to the browser.</p>
+<h3 id="43-the-quantity-class">4.3 The Quantity class</h3>
+<pre><code class="language-python">power = Quantity(&quot;power&quot;, 3.828e26, &quot;W&quot;)   # truth: the number and unit as given
+power.W, power.kW, power.Lsun, power.erg_s # every unit the project uses, always in step
+power.as_((&quot;MW&quot;))                          # explicit form; raises for a unit of another kind
+power.set(1.0, &quot;Lsun&quot;)                     # change the truth; every form follows
+power.value, power.unit                    # the stored number, never converted
+power.to_dict() -&gt; {&quot;kind&quot;: &quot;power&quot;, &quot;value&quot;: 3.828e26, &quot;unit&quot;: &quot;W&quot;}   # the describe/API shape
+</code></pre>
+<ul>
+<li><strong>Truth as given</strong> (copy 2). Other forms are <code>value * factor_given / factor_wanted</code> from the truth, never from another derived form, so no drift builds up. A conversion between two units whose ratio is exactly a power of ten (km and m) stays exact in the common range.</li>
+<li><strong>Forms</strong> (copy 3 and 4): computed on first read from the truth and cached on the instance, marked stale by <code>set</code>. <code>__slots__</code> keeps the object to about 5 words.</li>
+<li><strong>Relations</strong> (copy 5): declared pairs, e.g. <code>mass &lt;-&gt; mu</code> with G, <code>radius &lt;-&gt; diameter</code>, <code>period &lt;-&gt; frequency</code>; the point class's <code>mass_kg</code>/<code>mu</code> becomes the first declared one.</li>
+<li><strong>Checks</strong> (copy 6): finite, sign and range from the registry; wrong-kind unit refused with a clear message.</li>
+<li><strong>Offsets</strong>: temperature in °C is absolute; a temperature <em>difference</em> is its own kind (<code>delta_temperature</code>) with no offset, because 10 K warmer is 10 °C warmer but not &quot;283 °C&quot;. The ladders already carry an offset for °F.</li>
+</ul>
+<h3 id="44-hot-paths">4.4 Hot paths</h3>
+<p>Sector fill builds millions of objects. The earlier units research measured a plain divide at 0.17 to 0.5 microseconds, an <code>astropy</code> unit conversion at 4.5 to 5.6, and a <code>Quantity</code> round trip at 22 to 37 (<code>docs/design/architecture/units-and-number-formatting.md</code>, section 2 <strong>[C]</strong> there). So the rule: <strong>generation maths stays on plain floats in the field's declared native unit, and the registry is consulted at the edges</strong> (when a value is stored, loaded, shown or handed to the API). The class carries the unit and the forms; the numeric kernels (draws, physics) do not wrap every float. A field declaration gives both worlds:</p>
+<pre><code class="language-python">class StellarObject(MassObject):
+    mass       = Field(&quot;mass&quot;, native=&quot;kg&quot;)        # a plain float on the instance; the unit lives in the declaration
+    luminosity = Field(&quot;power&quot;, native=&quot;W&quot;)
+</code></pre>
+<p><code>obj.mass</code> reads the float (fast, in kg); <code>obj.q.mass.Msun</code> or <code>obj.quantity(&quot;mass&quot;).Msun</code> builds the <code>Quantity</code> when a form other than the native one is wanted. This also gives the hybrid <code>MassObject</code> its serializer table: every field's name, kind, native unit and column come from the one declaration (E1 option 3).</p>
+<h2 id="5-how-it-fits-the-hybrid-massobject">5. How it fits the hybrid MassObject</h2>
+<ul>
+<li>Every unit-valued field on the core (<code>mass</code>, <code>radius</code>, <code>age</code>, <code>spin</code>, the parent-relative state vector, galactic motion) and on each profile (stellar <code>luminosity</code>, <code>temperature</code>; planetary <code>surface_gravity</code>, <code>pressure</code>; small body <code>diameter</code>) is a <code>Field(kind, native)</code>. The nine classes' 313 slots <strong>[M]</strong> become one table per class family.</li>
+<li><strong>A point in space stays what it is</strong> (every mass object has one), but it reads its length unit from the registry (<code>length_unit_m</code> becomes <code>length_unit=&quot;au&quot;</code>), loses its own <code>SPEED_OF_LIGHT_MS</code> and bare <code>1000.0</code>, and its <code>mass_kg</code>/<code>mu</code> pair becomes a declared relation. Position truth keeps its per-frame forms; nothing in section 2 changes.</li>
+<li><strong>Ages and instants</strong>: age is a duration (Gyr as given), <code>epoch_unix</code> is an instant. They are separate kinds so an age is never added to an epoch.</li>
+<li><strong>Dimensionless values</strong> (fractions, ratios, counts, mixing ratios) are not quantities; the registry has a <code>ratio</code> kind only for those that need a symbol or percent display.</li>
+</ul>
+<h2 id="6-storage">6. Storage</h2>
+<ul>
+<li>
+<p><strong>One column per value, in one declared native unit</strong>, as in the code. Not one column per unit and not all forms: the forms are computed.</p>
+</li>
+<li>
+<p><strong>The native unit is chosen per column for precision, not forced to SI.</strong> Reason <strong>[C]</strong>: a double has a spacing (ulp) that grows with the number; at 8 kpc from the galactic center (2.5e20 m) it is 32,768 m, so a position stored in metres from the center cannot place a 10 m body, and stored in kpc the same. Hence the existing frames and units (galaxy pc, sector mpc, system km or au) are kept, and the registry declares them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Distance from the reference</th>
+<th>Spacing of a double, metres</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 AU</td>
+<td>3.1e-5</td>
+</tr>
+<tr>
+<td>100 AU</td>
+<td>2.0e-3</td>
+</tr>
+<tr>
+<td>10,000 AU</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>100,000 AU</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>1 pc</td>
+<td>4.0</td>
+</tr>
+<tr>
+<td>1 kpc</td>
+<td>4,096</td>
+</tr>
+<tr>
+<td>8 kpc</td>
+<td>32,768</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consequence for the 10 m floor: a 10 m body can be placed to a third of its own size only within about 10,000 AU of its parent, which is also where the stability limits of a bound orbit sit (multistar <code>FRAGILE_AXIS_AU</code> 10,000). Anything farther is parent-relative in a wider frame or is a wanderer with its own galactic frame at a lower precision. This is a limit of the floating-point type, not of the unit class, and the registry makes it a number a test can read: each length column declares its reference frame and the largest distance for which a 10 m body keeps a metre.</p>
+</li>
+<li>
+<p><strong>Mass range</strong>: 10 m rock about 1.05e6 kg up to about 2e40 kg is 34 orders of magnitude; a double holds it; the unit class stores the number as given, so <code>mass_solar</code> for a 10 m rock is 5e-25 in solar masses with full relative precision.</p>
+</li>
+<li>
+<p><strong>Column registry</strong> (extends <code>point_columns.py</code>): <code>column -&gt; (table, kind, native unit)</code> for every numeric column, generated from one list, replacing the unit suffix as the source of truth. The suffix stays as a readable name, and a test checks <code>suffix == unit key</code> (card Q4). <code>PointLayout</code> becomes a thin client of it.</p>
+</li>
+<li>
+<p><strong>No data migration is needed</strong> for the first steps: values and units stay as stored; only declarations are added. A column that is later re-unified (two mass columns in kg and solar for one concept) is a normal migration with the generator-epoch note below.</p>
+</li>
+<li>
+<p><strong>Gate</strong>: a test like <code>test_point_columns.py</code> that fails when any numeric column has no declaration, so a new table cannot ship without a unit.</p>
+</li>
+<li>
+<p><strong>Built (DB.76, UN4).</strong> <code>db/column_units.py</code> holds the list: <code>TABLES</code> (table -&gt; unit -&gt; columns, 974 numeric columns of 63 tables), <code>LOCAL_UNITS</code> (the few units <code>physics/unit_registry.py</code> does not hold yet) and <code>SUFFIXES</code> (the unit a name's suffix stands for). <code>PointLayout</code> reads its position and mass units from it. <code>tests/test_column_units.py</code> is the gate of this section: every numeric column declared once, every declaration a column, and the suffix equal to the declared unit (one exception, <code>nebula_field.cell_k</code>, an index). The four quantities whose code stated no unit (<code>atm_density</code>, <code>atm_molar_density</code>, <code>formed_at</code>, <code>parabolic_mean_anomaly</code>) were declared <code>unspecified</code> until DB.86, which read each from the code that writes and uses it: <code>atm_density</code> is kg/m³ (the barometric formula multiplies it by g in m/s² and a scale height in m), <code>atm_molar_density</code> is kg/mol (it divides R in J/(mol K); the CO₂ reference is 0.04345 kg/mol), <code>formed_at</code> is a Unix time on the clock of <code>epoch_unix</code> (the field's radius is recomputed from the time since it formed; no code writes it yet) and <code>parabolic_mean_anomaly</code> is a plain number (the Barker equation's √(μ/2q³)·Δt). The marker is gone, and a test fails if a column returns without a unit. The load and store of the generic insert (DB.74) is the next client; the dimensions and relations of section 4.2 (UN1) are not built.</p>
+</li>
+</ul>
+<h3 id="61-built-db77-un10-the-precision-table">6.1 Built (DB.77, UN10): the precision table</h3>
+<p><code>db/precision.py</code> gives each of the 182 length columns a role (<code>position</code> 63, <code>separation</code> 42, <code>size</code> 61, <code>derived</code> 12, <code>relative</code> 4), and each position or separation a frame and a reach: <code>bound-orbit</code> (10,000 AU, the note's figure), <code>stability-ceiling</code> (2.2 million AU, the Hill sphere of a 150 solar-mass star at 8 kpc, the farthest a comet's closed orbit goes), <code>sector</code> (the half-diagonal of a 4 pc cell) and <code>galaxy-edge</code> (262,140 pc, the largest Edge the dials allow). A size keeps its relative precision at any size and declares no reach. From the unit's spacing at the reach the table gives the smallest body each table places to a tenth of its size (<code>floor_body_m</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tables</th>
+<th>Smallest body placed well</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>planets, moons, irregular moons, asteroid belts, belt members, orbit nodes, scatter nodes</td>
+<td>2.4 m</td>
+<td>km column at 10,000 AU (0.24 m)</td>
+</tr>
+<tr>
+<td>stars, scatter members</td>
+<td>2.7 m</td>
+<td>AU column at 10,000 AU</td>
+</tr>
+<tr>
+<td>comets</td>
+<td>620 m</td>
+<td>km column at the stability ceiling (62 m); a comet inside 10,000 AU is placed as well as a planet</td>
+</tr>
+<tr>
+<td>bright stars, the phenomenon scatter</td>
+<td>9,200 km</td>
+<td>mpc column in a galaxy frame at the largest Edge</td>
+</tr>
+<tr>
+<td>star systems, free bodies (black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants, quasars, facilities, vessels), nebula block centroids, sector path knots, container centres</td>
+<td>9,000 km</td>
+<td>pc column in a galaxy frame at the largest Edge (the spacing at 8 kpc is 33 m, at 1 kpc 4 m)</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the 10 m floor body holds where it is parent-relative inside 10,000 AU (a test, <code>REQUIRED_FLOOR_M</code>, fails when a planet or moon column cannot place one), and a body stored free in a galaxy frame is placed to a tenth of its size only above the table's figure: a rogue 10 m rock is a point to the kilometre at 1 kpc, to tens of kilometres at the Edge. The way out is the one the decision names, a parent-relative state in a wider frame for a body that joins a system (the 8.4 revision) and a lower declared precision for a wanderer; the table makes the cost a number instead of an assumption. <code>tests/test_precision.py</code> pins the figures, so moving a column to another unit or changing a reach shows up as a failing test and an edit of this table.</p>
+<h2 id="7-risks">7. Risks</h2>
+<ul>
+<li><strong>Bit-identical output.</strong> Replacing <code>x * 1000.0</code> with a registry factor is exact, but replacing <code>ly_to_au(x)</code> with a path through km or a rounded <code>63241.077</code> by the exact one changes the last digits of generated values and so the golden files and the generator epoch. Rule: the first sweep (UN5) must produce bit-identical output on the golden set; where the exact factor differs from a rounded literal it ships as its own change with an epoch entry (one pending epoch rides until a release stamps it; epochs 12 to 18 stamped, 19 pending at 9:38 PM EDT) and is grouped with another epoch-changing item.</li>
+<li><strong>Performance</strong> (section 4.4): kept off the hot path by design; a PERF check on the sector fill benchmark is part of UN3.</li>
+<li><strong>Offset units and differences</strong> (section 4.3).</li>
+<li><strong>Breadth</strong>: 517 lines in 70 files plus 385 in tests use unit constants. Sweep by file group with the owning lane, inside the host chain items, not as one change (card Q5).</li>
+<li><strong>JS and Python agree</strong>: the browser table is generated, and a test fails when the committed file is stale, as for the ladders (<code>test_unit_ladders.py</code>).</li>
+<li><strong>Name</strong>: <code>Quantity</code> collides with <code>astropy.units.Quantity</code> in anyone's head; astropy is no longer a runtime dependency (GEN.211); only tests (<code>test_astropy_constants.py</code>, <code>test_unit_ladders.py</code>) use it. Keep the registry free of an astropy import.</li>
+</ul>
+<h2 id="8-items-for-the-todo-thread-to-number">8. Items, for the TODO thread to number</h2>
+<p>Provisional labels UN1 to UN12, in this order. Lanes as in the unified plan (Core 4 host chain and the MassObject core, Core 1 storage, Core 5 small sweeps, Core 2 browser), but the TODO thread decides.</p>
+<ul>
+<li><strong>UN1 Registry.</strong> One module with every unit the project uses, built from <code>constants.py</code>, with kind, dimension, offset, range and the declared relations; duplicate constant names removed (<code>AU_TO_M</code>, <code>LY_TO_M</code>, <code>KM_TO_M_FACTOR</code>, the copy of c in <code>position.py</code>). Tests: factors against the exact definitions; compound units agree with their parts; round trips. Core 5 or Core 4. No dependencies.</li>
+<li><strong>UN2 <code>Quantity</code> class.</strong> Truth as given, lazy cached forms, relations, checks, <code>to_dict</code>. Depends on UN1.</li>
+<li><strong>UN3 <code>Field</code> declaration and the MassObject table.</strong> Native unit per field; the table-driven serializer of U4a reads it. Depends on UN1 and UN2 and on U4a; Core 4. Includes the sector-fill benchmark check.</li>
+<li><strong>UN4 Column registry.</strong> Generalise <code>point_columns.py</code> to every numeric column; load and store through it; the &quot;no numeric column without a unit&quot; test. Depends on UN1; Core 1; fits U11a.</li>
+<li><strong>UN5 Replace the ad-hoc conversions.</strong> The 10 re-declared factors, the 96 bare-1000 sites, the 16 <code>units.py</code> calls, the <code>describe</code> constant; bit-identical on the golden set; in file groups. Depends on UN1; Core 5.</li>
+<li><strong>UN6 Display reads the registry.</strong> Ladder rungs take symbol and factor from the registry; the 21 <code>format_*</code> wrappers (about 230 lines) become one <code>format_quantity(Quantity)</code> entry plus thin names where the call sites need them; UX.107 call sites move with it. Depends on UN2.</li>
+<li><strong>UN7 Browser table.</strong> The registry generated to JS beside <code>unitladders.js</code>; the three <code>AU_KM</code> and the <code>KM_PER_PC</code> declarations removed. Core 2.</li>
+<li><strong>UN8 Position class on the registry.</strong> <code>length_unit</code> by key, the bare 1000 and the copy of c removed, <code>mass</code>/<code>mu</code> a declared relation. Depends on UN1 and UN2.</li>
+<li><strong>UN9 Describe and API.</strong> <code>qty()</code> builds a <code>Quantity</code>; the <code>{&quot;kind&quot;,&quot;si&quot;}</code> shape becomes <code>{&quot;kind&quot;,&quot;value&quot;,&quot;unit&quot;}</code> (done, GEN.574: the describe model holds the stored unit, <code>data-si</code> stays on the HTML span for <code>units.js</code>). Ties to UX.107 and UX.119.</li>
+<li><strong>UN10 Precision table.</strong> Each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre; a test reads it. Depends on UN4.</li>
+<li><strong>UN11 Docs.</strong> <code>units-and-number-formatting.md</code> and <code>database-schema.md</code> updated; the unit rules go in the file header of the registry.</li>
+<li><strong>UN12 Sweep the mass-object classes.</strong> The 35 unit-suffixed attributes in the 8 class files, and the same quantity under two units (mass kg and solar, angle deg and rad), unified by the hybrid, one declared native unit and the other form derived. Part of U4a; Core 4.</li>
+</ul>
+<p>Estimated size <strong>[E]</strong>: UN1 to UN2 about 400 to 600 new lines with tests; UN5 and UN6 remove 300 to 500 lines; UN3, UN4 and UN12 fold into the savings already estimated for the MassObject core (not additive). Net direct saving 300 to 700 lines.</p>
+<p><strong>Lane check.</strong> The order above holds, with three points for the lanes:</p>
+<ul>
+<li><strong>UN1, UN2 have no lane conflict.</strong> They are new modules and touch no existing file except removing the duplicate constant names in <code>constants.py</code> (UN1), which all 70 files import from; do that removal last in UN1, after UN5's sweeps, or keep the old names for one PR only if the sweep is not yet merged (no shim past that).</li>
+<li><strong>UN3, UN12 wait on U4a</strong> (the MassObject core), which Core 4 owns after GEN.315/264 (Core 3). Until U4a exists they cannot start; UN1, UN2, UN4, UN5, UN7 and UN8 do not wait on it.</li>
+<li><strong>UN5 touches the most files</strong> (517 lines in 70 files), so it will meet every lane's open branches. Sweep a file group only when no lane has an open PR on it; the TODO thread can sequence by file group. UN6 overlaps UX.107, which Core 4 already owns (description layer), so UX.107 and UN6 should be one owner. UN4 touches <code>point_columns.py</code> and the tables Core 1 changes in its identity and repair chains (DB.43 to 17); Core 1 should own UN4 and sequence it after its current storage item.</li>
+<li>None of UN1 to UN12 blocks 8.1 or GEN.301; they ride the host chain items as decided.</li>
+</ul>
+<h2 id="9-cards">9. Cards</h2>
+<p><strong>Q1. When are the other units worked out?</strong> (Boss said &quot;immediately&quot;.)</p>
+<ol>
+<li>Lazily on first read, and always in step (the point-in-space way). Same answer to the caller, no cost for forms nobody reads. <strong>Recommended.</strong></li>
+<li>Eagerly at entry, all forms stored. Literally &quot;immediately&quot;; about 8 stored numbers per length value and 5 per mass, and PERF.46 found that cost on positions.</li>
+<li>Eagerly for the three most used forms of each kind, lazily for the rest. A middle path, with a rule to maintain.</li>
+</ol>
+<p><strong>Q2. What does a field hold?</strong></p>
+<ol>
+<li>A plain float in the field's declared native unit, with a <code>Quantity</code> built at the edges. Fast in generation; the unit lives in the declaration. <strong>Recommended.</strong></li>
+<li>A <code>Quantity</code> object in every field, always. Safest against a wrong unit, 20 to 100 times slower per operation in the kernels <strong>[C]</strong> (section 4.4).</li>
+<li>Plain floats everywhere with the registry only used for display and storage. Smallest change, but the unit stays a convention inside the code.</li>
+</ol>
+<p><strong>Q3. What is a column's stored unit?</strong></p>
+<ol>
+<li>Declared per column in the registry, chosen for precision (galaxy pc, sector mpc, system km or au), as stored. <strong>Recommended.</strong></li>
+<li>SI for every column. Simplest rule; cannot place a 10 m body away from its parent (section 6 table).</li>
+<li>SI for everything except positions, which keep their frames. A smaller rule list, but the same exception reasoning as option 1.</li>
+</ol>
+<p><strong>Q4. What happens to the unit suffix in names (<code>mass_kg</code>, <code>radius_km</code>)?</strong></p>
+<ol>
+<li>Keep the suffix and add a test that it equals the declared unit. No renames, no migrations. <strong>Recommended.</strong></li>
+<li>Drop the suffix from column and field names (<code>mass</code>, <code>radius</code>) and let the registry say the unit. Cleaner; a rename migration for 422 columns and the call sites.</li>
+<li>Keep suffixes on columns only, none on class fields. Half of option 2's work.</li>
+</ol>
+<p><strong>Q5. How is it rolled out?</strong></p>
+<ol>
+<li>Inside the host chain items, file group by file group, each sweep bit-identical on the golden set; the registry and class first. <strong>Recommended.</strong></li>
+<li>One dedicated unit refactor before the host chain. Cleaner start; touches the 70 files and the same classes the MassObject core will rewrite, so some work is done twice.</li>
+<li>Only for new code, existing code swept later. Least risk; the duplicates and the two rounded constants stay.</li>
+</ol>
+<p><strong>Q6 (only if Q5 option 1): do the two rounded factors (63241.077 AU per ly, 3.26156 ly per pc) become the exact ones in the first sweep?</strong></p>
+<ol>
+<li>Yes, in the first sweep, as one epoch-changing change with the next pending epoch. <strong>Recommended.</strong></li>
+<li>Yes, but only when a lane already changes stored values for another reason.</li>
+<li>No, keep the rounded values as tuning constants (they are used for display and plausibility, not for positions).</li>
+</ol>
+<h2 id="10-what-this-does-not-do">10. What this does not do</h2>
+<p>It does not change what the site shows (ladder thresholds, asides and preference systems stay), does not add a dependency, does not convert generation maths to wrapped objects, and does not choose which physical constants are used (that stays <code>constants.py</code>).</p>
+<h2 id="11-converting-between-kinds-derived-units-and-named-relations-added-1215-am-edt-on-2026-10-18-decided-1243-am-edt">11. Converting between kinds: derived units and named relations (added 12:15 AM EDT on 2026-10-18; decided 12:43 AM EDT)</h2>
+<p><strong>Boss, 12:09 AM EDT:</strong> &quot;Do we need any unit converters? Not between the same type of unit (length to length) but say from one type of unit to another by putting 2 or more other units together in the right order.&quot;</p>
+<h3 id="111-short-answer">11.1 Short answer</h3>
+<p>Yes, but it is not one more converter. It is two small things the registry of section 4.2 needs: <strong>a dimension on every unit</strong> (so the registry knows that a watt is mass x length squared per time cubed, and that surface gravity is length per time squared), and <strong>a short list of named relations</strong> that put quantities together in the right order (mass and radius give surface gravity, luminosity and distance give flux). The code does this by hand about 50 times, in three different unit systems, and each hand version carries its own unit juggling. Full operator arithmetic on <code>Quantity</code> (multiply two quantities and get a third) is optional and I would keep it out of the generation kernels.</p>
+<h3 id="112-what-the-code-writes-by-hand-m">11.2 What the code writes by hand <strong>[M]</strong></h3>
+<p>The same law appears in several files, each with its own unit handling:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Relation (kinds involved)</th>
+<th>Sites in <code>src/planetgen</code></th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schwarzschild radius, 2GM/c^2 (mass -&gt; length)</td>
+<td>7 lines in 6 files</td>
+<td><code>compact_remnant.py:324</code>, <code>quasar.py:89</code>, <code>multistar.py:425</code>, <code>phenomena_plausibility.py:393,519</code>, <code>stability.py:34</code>, <code>mathcheck.py:288</code></td>
+</tr>
+<tr>
+<td>Surface gravity, GM/r^2, then divided by Earth's (mass, length -&gt; acceleration)</td>
+<td>5 lines in 4 files</td>
+<td><code>planets.py:591</code>, <code>plausibility.py:156,203</code>, <code>rogue_surface.py:135</code>, <code>db/query.py:2047</code></td>
+</tr>
+<tr>
+<td>Density and sphere volume (mass, length &lt;-&gt; density)</td>
+<td>11 lines in 6 files</td>
+<td><code>admin/edits.py:350-351</code>, <code>rogue.py:254</code>, <code>bulk_mass.py:20,26</code>, <code>planets.py:177,178,556,1136,1260</code>, <code>plausibility.py:156</code></td>
+</tr>
+<tr>
+<td>Luminosity, radius, temperature, 4 pi R^2 sigma T^4 (length, temperature &lt;-&gt; power)</td>
+<td>9 lines in 8 files</td>
+<td><code>compact_remnant.py:574</code>, <code>star.py:1407</code>, <code>phenomena_plausibility.py:419</code>, <code>stellar_evolution.py:593</code>, <code>brown_dwarf.py:74</code>, <code>pre_main_sequence.py:69</code>, <code>radiation.py:202</code>, <code>planets.py:664,714</code> (equilibrium temperature)</td>
+</tr>
+<tr>
+<td>Kepler's third law and mean motion (length, mass -&gt; time)</td>
+<td>13 lines in 8 files, in <strong>three unit systems</strong></td>
+<td>AU, years and solar masses (<code>kepler.py:101</code>, <code>planets.py:340</code>, <code>stability.py:49</code>, <code>companion_classes.py:55</code>, <code>multistar.py:589-594</code>); SI (<code>hydrosphere.py:215</code>, <code>formation.py:124</code>, <code>position.py:150</code>); AU^3/yr^2 and km/s (<code>state_vectors.py:180</code>, <code>system_tree.py:33</code>, <code>body_positions.py</code>)</td>
+</tr>
+<tr>
+<td>Escape and break-up speed, vis-viva (mass, length -&gt; speed)</td>
+<td>3 lines in 3 files</td>
+<td><code>star.py:765</code>, <code>spin.py:195</code>, <code>kepler.py:343</code></td>
+</tr>
+<tr>
+<td>Anything using G</td>
+<td>45 lines in 26 files</td>
+<td></td>
+</tr>
+<tr>
+<td>4 pi, or a unit juggle <code>radius_km * 1000.0</code> beside a radius</td>
+<td>38 lines in 25 files; 24 lines of the juggle</td>
+<td></td>
+</tr>
+<tr>
+<td>Earth's gravity as a divisor</td>
+<td>15 lines outside <code>constants.py</code></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>So about 50 sites write one of six laws, and the units are handled by hand at each (a <code>/ 1000.0</code> here, <code>constants.KM_TO_M_FACTOR</code> there, a division by <code>EARTH_GRAVITY</code> in a third place). Two things in the code already point the way:</p>
+<ul>
+<li><strong>Natural-unit shortcuts.</strong> Orbital code works in AU, years and solar masses so that G becomes 4 pi^2 (<code>kepler.AU3_PER_YR2_PER_SOLAR_MASS</code>, <code>T = sqrt(a^3/M)</code>). That is a derived-unit conversion done by hand once, in the head of the author, and then repeated as a bare constant. A dimension-aware registry computes it: G has dimension length^3 mass^-1 time^-2, so its number in any chosen base units (SI, or AU-year-solar-mass) follows without anyone remembering 4 pi^2.</li>
+<li><strong><code>physics/mathcheck.py</code></strong> (1,012 lines, 58 checks) already runs before everything else and has an &quot;invariant&quot; group that checks &quot;unit conversions round-trip, the constants agree with each other&quot; (TEST.65). A dimension check of every relation belongs in that gate.</li>
+</ul>
+<h3 id="113-what-i-propose">11.3 What I propose</h3>
+<ol>
+<li><strong>Dimensions are required, not optional, in the registry (UN1).</strong> Each unit has an exponent vector over mass, length, time, temperature (angle and counts stay dimensionless kinds). A watt is <code>[M1 L2 T-3]</code>; a compound unit's factor is checked against its parts (km/s = km / s), and the derived kinds the code uses (density, acceleration, energy, force, mass flow, flux, number density, angular momentum) are listed with their dimensions and display units. Cost: about 100 lines and a table, no runtime cost.</li>
+<li><strong>Unit systems.</strong> The registry can state a coherent system by naming its base units (SI; AU, year, solar mass). The numeric value of any constant (G, c, sigma) in a system is computed from its dimension and the base units, so the 4 pi^2 constant and similar shortcuts are generated and tested, not typed.</li>
+<li><strong>Named relations in one module (<code>physics/relations.py</code>).</strong> Each relation is declared once as data: its name, its input kinds, its output kind, and a formula. Two entry points come from the declaration: a <strong>float kernel</strong> in SI (fast, for generation: <code>surface_gravity(mass_kg, radius_m)</code>) and a <strong>Quantity wrapper</strong> for the edges (<code>surface_gravity(Quantity mass, Quantity radius)</code> returns a Quantity of kind acceleration, every unit and the Earth multiple answered). About 15 relations cover the table above plus Hill radius, Roche limit, equilibrium temperature, inverse-square flux and mass flow.</li>
+<li><strong>A dimension test for every relation.</strong> The test runs the formula once on probe objects that carry a dimension and checks the result has the declared output dimension; a formula written with the ordinary operators passes through unchanged, and a mistake (km where m was meant, a missing square) fails. This is the &quot;a mismatch is refused&quot; part of Boss's question, done in the test gate and not at run time. It needs the formulas to use <code>+ - * / **</code> (a <code>sqrt</code> goes through a <code>relations.sqrt</code> that accepts probes).</li>
+<li><strong>Optional: operator arithmetic on <code>Quantity</code></strong> (<code>mass / volume</code> gives a Quantity whose kind is found by dimension, density if it matches a listed kind, else an anonymous derived unit; adding mismatched dimensions raises). Worth it at the edges (describe, API, one-off values, tests); not in the kernels, because the unit research measured a Quantity round trip at 22 to 37 microseconds against 0.17 to 0.5 for a float operation <strong>[C]</strong> (section 4.4).</li>
+</ol>
+<h3 id="114-cost-and-saving-e">11.4 Cost and saving <strong>[E]</strong></h3>
+<ul>
+<li>New: dimensions and systems about 100 to 150 lines; the relations module and its tests about 250 to 350 lines; operator arithmetic, if chosen, about 150 lines.</li>
+<li>Removed: the roughly 50 hand-written sites collapse to about 15 relation functions and calls; 60 to 120 lines and the unit juggle at each site; the three Kepler unit systems become one law with three views; the Schwarzschild, gravity, density and luminosity forms stop disagreeing (they are written once).</li>
+<li>Net lines: about zero to plus 150. <strong>The saving is not lines.</strong> It is that a law has one definition, a unit slip is found by a test, and Boss's own example (put in a watt, get every power format) extends to put in a mass and a radius and get every density and gravity format.</li>
+<li>Risk: moving a formula can change its last digits (an operation order changes), so every relation is introduced with the same bit-identical rule as the unit sweep (card Q5): a relation replaces a site only where the golden set is unchanged, and a site that differs in the last digit goes with an epoch-changing change.</li>
+</ul>
+<h3 id="115-items-to-add-to-section-8-decided-r1-to-r4-tapped-on-the-recommended-options-1241-to-1243-am-edt-on-2026-10-18-todo-files-un13-to-un16">11.5 Items to add to section 8 (decided: R1 to R4 tapped on the recommended options, 12:41 to 12:43 AM EDT on 2026-10-18; TODO files UN13 to UN16)</h3>
+<ul>
+<li><strong>UN13 Dimensions and unit systems in the registry.</strong> Extends UN1 (dimension required; the derived kinds and display units; unit systems and constant values computed from dimension). Core 5 or Core 4.</li>
+<li><strong>UN14 <code>physics/relations.py</code>.</strong> The declared relations and the two entry points, with the dimension test in the <code>mathcheck</code> gate. Depends on UN13, UN2. Core 4.</li>
+<li><strong>UN15 Replace the hand-written relation sites</strong> in file groups (the table of 11.2), bit-identical on the golden set. Part of the UN5 sweep, Core 5, in files not open in another lane.</li>
+<li><strong>UN16 (optional) operator arithmetic on <code>Quantity</code></strong> for the edges. Depends on UN14. Core 5.</li>
+</ul>
+<h3 id="116-cards-all-four-tapped-on-the-recommended-option-1241-to-1243-am-edt-on-2026-10-18-as-the-coordinator-relayed-answered-recommended-option-on-all-four-see-the-decided-block-at-the-top">11.6 Cards (all four tapped on the recommended option, 12:41 to 12:43 AM EDT on 2026-10-18, as the coordinator relayed) (answered, recommended option on all four; see the Decided block at the top)</h3>
+<p><strong>R1. How far does dimension awareness go?</strong></p>
+<ol>
+<li>Dimensions in the registry and named relations with a dimension test; plain floats in the kernels; no operator arithmetic. <strong>Recommended.</strong> Catches the slips where they are written, costs nothing at run time.</li>
+<li>Also operator arithmetic on <code>Quantity</code> at the edges (describe, API, one-off values). Adds UN16 for a nicer edge code; two ways to build a derived value.</li>
+<li>Full dimension-aware arithmetic in all code, kernels included. Safest against slips; 20 to 100 times slower in the kernels <strong>[C]</strong> (section 4.4), so it forces a rewrite of the generation maths.</li>
+<li>No dimensions: only same-kind conversion as in section 4. Smallest change; the 50 hand-written sites and the three Kepler unit systems stay.</li>
+</ol>
+<p><strong>R2. How are relations declared?</strong></p>
+<ol>
+<li>As data (name, input kinds, output kind, formula), with the float kernel and the Quantity wrapper generated from it. <strong>Recommended.</strong> One definition per law.</li>
+<li>As hand-written SI kernels in one module, with the dimension test beside them and no wrapper. Simplest; edges convert by hand.</li>
+<li>As Quantity-only functions. Clean to read; every call pays the Quantity cost.</li>
+</ol>
+<p><strong>R3. Which unit system do the kernels use?</strong></p>
+<ol>
+<li>SI everywhere inside a kernel, converted at the edges, with the AU-year-solar-mass shortcut generated from the registry where a kernel runs in it for speed or readability. <strong>Recommended.</strong></li>
+<li>Keep AU-year-solar-mass for orbital code and SI for the rest, as in the code, and only register both. No rewrite; the three Kepler views remain by hand.</li>
+<li>One system for everything (AU-year-solar-mass). Constants are neat; km-scale and kg-scale code gets awkward numbers.</li>
+</ol>
+<p><strong>R4. When?</strong></p>
+<ol>
+<li>With the UN5 sweep and Q5's rule: a relation replaces a site only where the golden set is unchanged; the registry and the relations module first. <strong>Recommended.</strong></li>
+<li>A dedicated relations sweep first. Cleaner start; touches 26 files at once and meets every lane's open branches.</li>
+<li>Only for new code. Least risk; the duplicates stay.</li>
+</ol>
+<h2 id="built-the-python-text-output-takes-a-quantity-gen348">Built: the Python text output takes a Quantity (GEN.348)</h2>
+<p>The describer holds each value in the unit it is stored in and writes the Document's <code>si</code> from the <code>Quantity</code>
+(<code>describe/model.measured</code>, <code>describe/build._held</code>), so <code>describe/build.py</code>, <code>describe/phenomena.py</code> and
+<code>describe/quantity.py</code> multiply by no unit factor; the registry gained <code>ld</code> (light-days) for a quasar's broad-line region. A page
+measurement is <code>fmt.quantity_html(Quantity)</code> or <code>fmt.measured_html(unit, value)</code> (a dash for a value its kind refuses, never a
+traceback), which the system pages, the object lists, the profile age labels, the population ages and the body radius
+ratio use. Text is unchanged: 380 generated Documents rendered in four formats were identical before and after, and the
+Document's numbers differ by at most 3e-16 relative (the AU to km step and the light-day product round differently).
+Left for later: <code>dose</code> has no registry kind, so <code>describe/quantity.py</code> still writes mSv by a factor of 1000; the thin
+<code>format_distance_km</code>-style wrappers stay (they hold no factor); the class pages' ranges already hold their numbers in the
+unit they print, so they convert nothing.</p>
+<p>The column registry (<code>db/column_units.py</code>) no longer has its own <code>light-day</code>: <code>broad_line_region_light_days</code> is declared in the registry's <code>ld</code>, so a unit lives in one place.</p>
+<h2 id="built-the-registry-in-the-browser-ux140">Built: the registry in the browser (UX.140)</h2>
+<p><code>scripts/build_unit_registry.py</code> writes the registry to <code>html/static/unitregistry.js</code> (every unit with its kind, symbol, names,
+factor and offset, every kind with its base unit, dimension and bounds, and <code>unit</code>, <code>toBase</code>, <code>fromBase</code>, <code>scale</code> and <code>convert</code>,
+the same arithmetic as <code>unit_registry.py</code>). <code>tests/test_unit_registry_js.py</code> fails when the file is stale, checks every
+unit's numbers and every conversion between the units of a kind (all pairs, 14 values each) against Python through Node for exact
+equality, and fails when a browser script declares a unit factor. <code>orbitpositions.js</code>, <code>systemview3d.js</code>, <code>galaxysystem.js</code>,
+<code>orbitclock.js</code> and <code>systemreach.js</code> read <code>AU_KM</code>, <code>KM_PER_PC</code>, <code>SECONDS_PER_YEAR</code> and the 50 AU of the nominal system from it
+(the last one was the rounded 206264.806 AU per parsec; it is the exact factor now, a 1e-9 relative change in a pixel-size
+estimate). The browser sweep of the other conversions and the JavaScript <code>Quantity</code> are UX.128.</p>
+<h2 id="built-field-declarations-stellar-family-gen570-first-slice">Built: field declarations, stellar family (GEN.570, first slice)</h2>
+<p><code>MassObject.FIELD_UNITS</code> is the one table of a family: each persisted attribute with the unit its instance holds it in, a key of the unit registry for a quantity or a word of <code>mass_object.PLAIN</code> (<code>text</code>, <code>ratio</code>, <code>count</code>, <code>index</code>, <code>flag</code>, <code>dex</code>, <code>unit-vector</code>, <code>id</code>) for a field that holds none. <code>SERIALIZABLE_FIELDS</code> is the table's names (<code>list(FIELD_UNITS)</code>), so the persisted list and the units cannot disagree, and the shared groups (galactic motion, spin, star activity, the disk descriptor) are declared once in their modules (<code>GALACTIC_MOTION_UNITS</code>, <code>spin.SPIN_UNITS</code>, <code>activity.STAR_ACTIVITY_UNITS</code>, <code>pre_main_sequence.DISK_UNITS</code>) and spread into each family's table. An instance still holds a plain float; <code>obj.quantity(&quot;mass&quot;)</code> builds the <code>Quantity</code> in the declared native unit (a pair such as the habitable zone as a tuple), so <code>star.quantity(&quot;mass&quot;).Msun</code> works and nothing in a constructor changed: the sector-fill path does no more work than before, the class-level dict is read only at the edges.</p>
+<p>Done for <code>StellarObject</code> (<code>Star</code>), <code>BlackHole</code>, <code>NeutronStar</code> and <code>BinaryStarProxy</code>, and for the small bodies and the free planet (<code>Comet</code>, <code>InterstellarComet</code>, <code>AsteroidField</code>, <code>RoguePlanet</code>); the rogue surface fields are declared in <code>rogue_surface.ROGUE_SURFACE_UNITS</code>. <code>tests/test_field_units.py</code> fails when a persisted field has no declaration, when a declaration is neither a registry unit nor a plain word, when a name's unit suffix and its declaration disagree (card Q4), and when a declared unit measures something other than the column the attribute is stored in (the <code>Field</code> lists of <code>store.py</code> against <code>db/column_units.py</code>); the family still to declare (<code>Planet</code>, with the atmosphere, magnetism, hydrosphere, radiation and habitability groups, several in units the registry does not hold yet) is listed in the test and must leave the list when it declares. Declaring found the quantities held under two units that GEN.575 unifies: a remnant's <code>mass_solar</code> beside the inherited <code>mass</code> in kg, its <code>event_horizon_radius_km</code> beside <code>radius</code>. The registry gained the rate units <code>1/s</code>, <code>1/yr</code> and <code>1/Gy</code> (frequency), which the column registry no longer holds locally.</p>
+<h2 id="built-the-quantity-in-the-browser-ux128">Built: the Quantity in the browser (UX.128)</h2>
+<p><code>html/static/quantity.js</code> is the mirror of <code>physics/quantity.py</code>: <code>new Quantity(kind, value, unit)</code> holds a number as given,
+<code>as(unit)</code> answers in any unit of its kind (lazily, kept after the first read), <code>base()</code>, <code>set</code>, <code>toJSON</code> and <code>fromJSON</code>, and a
+value outside its kind's bounds or a unit of another kind throws, as Python raises. <code>held(unit, value)</code> takes the kind from the
+unit. <code>unitladder.js</code> gains <code>formatMeasure(quantity)</code> (<code>format_measure</code>), and its <code>format*</code> names read the registry unit they are
+for (<code>formatIn(&quot;km&quot;, value)</code>, Python's <code>_format_in</code>); its exported <code>KM_M</code>, <code>AU_M</code>, <code>LIGHTYEAR_M</code>, <code>PARSEC_M</code>, <code>SECONDS_PER_YEAR</code>,
+<code>STANDARD_*</code> and <code>SOLAR_*</code> factors are gone. The ladder of a kind is found by <code>LADDER_OF_KIND</code> (generated beside the ladders).
+<code>galaxymap3d.js</code> and <code>generatebuttons.js</code> (light-years to parsecs), <code>orbitclock.js</code> (a day, the speed steps), <code>limitsliders.js</code>
+(seconds to minutes and hours), <code>settingspage.js</code> (the words for a duration) and <code>systemscale.js</code> (the Sun's radius) convert through
+the registry. The map side panels get their gravity, temperature and pressure as text from the server (already through the
+registry since GEN.348), so they hold no number to convert. <code>tests/test_quantity_js.py</code> compares the browser's Quantity, bounds
+and text with Python's through Node; the grep test of UX.140 also fails on the day and hour factors. Left: a byte count (MB, GB) is
+not a registry kind.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

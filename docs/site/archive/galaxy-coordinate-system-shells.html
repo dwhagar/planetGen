@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy Coordinate System — Design Proposal - planetGen docs</title>
+<meta name="description" content="Status: implemented and merged (Track C — see docs/TODO.md&#x27;s Phase 4).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/archive/galaxy-coordinate-system-shells.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="archive/galaxy-coordinate-system-shells.html"><a href="../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Historical: superseded by the cylindrical sector grid in version 6.0.0
+(schema v32), with the 4 pc edge in 7.0.0 (v33) and master-wedge slots in
+7.13.0 (v35).</strong> This is the original &quot;Track C&quot; design (built in 5.3.6) and
+its addenda: sectors as cubes on spherical shells with Fibonacci-sphere
+slots, the radius-enumeration primitive, per-shell Voronoi prism vertices
+(<code>sector_vertices</code>, schema v7) and the per-shell band skeleton
+(<code>galaxy_shell_band</code>, schema v8). None of the shell addressing, the
+<code>sectorGeometry.py</code> module, <code>galaxyGen.py</code> or <code>galaxyPlan.py</code> exists any
+more; the tables were dropped in 6.0.0 and the scripts were merged into
+<code>generate.py</code> in 5.35.0. The database is MySQL, not SQLite (5.5.0). The
+current design is <code>docs/design/galaxy/galaxy-coordinate-system.md</code>. Kept for the
+reasoning: units (section 2), why cubes cannot tile a sphere (section 3),
+the Voronoi and Fibonacci work (section 9) and the storage-tier analysis
+(section 10), which still explains why only the outline is stored.</p>
+</blockquote>
+<hr />
+<h1 id="galaxy-coordinate-system--design-proposal">Galaxy Coordinate System — Design Proposal</h1><p class="meta">docs/archive/galaxy-coordinate-system-shells.md</p><details class="toc"><summary>On this page (42 headings)</summary><ul><li style="margin-left:0px"><a href="#cylindrical-sector-grid-current">Cylindrical sector grid (current)</a></li><li style="margin-left:14px"><a href="#sector-size">Sector size</a></li><li style="margin-left:14px"><a href="#layers">Layers</a></li><li style="margin-left:14px"><a href="#bounds-and-validation">Bounds and validation</a></li><li style="margin-left:0px"><a href="#0-decisions-already-made-recap">0. Decisions already made (recap)</a></li><li style="margin-left:0px"><a href="#1-coordinate-system-definition">1. Coordinate system definition</a></li><li style="margin-left:14px"><a href="#origin-and-axes">Origin and axes</a></li><li style="margin-left:14px"><a href="#spherical-convention">Spherical convention</a></li><li style="margin-left:14px"><a href="#whats-stored-per-sector">What's stored per sector</a></li><li style="margin-left:0px"><a href="#2-unit-choice-parsecs-pc">2. Unit choice: parsecs (pc)</a></li><li style="margin-left:14px"><a href="#why-not-milliparsecs">Why not milliparsecs</a></li><li style="margin-left:14px"><a href="#why-not-light-years">Why not light-years</a></li><li style="margin-left:14px"><a href="#why-parsecs">Why parsecs</a></li><li style="margin-left:14px"><a href="#conversion-helpers-needed-stellarobjectsutilspy">Conversion helpers needed (stellarObjects/utils.py)</a></li><li style="margin-left:0px"><a href="#3-radial-sector-tiling-scheme">3. Radial sector-tiling scheme</a></li><li style="margin-left:14px"><a href="#the-geometric-problem-stated-plainly">The geometric problem, stated plainly</a></li><li style="margin-left:14px"><a href="#shells">Shells</a></li><li style="margin-left:14px"><a href="#how-many-sectors-per-shell">How many sectors per shell</a></li><li style="margin-left:14px"><a href="#placing-sectors-within-a-shell">Placing sectors within a shell</a></li><li style="margin-left:14px"><a href="#why-this-is-fine-despite-the-gapsoverlaps">Why this is fine despite the gaps/overlaps</a></li><li style="margin-left:14px"><a href="#the-disk-vs-sphere-gap-real-galaxies-arent-spherical">The disk-vs-sphere gap (real galaxies aren't spherical)</a></li><li style="margin-left:14px"><a href="#cube-orientation">Cube orientation</a></li><li style="margin-left:0px"><a href="#4-schema-migration-proposal-v3---v4">4. Schema migration proposal (v3 -&gt; v4)</a></li><li style="margin-left:0px"><a href="#5-interaction-with-existing-physics--flagged-not-resolved">5. Interaction with existing physics — flagged, not resolved</a></li><li style="margin-left:0px"><a href="#6-worked-end-to-end-example">6. Worked end-to-end example</a></li><li style="margin-left:0px"><a href="#7-open-questions--for-the-users-judgment-not-decided-here">7. Open questions — for the user's judgment, not decided here</a></li><li style="margin-left:0px"><a href="#8-generation-unit-sector-enumeration-by-radius-track-c-addendum">8. Generation unit: sector enumeration by radius (Track C addendum)</a></li><li style="margin-left:14px"><a href="#the-primitive">The primitive</a></li><li style="margin-left:14px"><a href="#why-p-is-not-always-the-origin-and-why-thats-the-hard-part">Why P is not always the origin, and why that's the hard part</a></li><li style="margin-left:14px"><a href="#chosen-approach-two-cheap-exact-prunes-then-brute-force-the-rest">Chosen approach: two cheap, exact prunes, then brute-force the rest</a></li><li style="margin-left:14px"><a href="#big-o">Big-O</a></li><li style="margin-left:14px"><a href="#what-was-deliberately-not-built">What was deliberately not built</a></li><li style="margin-left:0px"><a href="#9-sector-prism-vertices-exact-per-shell-voronoi-tessellation-addendum-revision-2">9. Sector prism vertices: exact per-shell Voronoi tessellation (addendum, revision 2)</a></li><li style="margin-left:14px"><a href="#the-model">The model</a></li><li style="margin-left:14px"><a href="#the-performance-problem-this-required-solving-and-how">The performance problem this required solving, and how</a></li><li style="margin-left:14px"><a href="#two-correctness-bugs-found-by-an-end-to-end-simulation-and-fixed">Two correctness bugs found by an end-to-end simulation, and fixed</a></li><li style="margin-left:0px"><a href="#10-the-galaxy-wide-skeleton-storage-analysis-and-implementation">10. The galaxy-wide "skeleton": storage analysis and implementation</a></li><li style="margin-left:14px"><a href="#the-core-realization-almost-none-of-this-is-independent-data">The core realization: almost none of this is independent data</a></li><li style="margin-left:14px"><a href="#storage-tiers-measured">Storage tiers, measured</a></li><li style="margin-left:14px"><a href="#whats-actually-stored-and-whats-deferred">What's actually stored, and what's deferred</a></li><li style="margin-left:14px"><a href="#parallel-build">Parallel build</a></li><li style="margin-left:14px"><a href="#a-numerical-bug-this-work-also-found-and-fixed">A numerical bug this work also found and fixed</a></li></ul></details>
+<p><strong>Status:</strong> implemented and merged (Track C — see <code>docs/TODO.md</code>'s Phase 4).
+This document was originally the design pass <code>docs/TODO.md</code> Phase 4 called
+for (&quot;needs its own design pass&quot;) before <code>galaxyGen.py</code> was written; the
+core design in sections 0-7 below now describes shipped behavior
+(<code>planetgen/galaxy/geometry.py</code>, <code>galaxyGen.py</code>'s <code>--shell K</code>/
+<code>--center-sector ID --radius-pc R</code>, and the v3-&gt;v4 <code>sectors</code> schema
+migration), extended by the addenda in sections 8 and 9, each separately
+marked &quot;Status: implemented&quot; where it lives.</p>
+<p><strong>Superseded in part (schema v32):</strong> sector <em>addressing</em> no longer uses
+the spherical shells, Fibonacci slots and Voronoi prisms of sections 3, 8,
+9 and 10. Sectors now sit on the cylindrical grid described in the next
+section. The coordinate frame, units and phenomenon placement below are
+unchanged; the shell material is kept as history.</p>
+<h2 id="cylindrical-sector-grid-current">Cylindrical sector grid (current)</h2>
+<p>Every galaxy-placed sector is one cell of a cylindrical grid around the
+galactic axis (<code>planetgen/galaxy/geometry.py</code>). The galaxy is a stack
+of flat circular slices (layers); each slice is cut into concentric rings,
+and each ring into wedges. With edge <code>e</code>:</p>
+<ul>
+<li>
+<p><strong>Ring <code>i</code></strong> (<code>sectors.ring_index</code>, <code>i &gt;= 0</code>): cylindrical radius
+<code>R</code> in <code>[i*e, (i+1)*e)</code>. Sector centers sit on the ring's centerline,
+<code>(i + 1/2) * e</code>.</p>
+</li>
+<li>
+<p><strong>Layer <code>j</code></strong> (<code>sectors.layer_index</code>, any integer): height <code>z</code> in
+<code>[(j - 1/2)*e, (j + 1/2)*e)</code>, so layer 0 is centered on the galactic plane.</p>
+</li>
+<li>
+<p><strong>Slot <code>k</code></strong> (<code>sectors.ring_slot_index</code>): one of <code>N_i</code> equal angular
+wedges, counterclockwise from <code>+X</code>. <code>N_i</code> follows the hybrid
+master-wedge rule (v35, Boss's choice of 2026-09-30):</p>
+<ul>
+<li><code>c_i = 2*pi*(i + 1/2)</code> is the ring's centerline circumference in edges.</li>
+<li><code>M_i</code> (<code>ring_master_count</code>) is the ring's master wedge count: 3 at the
+center, doubling to 6, 12, ... 1,536 at the first ring where
+<code>c_i &gt;= 2 * M * 8</code> (each doubled wedge would still hold 8 slots).</li>
+<li><code>N_i = M_i * round(c_i / M_i)</code>, never less than <code>M_i</code>: 3, 9, 15, 21,
+27, 36, 42, 48, 54, ...</li>
+</ul>
+<p>Each slot's centerline arc stays within 0.94-1.06 of <code>e</code> (ring 0's
+three pie wedges, meeting on the axis, are 1.05), and the total count
+is within 0.1% of plain rounding. Because every <code>N_i</code> is a multiple of
+its <code>M_i</code>, and <code>M_i</code> only grows outward, <strong>every master line is a slot
+boundary in every ring from where it starts out to the edge</strong>: the 3
+first lines run from the center, the next 3 from ring 8, and so on.
+The Galaxy Map cuts its mega-block wedges on these lines, and a slot of
+one ring never straddles a master line of its neighbor.</p>
+</li>
+</ul>
+<p><strong>Aligned columns.</strong> <code>N_i</code> depends only on the ring, never on the layer,
+so every layer cuts ring <code>i</code> identically: cell <code>(i, j, k)</code> sits directly
+above <code>(i, j - 1, k)</code>, and every slot boundary is one vertical plane
+through the whole stack. (This is the &quot;direct vertical columns&quot; scheme,
+not a staggered brick pattern.) A layer that reaches fewer rings simply
+stops sooner; any ring it has matches that ring on every other layer.</p>
+<h3 id="sector-size">Sector size</h3>
+<p><code>e</code> is a whole number of parsecs, <code>program_constants.DEFAULT_SECTOR_EDGE_PC</code>
+= <strong>4 pc (13.05 ly)</strong>, used by the generator, the skeleton, the Galaxy
+pages and the Galaxy Map alike (<code>generate.py plan</code> has no edge option).
+It replaced 11.5 ly (3.53 pc) in v33.</p>
+<p>The edge sets where the galaxy ends, because a sector only exists where it
+expects at least one star (<code>predicted_star_count &gt;= 1</code>), and a bigger cell
+holds more stars at the same density. At the default Milky-Way shape:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Edge</th>
+<th>Stars per sector at local density</th>
+<th>Radius reached</th>
+<th>Layers</th>
+<th>Candidate sectors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11.5 ly (old)</td>
+<td>4.3</td>
+<td>46,900 ly</td>
+<td>681</td>
+<td>14.9 billion</td>
+</tr>
+<tr>
+<td>2 pc</td>
+<td>0.8</td>
+<td>31,300 ly</td>
+<td>893</td>
+<td>28.2 billion</td>
+</tr>
+<tr>
+<td>3 pc</td>
+<td>2.7</td>
+<td>42,400 ly</td>
+<td>743</td>
+<td>18.6 billion</td>
+</tr>
+<tr>
+<td><strong>4 pc</strong></td>
+<td><strong>6.3</strong></td>
+<td><strong>50,300 ly</strong></td>
+<td><strong>635</strong></td>
+<td><strong>12.3 billion</strong></td>
+</tr>
+<tr>
+<td>5 pc</td>
+<td>12.3</td>
+<td>56,400 ly</td>
+<td>557</td>
+<td>8.6 billion</td>
+</tr>
+</tbody>
+</table></div>
+<p>4 pc puts the edge at about 50,000 ly, the real Milky Way disk's radius,
+and is an even number of parsecs. 2 pc is too small: at local density a
+sector averages under one star, so ordinary solar-neighborhood space would
+not qualify.</p>
+<h3 id="layers">Layers</h3>
+<p>The layers run from the highest layer that holds content to the lowest,
+symmetric about the plane (<code>+317 .. -317</code> at the default shape), and each
+layer runs from ring 0 out to the last ring that still qualifies, where it
+ends. The model's density is exponential and never reaches zero, so
+&quot;qualifies&quot; means a sector there could expect at least one star.</p>
+<p>A sector center's highest possible density over angle is
+<code>bulge(r_3d) + disk(R) * f_z(z) * (1 + arm_amplitude)</code>, which falls
+strictly as <code>R</code> grows and as <code>|z|</code> grows. So each layer's rings are one
+unbroken run from ring 0, and each layer reaches no farther than the one
+below it (toward the plane). <code>galaxy_layer</code> stores one
+<code>(layer_index, outer_ring_index)</code> row per layer
+(<code>galaxySkeleton.build_layer_extents</code>), highest first; it builds in a few
+milliseconds. A sector inside its layer's extent may still fall short (an
+inter-arm trough); that exact check is one density call when it is
+visited.</p>
+<p>The Galaxy Map's prisms use the same threshold, so at one sector per prism
+the map's outline is exactly these layers.</p>
+<h3 id="bounds-and-validation">Bounds and validation</h3>
+<p><code>generate.py plan</code> stores the outline twice: <code>galaxy_layer</code> (each
+layer's radial bound) and <code>galaxy_column</code> (each ring's stack bound, the
+highest and lowest layer it reaches). Generation validates against these
+bounds before it generates, rather than checking afterwards. Every
+<code>generate.py galaxy</code> mode (a ring, one slot, a neighborhood around a
+sector, a random start) and visit-time generation first ask
+<code>GalaxyBounds.contains</code>. An address outside is refused with the reason,
+even when <code>--density</code> or <code>--num-systems</code> is given, and a neighborhood near
+the edge leaves out the sectors past it. A random start draws a uniformly
+random sector from inside the outline (<code>GalaxyBounds.random_address</code>), so
+it always lands inside the galaxy.</p>
+<hr />
+<p>The address <code>(ring, layer, slot)</code> is unique (<code>uq_sectors_address</code>), and a
+cell's center, corners and volume are closed-form, so nothing but the
+address and center is stored. <code>sector_address_at</code> maps any point back to
+its cell; <code>neighbor_addresses</code> lists the cells sharing a face (two slots
+along the ring, the layers above and below, and the one or two overlapping
+slots in each neighboring ring, offset like brick courses).</p>
+<p><strong>Local frame.</strong> A sector's local axes (<code>sector_orientation</code>) are <code>+X</code>
+radially outward from the galactic axis, <code>+Y</code> toward increasing angle and
+<code>+Z</code> galactic north. Star-system offsets (<code>star_systems.position_*_mpc</code>)
+and phenomenon offsets use this frame, and generation samples them inside
+the real cell (<code>SectorCell</code>), not a cube.</p>
+<p><strong>Designations.</strong> <code>provisional_sector_designation</code> packs
+<code>ring &lt;&lt; 33 | (layer + 4096) &lt;&lt; 20 | slot</code> and prints it as hex;
+<code>parse_sector_designation</code> reverses it. Layers run from -4096 to 4095.</p>
+<p><strong>Zones.</strong> The Galaxy pages' 100 ly radial groups (formerly &quot;Rings&quot;) are
+called Zones: <code>ZONE_RING_WIDTH = round(100 / 13.05)</code> = 8 consecutive rings.</p>
+<p><strong>Migration.</strong> Shell-addressed sectors had no matching cell, so
+<code>_migrate_v31_to_v32</code> deleted every galaxy-placed sector with its systems
+and phenomena. v33's new edge and slot counts move almost every cell
+again, so <code>_migrate_v32_to_v33</code> does the same and rebuilds the skeleton
+from the stored shape at 4 pc; sectors regenerate as they are visited.
+Never-placed sectors are untouched.</p>
+<p><strong>Scope:</strong> the galaxy-scale coordinate system and the <code>sectors</code> schema
+changes it needs. Explicitly <strong>out of scope</strong>: <code>galaxyGen.py</code> itself,
+batch-generation performance, and any model of <em>where in the galaxy stars
+are actually dense</em> (spiral arms, bulge, metallicity gradients). Where
+those touch this design, they're flagged as open questions rather than
+decided here — see §7.</p>
+<h2 id="0-decisions-already-made-recap">0. Decisions already made (recap)</h2>
+<p>Per the brief, these are fixed and not relitigated below:</p>
+<ul>
+<li>Sectors are arranged <strong>radially</strong> from the galactic center, not on a flat
+grid/lattice.</li>
+<li>A sector's galactic position is defined by <strong>spherical coordinates
+measured from the galactic center</strong>, but <strong>stored/exposed as xyz</strong>
+(the sector's center point in a galaxy-frame Cartesian system).</li>
+<li>Sector-<em>internal</em> geometry stays exactly as it is today: milliparsecs,
+relative to the sector's own cubic center (<code>star_systems.position_x/y/z_mpc</code>,
+<code>sectors.edge_mpc</code>). This design only adds a <em>second</em>, larger-scale
+coordinate — it does not touch the first.</li>
+</ul>
+<h2 id="1-coordinate-system-definition">1. Coordinate system definition</h2>
+<h3 id="origin-and-axes">Origin and axes</h3>
+<ul>
+<li><strong>Origin</strong>: the galactic center, <code>(0, 0, 0)</code>.</li>
+<li><strong>Axes</strong>: right-handed Cartesian. <code>X</code>/<code>Y</code> span the galactic plane; <code>+Z</code>
+points toward galactic north (out of the disk). This is a generation-space
+convention for this project only — it does not need to match any real
+astronomical reference frame (galactic longitude/latitude, J2000, etc.),
+since nothing here is meant to correspond to real sky coordinates.</li>
+</ul>
+<h3 id="spherical-convention">Spherical convention</h3>
+<p>Reuses the same <code>(theta, phi)</code> naming <code>spaceSector.py</code>'s own
+<code>_random_unit_direction</code> already uses — <strong>not</strong> the ISO physics convention,
+which swaps the two names. Kept for internal consistency with existing
+code, since anyone extending this into <code>galaxyGen.py</code> will already be
+reading that function:</p>
+<ul>
+<li><code>r</code> — radial distance from the galactic center, in <strong>parsecs</strong> (see §2).</li>
+<li><code>theta</code> — azimuthal angle in the <code>X</code>/<code>Y</code> plane from <code>+X</code>, <code>[0, 2*pi)</code>.</li>
+<li><code>phi</code> — polar angle from <code>+Z</code>, <code>[0, pi]</code> (0 = galactic north pole, <code>pi/2</code>
+= in-plane, <code>pi</code> = galactic south pole).</li>
+</ul>
+<p>Conversion to Cartesian (identical form to <code>_random_unit_direction</code>, scaled
+by <code>r</code>):</p>
+<pre><code>x = r * sin(phi) * cos(theta)
+y = r * sin(phi) * sin(theta)
+z = r * cos(phi)
+</code></pre>
+<p>The inverse (needed anywhere code wants &quot;how far out, and how far off the
+plane, is this sector&quot; from a stored xyz row):</p>
+<pre><code>r     = sqrt(x^2 + y^2 + z^2)
+theta = atan2(y, x)
+phi   = acos(z / r)                 # undefined at r == 0; treat as phi = 0
+</code></pre>
+<h3 id="whats-stored-per-sector">What's stored per sector</h3>
+<p>Per the fixed decision, <strong>xyz is the persisted form</strong> — <code>r</code>/<code>theta</code>/<code>phi</code>
+are a derivation used by the placement algorithm (§3) at generation time,
+not separate columns, with one exception: <code>r</code> (as <code>galactic_radius_pc</code>) is
+worth persisting anyway, for the same reason <code>star_systems.quadrant</code> is
+persisted even though it's derivable from <code>position_x/y/z_mpc</code> — &quot;sectors
+within radius R of the core&quot; is an obviously common query, and a stored,
+indexed column serves it directly instead of needing <code>sqrt(x*x+y*y+z*z)</code> in
+every <code>WHERE</code> clause (which SQLite can't use an index for). <code>theta</code>/<code>phi</code>
+have no equivalent query use, so they're not stored. See §4 for the exact
+new columns.</p>
+<h2 id="2-unit-choice-parsecs-pc">2. Unit choice: parsecs (pc)</h2>
+<p><strong>Recommendation: store galaxy-scale distances in parsecs (<code>_pc</code> suffix
+columns), not milliparsecs and not light-years.</strong></p>
+<h3 id="why-not-milliparsecs">Why not milliparsecs</h3>
+<p><code>schema.sql</code>'s own header comment gives the rule that put <code>mpc</code> on
+sector-internal columns in the first place: km gets unwieldy at that scale.
+The same argument now cuts the other way. The Milky Way's disk radius is
+commonly cited around 15 kpc (15,000 pc). In milliparsecs that's:</p>
+<pre><code>15,000 pc * 1000 mpc/pc = 15,000,000 mpc      -- and that's the radius alone
+</code></pre>
+<p>Two sectors on opposite sides of the galaxy would be up to <strong>30,000,000
+mpc</strong> apart — an 8-digit number for what should be this schema's <em>biggest</em>
+distance, while <code>sectors.edge_mpc</code> (~3,526) is one of its smallest. That's
+the exact &quot;ugly number&quot; problem the brief calls out, just moved up one
+level.</p>
+<h3 id="why-not-light-years">Why not light-years</h3>
+<p>Light-years are the generator's own <em>native</em> unit for sector-internal
+geometry (<code>SpaceSector.edge_ly</code>, <code>hill_radius_ly</code>, everything in
+<code>spaceSector.py</code> before it gets converted to <code>mpc</code> at the database
+boundary). It's tempting to reuse it here too, and the numbers are at least
+plausible — 15,000 pc is about 48,923 ly — but <code>ly</code> and <code>mpc</code> are
+<strong>different unit families</strong>: converting between them needs the existing
+<code>ly_to_milliparsecs</code>/<code>milliparsecs_to_ly</code> helpers, which round-trip through
+AU (<code>LY_TO_AU</code>, <code>AU_PER_MILLIPARSEC</code>). Every calculation that relates a
+sector's galaxy-scale position to its own internal geometry — &quot;how many
+sector-widths from the core is this shell&quot;, &quot;does this sector's cube reach
+past the next shell in&quot; — would need that AU round-trip for no reason.</p>
+<h3 id="why-parsecs">Why parsecs</h3>
+<p>A milliparsec <em>is</em> a parsec, scaled by <code>1/1000</code> — the existing convention
+already anchors sector-internal geometry to the parsec family, just at
+<code>10^-3</code> scale. Parsecs continue that same family at <code>10^0</code> scale:</p>
+<pre><code>edge_pc = edge_mpc / 1000          # exact, no AU round-trip
+</code></pre>
+<p>Worked example, <code>DEFAULT_SECTOR_EDGE_LY = 11.5</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>edge_ly</code> (generator-native)</td>
+<td>11.5 ly</td>
+</tr>
+<tr>
+<td><code>edge_mpc</code> (stored today)</td>
+<td>~3,526 mpc</td>
+</tr>
+<tr>
+<td><code>edge_pc</code> (proposed)</td>
+<td>~3.526 pc</td>
+</tr>
+<tr>
+<td>Galaxy radius, same unit family</td>
+<td>15,000 pc</td>
+</tr>
+<tr>
+<td>Galaxy radius / sector edge</td>
+<td>~4,254 — a plain, dimensionless ratio, no unit-family crossing</td>
+</tr>
+</tbody>
+</table></div>
+<p>Compare the same ratio computed via <code>ly</code>: <code>48,923 ly / 11.5 ly</code> — same
+answer (~4,254), but only because you happened to convert both sides back
+to the same family first; nothing about the stored columns (<code>mpc</code> vs. <code>ly</code>)
+would have let you divide them directly.</p>
+<h3 id="conversion-helpers-needed-stellarobjectsutilspy">Conversion helpers needed (<code>stellarObjects/utils.py</code>)</h3>
+<p>Following the existing <code>ly_to_milliparsecs</code>/<code>milliparsecs_to_ly</code> pattern
+exactly:</p>
+<pre><code>mpc_to_pc(mpc)   -&gt; mpc / 1000                          # exact, trivial
+pc_to_mpc(pc)    -&gt; pc * 1000                           # exact, trivial
+pc_to_ly(pc)     -&gt; pc * (AU_PER_PARSEC / LY_TO_AU)     # ~3.2616 ly/pc, for display/prose
+ly_to_pc(ly)     -&gt; ly * (LY_TO_AU / AU_PER_PARSEC)     # inverse
+</code></pre>
+<p><code>AU_PER_PARSEC</code> and <code>LY_TO_AU</code> already exist in <code>physical_constants.py</code>
+(lines 73 and 84) — no new physical constant is needed, only the four thin
+wrapper functions above, mirroring <code>ly_to_milliparsecs</code>'s own
+docstring-and-one-line-body shape. <code>pc_to_mpc</code>/<code>mpc_to_pc</code> are exact
+(power-of-ten scaling, no floating-point drift beyond a single multiply);
+<code>pc_to_ly</code>/<code>ly_to_pc</code> exist purely for human-readable prose (e.g. rendering
+a sector's summary as &quot;~48,923 ly from the galactic core&quot;) the same way
+<code>table_*</code> columns keep <code>ly</code>/<code>AU</code> display strings alongside <code>km</code>-stored raw
+values elsewhere in this schema.</p>
+<h2 id="3-radial-sector-tiling-scheme">3. Radial sector-tiling scheme</h2>
+<h3 id="the-geometric-problem-stated-plainly">The geometric problem, stated plainly</h3>
+<p>A cube cannot tile the surface of a sphere without gaps or overlaps — this
+isn't a shortcut being avoided, it's not possible in general (the reason
+there's no &quot;cubical tiling of S²,&quot; unlike the flat plane, which cubes-as-
+squares tile perfectly). Any radial, shell-based layout of cubic sectors
+has to either accept small seams at shell boundaries, or abandon cubes.
+This proposal keeps cubes (§0 fixes <code>edge_mpc</code> as the sector shape, and
+changing it is out of scope) and <strong>explicitly accepts small gaps/overlaps
+between adjacent sector cubes</strong> as the practical resolution — justified in
+&quot;Why this is fine&quot; below, not swept under the rug.</p>
+<h3 id="shells">Shells</h3>
+<p>Divide radial distance into shells of thickness equal to the sector edge
+length, so cubes stack outward along the radial direction without gaps
+<em>in that one direction</em> — the only direction cubes can tile exactly, since
+adjacent shells share a flat spherical-ish boundary the way stacked plates
+do:</p>
+<pre><code>shell k spans radius [k * edge_pc, (k+1) * edge_pc)     for k = 0, 1, 2, ...
+nominal shell radius:  r_k = (k + 0.5) * edge_pc
+</code></pre>
+<h3 id="how-many-sectors-per-shell">How many sectors per shell</h3>
+<p>Approximate each sector's footprint on the shell's spherical surface as
+<code>edge_pc^2</code> (its cross-section perpendicular to the radial direction), and
+divide it into the shell's surface area:</p>
+<pre><code>N_k = round(4 * pi * r_k^2 / edge_pc^2)
+    = round(4 * pi * (k + 0.5)^2)          # edge_pc cancels — count depends only on k
+</code></pre>
+<p>This is a clean, dimensionless formula: the count per shell doesn't depend
+on the absolute sector size at all, only on how many shells out you are.
+Worked values:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Shell <code>k</code></th>
+<th><code>r_k</code> (sector-edges out)</th>
+<th><code>N_k</code> (sectors in this shell)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.5</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1.5</td>
+<td>28</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2.5</td>
+<td>79</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3.5</td>
+<td>154</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5.5</td>
+<td>380</td>
+</tr>
+<tr>
+<td>10</td>
+<td>10.5</td>
+<td>1,385</td>
+</tr>
+<tr>
+<td>100</td>
+<td>100.5</td>
+<td>126,923</td>
+</tr>
+<tr>
+<td>4,253 (outermost shell reaching 15,000 pc at <code>edge_pc ~= 3.526</code>)</td>
+<td>4,253.5</td>
+<td>~227,000,000</td>
+</tr>
+</tbody>
+</table></div>
+<p>Growth is quadratic in <code>k</code> — expected, since a shell's surface area grows
+with <code>r^2</code> while its thickness (and hence sector footprint) stays fixed.
+Summed across all shells out to the galaxy's edge, total addressable
+sectors come out close to <code>galaxy volume / sector volume</code>:</p>
+<pre><code>(4/3) * pi * 15,000^3 pc^3  /  3.526^3 pc^3   ~=   3.2 x 10^11 sectors
+</code></pre>
+<p><strong>~320 billion addressable sectors</strong> if the whole galactic volume were
+treated as a uniform sphere at this sector size. This number matters for
+§7 (eager vs. lazy generation) — it's not a count anyone should try to
+generate up front.</p>
+<h3 id="placing-sectors-within-a-shell">Placing sectors within a shell</h3>
+<p>Within shell <code>k</code>, distribute its <code>N_k</code> sector centers evenly across the
+sphere of radius <code>r_k</code> using a <strong>Fibonacci (golden-angle) sphere
+sequence</strong> — a standard, deterministic way to place N points roughly
+evenly over a sphere with no pole-clustering, using the same &quot;uniform
+area, not uniform angle&quot; concern <code>_random_unit_direction</code>'s own docstring
+already flags for a single random direction, just made deterministic and
+extended to N points instead of 1 random one:</p>
+<pre><code>for i in 0 .. N_k - 1:
+    phi_i   = acos(1 - 2 * (i + 0.5) / N_k)      # polar angle, pole-to-pole
+    theta_i = (2 * pi * i / golden_ratio) mod (2 * pi)   # golden-angle azimuth step (~137.5 deg)
+    center_i = r_k * (sin(phi_i)*cos(theta_i), sin(phi_i)*sin(theta_i), cos(phi_i))
+</code></pre>
+<p>This is deterministic and reproducible: <code>(shell_index, shell_slot_index)</code>
+is a stable address that always maps to the same galaxy position, which is
+useful for <code>galaxyGen.py</code> later (a shell can be regenerated or extended
+without perturbing sectors already placed in other shells) — but that
+determinism is itself a design choice worth flagging; see §7.</p>
+<h3 id="why-this-is-fine-despite-the-gapsoverlaps">Why this is fine despite the gaps/overlaps</h3>
+<ul>
+<li>Sectors are <strong>sparse content cells</strong>, not solid masonry. This project's
+own stellar density (<code>LOCAL_STELLAR_DENSITY_LY3</code>, ~1 system per 352
+cubic light-years) means a default-size sector (~1,521 ly³) holds only a
+handful of systems on average (<code>expected_system_count</code>) — most of a
+sector's cube is already empty space. A seam of a few percent of an
+edge-length between two adjacent cubes has no content or gameplay
+consequence; it isn't a wall or a floor that needs to line up.</li>
+<li>&quot;Nearest sector&quot; / adjacency should be defined by <strong>center-to-center
+distance</strong>, exactly the pattern this codebase already uses one level
+down (<code>SpaceSector.nearest_neighbors</code>/<code>distance_between</code> for systems
+within a sector). It never needed shared-face cube topology at the
+system level, and doesn't need it at the sector level either.</li>
+<li>The alternative — a sector shape that <em>does</em> tile a sphere exactly — has
+no good answer for &quot;cubic,&quot; since no polyhedron tiles a sphere's surface
+the way a cube tiles a plane. Any exact solution would mean giving up
+the fixed cubic sector shape entirely, which §0 already puts out of
+scope.</li>
+</ul>
+<h3 id="the-disk-vs-sphere-gap-real-galaxies-arent-spherical">The disk-vs-sphere gap (real galaxies aren't spherical)</h3>
+<p>Shells as defined above populate a full sphere uniformly in <code>phi.</code> A real
+disk/spiral galaxy is flattened — the Milky Way's stellar disk has a scale
+height on the order of ~300 pc (thin disk) to ~900-1,000 pc (thick disk),
+tiny next to its ~15,000 pc radius. Treating the whole sphere as equally
+&quot;real&quot; would put as many addressable sectors far off the galactic plane
+(large <code>|z|</code>, i.e. <code>phi</code> near 0 or <code>pi</code>) as near it, which is not how the
+galaxy this package is modeling actually looks.</p>
+<p>This design deliberately <strong>separates addressing from population</strong>:</p>
+<ul>
+<li>The shell/Fibonacci-sphere scheme above defines the full set of
+addresses a sector <em>could</em> occupy — this is the coordinate system, and
+it's what this document is scoped to.</li>
+<li>Whether <code>galaxyGen.py</code> actually generates content for a given
+<code>(shell_index, shell_slot_index)</code> address is a separate, later decision
+— e.g. gating generation on <code>|z| / r</code> against a disk-density envelope,
+or a radial density falloff for the bulge/disk/halo. That's a galactic
+population/astrophysics model, not a coordinate system, and per this
+doc's scope (§0) it's flagged as an open question (§7) rather than
+decided here.</li>
+</ul>
+<p>For scale, restricting to a cylinder of the galaxy's full 15,000 pc radius
+but only ~1,000 pc total thickness (a generous stand-in for &quot;thin + thick
+disk&quot;) cuts the addressable volume by about 20x versus the full sphere
+(<code>pi * 15,000^2 * 1,000</code> vs. <code>(4/3) * pi * 15,000^3</code>) — from ~320 billion
+down to ~16 billion sectors. Still enormous, but it's the first concrete
+argument that a disk envelope isn't just astronomically motivated, it's
+also a large, free reduction in how much of the address space ever needs
+sectors actually generated.</p>
+<h3 id="cube-orientation">Cube orientation</h3>
+<p>Each sector's cube needs an orientation, not just a center point, since
+<code>edge_mpc</code> alone doesn't say which way the cube's local axes point in the
+galaxy frame. The natural default needs no extra stored state at all: align
+the cube's local &quot;up&quot; (its own <code>+Z</code>, i.e. the direction its own octant
+scheme's <code>phi</code>-sign axis points) with the <strong>radial direction</strong> from the
+galactic center to the sector's own center (<code>normalize(x, y, z)</code>) — like a
+brick pointing outward, consistent for every sector, and fully derivable
+from the already-stored center point. The remaining one degree of freedom
+(rotation <em>around</em> that radial axis, i.e. &quot;roll&quot;) needs a convention too;
+the simplest is to derive it from a fixed reference (e.g. project galactic
+<code>+Z</code> onto the plane perpendicular to the radial direction, and align the
+cube's local <code>+X</code> to that projection — breaks down only exactly on the
+galactic axis where a sector's radial direction <em>is</em> <code>+Z</code>, an edge case
+with no sectors in practice at galaxy-core-adjacent shells).</p>
+<p>Because this whole scheme is derivable from the center point with a fixed
+convention, <strong>no orientation column is proposed</strong> in §4. If per-sector
+random roll (rather than a fixed convention) turns out to be wanted later,
+that would need a stored angle — flagged as an explicit open question in
+§7 rather than added preemptively.</p>
+<h2 id="4-schema-migration-proposal-v3---v4">4. Schema migration proposal (v3 -&gt; v4)</h2>
+<p>New nullable columns on <code>sectors</code>, mirroring exactly how
+<code>star_systems.position_x/y/z_mpc</code>/<code>quadrant</code> are nullable (&quot;never placed&quot;
+is a real, valid state — every sector generated by today's
+single-sector-only tooling has no galaxy position at all):</p>
+<pre><code class="language-sql">ALTER TABLE sectors ADD COLUMN center_x_pc REAL;
+ALTER TABLE sectors ADD COLUMN center_y_pc REAL;
+ALTER TABLE sectors ADD COLUMN center_z_pc REAL;
+
+-- Derived from center_x/y/z_pc (sqrt(x^2+y^2+z^2)) but persisted anyway,
+-- same &quot;quadrant&quot; precedent -- lets &quot;sectors within radius R of the core&quot;
+-- use a plain indexed range scan instead of a non-indexable expression.
+ALTER TABLE sectors ADD COLUMN galactic_radius_pc REAL;
+
+-- Which radial shell (see Sec 3) this sector's center falls in, and its
+-- placement index within that shell's Fibonacci-sphere ordering. Together
+-- these are a stable, reproducible &quot;address&quot; a shell can be regenerated
+-- or extended from without perturbing sectors already placed elsewhere.
+ALTER TABLE sectors ADD COLUMN shell_index INTEGER;
+ALTER TABLE sectors ADD COLUMN shell_slot_index INTEGER;
+
+CREATE INDEX IF NOT EXISTS idx_sectors_galactic_radius_pc ON sectors(galactic_radius_pc);
+CREATE INDEX IF NOT EXISTS idx_sectors_shell_index ON sectors(shell_index);
+</code></pre>
+<p>Because SQLite's <code>ALTER TABLE ADD COLUMN</code> can't add a multi-column <code>CHECK</code>
+after the fact, the &quot;all four galaxy-position columns are NULL together or
+all set together&quot; invariant (matching the existing
+<code>quadrant</code>/<code>position_x_mpc</code> null-together convention on <code>star_systems</code>)
+would need to move into <code>schema.sql</code>'s <code>CREATE TABLE sectors</code> body directly
+the next time this table's DDL is rewritten wholesale, e.g.:</p>
+<pre><code class="language-sql">CHECK (
+    (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+    (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+    (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+)
+</code></pre>
+<p><code>shell_index</code>/<code>shell_slot_index</code> are left out of that CHECK deliberately —
+they're bookkeeping for the placement <em>algorithm</em>, not physically implied
+by a center point the way <code>galactic_radius_pc</code> is, so a sector could in
+principle have a galaxy position without having been placed by this
+particular shell scheme (e.g. a hand-authored one-off position).</p>
+<p><code>PRAGMA user_version</code> moves from <code>3</code> to <code>4</code>. Per <code>docs/reference/database-schema.md</code>'s existing
+history format:</p>
+<blockquote>
+<p><strong>v3 -&gt; v4</strong>: added <code>sectors.center_x/y/z_pc</code>, <code>galactic_radius_pc</code>,
+<code>shell_index</code>, <code>shell_slot_index</code> — a sector's position in a galaxy-scale,
+spherical-coordinates-from-center layout (stored as Cartesian; see
+<code>docs/design/galaxy/galaxy-coordinate-system.md</code>). NULL for a sector never
+placed in a galaxy (every sector generated by today's <code>sectorGen.py</code>
+single-sector tooling, and any migrated from an older database).
+<code>migrate_database</code>'s <code>_migrate_v3_to_v4</code> would need to be added, following
+<code>_migrate_v2_to_v3</code>'s exact shape (attach the old file read-only, copy
+every table straight across except <code>sectors</code>, which needs the explicit
+pre-v4 column list instead of <code>INSERT ... SELECT *</code> since the current
+schema has more columns than a v3 database's <code>sectors</code> table does), and
+per <code>migrate_database</code>'s own docstring, <strong><code>_migrate_v1_to_v2</code> and
+<code>_migrate_v2_to_v3</code> would both need updating too</strong> to leave the new
+columns NULL, since each of those functions maps straight to the
+<em>current</em> schema in one hop rather than chaining through intermediate
+versions.</p>
+</blockquote>
+<p>No backfill step is possible for <code>_migrate_v3_to_v4</code> beyond leaving the new
+columns NULL — there is no way to recover a legacy sector's intended galaxy
+position after the fact, exactly the same situation <code>location</code>/<code>quadrant</code>
+are in for a <code>star_systems</code> row that was never placed in a sector at all.</p>
+<h2 id="5-interaction-with-existing-physics--flagged-not-resolved">5. Interaction with existing physics — flagged, not resolved</h2>
+<p><code>planetgen/physics/constants.py</code> already has:</p>
+<pre><code class="language-python">GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
+</code></pre>
+<p><code>Star.calculate_system_perimeter</code> (<code>starData.py:341-361</code>) and
+<code>BinaryStarProxy</code>'s equivalent (<code>doubleStar.py:270-282</code>) both use this
+fixed constant for <strong>every</strong> generated system, regardless of which sector
+it's in — i.e., today, every star in the game is implicitly assumed to sit
+at Sol's own galactocentric distance (~25,800 ly, ~7.9 kpc) when computing
+its Hill sphere relative to the galaxy (<code>system_perimeter</code>). That value
+then drives <code>hill_radius_ly</code>/<code>required_separation_ly</code> in <code>spaceSector.py</code>
+— the minimum-separation physics used to place systems within a sector.</p>
+<p>Once sectors have a real galactic radius (<code>galactic_radius_pc</code>), this
+constant becomes <strong>wrong in a specific, physically meaningful way</strong> for
+any sector not near 7.9 kpc out: a sector near the galactic core should
+have a <em>smaller</em> Hill sphere ceiling per star (stronger galactic tidal
+shear, tighter Oort-cloud limits, systems packed closer together), and a
+sector out in a sparse halo shell should have a <em>larger</em> one. This is a
+real interaction this design surfaces but does not resolve — changing
+<code>calculate_system_perimeter</code> to take a distance parameter (falling back to
+<code>GALACTIC_CENTER_DISTANCE_LY</code> when no sector position is known, for
+standalone/non-galaxy-placed generation) is generation-code, out of this
+document's scope, and is called out explicitly in §7 as a judgment call:
+is this worth doing now, alongside the coordinate system, or deferred as
+its own follow-up once <code>galaxyGen.py</code> exists and it's clear how often
+sectors actually land far from 7.9 kpc?</p>
+<h2 id="6-worked-end-to-end-example">6. Worked end-to-end example</h2>
+<p>A sector placed at shell <code>k = 50</code>:</p>
+<pre><code>edge_pc         = 3.526                          (DEFAULT_SECTOR_EDGE_LY)
+r_50            = (50 + 0.5) * 3.526             = 178.06 pc
+N_50            = round(4 * pi * 50.5^2)         = 32,047 sectors in this shell
+</code></pre>
+<p>Picking slot <code>i = 12,000</code> of those 32,047 via the golden-angle sequence
+(illustrative, not solved to full precision here):</p>
+<pre><code>phi_i   = acos(1 - 2 * 12000.5 / 32015)   ~= 1.318 rad  (~75.5 deg from galactic north)
+theta_i = (2*pi*12000 / 1.618...) mod 2*pi ~= 2.564 rad (~146.9 deg)
+
+center_x_pc ~= 178.06 * sin(1.318) * cos(2.564) ~= -144.4
+center_y_pc ~= 178.06 * sin(1.318) * sin(2.564) ~=   94.2
+center_z_pc ~=  178.06 * cos(1.318)             ~=   44.6
+
+galactic_radius_pc = sqrt((-144.4)^2 + 94.2^2 + 44.6^2) ~= 178.1   (matches r_50, as it must)
+</code></pre>
+<p>In light-years for a display string (<code>pc_to_ly</code>): <code>178.06 pc * 3.2616 ~= 580.8 ly</code> from the galactic core — small enough that
+<code>GALACTIC_CENTER_DISTANCE_LY</code>'s fixed 25,800 ly assumption (§5) would be
+off by a factor of ~44x for a system generated in this sector, which is
+exactly the kind of case that flag matters for.</p>
+<h2 id="7-open-questions--for-the-users-judgment-not-decided-here">7. Open questions — for the user's judgment, not decided here</h2>
+<ol>
+<li><strong>Eager vs. lazy shell/sector generation.</strong> §3 shows shell counts grow
+quadratically (~227 million sectors in the single outermost shell of a
+15,000 pc galaxy) and total addressable volume runs to ~320 billion
+sectors (or ~16 billion restricted to a disk-shaped envelope). <code>galaxyGen.py</code>
+almost certainly cannot generate &quot;the whole galaxy&quot; eagerly — but
+whether it should generate whole shells on demand, individual sectors
+on demand (e.g. as a player/query &quot;visits&quot; a region), or some other
+unit of batching is a <code>galaxyGen.py</code> design question this document
+deliberately leaves open (per docs/TODO.md, that script's own design is
+gated on this one, not the reverse).</li>
+<li><strong>Disk-density envelope.</strong> §3 flags that a pure uniform sphere doesn't
+match a real disk galaxy's shape, and sketches the <em>concept</em> of gating
+generation by <code>|z|</code>/scale height, but does not specify a concrete
+profile (thin/thick disk split, bulge, spiral-arm overdensity,
+metallicity-vs-radius gradients feeding into star-type selection).
+That's a galactic astrophysical population model, arguably its own
+design pass, layered on top of the coordinate system this document
+defines.</li>
+<li><strong><code>GALACTIC_CENTER_DISTANCE_LY</code> becoming position-dependent</strong> (§5) —
+whether <code>calculate_system_perimeter</code> should start taking the owning
+sector's actual <code>galactic_radius_pc</code> (converted to ly) instead of the
+fixed Sol-distance constant, and if so, whether that lands alongside
+this migration or as a separate follow-up once real galaxy-scale data
+exists to see how much it matters in practice.</li>
+<li><strong>Cube roll/orientation.</strong> §3 proposes a fixed, zero-extra-storage
+convention (radial-outward <code>+Z</code>, projected-galactic-north <code>+X</code>). If a
+per-sector random roll is wanted instead (e.g. for visual/narrative
+variety), that needs a stored orientation value (a single roll angle
+suffices, given the radial axis itself is already fixed by the center
+point) — not proposed here since it's pure additional complexity with
+no identified requirement yet. §9's <code>sector_vertices</code> table implements
+the fixed convention concretely (as the tangent-plane basis its exact
+prism vertices are derived in), but still doesn't add a roll degree of
+freedom -- that half of this question remains open.</li>
+<li><strong>Deterministic Fibonacci-sphere placement vs. randomized placement.</strong>
+§3's scheme is fully deterministic — the same <code>(shell_index, shell_slot_index)</code> always yields the same position, which makes shells
+independently regenerable/extensible, but also means sector placement
+has none of the organic irregularity <code>spaceSector.py</code>'s own
+system-within-a-sector placement deliberately has (Poisson-disk growth,
+<code>secrets</code>-backed randomness). Whether galaxy-scale sector placement
+should also carry some jitter (e.g. a small random offset within each
+Fibonacci-sphere cell, sized so it can't push a sector's cube into a
+neighboring shell) is an open aesthetic/design call, not a geometric
+necessity.</li>
+<li><strong>Non-uniform sector size.</strong> This entire scheme assumes one fixed
+<code>edge_pc</code> for every sector (today's actual default, <code>edge_mpc</code> is
+already a per-row column so it technically <em>can</em> vary — but §3's shell
+math assumes a single edge length shared by a whole shell's sector
+count formula). Larger, cheaper sectors farther from the core, or
+smaller/denser ones near it, would need a materially different
+version of §3's <code>N_k</code> formula (shell thickness and sector footprint
+would no longer be shell-wide constants). Not addressed here; assumed
+out of scope unless the user wants it folded in now.</li>
+<li><strong>One galaxy per database.</strong> This design assumes a single galactic
+center/origin per database file (there is no <code>galaxy_id</code> concept
+anywhere in the schema or in <code>docs/TODO.md</code>'s framing, which only ever says
+&quot;the galaxy,&quot; singular). If multiple independent generated galaxies
+ever need to coexist in one database, every new column in §4 would need
+a <code>galaxy_id</code> companion — flagged in case that's a real future
+requirement rather than a hypothetical one.</li>
+<li><strong>Sector-to-sector adjacency as a queryable relationship.</strong> §3's
+&quot;nearest sector by center-to-center distance&quot; answer works fine as a
+one-off computed query (mirroring <code>SpaceSector.nearest_neighbors</code>), but
+if <code>galaxyGen.py</code> or a future web UI wants persistent &quot;neighboring
+sectors&quot; (e.g. for travel/lore, similar to how <code>star_systems.location</code>
+persists each system's nearest neighbors today), that would need its
+own join table and its own write-time computation — not proposed here,
+since nothing in the current brief calls for it yet.</li>
+</ol>
+<h2 id="8-generation-unit-sector-enumeration-by-radius-track-c-addendum">8. Generation unit: sector enumeration by radius (Track C addendum)</h2>
+<p><strong>Status:</strong> implemented (<code>src/planetgen/galaxy/geometry.py</code>). This
+section is a Track C addition, written after this document's original
+proposal (sections 0-7 above, including the open questions in §7 —
+several since resolved by the user for this track, see the top of this
+document's &quot;Decisions already made&quot; recap and Track C's own brief) and
+after the user decided that <code>galaxyGen.py</code> needs one primitive supporting
+both whole-shell batch generation and on-demand generation of the
+neighborhood around an <em>already-placed</em> sector — not just &quot;generate a
+whole shell&quot; as §7 question 1 originally framed the choice. That
+primitive is specified and analyzed here before its implementation, per
+this track's own requirement that the geometry sub-problem get a short
+design pass of its own.</p>
+<h3 id="the-primitive">The primitive</h3>
+<blockquote>
+<p>Given an arbitrary point <code>P = (x, y, z)</code> in galaxy-space (parsecs, not
+necessarily the galactic origin, and not necessarily an already-placed
+sector's center) and a radius <code>R</code>, enumerate every <code>(shell_index, shell_slot_index)</code> address (§3's tiling scheme) whose sector center
+falls within <code>R</code> of <code>P</code>.</p>
+</blockquote>
+<p>Both <code>galaxyGen.py</code> modes reduce to one call of this primitive:</p>
+<ul>
+<li><strong>Batch mode</strong> (<code>--shell k</code>): <code>P</code> = the galactic origin, <code>R</code> = shell
+<code>k</code>'s own outer radius (or simply <code>shell_radius_pc(k, edge_pc)</code> plus a
+hair of slack) — returns (up to) that whole shell's <code>N_k</code> addresses.</li>
+<li><strong>Local-neighborhood mode</strong> (<code>--center-sector &lt;id&gt; --radius-pc R</code>): <code>P</code>
+= that sector's own stored <code>(center_x_pc, center_y_pc, center_z_pc)</code>, a
+small <code>R</code> — returns just the handful-to-few-dozen addresses genuinely
+near it, regardless of which enclosing shell they fall in (a
+neighborhood can straddle a shell boundary) and without requiring that
+enclosing shell to have been generated as a whole first.</li>
+</ul>
+<h3 id="why-p-is-not-always-the-origin-and-why-thats-the-hard-part">Why P is not always the origin, and why that's the hard part</h3>
+<p>Every position in this scheme is derived from <code>(shell_index, shell_slot_index)</code> via <code>sector_position_pc</code> (§3's Fibonacci-sphere
+formula), which is O(1) per address — trivial in the batch case, since
+<code>P</code> = origin means &quot;distance to <code>P</code>&quot; is just each shell's own fixed radius
+<code>r_k</code>, so the <em>whole</em> shell either qualifies or doesn't (no per-slot
+geometry needed at all). The local-neighborhood case is harder precisely
+<em>because</em> <code>P</code> is generally not the origin, not on any particular shell's
+&quot;axis&quot; of anything, and not aligned with the Fibonacci-sphere's own
+golden-angle indexing in any convenient way. A shell far out (say <code>k</code> in
+the thousands, <code>N_k</code> in the hundreds of millions per the §3 table) must
+never be iterated in full just to answer &quot;which of your slots are within
+3 sector-widths of this one sector I already have&quot; — that would make the
+very use case this primitive exists for (generate a local starmap around
+a point of interest) slower than generating the whole enclosing shell it
+is trying to avoid.</p>
+<h3 id="chosen-approach-two-cheap-exact-prunes-then-brute-force-the-rest">Chosen approach: two cheap, exact prunes, then brute-force the rest</h3>
+<p>No spatial index (k-d tree, octree, or similar) is built over the address
+space — the Fibonacci-sphere scheme already has enough structure to prune
+analytically, in closed form, without one. Two independent pruning passes
+run before any per-slot position is ever computed:</p>
+<ol>
+<li>
+<p><strong>Which shells can possibly qualify</strong> (<code>_candidate_shell_range</code>).
+Every slot in shell <code>k</code> sits at the <em>exact same</em> radius <code>r_k</code> (§3's
+placement is a fixed-radius sphere per shell, not a radius range — the
+<code>[k*edge_pc, (k+1)*edge_pc)</code> interval in §3 is the shell's conceptual
+thickness, not where individual slots actually land). So the question
+&quot;could shell <code>k</code> hold a point within <code>R</code> of <code>P</code>&quot; has an exact answer,
+not an approximation: yes iff <code>|r_k - |P|| &lt;= R</code> (the minimum possible
+distance from <code>P</code> to <em>any</em> point on a sphere of radius <code>r_k</code>, achieved
+when that point lies on the ray through <code>P</code>, is exactly <code>|r_k - |P||</code>;
+the triangle inequality guarantees no closer point exists). This bounds
+the candidate shell range to <code>k</code> in roughly
+<code>[(|P|-R)/edge_pc - 0.5, (|P|+R)/edge_pc - 0.5]</code> — a width of about
+<code>2R/edge_pc</code> shells, independent of how far out <code>P</code> is. For a &quot;handful
+to a few dozen sectors&quot; neighborhood (<code>R</code> on the order of a few
+<code>edge_pc</code>), that's a small, constant number of candidate shells
+regardless of galactic radius.</p>
+</li>
+<li>
+<p><strong>Which slots within a candidate shell can possibly qualify</strong>
+(<code>_slot_index_bounds_for_phi_range</code>). This is the part that keeps
+per-shell cost from scaling with <code>N_k</code>. <code>sector_position_pc</code>'s polar
+angle <code>phi_i = acos(1 - 2*(i+0.5)/N_k)</code> is <em>strictly monotonic</em> in the
+slot index <code>i</code> (as <code>i</code> runs <code>0..N_k-1</code>, the argument to <code>acos</code> runs from
+just under <code>+1</code> down to just over <code>-1</code>, and <code>acos</code> is strictly
+decreasing) — so a target range of <code>phi</code> values maps to exactly one
+contiguous range of slot indices, invertible in closed form:
+<code>i = N_k*(1 - cos(phi))/2 - 0.5</code>. The spherical law of cosines gives the
+maximum angular separation <code>alpha_max</code> (from <code>P</code>'s own direction, as
+seen from the origin) a point at radius <code>r_k</code> can have and still be
+within <code>R</code> of <code>P</code>:
+<code>cos(alpha_max) = (|P|^2 + r_k^2 - R^2) / (2*|P|*r_k)</code>. A short
+trigonometric argument (in the module docstring's
+<code>enumerate_sectors_within_radius</code>) shows <code>|phi_slot - phi_P| &lt;= alpha_max</code>
+is a <em>necessary</em> condition for any slot regardless of its azimuthal
+angle <code>theta</code> — so the contiguous index range this maps to is a safe,
+exact upper bound on which slots could possibly qualify, even though it
+isn't tight in azimuth (two slots at the same <code>phi</code> but very different
+<code>theta</code> are treated alike by this prune; the exact per-slot distance
+check below is what actually discriminates on <code>theta</code>).</p>
+</li>
+</ol>
+<p>Every slot surviving both prunes gets its exact position
+(<code>sector_position_pc</code>) and exact distance to <code>P</code> computed and compared to
+<code>R</code> — so the final output is always exact, never an approximation; the
+two prunes only decide <em>which</em> slots are worth that O(1) exact check, not
+whether the check itself is skipped.</p>
+<p>Two edge cases fall out of the same math rather than needing special
+handling: <code>P</code> at the origin (no direction to prune slots by — but then
+distance-to-<code>P</code> for any slot is just <code>r_k</code>, so a qualifying shell is
+either wholly in or wholly out, handled before the per-slot loop even
+starts), and <code>R</code> large enough that a whole candidate shell is guaranteed
+inside it (<code>cos(alpha_max) &lt;= -1</code>, i.e. <code>R &gt;= |P| + r_k</code>, the shell's own
+worst-case distance from <code>P</code>) — that shell's slots are all yielded
+directly, skipping the angular prune (there's nothing left to prune).</p>
+<h3 id="big-o">Big-O</h3>
+<p>Let <code>S</code> = number of candidate shells (<code>O(R/edge_pc)</code>, a small constant for
+a local-neighborhood-sized <code>R</code>, independent of <code>|P|</code>), and let <code>B_k</code> = the
+slot-index band width computed for shell <code>k</code> (bounded by, roughly, <code>N_k</code>
+scaled by the fraction of that shell's surface subtended by the angular
+cap of half-angle <code>alpha_max</code> — for <code>R &lt;&lt; r_k</code>, <code>alpha_max ~ R/r_k</code>
+radians, so <code>B_k</code> grows roughly with the actual <em>area</em> of the search
+region on that shell, not with <code>N_k</code> itself). Total work is
+<code>O(sum_k(B_k))</code>, which scales with the genuine output size (how many
+sectors actually exist within <code>R</code> of <code>P</code> across the candidate shells) plus
+a small constant-factor overhead from the band edges — <strong>not</strong> with
+<code>sum_k(N_k)</code>, the total number of slots those shells hold. This is what
+makes a local-neighborhood query near an outer shell (potentially
+hundreds of millions of slots) exactly as cheap as one near the core: the
+per-shell cost tracks <code>R</code>, not <code>N_k</code>.</p>
+<p>The batch-mode case (<code>P</code> = origin, <code>R</code> = one shell's radius) is the
+degenerate case of the same function: exactly one candidate shell
+qualifies (or a small handful, if <code>R</code> is chosen slightly loose), the
+origin special-case skips the angular prune entirely, and every one of
+that shell's <code>N_k</code> slots is legitimately part of the answer — so batch
+mode's cost is, correctly, <code>O(N_k)</code>: there is no way to return <code>N_k</code>
+results in less than <code>O(N_k)</code> time, and no pruning is being asked to do
+anything there.</p>
+<h3 id="what-was-deliberately-not-built">What was deliberately not built</h3>
+<p>No k-d tree, octree, or other general-purpose spatial index over the
+address space, and no precomputed per-shell angular lookup structure
+beyond the closed-form inversion above. Both were considered and rejected
+as premature for a &quot;handful to a few dozen sectors&quot; neighborhood query,
+per this track's brief: the two closed-form prunes above already remove
+the only real scaling hazard (iterating a huge shell's full slot count),
+and building a persistent index would add real complexity (index
+construction, invalidation as new sectors are generated, storage) for a
+problem this document's own §7 open question 8 already flags as
+explicitly out of scope for now (persistent sector adjacency). If a future
+need arises for large-<code>R</code> neighborhood queries (say, <code>R</code> spanning dozens
+of shells rather than a handful of <code>edge_pc</code>), the same two prunes still
+apply without modification — they degrade gracefully to &quot;iterate more
+shells, and wider slot bands within each&quot; rather than breaking down, so
+there is no cliff where this approach stops working; it simply does
+progressively more of the genuinely-necessary work as the requested
+neighborhood grows.</p>
+<h2 id="9-sector-prism-vertices-exact-per-shell-voronoi-tessellation-addendum-revision-2">9. Sector prism vertices: exact per-shell Voronoi tessellation (addendum, revision 2)</h2>
+<p><strong>Status:</strong> implemented (<code>stellarObjects/sectorGeometry.py</code>, the
+<code>sector_vertices</code> table — schema v7; briefly a <code>sectors.vertices_pc</code> JSON
+column in schema v6, reconsidered immediately in favor of a normalized
+table, since this schema has no JSON-blob columns anywhere else). This
+revises an earlier version of this same
+addendum, which gave every sector a fixed 8-vertex cube and <em>nudged</em>
+corners toward nearby neighbors' — that approach shipped, worked, and was
+tested, but only ever reduced gaps (~35% aggregate improvement, measured
+against real <code>galaxyGen.py</code> output), never eliminated them, because a
+fixed 8-vertex/6-face shape cannot exactly reconcile a sector with more
+real neighbors than it has faces — common on this Fibonacci-sphere
+placement, which has no fixed &quot;6 neighbors&quot; the way a structured grid
+would. Following a direct request for literal zero gaps, this revision
+replaces corner-nudging with an <strong>exact local spherical Voronoi
+tessellation</strong>, letting vertex/face count vary per sector instead of
+staying fixed.</p>
+<h3 id="the-model">The model</h3>
+<ul>
+<li><strong>Lateral (same-shell) sharing is exact, not approximate.</strong> For sector
+<code>P</code>, <code>stellarObjects.sectorGeometry.local_lateral_cell</code> finds <code>P</code>'s real
+same-shell geometric neighbors and computes the cell boundary as the
+exact 3D <strong>circumcenter</strong> of each pair of cyclically-adjacent neighbors
+together with <code>P</code> — the one point in 3D equidistant from all three. This
+is a plain geometric fact about three points, independent of which of
+them &quot;does the computing,&quot; so two real neighbors, computing their own
+cells entirely independently, land on the identical floating-point value
+for their shared corner (verified directly: ~1e-16 agreement, i.e.
+floating-point noise, not an approximation residual). Vertex count
+varies per sector (typically 5-7, mean 6.0, matching standard Voronoi/
+Euler-formula theory for a near-uniform point set) — the direct,
+necessary consequence of insisting on exact gaps: a cube tiling of a
+sphere cannot be gap-free in general (the same reason a soccer ball
+needs pentagons mixed with hexagons; a plane tiles perfectly with
+squares, a sphere never does), so face count has to match each sector's
+own real neighbor count instead of staying fixed.</li>
+<li><strong>Radial (between-shell) coverage matches in area, not vertex-for-
+vertex.</strong> Each lateral vertex is scaled along its own ray from the
+galactic origin to sit exactly on the shell's inner bound
+(<code>shell_index * edge_pc</code>) and outer bound (<code>(shell_index + 1) * edge_pc</code>) in turn (<code>prism_vertices</code>), giving every sector a radially-
+extruded prism. Shell <code>k</code>'s outer bound and shell <code>k+1</code>'s inner bound
+are the same sphere; each shell tiles that whole sphere completely and
+independently via its own sectors (Voronoi cells always partition their
+full surface), so there is no net gap in area between the two shells'
+sectors even though the two tessellations don't share edges with each
+other — a &quot;non-conforming mesh interface,&quot; the same technique used
+where two independently-meshed regions meet in finite-element/CFD
+meshing. Shell 0 is a degenerate but correct special case: its inner
+bound is radius 0, so its sectors are wedges/cones from the galactic
+center rather than full prisms.</li>
+<li>No roll/orientation degree of freedom was added — §3's fixed convention
+(radial-outward local <code>+Z</code>, projected-galactic-north local <code>+X</code>) is
+still used as the tangent-plane basis the lateral cell's connectivity is
+worked out in, even though final vertex positions are exact 3D
+circumcenters rather than tangent-plane approximations.</li>
+</ul>
+<h3 id="the-performance-problem-this-required-solving-and-how">The performance problem this required solving, and how</h3>
+<p>A naive same-shell neighbor search — reusing
+<code>galaxyGeometry.enumerate_sectors_within_radius</code> with a small physical
+radius — is fast near a shell's poles but <strong>catastrophically slow near its
+equator for large outer shells</strong>: that primitive prunes by polar angle
+(<code>phi</code>) alone, and this placement's slot index is uniform in <code>cos(phi)</code>,
+not <code>phi</code> itself, so a tiny physical radius maps to a huge slot-index range
+right at the equator (measured: 100,000+ candidates to find ~6-8 true
+neighbors, ~0.4-0.5 seconds per sector) — precisely where the disk/spiral
+density model (this session's other major addendum) concentrates real
+generation activity.</p>
+<p>The fix exploits what this placement actually <em>is</em>: a Fibonacci sphere
+built from the golden angle, which makes it a golden-ratio irrational
+rotation in disguise. By the three-distance theorem, two slot indices land
+at close azimuths essentially when their difference is a Fibonacci number
+(golden-ratio continued-fraction convergents are exactly consecutive
+Fibonacci numbers) — confirmed directly against real generated positions,
+where true neighbor offsets were exactly <code>F_20</code> through <code>F_23</code>
+(6765/10946/17711/28657) plus small integer combinations of adjacent pairs
+(e.g. <code>76 = 2*F_10 - F_9</code>). Combined with polar angle changing
+(approximately) linearly with index, the relevant offset scale works out
+to <code>sin(phi) * sqrt(pi * N)</code> — shrinking away from the equator.
+<code>sectorGeometry._same_shell_candidate_offsets</code> checks small integer
+combinations of the few Fibonacci-number pairs nearest that scale, cutting
+per-sector cost to ~0.3-0.4ms regardless of shell size (a ~1000x
+improvement for the worst outer-equatorial case) — validated against the
+guaranteed-correct brute-force search across 840 cases spanning the full
+polar range and shell sizes from 3 to 211 million slots, with <strong>zero
+mismatches</strong> once shells small enough that this asymptotic theory doesn't
+apply cleanly (<code>shell_sector_count(k) &lt;= 2000</code>, in practice only the
+galactic-core-adjacent shells) fall back to plain brute force instead,
+which is unconditionally correct and still cheap at that size.</p>
+<h3 id="two-correctness-bugs-found-by-an-end-to-end-simulation-and-fixed">Two correctness bugs found by an end-to-end simulation, and fixed</h3>
+<p>Running a real (small, unfilled) galaxy through this module end-to-end —
+sector layout, density, and vertices for every qualifying sector, with an
+exhaustive check that every outer vertex is shared with another same-shell
+sector's cell — surfaced two bugs neither unit test caught, both specific
+to small/sparse shells (the galactic-core-adjacent shells that unit tests,
+by convention, under-sampled in favor of large ones like shell 50):</p>
+<ol>
+<li><strong>Naive tangent-plane projection understated distance.</strong> The same-shell
+candidate projection originally used the raw chord vector's own
+components along the local axes (<code>dot(candidate - position, local_x)</code>
+etc.), which systematically <em>understates</em> how far away a candidate
+really is, worse the farther it is (a real 10.5 pc separation projected
+to as little as 1.5 pc on shell 1). Fixed with a proper <strong>gnomonic</strong>
+(central) projection (<code>_gnomonic_projection</code>): following the ray from
+the galactic origin through the candidate out to where it crosses the
+query sector's tangent plane, which grows monotonically with true
+angular separation and is the standard technique for reducing a
+spherical Voronoi problem to a planar one.</li>
+<li><strong>The half-plane test after that projection used the wrong bisector.</strong>
+Gnomonic projection maps the true spherical bisector between two
+co-radial points to a straight line in the projected <code>(u, v)</code> plane —
+but not to the <em>flat</em>-plane perpendicular bisector of <code>(0, 0)</code> and
+<code>(u, v)</code> (<code>u*x + v*y &lt;= (u**2 + v**2) / 2</code>), which was the formula used.
+The two agree only in the small-angle limit (why large/dense shells
+were unaffected); on a small, sparse, fully-populated shell it was
+permissive enough to let two non-adjacent sectors' cells meet at a
+point a third, genuinely closer sector should have cut off first — a
+real, silent gap. The correct right-hand side, derived from equidistance
+in 3D between the query sector (radius <code>r_k</code>) and a co-radial candidate
+projected to <code>(u, v)</code>, is <code>r_k * (sqrt(r_k**2 + u**2 + v**2) - r_k)</code>.</li>
+</ol>
+<p>Both fixes are covered by regression tests parametrized to include a small
+shell (shell 1) alongside the large ones already under test, plus an
+exhaustive &quot;every vertex of every sector in a fully-populated small shell
+is shared with another sector&quot; check
+(<code>test_local_lateral_cell_fully_tiles_a_small_shell_with_no_orphan_vertices</code>)
+that reproduces the exact condition the simulation used to find these bugs.
+Re-running the same simulation after both fixes: <strong>0 unexplained gaps</strong>
+across all 31,255 outer vertices generated (previously 4,798, then 164 as
+each fix landed).</p>
+<h2 id="10-the-galaxy-wide-skeleton-storage-analysis-and-implementation">10. The galaxy-wide &quot;skeleton&quot;: storage analysis and implementation</h2>
+<p>Following on from the simulation above, the natural next question is what
+it costs to persist this galaxy's structure at real Milky-Way scale, not
+just a small toy simulation -- and, having measured that, how to shrink
+it. This section documents both the analysis and the actual design that
+resulted (<code>planetgen/galaxy/skeleton.py</code>, <code>galaxyPlan.py</code>, schema v8),
+which supersedes <code>docs/design/galaxy/galaxy-disk-density.md</code> revision 2's
+<code>galaxy_sector_plan</code> table (see that document's own status note).</p>
+<h3 id="the-core-realization-almost-none-of-this-is-independent-data">The core realization: almost none of this is independent data</h3>
+<p><code>sector_position_pc</code>, <code>relative_density</code>, and <code>prism_vertices</code> are pure,
+closed-form functions: given <code>(shell_index, shell_slot_index)</code> and a
+handful of galaxy-wide constants, all three are fully determined. Storing
+a qualifying sector's position/density explicitly (as <code>galaxy_sector_plan</code>
+would have) means storing the <em>output</em> of a formula that's cheaper to
+re-run than to look up. Measured directly against real Milky-Way-scale
+parameters (disk scale length 2,800 pc, scale height 350 pc, bulge radius
+200 pc, calibrated at the real Sun-to-center distance):</p>
+<pre><code>E (systems/sector at density=1) = 4.3193
+threshold density = 0.2315
+last shell with any qualifying content: shell 4077
+every one of ~4,078 relevant shells: exactly one contiguous qualifying
+  phi-band (checked via the exact upper-bound curve at 4,000-sample
+  resolution -- zero shells found with 2+ bands under these parameters)
+</code></pre>
+<p>The single-band-per-shell result isn't a coincidence of these particular
+numbers: <code>bound_relative_density_at_phi</code> (the exact upper bound over every
+possible <code>theta</code>) is symmetric under <code>phi -&gt; pi - phi</code> (both <code>r_cyl = r_k sin(phi)</code> and <code>z = r_k cos(phi)</code> are), and for any shape where the disk
+scale height is meaningfully smaller than the disk scale length (true of
+any realistic spiral), it's also unimodal, peaking at the galactic plane.
+<code>galaxySkeleton.find_shell_bands</code> doesn't <em>assume</em> this, though -- it
+scans and reports however many bands it actually finds, in case a very
+different parameter choice ever produces more than one.</p>
+<h3 id="storage-tiers-measured">Storage tiers, measured</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>What's stored per sector</th>
+<th>Rows (real MW scale)</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 — pure parametric</td>
+<td>nothing; shape + edge + outer shell, once</td>
+<td>1</td>
+<td>~150 bytes</td>
+</tr>
+<tr>
+<td>1 — per-shell band cache (<strong>built</strong>)</td>
+<td>nothing; <code>(shell_index, band_index, slot_min, slot_max)</code></td>
+<td>~4,076</td>
+<td><strong>~350 KB</strong></td>
+</tr>
+<tr>
+<td>2 — per-sector address only</td>
+<td><code>(shell_index, shell_slot_index)</code>, no derived values</td>
+<td>~10.5–14.9 billion</td>
+<td>~85–170 GB</td>
+</tr>
+<tr>
+<td>3 — <code>galaxy_sector_plan</code> (designed, not built)</td>
+<td>position, density, star count</td>
+<td>~10.5 billion</td>
+<td>~830 GB – 1 TB</td>
+</tr>
+<tr>
+<td>4 — fully generated content</td>
+<td>full star systems/planets/moons</td>
+<td>~10.5 billion</td>
+<td>~930 TB – 1.15 PB</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tier 1 is what's implemented. It answers &quot;where could the galaxy have
+anything at all&quot; with a table small enough to hold entirely in memory,
+while deferring every sector-specific fact (position, exact density,
+vertices) to the moment that sector is actually generated.</p>
+<h3 id="whats-actually-stored-and-whats-deferred">What's actually stored, and what's deferred</h3>
+<ul>
+<li><strong><code>galaxy_shape</code></strong> (schema v8, singleton row): the galaxy's shape
+parameters (<code>galaxyDensity.GalaxyShape</code>, verbatim), <code>edge_pc</code>,
+<code>expected_system_count_at_density_1</code>, and <code>outer_shell_index</code> (the last
+shell with any qualifying content, discovered by a run of consecutive
+empty shells, not an arbitrary radius).</li>
+<li><strong><code>galaxy_shell_band</code></strong> (schema v8): one row per contiguous <em>candidate</em>
+slot-index band per shell -- a safe superset (an exact upper bound, so a
+slot outside every band is <em>certainly</em> empty, while a slot inside one
+isn't <em>certainly</em> full), found by <code>galaxySkeleton.find_shell_bands</code>: a
+coarse scan of the exact bound across <code>phi</code>, each detected sign change
+refined by bisection, then converted to an exact slot-index range via
+the existing closed-form inverse (<code>galaxyGeometry. slot_index_bounds_for_phi_range</code>, previously used only by
+<code>enumerate_sectors_within_radius</code>, now shared).</li>
+<li><strong>Deferred entirely, computed live</strong>: an individual sector's exact
+position, exact density, exact qualification, and vertices --
+<code>galaxyGen.ensure_sector_generated(shell_index, shell_slot_index)</code> is
+the single entry point: return the sector already generated there if
+one exists; otherwise check the stored band (a cheap, certain &quot;no&quot; if
+outside it), then the exact <code>relative_density</code> (cheap either way); if it
+qualifies, generate and persist it on the spot, using that position's
+own <code>relative_density</code> as the <code>--density</code> multiplier so system count
+scales with local richness rather than a uniform default. Most of the
+galaxy is never visited, so most of it is never generated -- exactly
+this project's own &quot;most sectors stay unvisited forever&quot; premise.</li>
+</ul>
+<h3 id="parallel-build">Parallel build</h3>
+<p><code>galaxyPlan.py</code> dispatches shells to a <code>multiprocessing.Pool</code> in
+fixed-size chunks (each shell's own band-finding is independent of every
+other's), scanning outward in order only to detect the run of consecutive
+empty shells that confirms the galaxy's true edge. Measured against real
+Milky-Way-scale parameters: <strong>0.5 seconds</strong> of actual scan time (4 worker
+processes), producing 4,076 stored bands and a database file of
+<strong>352,256 bytes</strong>. A single-core, unparallelized run of the same build
+took 0.6 seconds -- parallelization matters far less here than it did for
+<code>sectorGeometry</code>'s same-shell neighbor search, since finding one shell's
+band is already a small, closed-form calculation, not a scan over that
+shell's own (potentially hundreds-of-millions-large) slot count; it's kept
+regardless, since nothing about a future shape/threshold choice guarantees
+that stays true, and the underlying work is naturally embarrassingly
+parallel.</p>
+<h3 id="a-numerical-bug-this-work-also-found-and-fixed">A numerical bug this work also found and fixed</h3>
+<p>Testing the band-finding math against a small toy-scale shape (used for
+fast tests, <code>disk_scale_length_pc=40</code>, <code>disk_scale_height_pc=12</code>) surfaced
+an <code>OverflowError</code>: <code>galaxyDensity._raw_density</code>'s vertical falloff term
+computed <code>1.0 / math.cosh(x) ** 2</code> directly, which raises once <code>|x|</code>
+exceeds ~710 (<code>cosh</code> grows like <code>exp(|x|) / 2</code>) -- reachable whenever a
+position's height above the plane is large relative to
+<code>disk_scale_height_pc</code>, not just at unrealistic extremes (this toy shape
+hit it by shell ~2,400, and any shape with a small scale height relative
+to its own radius could hit it in production). Fixed with an algebraically
+equivalent form rewritten around <code>exp(-2|x|)</code> (<code>galaxyDensity._sech_squared</code>,
+shared with <code>galaxySkeleton</code>'s own bound function) -- always in <code>(0, 1]</code>,
+so it can only underflow to a harmless <code>0.0</code> (the correct limiting value)
+rather than overflow.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

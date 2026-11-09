@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-star systems and compact-object primaries - planetGen docs</title>
+<meta name="description" content="How a system of up to twelve stars (the group cap MAXSTARS, GEN.267; Boss&#x27;s 2026-10-09, 2:43 AM EDT cap of seven was superseded by the cap of 12, Boss, 2026-10-15, 6:08 PM EDT) is drawn, stored, named, shown on the maps and updated, how ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/multistar-and-compact-systems.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/multistar-and-compact-systems.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="multi-star-systems-and-compact-object-primaries">Multi-star systems and compact-object primaries</h1><p class="meta">docs/design/systems/multistar-and-compact-systems.md</p><details class="toc"><summary>On this page (33 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-the-repo-does-today-checked-2026-10-09">1. What the repo does today (checked 2026-10-09)</a></li><li style="margin-left:0px"><a href="#2-how-the-source-documents-update-a-multi-body-system">2. How the source documents update a multi-body system</a></li><li style="margin-left:0px"><a href="#3-multiplicity-statistics">3. Multiplicity statistics</a></li><li style="margin-left:14px"><a href="#31-what-the-literature-says">3.1 What the literature says</a></li><li style="margin-left:14px"><a href="#32-the-extreme-multiples">3.2 The extreme multiples</a></li><li style="margin-left:14px"><a href="#33-probability-table-the-generator-draws">3.3 Probability table the generator draws</a></li><li style="margin-left:0px"><a href="#4-binary-period-and-mass-ratio-redraw">4. Binary period and mass-ratio redraw</a></li><li style="margin-left:0px"><a href="#5-dynamical-stability">5. Dynamical stability</a></li><li style="margin-left:14px"><a href="#51-criteria">5.1 Criteria</a></li><li style="margin-left:14px"><a href="#52-the-criteria-alone-are-not-enough">5.2 The criteria alone are not enough</a></li><li style="margin-left:14px"><a href="#53-generator-algorithm">5.3 Generator algorithm</a></li><li style="margin-left:14px"><a href="#54-n-body-test-summary">5.4 N-body test summary</a></li><li style="margin-left:14px"><a href="#55-holman-and-wiegert-implemented-and-tested">5.5 Holman and Wiegert, implemented and tested</a></li><li style="margin-left:14px"><a href="#56-planet-zones-in-a-hierarchy">5.6 Planet zones in a hierarchy</a></li><li style="margin-left:0px"><a href="#6-data-model-naming-maps-and-updates">6. Data model, naming, maps and updates</a></li><li style="margin-left:14px"><a href="#61-tree-of-pairs">6.1 Tree of pairs</a></li><li style="margin-left:14px"><a href="#62-eccentric-pair-orbits">6.2 Eccentric pair orbits</a></li><li style="margin-left:14px"><a href="#63-naming-extends-gen62">6.3 Naming (extends GEN.62)</a></li><li style="margin-left:14px"><a href="#64-maps-and-the-orbital-update">6.4 Maps and the orbital update</a></li><li style="margin-left:14px"><a href="#65-habitability-inputs-gen84-to-gen89">6.5 Habitability inputs (GEN.84 to GEN.89)</a></li><li style="margin-left:14px"><a href="#66-placement-by-population-gen103">6.6 Placement by population (GEN.103)</a></li><li style="margin-left:0px"><a href="#7-compact-object-primaries">7. Compact-object primaries</a></li><li style="margin-left:14px"><a href="#71-how-they-arise">7.1 How they arise</a></li><li style="margin-left:14px"><a href="#72-what-real-systems-show">7.2 What real systems show</a></li><li style="margin-left:14px"><a href="#73-companion-fractions-conditional-on-a-compact-primary">7.3 Companion fractions, conditional on a compact primary</a></li><li style="margin-left:14px"><a href="#74-radiation-tidal-and-size-limits-c-unless-marked">7.4 Radiation, tidal and size limits [C] unless marked</a></li><li style="margin-left:14px"><a href="#75-what-a-planet-around-a-black-hole-can-be">7.5 What a planet around a black hole can be</a></li><li style="margin-left:14px"><a href="#76-rules-for-the-generator">7.6 Rules for the generator</a></li><li style="margin-left:0px"><a href="#8-go--no-go-and-build-order">8. Go / no-go and build order</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How a system of up to twelve stars (the group cap <code>MAX_STARS</code>, GEN.267; Boss's 2026-10-09, 2:43 AM EDT cap of seven was superseded by the cap of 12, Boss, 2026-10-15, 6:08 PM EDT) is drawn, stored, named, shown on the maps and
+updated, how often each size of system occurs, which hierarchies are dynamically
+stable, and what a white dwarf, neutron star or black hole primary changes for
+the bodies around it. It is the design note GEN.128 asks for and the input to
+GEN.129 and GEN.130. How many neutron stars and black holes exist and where
+they sit is not repeated here: those densities and the scatter are in
+<a href="interstellar-object-rates.html">interstellar-object-rates.md</a> (GEN.1, GEN.100),
+the placement rules in <a href="anomalies.html">anomalies.md</a> (&quot;Placement by population&quot;),
+and the galaxy's stellar density in
+<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>. This note covers only the
+company a compact object keeps and the planets that survive it.</p>
+<p>Informs: GEN.128, GEN.129, GEN.130, GEN.62, GEN.71, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.100, GEN.103, GEN.109</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [S] seen in a search result (URL in Sources), [C] computed or
+simulated in the research sandbox, [R] recalled and unconfirmed. The research
+environment could only read search-result text, not the papers themselves; every
+[R] is on the Evidence notes list. The [C] values in the probability table, the
+period shares, the compact-object sizes and the Holman and Wiegert comparison
+were rerun while writing this document.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Scope (Boss, GitHub issues #777 and #778, 2026-10-09 06:43Z): &quot;scientifically
+accurate star systems with up to 7 stars, this is going to be complex but
+that is the highest number of stars we've seen in orbit around each other&quot;,
+and &quot;exotic star systems that have black holes, neutron stars, or similar as
+the central star for systems, binary systems.&quot;</li>
+<li>Storage (Boss, GEN.128): a tree of pairs, each pair's orbit around its
+barycentre.</li>
+<li>Wide-pair planet names (Boss, 2026-10-07 17:11Z, GEN.71): a wide binary's
+planets are &quot;&lt;word 1&gt; I&quot;, &quot;&lt;word 1&gt; II&quot; and the second star's &quot;&lt;word 2&gt; I&quot;,
+never &quot;A I&quot; (<a href="../architecture/object-ids.html">object-ids.md</a>, &quot;The naming key&quot;). GEN.62 (done,
+PR #393) names the stars: <code>Voranthis A</code> and <code>Voranthis B</code> for a close pair,
+<code>Voranthis Kelmoor</code> and <code>Voranthis Pikkita</code> for a wide one.</li>
+<li>Influence rule and time step (Boss, 2026-10-09 and 2026-10-07 17:11Z): an
+object's influence radius is the Hill sphere of the largest nearby object, and
+each run advances by real elapsed time
+(<a href="../orbits/orbital-updates.html">orbital-updates.md</a> sections 1 and 10.4). Section 2
+applies them to hierarchies.</li>
+<li>GEN.100 (done) scatters neutron stars and black holes galaxy-wide; GEN.130
+builds on that scatter instead of drawing its own.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>GEN.129: go, as a staged build.</strong> A system is a tree of pairs (<code>orbit_nodes</code>,
+N-1 rows for N stars); one recursive generator makes every N from 3 to 7. The
+cost is plumbing: 34 source files and 42 test files mention the binary fields
+(<code>binary_*</code>, <code>is_binary</code>, <code>secondary_star</code>, <code>wide_binary</code>, by grep).</li>
+<li><strong>Frequency (3.3):</strong> per system, single 69.1%, binary 25.6%, triple 4.0%,
+quadruple 1.07%, quintuple 0.24%, sextuple 0.029%, septuple 0.0030% (about 1 in
+33,000), mean 1.38 stars. Seven is the observational ceiling, with no seven-star
+system certain.</li>
+<li><strong>Stability needs a Kozai-Lidov screen (5.2).</strong> Without it 16.7% of tested
+levels failed within 10^4 inner orbits; with it 598 of 600 held, and 30 of 30
+whole systems held [C].</li>
+<li><strong>The binary generator missed 43% of real binaries (4):</strong> nothing was drawn
+between 0.26 and 50 AU. Built in GEN.448 (4).</li>
+<li><strong>GEN.130: go in slices, no-go on four items (8).</strong></li>
+</ul>
+<h2 id="1-what-the-repo-does-today-checked-2026-10-09">1. What the repo does today (checked 2026-10-09)</h2>
+<ul>
+<li><strong>Close (P-type) pair.</strong> <code>BinaryStarProxy</code> (<code>generation/binary.py</code>) merges two
+stars into one effective star: separation <code>uniform(0.05, 0.25)</code> AU plus both
+radii, eccentricity 0, circular position, random orientation, mass ratio
+from the law of [R3108] over 0.1 to 1 (<code>generation/mass_ratio.py</code>, GEN.951, with <code>tuning.BINARY_MASS_RATIO_RANGE</code> the ends), same age as the primary
+(GEN.53). The orbit lives in <code>binary_*</code> columns on <code>star_systems</code>; the proxy has
+no <code>stars</code> row (<a href="../../reference/database-schema.html">database-schema.md</a>, &quot;Binary
+configuration&quot;).</li>
+<li><strong>Wide (S-type) pair.</strong> <code>WideBinaryPair</code> (<code>generation/wide_binary.py</code>):
+separation from Moe and Di Stefano's companions per decade of period, between
+0.25 AU and the place's survival limit (GEN.448; it was log-uniform from 50 to 10,000
+AU), thermal eccentricity capped at 0.8, live position circular (&quot;a deliberate,
+documented simplification&quot;). Each star keeps its planets and its Holman and
+Wiegert <code>wide_binary_a_crit_km</code>.</li>
+<li><strong>Choice.</strong> <code>StarSystem._companion</code> rolls
+<code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS</code> (O 0.90, B 0.65, A 0.55, F 0.47,
+G 0.44, K 0.40, M 0.26) for &quot;has a companion&quot;, then shares it between the close
+range (0.05 to 0.25 AU, a P-type pair), the inner range (0.25 to 10 AU) and the outer range (10 AU and out)
+by the companions per decade of period of Moe and Di Stefano's Table 13
+(<code>generation/companion_classes.py</code>, <code>tuning.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS</code>), for the
+primary's mass. The close and inner ranges are the ones Moe, Kratter and Badenes measured (periods under 10^4 days), so
+since GEN.103 the odds of the two together are multiplied by <code>F([Fe/H]) / F(0)</code> of the primary's own [Fe/H]
+(every mass); the outer range is not, and a wide pair's axis is drawn up to the place's survival limit
+(<a href="../generation/placement-by-population.html">placement-by-population.md</a> 3.1 and 3.3).</li>
+<li><strong>Holman and Wiegert</strong> is implemented in <code>physics/orbits.py</code>
+(<code>holman_wiegert_critical_semimajor_axis</code>, <code>holman_wiegert_circumbinary_a_crit_au</code>);
+<code>StarSystem._orbit_floor_au</code> applies the P-type limit.</li>
+<li><strong>Stored.</strong> <code>stars.role</code> is CHECK IN ('primary','secondary','single');
+<code>star_systems.binary_configuration</code> is 'close' or 'wide'; <code>planets.star_id</code> is
+the host for S-type planets and NULL for a close pair's planets.</li>
+<li><strong>Maps and update.</strong> <code>web/maps/systemscene.py</code> gives each body an <code>around</code> of
+<code>barycenter</code> or <code>star:&lt;id&gt;</code>; <code>physics/body_positions.positions_at</code> balances a
+close pair on the barycentre by <code>secondary_mass_fraction</code>;
+<code>db/store.py advance_orbital_phases</code> advances phases with one set-based UPDATE
+per table (<a href="../orbits/orbital-updates.html">orbital-updates.md</a>, &quot;Positions at any time&quot;).</li>
+<li><strong>Compact objects.</strong> <code>generation/phenomena/compact_remnant.py</code> has <code>BlackHole</code>
+and <code>NeutronStar</code> as <code>Star</code> subclasses. They anchor a <code>StarSystem</code> only through
+the <code>compact_remnant</code> argument (<code>phenomenon --anchor-system</code>), and that path
+skips binary generation (<code>compact_remnant is None and self._companion()</code> in <code>StarSystem.__init__</code>). <strong>The module
+docstring cites <code>docs/design/exotic-phenomena.md</code>, which does not exist</strong>; a
+repo-wide grep finds the path only there (the words &quot;exotic-phenomena&quot; elsewhere
+are prose in <code>docs/reference/cli.md</code> and a test CLI). The design home is
+<a href="anomalies.html">anomalies.md</a> plus this note; the docstring should point there.</li>
+<li><strong>Collapsed stars stay out of normal systems on purpose.</strong>
+<code>physics/stellar_evolution.evolve_star</code> returns None for a star at or above 8
+Msun past its giant phase; <code>Star.generate</code> redraws such a primary and lightens a
+companion by 0.8 until it is alive. White dwarfs are ordinary class VII <code>Star</code>
+objects (a lighter white dwarf primary is swapped below its companion), so white
+dwarf primaries and companions occur already; neutron star and black hole ones
+cannot.</li>
+</ul>
+<h2 id="2-how-the-source-documents-update-a-multi-body-system">2. How the source documents update a multi-body system</h2>
+<p>&quot;Orbital Update Full Algorithm.md&quot; and &quot;Orbital Position and Vector Update
+Algorithms.md&quot; are condensed in <a href="../orbits/orbital-updates.html">orbital-updates.md</a>; neither
+has a notion of a bound group of stars. What they imply, and what changes:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source statement</th>
+<th>Section</th>
+<th>Status for hierarchies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage 1 integrates every entity with <code>parent_system_id IS NULL</code> (stars, remnants, rogues) on its own, under the point masses around it</td>
+<td>Full Algorithm, Master Simulation Workflow</td>
+<td>A star pair would be two independent roots: a partner at 0.1 AU pulls about 4e12 times harder than a star 1 pc away, and a period of days is far inside any galactic step. <strong>A hierarchy is one root at its barycentre with the total mass</strong>; its stars are leaves of the tree.</td>
+</tr>
+<tr>
+<td>Stage 3 (<code>ExecuteStarSystemUpdates</code>): Phase A shifts every child by its star's displacement; Phase B advances each child's Kepler orbit about the star</td>
+<td>Full Algorithm, Star System Engine</td>
+<td>Stays, and generalizes. Phase A moves the root node by the barycentre's displacement; Phase B advances each node's relative orbit analytically (mean anomaly by <code>n dt mod 2 pi</code>, <a href="../orbits/orbital-updates.html">orbital-updates.md</a> section 10.4); star offsets follow from the tree walk in 6.1. <code>parent_system_id</code> becomes &quot;node or star&quot;.</td>
+</tr>
+<tr>
+<td><code>CheckPlanetaryHillCrossings</code>: occupants of a body's Hill sphere are captured, deflected or ejected</td>
+<td>Full Algorithm, Encounters</td>
+<td>Members of one hierarchy sit inside each other's Hill spheres by construction and are exempt from mutual Hill warnings and captures (<a href="../orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a> section 8, &quot;exclude hierarchical members&quot;; <a href="../orbits/collisions-and-mergers.html">collisions-and-mergers.md</a> section 3.3, &quot;the same system&quot;). Hill occupants are tracked per root.</td>
+</tr>
+<tr>
+<td>Point-mass table with one row per body (id, mass, mu, position, velocity, tier)</td>
+<td>Update Algorithms, Analytical Point-Mass Table Computation</td>
+<td>One row per system at its barycentre with the total mass (GEN.109); tier from the total mass. Internal structure is read from <code>orbit_nodes</code>.</td>
+</tr>
+<tr>
+<td>Top 10 influencers; <code>R_search = sqrt(G M_max / a_min)</code>; the <code>a_min</code> filter</td>
+<td>Update Algorithms, Position and Vector Update; Full Algorithm</td>
+<td>Superseded (Boss, 2026-10-09). A flyby inside the outermost orbit's Hill zone is a per-star event flagged &quot;disrupts hierarchy&quot;, not integrated.</td>
+</tr>
+<tr>
+<td>Velocity Verlet at fixed steps; 10 and 11.5 ly sector keys</td>
+<td>both</td>
+<td>Superseded (<a href="../orbits/orbital-updates.html">orbital-updates.md</a> sections 4, 10.4, 11). Irrelevant inside a hierarchy, which is analytic.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The stored pair columns already carry what a node needs
+(<code>binary_mutual_orbital_period_years</code>, <code>_inclination_deg</code>, <code>_ascending_node_deg</code>,
+<code>_phase_deg</code>, <code>_min_update_interval_years</code>, <code>_position_*_km</code>,
+<code>binary_secondary_mass_fraction</code>). The 0.01 AU &quot;companion stars&quot; threshold of
+<a href="../orbits/orbital-updates.html">orbital-updates.md</a> section 3 is met by computing node
+positions from the phase on read, as for planets: a pair at 0.1 AU moves 0.01 AU
+in hours, so a next-due column would fire constantly.</p>
+<h2 id="3-multiplicity-statistics">3. Multiplicity statistics</h2>
+<h3 id="31-what-the-literature-says">3.1 What the literature says</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Tag and source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FGK dwarfs within 25 pc, single / double / triple / higher</td>
+<td>56% / 33% / 8% / 3% (454 stars)</td>
+<td>[S] [R3646]</td>
+</tr>
+<tr>
+<td>F and G dwarfs within 67 pc, n = 1 to 5</td>
+<td>54 : 33 : 8 : 4 : 1; 2+2 quadruples 4%</td>
+<td>[S] [R4384]</td>
+</tr>
+<tr>
+<td>Bright systems (about V &lt; 6), 1 to 7 components</td>
+<td>2718, 1437, 285, 86, 20, 11, 2</td>
+<td>[S] [R1223]</td>
+</tr>
+<tr>
+<td>Updated Multiple Star Catalog</td>
+<td>17 systems with 6 components, 4 with 7, none of the 7s certain (65 UMa best)</td>
+<td>[S] [R4385]</td>
+</tr>
+<tr>
+<td>Companions per primary (q &gt; 0.1, log P &lt; 8)</td>
+<td>0.50 solar-type, 2.1 O-type; single most probable below about 2 Msun, triple above about 12, quadruple above about 23</td>
+<td>[S] [R3108]</td>
+</tr>
+<tr>
+<td>M dwarfs</td>
+<td>multiplicity about 26%, higher order about 3% of systems</td>
+<td>[S] [R4724] summary; 26% is in <code>tuning.py</code></td>
+</tr>
+<tr>
+<td>O stars</td>
+<td>91 +- 3% multiple; over 70% exchange mass with a companion</td>
+<td>[S] [R3892], SMaSH+</td>
+</tr>
+<tr>
+<td>O/B companion peak</td>
+<td>log P (days) near 3.5 (about 10 AU)</td>
+<td>[S] [R3108]</td>
+</tr>
+<tr>
+<td>Solar-type period law</td>
+<td>log-normal in log10 P (days), mean 5.03, sigma 2.28</td>
+<td>[R] [R3646]; every period share below depends on it</td>
+</tr>
+<tr>
+<td>Close-binary fraction (a &lt; 10 AU) against metallicity</td>
+<td>about 10% at [Fe/H] +0.5, 24% at -0.5, 40% at -1, 53% at -3</td>
+<td>[R] [R3109]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Theory allows several hundred components and observation confirms at most seven
+[S, [R1529]]. The single fraction counts systems; by star count
+about half of Sun-like stars sit in multiples (singles outnumber primaries of
+multiples 1.28 to 1, arxiv.org/pdf/1502.04018 [S]). The generator draws a primary
+from a per-star census and then adds companions, which slightly over-produces
+low-mass stars: a refinement, not a blocker.</p>
+<h3 id="32-the-extreme-multiples">3.2 The extreme multiples</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>System</th>
+<th>Stars</th>
+<th>Structure</th>
+<th>Tag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Alpha Centauri</td>
+<td>3</td>
+<td>A and B (79.9 yr), Proxima far out</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>HD 98800</td>
+<td>4</td>
+<td>2+2, each a spectroscopic binary (262 d and 315 d)</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>Castor</td>
+<td>6</td>
+<td>three binaries, the outer one eclipsing</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>Mizar / Alcor</td>
+<td>6</td>
+<td>Mizar a quadruple, Alcor a binary; whether Alcor is bound has been debated</td>
+<td>[S], [R] on the debate</td>
+</tr>
+<tr>
+<td>TIC 168789840</td>
+<td>6</td>
+<td>three eclipsing binaries, outer period about 2 kyr</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>Nu Scorpii</td>
+<td>7 (probably)</td>
+<td>groups AB and CD 41 arcsec apart; AB a triple, CD a binary within a wider pair</td>
+<td>[S] &quot;most likely a septuple&quot;</td>
+</tr>
+<tr>
+<td>AR Cassiopeiae, 65 UMa</td>
+<td>7 (candidates)</td>
+<td>structure not confirmed; 65 UMa has four hierarchy levels</td>
+<td>[S]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Boss's statement holds as an observational ceiling. A fair line for a page:
+&quot;seven components is the most ever proposed, with none beyond doubt&quot;.</p>
+<h3 id="33-probability-table-the-generator-draws">3.3 Probability table the generator draws</h3>
+<p>Rows are the primary's spectral letter. These are design values, not fits: the
+first three columns blend the sources above (M from Winters and Duchene and
+Kraus, FGK from Raghavan and Tokovinin, A to O from Moe and Di Stefano's trend
+toward more triples and quadruples with mass), and the N &gt;= 4 mass is split by a
+per-step ratio set so the FG row reproduces Tokovinin's 4% and 1%.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Primary</th>
+<th>N=1</th>
+<th>N=2</th>
+<th>N=3</th>
+<th>N=4</th>
+<th>N=5</th>
+<th>N=6</th>
+<th>N=7</th>
+<th>mean N</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M</td>
+<td>0.73000</td>
+<td>0.23500</td>
+<td>0.02800</td>
+<td>0.00560</td>
+<td>0.00123</td>
+<td>0.00015</td>
+<td>0.00001</td>
+<td>1.31</td>
+</tr>
+<tr>
+<td>K</td>
+<td>0.60000</td>
+<td>0.31000</td>
+<td>0.06500</td>
+<td>0.02002</td>
+<td>0.00440</td>
+<td>0.00053</td>
+<td>0.00005</td>
+<td>1.52</td>
+</tr>
+<tr>
+<td>G</td>
+<td>0.54500</td>
+<td>0.33500</td>
+<td>0.08000</td>
+<td>0.03202</td>
+<td>0.00705</td>
+<td>0.00085</td>
+<td>0.00008</td>
+<td>1.62</td>
+</tr>
+<tr>
+<td>F</td>
+<td>0.50000</td>
+<td>0.34000</td>
+<td>0.11000</td>
+<td>0.04003</td>
+<td>0.00881</td>
+<td>0.00106</td>
+<td>0.00011</td>
+<td>1.72</td>
+</tr>
+<tr>
+<td>A</td>
+<td>0.40000</td>
+<td>0.40000</td>
+<td>0.15000</td>
+<td>0.03741</td>
+<td>0.01048</td>
+<td>0.00189</td>
+<td>0.00023</td>
+<td>1.87</td>
+</tr>
+<tr>
+<td>B (2.1 to 5 Msun)</td>
+<td>0.25000</td>
+<td>0.40000</td>
+<td>0.22000</td>
+<td>0.08962</td>
+<td>0.03137</td>
+<td>0.00784</td>
+<td>0.00118</td>
+<td>2.28</td>
+</tr>
+<tr>
+<td>B-mid (5 to 9 Msun)</td>
+<td>0.24000</td>
+<td>0.36000</td>
+<td>0.25143</td>
+<td>0.10241</td>
+<td>0.03585</td>
+<td>0.00896</td>
+<td>0.00135</td>
+<td>2.37</td>
+</tr>
+<tr>
+<td>B-early (9 to 16 Msun)</td>
+<td>0.16000</td>
+<td>0.32000</td>
+<td>0.32686</td>
+<td>0.13314</td>
+<td>0.04660</td>
+<td>0.01165</td>
+<td>0.00175</td>
+<td>2.63</td>
+</tr>
+<tr>
+<td>O</td>
+<td>0.10000</td>
+<td>0.25000</td>
+<td>0.30000</td>
+<td>0.21354</td>
+<td>0.09610</td>
+<td>0.03363</td>
+<td>0.00673</td>
+<td>3.08</td>
+</tr>
+<tr>
+<td>Weighted by <code>SPECTRAL_PROBABILITIES_NORMAL</code></td>
+<td>0.69070</td>
+<td>0.25604</td>
+<td>0.03987</td>
+<td>0.01069</td>
+<td>0.00238</td>
+<td>0.00029</td>
+<td>0.00003</td>
+<td>1.38</td>
+</tr>
+</tbody>
+</table></div>
+<p>The B-mid and B-early rows (GEN.449) take their first two columns from Moe and Di Stefano's Table 13 (single 0.24 and 0.16, binary 0.36 and 0.32,
+triple or more 0.40 and 0.52; <code>tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN</code>) and split the rest across 3 to 7 stars in the B row's proportions. The chance of a companion
+(1 - single) is 0.76 and 0.84 there against the letter's 0.65. The B row keeps its values for the late-B stars: the bin of 2 to 5 solar masses holds A and late B together at 0.59 +-0.11, and the letter's 0.65 sits inside that.
+The weighted row below still reads the B row for every B star: B is 0.12% of the normal mix, so the two new rows move its figures by under 0.0005.</p>
+<p>The N &gt;= 4 total per class is 0.007 (M), 0.025 (K), 0.040 (G), 0.050 (F, A), 0.130
+(B), 0.350 (O), split across N=4..7 by per-step ratios 0.22, 0.12, 0.10 (M to F),
+0.28, 0.18, 0.12 (A), 0.35, 0.25, 0.15 (B), 0.45, 0.35, 0.20 (O). The bright-star
+counts have gentler tails, but that sample favours rich A and B systems and
+Tokovinin's volume-limited FG sample shows nothing beyond N=5, so the tails are
+deliberately steep. For more exotic systems without new physics, scale the N &gt;= 5
+columns with a prevalence knob (<code>prevalence.scaled_chance</code>); to force N, use a
+directive.</p>
+<p>Against the code: M, K, G and F match <code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS</code>
+within 0.03, but B (0.65) and A (0.55) were low against 0.75 and 0.60 (Moe and Di
+Stefano: B about 0.75 to 0.8, A about 0.6 to 0.65). Table 13's bins settle it (GEN.449): A and late B
+0.59 +-0.11 (the letters' 0.55 and 0.65 stand), mid B 0.76 and early B 0.84 (now the B-mid and B-early classes, by birth mass). The mean of 1.38 stars per
+system replaces the &quot;about 1.3&quot; in
+<a href="interstellar-object-rates.html">interstellar-object-rates.md</a>; those rates are per
+star and <code>run_sector.sector_star_count</code> already sums <code>len(entry.star_system.stars)</code>,
+so phenomenon counts scale correctly when N grows.</p>
+<p>Mass ratios: keep <code>uniform(0.1, 1)</code> for companions of the primary (Moe and Di
+Stefano find it close to flat). Outer companions (P above about 1e5 days) draw
+their mass independently from the IMF, since those are near-random pairings [S].
+Eccentricity: circular below about 7 days, otherwise thermal <code>f(e) = 2e</code> capped at
+<code>1 - (P / 2 d)^(-2/3)</code> [R].</p>
+<h2 id="4-binary-period-and-mass-ratio-redraw">4. Binary period and mass-ratio redraw</h2>
+<p>With the log-normal law and a 1.5 Msun pair, the shares of binaries by separation
+were [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Separation</th>
+<th>Share of binaries</th>
+<th>Generated before GEN.448</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>below 0.26 AU</td>
+<td>6.6% (4.2% inside 0.05 to 0.26 AU)</td>
+<td><code>binary.py</code>, 0.05 to 0.25 AU</td>
+</tr>
+<tr>
+<td>0.26 to 50 AU</td>
+<td>43.3%</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>50 to 10,000 AU</td>
+<td>43.6%</td>
+<td><code>wide_binary.py</code></td>
+</tr>
+<tr>
+<td>above 10,000 AU</td>
+<td>6.5%</td>
+<td>nothing (unbound by passing stars)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 50 and 10,000 AU edges in this table are the old fixed ones: wide pairs start at 0.25 AU and the fixed 10,000 AU cap is replaced by the derived limit (GEN.448, Boss, 2026-10-16, 6:12 to 6:15 PM EDT).</p>
+<p>The 0.26 to 50 AU range is where Holman and Wiegert planet zones of 0.1 to 15 AU
+and the habitable zones interact most.</p>
+<p>Built (GEN.448, no schema change): one distribution of companions over period for the
+whole range replaces the close/wide coin flip (<code>WIDE_BINARY_DEFAULT_CHANCE</code> is gone) and
+the nothing between 0.25 and 50 AU. It is Moe and Di Stefano's own (2017, Table 13: companions per decade of log P
+at 1, 3, 5 and 7 for primaries of 1.0, 3.16, 6.71, 12 and 25 solar masses, straight lines between, flat past the ends)
+rather than the log-normal law, because the lines give the massive stars their larger close share
+(a log-normal fit left them about 2%). For a 1.55 solar mass pair around a G dwarf the shares of the companions
+are 5.7% inside 0.25 AU, 24% from 0.25 to 10 AU, 17% from 10 to 50 AU, 31% from 50 to 1,000 AU and 22% beyond
+1,000 AU up to the 11,400 AU the Sun's neighbourhood keeps [C]. A pair's axis is drawn from the same lines cut at 0.25 AU and the
+place's limit, the part under 10 AU carrying the metallicity factor's weight, so the trend shapes the
+separations as well as the odds. The limit is the place's alone (the survival limit of GEN.103 and GEN.447; a place that keeps no
+pair wider than 0.25 AU loses the wide chance, and a forced companion is a close pair). The S-type stability limit of the pair
+(<code>a_crit_au</code>, 5.6) is unchanged: a pair a few AU apart leaves each star only a fraction of an AU for planets and comets
+(a forced comet is then an unmet requirement, like a forced habitable world), which is the physics, not a rule.
+Eccentricity stays as in 3.3, and the <code>wide_binary</code> directive keeps its meaning (forced wide or close).
+The absolute level inside 10 AU is about 0.6 of the pooled line's (a G dwarf 0.13 at [Fe/H] 0 against the line's 0.20 or 0.24 at -0.2),
+(Table 13's 0.15 companions inside log P 3.7 are a count per primary and the generator's chance is the fraction of stars with one,
+which may account for part of it; the cause is not settled [R]). TEST.196 checks the level against the published ranges.</p>
+<h2 id="5-dynamical-stability">5. Dynamical stability</h2>
+<h3 id="51-criteria">5.1 Criteria</h3>
+<p>A pair node with children masses m1, m2 (m_in = m1 + m2) orbits a sibling of mass
+m3 in its parent's orbit (a_out, e_out). q_out = m3 / m_in, q_in = m1 / m2, and i
+is the mutual inclination of the two orbital planes (0 coplanar prograde, pi
+coplanar retrograde).</p>
+<ul>
+<li><strong>[R2868]</strong> [S]: <code>a_out (1 - e_out) / a_in &gt; 2.8 * [(1 + q_out)(1 + e_out) / sqrt(1 - e_out)]^(2/5) * (1 - 0.3 i / pi)</code>. Valid for
+m3 / m_in below about 5.</li>
+<li><strong>[R1221]</strong> [S, as quoted in arxiv.org/pdf/1408.5431]:
+<code>a_out (1 - e_out) / (a_in (1 + e_in)) &gt; Y</code>, <code>Y = 1 + 3.7 / q^(1/3) - 2.2 / (1 + q^(1/3)) + 1.4 / q_in^(1/3) * (q^(1/3) - 1) / (q^(1/3) + 1)</code> with q = q_out.</li>
+<li><strong>Observed period ratios</strong> [R]: P_out / P_in above about 5, mostly above 10; the
+generator gives a minimum of 4.8, a 5th percentile of 11.3 and a median of 233
+over 600 levels [C]. Mardling and Aarseth is stricter: a period ratio of 5 is an
+axis ratio of 2.9 for equal masses, below the 3.9 it asks for coplanar orbits.</li>
+<li><strong>Hill radius</strong> <code>r_H = a (1 - e) (m / 3M)^(1/3)</code>: for an equal-mass circular pair
+0.55 a, and Holman and Wiegert's S-type limit 0.274 a is 0.50 r_H [C].</li>
+<li><strong>Several levels:</strong> test every node against its own parent (the parent's orbit
+and the sibling's total mass), deeper subsystems as point masses. Per-level
+triples and whole-system integrations agree (5.4).</li>
+<li><strong>[R1990]</strong> [S]: S-type <code>a_c / a_b = 0.464 - 0.380 mu - 0.631 e + 0.586 mu e + 0.150 e^2 - 0.198 mu e^2</code> (mu = perturbing companion's mass
+fraction); P-type <code>a_c / a_b = 1.60 + 5.10 e - 2.22 e^2 + 4.12 mu - 4.27 e mu - 5.09 mu^2 + 4.61 e^2 mu^2</code> (mu = the lighter star's fraction). Quoted accuracy:
+S-type about 4% typical and 11% worst for 0.1 &lt;= mu &lt;= 0.9, 0 &lt;= e &lt;= 0.8; P-type
+about 3% and 6%, with resonance &quot;islands&quot; of instability.</li>
+<li><strong>Mardling and Aarseth, verified; updated criterion read from the paper.</strong> The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with <code>m1 = m3 = 1</code>, <code>e_out = 0.5</code> gives <code>R_p/a_in = 4.99</code> and <code>a_out/a_in = 9.98</code> (use as unit tests). [R4574] refine it (Equations 3 and 4 of the paper: an effective inner eccentricity <code>e~_in</code> and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in <a href="exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a> 2.3.</li>
+</ul>
+<h3 id="52-the-criteria-alone-are-not-enough">5.2 The criteria alone are not enough</h3>
+<p>Mardling-Aarseth and Eggleton-Kiseleva only guard against the outer body
+disrupting the inner pair. A hierarchy that passes both can still destroy itself by
+Kozai-Lidov cycles: at a mutual inclination between about 40 and 140 degrees the
+inner eccentricity climbs toward 0.99 on a timescale about P_out^2 / P_in and the
+pair merges. Direct integration of equal-mass triples (1, 1, 1 Msun; e_in = e_out
+= 0.3; REBOUND IAS15 and WHFast agree) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mutual inclination</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>coplanar</td>
+<td>pericentre ratio 2 and 3 disrupted, 4 and above stable (the criterion asks 3.93: on the boundary)</td>
+</tr>
+<tr>
+<td>60 degrees</td>
+<td>stable, e_in reaching 0.75 to 0.77 at ratio 4 to 10 (analytic maximum <code>sqrt(1 - 5/3 cos^2 i)</code> = 0.76)</td>
+</tr>
+<tr>
+<td>90 degrees</td>
+<td>merged (e_in = 0.99) at every ratio from 4 to 10, stable only at 20, though the criterion asks only 3.34</td>
+</tr>
+</tbody>
+</table></div>
+<p>Real systems avoid this because Kozai-Lidov plus tides makes tight binaries and
+many real triples are near-coplanar at small period ratio. A generator must screen
+or draw inclinations with a coplanar preference. The screen tested (quadrupole
+maximum eccentricity, Kozai time against 10 Gyr, an octupole widening for eccentric
+outer orbits, a pericentre floor of 4 times the children's extent):</p>
+<pre><code>kl_unsafe(a_in, e_in, m_in, parent, mut_incl, extent_sum, age_yr = 1e10):
+    x = (5/3) (1 - e_in^2) cos^2(mut_incl)
+    if x &gt;= 1: return False                      # no Kozai window
+    e_max = sqrt(1 - x)
+    eps = (a_in / parent.a) * parent.e / (1 - parent.e^2)    # octupole strength
+    if eps &gt; 0.01 and 25 deg &lt; min(mut, 180 deg - mut) &lt; 90 deg:
+        e_max = max(e_max, 0.98)
+    t_kl = (2 / (3 pi)) (P_out^2 / P_in) (parent.mass / m3) (1 - parent.e^2)^1.5
+    return t_kl &lt; age_yr and a_in (1 - e_max) &lt; 4 * extent_sum
+</code></pre>
+<p>&quot;Extent&quot; is the largest distance of any star of the subtree from its barycentre (a
+star's radius, or <code>a (1 + e)</code> plus the children's extents). A first version that
+used stellar radii where a subsystem's real extent applied let 7 of 180 levels
+fail (mergers at inclination 73 to 127 degrees); using final extents and
+re-checking after the draw took it to 0 of 180.</p>
+<h3 id="53-generator-algorithm">5.3 Generator algorithm</h3>
+<p>Pure Python, about 300 lines, no dependencies; 53 ms for N=7 (average 32
+restarts), under 1 ms for N &lt;= 4 [C].</p>
+<ol>
+<li>Draw N from the table in 3.3 for the primary's class.</li>
+<li>Draw the other N-1 masses as <code>m1 * uniform(0.1, 1)</code> (the primary is heaviest).</li>
+<li>Draw the tree shape by random splitting: N=3 is 2+1; N=4 is 3+1 (60%) or 2+2
+(40%); N &gt;= 5 splits off k stars with k=2 weighted 1.5 against 1.0 for the
+others (a design choice; the only published shape frequency is Tokovinin's 4%
+for 2+2 [S]). Shuffle the leaves over the shape.</li>
+<li>Root pair: separation from the truncated log-normal (section 4) up to the derived limit (the birth distribution runs to 20,000 AU).</li>
+<li>Each child pair, top-down: draw an isotropic orientation and the mutual
+inclination with the parent; set <code>a_hi = a_parent (1 - e_parent) / (safety * MA01_ratio)</code>; draw <code>a</code> from the log-normal truncated to <code>[2.5 * sum of the children's extents, a_hi]</code>; draw e (circular below 7 days); require the
+Eggleton-Kiseleva test and <code>kl_unsafe</code> false; retry up to 60 times, else restart
+the hierarchy.</li>
+<li>Post-check every level with the final extents (pericentre at least twice the
+children's extents; Kozai screen).</li>
+</ol>
+<p>Defaults: <code>safety = 1.0</code>, Kozai screen on, inner eccentricity capped at 0.8. All
+draws come from the seeded stream in a fixed order (GEN.55/GEN.56).</p>
+<h3 id="54-n-body-test-summary">5.4 N-body test summary</h3>
+<p>REBOUND 5.2.2 (WHFast, IAS15 as checker) in the research sandbox. Failure means a
+body unbound or ejected, a semimajor axis changed by more than a factor of 2, or
+the inner pericentre falling below the children's physical extent. No tides,
+general relativity or mass loss.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Samples</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Screen off (MA01 + EK95 only), N=3 to 7, one triple per level</td>
+<td>180 levels</td>
+<td>10^4 inner orbits</td>
+<td>30 failed (16.7%): 29 Kozai-Lidov mergers, 1 unbound; at P_out/P_in from below 10 to about 1,000</td>
+</tr>
+<tr>
+<td>Screen on, final version</td>
+<td>180 levels, then 600</td>
+<td>10^4 inner orbits</td>
+<td>0 of 180; 598 of 600 stable (failure 0.33%, 95% upper bound about 1.2%); the 2 failures: an unbound pair at inclination 95 degrees and ratio 9, a merger with e_in = 0.93</td>
+</tr>
+<tr>
+<td>Tightest margins, screen on</td>
+<td>30 levels at 1.00 to 1.45 times the criterion</td>
+<td>10^5 inner orbits (mean 5,000 outer orbits, minimum 46)</td>
+<td>30 of 30 stable</td>
+</tr>
+<tr>
+<td>Whole system, all N stars together</td>
+<td>30 hierarchies (6 each for N=3 to 7), total period ratio below 3,300</td>
+<td>10^4 innermost orbits (3 to 8 root orbits)</td>
+<td>30 of 30 stable (one WHFast &quot;unbound&quot; at dt = P/40 was a step artefact; stable at P/200 and with IAS15)</td>
+</tr>
+<tr>
+<td>Placed at k times the criterion, coplanar, random masses and e</td>
+<td>40 per k</td>
+<td>10^4 inner orbits</td>
+<td>k = 0.6: 10 of 40 fail (25%); k = 0.8, 1.0, 1.25, 1.5: 0 of 160 fail</td>
+</tr>
+<tr>
+<td>Safety factor 0.7 (30% inside the criterion)</td>
+<td>180 levels</td>
+<td>10^4 inner orbits</td>
+<td>3 of 180 disrupted (1.7%)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The criterion is about 25 to 40% conservative in semimajor axis for coplanar
+orbits, the right side to err on. Whole-system runs only covered hierarchies whose
+total period ratio fit the compute budget; per-level tests cover the rest. Gyr
+stability of high-ratio levels rests on the criterion plus the Kozai screen and
+was not integrated.</p>
+<h3 id="55-holman-and-wiegert-implemented-and-tested">5.5 Holman and Wiegert, implemented and tested</h3>
+<p>The repo functions and an independent implementation from the paper's
+coefficients agree at all test points (equal-mass circular: S-type 0.274, P-type
+2.388). Test-particle integration (1,000 binary orbits, two starting phases,
+coplanar prograde, grid steps 0.03 a_b for S and 0.1 a_b for P) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Formula</th>
+<th>Integrated boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S-type mu 0.2, e 0.3</td>
+<td>0.244</td>
+<td>0.244</td>
+</tr>
+<tr>
+<td>S-type mu 0.5, e 0.0</td>
+<td>0.274</td>
+<td>all stable to 0.394, the grid edge (formula conservative)</td>
+</tr>
+<tr>
+<td>S-type mu 0.5, e 0.4</td>
+<td>0.147</td>
+<td>0.160</td>
+</tr>
+<tr>
+<td>P-type mu 0.5, e 0.0</td>
+<td>2.388</td>
+<td>2.188</td>
+</tr>
+<tr>
+<td>P-type mu 0.3, e 0.3</td>
+<td>3.361</td>
+<td>3.461 (a stable point inside at 3.261: an island)</td>
+</tr>
+<tr>
+<td>P-type mu 0.5, e 0.4</td>
+<td>3.403</td>
+<td>3.503</td>
+</tr>
+</tbody>
+</table></div>
+<p>Within one grid step in every case and never optimistic by more than the paper's
+quoted P-type error (3%). The test is coarser than the original (10^4 orbits, more
+phases): a sanity check, not a re-derivation.</p>
+<h3 id="56-planet-zones-in-a-hierarchy">5.6 Planet zones in a hierarchy</h3>
+<ul>
+<li><strong>S-type around star X:</strong> upper limit <code>HW_S(mu = m_partner / m_pair, e_pair) * a_pair</code>, the partner being X's sibling subtree as a point mass; lower limit the
+engulfment/Roche floor (<code>_engulfment_radius_au</code>).</li>
+<li><strong>P-type around pair node P:</strong> lower limit <code>HW_P(mu = lighter fraction, e_P) * a_P</code>; upper limit the S-type limit of P as a body against its own sibling in its
+parent's orbit. The window is non-empty only when a_parent / a_P is above about 8,
+so many tight hierarchies have no circumbinary zone at some levels.</li>
+<li>Cap everything at a disk size (100 AU; <code>_disk_outer_edge_au</code> exists).</li>
+</ul>
+<p>Over 3,000 draws per N with a 0.3 AU minimum window and a crude habitable-zone
+test [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>N</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stars with an S-type window above 0.3 AU</td>
+<td>77%</td>
+<td>40%</td>
+<td>28%</td>
+<td>20%</td>
+<td>15%</td>
+<td>13%</td>
+</tr>
+<tr>
+<td>Pair nodes with a usable P-type window (earlier estimate, see GEN.543 below)</td>
+<td>34%</td>
+<td>35%</td>
+<td>28%</td>
+<td>23%</td>
+<td>20%</td>
+<td>18%</td>
+</tr>
+<tr>
+<td>Pair nodes with a P-type window above 0.3 AU (measured, GEN.543)</td>
+<td>45%</td>
+<td>48%</td>
+<td>43%</td>
+<td>37%</td>
+<td>35%</td>
+<td>30%</td>
+</tr>
+</tbody>
+</table></div>
+<p>About 75 to 80% of systems at every N have a habitable-zone-sized stable window
+somewhere: higher N removes zones around single stars but rarely all of them.</p>
+<p><strong>As built (GEN.314).</strong> <code>physics/planet_zones.py</code> is the one place these windows are worked out: <code>planet_zones(nodes, members, floors_au, disk_cap_au)</code> over the nodes and members of a tree (<code>OrbitNode</code> and <code>TreeMember</code>, or the generator's <code>Node</code> and <code>Member</code>) gives an S-type window for every member and a P-type window for every pair node, and <code>flux_at(zone, distance_au, luminosities, nodes, members)</code> sums the light on a planet of a window's host (6.5). The S-type ceiling is the Holman and Wiegert limit or the star's Hill radius in the pair, whichever is tighter, so two stars give exactly what <code>Star.a_crit_au</code> has always held, and a pair node's lower limit is the circumbinary fit or the highest engulfment floor of a member below it, which is <code>StarSystem._orbit_floor_au</code>. The disk cap is <code>tuning.PLANET_ZONE_DISK_CAP_AU</code>. On the generator's own trees (300 draws for each N, seeded) the share of stars with an S-type window wider than 0.3 AU is 73%, 39%, 27%, 21%, 15% and 15% for N = 2 to 7, the table above within 7 points at every N. The same count for pair nodes (width above 0.3 AU alone) gives 45%, 48%, 43%, 37%, 35% and 30%, above the table's 34% to 18%: the table's &quot;usable&quot; P-type window was not defined past the width, so the test held only the S-type row until GEN.543. No production code calls it yet (only its tests); GEN.315 and GEN.332 are its callers.</p>
+<p><strong>As built (GEN.315, slice 1).</strong> <code>generation/stored_trees.py</code> turns a row's stored tree (<code>db.scatter_systems.read_stored_trees</code>, every column of the member and node rows) into a <code>StoredPlan</code>, and <code>StarSystem(member_tree=plan)</code> builds from it. The pair classes hold exactly two ordinary stars, so a tree builds when it is one star (no companion is drawn, whatever <code>BINARY_SYSTEM</code> and <code>HABITABLE_WORLD</code> say) or two stars (kinds main-sequence, pre-main-sequence, protostar, giant, white-dwarf) joined by one <code>close</code> or <code>wide</code> node. The second star is built from its stored seed, its birth mass and the placed star's age and [Fe/H], and must come out at its stored mass (to 1e-6), else the placed star is built alone. <code>BinaryStarProxy</code> and <code>WideBinaryPair</code> take the stored node as <code>orbit=</code> (semi-major axis, eccentricity for a wide pair, plane, phase, period) and draw nothing for it; the stored node, carried to the database's orbit epoch (<code>stored_trees.node_at</code>: the same orbit at that instant), is <code>StarSystem.orbit_nodes</code>, so <code>orbit_nodes</code> equals the stored node. The old binary columns of a close pair still track a circle of the node's semi-major axis until the readers move to the nodes. Planets, moons, belts and comets are drawn as before around the host the pair classes give (the circumbinary floor and each star's stability ceiling); the zone windows of <code>physics/planet_zones.py</code> are still GEN.332's. A tree the classes cannot hold (3 or more members, a compact or brown-dwarf member, a <code>compact</code> or <code>group</code> node) builds the placed star alone, draws no companion, and keeps its stored rows (<code>StarSystem.tree_built</code> false) for the N-star build of GEN.316; a built tree's <code>scatter_members</code> and <code>scatter_nodes</code> are deleted in the sector's save (<code>_insert_sector_rows</code>) or the uncharted-system job, in the same transaction as the link to the system. Stage B (phenomenon rows) and the <code>stars.role</code> <code>member</code> migration are not part of this slice. Generator epoch 52.</p>
+<p><strong>As built (GEN.630).</strong> The N-star host and its storage, with the fill still building single stars and pairs (no seed changes, no epoch). <code>StarSystem.stars</code> is every star; <code>member_stars</code> is the ones after the pair, and <code>star_slots</code> says for each star in <code>stars</code> order the node and the slot (0 or 1) it hangs in, <code>None</code> for a single star and for the pair on the one root node. Migration 0133 (schema v133) lets <code>stars.role</code> be <code>member</code> and adds <code>stars.slot</code>, which a stored pair gets from its roles; <code>db/orbit_trees.star_places</code> gives each star <code>(parent_node_id, offset, slot)</code>, a system with members placing every star by the whole tree at the nodes' epoch (<code>physics.system_tree.star_offsets_au</code>), and <code>insert_star_system</code> writes a <code>member</code> row for each further star. <code>load_star_system</code> reads them back into <code>member_stars</code> and <code>star_slots</code>, and the JSON form carries both (serialization version 6). A member has no planets, comets or belts of its own yet: an S-type window around it is GEN.332's. The readers that took a system to have one or two stars: the sector list orders the stars primary, secondary, then members; the system scene's tree reads each star's stored node and slot instead of guessing the free one, and a member sits at its stored offset (the pair stars keep following the binary columns the orbit update moves; a member's offset is the one stored with the system until the update moves the whole tree); <code>galaxy/system_position</code> places every star of the tree; the system page's map draws the pair (the stars table and the scene list all of them); a facility around a close pair counts the pair only; the Galaxy Map tiles treat a member like a secondary (never a bright-stars duplicate); and the body slots that an ID follows number the members by their place among them. Nothing generates a third star until GEN.631 (stages D and G draw member trees).</p>
+<p><strong>As built (GEN.631).</strong> A system the fill makes from nothing draws its stars as a tree: <code>StarSystem._drawn_plan</code> calls <code>multistar.draw_member_tree</code> for the primary at the odds of the <code>star-count</code> table (<code>hosts.STAR_COUNT_PROBABILITIES</code>), keeps the members a build cannot make from a birth mass and an age (a brown dwarf, a neutron star, a black hole, a stripped helium star) in the tree as dark members (GEN.1013: <code>StarSystem.dark_members</code>, stored in <code>dark_members</code>; <code>multistar.without_members</code> is gone), and <code>StarSystem._add_companions</code> builds the others from their own seeds (<code>generation/stored_trees.py</code>: <code>drawn</code> for a tree just drawn, <code>plan</code> for a stored one, both a <code>StoredPlan</code> of every star and its nodes numbered from 0). The pair is the two stars of the node of the placed star when its children are both stars, else of the heaviest such node, the heavier its primary; every other star is one of <code>member_stars</code> (GEN.630), hung in the tree by <code>star_slots</code>. The pair is a P-type <code>close</code> pair (circular) when its axis is under <code>tuning.WIDE_BINARY_SEPARATION_MIN_AU</code> and an S-type <code>wide</code> pair otherwise (eccentricity held under <code>WIDE_BINARY_ECCENTRICITY_MAX</code>); the other nodes keep the kind the tree drew them with. The widest axis is the place's (<code>place_terms.wide_axis_limit_au</code>, passed as <code>max_axis_au</code>). The nodes hold their phases at <code>stored_trees.GENERATED_EPOCH_UNIX</code> until the store saves the system and puts the database's orbit epoch there; a stored row's tree builds the same way, three or more stars included. The directives: <code>BINARY_SYSTEM</code> false is one star, true two or more, <code>WIDE_BINARY</code> and a <code>wide_binary</code> prevalence ask for the kind of the pair, a <code>binary_system</code> prevalence moves the share with a companion, and a protostar's or Wolf-Rayet star's own chance of a companion (GEN.242, GEN.243) replaces the table's; a tree that is not what the directives and the place need is drawn again (<code>tuning.COMPANION_DRAW_ATTEMPTS</code>). <code>StarSystem._companion</code>, <code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS</code> and the [Fe/H] factor on the close and inner ranges (GEN.103) are gone from the fill; the tree does not take the factor yet. (GEN.899, which moved the draw: a companion's mass was drawn from 0.1 to 1 times the primary's, so more than half of a low-mass M dwarf's companions were brown dwarfs, cut out here, and an M2V primary kept a companion star in 16% of systems against the table's 27%. Now every other star of a tree has at least the hydrogen-burning limit, 0.08 solar masses (<code>multistar.companion_ratio_range</code>), so the table's count is a count of stars, and a brown dwarf is one more member in 3% of the drawn trees, whatever the star count (<code>tuning.BROWN_DWARF_COMPANION_CHANCE</code>; a directive's count adds none). The census draw gives 26.6% for an M2V primary.) The members have no planets of their own yet (GEN.332).</p>
+<p><strong>As built (GEN.332, slice 1).</strong> The stars beyond the pair have planets. <code>StarSystem.set_stability_limits</code> works out the tree's windows (<code>planet_zones.planet_zones</code>, the member number being the star's place in <code>stars</code>) and gives each of <code>member_stars</code> the outer edge of its S-type window as <code>a_crit_au</code>, which <code>validation.orbit_ceiling_au</code> reads like a wide pair's; a close pair beside other stars gets the outer edge of its P-type window the same way, so its circumbinary planets stop short of the stars beside it (a pair that is the whole tree keeps the Hill sphere against the galaxy alone). <code>StarSystem._generate_member_planets</code> then draws each member's planets and belts exactly as a wide pair's secondary's are drawn (<code>_generate_planets</code> with no guarantees, spaced, trimmed to the ceiling, aged by the star's history), into <code>member_planets</code>, a list per member in the members' order, with <code>all_planets</code> the whole system's and <code>member_hosts()</code> the <code>(star, planets)</code> pairs. All the stars of the tree share one age, so a member's planets set a minimum for it and its state a ceiling (<code>adjust_pair_age_for_planets</code> takes the members). A member's planets are named after it (<code>Voranthis C I</code>), saved under its own <code>stars</code> row (<code>planets.star_id</code>), read back by <code>load_star_system</code> and <code>from_dict</code> (serialization version 7), listed under it by <code>describe</code>, lit and placed like a wide secondary's (<code>insolation.refresh_system</code> takes the swing from the node and the stars of the subtree beside it, <code>planet_zones.sibling_of</code>), counted in the system's totals and given a reflex offset of the star. A member has no comets yet. The system page's map still draws the pair; a member's planets are in the table and the 3D scene, which goes round the member (<code>systemscene._star_around</code>). Not yet built: circumbinary planets at the inner nodes of a tree (<code>planets.host_node_id</code>), the pair's own planets taken from the tree rather than the pair classes (GEN.640 needs that), circumbinary disks and planet pairs.</p>
+<p><strong>As built (GEN.709).</strong> The places stored for the two stars of a pair are the places the tree puts them at its epoch. A close pair is circular, so its node folds the argument of periapsis into the mean anomaly (the periapsis is 0 and the anomaly is the angle from the ascending node, which <code>BinaryStarProxy</code> tracks as its phase); a wide pair built from a node sits where <code>system_tree.node_relative_au</code> puts the secondary (the real ellipse, not the circle its phase is advanced on). The system scene gives a close pair inside a larger tree the stars' stored offsets in the whole tree, as a member gets, instead of the pair's own frame. <code>tests/test_gen_pair_positions.py</code> pins both.</p>
+<p><strong>As built (GEN.710).</strong> <code>StarSystem.placed_star</code> is the star the build was made around (member 0 of the tree). It is <code>stars[0]</code> unless a companion outweighs it (GEN.631), when the heavier takes the primary's place. <code>run_sector.add_star_hosted_nebulae</code> rolls and names the nebula from <code>placed_star</code>, the star <code>nebula_contents.row_nebula</code> rolls for a pre-placed row, so the nebula built in the sector equals the row's prediction whatever the stored members weigh. A system loaded from the database has no <code>placed_star</code>; the nebula is a sector-build step only.</p>
+<p><strong>&quot;Usable&quot; for a P-type window (GEN.543).</strong> The table's row was an earlier estimate with no definition past the width and a &quot;crude habitable-zone test&quot;; it cannot be reproduced from the text, so two definitions were tried on the same seeded draw (300 trees per N, <code>draw.Stream(0..299)</code>, main-sequence members, the host's luminosity the sum of the members below the node) against the row's 34, 35, 28, 23, 20 and 18%:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>N</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(a) width above 0.3 AU and outer edge at least twice the inner edge</td>
+<td>38%</td>
+<td>41%</td>
+<td>36%</td>
+<td>31%</td>
+<td>29%</td>
+<td>25%</td>
+</tr>
+<tr>
+<td>distance from the row (points)</td>
+<td>+4</td>
+<td>+6</td>
+<td>+8</td>
+<td>+8</td>
+<td>+9</td>
+<td>+7</td>
+</tr>
+<tr>
+<td>(b) width above 0.3 AU and the window overlaps the pair's habitable zone (<code>calculate_habitable_zone</code> of the summed luminosity)</td>
+<td>7%</td>
+<td>15%</td>
+<td>15%</td>
+<td>13%</td>
+<td>13%</td>
+<td>11%</td>
+</tr>
+<tr>
+<td>distance from the row (points)</td>
+<td>-27</td>
+<td>-20</td>
+<td>-13</td>
+<td>-10</td>
+<td>-7</td>
+<td>-7</td>
+</tr>
+</tbody>
+</table></div>
+<p>Neither lands within 7 points at every N ((a) misses at N = 4, 5 and 6, (b) at N = 2 to 5), so by the rule written for the item the measured numbers stay: a P-type window is &quot;usable&quot; when it is wider than 0.3 AU, the same test as the S-type row, and the table's row is the earlier estimate. A planet needs a window, not a window that happens to hold the habitable zone: how much light a planet gets there is <code>flux_at</code>'s job (6.5). <code>test_planet_zones.py</code> pins the measured share.</p>
+<h2 id="6-data-model-naming-maps-and-updates">6. Data model, naming, maps and updates</h2>
+<h3 id="61-tree-of-pairs">6.1 Tree of pairs</h3>
+<p>A flat star list with parent pointers cannot hold a pair's orbit, which belongs to
+the pair. Proposed schema (Alembic migration, MySQL 8.4 and MariaDB 11.4):</p>
+<ul>
+<li><strong><code>orbit_nodes</code></strong> (N-1 rows per system): <code>id</code>, <code>star_system_id</code> (FK, ON DELETE
+CASCADE), <code>parent_node_id</code> (NULL for the root), <code>slot</code> ('a' or 'b'),
+<code>designation</code>, <code>depth</code>, <code>path</code>, <code>mass_kg</code>, <code>separation_km</code>, <code>eccentricity</code>,
+<code>inclination_deg</code>, <code>ascending_node_deg</code>, <code>arg_periapsis_deg</code>, <code>mean_anomaly_deg</code>
+(the phase), <code>period_years</code>, <code>min_update_interval_years</code>,
+<code>secondary_mass_fraction</code>, relative position <code>x/y/z_km</code> of child b from child a,
+<code>critical_s_km</code>, <code>critical_p_km</code>, and <code>kind</code> ('close' or 'wide', for naming).</li>
+<li><strong><code>stars</code></strong>: add <code>parent_node_id</code>, <code>slot</code>, <code>designation</code>; extend <code>role</code> with
+'member'. Keep 'primary'/'secondary'/'single' for N &lt;= 2 so queries and tests
+keep working during the migration.</li>
+<li><strong><code>planets</code></strong>: add nullable <code>host_node_id</code> beside <code>star_id</code> (P-type planets orbit
+a node's barycentre, S-type a star).</li>
+<li><strong>Migration of N=2 data:</strong> one root node per existing pair, copied from the
+<code>binary_*</code> columns; keep <code>star_systems.binary_*</code>, <code>is_binary</code> and
+<code>binary_configuration</code> as a root summary until nothing reads them. Add the table
+to <code>_db.ID_BLOCK_TABLES</code> and the cascade lists (<a href="../architecture/object-ids.html">object-ids.md</a>).</li>
+<li>A walk to the root is at most 6 steps, so <code>depth</code> and <code>path</code> avoid recursive
+queries.</li>
+</ul>
+<p>A star's offset from the system barycentre is the sum, up the tree, of
+<code>-/+ (other child's mass / node mass) * relative_vector</code>. The repo does this for
+one level (<code>binary_primary_position_*</code>); a loop generalizes it.</p>
+<h3 id="62-eccentric-pair-orbits">6.2 Eccentric pair orbits</h3>
+<p>Pair orbits are circular today on purpose. Eccentricities up to 0.9 at inner levels
+need real orbits: the stability criteria depend on pericentre, and a circular
+picture of an e = 0.8 orbit shows stars where they never are. Store
+<code>mean_anomaly_deg</code> as the phase: it still advances linearly, so the set-based
+<code>UPDATE ... SET phase = phase + 360 * dt / period</code> in <code>advance_orbital_phases</code> stays
+valid and only the position step changes, using <code>physics/kepler.py</code>
+(<code>solve_eccentric_anomaly</code>, <code>true_anomaly_and_distance_elliptical</code>, already used for
+comets): N-1 Kepler solves per system. <code>physics/body_positions.positions_at</code> and
+<code>static/orbitpositions.js</code> change together (<code>tests/test_js_unit.py</code> checks the two
+agree).</p>
+<p>As built (TEST.477, the overlap verifier): <code>physics/clearance.py</code> <code>audit(rows)</code> reads only what a finished system stores (its stars,
+the nodes of its tree, planets, moons and belts, <code>stored_rows</code> reads them with plain SELECTs) and lists every place two bodies
+overlap or a limit the generator promises is broken (a <strong>hard</strong> violation: Roche fill at pericentre, overlap of a node's two sides,
+stability by Mardling and [R4574] together, node masses, a planet inside its
+star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
+the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
+<strong>advisory</strong>: the rigid-body Roche limit of a planet or moon). It imports no placement or screening code and re-derives every form;
+<code>tests/test_clearance.py</code> holds each form against the generator's own copy and sweeps stored systems of one to five stars
+(<code>PLANETGEN_CLEARANCE_SCALE=12</code> gave 864: one hard failure, <code>triple-208</code>, a planet pair 9.93 mutual Hill radii apart where the
+generator promises 10; it is the one entry of <code>KNOWN</code>, expected to fail). Not yet checked, because the rows do not hold what it needs:
+the history rule, the Kozai-Lidov screen and the 3+1 quadruple margin (GEN.1006 4.3 and section 5).</p>
+<p>As built (MAP.255): <code>orbitpositions.js</code> walks the scene's <code>tree</code> the way <code>system_tree.member_offsets_au</code> does (the slot-1 child of a node
+on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
+wide pair's first star shifted to the origin) and <code>relativeAt</code> answers each star relative to the star its scene orbit names, or to
+the frame's origin. A scene with stars and no tree is refused.</p>
+<p>As built (MAP.213, slice A, the 3D system view): <code>relativeAt</code> also answers a point for each node's centre of mass (<code>node:&lt;n&gt;</code>, <code>virtual</code>),
+stars hang from their node's centre and nodes from their parent's, <code>nodePaths</code> gives each child's real ellipse about its node's centre
+(the slot-0 child opposite the slot-1 child, each at the other's share), and the compressed layout (<code>systemscale.js</code>) scales each node on
+its own: the node's separation is as many units as its two sides need to clear at periapsis (a star with bodies going round it needs
+their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
+scale draws the real distances. Slices B (the System Map diagram) and C (the system page lists the tree) follow.</p>
+<p>As built (MAP.213, slice C, the system page): <code>db.query.system_detail</code> carries the stored tree as <code>orbits</code> (the <code>orbit_nodes</code> rows in node order) and each star's <code>parent_node_no</code> and <code>slot</code>, and the page draws &quot;Orbits of the stars&quot; from <code>web/system_orbits_view.orbit_rows</code>: one row per node naming what it joins (slot 0 first, a star's name or <code>orbit N</code> for a pair hung below), with the same kind, separation, period and eccentricity columns an unbuilt scatter row's Orbits table has, plus the node's mass and its Roche <code>interaction</code>. A single star, or a system built before it stored a tree, has no panel.</p>
+<h3 id="63-naming-extends-gen62">6.3 Naming (extends GEN.62)</h3>
+<p>Outside conventions are [R], not searched: the Washington Double Star catalogue
+uses A, B, C and &quot;AB&quot; for combined light; the Washington Multiplicity Catalog and
+Tokovinin's Multiple Star Catalog add lowercase letters for subsystem members (Aa,
+Ab; Ba, Bb), write a pair of subsystems as &quot;AB,C&quot;, and use digits at the next level
+(Aa1, Aa2). Rule, keeping GEN.62's output for N &lt;= 2:</p>
+<ul>
+<li>A split whose separation is below the wide threshold (50 AU; a pair this tight
+shares one planetary system) uses letters. A split at or above it is wide: <strong>each
+branch gets its own word</strong> (first word shared, second drawn from the star list,
+the lighter branch from the small/child list, as GEN.62 does).</li>
+<li>Inside a branch a star carries a path code: level 1 <code>A</code>/<code>B</code>, level 2 <code>a</code>/<code>b</code>,
+level 3 <code>1</code>/<code>2</code>, deeper levels <code>.1</code>/<code>.2</code> appended; a lone star in a branch has an
+empty code. N=2 is unchanged.</li>
+<li>Example, seven stars with a wide root split, branch X = ((x1, x2), x3), branch Y
+= ((y1, y2), (y3, y4)): <code>Voranthis Kelmoor Aa</code>, <code>Ab</code>, <code>B</code>; <code>Voranthis Pikkita Aa</code>,
+<code>Ab</code>, <code>Ba</code>, <code>Bb</code>. A close-only hierarchy with one word: <code>Voranthis A</code>,
+<code>Voranthis Ba</code>, <code>Voranthis Bb</code>.</li>
+<li><strong>Planets</strong> follow Boss's rule (decisions above): the stem is a word, never a bare
+letter. The branch holding the primary uses the system's first word, any other
+branch its own word. S-type planets around a lone star in a branch: <code>Voranthis I</code>
+and <code>Pikkita I</code>. S-type planets around a coded star add the code (<code>Pikkita Ba I</code>),
+because one word would be ambiguous inside a branch; P-type planets around a node
+take the node's name (the branch word at the branch root, else <code>&lt;branch word&gt; &lt;code&gt;</code>). The code-bearing forms are a recommendation beyond Boss's two-star rule.
+The structure is displayed as a bracketed string such as <code>(Aa,Ab),B</code>.</li>
+<li>Branch words are drawn after the structure from the seeded stream in a fixed
+order (GEN.55/GEN.56), as <code>_draw_star_words</code> in <code>system.py</code> does for two words.
+GEN.71 touches only the system name, so there is no conflict.</li>
+</ul>
+<h3 id="64-maps-and-the-orbital-update">6.4 Maps and the orbital update</h3>
+<ul>
+<li><strong>Scene:</strong> <code>around</code> becomes <code>node:&lt;id&gt;</code> as well as <code>star:&lt;id&gt;</code> and <code>barycenter</code>;
+the scene lists nodes with their orbits and every star's parent node.
+<code>_planet_center</code> in <code>systemscene.py</code> returns <code>star:&lt;id&gt;</code> or <code>node:&lt;id&gt;</code> by host.</li>
+<li><strong>Scale:</strong> a seven-star system spans 0.01 AU to 10^4 AU, six orders of magnitude,
+which one linear map cannot show. The system map needs a per-node focus (click a
+pair to zoom into its two-body orbit at its own scale) and a log-radial overview;
+the bracketed structure string is the quick index.</li>
+<li><strong>Update:</strong> each pair is an analytic Kepler orbit propagated by the clock, as
+<code>positions_at</code> does for a close pair. No mutual perturbation is needed for a
+stable hierarchy over game time spans (secular precession and Kozai-Lidov are
+ignored, a documented simplification).</li>
+<li><strong>GEN.109:</strong> sector point-mass tables hold one entry per system at its barycentre
+with the total mass (section 2). <code>BinaryStarProxy._calculate_system_perimeter_static</code>
+should use the total mass.</li>
+<li><strong>Plumbing:</strong> migrate N=2 through the new tables first, so the old code paths are
+proven equal before any N &gt;= 3 data exists.</li>
+</ul>
+<h3 id="65-habitability-inputs-gen84-to-gen89">6.5 Habitability inputs (GEN.84 to GEN.89)</h3>
+<p>Insolation from several stars is a sum, <code>S = sum(L_i / d_i^2)</code>, with the
+time-average over an eccentric orbit <code>&lt;1/d^2&gt; = 1 / (a^2 sqrt(1 - e^2))</code>. A
+companion at 50 AU adds about 4e-4 of its luminosity to a planet at 1 AU, so for
+S-type planets only a companion inside a few times the planet's orbit matters;
+P-type planets see the combined luminosity with a flux that varies with the inner
+pair's period. GEN.84's score needs a <code>flux_variation</code> input; GEN.86 (activity and
+flares) is per star and the flux is summed.</p>
+<p><strong>As built (GEN.148).</strong> <code>physics/insolation.py</code> sets <code>flux_variation</code> on every planet
+and moon (a gas giant keeps none, its moons take its value): the peak-to-peak swing of
+the planet's total light as a fraction of its mean, 0 for a lone star. For a planet of
+one star of a wide pair it is the companion's <code>L_c (1/periapsis^2 - 1/apoapsis^2)</code> over
+the mean total <code>L_h/d^2 + L_c/(a^2 sqrt(1 - e^2))</code>; for a circumbinary planet it is
+<code>4 delta / d</code> with <code>delta = |L1 r1 - L2 r2| / (L1 + L2)</code> the luminosity centroid's offset
+from the barycentre (<code>r1 = a m2/M</code>, <code>r2 = a m1/M</code>). The Temperature domain scores the
+worse of the cold and hot extremes <code>T (1 -+ f/2)^(1/4)</code> of the cycle, and the wet-bulb
+test reads the hot one. The equilibrium temperature itself still comes from the host star's
+light alone: the companion's mean share is at most a few percent of a planet's light
+(under 0.1% for a companion beyond 100 AU) and a planetGen simplification kept for now.
+Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
+largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).</p>
+<h3 id="66-placement-by-population-gen103">6.6 Placement by population (GEN.103)</h3>
+<p>Multiplicity depends on the stellar population: the close-binary fraction rises
+sharply as metallicity falls ([R], so more close pairs in the halo and thick disk),
+massive multiples sit in young regions (arms, OB associations, clusters), and wide
+pairs survive less in dense regions (bulge, clusters, halo), so the wide-pair limit (the derived limit that replaced the fixed 10,000 AU cap, GEN.448)
+shrinks there. This is rate shaping on the population mix of
+<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a> (its section 4) and does not touch
+GEN.100's densities.</p>
+<p><strong>Research supplied (Boss, 2026-10-16, 5:55 PM EDT, for GEN.103).</strong> Two constants Core 4 could not look up
+arrived as research, and they are written here as rules the type draw derives, not as values it stores. The
+sources Boss named are [R0223, R0229, R0281, R1235, R1880, R2166, R2474, R3109, R4204]. <strong>The reference list is unverified; Core 4 checks each source and each
+number before any of it is coded.</strong></p>
+<ol>
+<li><strong>Close-binary fraction against metallicity.</strong> For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
+inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
+and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the [R3109]
+points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
+rounder figures here are summaries to be replaced by the points). The dependence vanishes
+for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
+opacity, so the outer disk cools fast (t_cool below about 3 over Omega, with Toomre Q near 1 or below),
+fragments into companions that migrate inward and stall inside about 10 AU, while metal-rich disks
+suppress fragmentation. <strong>Rule:</strong> the close-companion share of a draw is a function of the cell's [Fe/H]
+(from the population mix) and of nothing else, and the wide-companion share is not changed by [Fe/H].</li>
+<li><strong>Encounter-disruption limit for wide pairs.</strong> A wide pair loses its outer end to flybys and clouds
+(Heggie's law: soft binaries widen and dissociate) and, as the absolute outer envelope, to the Galactic
+tide. <strong>Rule:</strong> the survival limit is computed from the cell's own environment, never read from a table.
+(a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
+perturbers over the age of the population, from the local stellar number density, the mean perturber
+mass, the velocity dispersion, the Coulomb logarithm and the age ([R0229, R2166]; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
+the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
+(2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
+as the orbital update. A pair is kept only below the smaller of the two. <strong>Check values, not inputs:</strong> the
+solar neighbourhood should give a diffusive limit near 2 to 5 x 10^4 AU and a Jacobi radius near 1.5 to
+2 pc for 2 Msun, with Gaia wide-binary catalogues truncating near 0.1 to 0.25 pc. Where GEN.103 lands, this
+derived limit takes the place of the fixed 10,000 AU cap, and it shrinks in the bulge, clusters and halo
+because the density and dispersion there are higher.</li>
+</ol>
+<p><strong>Boss's decisions (2026-10-16, 6:12 to 6:15 PM EDT, by cards in the project chat).</strong> (1) The close-binary trend is
+the pooled one, read at the star's own [Fe/H]. (2) The metallicity effect applies to every star mass, and the
+generator is checked that it behaves as expected: TEST.196 compares the generated close-companion share, by primary-mass
+bin and [Fe/H] bin, to the published ranges and flags any bin outside them. (3) Wide pairs have no metallicity
+dependence. (4) The encounter limit is a sharp cut at a_1/2, the smaller of the two limits above. (5) The fixed
+10,000 AU wide-pair cap is replaced by the derived limit. The last card, whether the metallicity effect fades above about 2 solar masses, was answered &quot;all masses&quot;: there is no fade, and the check is the safeguard. A last card (2026-10-16, 7:19 PM EDT) chose the form: the factor F/F(0) is applied to the odds p/(1-p) of a close companion, not to the chance p, for every mass. It cannot pass 1, and a star already likely to have a companion rises less.</p>
+<h2 id="7-compact-object-primaries">7. Compact-object primaries</h2>
+<h3 id="71-how-they-arise">7.1 How they arise</h3>
+<p>A compact remnant is the end state of one star of a system (white dwarf below about
+8 Msun, neutron star or black hole above). When the progenitor was in a tree, the
+rest stays bound only if the supernova's mass loss and natal kick do not unbind it.
+A Monte Carlo of an instantaneous supernova on a circular orbit (Blaauw/Brandt and
+Podsiadlowski style; kick and masses are assumptions) gives the bound fraction [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case (pre-SN masses, companion)</th>
+<th>0.1 AU</th>
+<th>1 AU</th>
+<th>10 AU</th>
+<th>100 AU</th>
+<th>1,000 AU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NS, 12 to 1.4 Msun, companion 3 Msun, kick sigma 265 km/s (Hobbs-like [R])</td>
+<td>10.8%</td>
+<td>0.8%</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Same, low kick (sigma 30 km/s: electron capture or ultra-stripped)</td>
+<td>0.1%</td>
+<td>11.7%</td>
+<td>8.8%</td>
+<td>0.6%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>BH, 30 to 10 Msun, companion 5 Msun, kick sigma 37 km/s (momentum conserving, 265 x 1.4/10)</td>
+<td>11.6%</td>
+<td>28.5%</td>
+<td>19.2%</td>
+<td>2.0%</td>
+<td>0.1%</td>
+</tr>
+<tr>
+<td>Same, no mass-loss kick</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wide orbits around fresh remnants almost never survive, and a collapse that loses
+more than half the mass unbinds everything. Observed surviving binaries need an
+earlier mass-transfer phase this generator does not model, so the table explains
+why the companion fractions below are small; it is not a population synthesis. A
+white dwarf has no kick, so its binary survives with the orbit widened by roughly
+the mass-loss ratio.</p>
+<h3 id="72-what-real-systems-show">7.2 What real systems show</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Facts</th>
+<th>Tag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gaia BH1</td>
+<td>9.62 +- 0.18 Msun hole, 0.93 Msun G dwarf, 480 pc; P = 185.6 d, e about 0.45, a = 1.40 AU (Kepler's third law)</td>
+<td>[S] masses; [R] P and e</td>
+</tr>
+<tr>
+<td>Gaia BH2, BH3</td>
+<td>BH2 about 9 Msun, P about 1,300 d, a about 5 AU; BH3 32.7 Msun with a 0.76 Msun giant, P about 4,000 d, e about 0.72</td>
+<td>[S] periods; [R] BH2 mass, orbit sizes</td>
+</tr>
+<tr>
+<td>Dormant-BH puzzle</td>
+<td>orbits too tight for non-interacting stars, too wide for common-envelope products</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>Pulsars in binaries</td>
+<td>young: observed 1.2 to 1.6%, corrected below about 5% (conservative 8%); millisecond: about 79%; neutron stars born in binaries that end isolated: about 86%</td>
+<td>[S] arxiv.org/pdf/2011.08075 and summaries</td>
+</tr>
+<tr>
+<td>White dwarfs</td>
+<td>about 22% of field white dwarfs in wide binaries; 25 to 50% of cool ones show metals (pollution)</td>
+<td>[S]</td>
+</tr>
+<tr>
+<td>Pulsar planets</td>
+<td>PSR B1257+12: three planets at about 0.19, 0.36, 0.46 AU, about 0.02, 4.3, 3.9 Earth masses; PSR B1620-26 b in M4 (probably captured); PSR J1719-1438 b (about 1 Jupiter mass, stripped white dwarf companion); about 1% of millisecond pulsars have planets, 0 of 151 young pulsars surveyed</td>
+<td>[S] existence and rates; [R] B1257 orbits and masses</td>
+</tr>
+<tr>
+<td>WD 1856+534 b</td>
+<td>transiting, P = 1.4 d, Jupiter-sized, at most about 6 Jupiter masses, about 186 K</td>
+<td>[S]; host in a wide triple [R]</td>
+</tr>
+<tr>
+<td>Compact triple</td>
+<td>PSR J0337+1715: millisecond pulsar with 1.6 d and 327 d white dwarfs (ratio about 200)</td>
+<td>[R] [R3664]</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="73-companion-fractions-conditional-on-a-compact-primary">7.3 Companion fractions, conditional on a compact primary</h3>
+<p>GEN.100 supplies how many neutron stars and black holes exist
+(<a href="interstellar-object-rates.html">interstellar-object-rates.md</a>); the fractions below
+say what company they keep. They are rounded design defaults from the table above,
+for Boss's review. X-ray binaries get no separate rate, only the conditional
+fraction applied to GEN.100's scattered objects.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Primary</th>
+<th>No stellar companion</th>
+<th>Bound stellar companion</th>
+<th>Typical companion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>White dwarf</td>
+<td>about 70%</td>
+<td>about 30% (22% wide plus a few % close or double white dwarf)</td>
+<td>main-sequence star at 1 to 10^4 AU; double white dwarf; post-common-envelope pair (hours to days)</td>
+</tr>
+<tr>
+<td>Neutron star, young</td>
+<td>97 to 99%</td>
+<td>1 to 3%</td>
+<td>Be or main-sequence star; wide orbits unlikely (kick)</td>
+</tr>
+<tr>
+<td>Neutron star, recycled millisecond pulsar</td>
+<td>20 to 25% (field), lower in clusters</td>
+<td>about 75 to 80%</td>
+<td>low-mass white dwarf (days to years), &quot;black widow&quot; or &quot;redback&quot; of a few hundredths of a solar mass, rare double neutron star</td>
+</tr>
+<tr>
+<td>Neutron star or black hole, active X-ray binary</td>
+<td>n/a</td>
+<td>the share of the above still accreting</td>
+<td>low-mass donor at a period of hours to a day</td>
+</tr>
+<tr>
+<td>Stellar black hole</td>
+<td>70 to 90% [R]</td>
+<td>10 to 30% [R]</td>
+<td>Gaia-type dormant pair, a = 1 to 20 AU, Sun-like or giant star</td>
+</tr>
+<tr>
+<td>Black hole or neutron star inside a triple</td>
+<td>a few % of those with companions [R]</td>
+<td>hierarchical, outer period at least 5 times larger</td>
+<td>the companion's own inner pair (PSR J0337+1715)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The black hole fraction rests on the three Gaia systems and is low confidence.</p>
+<h3 id="74-radiation-tidal-and-size-limits-c-unless-marked">7.4 Radiation, tidal and size limits [C] unless marked</h3>
+<ul>
+<li><strong>Black hole (10 Msun):</strong> gravitational radius 14.8 km; innermost stable circular
+orbit 89 km non-rotating, about 18 km maximally spinning prograde [R, Kerr factor].
+Earth-density tidal-disruption radius about 9.5e5 km (0.0064 AU); for 33 Msun,
+1.4e6 km (0.0095 AU). Eddington luminosity 1.26e31 W per solar mass [R].</li>
+<li><strong>Accretion:</strong> <code>L = 0.1 * Mdot * c^2</code>. A low-mass X-ray binary at 1e-9 Msun/yr
+gives 5.7e29 W, 2.0e6 W/m^2 at 1 AU (about 1,500 times the solar constant, mostly
+X-rays). A dormant pair (Gaia BH1) has none.</li>
+<li><strong>Neutron star / pulsar:</strong> spin-down power <code>L = 4 pi^2 I Pdot / P^3</code> with I = 1e38
+kg m^2 [R]. PSR B1257+12 (P = 6.22 ms, Pdot = 1.14e-19): 1.9e27 W, 5.1e4 W/m^2 at
+0.36 AU if absorbed isotropically (38 times the solar constant). Most of it is
+relativistic wind and field, not heat, but lethal and atmosphere-stripping. A
+typical millisecond pulsar is similar (1.5e27 W); the Crab is 4.5e31 W; an old 1 s
+pulsar 4e24 W. Earth-density tidal radius for 1.4 Msun: 4.9e5 km (0.0033 AU).</li>
+<li><strong>White dwarf (0.6 Msun, R = 8,800 km, 4.2e8 kg/m^3):</strong> Roche limit for a 5.5
+g/cm^3 rocky body 0.0031 AU rigid, 0.0061 AU fluid (3 g/cm^3: 0.0038 and 0.0074).
+Habitable zone with flux limits 1.1 and 0.35 of solar: 0.036 to 0.064 AU at
+Teff 10,000 K; 0.013 to 0.023 at 6,000 K; 0.0058 to 0.010 at 4,000 K; 0.0032 to
+0.0058 at 3,000 K. The zone moves inward as the star cools, reaches the Roche
+limit near 3,000 to 4,000 K, and has periods of 0.3 to 5 days, so planets there are
+tidally locked ([R0038, R1898]: continuously habitable within
+about 0.02 AU, locking in 10 to 1,000 years [S]).</li>
+<li><strong>Gaia-type stable zones</strong> (Holman and Wiegert on the measured orbits, mass
+fraction clamped to the fit's range): BH1's Sun-like star keeps planets only
+inside 0.097 AU (its habitable zone is about 0.8 to 1.5 AU), circumbinary planets
+only beyond 5.1 AU. BH2's star: inside 0.31 AU, beyond 19 AU. BH3's star: 0.52 AU
+and 69 AU (approximate, the P-type fraction clamped to 0.1). The generator
+reproduces the literature: these companions cannot host habitable worlds.</li>
+</ul>
+<h3 id="75-what-a-planet-around-a-black-hole-can-be">7.5 What a planet around a black hole can be</h3>
+<p>Observationally nothing: no planet has been found around a stellar black hole.
+Theory allows (a) planets of the companion star (S-type, inside the limit), (b)
+circumbinary planets beyond the P-type limit, (c) captured rogues (negligible rate),
+and (d) planets formed from a post-supernova fallback or debris disk. Case (d) is the
+pulsar-planet analogy: PSR B1257+12 supports it for neutron stars and nothing
+supports it for black holes. A rogue inside a hole's tidal radius is torn apart. The
+generator puts (a) and (b) around black holes only through the companion and leaves
+(d) as a hand-forced option.</p>
+<h3 id="76-rules-for-the-generator">7.6 Rules for the generator</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Primary</th>
+<th>Put around it</th>
+<th>Skip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>White dwarf</strong></td>
+<td>normal planet draw with a floor at the fluid Roche limit; surviving outer planets expanded by the progenitor-to-remnant mass ratio (1 Msun to 0.54 Msun grows outer orbits by 1.85; the law <code>a (M_star + M_p) = constant</code> is verified for adiabatic mass loss, see <a href="exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a> 1.2); engulfment floor from the giant phase (<code>_engulfment_radius_au</code>); optional debris belt; an extremely rare close giant (WD 1856+534 b type); pollution flag for a quarter to a half</td>
+<td>habitable worlds inside the Roche limit; life on a planet younger than the zone's lifetime</td>
+</tr>
+<tr>
+<td><strong>Neutron star, young</strong></td>
+<td>nothing</td>
+<td>all planets; the star's own fields only</td>
+</tr>
+<tr>
+<td><strong>Millisecond pulsar</strong></td>
+<td>1% of them get 1 to 3 small planets at 0.1 to 0.5 AU (PSR B1257+12 type) or an ablated companion (black widow, J1719-1438 type); optionally a captured outer planet in a cluster</td>
+<td>any habitable score above the lowest tier (radiation); atmospheres on short-period planets</td>
+</tr>
+<tr>
+<td><strong>Stellar black hole, dormant</strong></td>
+<td>the companion star with its S-type zone from Holman and Wiegert (often only inside 0.1 to 0.5 AU) and a P-type zone far out</td>
+<td>planets in the hole's debris disk; a habitable zone around the hole</td>
+</tr>
+<tr>
+<td><strong>Active X-ray binary</strong></td>
+<td>a close donor, an accretion disk with <code>L = eta Mdot c^2</code>, eclipse/outburst flags</td>
+<td>planets inside the disk; habitable zones (X-ray flux of 1e3 solar and more)</td>
+</tr>
+<tr>
+<td><strong>Supermassive black hole</strong> (<code>mass_class = &quot;supermassive&quot;</code>)</td>
+<td>the galactic centre's S-star cluster as a phenomenon description only</td>
+<td>any star system</td>
+</tr>
+</tbody>
+</table></div>
+<p>For the tree, a remnant is a leaf whose class is NS, BH or WD; mass and radius follow
+the evolution rules, and the bound-companion probability comes from 7.1 and 7.3. The
+hierarchy test (section 5) applies after the supernova, because the remaining orbits
+must satisfy the criteria with the remnant's mass. A cheap rule that keeps draws
+valid: draw the pre-collapse tree, evolve the leaves to the system's age, keep the
+tree if a mass-loss and kick check (7.1 style) passes, else drop the leaf's
+companions (the star becomes a free compact object, which GEN.100 already scatters).
+The pulsing fraction and its age rule are in <a href="anomalies.html">anomalies.md</a>; that rule
+keeps a floor for recycled pulsars in binaries, which is where the millisecond-pulsar
+row here applies.</p>
+<h2 id="8-go--no-go-and-build-order">8. Go / no-go and build order</h2>
+<p>Boss's research of 2026-10-09 18:23Z refines the GEN.130 answer below (millisecond-pulsar planet rate and types, wide tertiaries only for direct-collapse holes, a gravitational-wave age check for compact binaries, Kozai screen with relativistic quenching): <a href="exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a> sections 2 and 3.</p>
+<p><strong>GEN.129: go.</strong> The value is clear, the physics is tractable and verified, the risk
+is plumbing. Do not start by adding code for N=7; start with the data model at N=2.</p>
+<p><strong>GEN.130: go in three slices, no-go on four items.</strong></p>
+<ul>
+<li>Go: (a) allow collapsed leaves in the tree and a kick/survival check (a small
+change in <code>star.py</code>, where collapsed primaries are redrawn and companions
+lightened); (b) NS/BH/WD presets with the rules in 7.6, reusing <code>BlackHole</code> and
+<code>NeutronStar</code>; (c) radiation fields (spin-down power, X-ray luminosity) feeding
+GEN.86 and GEN.87.</li>
+<li>No-go: young-pulsar planets; debris-disk planets around black holes as a default;
+habitable scoring above the lowest tier around any remnant except a cool white
+dwarf; supermassive-hole stellar systems. Out of scope: kilonovae, mergers, and
+anything needing a binary-evolution code.</li>
+</ul>
+<p><strong>Build order</strong></p>
+<ol>
+<li>Redraw the existing binaries from one log-normal period law (fills the 0.26 to 50
+AU gap), eccentric pair orbits with <code>physics/kepler.py</code>, mass-ratio refinements.
+No schema change; tests the P-type/S-type switch by limits.</li>
+<li><code>orbit_nodes</code> and the N=2 migration; <code>stars.parent_node_id</code>;
+<code>planets.host_node_id</code>; readers and writers (<code>store.insert_star_system</code>,
+<code>_db.load_star_system</code>, <code>serialization</code>), keeping the old columns filled.</li>
+<li>Naming (6.3), scene, maps (per-node zoom), <code>positions_at</code> and its JavaScript twin,
+<code>advance_orbital_phases</code> for nodes.</li>
+<li>N=3 generator (the algorithm of 5.3). Tests: criterion unit tests; a property
+test (every generated tree passes MA01, EK95 and the Kozai screen, no pair inside
+another's extent); a small leapfrog or <code>DOP853</code> regression for a few seeded
+triples. REBOUND is GPL-3.0-only and the project is CC0, so the heavy N-body
+campaign stays an unshipped dev script
+(<a href="../orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a>, licence
+decision).</li>
+<li>N=4 to 7: the same recursion, with tuning of shape weights and tail
+probabilities; map and search UI for deep trees.</li>
+<li>Planet zones from 5.6, flux sums, GEN.84 to GEN.89 inputs.</li>
+<li>GEN.130 slices (a) to (c).</li>
+</ol>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>The research environment could only read search-result text, not the papers. Claims
+still [R], to verify when paper access is allowed:</p>
+<ul>
+<li>Log-normal period law for solar-type stars (mean 5.03, sigma 2.28 in log10 days);
+every period share in section 4 depends on it.</li>
+<li>Close-binary fraction against metallicity [R3109].</li>
+<li>Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,): the table in 3.3 is a design blend, and its A, B and O rows and every
+N &gt;= 4 split are the least certain.</li>
+<li>Tokovinin's &quot;ratio above 5&quot; rule; the WDS/WMC/MSC notation (6.3).</li>
+<li>Gaia BH1 period and eccentricity, BH2 mass and orbit, BH3 beyond the periods;
+PSR B1257+12 masses and orbits; PSR J0337+1715.</li>
+<li>Moment of inertia 1e38 kg m^2, Kerr ISCO factor, Eddington 1.26e31 W per Msun,
+neutron star kick sigma 265 km/s, white dwarf orbit expansion on mass loss.</li>
+<li>Black hole companion fraction (10 to 30%) and the compact-primary-in-a-triple
+fractions in 7.3: low confidence.</li>
+<li>Whether AR Cassiopeiae is septuple; whether Mizar and Alcor are bound.</li>
+</ul>
+<p>The research scripts (generator and criteria <code>hier.py</code>, N-body drivers, Holman and
+Wiegert and boundary scans, zone and table scripts) lived in a session scratchpad
+outside the repository; GEN.129 step 4 recreates the generator from 5.1 to 5.3.</p>
+<h2 id="sources">Sources</h2>
+<p>Seen in search results (summaries only; no paper text was read):</p>
+<ul>
+<li>[R3646]: [R3646]; 2015 reanalysis
+[R4693]</li>
+<li></li>
+<li>[R3108]: [R3108, R3334]:
+[R3333]</li>
+<li>[R4384]: [R4384]; 2018 catalogue
+[R4385]; 2021 review [R4386]</li>
+<li>[R1223]: [R1223]; Gebrehiwot et al.
+2016: [R1529]</li>
+<li>Nu Scorpii and Mizar/Alcor (Wikipedia); HD 98800
+[R3603]; TIC 168789840
+[R4989]</li>
+<li>Stability: [R1537] (Eggleton and Kiseleva form); Mardling
+and Aarseth forms quoted in [R1855, R2519, R3864]; Holman and
+Wiegert coefficients quoted in [R0243, R3631]; Quarles et al. refit
+[R3633]</li>
+<li>Gaia black holes: [R1238] (BH1),
+[R2091] (BH3)</li>
+<li>Pulsars: [R0126, R2078, R2849, R2902] (natal kicks);
+X-ray binaries: [R0893, R2797]</li>
+<li>White dwarfs: [R0038, R4493],
+https://astrobites.org/2020/09/22/the-first-planet-found-orbiting-a-white-dwarf/,
+https://doaj.org/article/6ee22a7610b842f98a9ddef9f43c063e (WD 1856+534 b),
+[R3306] (pollution)</li>
+<li>Package page: https://pypi.org/pypi/rebound/json (rebound 5.2.2)</li>
+<li>Repo files read: <code>generation/binary.py</code>, <code>wide_binary.py</code>, <code>system.py</code>, <code>star.py</code>,
+<code>phenomena/compact_remnant.py</code>, <code>physics/orbits.py</code>, <code>physics/kepler.py</code>,
+<code>physics/stellar_evolution.py</code>, <code>names/bodies.py</code>, <code>tuning.py</code>,
+<code>web/maps/systemscene.py</code>, <code>docs/reference/database-schema.md</code>, and the design documents
+linked above, with &quot;Orbital Update Full Algorithm.md&quot; and &quot;Orbital Position and
+Vector Update Algorithms.md&quot;; TODO items GEN.128 to GEN.130, GEN.109, GEN.84 to
+GEN.89, GEN.103; GitHub issues #777 and #778.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

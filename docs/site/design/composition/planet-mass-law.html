@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The planet mass law without a class (GEN.650) - planetGen docs</title>
+<meta name="description" content="Status: built as a pure law (physics/planetmass.py, tests in tests/testplanetmass.py) and wired into generation by the planet architecture (GEN.728, wired on merge train 4): planetarchitecture builds a whole chain of these cores (oligarc...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/planet-mass-law.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/planet-mass-law.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-planet-mass-law-without-a-class-gen650">The planet mass law without a class (GEN.650)</h1><p class="meta">docs/design/composition/planet-mass-law.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#decided">Decided</a></li><li style="margin-left:0px"><a href="#the-law-planet_massplanet_massdistance_au-star_mass_kg-snow_line_au-fe_h-stream">The law (planet_mass.planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h, stream))</a></li><li style="margin-left:0px"><a href="#not-in-this-law">Not in this law</a></li><li style="margin-left:0px"><a href="#what-changes-against-todays-class-first-masses">What changes against today's class-first masses</a></li><li style="margin-left:0px"><a href="#tuned-against-the-occurrence-of-planets-2026-10-28-gen711-aux-16s-check">Tuned against the occurrence of planets (2026-10-28, GEN.711, Aux 16's check)</a></li><li style="margin-left:0px"><a href="#stand-ins-labelled">Stand-ins (labelled)</a></li></ul></details>
+<p>Status: built as a pure law (<code>physics/planet_mass.py</code>, tests in <code>tests/test_planet_mass.py</code>) and wired into generation by the planet architecture (GEN.728, wired on merge train 4): <code>planet_architecture</code> builds a whole chain of these cores (<code>oligarch_core_kg</code>) and thins it, and a planet asked for alone (HABITABLE_WORLD, FORCE_CLASS, SLOTS) draws one. Written by the condition-based classes lane with Habitability lane I (the bulk contract), reworked by the Planets 1 lane. Times EDT.</p>
+<h2 id="decided">Decided</h2>
+<ul>
+<li>Boss, 6:39 PM EDT 2026-10-23, pipeline card 1, option 1: the planet mass is the isolation mass at the formation distance and the disc's solids, with a scatter and the giant core-accretion rule, tuned against the observed occurrence by the GEN.503 harness (builders GEN.509 and GEN.510). The isolation law is checked above a few Earth masses. The class mass ranges of bulk-composition.md decision 28 are not kept as a hidden stand-in beyond the spine's class-first epoch.</li>
+</ul>
+<h2 id="the-law-planet_massplanet_massdistance_au-star_mass_kg-snow_line_au-fe_h-stream">The law (<code>planet_mass.planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h, stream)</code>)</h2>
+<ol>
+<li><strong>Solids.</strong> The isolation mass at the formation distance, <code>formation.isolation_mass_kg</code>, for a feeding zone <code>OLIGARCH_SEPARATION_MEDIAN</code> (15.07) mutual Hill radii wide (drawn per system, <code>OLIGARCH_SEPARATION_SIGMA_LN</code>), from the minimum-mass nebula scaled by the star's mass and 10^[Fe/H] (<code>disk_surface_density_scale</code>), the disk's own scatter (<code>DISC_SOLIDS_SCATTER_DEX</code>, 0.7 dex, [R0114]) and boosted by <code>disk_condensation.SNOW_LINE_SOLID_JUMP</code> (1.967 for the Sun: all the solids that stand at the water and ammonia ice lines, the rock, the metal, the refractory carbon and the ices, over the rock alone; GEN.1396 replaced the water-only 2.17 of GEN.950, which counted the ice but left out the ammonia, the carbon and the grains that rise with it) beyond the star's own snow line [R2430, R2709], times <code>PLANET_DISC_SOLIDS_ENHANCEMENT</code> (0.4647, stand-in PA1: the solids against the minimum-mass nebula, tuned to the cold-giant occurrence), and inside 1 AU times <code>(distance / 1 AU) ^ -PLANET_INNER_DISC_STEEPENING</code> (0.75, stand-in PM2). Beyond <code>PLANET_OUTER_GROWTH_AU</code> (11.36 AU) the slow outer disk has built less: the mass falls as the distance to the power <code>PLANET_OUTER_GROWTH_EXPONENT</code> (2.889, stand-in PA1). The isolation formula is built and unchanged.</li>
+<li><strong>Assembly.</strong> Giant impacts merge a feeding zone's oligarchs; that is the architecture's thinning (<code>planet_architecture.sculpt</code>, Pu and Wu 2015), not a constant survival share, so the old <code>GIANT_IMPACT_SURVIVAL_FRACTION</code> (0.4) and <code>PLANET_ASSEMBLY_SCATTER_DEX</code> are gone. A planet asked for alone is one oligarch of its feeding zone.</li>
+<li><strong>Runaway.</strong> A core of <code>GIANT_CORE_CRITICAL_MASS_EARTH</code> = 10 Earth masses or more, beyond the snow line, becomes a gas giant with probability <code>GIANT_GAS_SURVIVAL_SHARE</code> (0.766, stand-in PA2) times <code>10^(GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT [Fe/H])</code> (0.6498, PA2) times the occurrence factor for the star's [Fe/H] (<code>metallicity.giant_occurrence_factor</code>, the existing 10^(2 [Fe/H]) law, capped at 1), times <code>(GIANT_GAS_SURVIVAL_CUT_AU / distance)^2</code> beyond <code>GIANT_GAS_SURVIVAL_CUT_AU</code> (9.022 AU, PA2) (the outer cores grow too slowly to reach the critical mass before the gas is gone). The giant's mass follows dN/dlogM ~ M^-0.31 ([R0960], the slope already in <code>GIANT_MASS_FUNCTION_SLOPE</code>) between <code>GIANT_RUNAWAY_MIN_MASS_EARTH</code> = 30 and the lighter of 13 Jupiter masses and 1% of the star. A core that finds no gas stays a solid or ice-giant core, at most <code>GIANT_NO_GAS_CORE_MAX_EARTH</code> = 20 Earth masses (the envelope share of such a body is the composition lane's draw, GEN.428).</li>
+<li><strong>Cap.</strong> No planet's solids exceed <code>PLANET_MAX_STAR_MASS_RATIO</code> (1%, the existing <code>GIANT_MAX_STAR_MASS_RATIO</code>) of its star.</li>
+</ol>
+<p>Draw order on the body's stream when a planet is asked for alone: the disc scatter and the spacing (<code>draw_disc_scatter</code>, <code>draw_separation</code>), then (only for a core past the critical mass beyond the line) the gas-survival draw, then the runaway mass. The same stream gives the same planet.</p>
+<h2 id="not-in-this-law">Not in this law</h2>
+<ul>
+<li><strong>Moons</strong> are separate (GEN.466, parent and the circumplanetary ice line).</li>
+<li><strong>The formation distance.</strong> The law takes it as an argument. Today a planet's slot distance is its formation distance. The migrant draw (a giant formed beyond the line now sitting close in, the &quot;born beyond the snow line or migrant&quot; logistic of GEN.510) supplies a different formation distance when it lands; until then there are no hot giants, which is the main difference from today's mix (below).</li>
+<li><strong>Radius, density, envelope.</strong> Derived from the mass and composition by the spine (GEN.428, GEN.429), not drawn here.</li>
+<li><strong>Belts and small bodies</strong> keep their own laws (GEN.442).</li>
+</ul>
+<h2 id="what-changes-against-todays-class-first-masses">What changes against today's class-first masses</h2>
+<p>Measured with 400 generated systems (3,205 planets, seed 11) by the sweep in the lane's report <code>reports/planet-mass-law-sweep-2026-10-24.md</code>: today the mass is a class draw with almost no link to the distance. The law is physical, so it differs where the class draw was not:</p>
+<ul>
+<li>Giants (30 Earth masses or more): 13.7% of planets today, 8.4% under the law. Inside the snow line today 5 to 14% of planets are giants; under the law under 1% (no migrants yet). Beyond the line 14 to 22% today, 9 to 21% under the law, rising with distance.</li>
+<li>Median mass: about 0.05 to 0.13 Earth masses at every distance today; the law gives 0.004 to 0.02 inside the snow line and 0.2 to 1.3 beyond, rising with distance (dim red-dwarf discs are light), and a wider spread (p10 to p90 spans four to five orders of magnitude against three today).</li>
+<li>This is explained, not hidden: the law is the intended physics and the numbers are stand-ins. The three knobs that move the giant share and the median are <code>PLANET_DISC_SOLIDS_ENHANCEMENT</code>, <code>PLANET_ASSEMBLY_SCATTER_DEX</code> and <code>GIANT_GAS_SURVIVAL_SHARE</code>; the migrant draw (GEN.510) restores close-in giants. Tuning them against the observed occurrence is the harness's job (GEN.503, GEN.509, GEN.510); the stand-ins were chosen by hand so that the giant share is the same order as today's (8.4% against 13.7%) and the median rises with distance.</li>
+</ul>
+<h2 id="tuned-against-the-occurrence-of-planets-2026-10-28-gen711-aux-16s-check">Tuned against the occurrence of planets (2026-10-28, GEN.711, Aux 16's check)</h2>
+<p>Aux 16's distribution check (<code>reports/planet-class-distribution-check-2026-10-25.md</code>) found the class draw far off the observed occurrence: about 50 times too many hot Jupiters around M dwarfs, about 10 times too many giants around M dwarfs, a missing 2 to 20 Earth-mass population. The first version of this law (enhancement 5, survival 0.5, no cut) fixed the hot Jupiters but gave 1.2 giants of 100 Earth masses or more per Sun-like star and far too few super-Earths around M dwarfs. Measured on 400 generated systems' real slot distances (seed 5; 317 M dwarfs, 28 Sun-like stars), planets per star:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Per star</th>
+<th>First version</th>
+<th>Tuned</th>
+<th>Observed (recalled, rounded)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Giants (100 Earth masses or more) 0.3 to 10 AU, Sun-like</td>
+<td>0.51</td>
+<td>0.16</td>
+<td>0.10 to 0.15 [R1479]</td>
+</tr>
+<tr>
+<td>Giants, any orbit, M dwarf</td>
+<td>0.19</td>
+<td>0.04</td>
+<td>0.03 to 0.06 [R2172]</td>
+</tr>
+<tr>
+<td>1 to 20 Earth masses inside 0.45 AU, Sun-like</td>
+<td>0.52</td>
+<td>0.88</td>
+<td>0.5 to 0.9 [R3499, R4898]</td>
+</tr>
+<tr>
+<td>1 to 20 Earth masses inside 0.45 AU, M dwarf</td>
+<td>0.24</td>
+<td>1.30</td>
+<td>1 to 2.5 [R1156]</td>
+</tr>
+<tr>
+<td>Earth-size (0.5 to 2 Earth masses) at 0.7 to 1.5 AU, Sun-like</td>
+<td>0.15</td>
+<td>0.15</td>
+<td>0.2 to 0.6 [R0572]</td>
+</tr>
+</tbody>
+</table></div>
+<p>The rates are quoted from memory and need a check against the papers before they are cited elsewhere. The eta-Earth row stays at the low edge of the observed band; the checks of the tuned values are the tests <code>test_planet_mass.py::test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au</code> and the sweep script <code>src/tests/planet_mass_sweep_cli.py</code>.</p>
+<h2 id="stand-ins-labelled">Stand-ins (labelled)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Source</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PLANET_DISC_SOLIDS_ENHANCEMENT</code></td>
+<td>5</td>
+<td>[R0771] (several times the MMSN), recalled</td>
+<td>stand-in, tuned with the steepening (registry PM1)</td>
+</tr>
+<tr>
+<td><code>PLANET_INNER_DISC_STEEPENING</code></td>
+<td>0.75</td>
+<td>[R0771] (the extrasolar nebula falls as about the -1.6 to -2 power), recalled; tuned</td>
+<td>stand-in (registry PM2)</td>
+</tr>
+<tr>
+<td><code>PLANET_ASSEMBLY_SCATTER_DEX</code></td>
+<td>0.8</td>
+<td>planetGen default</td>
+<td>stand-in (registry PM3)</td>
+</tr>
+<tr>
+<td><code>GIANT_GAS_SURVIVAL_SHARE</code></td>
+<td>0.12</td>
+<td>tuned to [R1479]'s giant occurrence, recalled</td>
+<td>stand-in (registry PM6)</td>
+</tr>
+<tr>
+<td><code>GIANT_GAS_SURVIVAL_CUT_AU</code></td>
+<td>5</td>
+<td>tuned to the rarity of giants beyond 10 AU in direct imaging</td>
+<td>stand-in (registry PM7)</td>
+</tr>
+<tr>
+<td><code>GIANT_NO_GAS_CORE_MAX_EARTH</code></td>
+<td>20</td>
+<td>Uranus and Neptune are 14.5 and 17.1 Earth masses</td>
+<td>stand-in (registry PM8)</td>
+</tr>
+<tr>
+<td><code>GIANT_CORE_CRITICAL_MASS_EARTH</code></td>
+<td>10</td>
+<td>[R3565, R3645] give 5 to 20</td>
+<td>recalled, not looked up this session</td>
+</tr>
+<tr>
+<td><code>GIANT_RUNAWAY_MIN_MASS_EARTH</code></td>
+<td>30</td>
+<td>planetGen default (class J's floor today)</td>
+<td>stand-in</td>
+</tr>
+<tr>
+<td>assembly factor</td>
+<td>1 / 0.4</td>
+<td>mass conservation against <code>GIANT_IMPACT_SURVIVAL_FRACTION</code> ([R0720], recalled)</td>
+<td>derived</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nothing here is fixed from the Solar System: every value is a distribution parameter, and the Solar System is not an input.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

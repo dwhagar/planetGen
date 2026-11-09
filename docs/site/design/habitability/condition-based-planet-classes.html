@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condition-based planet and moon classes (GEN.645 to GEN.648) - planetGen docs</title>
+<meta name="description" content="Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/condition-based-planet-classes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/condition-based-planet-classes.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="condition-based-planet-and-moon-classes-gen645-to-gen648">Condition-based planet and moon classes (GEN.645 to GEN.648)</h1><p class="meta">docs/design/habitability/condition-based-planet-classes.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-boss-2026-10-23-times-edt">Decisions (Boss, 2026-10-23, times EDT)</a></li><li style="margin-left:0px"><a href="#the-rule-file">The rule file</a></li><li style="margin-left:0px"><a href="#the-class-sweep">The class sweep</a></li><li style="margin-left:0px"><a href="#what-is-built-and-what-is-next">What is built and what is next</a></li><li style="margin-left:0px"><a href="#age-needs-from-conditions-gen686-built">Age needs from conditions (GEN.686, built)</a></li><li style="margin-left:0px"><a href="#a-sample-that-holds-every-class-gen791-planets-built">A sample that holds every class (GEN.791, planets built)</a></li></ul></details>
+<p>Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body is made from its mass, where it formed and its star; its class letter is derived from what it comes out as, at the end of its build and again once its star's flux variation is known. Nothing draws a class first. Lane D's draft with the 13 places that read the class before the cut-over is <code>/mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md</code>.</p>
+<h2 id="decisions-boss-2026-10-23-times-edt">Decisions (Boss, 2026-10-23, times EDT)</h2>
+<ul>
+<li>6:09 PM, GEN.644 option 3: a class is not drawn. Once a planet or moon is complete, its class is worked out from its air (pressure and mixture, none included), its mean surface temperature, its terrestrial or gas composition. The reason he gave for the old way: he did not know how to get the compositions right.</li>
+<li>6:23 PM: classes are also classed by physical properties (size, surface gravity).</li>
+<li>6:24 to 6:30 PM: keep the class letters as close to today's as possible, M above all (it is culturally identifiable); never retire a letter without asking him, and think of a replacement class that makes more sense first; letters already free stay in reserve for new designations. <strong>Core classes: H, P, O, J, M, I, C, D and N.</strong></li>
+<li>12:39 AM, 2026-10-24 (class card, option 1): keep all 20 letters A to V, redefined by conditions, with K, L, Q, S and V kept; R, U, W, X, Y and Z stay in reserve. This is what the rule file already does.</li>
+<li>1:22 AM, 2026-10-24 (class B card, option 3; this replaces the 12:39 AM option 1 answer relayed earlier): class B never has hydrogen or helium, and a stripped giant core must be at least 5 Earth masses. At the class cut-over (C13) class B's text drops &quot;helium&quot; and the stripped-core line; the classifier rule for B (under 0.5 g, with air, above 210 K, no sealed ocean) does not change. Class I's note about hot-Neptune stripping is reworded to match.</li>
+<li>Habitable is not a class: it is the overall habitability colour Blue or Green (GEN.643).</li>
+<li>10:21 AM EST on 2026-11-08 (class M rarity report, lever 9, option keep): the carbon dioxide limit for classes M, H, O, P and R stays at 1 kPa (judged by pressure, GEN.1321); class L's edge is unchanged. Raising it was not chosen: among 19 oxygen sea worlds a 2 kPa limit lets 5 pass and 10 kPa lets 8, but their temperature and ocean cover fail M anyway, so the lever is not where the rarity comes from.</li>
+<li>Testing mode: new epochs, database versions and API versions are fine.</li>
+</ul>
+<h2 id="the-rule-file">The rule file</h2>
+<p><code>src/planetgen/physics/data/planet_classes.json</code>, read by <code>physics/planet_classes.py</code>. <code>classify(body)</code> is a pure function of stored values: the first row of the body's kind (terrestrial or giant) whose conditions all hold names the class. The last row of each kind has no conditions, so a body always gets one letter. 19 letters are in use (Q was retired by Boss, GEN.1135); the rest are reserved. Size and gravity are rule inputs, so there is no size suffix on the stored letter.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Letter</th>
+<th>Class</th>
+<th>Rule (design thresholds, refitted by the sweep)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T</td>
+<td>Gas dwarf</td>
+<td>giant under 10 Earth masses</td>
+</tr>
+<tr>
+<td>I</td>
+<td>Ice giant</td>
+<td>giant under 35 Earth masses</td>
+</tr>
+<tr>
+<td>J</td>
+<td>Gas giant</td>
+<td>the rest of the giants</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Small airless world</td>
+<td>pressure under 10 Pa, round, and under 0.1 Earth masses (GEN.1160)</td>
+</tr>
+<tr>
+<td>S</td>
+<td>Airless super-Earth</td>
+<td>pressure under 10 Pa and 1.5 Earth masses or more</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Dead world</td>
+<td>pressure under 10 Pa and 0.1 Earth masses or more</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Volcanic world</td>
+<td>sulfur dioxide 3 percent of the air or more</td>
+</tr>
+<tr>
+<td>T</td>
+<td>Gas dwarf (terrestrial kind)</td>
+<td>hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row)</td>
+</tr>
+<tr>
+<td>N</td>
+<td>Hot dense world</td>
+<td>pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142)</td>
+</tr>
+<tr>
+<td>V</td>
+<td>High-gravity world</td>
+<td>gravity of 2 g or more (GEN.1136; 1.25 g before)</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Marginal thick-air world</td>
+<td>pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 kPa or more (GEN.1321: a pressure too), oxygen 3 to 16 kPa (GEN.1321: judged by oxygen pressure; a share of 3 to 16 percent before), gravity 0.5 g or more (GEN.1142)</td>
+</tr>
+<tr>
+<td>K</td>
+<td>Thin-air world</td>
+<td>pressure under 3 kPa, 273.15 to 320 K, any oxygen share (GEN.1142; the under-10-percent oxygen cap removed in GEN.1306, registry AW4)</td>
+</tr>
+<tr>
+<td>E</td>
+<td>Deep-frozen world</td>
+<td>air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world)</td>
+</tr>
+<tr>
+<td>P</td>
+<td>Glaciated world</td>
+<td>the Earth-like cold world: mean surface 240 to 270 K with a melting region in season, near-standard air with oxygen (GEN.1142, GEN.1221; the temperate family's too-cold member)</td>
+</tr>
+<tr>
+<td>W</td>
+<td>Frozen world</td>
+<td>air, mean surface 233.15 K (-40 C) to freezing (273.15 K), under 2 g, not a hydrogen envelope and not a volcanic air; the cold air world class P does not hold (GEN.1306 part 4, registry AW8, Boss 11-06). P wins a tie, E is colder</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>Hot thin-air world</td>
+<td>no ocean, 0.5 to 2 g, 340 to 1500 K, air 1 to 10 kPa (GEN.1211; 1.4 g and 1100 K before GEN.1306, registry AW6 and AW7); the 1 and 10 kPa edges are the retention caps of the air</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Small hot world</td>
+<td>gravity under 0.5 g</td>
+</tr>
+<tr>
+<td>F</td>
+<td>Anoxic world</td>
+<td>oxygen under 3 kPa (GEN.1321: a pressure; 3 percent of the air before) and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more)</td>
+</tr>
+<tr>
+<td>G</td>
+<td>Carbon dioxide world</td>
+<td>carbon dioxide 20 percent of the air or more, any oxygen share (GEN.1306, registry AW5)</td>
+</tr>
+<tr>
+<td>O</td>
+<td>Ocean world</td>
+<td>water covers 80 percent or more of the surface (GEN.1142), at a mean 275 to 312 K: M's floor up to the old ceiling, so a cool global ocean is O and not left to the shoulders (GEN.1342)</td>
+</tr>
+<tr>
+<td>H</td>
+<td>Desert world</td>
+<td>some water, but under 20 percent of the surface (GEN.1142), at a mean 275 to 315 K: M's floor up to the old ceiling; a world with no water at all is not H (GEN.1342)</td>
+</tr>
+<tr>
+<td>M</td>
+<td>Temperate world</td>
+<td>the rest (air, water 20 to 80 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The rows are in the order of the file (giants, then D S C A T N V L K E P B F G O H M); the order decides when two rows hold. Each row carries a one-sentence reading and its <code>basis</code> (&quot;design: ...&quot;). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.</p>
+<p><strong>K, L, S and V</strong> looked like letters to retire (zone-drawn guesses that PHI-6 now measures). Each instead became a condition that keeps its old meaning: K the cold thin-air world (below freezing, usually under ice), L the thin oxygen-bearing marginal world, S the airless super-Earth (size), V the high-gravity world (2 g or more since GEN.1136; at 1.25 g it took most temperate super-Earths and left M almost empty). <strong>Q is retired</strong> (Boss, 6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit. The swing of the starlight is the stored <code>flux_variation</code> (about 4 times the eccentricity) and the &quot;At a glance&quot; panel of a planet or moon flags it as very high from 0.75 (<code>describe.sheet.SWING_FLAG_MIN</code>, 4 percent of bodies). 19 classes are in use. Free letters (the reserve): Q, R, U, W, X, Y, Z.</p>
+<p><strong>GEN.1142 (Boss, 6:57 to 7:12 PM EDT 2026-10-30): the lines move, conditions only, no zone.</strong> The old wet reducing E (F with steam, no body in a sample of 1,788) is retired and its letter goes to a new class, the deep-frozen world: air-bearing bodies under 233.15 K (-40 C). P takes 233.15 K to freezing. K is the thin air (under 3 kPa) of 273.15 to about 320 K with little oxygen, L the 30 kPa to 3 bar air of 273.15 to about 320 K with carbon dioxide and 3 to 16 percent oxygen (GEN.1321 made this and the other oxygen edges pressures: 3 to 16 kPa), O is 80 percent ocean or more, H under 20 percent, M the rest. A terrestrial-kind body under 10 Earth masses with 30 percent hydrogen or more in its air is a T (the gas dwarf, one letter in both kinds) and is tested ahead of N, which is a 10 bar air at 400 K or more that is not hydrogen-dominated. The 10 Earth-mass line is the bound chain's critical core mass (<code>GIANT_CORE_CRITICAL_MASS_EARTH</code>). Registry rows CL1 to CL7 (GEN.725) hold the lines and their tiers.</p>
+<p><strong>Known weak spots.</strong> The mass of an ice giant (10 to 60 Earth masses) overlaps a gas giant's (30 and up), so the mass cut at 35 misplaces some ice giants until the envelope share of GEN.428 is stored (Aux 17, GEN.822); the gas dwarf T stays rare and mostly merges into I until then; and a dense steam air (the solver of GEN.411 puts the water of an ice-rich world into the air; GEN.830 and GEN.837 of Aux 8 address it) makes class N a large share of the warm planets until they land. The class sweep (below) measures them.</p>
+<h2 id="the-class-sweep">The class sweep</h2>
+<p><code>python src/tests/class_sweep_cli.py</code> generates systems in memory, prints the share of every letter among planets and among moons, the mass bins of the planets, and how many bodies change letter when <code>classify</code> is run again on their stored conditions (none should). The thresholds of <code>planet_classes.json</code> and the mass law (<code>planet-mass-law.md</code>) are tuned against it and against Aux 16's check (<code>/mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md</code>). The cut-over's own report is <code>/mnt/project-files/reports/class-cutover-sweep-2026-10-28.md</code>. Before the cut-over this section described a shadow sweep that compared <code>classify</code> with the drawn letter (98.3 percent of 32,487 bodies kept their letter, 2026-10-23); with no drawn letter there is nothing to compare, and the sweep now reports the distribution instead.</p>
+<h2 id="what-is-built-and-what-is-next">What is built and what is next</h2>
+<p>Built (class lane): C1 the classifier and rule file, C2 the sweep, C4 the class pages from the rule rows (a rule and a core flag in place of the table of ranges), C5 a test that pins the modules that may assign a class (none of these changes a stored value). C3, life off the letter, is built in its own change with a generator epoch: a body carries a light-harvesting pigment when its stored conditions allow it (each <code>LIFE_CHEMICALS</code> entry's <code>requires</code>: free oxygen for the oxygenic pigments, none for the anoxygenic, an acidic ocean for the zinc one, air for every pigment but the radiotroph) and the star's spectrum favours it; the most advanced life stage is capped only by the habitability index (<code>life.stage_ceiling</code>), not by the letter; the flavour line reads whether the body carries life and the derived class A. Next: C13 to C15, the cut-over, when lanes I, J, K and L have landed the composition inputs: classify at the end of generation, the class column written only there, validation becomes &quot;total and derived&quot;, the zone-drawn tables (<code>PLANET_CLASSES</code> generation fields, <code>PLANET_CLASS_PROBABILITIES</code>, <code>MOON_BLACKLIST</code>) deleted, no old-letter alias kept.</p>
+<h2 id="age-needs-from-conditions-gen686-built">Age needs from conditions (GEN.686, built)</h2>
+<p>A star's age is raised until it is old enough for its planets. That minimum no longer reads the class letter: <code>physics/age_needs.py</code> and <code>physics/data/age_needs.json</code> give each finished body a tier from its stored conditions (giants, airless bodies and small worlds need none; hot dense or reducing air is <code>molten</code>; heavy worlds, cold thin air and carbon-dioxide air are <code>settled</code>; temperate worlds with air are <code>watered</code>; cold worlds are <code>frozen</code>), and each tier names its minimum age on the fast, normal and slow evolutionary scales. The ages are the old <code>PLANET_CLASSES</code> <code>age_ranges</code> minimums (planetGen values with no source), so 99.4% of 4,612 sampled bodies need exactly the age they needed before. <code>age_ranges</code> is deleted.</p>
+<h2 id="a-sample-that-holds-every-class-gen791-planets-built">A sample that holds every class (GEN.791, planets built)</h2>
+<p><code>SystemConfig.FORCE_CLASS</code> (a test and admin option, not saved with a system) gives a generated system at least one planet of the named class in the first orbital slot; <code>generation/class_sample.py</code> <code>fill(per_class, seed)</code> tops a sample up until every class has that many planets, for checks that need all twenty (the property sheet fill audit, UX.208). Random generation gives under 30 planets of ten classes in 400 systems. Moons are next, after Core 3's moon generation work (GEN.761) merges. At the class cut-over the switch becomes a condition request (an ocean world, PHI-6 Blue or Green) through the same path as <code>+habitable_world</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

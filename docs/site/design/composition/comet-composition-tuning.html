@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The comet composition rows k1 to k5 and k7 (GEN.520) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-24 by lane M (builder B12).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/comet-composition-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/comet-composition-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-comet-composition-rows-k1-to-k5-and-k7-gen520">The comet composition rows k1 to k5 and k7 (GEN.520)</h1><p class="meta">docs/design/composition/comet-composition-tuning.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-k1-to-k3-the-coma-class">1. k1 to k3: the coma class</a></li><li style="margin-left:0px"><a href="#2-k4-and-k5-co2h2o-and-coh2o">2. k4 and k5: CO2/H2O and CO/H2O</a></li><li style="margin-left:0px"><a href="#3-k7-single-comet-species">3. k7: single-comet species</a></li><li style="margin-left:0px"><a href="#4-what-it-does-not-do">4. What it does not do</a></li><li style="margin-left:0px"><a href="#5-the-ice-zones-of-the-disc-gen595-lock-free-step">5. The ice zones of the disc (GEN.595, lock-free step)</a></li></ul></details>
+<p>Status: built 2026-10-24 by lane M (builder B12). Rows k1 to k5 and k7 of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>); 23 targets in <code>physics/data/tuning_targets.json</code>; tests in <code>src/tests/test_tuned_draws.py</code> and <code>src/tests/test_tuning_harness.py</code>. The numbers are those of the small-bodies source check (<code>tunable-gaps-sources/group5-small-bodies-moons.md</code>), computed from the [R3782] database (CC BY 4.0, per-comet median of the detections at heliocentric distance up to 2.5 AU) and from Harrington [R3535] (HP22).</p>
+<h2 id="1-k1-to-k3-the-coma-class">1. k1 to k3: the coma class</h2>
+<p>The weights 0.5, 1/3 and 0.1 were rounded words of an abstract and summed to 0.93. They are now the printed counts of HP22 Table 2: 13 CO<sub>2</sub>-dominated, 9 CO-dominated and 3 comparable of 25 comets. Three proportion targets check the shares; the harness gained a <code>category</code> field for a proportion of the alternatives a group of options draws, and <code>recipe_sampler</code> returns the chosen option for an option row.</p>
+<p>Limits kept on the rows (the state is <code>partly verified</code>): the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated), and 9 of the 13 CO<sub>2</sub>-dominated entries rest on an upper limit on CO, so the CO<sub>2</sub> share is inflated by an amount that cannot be corrected without the list of excluded comets. The source check's better design (draw log10 CO/CO2 at the comet's own distance and derive the class from the 2/3 and 4/3 thresholds) needs a distance-dependent model and is left open (section 4).</p>
+<h2 id="2-k4-and-k5-co2h2o-and-coh2o">2. k4 and k5: CO<sub>2</sub>/H2O and CO/H2O</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Before</th>
+<th>Now</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k4 CO<sub>2</sub>/H2O</td>
+<td>log-normal, median 12 percent, sigma 0.5 dex (&quot;by eye&quot;)</td>
+<td>median 10.9 percent, sigma 0.51 dex</td>
+<td>mean -0.963 +- 0.11 dex, sd 0.51 +- 0.08 (21 comets)</td>
+</tr>
+<tr>
+<td>k5 CO/H2O</td>
+<td>median 3 percent, sigma 0.6 dex, truncated to 0.5 to 23 percent</td>
+<td>median 2.5 percent, sigma 0.65 dex, no truncation</td>
+<td>mean -1.602 +- 0.16 dex, sd 0.65 +- 0.12 (16 comets)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The truncation of k5 is dropped: 0.3 to 26 percent is the extremes of 16 comets, not a bound, and a cut at the sample's extremes narrows the spread under the published one. The old and the new values agree within the standard errors, so the data do not move the rows much; the test that guards them fails a wrong centre (10 percent for CO) or a spread of 0.2 dex.</p>
+<h2 id="3-k7-single-comet-species">3. k7: single-comet species</h2>
+<p>CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO and H<sub>2</sub>S have populations of 9 to 18 comets (geometric means 0.68, 0.41, 0.25 and 0.71 percent; sigma 0.33, 0.33, 0.35 and 0.39 dex), replacing the values of 67P, which were 2 to 10 times off the population in either direction. Eight targets check them. N<sub>2</sub>, O<sub>2</sub>, OCS, SO<sub>2</sub>, Ar, Kr and Xe are measured on one comet (67P) and keep their values with the design width of 0.6 dex, named in the row's limit; O<sub>2</sub> presence cannot be set from one comet.</p>
+<h2 id="4-what-it-does-not-do">4. What it does not do</h2>
+<ul>
+<li><strong>The admission rule.</strong> The statistics are of comets that were observed. The draws do not depend on the comet's distance, so the admission model of GEN.507 (which weights distance) does not change them and the targets use none. A coma class that depends on the distance does need it.</li>
+<li><strong>The system offset.</strong> The source check proposes a per-system offset of the log ratios, N(0, sigma_sys) with an upper edge near 1.5 dex, from the two interstellar objects (N = 2). The live comet sampler (<code>physics/comet_population.py</code>, GEN.495) already draws an interstellar comet's CO and CO<sub>2</sub> from the wider ranges one measured object forces, and its Solar System species agree with these rows (CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO, H<sub>2</sub>S within 0.05 dex, CO<sub>2</sub> at 11 against 10.9 percent; its CO<sub>2</sub> width 0.27 dex is at r_h up to 2 AU, the rows' 0.51 dex at 2.5 AU, the widest range rule). A shared system-level offset needs a model of the system; it is not drawn here and the rows say so.</li>
+<li><strong>Correlation.</strong> The one-factor model (mean pair correlation 0.13) is not drawn; k6 and k7 species are independent.</li>
+<li>The recipes are not yet read by the generator, so no generated value changes and no epoch is taken.</li>
+</ul>
+<h2 id="5-the-ice-zones-of-the-disc-gen595-lock-free-step">5. The ice zones of the disc (GEN.595, lock-free step)</h2>
+<p>The population shape of rows k1 to k5 is the Solar System's (decision D6: the Solar System population as the within-system shape plus a per-system offset knob bracketed by the two interstellar objects). <code>physics/comet_ice_budget.py</code> (registry CI1 to CI5, section 6.46) derives what the disc allows:</p>
+<ul>
+<li><strong>Lines.</strong> The average disc of [R0115] (T = 200 K at 1 AU, index 0.62, scaled by the star's luminosity to the quarter) with the evaporation temperatures of [R3322] (H<sub>2</sub>O 135 K, CO<sub>2</sub> 47 K, CO 20 K) puts the lines of a Sun-like star at 1.9, 10 and 41 AU.</li>
+<li><strong>Budget.</strong> Table 1 of that paper (O and C per 10^4 hydrogen, from one disc's ices) gives CO<sub>2</sub>/H2O 0.33 and CO/H2O 1.67 for a body that froze everything, scaled by the star's carbon (both) and its oxygen after the rock's share (the water). A body between the lines freezes what is below its line and traps 5 to 10 percent of the rest in water ice ([R1336], as Oberg et al. cite it).</li>
+<li><strong>Where bodies formed.</strong> Equal masses in equal intervals of ln r (a surface density as 1 / r): for a formation range of 5 to 50 AU round the Sun, 32 percent of the bodies are in the water zone, 60 percent in the CO<sub>2</sub> zone and 9 percent in the CO zone.</li>
+</ul>
+<p><strong>What it reproduces and what it does not.</strong> 2I/Borisov's CO/H2O of 130 to 155 percent [R0439] is the CO zone's 167 percent to within 30 percent: an interstellar comet with a CO-rich coma is a body from beyond its star's CO line, with no offset knob. The Solar System's median comet (CO<sub>2</sub>/H2O 10.9, CO/H2O 2.5 percent) is not in any zone: it has more CO<sub>2</sub> than CO as the CO<sub>2</sub> zone has, at 0.5 dex less CO<sub>2</sub> and 0.7 dex less CO, so the absolute level of the Solar System population stays a stand-in (a loss of ice by heating or the disc's own loss of CO, both outside this model). 3I/ATLAS's CO<sub>2</sub>/H2O of 7.6 [R0890] is over twenty times the most this budget gives for any carbon and oxygen: it needs a water-poor body or processing of CO to CO<sub>2</sub> (cosmic-ray processing is proposed in the literature), which is not in the model, so <code>comet_population</code>'s CO<sub>2</sub>/H2O bracket of 10 stays a registered stand-in.</p>
+<p>Left out: transport of icy grains, the walk of the lines with the star's age, the CO<sub>2</sub> trapping fraction (the CO value is used), the refractory carbon.</p>
+<p><strong>Wired (GEN.595, train 7).</strong> A comet of a star's system draws where it formed from a stream of its own (keyed by the comet's orbit, so the run's stream is untouched), log-uniformly between the star's snow line and 18 times the snow line (the edge <code>DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER</code> the planets are placed to; CI6), and <code>comet_ice_budget.formation_ratios</code> gives the CO<sub>2</sub>/H2O and CO/H2O of the ice there from the star's luminosity and its carbon and oxygen over magnesium against the Sun's (<code>bulk_draw.ice_forming_ratios</code>). <code>comet_population.draw_volatiles(ice_ratios=...)</code> takes the median total and the CO share from them in place of the Solar System's median and class share, keeps the population's width (0.2 dex in the total, 1.5 in the logit of the share), and moves the observed bounds with the median (they keep their distance from the population's geometric mean, so a zone past the Solar System's 30 percent CO is drawn). The period class no longer sets the CO share; it keeps the carbon-chain flag. A star without abundances (a compact remnant) and an interstellar comet keep the population's medians and the bracket.</p>
+<p>What it changes for a Sun-like star: a comet's median CO over water is 12.5 percent (water and CO<sub>2</sub> zones) or 167 percent (the CO zone), and CO<sub>2</sub> over water 2.5 or 33 percent, where the Solar System's measured medians were 2.5 and 10.9 percent. The model gives the Solar System population neither level (above): the absolute level is the model's, as the physics rule has it, and the measured medians stay tests.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

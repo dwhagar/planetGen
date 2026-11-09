@@ -6,6 +6,8 @@ reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
+**Every table and column the schema creates, in one list built from `schema.sql`: [../generated/database-columns.md](../generated/database-columns.md).** Use it to find a column this page does not describe.
+
 **Status**: the schema is implemented, with both a write and a read path.
 [`src/planetgen/db/store.py`](../../src/planetgen/db/store.py) (private — leading
 underscore, not part of the package's public generation API) writes
@@ -124,9 +126,9 @@ Every numeric column declares the unit it is stored in, in one list: `db/column_
 table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
 (`physics/unit_registry.py`, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
 `LOCAL_UNITS` for the few the registry does not hold yet. The registry is the only table of units (see
-`docs/design/units-and-number-formatting.md`); this page states no factor.
+`docs/design/architecture/units-and-number-formatting.md`); this page states no factor.
 
-Rules (Boss's cards Q3 and Q4 of `docs/design/unified-unit-quantity.md`):
+Rules (Boss's cards Q3 and Q4 of `docs/design/architecture/unified-unit-quantity.md`):
 
 - **The stored unit is chosen for precision, not forced to SI.** A position keeps its frame's unit (galaxy parsec, sector
   milliparsec, system kilometres or AU) because a double's spacing grows with the number.

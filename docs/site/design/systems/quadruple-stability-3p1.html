@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stability of a 3+1 quadruple star system (GEN.1029) - planetGen docs</title>
+<meta name="description" content="Part of GEN.1006 (overlap-free multi-star systems, overlap-free-systems.md section 5 and 13).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/quadruple-stability-3p1.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/quadruple-stability-3p1.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="stability-of-a-31-quadruple-star-system-gen1029">Stability of a 3+1 quadruple star system (GEN.1029)</h1><p class="meta">docs/design/systems/quadruple-stability-3p1.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-problem">1. The problem</a></li><li style="margin-left:0px"><a href="#2-the-form-chosen-the-authors-network-as-plain-numbers">2. The form chosen: the authors' network as plain numbers</a></li><li style="margin-left:0px"><a href="#3-accuracy">3. Accuracy</a></li><li style="margin-left:14px"><a href="#31-result-of-my-sample">3.1 Result of my sample</a></li><li style="margin-left:0px"><a href="#4-what-it-does-not-cover">4. What it does not cover</a></li><li style="margin-left:0px"><a href="#5-for-the-wiring-gen1016">5. For the wiring (GEN.1016)</a></li><li style="margin-left:0px"><a href="#6-as-built-gen1016-part-1-and-gen1028-core-3-10-30">6. As built: GEN.1016 part 1 and GEN.1028 (Core 3, 10-30)</a></li></ul></details>
+<p>Part of GEN.1006 (overlap-free multi-star systems, <a href="overlap-free-systems.html">overlap-free-systems.md</a> section 5 and 13). This note says which criterion the generator uses for a 3+1 quadruple, how it was ported, how accurate it is, and what it does not cover. The module is <code>physics/quadruple_stability.py</code>; GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QS1 to QS4 in section 6.80 of <a href="../research/gap-filling-plan.html">gap-filling-plan.md</a>.</p>
+<h2 id="1-the-problem">1. The problem</h2>
+<p>A 3+1 quadruple is an inner binary <code>(m1 &gt;= m2)</code>, a third star <code>m3</code> on the intermediate orbit around the binary and a fourth star <code>m4</code> on the outer orbit. <code>physics/stability.py</code> tests a triple at each node ([R1221, R2868], Vynatheya and others 2022 Equation 4). Applied to a quadruple as two nested triples that is right for 66 percent of 3+1 systems (88 percent of 2+2) and calls too many of them stable (precision 0.59): the outer star excites the eccentricity of the intermediate orbit, which destabilises the inner triple, and a triple test cannot see that ([R4575: Tables 3 and 4]).</p>
+<h2 id="2-the-form-chosen-the-authors-network-as-plain-numbers">2. The form chosen: the authors' network as plain numbers</h2>
+<p>The paper's 3+1 classifier is a multi-layer perceptron: 11 inputs, four hidden layers of 50 logistic units, one logistic output (the probability of &quot;unstable&quot;), trained on 5e5 N-body integrations. The authors publish it as a scikit-learn model file (<code>mlp_model_3p1_ghost_v1.2.2.pkl</code>, 209 KB, github.com/pavanvyn/quadruple-stability). Three ways to use it were compared:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Way</th>
+<th>Cost</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>scikit-learn at run time (the authors' script)</td>
+<td>a heavy dependency, a pickle loaded at run time (a pickle can run code), version warnings</td>
+<td>no</td>
+</tr>
+<tr>
+<td>a fitted formula or a table of the network's answers</td>
+<td>loses accuracy; a grid over 11 dimensions is impossible</td>
+<td>no</td>
+</tr>
+<tr>
+<td>the weights as numbers and a numpy forward pass</td>
+<td>8,301 numbers (111 KB of JSON), five matrix products, no new dependency</td>
+<td><strong>chosen</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>The network is a plain feed-forward net, so the port is exact, not a fit. <code>scripts/build_quadruple_stability.py</code> reads the pickle with an unpickler that refuses every global except numpy's array constructors and keeps only the state of every scikit-learn object, so the pickle's code never runs; it refuses any network that is not 11-50-50-50-50-1 logistic. The forward pass equals scikit-learn's <code>predict_proba</code> to 1e-8 on five stored cases and 2000 random inputs (rounded to nine significant digits), and the test file carries the stored cases. No machine-learning library is needed to run it; scikit-learn is not a dependency of the project.</p>
+<p>Inputs (all dimensionless): <code>q_in = m2/m1</code>, <code>q_mid = m3/(m1+m2)</code>, <code>q_out = m4/(m1+m2+m3)</code>, <code>alpha_in_mid = a_in/a_mid</code>, <code>alpha_mid_out = a_mid/a_out</code>, the three eccentricities and the three mutual inclinations (radians, divided by pi inside). The verdict is &quot;stable&quot; when the probability of &quot;unstable&quot; is below 0.5, as in the authors' script. <code>ratios()</code> makes the five ratios from masses and axes; <code>outside_range()</code> names inputs outside the documented range; <code>hierarchy_holds()</code> is the apoapsis-inside-periapsis test the training sample kept.</p>
+<h2 id="3-accuracy">3. Accuracy</h2>
+<p><strong>The authors' figures</strong> (their table 4, 20 percent test set of 1e5 systems, labelled by N-body runs with their ghost criterion): overall 0.93; precision 0.91 stable and 0.95 unstable; recall 0.91 stable and 0.95 unstable. Nested triples (MA01): 0.56 overall, precision 0.54 stable. These are the authors' numbers; their data set is shared &quot;upon reasonable request&quot; and was not obtained, so I could not re-score their test set.</p>
+<p><strong>Reproduced here:</strong> the numpy network gives the scikit-learn probabilities (test: five stored cases to 1e-6, and the builder checks the shape of the net). That is the whole claim about the port; it says nothing about the network's accuracy.</p>
+<p><strong>Independent N-body check (my sample, this lane):</strong> REBOUND 5.2.2 (IAS15), the paper's own labelling rule (100 outer orbits, a twin with the inner axis larger, unstable if the pair diverges by more than 1 percent in the inner axis or any orbit unbinds), masses log-uniform over a decade, isotropic angles, systems near the Mardling-Aarseth boundary. The results are below.</p>
+<h3 id="31-result-of-my-sample">3.1 Result of my sample</h3>
+<p>Two samples, 331 systems that finished (scripts and results: <code>/mnt/project-files/data/gen1029-nbody/</code>, <code>nbody.py</code>, <code>analyse.py</code>). Each system ran twice (original and twin, relative offset 1e-8 of the inner axis, outputs four times per outer orbit), 100 outer orbits; systems that did not finish in 90 s were dropped (none in the second sample).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Systems</th>
+<th>N-body stable</th>
+<th>Network right</th>
+<th>Nested MA01 right</th>
+<th>Network false stable</th>
+<th>Network false unstable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wide: alpha 0.18 to 0.45, margin 0.6 to 5 times the MA01 boundary, 20 percent of MA01-unstable kept</td>
+<td>228</td>
+<td>5</td>
+<td>97.8 percent</td>
+<td>61.0 percent</td>
+<td>5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>near the boundary: alpha 0.10 to 0.30, margin 0.8 to 3, 50 percent of MA01-unstable kept</td>
+<td>103</td>
+<td>14</td>
+<td>89.3 percent (90 percent range 84.5 to 94.2)</td>
+<td>23.3 percent</td>
+<td>10</td>
+<td>1</td>
+</tr>
+<tr>
+<td>both</td>
+<td>331</td>
+<td>19</td>
+<td>95.2 percent</td>
+<td>49.2 percent</td>
+<td>15</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<p>What it shows and does not show:</p>
+<ol>
+<li><strong>The network is far better than the nested test on the same systems</strong> (95 against 49 percent over both samples; the nested test calls 78 of the 103 near-boundary systems stable that the N-body run breaks). This agrees with the paper's finding that nested triples overestimate the stable systems.</li>
+<li><strong>Its accuracy matches the paper's 93 percent only roughly, and its precision for &quot;stable&quot; is lower.</strong> On the near-boundary sample 13 of 14 truly stable systems were found (recall 0.93) but 10 of 23 predicted stable broke (precision 0.57, the paper has 0.91). The sample has few stable systems (19 of 331) against about half in the authors' set, so the stable-class numbers have wide error; all-unstable guessing scores 86 percent on the near-boundary sample, so the score alone proves little and the false-stable count matters more.</li>
+<li><strong>My labels are not the authors' labels.</strong> Their code (MSTAR, a regularised integrator), the size of the twin offset (1e-6 au on an unknown inner axis), the output cadence, the 5-hour cutoff and their exact sampling of the boundary are not all stated; the divergence rule is sensitive to the offset (phase drift of a regular system alone gave a divergence of 0.6 percent at a relative offset of 1e-6, which is why I used 1e-8). Treat 89 to 95 percent as agreement within the uncertainty of the method, not a re-measurement of 93.</li>
+<li><strong>Conclusion for the generator:</strong> the network is the right tool for a 3+1 node; use it as the verdict after the nested-triple screen, and treat a &quot;stable&quot; verdict as likely rather than certain (a quarter to a half of near-boundary &quot;stable&quot; calls may break within 100 outer orbits by this check), so keep a margin on the axis ratio of systems it calls stable. The margin is a stand-in for GEN.1016 to register.</li>
+</ol>
+<h2 id="4-what-it-does-not-cover">4. What it does not cover</h2>
+<ol>
+<li><strong>Stable means 100 outer orbits and not chaotic.</strong> It is a short-span chaos test, not a guarantee for a stellar lifetime. Slow secular evolution (Lidov-Kozai cycles longer than 100 outer orbits) is not in the label.</li>
+<li><strong>Training range.</strong> Masses within a factor 10, eccentricities to 0.95, isotropic angles, systems kept near the Mardling-Aarseth boundary of the two nested triples (20 percent of the MA01-unstable draws kept). Far from the boundary (very wide or very tight) the network extrapolates; <code>outside_range</code> flags mass ratios above 3 (<code>q_mid</code>) and 2 (<code>q_out</code>) as the authors' script advises. The axis ratios are not given a range by the paper.</li>
+<li><strong>Only 3+1.</strong> The 2+2 network is a separate module function set (<code>*_2p2</code>, GEN.1031, <a href="quadruple-stability-2p2.html">quadruple-stability-2p2.md</a>).</li>
+<li><strong>No arguments of periapsis or mean anomalies</strong> are inputs, so two systems that differ only in them get the same verdict (the paper says they can matter).</li>
+<li><strong>Licence.</strong> The authors' repository has no licence file (the raw <code>LICENSE</code> returned 404 on 10-30). The weights are numbers from a published, citable model; Boss handles DATA-LICENSE.md. Cite [R4575] wherever the rule is used.</li>
+</ol>
+<h2 id="5-for-the-wiring-gen1016">5. For the wiring (GEN.1016)</h2>
+<p>Call <code>quadruple_stability.is_stable(*ratios(...), e_in, e_mid, e_out, i_in_mid, i_in_out, i_mid_out)</code> on every 3+1 node of a tree after the nested-triple screen; treat <code>outside_range(...)</code> non-empty as &quot;lower confidence&quot; (the verifier of overlap-free-systems.md section 4.7 flags it) and keep the nested-triple test with a margin as the first screen. Use a different criterion in the verifier from the generator: EK95 for the triples, this network for the 3+1 node in the generator only.</p>
+<h2 id="6-as-built-gen1016-part-1-and-gen1028-core-3-10-30">6. As built: GEN.1016 part 1 and GEN.1028 (Core 3, 10-30)</h2>
+<p><strong>What is in the code now, lock-free</strong> (nothing the generator calls changes; <code>physics/hierarchy_stability.py</code> is read by tests only until the wiring merges on its train).</p>
+<ol>
+<li><strong>The Mardling and Aarseth range (GEN.1028).</strong> <code>stability.MA01_Q_OUT_MAX</code> is 5, the paper's own limit (registry row GM12). <code>stability.criterion</code> picks Equation 4 inside its fit, Mardling and Aarseth where <code>q_out &lt;= 5</code> holds, and Eggleton and Kiseleva beyond that; a <code>required_axis_ratio</code> asked for <code>&quot;ma01&quot;</code> by name past 5 raises. Generation almost never reached the old case (150 systems: 1 of 294 triple tests used Mardling and Aarseth at all, none past 5); the case it did change is a satellite pair about a star in the hosting gate (<code>hosting_gate.stable_orbit_exists</code>), where Equation 4 stops at <code>q_out</code> 100 and the old fallback asked the Earth and the Moon for an axis ratio of 430 against the real 390.</li>
+<li><strong>Triple levels with a margin.</strong> <code>hierarchy_stability.verdicts(nodes, members)</code> judges every node that has a sub-node for a child as a triple at <code>level_margin</code> times the criterion's axis ratio (1.0, none, row GM8, because the nested test is right for 88 percent of 2+2 systems).</li>
+<li><strong>The 3+1 quadruple.</strong> Both of its triple levels must pass, then the network must call the system stable with <code>alpha_in_mid</code> and <code>alpha_mid_out</code> both multiplied by <code>axis_margin</code> 1.3 (row GM13). The 1.3 is read off the 331 REBOUND systems of section 3 (<code>/mnt/project-files/data/gen1029-nbody/</code>): the plain network was right on 18 of its 33 stable calls (0.55), at 1.1 on 14 of 19 (0.74), at 1.3 on 8 of 9 (0.89, the paper reports 0.91) keeping 0.42 of the truly stable systems, at 1.5 on 5 of 5 keeping 0.26. Outside what the authors documented (<code>outside_range</code>, or apsides that overlap) both triples must clear <code>fallback_margin</code> 1.5 (row GM7) and the verdict says <code>confident=False</code>.</li>
+<li><strong>The 2+2 quadruple</strong> (GEN.1031 ported its network): both nested triples (each pair with the other pair as the third body) must pass at the level margin, then the 2+2 network must call it stable with <code>alpha_in1_out</code> and <code>alpha_in2_out</code> both multiplied by its <code>axis_margin</code> 1.3 (row GM14). That 1.3 is the 3+1 margin carried over: there is no 2+2 N-body sample of our own behind it (tweak L4), and an own sample replaces it. Outside the network's range or with overlapping apsides the fallback is the same as for 3+1 (both triples at 1.5, <code>confident=False</code>).</li>
+</ol>
+<p><strong>What the generator draws today</strong> (<code>/mnt/project-files/reports/gen1016-quadruple-need-2026-10-30.md</code>, 300 seeds of <code>STARS = 4</code>, no planets): 166 trees are 3+1 and 134 are 2+2. Every triple level passes, as the generator promises. Of the 166 3+1 trees, none is outside the network's range, 68 (41 percent) are called unstable by the plain network and 91 (55 percent) with the margin. The middle orbit is eccentric (median <code>e_mid</code> 0.33) and the outer one more so (median <code>e_out</code> 0.65), which is the case the nested test cannot see. So the wiring has to enforce the 3+1 verdict while the system is drawn, or most 3+1 systems of the galaxy would be tight enough to be disrupted in the network's 100 outer orbits. With the 2+2 network the 134 2+2 trees give 5 unstable without the margin (4 percent) and 16 with it (12 percent): the nested test said stable for all of them.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

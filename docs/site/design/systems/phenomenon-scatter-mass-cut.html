@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phenomenon scatter: a lowest-mass cut, filled below at sector time - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-09 19:54Z): &quot;we need to have the phenomena scatter use a lower rate, this is about mass, so recommend a lowest-mass-limit to still provide good gravitational data across the unfilled galaxy but does not overload the system ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/phenomenon-scatter-mass-cut.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/phenomenon-scatter-mass-cut.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="phenomenon-scatter-a-lowest-mass-cut-filled-below-at-sector-time">Phenomenon scatter: a lowest-mass cut, filled below at sector time</h1><p class="meta">docs/design/systems/phenomenon-scatter-mass-cut.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#the-answer-in-short">The answer in short</a></li><li style="margin-left:0px"><a href="#correcting-the-counts">Correcting the counts</a></li><li style="margin-left:0px"><a href="#what-mass-the-scatter-has-and-what-it-is-for">What mass the scatter has, and what it is for</a></li><li style="margin-left:0px"><a href="#the-tidal-sphere-makes-the-choice">The tidal sphere makes the choice</a></li><li style="margin-left:0px"><a href="#the-cuts">The cuts</a></li><li style="margin-left:0px"><a href="#what-the-sector-fill-does">What the sector fill does</a></li><li style="margin-left:0px"><a href="#reproducibility">Reproducibility</a></li><li style="margin-left:0px"><a href="#what-this-does-to-db19-and-to-the-scatter">What this does to DB.19 and to the scatter</a></li><li style="margin-left:0px"><a href="#proposed-items-the-todo-thread-assigns-ids">Proposed items (the TODO thread assigns IDs)</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#the-star-passes-gen185-2026-10-10">The star passes (GEN.185, 2026-10-10)</a></li><li style="margin-left:0px"><a href="#the-map-luminosity-of-a-mass-gen200-2026-10-10">The map luminosity of a mass (GEN.200, 2026-10-10)</a></li><li style="margin-left:0px"><a href="#what-a-run-at-the-default-cut-places-gen677">What a run at the default cut places (GEN.677)</a></li></ul></details>
+<p>Boss (2026-10-09 19:54Z): &quot;we need to have the phenomena scatter use a lower rate, this is
+about mass, so recommend a lowest-mass-limit to still provide good gravitational data across
+the unfilled galaxy but does not overload the system with creation, then when we make a
+sector we'll fill it with the proper number below that mark, similar to how we do bright
+stars.&quot; This note picks the cut with numbers, says how the sector fill draws what lies below
+it, and what that does to reproducibility and to DB.19. It extends
+<a href="../generation/generation-performance-study.html">generation-performance-study.md</a> (which found 1.06e9
+phenomenon rows) and uses the influence rule of <a href="../orbits/orbital-updates.html">orbital-updates.md</a> and the
+potential of <a href="../galaxy/galactic-potential.html">galactic-potential.md</a>.</p>
+<p>Informs: DB.19, GEN.100, GEN.104, GEN.109, GEN.115, PERF.31</p>
+<p>Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); extended 2026-10-10 by the star passes of GEN.185 (below); Boss accepted the 20 solar mass cut on a decision card (2026-10-09).</p>
+<p>Update (Boss, 2026-10-10 03:01Z): the cut becomes a user setting with preset values between 8 and 20 solar masses (GEN.183; the default became 8 on 2026-10-10, GEN.188), the bright-star luminosity floor becomes a preset from 2500 to 4,000,000 L_sun with a default of 5,000 (GEN.184, changed by GEN.188), and the scatter runs in five passes (GEN.185). The fixed 20 solar mass cut and the 1000 L_sun default below are superseded as defaults.</p>
+<p><strong>Update (DOC.62, measured 2026-10-16, 9:37 to 10:07 PM EDT): the figures below are the older estimates.</strong> The built default is a 14 solar mass phenomena cut, not 20 and not no cut, so the default scatter is about 75.5 million rows, not 1.17e9 rows and 161 GB or 2.7e5 rows. Measured 9:37 to 10:07 PM EDT on 2026-10-16 on a 4-core box (1 GB InnoDB buffer pool, MySQL 8, Python 3.13, main at 8.0.1617, default galaxy shape, seed 0123456789abcdef0123456789abcdef; the read-only investigation is in /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md; another server will differ):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Result</th>
+<th>Time</th>
+<th>Disk</th>
+<th>How known</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skeleton, 157 clusters, 11 satellites</td>
+<td>3,764 shells, about 2.2e11 candidate sectors</td>
+<td>3 s</td>
+<td>negligible</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Phenomena (black holes, neutron stars, nebulae, remnants, from 14 solar masses)</td>
+<td>about 75.5 million rows, 231 bytes a row with two indexes</td>
+<td>about 46 minutes of writes at 4 workers (12.1 million rows in 8.6 minutes, about 23,500 rows a second, peaks 35,000)</td>
+<td>about 17.5 GB while writing, about 21 GB with the two indexes rebuilt</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Phenomena tail: two index builds, nebula field (about 700,000 clouds), epoch stamp</td>
+<td>not reached</td>
+<td>20 to 40 minutes</td>
+<td>included above</td>
+<td>estimate, not measured</td>
+</tr>
+<tr>
+<td>Massive stars</td>
+<td>265,909 rows</td>
+<td>about 8.5 minutes</td>
+<td>under 1 GB for all star rows with members</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Bright stars</td>
+<td>778,980 rows (388,624 of them halo, at the 500 solar luminosity halo floor)</td>
+<td>about 12 minutes</td>
+<td></td>
+<td>measured; both star passes together took 1,222.8 s for 1,044,932 rows</td>
+</tr>
+</tbody>
+</table></div>
+<p>A full rescatter (a plain <code>planetgen plan</code>) on that box takes about 1.5 to 2 hours and about 22 GB; the two star passes alone are 20.4 minutes and under 1 GB.</p>
+<p><strong>Update (Boss, 2026-10-10 07:49Z):</strong> the defaults are now 14 solar masses (middle of the 8 to 20 presets) and a 9,000 solar luminosity floor (both are presets); the 8 and 5,000 mentioned below were the defaults before this change.</p>
+<p><strong>Update (Boss, 2026-10-10 04:38Z):</strong> the mass limit default is now 8 solar masses (it was 20), the lowest preset. The mass slider and the luminosity floor dropdown sit next to each other on the Generate page and also appear in the New galaxy section. This replaces &quot;default 20&quot; wherever it appears below (GEN.183, GEN.184; see GEN.188).</p>
+<p><strong>Update (Boss, 2026-10-10 08:28Z, GEN.195):</strong> the cut is split. <code>--phenomenon-min-mass</code> (presets 8 to 20) is now the stellar mass limit and governs stars only (<code>galaxy_shape.bright_star_mass_limit_sol</code>). Neutron stars and black holes have their own limit, <code>--compact-min-mass</code> (1, 2, 4 or 6 solar masses, or <code>star</code> to use the stellar limit, the default), stored as <code>galaxy_shape.phenomenon_min_mass_solar</code>. Left out, the compact limit follows a <code>--phenomenon-min-mass</code> given in the same run, else keeps the stored cut. The central supermassive black hole or quasar is always created, whatever either limit says (<code>nucleus_row</code>, tested over every combination). On the Generate page the control sits with the other two scatter limits in Plan and New galaxy, with the database cost beside it (1 solar mass about 1.2 billion rows, 161 GB; 2 about 390 million, 54 GB; 4 about 220 million, 30 GB; 6 about 200 million, 28 GB).</p>
+<p>As built: the cut is <code>galaxy_shape.phenomenon_min_mass_solar</code> and <code>--phenomenon-min-mass</code> (in the settings file's plan settings). Since GEN.183 it is one of the presets 8, 10, 12, 14, 16, 18 and 20 (<code>tuning.PHENOMENON_MIN_MASS_PRESETS</code>, default 20; the CLI refuses any other), picked on the Generate page by a slider in the galaxy-shape and plan forms, which pass it to the plan step and the star scatter step. Without the flag a scatter reuses the limit already stored with the galaxy (a rebuild of the bright stars keeps the plan's limit), else 20; the scatter's classes are <code>phenomenon_scatter.SCATTER_CLASSES</code>, and a sector's below-cut draw is <code>phenomenon_scatter.below_cut_draws</code> with <code>run_sector.add_below_cut_remnants</code>. No per-sector level or band top-up was needed: a filled sector already holds every mass (its scattered rows above the cut, its own draw below), and a rescatter at a new cut (<code>planetgen plan --phenomena-only</code>) replaces the rows of every unfilled cell and leaves filled ones out, so nothing is missing or doubled whichever way the cut moves.</p>
+<p>Evidence tags: [C] computed or measured here (<code>/mnt/project-files/research/scripts/genperf/</code>:
+<code>default_totals.py</code>, <code>mass_cut_table.py</code>, <code>walk_cost.py</code>); [S] read in the repository; [R] recalled and unconfirmed.</p>
+<h2 id="the-answer-in-short">The answer in short</h2>
+<ol>
+<li><strong>Recommended cut: 20 solar masses.</strong> The scatter then keeps the intermediate-mass black
+holes (100 to 100,000 solar masses) and the other kinds that are not drawn by mass (planetary
+nebulae, supernova remnants, hypervelocity stars, the nucleus): about <strong>2.7e5 rows instead of
+1.17e9</strong>, 37 MB instead of 161 GB [C]. Every neutron star (1.1 to 2.2) and every stellar-mass
+black hole (5 to 20) is drawn when its sector is made.</li>
+<li><strong>Why 20.</strong> An object's influence reaches its Hill (tidal) sphere, <code>r_t = 1.44 pc (m / Msun)^(1/3)</code>
+[C]; that equals one 4 pc sector edge at 21 solar masses. Below that, an object's pull ends within
+about one sector of where it sits, and the sector fill (with its neighbours) covers that. Above
+it, an object matters to sectors that may never be filled, so it needs a row. 20 is also the
+model's stellar-black-hole maximum, so the cut falls in the gap between &quot;stellar&quot; and &quot;intermediate&quot;.</li>
+<li><strong>The error is small for every cut, because it is flat.</strong> The whole range of cuts, from keeping
+everything to keeping only the intermediate-mass holes, moves the missing share of the local mass
+density from 0 to 1.8%, and the share of objects with a missing remnant inside their influence
+sphere from 0 to 2.2% [C]. Cutting at 20 costs 2.2 points for 4,000 times fewer rows; no cut in
+between buys a point of error for fewer than 2e8 rows.</li>
+<li><strong>The galactic field is untouched.</strong> The field is the analytic Hernquist, Miyamoto-Nagai and NFW
+potential, which already holds the local mass density of 0.10 Msun/pc3 [S]; the scattered remnants
+are not in it and were never needed for it.</li>
+<li><strong>Where the 1.6e8 came from:</strong> an unverified estimate, not a result. See &quot;Correcting the counts&quot;.</li>
+</ol>
+<h2 id="correcting-the-counts">Correcting the counts</h2>
+<p>Three figures disagreed; this fixes them.</p>
+<ul>
+<li><strong>The 1.6e8 rows</strong> appear in <code>docs/plan/notes.md</code> (a line of 2026-10-09 08:15Z, written when GEN.100
+shipped) and in <code>db-check-and-parity-repair.md</code>, whose own text calls it &quot;unverified&quot; and derives its
+21 GB from &quot;a 5.0 million row copy&quot; scaled by 32 [S]. Nothing in the code derives it. The default
+galaxy's nominal counts are 1.18e9 neutron stars and <strong>1.48e8 black holes</strong> [C], so the figure matches
+the black holes alone, not the total.</li>
+<li><strong>The default galaxy</strong> has 2.953e11 systems, 2,041 layers and an outer ring of 3,763 [C]. At the
+tuned rates (<code>tuning.phenomenon_rate_per_star</code>: neutron stars 4e-3, black holes 5e-4, planetary
+nebulae 1e-7, supernova remnants 7.1e-8) the nominal rows are 1.18e9 neutron stars, 1.48e8 black
+holes, 2.95e4 planetary nebulae and 2.1e4 supernova remnants [C].</li>
+<li><strong>What the scatter actually draws</strong> is 64 times the quarter-scale run (18,241,331 rows, so about
+<strong>1.17e9 rows and 161 GB at 138 B a row</strong>), not the 1.06e9 and 146 GB that
+<code>phenomenon_scatter.layer_expected</code> gave the earlier note; that estimate is the progress bar's
+weight and runs 10% low [C]. The split is 9.5e8 neutron stars and 2.2e8 black holes.</li>
+</ul>
+<p><strong>Decided (Boss, 2026-10-10 18:44Z, GEN.169): keep the regional factors and the 0.1% intermediate-mass share as they are.</strong> Against the nominal rates the neutron stars come out 0.80 times and the black
+holes 1.49 times [C], because the regional factors of GEN.132 (<code>remnant_distribution.placement_factor</code>,
+vertical scale-height ratios 3.0 and 2.5, the black holes' core excess) multiply the bin weights without
+renormalising. His retune of 2026-10-09 said &quot;1e9 neutron stars and 1e8 black holes&quot;; the scatter yields
+9.5e8 and 2.2e8, so the black holes are 2.2 times his stated total. If &quot;the rate is the total&quot; is the
+intent, divide each kind's weights by their mean factor. The cut below does not depend on it, except that
+the intermediate-mass black holes (0.1% of the black holes) would drop from 2.2e5 to 1e5.</p>
+<h2 id="what-mass-the-scatter-has-and-what-it-is-for">What mass the scatter has, and what it is for</h2>
+<p>Masses are drawn when a row is built into an object, from the row's seed [S]:
+neutron stars uniform 1.1 to 2.2 (mean 1.65); stellar-mass black holes uniform 5 to 20 (mean 12.5);
+with a 0.1% chance a black hole is intermediate-mass, log-uniform 100 to 1e5 (mean 14,500) [S]. So 99.9%
+of the black holes are below 20 and the 0.1% above it carry <strong>53% of all black-hole mass</strong> (2.2e5 holes
+of 14,500 mean: 3.2e9 solar masses against 2.7e9 in the stellar ones) [C]. If that share is not what Boss
+meant by 0.1%, it is a tuning question (BLACK_HOLE_INTERMEDIATE_MASS_CHANCE), not a cut question.
+(GEN.259, 2026-10-17: Boss chose &quot;hundreds&quot;; the chance is now 3e-6, about 300 intermediate-mass holes carrying 0.35% of the black-hole mass (4.4e6 solar masses against 1.25e9), and the 2.2e5 and 53% above are the 0.1% figures.)</p>
+<p>Two jobs for a pre-placed mass:</p>
+<ol>
+<li><strong>The galactic field.</strong> The model is analytic and already contains the local density of
+0.1008 Msun/pc3 [S]. A neutron star or black hole is a former star that the density already counts.
+Local mass in the remnants is 9.2e-4 (neutron stars), 8.7e-4 (stellar black holes) and 1.0e-3
+(intermediate-mass) Msun/pc3 [C], 0.9%, 0.9% and 1.0% of the field. Dropping rows changes the
+field by zero, because the field is not summed from rows.</li>
+<li><strong>The influence set.</strong> For each object visited, the influence radius is the Hill sphere of the largest
+nearby object, and the point masses inside it are summed with the galactic gradient
+(<a href="../orbits/orbital-updates.html">orbital-updates.md</a> section 1) [S]. A missing remnant matters when it lies inside
+that sphere. That is the only place a row's mass changes a result.</li>
+</ol>
+<h2 id="the-tidal-sphere-makes-the-choice">The tidal sphere makes the choice</h2>
+<p>For a body of mass m in the galaxy's flat rotation curve, <code>r_t = (G m / (4 Omega^2 - kappa^2))^(1/3)</code>
+with Omega = 220 km/s over 8.2 kpc and kappa^2 = 2 Omega^2 gives <strong>1.44 pc for one solar mass</strong>, which
+matches the 1.4 pc the orbital-updates note quotes [C][S]. The sphere's volume is proportional to the
+mass (<code>12.5 pc3</code> per solar mass). Two consequences:</p>
+<ul>
+<li>The chance that a visited object lies inside the tidal sphere of some remnant is
+<code>12.5 pc3/Msun times the local mass density of those remnants</code>. This is the error measure below.</li>
+<li>A remnant's sphere is wider than a sector (4 pc) from <code>(4 / 1.44)^3 = 21</code> solar masses. Under that
+mass its influence stays within the sector it is in plus the ring of sectors around it.</li>
+</ul>
+<h2 id="the-cuts">The cuts</h2>
+<p>At the default galaxy (counts: quarter-scale scatter times 64; mass laws from <code>tuning</code>) [C]. &quot;In
+reach&quot; is the share of visited objects whose influence sphere holds a missing remnant, valid where all
+the surrounding sectors are unfilled; inside a filled block it is zero.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Cut (Msun)</th>
+<th>Neutron-star rows</th>
+<th>Black-hole rows</th>
+<th>All rows</th>
+<th>GB at 138 B</th>
+<th>GB at 45 B</th>
+<th>NS mass kept</th>
+<th>BH mass kept</th>
+<th>Missing mass, share of local density</th>
+<th>Objects with a missing remnant in reach</th>
+<th>Heaviest missing, tidal radius</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>none (today)</td>
+<td>9.47e8</td>
+<td>2.20e8</td>
+<td>1.17e9</td>
+<td>161</td>
+<td>53</td>
+<td>100%</td>
+<td>100%</td>
+<td>0%</td>
+<td>0%</td>
+<td>none</td>
+</tr>
+<tr>
+<td>1.65</td>
+<td>4.74e8</td>
+<td>2.20e8</td>
+<td>6.93e8</td>
+<td>96</td>
+<td>31</td>
+<td>58%</td>
+<td>100%</td>
+<td>0.38%</td>
+<td>0.5%</td>
+<td>1.7 pc</td>
+</tr>
+<tr>
+<td>2.0</td>
+<td>1.72e8</td>
+<td>2.20e8</td>
+<td>3.92e8</td>
+<td>54</td>
+<td>18</td>
+<td>23%</td>
+<td>100%</td>
+<td>0.70%</td>
+<td>0.9%</td>
+<td>1.8 pc</td>
+</tr>
+<tr>
+<td>2.2 to 5</td>
+<td>0</td>
+<td>2.20e8</td>
+<td>2.20e8</td>
+<td>30</td>
+<td>10</td>
+<td>0%</td>
+<td>100%</td>
+<td>0.92%</td>
+<td>1.2%</td>
+<td>1.9 to 2.5 pc</td>
+</tr>
+<tr>
+<td>10</td>
+<td>0</td>
+<td>1.46e8</td>
+<td>1.46e8</td>
+<td>20</td>
+<td>6.6</td>
+<td>0%</td>
+<td>91%</td>
+<td>1.09%</td>
+<td>1.4%</td>
+<td>3.1 pc</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0</td>
+<td>7.3e7</td>
+<td>7.3e7</td>
+<td>10</td>
+<td>3.3</td>
+<td>0%</td>
+<td>75%</td>
+<td>1.38%</td>
+<td>1.7%</td>
+<td>3.6 pc</td>
+</tr>
+<tr>
+<td><strong>20</strong></td>
+<td>0</td>
+<td><strong>2.2e5</strong></td>
+<td><strong>2.7e5</strong></td>
+<td><strong>0.04</strong></td>
+<td><strong>0.01</strong></td>
+<td>0%</td>
+<td>54%</td>
+<td><strong>1.78%</strong></td>
+<td><strong>2.2%</strong></td>
+<td>3.9 pc</td>
+</tr>
+<tr>
+<td>100</td>
+<td>0</td>
+<td>2.2e5</td>
+<td>2.7e5</td>
+<td>0.04</td>
+<td>0.01</td>
+<td>0%</td>
+<td>54%</td>
+<td>1.78%</td>
+<td>2.2%</td>
+<td>3.9 pc</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>0</td>
+<td>1.5e5</td>
+<td>2.0e5</td>
+<td>0.03</td>
+<td>0.01</td>
+<td>0%</td>
+<td>53%</td>
+<td>1.79%</td>
+<td>2.3%</td>
+<td>14 pc</td>
+</tr>
+</tbody>
+</table></div>
+<p>The &quot;other&quot; rows (planetary nebulae, supernova remnants, hypervelocity stars, the nucleus) are 5.0e4
+and are kept at every cut: they are few, and they are not placed by mass.</p>
+<p>Reading it:</p>
+<ul>
+<li><strong>There is no knee until 20.</strong> Each solar mass of cut between 5 and 20 removes 1.5e7 rows and adds
+0.06 points of error; the neutron stars (9.5e8 rows) are worth 1.2 points as a whole. The
+intermediate-mass holes are worth 1.3 points for 2.2e5 rows, so they are the only kind where a row
+buys much, and they are the kind with tidal spheres far wider than a sector (14 pc at 1,000, 67 pc at
+1e5).</li>
+<li><strong>A budget view:</strong> the bright-star scatter writes 2.6e7 rows. A cut that spent as many rows on
+remnants (about 18 Msun) buys 0.13 points over 20. 20 is the cut.</li>
+<li><strong>If Boss wants every stellar black hole placed</strong> (cut 5, 2.2e8 rows, 10 GB compact), the error falls
+to 1.2% and the scatter costs about 2 CPU-hours more; I do not recommend it, but the knob supports it.</li>
+</ul>
+<h2 id="what-the-sector-fill-does">What the sector fill does</h2>
+<p>Same pattern as the bright-star band (<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_plan.py">run_plan.py</a>
+<code>_draw_sector_bands</code>, <code>bright_share</code>): the plan stores the cut, every sector remembers the floor it was
+filled to, and the fill draws exactly what the scatter left out.</p>
+<ol>
+<li><strong>Count.</strong> A kind's objects in a sector are Poisson with mean <code>rate_k × expected stars × regional factor</code>, split by Poisson thinning into independent counts above and below the cut. The scatter draws
+<code>lambda × S_k(c)</code> per ring bin, where <code>S_k(c)</code> is the share of the kind's mass law above the cut
+(neutron stars <code>(2.2 - c)/1.1</code>, stellar holes <code>(20 - c)/15</code>, intermediate <code>ln(1e5/c)/ln(1e3)</code>, clamped
+to 0 to 1). The sector draws <code>lambda × (1 - S_k(c))</code>, with <code>lambda</code> taken from the same expected-star
+count the scatter used (the ring-bin density), not from the sector's rolled star count, so the totals
+match the plan's statistics rather than adding the sector's own Poisson variance on top. Treat the two
+black-hole classes (stellar, intermediate) as separate kinds with rates <code>0.999 r</code> and <code>0.001 r</code>.</li>
+<li><strong>Mass.</strong> Inverse-CDF from the same law, truncated: above the cut <code>m = max(c, lo) + u (hi - max(c, lo))</code>
+(log-uniform for the intermediate class); below it <code>m = lo + u (min(c, hi) - lo)</code>. The constructors of
+<code>NeutronStar</code> and <code>BlackHole</code> need a <code>mass_range</code> argument in place of their fixed
+<code>draw.uniform(*tuning...)</code> (<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/compact_remnant.py">compact_remnant.py</a>
+lines 255 to 265, 464) so that a stored row's seed rebuilds the same mass it was drawn with.</li>
+<li><strong>Place.</strong> Uniformly in the sector's cell, as a rogue planet is, with a sector-level regional factor
+(sectors are 4 pc; the scatter's bin weights are for the galaxy-wide walk).</li>
+<li><strong>Level.</strong> The sector records the cut it was filled under (a column beside the bright-star level in
+<code>sector_stats</code>), so a later lower cut is a band: the scatter draws <code>[c_new, c_old)</code> into unfilled cells
+and the top-up draws the same band into filled sectors, as <code>_needs_band</code> does for stars.</li>
+</ol>
+<p>Cost: the same number of neutron stars and black holes is built across the galaxy as today; the sector
+draws them instead of reading rows, so the fill gains no work and loses one SELECT. A 205-system sector
+holds 0.8 neutron stars and 0.1 black holes on average [C].</p>
+<h2 id="reproducibility">Reproducibility</h2>
+<ul>
+<li>Above-cut rows keep per-layer streams (<code>{seed}:phenomena:{layer}</code>), so layers can still be drawn in any
+order or in workers. Truncating the means changes every downstream draw in those streams once: the same
+seed gives a different galaxy than before the change (no backward compatibility, Boss 2026-10-07).</li>
+<li>Below-cut objects come from a per-sector stream (<code>{seed}:phenomena-fill:{ring}:{layer}:{slot}</code>,
+SHA-256-derived like the other per-unit seeds, <code>reproducible-galaxies.md</code>), so a sector's remnants are the
+same whichever sectors are filled and in whatever order, and do not depend on whether a neighbour is filled.</li>
+<li>The cut is part of the plan: store it in the scatter settings and the settings file, and include it in the
+inputs of the reproducibility key, as the bright-star threshold is. Same seed and same cut give the same
+galaxy; a different cut is a different galaxy until the band is drawn.</li>
+<li>Rebuilding a row needs the cut that drew it (the mass range is part of the object's draw), so a changed
+cut means a rescatter of the layer, not a patch of rows.</li>
+</ul>
+<h2 id="what-this-does-to-db19-and-to-the-scatter">What this does to DB.19 and to the scatter</h2>
+<ul>
+<li><strong>DB.19's two options become unnecessary at a cut of 20.</strong> 2.7e5 rows of 138 bytes are 37 MB. Neither
+deriving neutron stars and black holes on demand nor a compact row is needed; keep the compact row as the
+fallback if Boss lowers the cut to 10 or below (1.5e8 rows, 6.6 GB compact).</li>
+<li><strong>The scatter's remaining cost is the ring walk.</strong> With the rates scaled to nothing the quarter-scale
+layer 0 still takes 0.24 s (941 rings, 0.26 ms a ring) [C]. The default galaxy has 3,136,126 rings, so
+about 815 CPU-s (14 CPU-minutes, 4 minutes at 4 workers) against 10 to 12 CPU-hours of rows before (1.17e9 at 32 to 37 us); that walk is the
+next thing to cache if it matters (<code>population_densities</code> per ring bin).</li>
+<li><strong>The phenomenon scatter stops dominating <code>planetgen plan</code>:</strong> about 14 CPU-minutes and 2.7e5 inserts
+against the bright-star scatter's 39 CPU-minutes warm.</li>
+<li><strong>What is lost.</strong> Neutron stars and stellar-mass black holes of unfilled space no longer exist as rows,
+so a search for &quot;nearest neutron star&quot; or a map layer of remnants shows only the heavy ones, plus whatever
+sectors have been filled, exactly as ordinary stars below the bright-star threshold behave. The density
+tiles of the Galaxy Map come from the analytic model and are unaffected.</li>
+</ul>
+<h2 id="proposed-items-the-todo-thread-assigns-ids">Proposed items (the TODO thread assigns IDs)</h2>
+<ol>
+<li>A plan parameter, <code>--phenomenon-min-mass</code> (default 14 solar masses since 2026-10-10 07:49Z; 8 under GEN.188, 20 at first), stored with the scatter settings and
+in the settings file and the reproducibility key; the scatter draws only objects above it (GEN.100
+follow-up).</li>
+<li>A truncated mass draw and <code>mass_range</code> argument on <code>NeutronStar</code> and <code>BlackHole</code> (and the intermediate
+class as its own kind), so a row's seed rebuilds its mass.</li>
+<li>The sector fill's below-cut draw: per-sector stream, Poisson thinning from the scatter's expected-star
+count, level recorded per sector, band top-up when the cut is lowered (the bright-star pattern).</li>
+<li>DB.19: reword to &quot;implement the cut; derive-on-demand and compact rows only if the cut goes to 10 or below.&quot;</li>
+<li>Decided (Boss, 2026-10-10 18:44Z, defaults approved; GEN.169): keep both as they are. The regional factors stay
+unrenormalised and the 0.1% intermediate-mass share stays. The question was: renormalise the regional factors so each kind's total equals rate times stars (today
+neutron stars 0.80 and black holes 1.49 of nominal), and whether 0.1% intermediate-mass black holes
+(53% of black-hole mass) is intended.</li>
+<li>Correct <code>docs/plan/notes.md</code> and <code>db-check-and-parity-repair.md</code>: replace 1.6e8 by the computed counts
+(1.17e9 before the cut, 2.7e5 after) so DB.15 and the parity repair size their work for the right table.</li>
+</ol>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p><code>default_totals.py</code> builds the plan's skeleton in memory (defaults: 2600 pc scale length, 300 pc height,
+1580 pc bulge radius) at scale 0.25 and 1.0 and sums the expected systems, bright stars and nominal
+phenomenon rows. <code>mass_cut_table.py</code> prints the table from <code>tuning</code>'s mass laws and the quarter-scale
+scatter counts. <code>walk_cost.py</code> times the ring walk with the rates at 1e-6. The scatter counts are from the
+quarter-scale run of the performance study (14.8M neutron stars, 3.43M black holes, 445 planetary nebulae,
+306 supernova remnants, 1,765 hypervelocity stars). The local density of 0.1008 Msun/pc3 and the flat
+220 km/s curve are from <code>galactic-potential.md</code>; the 1.44 pc tidal radius is computed here and agrees with
+the 1.4 pc of <code>orbital-updates.md</code>. The local remnant mass densities use the rates at the solar
+neighbourhood (<code>PHENOMENON_DENSITY_PC3</code>), not the scatter's regional factors.</p>
+<h2 id="the-star-passes-gen185-2026-10-10">The star passes (GEN.185, 2026-10-10)</h2>
+<p>Boss (2026-10-10 03:01Z) set the order of the whole scatter: (1) quasars, black holes and the other objects above the mass
+limit, (2) the stars above the mass limit, (3) mark each sector with the luminosity of the star scattered in it, (4) the stars
+above the luminosity limit, skipping every sector marked at or above that limit, (5) the other phenomena (no comets, no rogue
+planets). How it is read and built:</p>
+<ul>
+<li><strong>One mass limit.</strong> The cut of this note (<code>galaxy_shape.phenomenon_min_mass_solar</code>, <code>--phenomenon-min-mass</code>, 8 to 20 solar
+masses, default 8) now also divides the stars. Passes 1 and 5 are the phenomenon scatter, which draws nothing from the stars,
+so the order between them and the star passes cannot show; <code>planetgen plan</code> runs it first, then the star passes.</li>
+<li><strong>Pass 2, the mass pass</strong> (<code>bright_stars.scatter</code> with <code>mass_range=(limit, None)</code>, luminosity floor at the brightest white
+dwarf): every star born with at least the limit, bright or not. At 8 solar masses a main-sequence star shines at about 2,000
+solar luminosities, so below a 5,000 floor the mass pass still places the stars the luminosity pass alone would have missed.</li>
+<li><strong>Pass 3, the marks</strong> are not stored: <code>store.bright_star_marked_addresses</code> reads them from the mass pass's own rows (a star
+born at or above the limit and at least as bright as the floor) between the passes. Each sector keeps the brightest star it
+was given, so &quot;equal to or above the setting&quot; is simply &quot;holds one&quot;.</li>
+<li><strong>Pass 4, the luminosity pass</strong> draws the stars born lighter than the limit and at least the floor bright
+(<code>mass_range=(None, limit)</code>), in the unmarked sectors only. A marked sector therefore gets no second bright star; this thins the
+bright-star count a little where the heaviest stars sit (their sectors), which is the intent of the rule.</li>
+<li><strong>The sector's own draw</strong> is lighter than the limit and dimmer than the floor (<code>MAX_STAR_MASS_SOL</code>,
+<code>MAX_STAR_LUMINOSITY_SOL</code>), its expected count is cut by <code>placed_star_fraction</code> (the mass pass's share plus the lighter bright
+share), and the backfill and the staged bands below the floor draw only lighter stars. <code>galaxy_shape.bright_star_mass_limit_sol</code>
+(schema v73) records the limit, so a galaxy scattered before it behaves as it did.</li>
+<li><strong>Cost:</strong> the mass pass places about 2 million stars at 8 solar masses and 69,000 at 20 (the Research Lane 1 numbers),
+against 26 million for the old 1,000 L_sun floor; at the new 5,000 floor the whole star scatter is a fraction of the old one.</li>
+<li>The partition is exact: the luminosity fraction of the stars lighter than a mass plus that of the heavier ones is the whole
+fraction (<code>tests/test_star_scatter_passes.py</code>).</li>
+</ul>
+<h2 id="the-map-luminosity-of-a-mass-gen200-2026-10-10">The map luminosity of a mass (GEN.200, 2026-10-10)</h2>
+<p>Boss (2026-10-10 21:38Z): a neutron star of 2 solar masses should be placed on the map when a star of 2 solar masses would be
+visible, and a supermassive black hole keyed to its (huge) mass the same way, so faint but massive objects, the major
+gravitational places that navigation needs, are always on the map. <code>stellar_evolution.map_luminosity_sol(mass_sol)</code> is that
+luminosity, the one function every user calls (the scatter, the reseed fill and the Galaxy Map tile query, wired by GEN.201, DB.23
+and MAP.171). Its constants are <code>tuning.MAP_MASS_LUMINOSITY_PIECES</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mass (Msun)</th>
+<th>Luminosity (Lsun)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>below 0.43</td>
+<td>0.23 M^2.3</td>
+</tr>
+<tr>
+<td>0.43 to 2</td>
+<td>M^4</td>
+</tr>
+<tr>
+<td>2 to 20</td>
+<td>1.5 M^3.5</td>
+</tr>
+<tr>
+<td>above 20</td>
+<td>1.5 x 20^2.5 M (about 2,683 M, continuous at 20)</td>
+</tr>
+</tbody>
+</table></div>
+<p>So 20 Msun is about 53,700 Lsun and a 4 million Msun black hole about 1e10 Lsun. The bands step by about 3.6% at 0.43 Msun and 6.2%
+at 2 Msun (the table's constants as given; it does not matter for a visibility rank), and not at all at 20.</p>
+<p><strong>It is not the star generators' relation.</strong> Since GEN.652 the star generators read the MIST main sequence (<code>physics/main_sequence.py</code>), by mass, age and [Fe/H]; the map's table (<code>tuning.MAP_MASS_LUMINOSITY_PIECES</code>) stays its own, a visibility rank. The two agree within a factor of a few across the main sequence. Nothing may call the map function for a star's own luminosity, or the main-sequence state for a map rank.</p>
+<h2 id="what-a-run-at-the-default-cut-places-gen677">What a run at the default cut places (GEN.677)</h2>
+<p>A run at the 14 solar mass cut placed about 86,000 stellar black holes per pair of inner shells and no neutron star that is not a magnetar, which read as an inverted ratio. It is the cut, not the rates. The scatter places a class only above the cut (<code>share_above</code>): the stellar black holes draw 5 to 20 solar masses, so 40% of them (14 to 20) are scattered; the neutron stars draw 1.1 to 2.2, so none is, and the sector that holds one draws it when it is filled (<code>below_cut_draws</code>, at the rate of <code>tuning.phenomenon_rate_per_star</code>). Each class is placed at the count its model rate gives (the stellar remnant model of <code>galaxy/remnant_density.py</code>): at the default cut the black hole count is within 1% of <code>shell_expected_by_class</code>, and with every mass scattered (cut 1) the neutron stars outnumber the black holes about 2 to 1 on the toy galaxy of the tests, as the model has them. The stage line now says what the cut leaves to the sectors (<code>phenomenon_scatter.cut_summary</code>), the magnetars being scattered at every cut. No generated value changes.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
