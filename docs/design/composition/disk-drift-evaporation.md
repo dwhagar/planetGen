@@ -74,7 +74,7 @@ What this says, before the build:
 
 | Part | Basis | Standing |
 |---|---|---|
-| Ice moves in with pebbles, evaporates at its line, enriches the gas inside; solids enhanced outside | [R5208], [R5209], [R5210] abstracts read | secondary, read |
+| Ice moves in with pebbles, evaporates at its line, enriches the gas inside; solids enhanced outside | [R5208, R5209, R5210] abstracts read | secondary, read |
 | `E = 1` is the static budget | derived from `_gas_and_solid_atoms` | exact |
 | Front `r_g(t)`, flux `Mdot_F(t)` formulas and numbers | [R5211] form recalled, numbers recalled, paper not opened | recalled, T3 |
 | Viscous `Mdot_g(t)`, `Md_0`, `t_nu`, `alpha` | standard disc theory, observed accretion rates; the numbers are mine | educated guess |

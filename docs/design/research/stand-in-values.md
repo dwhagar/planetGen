@@ -2558,7 +2558,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DS3 | T | T6 | L0 | a companion's XUV history follows the same decay law as a host of its mass and luminosity (`activity.coronal_xuv_at`, its stored `log_lx_lbol` where it has one), starting from the system's age | none | main-sequence and giant companions | a companion much younger or older than the host, or a remnant with a stored XUV history of its own | the companion's own stored age and spin history | derived: the host's law; remnants without a stored XUV power give none (RF5) | predicted only | - | - |
 | DS4 | P | T7 | L0 | the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux | none | clear-sky doses | a body whose air cuts the stars' light differently by incidence angle | a per-star zenith angle | derived: the kernel is run once per star with the same column and the sums of its linear outputs (DNA dose, UV index) are taken | predicted only | - | - |
 
-## 6.242 Stand-ins of the drift and evaporation of the ices in the disc
+## 6.242 Stand-ins of the drift and evaporation of the ices in the disk
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
