@@ -99,13 +99,14 @@ class Chain:
     pairs: tuple
 
 
-def _laplace(order, alpha, derivative=False):
-    """`b_{1/2}^{(order)}(alpha)` or its derivative in `alpha`, by the trapezoid rule on the full period (spectrally exact for this smooth integrand)."""
+def _laplace(order, alpha, derivative=False, s=0.5):
+    """`b_s^{(order)}(alpha)` (`s` is 1/2 for the resonant terms; the secular exchange of `secular_chain` reads 3/2) or its derivative in `alpha`, by the trapezoid rule on the full
+    period (spectrally exact for this smooth integrand)."""
     psi = (np.arange(_INTEGRAL_POINTS) + 0.5) / _INTEGRAL_POINTS * 2.0 * math.pi
     base = 1.0 - 2.0 * alpha * np.cos(psi) + alpha * alpha
     if derivative:
-        return float(2.0 / _INTEGRAL_POINTS * np.sum(np.cos(order * psi) * -0.5 * (2.0 * alpha - 2.0 * np.cos(psi)) / base ** 1.5))
-    return float(2.0 / _INTEGRAL_POINTS * np.sum(np.cos(order * psi) / base ** 0.5))
+        return float(2.0 / _INTEGRAL_POINTS * np.sum(np.cos(order * psi) * -s * (2.0 * alpha - 2.0 * np.cos(psi)) / base ** (s + 1.0)))
+    return float(2.0 / _INTEGRAL_POINTS * np.sum(np.cos(order * psi) / base ** s))
 
 
 def inner_coefficient(p, alpha):

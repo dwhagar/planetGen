@@ -15,7 +15,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
-| function | planetgen.physics.radiation_field.field_at | by design | the whole field (light, XUV, flare index, far ultraviolet, each as a total and per source) in one call, for the tests and the before-and-after census (GEN.1445); the generator reads each band through the host's own expression plus `companion_part`, so a lone star keeps its numbers to the last digit |
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
@@ -108,11 +107,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1092 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1092 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1092 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
-| module | planetgen.physics.trojans | GEN.1150 | what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it |
-| row | 6.121:TJ1 | GEN.1150 | `trojans.MU_CRIT`, read when the swarm draw lands |
-| row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
-| row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
-| row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
+| function | planetgen.physics.trojans.allows | GEN.1150 | the mass rule for a body at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.max_trojan_mass | GEN.1150 | the largest body a pair can hold at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.libration_period | GEN.1150 | the slow libration period of a tadpole; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.leading_share | GEN.1150 | the share of a swarm in L4; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.swarm_split | GEN.1150 | a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
@@ -249,3 +250,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.217:HK3 | GEN.994 | the chromium cloud temperature is read with the cloud decks |
 | row | 6.217:HK4 | GEN.994 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
+| function | planetgen.physics.secular_chain.precession_rates | GEN.1447 | each planet's own apsidal and nodal rates from its siblings and relativity; the Kozai screen of a planet with a distant companion (Lane 23) compares its cycle time against the apsidal rate, and the spin-orbit drift of GEN.1454 against the nodal one |
+| module | planetgen.physics.eclipses | by design | the eclipse shares and times of a body in front of a star are worked out for the tests and the census; no stored value reads them yet (stand-in EC4, section 6.249) (GEN.1462) |

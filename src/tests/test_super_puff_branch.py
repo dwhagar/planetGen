@@ -3,8 +3,8 @@
 """
 GEN.1343 (W15): a small share of the sub-Neptunes inside 100 days start as super-puffs, a thick envelope of 7 to 45 percent
 (`envelope_capture.draw_puff_start`), the XUV and the age term of the law fade it (`envelope_capture.kept`, the radius of
-`super_puff.radius_earth`), and a planet that comes out under 0.1 g/cc in the period range of the Kepler super-puffs is typed a super-puff
-(`planet_type`). The module's own laws are tested in test_super_puff.py, the sub-Neptune envelope in test_envelope_capture.py.
+`super_puff.radius_earth`), and a planet of up to 30 Earth masses that comes out under 0.1 g/cc is typed a super-puff
+(`planet_type`), at any period. The module's own laws are tested in test_super_puff.py, the sub-Neptune envelope in test_envelope_capture.py.
 """
 
 import math
@@ -43,7 +43,7 @@ def test_the_period_follows_keplers_third_law(young_sun):
 def test_only_a_sub_neptune_inside_the_period_range_can_start_as_a_super_puff():
     assert envelope_capture.puff_eligible(5.0, 50.0)
     assert not envelope_capture.puff_eligible(1.5, 50.0)           # lighter than Lee and Chiang's class
-    assert not envelope_capture.puff_eligible(12.0, 50.0)          # heavier than the module's top
+    assert not envelope_capture.puff_eligible(12.0, 50.0)          # heavier than the start gate's top
     assert not envelope_capture.puff_eligible(5.0, 400.0)          # outside the period range
     with draw.bound("super-puff-branch:ineligible"):
         assert envelope_capture.draw_puff_start(1.5, 50.0) == 0.0 and envelope_capture.draw_puff_start(5.0, 400.0) == 0.0
@@ -93,6 +93,19 @@ def test_a_planet_that_passes_the_gate_is_typed_a_super_puff(young_sun):
     assert planet_type.planet_type({"envelope_mass_fraction": 0.4, "body_type": "t"}) == planet_type.TRANSITIONAL    # a stored row has no star to judge by
 
 
+def test_a_puffed_planet_is_a_super_puff_at_any_period_and_up_to_thirty_earth_masses(young_sun):
+    """GEN.1470: the period window and the 10 Earth-mass cap are no part of the type; the density under 0.1 g/cc is."""
+    for mass, distance in ((5.0, 0.05), (5.0, 0.4), (5.0, 1.5), (5.0, 6.0), (12.0, 0.2), (25.0, 0.3)):
+        body = _body(mass, distance, young_sun)
+        body.envelope_mass_fraction, body.body_type = 0.4, "t"
+        body.radius = 14.0 * constants.EARTH_RADIUS_KM
+        assert super_puff.density_g_cm3(mass, 14.0) < 0.1
+        assert planet_type.planet_type(body) == planet_type.SUPER_PUFF, (mass, distance)
+    body = _body(40.0, 0.3, young_sun)
+    body.envelope_mass_fraction, body.body_type, body.radius = 0.4, "t", 20.0 * constants.EARTH_RADIUS_KM
+    assert planet_type.planet_type(body) == planet_type.TRANSITIONAL      # past the class's mass
+
+
 def _tilted(mass_earth, distance_au, star, tilt):
     body = _body(mass_earth, distance_au, star)
     body.axial_tilt_deg = tilt
@@ -107,6 +120,32 @@ def test_the_obliquity_tide_inflates_a_hot_tilted_planet_and_not_an_upright_or_u
     tilted = envelope_capture.kept(_tilted(5.0, 0.08, young_sun, 60.0), 0.41, tides=True)
     assert tilted[0] == pytest.approx(plain[0])
     assert 1.02 * plain[1] < tilted[1] <= super_puff.TIDAL_MAX_RATIO * plain[1] * (1 + 1e-9)
+
+
+def test_the_loss_follows_the_inflated_radius_and_the_ratio_is_returned(young_sun):
+    """GEN.1480: a tilted, hot planet keeps no more envelope than the same planet upright, and `kept_with_tide` says it was inflated."""
+    old_sun = young_sun
+    old_sun.age = 6.0
+    upright = envelope_capture.kept_with_tide(_tilted(8.0, 0.1, old_sun, 0.0), 0.2, tides=True)
+    tilted = envelope_capture.kept_with_tide(_tilted(8.0, 0.1, old_sun, 60.0), 0.2, tides=True)
+    assert upright is not None and upright[2] == 1.0
+    assert tilted is None or (tilted[0] <= upright[0] * (1 + 1e-9) and tilted[2] >= 1.0)
+    plain = envelope_capture.kept_with_tide(_body(8.0, 0.1, old_sun), 0.2)
+    assert plain is not None and plain[2] == 1.0 and plain[:2] == envelope_capture.kept(_body(8.0, 0.1, old_sun), 0.2)
+
+
+def test_a_tilted_planet_in_the_tide_range_loses_strictly_more_envelope_than_an_untilted_one(young_sun):
+    old_sun = young_sun
+    old_sun.age = 8.0
+    found = None
+    for mass, distance in ((6.0, 0.15), (7.0, 0.14), (9.0, 0.13), (5.0, 0.16), (10.0, 0.12), (6.0, 0.2)):
+        flat = envelope_capture.kept_with_tide(_body(mass, distance, old_sun), 0.2, tides=True)
+        tilted = envelope_capture.kept_with_tide(_tilted(mass, distance, old_sun, 60.0), 0.2, tides=True)
+        if flat is not None and tilted is not None and tilted[2] > 1.0:
+            found = (flat, tilted)
+            break
+    assert found is not None, "no planet of the grid is inflated and old enough to lose envelope"
+    assert found[1][0] < found[0][0]
 
 
 def test_a_cold_planet_has_no_obliquity_tide_whatever_its_tilt(young_sun):

@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import isotope_record, ore_deposits, radiation_field
+from planetgen.physics import isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -419,7 +419,7 @@ def apply_envelope(planet):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
             start = puff or start
-    result = envelope_capture.kept(planet, start, tides=True)       # GEN.1347: the obliquity tide of the planet's own tilt, once it has one (the settle pass)
+    result = envelope_capture.kept_with_tide(planet, start, tides=True)       # GEN.1347: the obliquity tide of the planet's own tilt, once it has one (the settle pass)
     held = getattr(planet, "_captured_envelope", 0.0)
     if result is None and not held:
         return False                    # a bare core, as drawn: nothing is touched
@@ -444,7 +444,7 @@ def apply_envelope(planet):
         planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
-        fraction, radius_earth = result
+        fraction, radius_earth, tide_ratio = result
         planet._bare_core = {"radius": planet.radius, "fractions": {name: getattr(planet, name) for name in (*envelope_share.SOLIDS, "envelope_mass_fraction")}}
         solids = sum(getattr(planet, name, None) or 0.0 for name in envelope_share.SOLIDS)
         keep = (1.0 - fraction) / solids if solids > 0.0 else 1.0       # the solids as drawn may already have made room for a hydrogen air's share: they give the envelope its share of the whole
@@ -456,8 +456,7 @@ def apply_envelope(planet):
         planet._captured_envelope = fraction
         envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
-        plain = envelope_capture.kept(planet, start)[1] * constants.EARTH_RADIUS_KM
-        planet._tidal_radius_km = planet.radius if planet.radius > plain * (1.0 + 1e-9) else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate
+        planet._tidal_radius_km = planet.radius if tide_ratio > 1.0 + 1e-9 else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate (GEN.1480: the ratio itself; the loss follows the tide, so an uninflated envelope is not the one to compare with)
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     planet.density = planet.mass / (planet.volume * 1.0e9) / 1000.0     # g/cm3: kg per km3 over 1e9 m3 per km3, then to g/cm3
     calculate_surface_gravity(planet)
@@ -916,6 +915,13 @@ def finish_orbit_oddities(planet):
     apply_orbit_oddities(planet)
     if abs(planet.eccentricity - before) <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
+    remake_after_orbit_change(planet)
+    return True
+
+
+def follow_orbit_change(planet):
+    """What follows a planet's eccentricity having moved once the orbit is final, short of its air: its moons' host eccentricity, its place on the new ellipse and the exposure of it and its moons
+    at the new mean light."""
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = planet.eccentricity
     update_orbital_position(planet)
@@ -923,9 +929,99 @@ def finish_orbit_oddities(planet):
     for body in (planet, *getattr(planet, "moons", ())):
         if getattr(body, "_star_distance_au", None):
             magnetism.update_exposure(body, light_au)
+
+
+def remake_after_orbit_change(planet):
+    """`follow_orbit_change` and, for a rocky planet, its air, class and spin made again at once (the tide of the orbit is a heat source, `remake_end_stages`). Used by `finish_orbit_oddities`,
+    after which nothing moves the orbit again."""
+    follow_orbit_change(planet)
     if planet.body_type == "t":
         remake_end_stages(planet, planet)
-    return True
+
+
+def stale_air(planet):
+    """`follow_orbit_change`, then the planet's and its moons' air marked as made on an orbit that has since moved: `age_moved` says so (the age stamp `_age_drawn` is zeroed), so the final-age refresh,
+    `refinish_rocky`, makes the air, class and spin again once, on the orbit the settle pass leaves (GEN.1450: the exchange comes first, the tide wears the eccentricity down after it,
+    and a planet made again at the exchange's eccentricity would be left on the wrong one)."""
+    follow_orbit_change(planet)
+    for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):        # a giant is not made again by the refresh (its moons are)
+        if getattr(body, "_age_drawn", None) is not None:
+            body._age_drawn = 0.0
+
+
+SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
+"""tuple: What `secular_exchange` reports for a star's planets: the orbits took the exchange; some eccentricity was held short of what the exchange gave because the spacing would not hold;
+nothing moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`; or the planets or the result were beyond the first-order theory's limits."""
+SECULAR_BISECTION_STEPS = 12
+"""int: The steps of the bisection for the largest eccentricity the spacing allows a planet (the interval narrows to 2.4e-4 of the rise)."""
+
+
+def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
+    """
+    GEN.1450: gives the planets of one star the orbits the Laplace-Lagrange secular exchange (`secular_chain`) leaves them at the star's age, from the eccentricities and inclinations the
+    generator made them with (after `generate_orbit_shape`, the spacing pass and the moons; the exchange comes before the tide wears an eccentricity down again, so `settle_orbit` takes the
+    lower of the tide's and the exchange's). Semi-major axes stay; the eccentricity, the longitude of periapsis, the inclination and the node move. Draws nothing.
+
+    The spacing the generator keeps between neighbours (mutual Hill radii between the inner one's apoapsis and the outer one's periapsis) is its screen for a chain that stays stable, and it
+    is not broken: the eccentricities the exchange lowers are lowered, then those it raises are raised planet by planet, each to what the exchange gave or, if the spacing will not hold,
+    to the most it will (a bisection). A chain packed to the screen's limit therefore keeps its eccentricities and takes the rest of the exchange (the inclinations, the periapses, the nodes).
+
+    Args:
+        planets (list): One star's planets and belts in orbital order (belts and moons do not take part).
+        host_mass_kg (float): The star's mass.
+        age_yr (float): The star's age, years.
+        keeps_spacing (callable): Given `planets`, whether their spacing and the moons' stable ranges hold (no problem beyond those the system already had), asked with the new
+            eccentricities set.
+
+    Returns:
+        str: One of `SECULAR_OUTCOMES`.
+    """
+    from planetgen.physics import secular_chain
+
+    bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
+    if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
+        return "unchanged"
+    start = []
+    for body in bodies:
+        orbit = body.orbit_from_vector()
+        start.append((orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
+    result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr)
+    if not result.linear:
+        return "outside the theory"
+    old = [body.eccentricity for body in bodies]
+    ceilings = [orbit_elements.max_planet_eccentricity(body.distance, body.star, body) for body in bodies]
+    targets = [min(e, ceiling) for e, ceiling in zip(result.eccentricity, ceilings)]
+    moved = [i for i, body in enumerate(bodies) if abs(targets[i] - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE
+             or abs(math.degrees(result.inclination[i]) - (body.orbital_inclination_deg or 0.0)) > 1e-3]
+    if not moved:
+        return "unchanged"
+    for i, body in enumerate(bodies):
+        if targets[i] < old[i]:
+            body.eccentricity = targets[i]
+    held = False
+    for i in sorted((i for i in range(len(bodies)) if targets[i] > old[i]), key=lambda i: old[i] - targets[i]):
+        body = bodies[i]
+        body.eccentricity = targets[i]
+        if keeps_spacing(planets):
+            continue
+        held = True
+        low, high = old[i], targets[i]
+        for _ in range(SECULAR_BISECTION_STEPS):
+            body.eccentricity = 0.5 * (low + high)
+            low, high = (body.eccentricity, high) if keeps_spacing(planets) else (low, body.eccentricity)
+        body.eccentricity = low
+    for i in moved:
+        body = bodies[i]
+        phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+        body.orbital_inclination_deg = math.degrees(result.inclination[i])
+        body.orbital_ascending_node_deg = math.degrees(result.node_longitude[i])
+        update_orbital_position(body, phase, math.degrees((result.periapsis_longitude[i] - result.node_longitude[i]) % (2.0 * math.pi)))
+        for moon in getattr(body, "moons", ()):
+            moon.host_eccentricity = body.eccentricity
+        if abs(body.eccentricity - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE:
+            stale_air(body)
+    return "held by the spacing" if held else "exchanged"
 
 
 def draw_birth_spin(planet):
@@ -996,6 +1092,11 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     frame = getattr(planet, "_frame_axis", None) if planet.is_moon else None
     if frame is not None:      # GEN.1352: a moon already set in the system's frame has its new axis turned the way its position was
         planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.turn_to_axis((planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), frame)
+    if not planet.is_moon:
+        planet.sky_suns = sky_suns.encode(sky_suns.suns_of(
+            planet.star, (planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z),
+            spin.orbit_normal(planet.orbital_inclination_deg, planet.orbital_ascending_node_deg),
+            orbit_elements.flux_distance_au(planet.distance, getattr(planet, "eccentricity", 0.0))))     # GEN.1458: the other suns of its sky
     if not planet.is_moon and getattr(planet, "moons", None):
         orient_moons(planet)      # GEN.1352: its moons lie in the equator this axis gives
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
@@ -1191,7 +1292,7 @@ def zone_for(habitable_zone, distance_au, star=None):
     stars' light counts (GEN.1441): the body is placed at the distance of a body of a lone star that gets the same total light."""
     inner_bound, outer_bound = habitable_zone
     if star is not None:
-        distance_au = distance_au / math.sqrt(radiation_field.light_ratio(star, distance_au))
+        distance_au = radiation_field.lit_distance_au(star, distance_au)
     if distance_au < inner_bound:
         return 'h'
     if distance_au > outer_bound:

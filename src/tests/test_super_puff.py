@@ -54,7 +54,7 @@ def test_wasp_107_b_leaves_the_envelope_law_for_the_giant_tables():
     radius = super_puff.radius_earth(30.5, 1.0 - 3.7 / 30.5, 70.0, 3.4)
     assert abs(radius - 0.96 * constants.JUPITER_RADIUS_KM / constants.EARTH_RADIUS_KM) < 0.05 * radius
     assert abs(super_puff.density_g_cm3(30.5, radius) - 0.134) < 0.03
-    assert not super_puff.is_super_puff(30.5, radius, 5.7)
+    assert not super_puff.is_super_puff(30.5, radius)
 
 
 def test_inside_the_law_the_radius_is_lopez_and_fortneys():
@@ -63,12 +63,19 @@ def test_inside_the_law_the_radius_is_lopez_and_fortneys():
     assert _envelope_for_radius(40.0, 8.0, 10.0, 2.0) is None
 
 
-def test_the_gate_is_the_design_row():
-    assert super_puff.is_super_puff(5.6, 9.32, 130.0) is False       # 130 d is past the period range
-    assert super_puff.is_super_puff(5.6, 9.32, 85.0)
-    assert super_puff.is_super_puff(5.6, 9.32, 85.0)                   # age is no part of the gate: the obliquity tide keeps an old one inflated (GEN.1347)
-    assert not super_puff.is_super_puff(12.0, 9.32, 45.0)            # too heavy
-    assert not super_puff.is_super_puff(5.6, 3.0, 45.0)              # dense, a normal sub-Neptune
+def test_the_gate_is_mass_and_density_at_any_period():
+    """GEN.1470: the density is the definition, the period is no part of it: Kepler-51 d (130 days) and a hot or a cold puff pass, a dense or a Saturn-mass planet does not."""
+    assert super_puff.is_super_puff(5.6, 9.32)                         # Kepler-51 d: 0.038 g/cc, at 130 days
+    assert super_puff.is_super_puff(5.6, 9.32)                         # age is no part of the gate: the obliquity tide keeps an old one inflated (GEN.1347)
+    assert super_puff.is_super_puff(12.0, 9.32)                        # 10 to 30 Earth masses under the density edge is a puff (GEN.1470)
+    assert not super_puff.is_super_puff(31.0, 12.0)                    # past the mass of the class
+    assert not super_puff.is_super_puff(5.6, 3.0)                      # dense, a normal sub-Neptune
+    assert super_puff.density_g_cm3(5.6, 9.32) < super_puff.DENSITY_RANGE_G_CM3[1] < super_puff.density_g_cm3(5.6, 5.0)
+
+
+def test_the_class_tops_out_where_the_radius_law_does():
+    assert super_puff.CLASS_MAX_MASS_EARTH == super_puff.LOPEZ_MAX_MASS_EARTH
+    assert super_puff.START_MAX_MASS_EARTH < super_puff.CLASS_MAX_MASS_EARTH       # the start gate is the narrower one (GEN.1343)
 
 
 def test_tides_inflate_by_millholland_eq_14_only_from_20_earth_fluxes():
@@ -110,7 +117,7 @@ def test_a_hot_puffy_planet_loses_its_envelope_and_shrinks_to_a_core():
 def test_the_rows_are_in_the_design_ranges():
     assert super_puff.PUFF_ENVELOPE[0] < super_puff.PUFF_ENVELOPE[1] <= 0.5
     assert super_puff.OCCURRENCE_SHARE < 0.01
-    assert super_puff.PERIOD_RANGE_D == (10.0, 100.0)
+    assert super_puff.START_MAX_PERIOD_D == 100.0
 
 
 def test_the_obliquity_term_is_the_papers_and_an_upright_planet_has_none():
