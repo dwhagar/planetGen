@@ -36,7 +36,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import daylight
+from planetgen.physics import daylight, sky_suns
 
 CELL_ROWS = 12
 """int: The rows of latitude of the grid, each of the same area. [GEN.1262; resolution of the grid, a numerical choice from the plan of Boss on 2026-11-04 at 7:32 PM.]"""
@@ -147,7 +147,7 @@ def declination_rad(time_days, orbital_days, tilt_deg):
     return np.arcsin(math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg))) * np.sin(2.0 * math.pi * np.asarray(time_days) / orbital_days))
 
 
-def cosine_zenith(latitude_deg, longitude_deg, time_days, orbital_days, solar_days, tilt_deg):
+def cosine_zenith(latitude_deg, longitude_deg, time_days, orbital_days, solar_days, tilt_deg, suns=()):
     """`cos z` for each latitude, longitude and time: an array of shape (latitudes, longitudes, times). The star's hour angle is `2 pi t / D + longitude`, so a longitude is a
     starting angle of the turn (the phase), and `solar_days` may be `inf` for a body that turns once an orbit."""
     latitude = np.radians(np.atleast_1d(np.asarray(latitude_deg, dtype=float)))[:, None, None]
@@ -155,11 +155,31 @@ def cosine_zenith(latitude_deg, longitude_deg, time_days, orbital_days, solar_da
     time = np.asarray(time_days, dtype=float)[None, None, :]
     declination = declination_rad(time, orbital_days, tilt_deg)
     hour = 2.0 * math.pi * time / solar_days + longitude
-    return np.sin(latitude) * np.sin(declination) + np.cos(latitude) * np.cos(declination) * np.cos(hour)
+    host = np.sin(latitude) * np.sin(declination) + np.cos(latitude) * np.cos(declination) * np.cos(hour)
+    if not suns:
+        return host
+    return _with_suns(host, latitude, hour, time, orbital_days, tilt_deg, suns)
+
+
+def _with_suns(host, latitude, hour, time, orbital_days, tilt_deg, suns):
+    """
+    GEN.1458: the cosine of the zenith angle with the other suns of the sky. A source stands at a fixed declination and right ascension (`sky_suns.terms`); the host moves
+    round the ecliptic, so the source's hour angle is the host's plus the host's right ascension less the source's. The cell's light is the shares of the suns that are up, so
+    the positive part of the result is `sum(share * max(cos z, 0))` (the host's share the rest) and a cell with no sun up keeps the host's negative cosine.
+    """
+    tilt = math.radians(daylight.folded_tilt_deg(tilt_deg))
+    longitude = 2.0 * math.pi * time / orbital_days
+    host_ascension = np.arctan2(math.cos(tilt) * np.sin(longitude), np.cos(longitude))
+    light = (1.0 - sum(sun.share for sun in suns)) * np.maximum(host, 0.0)
+    for share, sin_declination, ascension in sky_suns.terms(tilt, suns):
+        cos_declination = math.sqrt(max(0.0, 1.0 - sin_declination ** 2))
+        angle = hour + host_ascension - ascension
+        light = light + share * np.maximum(np.sin(latitude) * sin_declination + np.cos(latitude) * cos_declination * np.cos(angle), 0.0)
+    return np.where(light > 0.0, light, host)
 
 
 def series(rotation_hours, orbital_hours, tilt_deg, thermal_days=None, transmission=None, rows=CELL_ROWS, columns=CELL_COLUMNS,
-           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, periodic=False, steps_per_year=STEPS_PER_YEAR):
+           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, periodic=False, steps_per_year=STEPS_PER_YEAR, suns=()):
     """The `Series` of a body from its stored rotation period, orbital period (both hours) and tilt (degrees). `thermal_days` is the thermal time constant of the surface if the
     caller has one; `transmission(latitudes_deg, declinations_rad)`, if given, returns the share of the light left, shape (rows, steps), and multiplies the cosine of the cells
     where the star is up. `periodic` stretches the solar day a little and spans several orbits where it must (`periodic_span`) so the series repeats exactly: the form a Fourier
@@ -172,7 +192,7 @@ def series(rotation_hours, orbital_hours, tilt_deg, thermal_days=None, transmiss
     step, count = time_step_days(orbital_days, solar_days, thermal_days, samples_per_day, max_steps, span, steps_per_year)
     grid = cell_grid(rows, columns)
     time = (np.arange(count) + 0.5) * step
-    cosine = cosine_zenith(grid.latitude_deg, grid.longitude_deg, time, orbital_days, solar_days, tilt_deg)
+    cosine = cosine_zenith(grid.latitude_deg, grid.longitude_deg, time, orbital_days, solar_days, tilt_deg, suns)
     declination = declination_rad(time, orbital_days, tilt_deg)
     if transmission is not None:
         left = np.asarray(transmission(grid.latitude_deg, declination), dtype=float)[:, None, :]

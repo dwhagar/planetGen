@@ -84,7 +84,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.26:GS4 | no data | - | the distribution of the last impactor by planet mass is in [R0036, R2432] as figures and fits we do not hold as a table; a table of the last impact's mass ratio by planet mass replaces the isolation mass and steepness (the planet-formation train can give the isolation mass of the disc, formation.isolation_mass_kg) |
 | 6.26:GS5 | no data | - | the same N-body table replaces the log-uniform range of the last giant impact |
 | 6.26:GS6 | no data | - | the same N-body table (the planetesimal-built embryos) replaces the log-uniform range |
-| 6.36:PA1 | no data | - | no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU [R1479], and a measured pebble-flux model replaces them |
 | 6.36:PA2 | no data | - | the share of cores that find gas is tuned to the giant occurrence and its rise with [Fe/H] [R2172]; no survey measures the disc lifetime it stands for |
 | 6.36:PA3 | no data | - | the starting count of the inner chain is tuned to the [R4898] multiplicities after the formation-era dynamics build (GEN.730); the starting count of a real disc is not observed |
 | 6.36:PA4 | no data | - | the masses of the Kepler planets are measured for few; the scale is tuned to the 1 to 10 Earth-mass range of [R4897] and its trend with host mass and metallicity |
@@ -157,6 +156,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.119:CP3 | no data | - | no source gives how many pieces a captured parent was made of; the Himalia group's four known members are the only guide, and a parent built from the disc's own bodies (belt design) replaces it |
 | 6.121:TJ4 | no data | - | no source read gives the leading share of a swarm; the capture history of the generated giant replaces it |
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
+| 6.121:TJ7 | no data | - | L4, no survey of how a swarm's stable share climbs past the neighbour limit exists; an N-body run of the survival of a swarm against separation would replace the ramp of 1.0 |
+| 6.121:TJ8 | no data | - | L4, [R1990] give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0 |
 | 6.41:TK6 | no data | - | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to |
 | 6.130:AB1 | replace | GEN.804 | the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |

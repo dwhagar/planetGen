@@ -297,7 +297,7 @@ WRITERS = {
     ("db/store.py", "insert_interstellar_comet"): INSERT,
     ("db/store.py", "insert_asteroid_field"): INSERT,
     ("db/store.py", "insert_quasar"): INSERT,
-    ("db/store.py", "insert_star_system"): INSERT,
+    ("db/store.py", "_insert_star_system_rows"): INSERT,         # the rows of insert_star_system, split out beside the system summary (DB.121)
     ("db/store.py", "insert_irregular_moons"): "rows of a planet filed in the same transaction as the planet, whose INSERT marked the system (GEN.1084)",
     ("db/store.py", "mark_bright_star_filled"): "links the star to the system the fill just inserted in the same transaction, which marked the sector (GEN.359)",
     ("db/store.py", "add_facility"): INSERT,

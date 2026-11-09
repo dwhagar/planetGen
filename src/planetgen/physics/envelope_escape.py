@@ -55,7 +55,7 @@ def equilibrium_temperature_k(insolation):
     return TEQ_OVER_INSOLATION_FOURTH * insolation ** 0.25
 
 
-def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=()):
+def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=(), radius_ratio=None):
     """
     The envelope the planet still has at `age_gy`, Earth masses (0 when it has fallen under `BARE_BELOW` of the planet's mass).
 
@@ -71,6 +71,10 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
             the distance is the one the host's own light `insolation` gives, which only holds for a lone star (GEN.1442).
         emitters (tuple, optional): The other stars' XUV sources at the planet (`radiation_field.xuv_emitters`); each follows its own XUV decay through time and
             adds to the flux the planet is under. None for a lone star.
+        radius_ratio (callable, optional): `(mass_earth, envelope_fraction, radius_earth) -> ratio`, the factor a tide puts on the radius of the
+            law at that step (GEN.1480: the rate goes as about R^4 to R^6 on the XUV branch and R^10 on the boil-off one, so a planet the
+            obliquity tide has inflated loses its envelope faster, and the loss has to see the radius the planet really has). None, the
+            default, leaves the radius as the law gives it, as every caller without a tide wants.
     """
     f_env0 = min(f_env0, MAX_ENVELOPE)
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
@@ -94,6 +98,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
             flux_erg_cm2_s += activity.coronal_xuv_at(other_mass, age, other_luminosity_w) * factor / (4.0 * math.pi * constants.AU_TO_M ** 2) * 1e3
         mass = core_mass_earth + envelope
         radius = bulk_structure.envelope_radius_earth(mass, envelope / mass, insolation, age)
+        if radius_ratio is not None:
+            radius *= radius_ratio(mass, envelope / mass, radius)
         rate = thermosphere.hydro_based_mass_loss_g_s(mass, radius, teq, distance_au, flux_erg_cm2_s) * 1e-3 / earth_kg
         step = min(AGE_STEP * t, end - t)
         if rate > 0.0:

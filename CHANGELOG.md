@@ -2,6 +2,229 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3781] - 2026-11-09
+
+**Headline:** `rescore-habitability` now re-scores only the systems whose stored numbers were not worked out by the running code, so a rerun after no change touches nothing.
+
+### Changed
+- **A system carries the stamp of the code that scored it (GEN.1479).** New narrow table `system_summary` (migration 0238) holds, for each star system, `habitability_stamp`: a hash of the physics source the habitability score is made from (`db/derived_stamp.py`). The system save and `store.refresh_habitability` write it; every system already stored starts with none, so the first run after the migration scores them all once, as the command always did.
+- **`planetgen rescore-habitability` takes only the stale systems.** A system whose stamp is the running code's is left alone, the units are cut from the first stale system to the last, and a run that stopped carries on where it stopped. `--all` re-scores every system as before. The plan line says how many were left alone. A side table, not columns of `star_systems`, because that table has a FULLTEXT key and a new column would copy every row.
+
+generation-affects: none
+
+## [8.0.3780] - 2026-11-09
+
+**Headline:** Rocky worlds now carry cosmic-ray beryllium-10 and aluminum-26 in their surface layer, with or without air and under an ocean.
+
+### Changed
+
+- Every rocky body with a solid surface now holds beryllium as an element and carries 10Be and 26Al (GEN.1489): the part made in its surface rock by cosmic rays (the whole cascade on a body with no air and no field, as on the Moon, less with air over it, with a strong field, or under ocean) plus the part that fell out of the air, made from nitrogen and oxygen (10Be) and from argon (26Al).
+- The short-lived 26Al tracer and the cosmic-ray 26Al are one row now, as the isotope table holds one row per isotope.
+- Stand-ins ISO29 to ISO34 are in section 6.236 of the registry (the Earth's 10Be and 26Al production, the lunar 10Be anchor, the rock attenuation length, the 26Al/10Be production ratio and the surface layer's beryllium and aluminium).
+- Generated bodies change (their isotope rows gain Be-9, Be-10 and a larger Al-26), so this is a new epoch; geometry, orbits, composition and every other value are unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3779] - 2026-11-09
+
+**Headline:** A planet the obliquity tide has puffed up now loses its envelope to the star's X-rays at the radius it really has.
+
+### Changed
+
+- The loss of a hydrogen-helium envelope to the star's XUV (`envelope_escape.envelope_left_earth`) was worked out on the radius of the uninflated law, and the tide's factor of up to 2 was put on the radius afterwards. The rate goes as about R^4 to R^6 on the XUV branch and R^10 on the boil-off one, so an inflated planet lost far less than it should. The loss now asks for the tide's factor at every step (`radius_ratio`), so a tilted, hot planet keeps less envelope than the same planet upright. A planet with no tilt, an upright one, a cold one and every caller outside the settle pass work out the same numbers as before.
+- On 300 seeded systems (1,217 planets with a captured envelope) 2 end tide-inflated and one of them is old enough to lose envelope: 0.052 to 0.037 Earth masses left. The output moves for well under 1 percent of the envelope planets today and for more if the tilt of GEN.1447 makes big tilts common.
+- Whether a planet was inflated (`_tidal_radius_km`) is read from the tide's factor that `envelope_capture.kept_with_tide` returns, not from a second, uninflated envelope: with the loss on the tide, that second envelope is bigger than the tide's and made the comparison wrong.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3778] - 2026-11-09
+
+**Headline:** The Galaxy Map's block light totals are now kept as the scatters write, so the last stage of a scatter rolls them up from small stored parts instead of reading every star and phenomenon again.
+
+### Added
+
+- `galaxy_block_light_parts` table (migration 0239): the light sums of each sector cell that holds an unbuilt bright star or scattered phenomenon, added to by `store.insert_bright_stars` and `store.insert_phenomenon_scatter` in the transaction that writes the rows.
+- `db.block_lights.roll`, `parts_current`, `sync_cells`, `forget_parts`: the block light stage rolls the parts up (the same rows a rebuild from the objects gives) and checks them against the scatter first, making them again from the objects when they differ (a galaxy scattered before v236, a prune).
+
+### Changed
+
+- The `refresh-block-lights` stage no longer reads the star and phenomenon tables up to four times: the totals and the uncharted sector index both come from the parts. `fill-map-luminosity` puts right the parts of the cells it fills, and `planetgen fill-block-totals` still makes everything again from the objects, as the repair and the proof.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3777] - 2026-11-09
+
+**Headline:** The carbon-to-oxygen ratio of gas giants now centers on the retrieved giants' 0.57 instead of 0.33, with the right share under 0.35 (GEN.1471).
+
+### Changed
+
+- A gas giant's C/O comes from the disk it formed in (GEN.1363), times a spread. Before, the spread was divided by 0.57, the center of the recipe's core, but the draw's own median is 0.51 (the core is cut at 0.8), so every giant came out about a sixth too low; and the recipe's spread was added in full on top of the disk's own scatter. It is now divided by the draw's median and taken to the half power.
+- The envelope's C/O is set with a share of the planet's bulk heavy elements (0.06, stand-in DSC9), because the bulk metal is only an upper limit on the atmosphere's [R4350: Abstract] and gas giants show low water [R4663: Abstract]. Before, the whole bulk (18 times the star's for the median giant, 90 percent solids of C/O 0.44) went in, so the C/O was the solids' 0.44 times the star's whatever the amount.
+- In plain numbers (G2V giants; the share was chosen on the first 347 giants of 1,000 systems and checked on 331 fresh ones of 1,000 more): median C/O 0.33 before, 0.57 on the first sample and 0.59 on the fresh one after, against 0.57 for the 69 retrieved giants; under 0.35: 53 percent before, 16 and 14 after, against 17; above 0.8: 7 percent before, 22 and 26 after, against 4 to 9. The upper tail is now too high: a giant that took mostly gas has the water-frozen gas C/O of 0.89 and the model has no drift and evaporation of water to spread it; that is noted as open and not tuned away.
+- The metal inventory of the envelope is unchanged; only the carbon and oxygen split uses the share. Registry rows DSC7 (re-based), DSC8 and DSC9 in section 6.213.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3776] - 2026-11-09
+
+**Headline:** A puffed-up planet is a super-puff by its mass and density alone, at any period, up to 30 Earth masses.
+
+### Changed
+
+- The super-puff type asked for a period of 10 to 100 days and a mass under 10 Earth masses on top of a density under 0.1 g/cc, so a planet puffed by a young star or by the obliquity tide at 7 days, at 130 days (where Kepler-51 d really is) or at 12 Earth masses stayed "transitional". The type is now the density (under 0.1 g/cc) and a mass up to 30 Earth masses, the top of the radius law, at any period and any age. Which cores can START as a puff (2 to 10 Earth masses, inside 100 days, GEN.1343) is unchanged.
+- On 180 seeded systems five planets under 0.1 g/cc all missed the old type on the period window alone (7.7, 131, 218, 859 and 3272 days); they are super-puffs now, about 1 percent of the planets over 3 Earth radii. The census row PF3 counts its share of the inner sub-Neptunes inside 100 days itself. Stand-in PF1 is rewritten (section 6.76).
+- The sweep test now also checks that no puffed planet escapes the type. The loss of the envelope on the inflated radius is GEN.1480.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3775] - 2026-11-09
+
+**Headline:** A new table, the effect ledger, records for every body of a system and every effect that acts on it (light, UV, tide, heating, Kozai and secular forcing, precession, eccentricity perturbation) how large each source's contribution is compared with the largest source. It changes no result.
+
+### Added
+
+- `effect_ledger` table (migration 0240): a row for each source of an effect on a body, its share of the largest source (1.0 for the largest). Every source is computed; a light or UV source under a share of 1e-3, 0.1 percent (`tuning.EFFECT_LEDGER_FLOOR`) is added to a summary row of the body and effect, with how many there were and the largest source's size, so the tail is never lost and a floor under 1e-37 stores everything. The five gravity effects keep only the largest source and the summary row and are recomputed on demand.
+- Generation fills the ledger for light and far ultraviolet: after the bodies are final, each planet and moon notes the bolometric flux and the far-ultraviolet ratio each star of its system puts on it (`radiation_field.field_at`, GEN.1441), by source. Nothing is drawn and no value changes.
+- `system.effect_ledger` takes `add(effect, receiver, source, value)` from the code that computes an effect; `store.insert_star_system` writes it with the system, and deleting the system deletes its rows.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3774] - 2026-11-09
+
+**Headline:** Any body of a system can now be asked how much of a star's light it covers, orbit-averaged: sibling planets, moons and the two stars of a close pair, with textbook checks and a census of how large each is.
+
+### Added
+- **Eclipses of a star by a body of the system (GEN.1462).** `physics/eclipses.py` gives the mean share of a star's light a blocker covers and the share of the time it touches the star's disk, for a sibling planet inside the observer's orbit, a moon of the observer and the two stars of a close pair seen from a circumbinary planet. Nothing is stored and no result changes. The Moon and the Sun (1.5e-4 of the time touched), the transits of Venus (2.4e-5) and the overlap of two disks are tested. A census of 120 systems finds sibling planets and moons cover under 1e-4 of the light for 93 percent of planets, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (registry rows EC1 to EC4, section 6.249).
+
+generation-affects: none
+
+## [8.0.3773] - 2026-11-09
+
+**Headline:** A planet or moon with more than one bright sun in its sky has a longer day: the share of the time some sun is up is the union of the arcs each one lights.
+
+### Changed
+- **Day and night with every sun (GEN.1461).** `daylight.compute` now takes every star that puts at least civil-twilight light (0.036 W/m2) on a body as a sun of the day, the host included, and merges the arcs of the turning ground each one lights (`daylight.lit_arcs_share`, `sky_day_shares`). The suns stand where the body's place on its circle of mean flux and the star's offset from the host put them (from `sky_suns.placed`), so a close pair reads as nearly one sun and a wide pair as two: `day_share_equator`, `day_share_mean`, `daylight_hours` and the night and day/night state follow, on planets and on moons (a moon keeps its parent's shadow on top). A lone star, a host with only faint companions and a body without a stored spin axis read as before. The polar circle and the solar day stay the host's (registry rows DY1 to DY4, section 6.248). New epoch, `--affects fill`.
+
+generation-output: changed
+
+generation-affects: fill
+
+## [8.0.3772] - 2026-11-09
+
+**Headline:** The other stars of a system are suns of their own in a planet's sky, so a planet's seasons and the temperature of every place follow where each star stands.
+
+### Changed
+- **Seasons with a second sun (GEN.1458).** `physics/sky_suns.py` gives each planet of a multi-star system its other suns: each other star's share of the mean light and its direction in the planet's equinox frame, worked from the stored spin axis, the orbit's normal and the star's place in the orbit tree. The year's mean light at a latitude, the latitude bands and the cell-by-cell day of the temperature series add each sun at its own declination and right ascension, so a planet with a bright companion in its summer sky has a milder winter and a pole under a companion stays warm. A planet stores the suns as `sky_suns` (new column on `planets`, `moons` and `rogue_planets`, migration 0236; moons and rogue planets store none yet), so a re-scored row gives the same temperatures. A lone star gives the same numbers as before. The direction is the host-centered one and fixed through the year; moons and ring shadows read the host's sun alone (registry rows SS1 to SS3, section 6.246). New epoch, `--affects fill`.
+
+generation-output: changed
+
+generation-affects: fill
+
+## [8.0.3771] - 2026-11-09
+
+**Headline:** A star with a giant now has Jupiter-family comets on the orbits that giant can hold; a star with no giant keeps the comets of before.
+
+### Changed
+- **The Jupiter-family comets of a star belong to its most massive giant (GEN.1457).** A comet's orbit was three draws from its family's ranges whatever planets the star had. A star with a giant now draws each Jupiter-family comet again until its Tisserand parameter about that giant lies between 2 and 3 (`physics/comet_control.py`, the range of the Solar System's family; up to `COMET_CEILING_ATTEMPTS` tries, redraw kind `comet.tisserand`), and a comet no orbit of which that giant holds is of another family. The wide-pair ceiling cut applies to every redraw. A star with no giant, and every other family, draw the comets they drew. With a giant at 5.2 AU the mean perihelion of the family moves from 2.5 to 3.2 AU (3,000 comets); with a giant at 2 AU it moves to 1.6 AU, and a giant at 30 AU leaves 22 comets in 100 of the family instead of 49 (the rest are of the other families). In a census of 480 seeds (49 with a giant), no star without a giant changed, no other family changed, all 5 Jupiter-family comets that stayed are in range and 5 of 10 became another family (`tests/audit/comet_control_census.py`, `reports/gen1457-comet-control-census-2026-11-09.md`). Left out: lighter giants that also hold part of the family, the giant's own eccentricity and drift, and the galactic tide on the far cloud (GEN.1466); the companion star's tide is the ceiling cut already in place. Reused, not rebuilt: the ceiling-redraw loop of `StarSystem._generate_comets`, `COMET_CEILING_ATTEMPTS`, the redraw tally. Stand-in rows CT1 to CT4 (section 6.251), none hand-tuned. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3770] - 2026-11-09
+
+**Headline:** A planet thrown out or swept away is now scattered by the strongest planet that reaches it, not only by the neighbour the clearing happened to record.
+
+### Changed
+- **The scatterer of a thrown or swept planet is any planet that reaches it (GEN.1456).** `planet_architecture.losses` took the neighbour the clearing recorded (the heavier of a close pair, or the giant that swept the body) as the planet that scatters it. It now takes the planet of the highest Safronov number at the body's distance among that neighbour and every other planet of the star whose reach band holds the body (`scatter.reach_band_au`, the rule the sub-minimum embryos used already); the neighbour wins a tie. The Safronov number sets the ejected, collided and bound shares, and the scatterer's mass and orbit set the kick the rogue is given, so a body that a heavier giant farther along also reaches is thrown out more often and faster. A body no other planet reaches, and a star with one planet, give the losses of before; a star with no giant has no thrown planet to change. A companion star ejects nothing in the model (the planets of a star form inside its stability limit, GEN.1451), and the fast tail that eccentric giants add is still not modelled (design: `rogue-ejection-kick.md`). In a census of 480 seeds (642 planet architectures), 3 of the 73 bodies thrown or swept changed scatterer (all in systems with a companion star and a giant) and the expected ejected number across them rose from 0.4 to 1.4; no star with one planet or without a giant changed (`tests/audit/scatterer_census.py`, `reports/gen1456-scatterer-census-2026-11-09.md`). Reused, not rebuilt: `scatter.reach_band_au` and `safronov_number`, the sub-minimum rule of `losses`, `loss_fates`. No new constant, so no stand-in row. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3769] - 2026-11-09
+
+**Headline:** The trojan swarm of a giant now shrinks or vanishes when another giant or a companion star leaves its Lagrange points unstable.
+
+### Changed
+- **Trojans keep only the part every neighbour leaves stable (GEN.1455).** The swept disk's `trojans` share was a flat 0.2 percent for every giant. `trojans.surviving_share` now multiplies it by a stable share against each other giant (separation in mutual Hill radii, `1 - exp(-ramp (x - 1))` past 3.46 of them) and against a companion star (its stability limit `Star.a_crit_au` against twice the giant's distance). The part lost goes to the ejected share, so the shares still add to one. A giant alone around a lone star keeps the swarm of before to the last digit (tests `test_trojan_neighbours.py`, census `tests/audit/trojan_census.py`). Reused, not rebuilt: the swarm share and the scatter split (`scatter.SWEPT_SPLIT`, `scatter_shares`), the stability limit the clearance ledger sets, and the giants `belt_birth._fates` already lists. Stand-ins TJ6 to TJ8. In a census of 960 seeds, 17 of the 22 outer-disk swarms drawn had their share cut by a neighbour (none of the 5 swarms of a lone giant at a lone star; 3 lost over half), but every one of the 22 held a swept share of 0.0 before as well, because the belt lies beyond the giant's zone, so no stored value moved in the sample (report `reports/gen1455-trojan-census-2026-11-09.md`). The law matters where a belt overlaps a giant's zone and for the swarm draw of GEN.1150, which the trojan bodies still wait for. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3768] - 2026-11-09
+
+**Headline:** A belt that lies near a companion star now holds only the solids of the disk the companion left it, not those of the whole disk.
+
+### Changed
+- **A companion star cuts the disk its host's belts are made of (GEN.1451).** `physics/disk_truncation.py` gives the radius where a companion's tide ends a disk: `0.733` of the host's Roche lobe (Eggleton's fit) at the companion's periastron, or the stability limit past which no orbit holds (`Star.a_crit_au`), whichever is nearer. `belt_origin.build` cuts every candidate stretch there before its mass is worked out, so the belt's primordial mass, what the giants clear from it and what the collisions leave are those of the stretch that is left (the cut used to come after the mass, which kept the whole disk's mass for a belt the stability limit had shortened). A stretch with nothing left is no belt, and the outer disk's scatter shares read the cut edge. In a census of 240 seeds generated with and without the cut, 19 of the 50 belts of stars with a companion (a dark one counts) changed mass and none of the 123 belts of lone stars did. A lone star has no limit and gives the belts of before to the last digit (tests and census `tests/audit/belt_light_census.py truncation`). Only giants clear spans from a belt: a smaller planet's chaotic zone lies inside the five Hill radii no belt may take (a test; registry row DT3). A companion's secular excitation of a belt (forced eccentricity) is not built (DT4). Reused, not rebuilt: the companions each star carries (GEN.1441), `Star.a_crit_au` from the clearance ledger, `belt_origin.build` and `_fits`. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3767] - 2026-11-09
+
+**Headline:** The planets of a star now pull on each other's orbits: their eccentricities and inclinations take the Laplace-Lagrange secular exchange to the star's age.
+
+### Changed
+
+- A star with two or more planets runs the first-order secular theory (`physics/secular_chain.py`) over all of them at once, with general relativity on the inner ones, in the pass that settles the orbits at the star's final age. Each planet's eccentricity, longitude of periapsis, inclination and node move from what the generator drew to where its siblings leave them; a heavy giant pumps the eccentricity of the planets beside it and lowers its own a little, and a chain shares its angular momentum deficit. A planet alone, and a star with a single planet, are unchanged.
+- The spacing the generator keeps between neighbours is not broken: an eccentricity the exchange would raise is raised only as far as the spacing allows (a chain packed to the limit keeps its eccentricities and takes the inclinations and turned periapses), and a planet beyond the theory's limits (eccentricity over 0.3 or inclination over 30 degrees) is held where it is and pulls on the others as it is. The moons' stable range is checked against the new eccentricity.
+- On 120 seeded systems the 56 stars with several planets change 644 planets' orbits; the mean eccentricity of the rocky planets in them falls from 0.048 to 0.039 (the exchange moves the angular momentum deficit of the hot draws to the neighbours and the spacing holds back the rise). Stand-ins SC1 to SC5 are registered (section 6.244).
+- `secular_chain.precession_rates` gives each planet's own apsidal and nodal rates for the Kozai screen of GEN.1447 and the spin-orbit drift of GEN.1454.
+- A planet the exchange moved has its air, class and spin made again once, on the orbit the settle pass leaves (the exchange marks the air stale and the final-age refresh makes it), not at the exchange's eccentricity: the tide wears the eccentricity down after the exchange, and the stored temperature has to follow the stored orbit.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3766] - 2026-11-09
+
+**Headline:** An asteroid belt or a comet that lies near a companion star is now warmed by it, not only by the star it circles.
+
+### Changed
+- **Belts and comets take the light of every star of their system (GEN.1444).** A belt is lit by the radiation field (GEN.1441) averaged over its ring: `radiation_field.ring_light_ratio` is the mean total light over the mean host light across the ring (16 equal-width annuli weighted by area), and the host's luminosity times that ratio is what the belt's makeup is drawn at (the temperature of its bodies and the taxa of its members, `belt.lit_luminosity_w`, also read by the belt's page). A belt is on the icy or the rocky side of its star's snow line, and so under the icy or the rocky size law, by its distance over the square root of that ratio (`belt.size_law`, the rule the zone letter of a planet already uses; `radiation_field.lit_distance_au` now serves both). The snow line itself and the disk's solids the belt grew from stay the formation ones. A comet's chance of showing activity reads the light at its perihelion, so a comet that passes close to a companion is more likely to show a coma. A belt or a comet of a lone star gives the numbers of before to the last digit (tests, and the census `tests/audit/belt_light_census.py`: every seed is generated before and after). Belts and comets store no surface dose or temperature, so nothing of that kind changes; the registry rows RF6 to RF8 state the limits. Reused, not rebuilt: `light_ratio`, `starlight_w_m2`, the companions each star already carries (GEN.1441), `condensate_shares.disk_temperature_k` and the zone letter's lit distance. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3765] - 2026-11-09
+
+**Headline:** Earth-size planets close to their star are now about as common as the Kepler surveys count them, and the rocky planets of an inner system are lighter, so the radius histogram peaks where the survey sees it (GEN.1406).
+
+### Changed
+
+- The median mass of an inner system's planets goes from 3.6 to 2.5 Earth masses (`INNER_PLANET_MASS_EARTH`, registry row PA4). Before, the rocky peak of the generated radius histogram sat at 1.5 to 1.75 Earth radii where the California-Kepler Survey puts it at 1.3 (and its sub-Neptune peak at 2.4), planets of 4 to 6 Earth radii ran 3 times and planets of 3 to 30 Earth masses inside 50 days 5 times above the survey and radial-velocity counts, and only 5.5 percent of Sun-like (G2V) stars held a planet of 0.8 to 1.25 Earth radii inside 85 days. A rocky core of 1.35 Earth radii weighs 2.4 Earth masses by the architecture's mass-radius law, so the median scale is set at 2.5.
+- Share of stars with a planet of 0.8 to 1.25 Earth radii inside 85 days, in plain numbers (200 to 300 systems of each star type; the survey [R1459] gives 16.5 +- 3.6 percent for FGK stars together): Sun-like G2V stars 5.5 percent before, 6.7 after; K3V stars 14.0 before, 19.5 after; F5V stars 3.3 before and 3.3 after (60 systems, 2 stars, too few to tell). With Fressin's FGK weights (15, 21 and 64 percent, a stand-in) that is 10.6 percent before and 14.4 percent after, inside one sigma of the survey. Sun-like stars stay about half of what the survey finds for FGK together; the star-mass dependence of the scale (exponent 0.6357) is untouched and is the next place to look.
+- Lighter inner planets lowered the share of Sun-like stars with a giant planet at 2 to 8 AU from 0.105 to 0.102 on the test's seeds (the survey [R1479] gives 0.141 +- 0.019; the cold-giant test sat at the edge of its band and the draw stream tipped it). The solids enhancement of the disk (`PLANET_DISK_SOLIDS_ENHANCEMENT`, registry row PA1) goes from 0.4647 to 0.58, the smallest step that returns the share inside one sigma: over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 and 0.61 gives 0.136. PA1 moves from tweak level L3 to L2 (tuned to the published share) and leaves the burn-down register.
+- The number of inner systems and planets per host are unchanged. Every system with an inner planet is redrawn, so every golden file moves; lock item.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3764] - 2026-11-09
+
+**Headline:** The galaxy's counts are kept as they change, so a page no longer counts millions of systems again every time a sector is added.
+
+### Changed
+
+- DB.121: two new tables, `sector_facets` (for each generated sector, its systems, stars, planets, moons, belts and habitable worlds, and its count of each class, body type, life class, spectral and Yerkes class, binary state and octant) and `galaxy_totals` (one row, their sum plus the galaxy's mass and luminosity). They are written in the same transaction as the sector's save, edit and deletion (`db/galaxy_counts.py`, called from `record_sector_stats`, `refresh_edited_sectors` and `forget_sector_fill`), by the difference between the sector's old rows and its new ones. The migration makes them from the stored bodies at once, and `planetgen fill-block-totals` makes them again.
+- The Systems list's unfiltered count and filter menu, and the search page's type, spectral class, Yerkes class, planet and moon class, body type and life class counts, read these rows (plus a small count of what no sector holds) while they are whole, and count the tables otherwise. The stored count (`countcache`) is still remade when a sector is added, but the remaking is now one read.
+- `check-counts` compares the stored counts with a full count of the tables when it runs over the whole galaxy (a warning), and says to run `planetgen fill-block-totals` when they differ.
+- Nothing stored about a system, planet or star changes.
+
+generation-output: unchanged
+
+generation-affects: none
+
 ## [8.0.3763] - 2026-11-09
 
 **Headline:** The repair test reads the inserted-row count as a whole number, so "90 inserted" no longer fails the check for "0 inserted".

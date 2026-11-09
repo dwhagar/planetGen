@@ -76517,6 +76517,29 @@
    "volume": "124",
    "year": 1996
   },
+  "10.1006/icar.1996.5637": {
+   "authors": [
+    [
+     "Levison",
+     "H. F."
+    ],
+    [
+     "Duncan",
+     "M. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1996.5637",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "13",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets",
+   "type": "journal-article",
+   "volume": "127",
+   "year": 1997
+  },
   "10.1006/icar.1996.5653": {
    "authors": [
     [
@@ -88478,6 +88501,53 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "286",
+   "year": 2009
+  },
+  "10.1016/j.epsl.2009.08.030": {
+   "authors": [
+    [
+     "Auer",
+     "M."
+    ],
+    [
+     "Wagenbach",
+     "D."
+    ],
+    [
+     "Wild",
+     "E. M."
+    ],
+    [
+     "Wallner",
+     "A."
+    ],
+    [
+     "Priller",
+     "A."
+    ],
+    [
+     "Miller",
+     "H."
+    ],
+    [
+     "Schlosser",
+     "C."
+    ],
+    [
+     "Kutschera",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2009.08.030",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "453",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Cosmogenic 26Al in the atmosphere and the prospect of a 26Al/10Be chronometer to date old ice",
+   "type": "journal-article",
+   "volume": "287",
    "year": 2009
   },
   "10.1016/j.epsl.2010.01.020": {
@@ -102025,6 +102095,45 @@
    "type": "journal-article",
    "volume": "61",
    "year": 1997
+  },
+  "10.1016/s0016-7037(98)00134-3": {
+   "authors": [
+    [
+     "Fink",
+     "D."
+    ],
+    [
+     "Klein",
+     "J."
+    ],
+    [
+     "Middleton",
+     "R."
+    ],
+    [
+     "Vogt",
+     "S."
+    ],
+    [
+     "Herzog",
+     "G."
+    ],
+    [
+     "Reedy",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(98)00134-3",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "2389",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "41Ca, 26Al, and 10Be in lunar basalt 74275 and 10Be in the double drive tube 74002/74001",
+   "type": "journal-article",
+   "volume": "62",
+   "year": 1998
   },
   "10.1016/s0016-7037(98)00293-2": {
    "authors": [
@@ -281344,6 +281453,32 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2606.11330": {
+   "arxiv": "2606.11330",
+   "authors": [
+    [
+     "Marston",
+     "N. T."
+    ],
+    [
+     "Becker",
+     "J."
+    ],
+    [
+     "Howe",
+     "A. R."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Do Super-Puffs Defy Core Accretion? Population-Wide Interior Structure Constraints",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2606.12851": {
    "arxiv": "2606.12851",
    "authors": [
@@ -282639,7 +282774,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5215,
+ "id_next": 5219,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282736,6 +282871,7 @@
   "10.1006/icar.1996.0113": "R3316",
   "10.1006/icar.1996.0117": "R1584",
   "10.1006/icar.1996.0190": "R3565",
+  "10.1006/icar.1996.5637": "R5218",
   "10.1006/icar.1996.5653": "R2730",
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
@@ -283179,6 +283315,7 @@
   "10.1016/j.epsl.2009.01.040": "R2382",
   "10.1016/j.epsl.2009.03.002": "R0086",
   "10.1016/j.epsl.2009.07.022": "R0628",
+  "10.1016/j.epsl.2009.08.030": "R5215",
   "10.1016/j.epsl.2010.01.020": "R2625",
   "10.1016/j.epsl.2010.11.030": "R3832",
   "10.1016/j.epsl.2011.01.015": "R3338",
@@ -283569,6 +283706,7 @@
   "10.1016/s0016-7037(67)80014-0": "R2566",
   "10.1016/s0016-7037(96)00385-7": "R0512",
   "10.1016/s0016-7037(97)00304-9": "R0821",
+  "10.1016/s0016-7037(98)00134-3": "R5216",
   "10.1016/s0016-7037(98)00293-2": "R4210",
   "10.1016/s0019-1035(03)00002-2": "R2262",
   "10.1016/s0019-1035(03)00043-5": "R0895",
@@ -288931,6 +289069,7 @@
   "arxiv:2605.00100": "R4903",
   "arxiv:2605.03099": "R1396",
   "arxiv:2606.07511": "R0869",
+  "arxiv:2606.11330": "R5217",
   "arxiv:2606.12851": "R0382",
   "arxiv:2606.23483": "R0186",
   "arxiv:2606.30722": "R0901",
