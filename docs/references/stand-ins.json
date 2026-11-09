@@ -57725,7 +57725,11 @@
       "number": "6.247",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1"
+          ],
           "fields": [
             [
               "What it is",
@@ -57763,7 +57767,11 @@
           "what": "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years"
+          ],
           "fields": [
             [
               "What it is",
