@@ -18,6 +18,8 @@ takes, each field naming the keys it fills and inverting its own conversion (`sc
 AU). In the 8.4 revision the lists also name which columns go to the shared core table and which to a profile table.
 """
 
+import contextlib
+import contextvars
 import dataclasses
 
 
@@ -129,6 +131,25 @@ def load_dict(fields, row, only=None):
     return data
 
 
+_ROW_LOG = contextvars.ContextVar("object_rows_row_log", default=None)
+
+
+@contextlib.contextmanager
+def logged_rows():
+    """
+    Notes every row `insert_row` writes inside the block, for the effect ledger (GEN.1465), which names bodies by the row they were saved as.
+
+    Yields:
+        dict: `id(object)` to `(table, row id)`, filled as rows are inserted; an object is only valid while it is alive, so use it inside the save.
+    """
+    log = {}
+    token = _ROW_LOG.set(log)
+    try:
+        yield log
+    finally:
+        _ROW_LOG.reset(token)
+
+
 def insert_row(conn, table, fields, obj, context=None):
     """
     Writes `obj` to `table` as one row filled by `fields`; returns the new row's id.
@@ -139,4 +160,7 @@ def insert_row(conn, table, fields, obj, context=None):
     columns = columns_of(fields)
     cur = conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
                        tuple(values_of(fields, obj, context)))
+    log = _ROW_LOG.get()
+    if log is not None:
+        log[id(obj)] = (table, cur.lastrowid)
     return cur.lastrowid

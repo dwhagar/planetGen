@@ -70,14 +70,14 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, derived_stamp, designation_rows, galaxy_counts, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import naming_key as namingKey
 from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import isotope_record, ore_deposits
+from planetgen.physics import effect_ledger, isotope_record, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -4726,7 +4726,46 @@ def _system_velocity_kms(conn, star_system, sector_id, position_pc):
 
 
 def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfig,
-                        sector_id=None, position=None, location=None) -> int:
+                       sector_id=None, position=None, location=None) -> int:
+    """
+    Inserts a full `StarSystem` (`_insert_star_system_rows`) and then its effect ledger (`system.effect_ledger`, GEN.1465), whose rows name the bodies by the
+    rows they were just saved as.
+
+    Returns:
+        int: The new `star_systems.id`.
+    """
+    with object_rows.logged_rows() as saved:
+        star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
+        insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
+    return star_system_id
+
+
+def insert_effect_ledger(conn, star_system_id, ledger, saved, floor=None):
+    """
+    Writes a system's effect ledger (GEN.1465): the rows `EffectLedger.rows` makes from the contributions the effect code noted.
+
+    Args:
+        conn (Connection): An open connection.
+        star_system_id (int): The system's `star_systems.id`.
+        ledger (EffectLedger or None): What the system's effects computed; `None` or empty writes nothing.
+        saved (dict): `id(object)` to `(table, row id)` of the system's bodies (`object_rows.logged_rows`).
+        floor (float, optional): Share under which a source is summed and not written, default `tuning.EFFECT_LEDGER_FLOOR`.
+
+    Returns:
+        int: The number of rows written.
+    """
+    if not ledger:
+        return 0
+    rows = ledger.rows(star_system_id, saved, floor)
+    columns = effect_ledger.ROW_FIELDS
+    if rows:
+        marks = ", ".join("?" for _ in columns)
+        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+    return len(rows)
+
+
+def _insert_star_system_rows(conn, star_system: StarSystem, system_config: SystemConfig,
+                             sector_id=None, position=None, location=None) -> int:
     """
     Inserts a full `StarSystem` -- the `star_systems` row, its `stars` row(s),
     and every planet/moon/asteroid belt/comet it contains -- into the database.
@@ -6590,6 +6629,9 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    from planetgen.db import block_lights
+
+    block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
     scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
@@ -6842,6 +6884,9 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    from planetgen.db import block_lights
+
+    block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
     scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
@@ -7089,9 +7134,13 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     (`_insert_literal_rows`), which costs about half what the driver's own
     per-value escaping does over tens of millions of rows (PERF.73).
     Returns the rows written."""
+    from planetgen.db import block_lights      # GEN.1476: the light of the rows is added to its cells' parts in this transaction
+
+    rows = rows if isinstance(rows, (list, tuple)) else list(rows)
     written = _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
     if written:
         scatter_uids.assign(conn, "phenomenon_scatter")     # GEN.1254: the rows just written get their Object IDs
+        block_lights.note_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows)
     return written
 
 
@@ -7417,12 +7466,14 @@ def refresh_edited_sectors(conn, sector_ids):
     from planetgen.db import block_stats
 
     done = []
+    counted = []
     for sector_id in sorted({int(i) for i in sector_ids if i is not None}):
         row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
         if row is None or row["shell_index"] is None:
             continue
         address = (row["shell_index"], row["band_index"], row["wedge_index"])
         figures = _content_figures(conn, sector_id)
+        figures_before = galaxy_counts.stats_figures(conn, address)
         found = conn.execute(
             "UPDATE sector_stats SET actual_systems = ?, actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?,"
             " mean_age_gy = ?, total_luminosity_sol = ?, habitable_worlds = ?"
@@ -7430,6 +7481,9 @@ def refresh_edited_sectors(conn, sector_ids):
         if found.rowcount:
             block_stats.refresh_chain(conn, address)
             done.append(address)
+        counted.append((sector_id, address, figures_before))    # a change of class or life moves no figure above, so `rowcount` says nothing here
+    for sector_id, address, before in counted:    # DB.121: the sectors' counts and the running totals, last (the totals row is locked last)
+        galaxy_counts.refresh(conn, sector_id, address, before)
     return done
 
 
@@ -7471,6 +7525,7 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     systems, star_count, temperature, luminosity, age, total_luminosity, habitable = _content_figures(conn, sector_id)
     mass = sector_mass.sector_mass_kg(conn, sector_id)
     record_system_interests(conn, "ss.sector_id = ?", (sector_id,))
+    figures_before = galaxy_counts.stats_figures(conn, address)    # DB.121: what the stats row held, for the totals' difference
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
@@ -7491,6 +7546,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
             " density_ratio_samples = density_ratio_samples + 1 WHERE id = 1",
             (ratio, ratio, DENSITY_RATIO_WINDOW),
         )
+    # DB.121: the sector's counts and the galaxy's running totals, last, so the totals row is locked only for the commit.
+    galaxy_counts.refresh(conn, sector_id, address, figures_before)
 
 
 def forget_sector_fill(conn, address):
@@ -7502,6 +7559,7 @@ def forget_sector_fill(conn, address):
     """
     if address is None or any(value is None for value in address):
         return
+    figures_before = galaxy_counts.stats_figures(conn, address)    # DB.121
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
@@ -7514,6 +7572,7 @@ def forget_sector_fill(conn, address):
 
     block_stats.refresh_chain(conn, address)
     block_lights.refresh_chain(conn, address)    # MAP.259: its stars that were built are pre-placed again
+    galaxy_counts.forget(conn, address, figures_before)    # DB.121: its counts leave the running totals, last
 
 
 SECTOR_DELETIONS_COUNTER = "sdel"
@@ -7614,9 +7673,13 @@ def insert_bright_stars(conn, rows, batch_size=10000):
     Returns:
         int: Rows written.
     """
+    from planetgen.db import block_lights      # GEN.1476: the light of the rows is added to its cells' parts in this transaction
+
+    rows = rows if isinstance(rows, (list, tuple)) else list(rows)
     written = _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
     if written:
         scatter_uids.assign(conn, "bright_stars")     # GEN.1254: the rows just written get their Object IDs
+        block_lights.note_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows)
     return written
 
 

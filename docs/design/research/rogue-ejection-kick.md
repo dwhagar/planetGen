@@ -28,3 +28,10 @@ Not done: the tail that eccentric scatterers (Kramer and Profumo: mean up to 7 k
 ## 5. Kramer and Profumo internal inconsistencies noticed
 
 Ejection-fraction drop over the ejected-mass range: 1.67 points (Sec. 4.1) against 2.3 (Sec. 5.3 and 6.1); maximum first-step speed 7.5 (text) against 7.76 km/s (caption); 79.7 (text) against 79.8 km/s (caption). None changes a number used here.
+
+## Which planet scatters (GEN.1456)
+
+The scatterer a thrown or swept planet's `Loss` names, and so the ejected share (`scatter.loss_fates` of its Safronov number) and the kick (`rogue_kick.ejection_speed_km_s` of its mass and orbit), was the neighbour the clearing recorded (`_scatter_split`'s heavier of the close pair, or the giant that swept it). `planet_architecture.losses` now picks, for each such body, the planet of the highest Safronov number at the body's distance among the recorded neighbour and every other planet whose reach band holds the body (`scatter.reach_band_au`, the rule the sub-minimum embryos already used, GEN.1299): the recorded neighbour wins a tie. A body no other planet reaches, and a system of one planet, are as before.
+
+What was checked and left out: a companion star ejects nothing in the model, since the planets of a star form inside its stability limit (`Star.a_crit_au`, GEN.1451, and `validation.orbit_ceiling_au`), so no body is left outside it to throw; a fringe of planets near the limit that a companion pumps over gigayears is the secular excitation of GEN.1447 and GEN.1492. The tail of fast ejections that eccentric giants and three-planet systems add (up to 7 km/s mean, 80 km/s) stays unmodelled for want of a source that gives its share. The census (`tests/audit/scatterer_census.py`) reads each star's losses with and without the change.
+
